@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tools version="1.0">
+	<environment	name="Gold"		loc="\\blurdev/gold" default="True"/>
+	<environment	name="Beta"		loc="\\blurdev/beta"/>>
+	<environment	name="Local"	loc="c:/blur/dev/local"	development="True"/>
+</tools>
