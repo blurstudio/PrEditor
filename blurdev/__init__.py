@@ -8,6 +8,11 @@
 # 	\date		06/11/10
 #
 
+# include the blur path
+from tools import ToolsEnvironment
+
+ToolsEnvironment.registerPath('c:/blur')
+
 core = None
 
 
