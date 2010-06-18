@@ -260,7 +260,7 @@ class ToolsIndex(QObject):
             \remarks	returns the filename for this index
             \return		<str>
         """
-        return self.environment().relativePath('code/index.xml')
+        return self.environment().relativePath('code/tools.xml')
 
     def load(self):
         """
