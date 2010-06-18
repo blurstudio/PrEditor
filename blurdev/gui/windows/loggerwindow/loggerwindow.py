@@ -15,10 +15,6 @@ class LoggerWindow(Window):
     def __init__(self, parent):
         Window.__init__(self, parent)
 
-        from PyQt4.QtGui import QMessageBox
-
-        QMessageBox.critical(None, "WTF", "WHAT THE OFLASJD:KLFASJEDF")
-
         import blurdev.gui
 
         blurdev.gui.loadUi(__file__, self)

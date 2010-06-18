@@ -42,15 +42,19 @@ class ConsoleEdit(QTextEdit):
         self.setCompleter(PythonCompleter(self))
 
         # overload the sys logger (if we are not on a high debugging level)
-        import sys
+        from blurdev import debug
 
-        sys.stdout = self
-        sys.stderr = ErrorLog(self)
+        if debug.debugLevel() != debug.DebugLevel.High:
+            import sys
+
+            sys.stdout = self
+            sys.stderr = ErrorLog(self)
 
         # create the highlighter
         from blurdev.gui.highlighter import Highlighter
 
         highlight = Highlighter(self)
+        highlight.setLanguage('Python')
 
         self.startInputLine()
 
@@ -198,7 +202,7 @@ class ConsoleEdit(QTextEdit):
         # if this is not already a new line
         if self.textCursor().block().text() != '>>> ':
             charFormat = QTextCharFormat()
-            charFormat.setForeground(Qt.black)
+            charFormat.setForeground(Qt.lightGray)
             self.setCurrentCharFormat(charFormat)
 
             inputstr = '>>> '
@@ -215,13 +219,13 @@ class ConsoleEdit(QTextEdit):
         """ write the message to the logger """
         from PyQt4.QtCore import Qt
         from PyQt4.QtGui import QTextCharFormat
-        from PyQt4.QtGui import QTextCursor
+        from PyQt4.QtGui import QTextCursor, QColor
 
         self.moveCursor(QTextCursor.End)
         charFormat = QTextCharFormat()
 
         if not error:
-            charFormat.setForeground(Qt.blue)
+            charFormat.setForeground(QColor(17, 154, 255))
         else:
             # start recording information to the error buffer
             if not self._errorBuffer:

@@ -16,6 +16,7 @@ class ToolsIndex(QObject):
         QObject.__init__(self, environment)
 
         self._loaded = False
+        self._favoritesLoaded = False
         self._categoryCache = {}
         self._toolCache = {}
 
@@ -36,9 +37,31 @@ class ToolsIndex(QObject):
         """
             \remarks	clears the current cache of information
         """
+        # save the favorites first
+        self.saveFavorites()
+
+        # reload the data
+        self._favoritesLoaded = False
         self._loaded = False
         self._categoryCache.clear()
         self._toolCache.clear()
+
+        # remove all the children
+        from tool import Tool
+        from toolsfavoritegroup import ToolsFavoriteGroup
+        from toolscategory import ToolsCategory
+
+        for child in self.findChildren(ToolsFavoriteGroup):
+            child.setParent(None)
+            child.deleteLater()
+
+        for child in self.findChildren(Tool):
+            child.setParent(None)
+            child.deleteLater()
+
+        for child in self.findChildren(ToolsCategory):
+            child.setParent(None)
+            child.deleteLater()
 
     def categories(self):
         """
@@ -96,7 +119,13 @@ class ToolsIndex(QObject):
         ):
             self.rebuildPath(path, categories, tools, True)
 
+        # save the index file
         doc.save(self.filename())
+
+        # clear the old data & reload
+        self.clear()
+        self.load()
+        self.loadFavorites()
 
     def rebuildPath(self, path, parent, tools, legacy=False, parentCategoryId=''):
         """
@@ -154,9 +183,10 @@ class ToolsIndex(QObject):
                 toolId = os.path.splitext(os.path.basename(script))[0]
                 toolIndex = tools.addNode('legacy_tool')
                 toolIndex.setAttribute('category', categoryId)
-                toolIndex.setAttribute('name', 'LegacyStudiomax_%s' % toolId)
+                toolIndex.setAttribute('name', 'LegacyStudiomax::%s' % toolId)
                 toolIndex.setAttribute('src', script)
                 toolIndex.setAttribute('type', 'LegacyStudiomax')
+                toolIndex.setAttribute('icon', 'icon24.bmp')
 
             # add python legacy tools
             scripts = glob.glob(path + '/*.py*')
@@ -170,17 +200,22 @@ class ToolsIndex(QObject):
                     toolId = os.path.splitext(os.path.basename(script))[0]
                     toolIndex = tools.addNode('legacy_tool')
                     toolIndex.setAttribute('category', categoryId)
-                    toolIndex.setAttribute('name', '%s_%s' % (typ, toolId))
+                    toolIndex.setAttribute('name', '%s::%s' % (typ, toolId))
                     toolIndex.setAttribute('src', script)
                     toolIndex.setAttribute('type', typ)
 
+                    if typ == 'LegacyExternal':
+                        toolIndex.setAttribute('icon', 'img/icon.png')
+                    else:
+                        toolIndex.setAttribute('icon', 'icon24.bmp')
+
             # add link support
-            links = glob.glob(path + '/*.py')
+            links = glob.glob(path + '/*.lnk')
             for link in links:
-                toolId = os.path.splitext(os.path.basename(script))[0]
+                toolId = os.path.splitext(os.path.basename(link))[0]
                 toolIndex = tools.addNode('legacy_tool')
                 toolIndex.setAttribute('category', categoryId)
-                toolIndex.setAttribute('name', 'LegacyExternal_%s' % toolId)
+                toolIndex.setAttribute('name', 'LegacyExternal::%s' % toolId)
                 toolIndex.setAttribute('src', link)
                 toolIndex.setAttribute('type', 'LegacyExternal')
 
@@ -192,6 +227,33 @@ class ToolsIndex(QObject):
                 or (path + '__meta__.xml' in processed)
             ):
                 self.rebuildPath(path, categoryIndex, tools, legacy, categoryId)
+
+    def favoriteGroups(self):
+        """
+            \remarks	returns the favorites items for this index
+        """
+        self.loadFavorites()
+
+        from toolsfavoritegroup import ToolsFavoriteGroup
+
+        return [
+            child
+            for child in self.findChildren(ToolsFavoriteGroup)
+            if child.parent() == self
+        ]
+
+    def favoriteTools(self):
+        """
+            \remarks	returns all the tools that are favorited and linked
+            \return		<list> [ <blurdev.tools.Tool>, .. ]
+        """
+        self.loadFavorites()
+
+        return [
+            tool
+            for tool in self._toolCache.values()
+            if tool.isFavorite() and tool.favoriteGroup() == None
+        ]
 
     def filename(self):
         """
@@ -227,6 +289,28 @@ class ToolsIndex(QObject):
                 if tools:
                     for xml in tools.children():
                         Tool.fromIndex(self, xml)
+
+    def loadFavorites(self):
+        if not self._favoritesLoaded:
+            self._favoritesLoaded = True
+
+            # load favorites
+            import blurdev
+            from toolsfavoritegroup import ToolsFavoriteGroup
+
+            from blurdev import prefs
+
+            pref = prefs.find(
+                'treegrunt/%s/%s'
+                % (blurdev.core.objectName(), self.environment().objectName())
+            )
+
+            children = pref.root().children()
+            for child in children:
+                if child.nodeName == 'group':
+                    ToolsFavoriteGroup.fromXml(self, self, child)
+                else:
+                    self.findTool(child.attribute('id')).setFavorite(True)
 
     def findCategory(self, name):
         """
@@ -288,6 +372,32 @@ class ToolsIndex(QObject):
 
         return output
 
+    def saveFavorites(self):
+        # load favorites
+        if self._favoritesLoaded:
+            import blurdev
+            from toolsfavoritegroup import ToolsFavoriteGroup
+
+            from blurdev import prefs
+
+            pref = prefs.find(
+                'treegrunt/%s/%s'
+                % (blurdev.core.objectName(), self.environment().objectName())
+            )
+            root = pref.root()
+            root.clear()
+
+            # record the groups
+            for grp in self.favoriteGroups():
+                grp.toXml(root)
+
+            # record the tools
+            for tool in self.favoriteTools():
+                node = root.addNode('tool')
+                node.setAttribute('id', tool.objectName())
+
+            pref.save()
+
     def search(self, searchString):
         """
             \remarks	looks up tools by the inputed search string
@@ -296,21 +406,19 @@ class ToolsIndex(QObject):
         """
         self.load()
 
-        keywords = str(searchString).split('*')
+        import re
+
+        expr = re.compile(str(searchString).replace('*', '.*'), re.IGNORECASE)
 
         output = []
-        for key, item in self._toolCache.items():
-            include = True
-
-            for kwd in keywords:
-                if not kwd.lower() in key.lower():
-                    include = False
-                    break
-
-            if include:
-                output.append(item)
+        for tool in self._toolCache.values():
+            if expr.search(tool.displayName()):
+                output.append(tool)
 
         output.sort(
             lambda x, y: cmp(str(x.objectName()).lower(), str(y.objectName()).lower())
         )
         return output
+
+    def tools(self):
+        return self._toolCache.values()

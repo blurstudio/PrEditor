@@ -72,6 +72,7 @@ class ToolsEnvironment(QObject):
             from toolsindex import ToolsIndex
 
             self._index = ToolsIndex(self)
+
         return self._index
 
     def isActive(self):
@@ -89,33 +90,8 @@ class ToolsEnvironment(QObject):
     def isOffline(self):
         return self._offline
 
-    def normalizePath(self, path):
-        """
-            \remarks	returns a normalized path for this environment to use when registering paths to the sys path
-            \param		path		<str> || <QString>
-            \return		<str>
-        """
-        import os.path
-
-        return os.path.abspath(str(path)).lower()
-
     def path(self):
         return self._path
-
-    def registerPath(self, path):
-        """
-            \remarks	registers the inputed path to the system
-            \param		path		<str>
-            \return		<bool> success
-        """
-        import os.path
-
-        if path:
-            import sys
-
-            sys.path.insert(0, self.normalizePath(path))
-            return True
-        return False
 
     def relativePath(self, path):
         """
@@ -200,7 +176,7 @@ class ToolsEnvironment(QObject):
             \return		<ToolsEnvironment>
         """
         for env in ToolsEnvironment.environments:
-            if env.objectName() == name:
+            if str(env.objectName()) == str(name):
                 return env
         return ToolsEnvironment()
 
@@ -222,6 +198,17 @@ class ToolsEnvironment(QObject):
         return output
 
     @staticmethod
+    def normalizePath(path):
+        """
+            \remarks	returns a normalized path for this environment to use when registering paths to the sys path
+            \param		path		<str> || <QString>
+            \return		<str>
+        """
+        import os.path
+
+        return os.path.abspath(str(path)).lower()
+
+    @staticmethod
     def loadConfig(filename):
         """
             \remarks	loads the environments from the inputed config file
@@ -240,3 +227,33 @@ class ToolsEnvironment(QObject):
 
             # initialize the default environment
             ToolsEnvironment.defaultEnvironment().setActive()
+
+    @staticmethod
+    def registerPath(path):
+        """
+            \remarks	registers the inputed path to the system
+            \param		path		<str>
+            \return		<bool> success
+        """
+        import os.path
+
+        if path:
+            import sys
+
+            sys.path.insert(0, ToolsEnvironment.normalizePath(path))
+            return True
+        return False
+
+    @staticmethod
+    def registerScriptPath(filename):
+        import os.path
+
+        # push the local path to the front of the list
+        path = os.path.split(filename)[0]
+
+        # if it is a package, then register the parent path, otherwise register the folder itself
+        if os.path.exists(path + '/__init__.py'):
+            path = os.path.abspath(path + '/..')
+
+        # if the path does not exist, then register it
+        ToolsEnvironment.registerPath(path)

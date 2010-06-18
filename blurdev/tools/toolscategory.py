@@ -25,6 +25,10 @@ class ToolsCategory(QObject):
         tool.setParent(self)
         self._toolType |= tool.toolType()
 
+    def displayName(self):
+        name = str(self.objectName()).split('::')[-1]
+        return name.replace('_', ' ').strip()
+
     def index(self):
         """
             \remarks	returns the index from which this category is instantiated
@@ -42,16 +46,20 @@ class ToolsCategory(QObject):
             \remarks	returns a list of the sub-categories for this category
             \return		<list> [ <ToolsCategory>, .. ]
         """
-        return self.findChildren(ToolsCategory)
+        return [
+            child
+            for child in self.findChildren(ToolsCategory)
+            if child.parent() == self
+        ]
 
     def tools(self, toolType=None):
         """
             \remarks	returns a list of the tools for this category
             \return		<list> [ <blurdev.tools.Tool>, .. ]
         """
-        if self._toolCache == None:
-            self._toolCache = self.index().findToolsByCategory(self.objectName())
-        return self._toolCache
+        from tool import Tool
+
+        return [child for child in self.findChildren(Tool) if child.parent() == self]
 
     def toolType(self):
         """

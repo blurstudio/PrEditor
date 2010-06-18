@@ -123,12 +123,22 @@ class Core(QObject):
 
         # create custom properties
         self._protectedModules = []
+        self._preferenceRoot = ''
         self._hwnd = hwnd
         self._keysEnabled = True
         self._lastFileName = ''
         self._mfcApp = False
         self._logger = None
+        self._treegrunt = None
         self._rootWidgets = []
+
+        # try to set the preference path to the standarad blur location
+        try:
+            import win32api
+
+            self.setPreferenceRoot('h:/public/%s/blur/tools' % win32api.GetUserName())
+        except:
+            self.setPreferenceRoot('c:/blur/prefs')
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -257,6 +267,15 @@ class Core(QObject):
 
         return QObject.eventFilter(self, object, event)
 
+    def relativePreferencePath(self, pref):
+        """
+            \remarks	loads the path for the inputed preference file
+            \param		pref	<str>
+        """
+        import os.path
+
+        return os.path.join(self.preferenceRoot(), pref)
+
     def init(self):
         """
             \remarks	initializes the core system
@@ -288,6 +307,7 @@ class Core(QObject):
             app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
             app.setEffectEnabled(Qt.UI_FadeTooltip, False)
             app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
+
             app.installEventFilter(self)
 
     def isMfcApp(self):
@@ -301,6 +321,18 @@ class Core(QObject):
 
     def lastFileName(self):
         return self._lastFileName
+
+    def logger(self, parent=None):
+        """
+            \remarks	creates and returns the logger instance
+        """
+        if not self._logger:
+            from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+            if not parent:
+                parent = self.activeWindow()
+            self._logger = LoggerWindow(parent)
+        return self._logger
 
     def newScript(self):
         """
@@ -339,6 +371,9 @@ class Core(QObject):
             window = ScriptWindow(self.activeWindow())
             window.setFileName(filename)
             window.show()
+
+    def preferenceRoot(self):
+        return self._preferenceRoot
 
     def protectModule(self, moduleName):
         """
@@ -427,17 +462,8 @@ class Core(QObject):
                 path_bak = list(sys.path)
                 argv_bak = sys.argv
 
-                # push the local path to the front of the list
-                path = os.path.split(filename)[0]
-
-                # if it is a package, then register the parent path, otherwise register the folder itself
-                if os.path.exists(path + '/__init__.py'):
-                    path = os.path.abspath(path + '/..')
-
-                path = os.path.normcase(path)
-
                 # if the path does not exist, then register it
-                ToolsEnvironment.activeEnvironment().registerPath(path)
+                ToolsEnvironment.registerScriptPath(filename)
 
                 scope['__name__'] = '__main__'
                 scope['__file__'] = filename
@@ -469,16 +495,17 @@ class Core(QObject):
     def setHwnd(self, hwnd):
         self._hwnd = hwnd
 
+    def setPreferenceRoot(self, path):
+        self._preferenceRoot = path
+
+    def showTreegrunt(self):
+        self.treegrunt().show()
+
     def showLogger(self):
         """
             \remarks	creates the python logger and displays it
         """
-        if not self._logger:
-            from blurdev.gui.windows.loggerwindow import LoggerWindow
-
-            self._logger = LoggerWindow(self.activeWindow())
-
-        self._logger.show()
+        self.logger().show()
 
     def unprotectModule(self, moduleName):
         """
@@ -503,3 +530,19 @@ class Core(QObject):
             output |= ToolType.Trax
 
         return output
+
+    def treegrunt(self, parent=None):
+        """
+            \remarks	creates and returns the logger instance
+        """
+        if not self._treegrunt:
+            from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
+
+            if not parent:
+                parent = self.activeWindow()
+            self._treegrunt = TreegruntDialog(parent)
+
+            from PyQt4.QtCore import Qt
+
+            self._treegrunt.setAttribute(Qt.WA_DeleteOnClose, False)
+        return self._treegrunt

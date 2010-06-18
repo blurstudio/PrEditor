@@ -18,8 +18,8 @@ STUDIOMAX_MACRO_TEMPLATE = """
 macroscript Blur_%(id)s_Macro
 category: "Blur Tools"
 toolTip: "%(tooltip)s"
-buttonText: "%(tool)s"
-icon:#( "Blur_%(tool)s_Macro", 1 )
+buttonText: "%(displayName)s"
+icon:#( "Blur_%(id)s_Macro", 1 )
 (
     local blurdev 	= python.import "blurdev"
     blurdev.runTool "%(tool)s" macro:"%(macro)s"
@@ -43,10 +43,11 @@ class StudiomaxCore(Core):
         """
         # create the options for the tool macro to run
         options = {
-            'tool': tool.toolId(),
+            'tool': tool.objectName(),
+            'displayName': tool.displayName(),
             'macro': macro,
-            'tooltip': tool.toolTip(html=False, macro=macro),
-            'id': tool.toolId().replace(' ', '_'),
+            'tooltip': tool.toolTip(),
+            'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
         }
 
         # create the macroscript
@@ -61,7 +62,7 @@ class StudiomaxCore(Core):
         # convert icon files to max standard ...
         from PyQt4.QtGui import QImage
 
-        root = QImage(icon)
+        root = QImage(tool.icon())
         icon24 = root.scaled(24, 24)
 
         # ... for 24x24 pixels (image & alpha icons)
@@ -144,7 +145,7 @@ class StudiomaxCore(Core):
                 return True
             return False
 
-        return Core.runScript(self, filename, scope, arg)
+        return Core.runScript(self, filename, scope, argv)
 
     def toolTypes(self):
         """
@@ -155,7 +156,7 @@ class StudiomaxCore(Core):
         """
         from blurdev.tools import ToolsEnvironment, ToolType
 
-        output = ToolType.StudioMax | ToolType.LegacyStudiomax
+        output = ToolType.Studiomax | ToolType.LegacyStudiomax
 
         # include trax tools for non-offline environments
         if not ToolsEnvironment.activeEnvironment().isOffline():
