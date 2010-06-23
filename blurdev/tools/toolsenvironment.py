@@ -24,6 +24,7 @@ class ToolsEnvironment(QObject):
         self._active = False
         self._offline = False
         self._index = None
+        self._emailOnError = []
 
     def clearPathSymbols(self):
         """
@@ -62,6 +63,9 @@ class ToolsEnvironment(QObject):
                     sys.modules.pop(key)
 
         return True
+
+    def emailOnError(self):
+        return self._emailOnError
 
     def index(self):
         """
@@ -133,6 +137,9 @@ class ToolsEnvironment(QObject):
     def setOffline(self, state=False):
         self._offline = state
 
+    def setEmailOnError(self, emails):
+        self._emailOnError = emails
+
     def setPath(self, path):
         self._path = path
 
@@ -194,6 +201,7 @@ class ToolsEnvironment(QObject):
         output.setDefault(xml.attribute('default') == 'True')
         output.setDevelopment(xml.attribute('development') == 'True')
         output.setOffline(xml.attribute('offline') == 'True')
+        output.setEmailOnError(xml.attribute('emailOnError').split(';'))
 
         return output
 

@@ -11,6 +11,49 @@
 from PyQt4.QtCore import QObject
 from PyQt4.QtGui import QTextEdit
 
+emailformat = """
+<html>
+    <head>
+        <style>
+            body {
+                font-family: Verdana, sans-serif;
+                font-size: 12px;
+                color:#484848;
+                background:lightGray;
+            }
+            h1, h2, h3 { font-family: "Trebuchet MS", Verdana, sans-serif; margin: 0px; }
+            h1 { font-size: 1.2em; }
+            h2, h3 { font-size: 1.1em; }
+            a, a:link, a:visited { color: #2A5685;}
+            a:hover, a:active { color: #c61a1a; }
+            a.wiki-anchor { display: none; }
+            hr {
+                width: 100%%;
+                height: 1px;
+                background: gray;
+                border: 0;
+            }
+            .footer {
+                font-size: 0.9em;
+                font-style: italic;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>%(subject)s</h1>
+        <br><br>
+        %(body)s
+        <br><br><br><br>
+        <hr/>
+        <span class="footer">
+            <p>You have received this notification because you have either subscribed to it, or are involved in it.<br/>
+            To change your notification preferences, go into trax and change your options settings.
+            </p>
+        </span>
+    </body>
+</html>
+"""
+
 # ----------------------------------------------------------------
 
 
@@ -67,6 +110,74 @@ class ConsoleEdit(QTextEdit):
     def completer(self):
         """ returns the completer instance that is associated with this editor """
         return self._completer
+
+    def emailError(self, emails, error):
+
+        # get current user
+        try:
+            import win32api
+
+            username = win32api.GetUserName()
+        except:
+            username = 'Anonymous'
+
+        # get current host
+        try:
+            import socket
+
+            host = socket.gethostname()
+        except:
+            host = 'Unknown'
+
+        # Build the brief & subject information
+        subject = '[Python Error] %s' % error.split('\n')[-2]
+
+        # Build the message
+        message = ['<ul>']
+
+        from PyQt4.QtCore import QDateTime
+
+        message.append('<li><b>user: </b>%s</li>' % username)
+        message.append('<li><b>host: </b>%s</li>' % host)
+        message.append(
+            '<li><b>date: </b>%s</li>'
+            % QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
+        )
+
+        # notify where the error came from
+        from PyQt4.QtGui import QApplication
+
+        window = QApplication.activeWindow()
+
+        # use the root application
+        if window.__class__.__name__ == 'LoggerWindow':
+            window = window.parent()
+
+        if window:
+            message.append(
+                '<li><b>window: </b>%s (from %s Class)</li>'
+                % (window.objectName(), window.__class__.__name__)
+            )
+
+        message.append('</ul>')
+        message.append('<br>')
+        message.append('<h3>Traceback Printout</h3>')
+        message.append('<hr>')
+        message.append(
+            '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
+        )
+        message.append(str(error).replace('\n', '<br>'))
+        message.append('</code></pre></div>')
+
+        import blur.email
+
+        blur.email.send(
+            'thePipe@blur.com',
+            emails,
+            subject,
+            emailformat % {'subject': subject, 'body': '\n'.join(message)},
+            html=True,
+        )
 
     def errorTimeout(self):
         """ end the error lookup """
@@ -214,6 +325,16 @@ class ConsoleEdit(QTextEdit):
     def timerEvent(self, event):
         """ kill the error event """
         self.killTimer(self._errorId)
+
+        # determine the error email path
+        from blurdev.tools import ToolsEnvironment
+
+        emails = ToolsEnvironment.activeEnvironment().emailOnError()
+        if emails:
+            self.emailError(emails, ''.join(self._errorBuffer))
+
+        # clear the error buffer
+        self._errorBuffer = []
 
     def write(self, msg, error=False):
         """ write the message to the logger """
