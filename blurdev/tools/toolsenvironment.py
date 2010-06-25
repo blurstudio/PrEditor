@@ -138,7 +138,7 @@ class ToolsEnvironment(QObject):
         self._offline = state
 
     def setEmailOnError(self, emails):
-        self._emailOnError = emails
+        self._emailOnError = [entry for entry in emails if str(entry) != '']
 
     def setPath(self, path):
         self._path = path

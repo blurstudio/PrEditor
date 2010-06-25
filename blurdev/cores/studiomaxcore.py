@@ -113,7 +113,7 @@ class StudiomaxCore(Core):
         # init the base class
         Core.init(self)
 
-    def runScript(self, filename='', scope=None, argv=None):
+    def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
             \remarks	[overloaded] handle maxscript script running
         """
@@ -145,7 +145,7 @@ class StudiomaxCore(Core):
                 return True
             return False
 
-        return Core.runScript(self, filename, scope, argv)
+        return Core.runScript(self, filename, scope, argv, toolType)
 
     def toolTypes(self):
         """

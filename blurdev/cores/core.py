@@ -410,21 +410,21 @@ class Core(QObject):
         print '[blurdev.cores.core.Core.runMacro] virtual method not defined'
         return False
 
-    def runScript(self, filename='', scope=None, argv=None):
+    def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
             \remarks	Runs an inputed file in the best way this core knows how
             
             \param		filename	<str>
             \param		scope		<dict> || None						the scope to run the script in
             \param		argv		<list> [ <str> cmd, .. ] || None	commands to pass to the script at run time
+            \param		toolType	<ToolType>							determines the tool type for this tool
             
             \return		<bool> success
         """
         import sys
+        from PyQt4.QtGui import QApplication, QFileDialog, QMessageBox
 
         if not filename:
-            from PyQt4.QtGui import QApplication, QFileDialog
-
             # make sure there is a QApplication running
             if QApplication.instance():
                 filename = str(
@@ -456,25 +456,73 @@ class Core(QObject):
 
             ext = os.path.splitext(filename)[1]
 
+            from blurdev.tools import ToolType
+
+            # always run legacy external tools as standalone - they can cause QApplication conflicts
+            if toolType == ToolType.LegacyExternal:
+                import os
+
+                os.startfile(filename)
+
             # run a python file
-            if ext.startswith('.py'):
-                # create a local copy of the sys variables as they stand right now
-                path_bak = list(sys.path)
-                argv_bak = sys.argv
+            elif ext.startswith('.py'):
+                # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
+                if self.objectName() == 'external':
+                    import os
 
-                # if the path does not exist, then register it
-                ToolsEnvironment.registerScriptPath(filename)
+                    os.startfile(self.sourcefile())
+                else:
+                    # create a local copy of the sys variables as they stand right now
+                    path_bak = list(sys.path)
+                    argv_bak = sys.argv
 
-                scope['__name__'] = '__main__'
-                scope['__file__'] = filename
-                sys.argv = [filename] + argv
-                scope['sys'] = sys
+                    # if the path does not exist, then register it
+                    ToolsEnvironment.registerScriptPath(filename)
 
-                execfile(filename, scope)
+                    scope['__name__'] = '__main__'
+                    scope['__file__'] = filename
+                    sys.argv = [filename] + argv
+                    scope['sys'] = sys
 
-                # restore the system information
-                sys.path = path_bak
-                sys.argv = argv_bak
+                    execfile(filename, scope)
+
+                    # restore the system information
+                    sys.path = path_bak
+                    sys.argv = argv_bak
+
+                return True
+
+            # run a fusion script
+            elif ext.startswith('.eyeonscript'):
+                try:
+                    import PeyeonScript as eyeon
+                except:
+                    eyeon = None
+
+                if eyeon:
+                    fusion = eyeon.scriptapp('Fusion')
+                    if fusion:
+                        comp = fusion.GetCurrentComp()
+                        if comp:
+                            comp.RunScript(str(filename))
+                        else:
+                            QMessageBox.critical(
+                                None,
+                                'No Fusion Comp',
+                                'There is no comp running in your Fusion.',
+                            )
+                    else:
+                        QMessageBox.critical(
+                            None,
+                            'Fusion Not Found',
+                            'You need to have Fusion running to run this file.',
+                        )
+                else:
+                    QMessageBox.critical(
+                        None,
+                        'PeyonScript Missing',
+                        'Could not import Fusion Python Libraries.',
+                    )
 
                 return True
 
@@ -497,6 +545,58 @@ class Core(QObject):
 
     def setPreferenceRoot(self, path):
         self._preferenceRoot = path
+
+    def sendEmail(self, sender, targets, subject, message, attachments=None):
+        from email import Encoders
+        from email.MIMEText import MIMEText
+        from email.MIMEMultipart import MIMEMultipart
+        from email.MIMEBase import MIMEBase
+
+        output = MIMEMultipart()
+        output['Subject'] = str(subject)
+        output['From'] = str(sender)
+
+        # convert to string
+        if type(targets) in (tuple, list):
+            output['To'] = ', '.join(targets)
+        else:
+            output['To'] = str(targets)
+
+        from PyQt4.QtCore import QDateTime
+
+        output['Date'] = str(
+            QDateTime.currentDateTime().toString('ddd, d MMM yyyy hh:mm:ss')
+        )
+        output['Content-type'] = 'Multipart/mixed'
+        output.preamble = 'This is a multi-part message in MIME format.'
+        output.epilogue = ''
+
+        # Build Body
+        msgText = MIMEText(str(message), 'html')
+        msgText['Content-type'] = 'text/html'
+
+        output.attach(msgText)
+
+        # Include Attachments
+        if attachments:
+            for a in attachments:
+                fp = open(str(a), 'rb')
+                txt = MIMEBase('application', 'octet-stream')
+                txt.set_payload(fp.read())
+                fp.close()
+
+                Encoders.encode_base64(txt)
+                txt.add_header('Content-Disposition', 'attachment; filename="%s"' % a)
+                output.attach(txt)
+
+        import smtplib
+
+        smtp = smtplib.SMTP()
+
+        smtp.connect('mail.blur.com')
+        smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
+
+        smtp.close()
 
     def showTreegrunt(self):
         self.treegrunt().show()
@@ -523,7 +623,7 @@ class Core(QObject):
         """
         from blurdev.tools import ToolsEnvironment, ToolType
 
-        output = ToolType.External | ToolType.LegacyExternal
+        output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
 
         # include trax tools for non-offline environments
         if not ToolsEnvironment.activeEnvironment().isOffline():

@@ -12,16 +12,17 @@ from PyQt4.QtCore import QObject
 
 from blurdev.enum import enum
 
-# 					1			2			4			8					16					32				64
+# 					1			2			4			8		  16			32				64					128
 ToolType = enum(
     'External',
     'Trax',
     'Studiomax',
     'Softimage',
+    'Fusion',
     'LegacyExternal',
     'LegacyStudiomax',
     'LegacySoftimage',
-    AllTools=127,
+    AllTools=255,
 )
 
 
@@ -51,22 +52,10 @@ class Tool(QObject):
             \remarks	runs this tool with the inputed macro command
             \param		macro	<str>
         """
-        # external tools should be launched externally
         import blurdev
 
-        if (
-            self.toolType() & ToolType.LegacyExternal
-            or blurdev.core.objectName() == 'external'
-        ):
-            import os
-
-            os.startfile(self.sourcefile())
-
-        else:
-            import blurdev
-
-            blurdev.init()
-            blurdev.core.runScript(self.sourcefile())
+        blurdev.init()
+        blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
     def favoriteGroup(self):
         return self._favoriteGroup

@@ -112,6 +112,11 @@ class ConsoleEdit(QTextEdit):
         return self._completer
 
     def emailError(self, emails, error):
+        from blurdev import debug
+
+        # do not email when debugging
+        if debug.debugLevel():
+            return
 
         # get current user
         try:
@@ -135,6 +140,7 @@ class ConsoleEdit(QTextEdit):
         # Build the message
         message = ['<ul>']
 
+        import sys
         from PyQt4.QtCore import QDateTime
 
         message.append('<li><b>user: </b>%s</li>' % username)
@@ -143,6 +149,7 @@ class ConsoleEdit(QTextEdit):
             '<li><b>date: </b>%s</li>'
             % QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
         )
+        message.append('<li><b>python: </b>%s</li>' % sys.version)
 
         # notify where the error came from
         from PyQt4.QtGui import QApplication
@@ -169,14 +176,13 @@ class ConsoleEdit(QTextEdit):
         message.append(str(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
 
-        import blur.email
+        import blurdev
 
-        blur.email.send(
+        blurdev.core.sendEmail(
             'thePipe@blur.com',
             emails,
             subject,
             emailformat % {'subject': subject, 'body': '\n'.join(message)},
-            html=True,
         )
 
     def errorTimeout(self):
