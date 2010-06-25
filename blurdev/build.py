@@ -67,9 +67,8 @@ if __name__ == '__main__':
         results = re.search('!define MUI_SVNREV "(\d+)"', lines)
 
         if results:
-            filename = path + '/installers/bin/%s-install-%s-v%i.%02i.%s.exe' % (
+            filename = path + '/installers/bin/%s-install-v%i.%02i.%s.exe' % (
                 product,
-                dictionary['version'],
                 version.major(),
                 version.minor(),
                 results.groups()[0],
