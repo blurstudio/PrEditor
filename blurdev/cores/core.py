@@ -625,10 +625,6 @@ class Core(QObject):
 
         output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
 
-        # include trax tools for non-offline environments
-        if not ToolsEnvironment.activeEnvironment().isOffline():
-            output |= ToolType.Trax
-
         return output
 
     def treegrunt(self, parent=None):

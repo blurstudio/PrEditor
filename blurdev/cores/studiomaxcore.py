@@ -158,8 +158,4 @@ class StudiomaxCore(Core):
 
         output = ToolType.Studiomax | ToolType.LegacyStudiomax
 
-        # include trax tools for non-offline environments
-        if not ToolsEnvironment.activeEnvironment().isOffline():
-            output |= ToolType.Trax
-
         return output
