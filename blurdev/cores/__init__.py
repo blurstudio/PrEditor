@@ -10,12 +10,13 @@
 
 Core = None
 
-# import package specific cores
+# initialize the system for 3d Studio Max
 try:
     from studiomaxcore import StudiomaxCore as Core
 except:
     pass
 
+# initialize the system for Softimage
 try:
     from softimagecore import SoftimageCore as Core
 except:

@@ -10,7 +10,7 @@
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
-from core import Core
+from blurdev.cores.core import Core
 
 # -------------------------------------------------------------------------------------------------------------
 
