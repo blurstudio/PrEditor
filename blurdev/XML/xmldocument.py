@@ -52,6 +52,7 @@ class XMLDocument(XMLElement):
         #-------------------------------------------------------------------------------------------------------------
         """
         success = False
+        fileName = str(fileName)
         if os.path.exists(fileName):
             newObject = xml.dom.minidom.parse(fileName)
             if newObject:

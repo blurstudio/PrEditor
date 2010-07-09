@@ -470,7 +470,7 @@ class Core(QObject):
                 if self.objectName() == 'external':
                     import os
 
-                    os.startfile(self.sourcefile())
+                    os.startfile(filename)
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)
