@@ -1,0 +1,112 @@
+##
+#	\namespace	blurdev.gui.designer
+#
+#	\remarks	This package contains classes that expose blurdev widgets to the Qt Designer
+#	
+#	\author		beta@blur.com
+#	\author		Blur Studio
+#	\date		12/07/08
+#
+
+plugindef = """##
+#	\\namespace	blurdev.gui.designer.%(class)s
+#
+#	\\remarks	Defines a plugin file for the %(class)s widget
+#	
+#	\\author		beta@blur.com
+#	\\author		Blur Studio
+#	\\date		12/07/08
+#
+
+from PyQt4.QtDesigner 	import QPyDesignerCustomWidgetPlugin
+
+class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
+    def __init__( self, parent = None ):
+        QPyDesignerCustomWidgetPlugin.__init__( self )
+        
+        self.initialized = False
+    
+    def initialize( self, core ):
+        if ( self.initialized ):
+            return
+        
+        self.initialized = True
+    
+    def isInitialized( self ):
+        return self.initialized
+    
+    def createWidget( self, parent ):
+        from %(module)s import %(class)s
+        return %(class)s( parent )
+    
+    def name( self ):
+        return "%(class)s"
+    
+    def group( self ):
+        return "%(group)s"
+    
+    def icon( self ):
+        from PyQt4.QtGui import QIcon
+        return QIcon( "%(icon)s" )
+    
+    def toolTip( self ):
+        return ""
+    
+    def whatsThis( self ):
+        return ""
+    
+    def isContainer( self ):
+        return False
+    
+    def includeFile( self ):
+        return "%(module)s"
+    
+    def domXml( self ):
+        xml = []
+        xml.append( '<widget class="%(class)s" name="%(class)s">' )
+        xml.append( '	<property name="toolTip">' )
+        xml.append( '		<string>Testing</string>' )
+        xml.append( '	</property>' )
+        xml.append( '	<property name="whatsThis">' )
+        xml.append( '		<string>Testing</string>' )
+        xml.append(	'	</property>' )
+        xml.append( '</widget>' )
+        
+        return '\\n'.join( xml )
+
+import blurdev.gui.designer
+blurdev.gui.designer.register( '%(class)sPlugin', %(class)sPlugin )
+"""
+
+def init():
+    import glob
+    import os.path
+    
+    for filename in glob.glob( os.path.split( __file__ )[0] + '/*.py' ):
+        modname = os.path.basename( filename ).split( '.' )[0]
+        if ( modname != '__init__' ):
+            fullname = 'blurdev.gui.designer.%s' % modname
+            try:
+                __import__( fullname )
+            except:
+                print 'Error loading %s' % fullname
+
+def loadPlugins( filename ):
+    from blurdev.XML import XMLDocument
+    doc = XMLDocument()
+    if ( doc.load( filename ) ):
+        for child in doc.root().children():
+            createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ) )
+
+def register( name, plugin ):
+    import blurdev.gui.designer
+    blurdev.gui.designer.__dict__[ name ] = plugin
+
+def createPlugin( module, cls, icon = '', group = 'Blur Widgets' ):
+    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group }
+    import os.path
+    filename = os.path.split( __file__ )[0] + '/%splugin.py' % str( cls ).lower()
+    f = open( filename, 'w' )
+    f.write( plugindef % options )
+    f.close()
+    
