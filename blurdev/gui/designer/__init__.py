@@ -82,6 +82,11 @@ def init():
     import glob
     import os.path
     
+    # load the plugins file
+    import blurdev
+    loadPlugins( os.path.split( blurdev.__file__ )[0] + '/config/designer_plugins.xml' )
+    
+    # import the modules
     for filename in glob.glob( os.path.split( __file__ )[0] + '/*.py' ):
         modname = os.path.basename( filename ).split( '.' )[0]
         if ( modname != '__init__' ):
@@ -94,9 +99,33 @@ def init():
 def loadPlugins( filename ):
     from blurdev.XML import XMLDocument
     doc = XMLDocument()
+    
     if ( doc.load( filename ) ):
+        import os, sys
+        
         for child in doc.root().children():
-            createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ) )
+            if ( child.nodeName == 'include' ):
+                import re
+                href = child.attribute( 'href' )
+                # replace sys globals
+                results 	= re.findall( '\[([^\]]+)', href )
+                for result in results:
+                    href = href.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
+                
+                # make sure the location is importable
+                importPath = child.attribute( 'root' )
+                if ( importPath ):
+                    results 	= re.findall( '\[([^\]]+)', importPath )
+                    for result in results:
+                        importPath = importPath.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
+                    
+                    if ( os.path.exists( importPath ) and not importPath in sys.path ):
+                        sys.path.insert( 0, importPath )
+                
+                # load the include file
+                loadPlugins( href )
+            else:
+                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ) )
 
 def register( name, plugin ):
     import blurdev.gui.designer
