@@ -63,15 +63,7 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
     
     def domXml( self ):
         xml = []
-        xml.append( '<widget class="%(class)s" name="%(class)s">' )
-        xml.append( '	<property name="toolTip">' )
-        xml.append( '		<string>Testing</string>' )
-        xml.append( '	</property>' )
-        xml.append( '	<property name="whatsThis">' )
-        xml.append( '		<string>Testing</string>' )
-        xml.append(	'	</property>' )
-        xml.append( '</widget>' )
-        
+        xml.append( '<widget class="%(class)s" name="%(class)s"/>' )
         return '\\n'.join( xml )
 
 import blurdev.gui.designer
