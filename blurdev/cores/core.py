@@ -130,7 +130,7 @@ class Core(QObject):
         self._mfcApp = False
         self._logger = None
         self._treegrunt = None
-        self._rootWidgets = []
+        self._winWidget = None
 
         # try to set the preference path to the standarad blur location
         try:
@@ -156,17 +156,9 @@ class Core(QObject):
 
             # create a new root widget for Mfc applications
             if not window and self.isMfcApp():
-                window = self.createRootWidget()
+                window = self.winWidget()
 
         return window
-
-    def cleanRootWidgets(self):
-        # remove any widgets from the list whose C++ instance has been removed
-        for i in range(len(self._rootWidgets) - 1, -1, -1):
-            try:
-                self._rootWidgets[i].objectName()
-            except:
-                self._rootWidgets.remove(self._rootWidgets[i])
 
     def connectPlugin(
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
@@ -202,21 +194,6 @@ class Core(QObject):
                 return True
             return False
         return True
-
-    def createRootWidget(self):
-        # create a new root widget
-        from PyQt4.QtWinMigrate import QWinWidget
-
-        self.cleanRootWidgets()
-
-        # create the widget
-        widget = QWinWidget(self.hwnd())
-
-        # parent the widget to the application
-        widget.showCentered()
-        self._rootWidgets.append(widget)
-
-        return widget
 
     def createToolMacro(self, tool, macro=''):
         """
@@ -642,3 +619,23 @@ class Core(QObject):
 
             self._treegrunt.setAttribute(Qt.WA_DeleteOnClose, False)
         return self._treegrunt
+
+    def winWidget(self):
+        if not self._winWidget:
+            # create a new root widget
+            from PyQt4.QtWinMigrate import QWinWidget
+
+            # create the widget
+            widget = QWinWidget(self.hwnd())
+
+            # parent the widget to the application
+            widget.showCentered()
+
+            # make sure python controls when this widget is deleted and not C++
+            import sip
+
+            sip.transferback(widget)
+
+            self._winWidget = widget
+
+        return self._winWidget
