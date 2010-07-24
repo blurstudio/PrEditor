@@ -244,6 +244,16 @@ class Core(QObject):
 
         return QObject.eventFilter(self, object, event)
 
+    def shutdown(self):
+        from PyQt4.QtGui import QApplication
+
+        if QApplication.instance():
+            QApplication.instance().closeAllWindows()
+            if self._winWidget:
+                self._winWidget.close()
+                self._winWidget = None
+            QApplication.instance().quit()
+
     def relativePreferencePath(self, pref):
         """
             \remarks	loads the path for the inputed preference file

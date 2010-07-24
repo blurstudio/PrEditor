@@ -12,17 +12,18 @@ from PyQt4.QtCore import QObject
 
 from blurdev.enum import enum
 
-# 					1			2			4			8		  16			32				64					128
+# 					1			2			4			8		  16			32				64					128				256
 ToolType = enum(
     'External',
     'Trax',
     'Studiomax',
     'Softimage',
     'Fusion',
+    'MotionBuilder',
     'LegacyExternal',
     'LegacyStudiomax',
     'LegacySoftimage',
-    AllTools=255,
+    AllTools=511,
 )
 
 
