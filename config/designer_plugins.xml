@@ -1,0 +1,4 @@
+<plugins>
+	<include href="[TRAXDEVPATH]/trax/definitions/designer_plugins.xml" root="[TRAXDEVPATH]"/>
+	<plugin module="blurdev.gui.widgets.accordianwidget" class="AccordianWidget"/>
+</plugins>
