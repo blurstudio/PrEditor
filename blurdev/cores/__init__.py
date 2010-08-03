@@ -23,10 +23,11 @@ except:
     pass
 
 # initialize the system for Motion Builder
-try:
-    from motionbuildercore import MotionBuilderCore as Core
-except:
-    pass
+# try:
+from motionbuildercore import MotionBuilderCore as Core
+
+# except:
+# 	pass
 
 # import the default core
 if not Core:
