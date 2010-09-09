@@ -422,3 +422,6 @@ class ToolsIndex(QObject):
 
     def tools(self):
         return self._toolCache.values()
+
+    def toolNames(self):
+        return self._toolCache.keys()

@@ -18,6 +18,7 @@ class Core(QObject):
     environmentActivated = pyqtSignal(
         ToolsEnvironment, ToolsEnvironment
     )  # emits that the environment has changed from old to new
+    debugLevelChanged = pyqtSignal()
 
     # COMMON SIGNALS
 
@@ -316,8 +317,12 @@ class Core(QObject):
         if not self._logger:
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
+            # make sure to parent the logger to the root window
             if not parent:
                 parent = self.activeWindow()
+                while parent.parent():
+                    parent = parent.parent()
+
             self._logger = LoggerWindow(parent)
         return self._logger
 
@@ -436,6 +441,7 @@ class Core(QObject):
             scope = {}
 
         # run the script
+        from blurdev import debug
         import os
 
         if filename and os.path.exists(filename):
@@ -455,9 +461,17 @@ class Core(QObject):
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
                 if self.objectName() == 'external':
-                    import os
+                    if debug.debugLevel():
+                        f = open('c:/temp/debug.bat', 'w')
+                        f.write(
+                            'c:/python24/python.exe %s\nping -n 10 localhost > NUL'
+                            % filename
+                        )
+                        f.close()
 
-                    os.startfile(filename)
+                        os.startfile('c:/temp/debug.bat')
+                    else:
+                        os.startfile(filename)
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)

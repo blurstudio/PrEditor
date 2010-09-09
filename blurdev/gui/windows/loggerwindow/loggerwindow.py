@@ -35,3 +35,46 @@ class LoggerWindow(Window):
         layout = QVBoxLayout()
         layout.addWidget(console)
         self.centralWidget().setLayout(layout)
+
+        # create the connections
+        blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
+        self.uiNoDebugACT.triggered.connect(self.setNoDebug)
+        self.uiDebugLowACT.triggered.connect(self.setLowDebug)
+        self.uiDebugMidACT.triggered.connect(self.setMidDebug)
+        self.uiDebugHighACT.triggered.connect(self.setHighDebug)
+
+        # refresh the ui
+        self.refreshDebugLevels()
+
+    def refreshDebugLevels(self):
+        from blurdev.debug import DebugLevel, debugLevel
+
+        for act, level in [
+            (self.uiNoDebugACT, 0),
+            (self.uiDebugLowACT, DebugLevel.Low),
+            (self.uiDebugMidACT, DebugLevel.Mid),
+            (self.uiDebugHighACT, DebugLevel.High),
+        ]:
+            act.blockSignals(True)
+            act.setChecked(level == debugLevel())
+            act.blockSignals(False)
+
+    def setNoDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(None)
+
+    def setLowDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.Low)
+
+    def setMidDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.Mid)
+
+    def setHighDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.High)

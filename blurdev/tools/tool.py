@@ -77,6 +77,13 @@ class Tool(QObject):
     def isNull(self):
         return self.objectName() == ''
 
+    def isLegacy(self):
+        return self.toolType() in (
+            ToolType.LegacyExternal,
+            ToolType.LegacyStudiomax,
+            ToolType.LegacySoftimage,
+        )
+
     def index(self):
         """
             \remarks	returns the index from which this category is instantiated
@@ -115,12 +122,16 @@ class Tool(QObject):
         import os.path
 
         if os.path.exists(path):
-            self._path = path
+            self._path = str(path).replace(
+                str(self.objectName()).lower(), self.objectName()
+            )  # ensure that the tool id is properly formated since it is case sensitive
         else:
             self._path = ''
 
     def setSourcefile(self, sourcefile):
-        self._sourcefile = sourcefile
+        self._sourcefile = str(sourcefile).replace(
+            str(self.objectName()).lower(), self.objectName()
+        )  # ensure that the tool id is properly formated since it is case sensitive
 
     def setToolType(self, toolType):
         """

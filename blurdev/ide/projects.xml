@@ -1,0 +1,5 @@
+<projects>
+	<project name="Trax" loc="c:/blur/it/python/apps/trax" icon="c:/blur/it/python/apps/trax/resource/img/icon.png" type="Application"/>
+	<project name="blurdev" loc="c:/blur/it/python/blurdev" type="Library"/>
+	<project name="Python Libraries" loc="c:/blur/dev/local/code/python/lib" type="Library"/>
+</projects>

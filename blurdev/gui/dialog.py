@@ -14,6 +14,7 @@ from PyQt4.QtGui import QDialog
 class Dialog(QDialog):
     def __init__(self, parent=None, flags=0):
         # generate a new win widget to use as the parent item for this dialog
+        inheritPalette = False
         if not parent:
             import blurdev
 

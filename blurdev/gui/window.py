@@ -14,6 +14,7 @@ from PyQt4.QtGui import QMainWindow
 class Window(QMainWindow):
     def __init__(self, parent=None, flags=0):
         # generate a new win widget to use as the parent item for this window
+        inheritPalette = False
         if not parent:
             import blurdev
 

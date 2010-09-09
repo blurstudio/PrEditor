@@ -11,7 +11,11 @@
 # include the blur path
 from tools import ToolsEnvironment
 
+# register the standard blur path
 ToolsEnvironment.registerPath('c:/blur')
+
+# register the beta blur path as an overload for beta tools
+ToolsEnvironment.registerPath('c:/blur/beta')
 
 core = None
 
@@ -72,7 +76,7 @@ def launch(cls, modal=False):
             core.setObjectName('external')
 
     # create the output instance from the class
-    widget = cls(core.activeWindow())
+    widget = cls(None)
 
     # check to see if the tool is running modally and return the result
     if modal:
@@ -90,6 +94,12 @@ def registerScriptPath(filename):
     from tools import ToolsEnvironment
 
     ToolsEnvironment.registerScriptPath(filename)
+
+
+def relativePath(path, additional):
+    import os.path
+
+    return os.path.join(os.path.split(str(path))[0], additional)
 
 
 def runTool(tool, macro=""):

@@ -21,6 +21,10 @@ def loadUi(filename, widget):
     import PyQt4.uic
     import os.path
 
+    # first, inherit the palette of the parent
+    if widget.parent():
+        widget.setPalette(widget.parent().palette())
+
     PyQt4.uic.loadUi(
         os.path.split(filename)[0]
         + '/ui/%s.ui' % os.path.basename(filename).split('.')[0],

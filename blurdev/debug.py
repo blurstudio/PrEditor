@@ -129,6 +129,9 @@ def setDebugLevel(level):
 
     # clear the debug level
     if not level:
+        import blurdev
+
+        blurdev.core.debugLevelChanged.emit()
         _currentLevel = 0
         return True
 
@@ -139,6 +142,9 @@ def setDebugLevel(level):
     # assign the debug flag
     if DebugLevel.isValid(level):
         _currentLevel = level
+        import blurdev
+
+        blurdev.core.debugLevelChanged.emit()
         return True
     else:
         debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)
