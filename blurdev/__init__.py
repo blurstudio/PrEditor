@@ -20,6 +20,12 @@ ToolsEnvironment.registerPath('c:/blur/beta')
 core = None
 
 
+def activeEnvironment():
+    from blurdev.tools import ToolsEnvironment
+
+    return ToolsEnvironment.activeEnvironment()
+
+
 def findTool(name, environment=''):
     init()
 
@@ -131,7 +137,7 @@ def runTool(tool, macro=""):
             )
 
 
-def setDevEnvironment(env):
+def setActiveEnvironment(env):
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.findEnvironment(env).setActive()
