@@ -129,3 +129,9 @@ def runTool(tool, macro=""):
                 '%s is not a tool in %s environment.'
                 % (tool, ToolsEnvironment.activeEnvironment().objectName()),
             )
+
+
+def setDevEnvironment(env):
+    from blurdev.tools import ToolsEnvironment
+
+    return ToolsEnvironment.findEnvironment(env).setActive()
