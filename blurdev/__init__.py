@@ -141,3 +141,6 @@ def setActiveEnvironment(env):
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.findEnvironment(env).setActive()
+
+
+init()
