@@ -127,6 +127,8 @@ class ToolsEnvironment(QObject):
             import blurdev
 
             blurdev.core.environmentActivated.emit(old, self)
+            return True
+        return False
 
     def setDefault(self, state=True):
         self._default = state
