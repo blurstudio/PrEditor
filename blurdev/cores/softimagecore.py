@@ -37,6 +37,8 @@ class SoftimageCore(Core):
 
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())
 
+        self.protectModule('PySoftimage')
+
         # load this file as a plugin for XSI
         xsi.LoadPlugin(__file__)
 

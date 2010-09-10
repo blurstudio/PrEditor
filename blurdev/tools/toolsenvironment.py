@@ -108,6 +108,14 @@ class ToolsEnvironment(QObject):
             return os.path.abspath(os.path.join(str(self.path()), str(path)))
         return ''
 
+    def resetPaths(self):
+        self.clearPathSymbols()
+        self.registerPath(self.path())
+
+        import blurdev
+
+        blurdev.core.environmentActivated.emit(self, self)
+
     def setActive(self):
         """
             \remarks	sets this environment as the active environment and switches the currently running modules from the
