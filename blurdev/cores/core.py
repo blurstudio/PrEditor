@@ -12,6 +12,10 @@
 from PyQt4.QtCore import QObject, pyqtSignal
 from blurdev.tools import ToolsEnvironment
 
+callback_code = """
+callbacks.addScript #selectionSetChanged "python.exec(\"import blurdev; blurdev.core.selectionChanged.emit()\")" id:#blurdev
+"""
+
 
 class Core(QObject):
     # CUSTOM SIGNALS
@@ -297,6 +301,11 @@ class Core(QObject):
             app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
 
             app.installEventFilter(self)
+
+        # register the callbacks
+        from Py3dsMax import mxs
+
+        mxs.execute(callback_code)
 
     def isMfcApp(self):
         return self._mfcApp
