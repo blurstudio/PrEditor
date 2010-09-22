@@ -14,6 +14,7 @@ from blurdev.gui import Window
 
 class IdeEditor(Window):
     documentTitleChanged = pyqtSignal()
+    _instance = None
 
     Command = {'.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common')}
 
@@ -138,6 +139,9 @@ class IdeEditor(Window):
     def currentPath(self):
         path = ''
         import os.path
+
+        if not self.uiProjectTREE.model():
+            return ''
 
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
@@ -413,8 +417,6 @@ class IdeEditor(Window):
 
         path = self.currentPath()
 
-        print cmd, args, path
-
         if path:
             from PyQt4.QtCore import QProcess
 
@@ -472,11 +474,29 @@ class IdeEditor(Window):
             self.setWindowTitle('IDE | Code Editor')
 
     @staticmethod
-    def edit(project=None):
-        window = IdeEditor()
+    def createNew():
+        window = IdeEditor.instance()
+        window.documentNew()
+        window.show()
+
+    @staticmethod
+    def instance():
+        if not IdeEditor._instance:
+            from PyQt4.QtCore import Qt
+
+            IdeEditor._instance = IdeEditor()
+            IdeEditor._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+        return IdeEditor._instance
+
+    @staticmethod
+    def edit(project=None, filename=None):
+        window = IdeEditor.instance()
         window.setCurrentProject(project)
         window.show()
-        return window
+
+        # set the filename
+        if filename:
+            window.load(filename)
 
 
 # if this is run directly

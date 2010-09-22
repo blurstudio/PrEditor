@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from ideeditor import IdeEditor
 from idemenu import IdeMenu
 
 

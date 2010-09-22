@@ -108,11 +108,11 @@ def relativePath(path, additional):
     return os.path.join(os.path.split(str(path))[0], additional)
 
 
-def runTool(tool, macro=""):
+def runTool(toolId, macro=""):
     init()
 
     # special case scenario - treegrunt
-    if tool == 'Treegrunt':
+    if toolId == 'Treegrunt':
         core.showTreegrunt()
 
     # otherwise, run the tool like normal
@@ -121,8 +121,8 @@ def runTool(tool, macro=""):
         from tools import ToolsEnvironment
 
         # load the tool
-        tool = ToolsEnvironment.activeEnvironment().index().findTool(tool)
-        if tool:
+        tool = ToolsEnvironment.activeEnvironment().index().findTool(toolId)
+        if not tool.isNull():
             tool.exec_(macro)
 
         # let the user know the tool could not be found
@@ -133,7 +133,7 @@ def runTool(tool, macro=""):
                 None,
                 'Tool Not Found',
                 '%s is not a tool in %s environment.'
-                % (tool, ToolsEnvironment.activeEnvironment().objectName()),
+                % (toolId, ToolsEnvironment.activeEnvironment().objectName()),
             )
 
 

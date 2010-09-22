@@ -131,7 +131,6 @@ class Core(QObject):
         self._mfcApp = False
         self._logger = None
         self._treegrunt = None
-        self._winWidget = None
 
         # try to set the preference path to the standarad blur location
         try:
@@ -143,23 +142,6 @@ class Core(QObject):
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
-
-    def activeWindow(self):
-        """
-            \remarks	returns the currently active window
-            \return		<QWidget> || None
-        """
-        from PyQt4.QtGui import QApplication
-
-        window = None
-        if QApplication.instance():
-            window = QApplication.instance().activeWindow()
-
-            # create a new root widget for Mfc applications
-            if not window and self.isMfcApp():
-                window = self.winWidget()
-
-        return window
 
     def connectPlugin(
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
@@ -250,9 +232,6 @@ class Core(QObject):
 
         if QApplication.instance():
             QApplication.instance().closeAllWindows()
-            if self._winWidget:
-                self._winWidget.close()
-                self._winWidget = None
             QApplication.instance().quit()
 
     def relativePreferencePath(self, pref):
@@ -317,23 +296,16 @@ class Core(QObject):
         if not self._logger:
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
-            # make sure to parent the logger to the root window
-            if not parent:
-                parent = self.activeWindow()
-                while parent.parent():
-                    parent = parent.parent()
-
-            self._logger = LoggerWindow(parent)
+            self._logger = LoggerWindow(None)
         return self._logger
 
     def newScript(self):
         """
             \remarks	creates a new script window for editing
         """
-        from blurdev.gui.windows.scriptwindow import ScriptWindow
+        from blurdev.ide import IdeEditor
 
-        window = ScriptWindow(self.activeWindow())
-        window.show()
+        IdeEditor.createNew()
 
     def openScript(self, filename=''):
         """
@@ -358,11 +330,9 @@ class Core(QObject):
         if filename:
             self._lastFileName = filename
 
-            from blurdev.gui.windows.scriptwindow import ScriptWindow
+            from blurdev.ide import IdeEditor
 
-            window = ScriptWindow(self.activeWindow())
-            window.setFileName(filename)
-            window.show()
+            IdeEditor.edit(filename=filename)
 
     def preferenceRoot(self):
         return self._preferenceRoot
@@ -392,6 +362,28 @@ class Core(QObject):
 
         newenv.registerPath(newenv.relativePath('maxscript/treegrunt/lib'))
         newenv.registerPath(newenv.relativePath('code/python/lib'))
+
+    def rootWindow(self):
+        """
+            \remarks	returns the currently active window
+            \return		<QWidget> || None
+        """
+        # for MFC apps there should be no root window
+        if self.isMfcApp():
+            return None
+
+        from PyQt4.QtGui import QApplication
+
+        window = None
+        if QApplication.instance():
+            window = QApplication.instance().activeWindow()
+
+            # grab the root window
+            if window:
+                while window.parent():
+                    window = window.parent()
+
+        return window
 
     def runMacro(self, command):
         """
@@ -635,31 +627,9 @@ class Core(QObject):
         if not self._treegrunt:
             from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
-            if not parent:
-                parent = self.activeWindow()
-            self._treegrunt = TreegruntDialog(parent)
+            self._treegrunt = TreegruntDialog(None)
 
             from PyQt4.QtCore import Qt
 
             self._treegrunt.setAttribute(Qt.WA_DeleteOnClose, False)
         return self._treegrunt
-
-    def winWidget(self):
-        if not self._winWidget:
-            # create a new root widget
-            from PyQt4.QtWinMigrate import QWinWidget
-
-            # create the widget
-            widget = QWinWidget(self.hwnd())
-
-            # parent the widget to the application
-            widget.showCentered()
-
-            # make sure python controls when this widget is deleted and not C++
-            import sip
-
-            sip.transferback(widget)
-
-            self._winWidget = widget
-
-        return self._winWidget
