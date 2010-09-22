@@ -260,8 +260,12 @@ class ConsoleEdit(QTextEdit):
             self.moveToHome()
 
         # otherwise, ignore the event for completion events
-        elif event.key() in (Qt.Key_Escape, Qt.Key_Tab, Qt.Key_Backtab):
-            event.ignore()
+        elif event.key() in (Qt.Key_Tab, Qt.Key_Backtab):
+            self.insertCompletion(self.completer().currentCompletion())
+            self.completer().popup().hide()
+
+        elif event.key() == Qt.Key_Escape:
+            self.completer().popup().hide()
 
         # other wise handle the keypress
         else:
