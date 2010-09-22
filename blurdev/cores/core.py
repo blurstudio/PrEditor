@@ -143,6 +143,13 @@ class Core(QObject):
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
 
+    def activeWindow(self):
+        from PyQt4.QtGui import QApplication
+
+        if QApplication.instance():
+            return QApplication.instance().activeWindow()
+        return None
+
     def connectPlugin(
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
     ):
