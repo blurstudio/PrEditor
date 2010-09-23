@@ -640,11 +640,3 @@ class Core(QObject):
 
             self._treegrunt.setAttribute(Qt.WA_DeleteOnClose, False)
         return self._treegrunt
-
-    def username(self):
-        try:
-            import win32api
-
-            return win32api.GetUserName()
-        except:
-            return ''
