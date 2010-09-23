@@ -13,22 +13,21 @@ from PyQt4.QtGui import QDialog
 
 class Dialog(QDialog):
     def __init__(self, parent=None, flags=0):
-        # make sure there is some parenting
-        if not parent:
+        import blurdev
 
-            # grab the root from the core
-            import blurdev
+        # if there is no root, create
+        if not parent and blurdev.core.isMfcApp():
+            from PyQt4.QtWinMigrate import QWinWidget
 
-            parent = blurdev.core.rootWindow()
+            # have to store the win widget inside this class or it will be deleted improperly
+            parent = QWinWidget(blurdev.core.hwnd())
+            parent.showCentered()
 
-            # if there is no root, create
-            if not parent and blurdev.core.isMfcApp():
-                from PyQt4.QtWinMigrate import QWinWidget
+            import sip
 
-                # have to store the win widget inside this class or it will be deleted improperly
-                self._winWidget = QWinWidget(blurdev.core.hwnd())
-                self._winWidget.showCentered()
-                parent = self._winWidget
+            sip.transferback(parent)
+
+            self._winWidget = parent
 
         # create a QDialog
         if flags:
