@@ -19,6 +19,8 @@ class Core(QObject):
         ToolsEnvironment, ToolsEnvironment
     )  # emits that the environment has changed from old to new
     debugLevelChanged = pyqtSignal()
+    fileCheckedIn = pyqtSignal(str)
+    fileCheckedOut = pyqtSignal(str)
 
     # COMMON SIGNALS
 
