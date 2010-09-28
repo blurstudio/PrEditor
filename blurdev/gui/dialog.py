@@ -16,18 +16,13 @@ class Dialog(QDialog):
         import blurdev
 
         # if there is no root, create
-        if not parent and blurdev.core.isMfcApp():
-            from PyQt4.QtWinMigrate import QWinWidget
+        if not parent:
+            if blurdev.core.isMfcApp():
+                from winwidget import WinWidget
 
-            # have to store the win widget inside this class or it will be deleted improperly
-            parent = QWinWidget(blurdev.core.hwnd())
-            parent.showCentered()
-
-            import sip
-
-            sip.transferback(parent)
-
-            self._winWidget = parent
+                parent = WinWidget.newInstance(blurdev.core.hwnd())
+            else:
+                parent = blurdev.core.rootWindow()
 
         # create a QDialog
         if flags:
@@ -35,13 +30,25 @@ class Dialog(QDialog):
         else:
             QDialog.__init__(self, parent)
 
-        # set the delete attribute to remove the dialog properly once it is closed
+        # set the delete attribute to clean up the window once it is closed
         from PyQt4.QtCore import Qt
 
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # set this property to true to properly handle tracking events to control keyboard overrides
         self.setMouseTracking(True)
+
+    def closeEvent(self, event):
+        QDialog.closeEvent(self, event)
+
+        # uncache the win widget if necessary
+        from PyQt4.QtCore import Qt
+
+        if self.testAttribute(Qt.WA_DeleteOnClose):
+            if self.parent().inherits('QWinWidget'):
+                from winwidget import WinWidget
+
+                WinWidget.uncache(self.parent())
 
     def exec_(self):
         # do not use the DeleteOnClose attribute when executing a dialog as often times a user will be accessing

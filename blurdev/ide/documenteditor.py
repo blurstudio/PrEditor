@@ -82,7 +82,8 @@ class DocumentEditor(QsciScintilla):
     def load(self, filename):
         import os.path
 
-        if filename and os.path.exists(str(filename)):
+        filename = str(filename)
+        if filename and os.path.exists(filename):
             self.setText(open(filename).read())
 
             self._filename = filename

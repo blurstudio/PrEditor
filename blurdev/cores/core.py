@@ -305,7 +305,10 @@ class Core(QObject):
         if not self._logger:
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
-            self._logger = LoggerWindow(None)
+            parent = None
+            if self.objectName() == 'trax':
+                parent = self.rootWindow()
+            self._logger = LoggerWindow(parent)
         return self._logger
 
     def newScript(self):
@@ -636,7 +639,10 @@ class Core(QObject):
         if not self._treegrunt:
             from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
-            self._treegrunt = TreegruntDialog(None)
+            parent = None
+            if self.objectName() == 'trax':
+                parent = self.rootWindow()
+            self._treegrunt = TreegruntDialog(parent)
 
             from PyQt4.QtCore import Qt
 

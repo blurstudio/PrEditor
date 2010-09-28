@@ -13,21 +13,17 @@ from PyQt4.QtGui import QMainWindow
 
 class Window(QMainWindow):
     def __init__(self, parent=None, flags=0):
+
         import blurdev
 
         # if there is no root, create
-        if not parent and blurdev.core.isMfcApp():
-            from PyQt4.QtWinMigrate import QWinWidget
+        if not parent:
+            if blurdev.core.isMfcApp():
+                from winwidget import WinWidget
 
-            # have to store the win widget inside this class or it will be deleted improperly
-            parent = QWinWidget(blurdev.core.hwnd())
-            parent.showCentered()
-
-            import sip
-
-            sip.transferback(parent)
-
-            self._winWidget = parent
+                parent = WinWidget.newInstance(blurdev.core.hwnd())
+            else:
+                parent = blurdev.core.rootWindow()
 
         # create a QMainWindow
         if flags:
@@ -39,3 +35,15 @@ class Window(QMainWindow):
         from PyQt4.QtCore import Qt
 
         self.setAttribute(Qt.WA_DeleteOnClose)
+
+    def closeEvent(self, event):
+        QMainWindow.closeEvent(self, event)
+
+        # uncache the win widget if necessary
+        from PyQt4.QtCore import Qt
+
+        if self.testAttribute(Qt.WA_DeleteOnClose):
+            if self.parent().inherits('QWinWidget'):
+                from winwidget import WinWidget
+
+                WinWidget.uncache(self.parent())
