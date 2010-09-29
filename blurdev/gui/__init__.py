@@ -12,7 +12,7 @@ from window import Window
 from dialog import Dialog
 
 
-def loadUi(filename, widget):
+def loadUi(filename, widget, uiname=''):
     """
         \remarks	use's Qt's uic loader to load dynamic interafces onto the inputed widget
         \param		filename	<str>
@@ -25,8 +25,7 @@ def loadUi(filename, widget):
     if widget.parent():
         widget.setPalette(widget.parent().palette())
 
-    PyQt4.uic.loadUi(
-        os.path.split(filename)[0]
-        + '/ui/%s.ui' % os.path.basename(filename).split('.')[0],
-        widget,
-    )
+    if not uiname:
+        uiname = os.path.basename(filename).split('.')[0]
+
+    PyQt4.uic.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
