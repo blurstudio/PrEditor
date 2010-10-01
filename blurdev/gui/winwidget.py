@@ -31,7 +31,5 @@ class WinWidget(QWinWidget):
 
     @staticmethod
     def uncache(widget):
-        print 'trying to uncache: ', widget
         if widget in WinWidget.cache:
-            print 'uncaching: ', widget
             WinWidget.cache.remove(widget)

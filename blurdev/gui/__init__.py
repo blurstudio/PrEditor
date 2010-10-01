@@ -10,6 +10,7 @@
 
 from window import Window
 from dialog import Dialog
+from wizard import Wizard
 
 
 def loadUi(filename, widget, uiname=''):

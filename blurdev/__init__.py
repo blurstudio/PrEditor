@@ -72,7 +72,7 @@ def launch(cls, modal=False):
 
     # create the app if necessary
     app = None
-    from PyQt4.QtGui import QApplication
+    from PyQt4.QtGui import QApplication, QWizard
 
     if not QApplication.instance():
         app = QApplication([])
@@ -80,6 +80,10 @@ def launch(cls, modal=False):
 
         if core.objectName() == 'blurdev':
             core.setObjectName('external')
+
+    # always run wizards modally
+    if issubclass(cls, QWizard):
+        modal = True
 
     # create the output instance from the class
     widget = cls(None)
