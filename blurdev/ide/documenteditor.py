@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from PyQt4.QtCore import pyqtProperty
 from PyQt4.Qsci import *
 
 
@@ -17,6 +18,7 @@ class DocumentEditor(QsciScintilla):
 
         # create custom properties
         self._filename = ''
+        self._language = ''
 
         # initialize the look of the system
         from PyQt4.QtCore import Qt
@@ -79,6 +81,12 @@ class DocumentEditor(QsciScintilla):
                 return False
         return True
 
+    def language(self):
+        return self._language
+
+    def lineMarginWidth(self):
+        return self.marginWidth(self.SymbolMargin)
+
     def load(self, filename):
         import os.path
 
@@ -94,6 +102,8 @@ class DocumentEditor(QsciScintilla):
             lexer = lexers.lexerFor(os.path.splitext(filename)[1])
             if lexer:
                 lexer.setFont(self.font())
+                self._language = lexers.languageFor(lexer)
+
             self.setLexer(lexer)
             self.refreshTitle()
             self.setModified(False)
@@ -139,3 +149,78 @@ class DocumentEditor(QsciScintilla):
         parent = self.parent()
         if parent.inherits('QMdiSubWindow'):
             parent.setWindowTitle(self.windowTitle())
+
+    def setLanguage(self, language):
+        self._language = language
+
+        from blurdev.ide import lexers
+
+        lexers.load()
+        lexer = lexers.lexer(language)
+        self.setLexer(lexer)
+
+    def setLineMarginWidth(self, width):
+        self.setMarginWidth(self.SymbolMargin, width)
+
+    def setShowFolding(self, state):
+        if state:
+            self.setFolding(self.BoxedTreeFoldStyle)
+        else:
+            self.setFolding(self.NoFoldStyle)
+
+    def setShowLineNumbers(self, state):
+        self.setMarginLineNumbers(self.SymbolMargin, state)
+
+    def showFolding(self):
+        return self.folding() != self.NoFoldStyle
+
+    def showLineNumbers(self):
+        return self.marginLineNumbers(self.SymbolMargin)
+
+    # expose properties for the designer
+    pyLanguage = pyqtProperty("QString", language, setLanguage)
+    pyLineMarginWidth = pyqtProperty("int", lineMarginWidth, setLineMarginWidth)
+    pyShowLineNumbers = pyqtProperty("bool", showLineNumbers, setShowLineNumbers)
+    pyShowFolding = pyqtProperty("bool", showFolding, setShowFolding)
+
+    pyAutoCompletionCaseSensitivity = pyqtProperty(
+        "bool",
+        QsciScintilla.autoCompletionCaseSensitivity,
+        QsciScintilla.setAutoCompletionCaseSensitivity,
+    )
+    pyAutoCompletionReplaceWord = pyqtProperty(
+        "bool",
+        QsciScintilla.autoCompletionReplaceWord,
+        QsciScintilla.setAutoCompletionReplaceWord,
+    )
+    pyAutoCompletionShowSingle = pyqtProperty(
+        "bool",
+        QsciScintilla.autoCompletionShowSingle,
+        QsciScintilla.setAutoCompletionShowSingle,
+    )
+    pyAutoCompletionThreshold = pyqtProperty(
+        "int",
+        QsciScintilla.autoCompletionThreshold,
+        QsciScintilla.setAutoCompletionThreshold,
+    )
+    pyAutoIndent = pyqtProperty(
+        "bool", QsciScintilla.autoIndent, QsciScintilla.setAutoIndent
+    )
+    pyBackspaceUnindents = pyqtProperty(
+        "bool", QsciScintilla.backspaceUnindents, QsciScintilla.setBackspaceUnindents
+    )
+    pyIndentationGuides = pyqtProperty(
+        "bool", QsciScintilla.indentationGuides, QsciScintilla.setIndentationGuides
+    )
+    pyIndentationsUseTabs = pyqtProperty(
+        "bool", QsciScintilla.indentationsUseTabs, QsciScintilla.setIndentationsUseTabs
+    )
+    pyTabIndents = pyqtProperty(
+        "bool", QsciScintilla.tabIndents, QsciScintilla.setTabIndents
+    )
+    pyUtf8 = pyqtProperty("bool", QsciScintilla.isUtf8, QsciScintilla.setUtf8)
+    pyWhitespaceVisibility = pyqtProperty(
+        "bool",
+        QsciScintilla.whitespaceVisibility,
+        QsciScintilla.setWhitespaceVisibility,
+    )

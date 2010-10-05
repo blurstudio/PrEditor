@@ -34,6 +34,13 @@ def load():
                 __import__('blurdev.ide.lexers.%s' % modname)
 
 
+def languageFor(lexer):
+    for value in _mapping.values():
+        if isinstance(lexer, value.lexerClass):
+            return value.name
+    return ''
+
+
 def lexerFor(ext):
     for lexerMap in _mapping.values():
         if ext in lexerMap.fileTypes:

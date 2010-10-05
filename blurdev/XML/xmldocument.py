@@ -112,3 +112,11 @@ class XMLDocument(XMLElement):
 
     def toxml(self):
         return self._object.toxml()
+
+    @staticmethod
+    def formatXml(xmltext, indented=4):
+        from PyQt4.QtXml import QDomDocument
+
+        doc = QDomDocument()
+        doc.setContent(xmltext)
+        return str(doc.toString(indent=indented))
