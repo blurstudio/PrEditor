@@ -1,5 +1,6 @@
 <plugins>
 	<include href="[TRAXDEVPATH]/trax/definitions/designer_plugins.xml" root="[TRAXDEVPATH]"/>
 	<plugin module="blurdev.gui.widgets.accordianwidget" class="AccordianWidget" container="True"/>
+	<plugin module="blurdev.gui.widgets.filepickerwidget" class="FilePickerWidget"/>
 	<plugin module="blurdev.ide.documenteditor" class="DocumentEditor"/>
 </plugins>
