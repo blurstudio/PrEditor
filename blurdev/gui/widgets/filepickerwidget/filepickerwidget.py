@@ -28,6 +28,7 @@ class FilePickerWidget(QWidget):
         self._pickFolder = False
         self._openFile = False
         self._resolvePath = False
+        self._resolved = False
 
         self.uiFilenameTXT.textChanged.connect(self.filenameChanged.emit)
         self.uiFilenameTXT.editingFinished.connect(self.resolve)
@@ -43,6 +44,9 @@ class FilePickerWidget(QWidget):
 
     def filters(self):
         return self._filters
+
+    def isResolved(self):
+        return self._resolved
 
     def openFile(self):
         return self._openFile
@@ -84,15 +88,18 @@ class FilePickerWidget(QWidget):
                 fg = QColor("darkGreen")
                 bg = QColor("green")
                 bg.setAlpha(100)
+                self._resolved = True
             else:
                 fg = QColor("darkRed")
                 bg = QColor("red")
                 bg.setAlpha(100)
+                self._resolved = False
 
             palette.setColor(QPalette.Text, fg)
             palette.setColor(QPalette.Base, bg)
         else:
             palette = self.palette()
+            self._resolved = False
 
         self.uiFilenameTXT.setPalette(palette)
 

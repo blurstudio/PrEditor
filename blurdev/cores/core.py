@@ -134,13 +134,8 @@ class Core(QObject):
         self._logger = None
         self._treegrunt = None
 
-        # try to set the preference path to the standarad blur location
-        try:
-            import win32api
-
-            self.setPreferenceRoot('h:/public/%s/blur/tools' % win32api.GetUserName())
-        except:
-            self.setPreferenceRoot('c:/blur/prefs')
+        # set the preference root location
+        self.setPreferenceRoot('c:/blur/prefs')
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)

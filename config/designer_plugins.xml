@@ -3,4 +3,12 @@
 	<plugin module="blurdev.gui.widgets.accordianwidget" class="AccordianWidget" container="True"/>
 	<plugin module="blurdev.gui.widgets.filepickerwidget" class="FilePickerWidget"/>
 	<plugin module="blurdev.ide.documenteditor" class="DocumentEditor"/>
+	
+	<!-- storm widgets -->
+	<plugin module="blurdev.storm.stormwidget" 			class="StormWidget" 		group="Storm"/>
+	<plugin module="blurdev.storm.stormpluginwidget" 	class="StormPluginWidget" 	group="Storm"/>
+	
+	<!-- storm ports -->
+	<plugin module="blurdev.storm.plugins.ports.numberport.widgets" class="NumberPortWidget" 	group="Storm"/>
+	<plugin module="blurdev.storm.plugins.ports.numberport.widgets" class="FloatPortWidget" 	group="Storm"/>
 </plugins>

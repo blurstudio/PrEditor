@@ -30,3 +30,64 @@ def loadUi(filename, widget, uiname=''):
         uiname = os.path.basename(filename).split('.')[0]
 
     PyQt4.uic.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
+
+
+def findPixmap(filename, thumbSize=None):
+    """
+        \remarks	looks up a pixmap based on the inputed filename using the QPixmapCache system.  If the autoLoad
+                    parameter is true, then it will automatically load the pixmap and return it
+        \param		filename	<str>
+        \param		thumbSize	<QSize>		size to scale the item to if desired (will affect the search key)
+    """
+    from PyQt4.QtCore import Qt
+    from PyQt4.QtGui import QPixmapCache, QPixmap
+
+    # create the thumbnail size
+    if thumbSize:
+        w = thumbSize.width()
+        h = thumbSize.height()
+
+        ratio = '_%sx%s' % (w, h)
+
+        thumb = QPixmap()
+
+        # load the existing cached thumb file
+        if not QPixmapCache.find(filename + ratio, thumb):
+            cache = QPixmap()
+
+            # load the existing cached main file
+            if not QPixmapCache.find(filename, cache):
+                cache.load(filename)
+
+                # load a missing file
+                if cache.isNull():
+                    cache.load(findIconFile('missing'))
+
+                # cache the source
+                QPixmapCache.insert(filename, cache)
+
+            if thumbSize.width() < cache.width() or thumbSize.height() < cache.height():
+                thumb = cache.scaled(thumbSize, Qt.KeepAspectRatio)
+            else:
+                thumb = QPixmap(cache)
+
+            QPixmapCache.insert(filename + ratio, thumb)
+
+        return thumb
+
+    else:
+        # try to load the pixmap
+        cache = QPixmap()
+
+        # pull the pixmap, autoloading it when necessary
+        if not QPixmapCache.find(filename, cache):
+            cache.load(filename)
+
+            # load a missing file
+            if cache.isNull():
+                cache.load(findIconFile('missing'))
+
+            # cache the source
+            QPixmapCache.insert(filename, cache)
+
+        return QPixmap(cache)

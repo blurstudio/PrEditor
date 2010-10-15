@@ -62,13 +62,9 @@ class Preference(XMLDocument):
 
         # try to create the path
         if not os.path.exists(path):
-            import blurdev
+            import os
 
-            rootpath = blurdev.core.preferenceRoot()
-            if os.path.exists(rootpath) and os.path.normcase(
-                rootpath
-            ) in os.path.normcase(path):
-                os.makedirs(path)
+            os.makedirs(path)
 
         XMLDocument.save(self, filename)
 
