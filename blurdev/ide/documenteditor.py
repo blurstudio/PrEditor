@@ -19,6 +19,8 @@ class DocumentEditor(QsciScintilla):
         # create custom properties
         self._filename = ''
         self._language = ''
+        self._lastSearch = ''
+        self._lastSearchBackward = False
 
         # initialize the look of the system
         from PyQt4.QtCore import Qt
@@ -27,12 +29,12 @@ class DocumentEditor(QsciScintilla):
         font = QFont()
         font.setFamily('Courier New')
         font.setFixedPitch(True)
-        font.setPointSize(10)
+        font.setPointSize(9)
 
         # set the font information
         self.setFont(font)
         mfont = QFont(font)
-        mfont.setPointSize(8)
+        mfont.setPointSize(7)
         self.setMarginsFont(mfont)
 
         # set the margin information
@@ -112,6 +114,38 @@ class DocumentEditor(QsciScintilla):
 
     def filename(self):
         return self._filename
+
+    def findNext(self, text, flags):
+        from PyQt4.QtGui import QTextDocument
+
+        if not (text == self._lastSearch and not self._lastSearchBackward):
+            self._lastSearch = text
+            self._lastSearchBackward = True
+            re = False
+            cs = (flags & QTextDocument.FindCaseSensitively) != 0
+            wo = (flags & QTextDocument.FindWholeWords) != 0
+            wrap = True
+            forward = True
+
+            self.findFirst(text, re, cs, wo, wrap, forward)
+        else:
+            QsciScintilla.findNext(self)
+
+    def findPrev(self, text, flags):
+        from PyQt4.QtGui import QTextDocument
+
+        if not (text == self._lastSearch and self._lastSearchBackward):
+            self._lastSearch = text
+            self._lastSearchBackward = True
+            re = False
+            cs = (flags & QTextDocument.FindCaseSensitively) != 0
+            wo = (flags & QTextDocument.FindWholeWords) != 0
+            wrap = True
+            forward = False
+
+            self.findFirst(text, re, cs, wo, wrap, forward)
+        else:
+            QsciScintilla.findNext(self)
 
     def save(self):
         self.saveAs(self.filename())

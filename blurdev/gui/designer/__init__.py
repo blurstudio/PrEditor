@@ -56,7 +56,7 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
         return ""
     
     def isContainer( self ):
-        return False
+        return %(container)s
     
     def includeFile( self ):
         return "%(module)s"
@@ -79,7 +79,9 @@ def init():
     loadPlugins( os.path.split( blurdev.__file__ )[0] + '/config/designer_plugins.xml' )
     
     # import the modules
-    for filename in glob.glob( os.path.split( __file__ )[0] + '/*.py' ):
+    filenames = glob.glob( os.path.split( __file__ )[0] + '/*.py' )
+    filenames.sort()
+    for filename in filenames:
         modname = os.path.basename( filename ).split( '.' )[0]
         if ( modname != '__init__' ):
             fullname = 'blurdev.gui.designer.%s' % modname
@@ -95,14 +97,20 @@ def loadPlugins( filename ):
     if ( doc.load( filename ) ):
         import os, sys
         
+        blurdevpath = os.path.abspath( os.path.split( __file__ )[0] + '/../..' )
+        
         for child in doc.root().children():
             if ( child.nodeName == 'include' ):
                 import re
                 href = child.attribute( 'href' )
+                
                 # replace sys globals
                 results 	= re.findall( '\[([^\]]+)', href )
                 for result in results:
-                    href = href.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
+                    if ( result == 'BLURDEV' ):
+                        href = href.replace( '[%s]' % result, blurdevpath )
+                    else:
+                        href = href.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
                 
                 # make sure the location is importable
                 importPath = child.attribute( 'root' )
@@ -117,14 +125,14 @@ def loadPlugins( filename ):
                 # load the include file
                 loadPlugins( href )
             else:
-                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ) )
+                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )) )
 
 def register( name, plugin ):
     import blurdev.gui.designer
     blurdev.gui.designer.__dict__[ name ] = plugin
 
-def createPlugin( module, cls, icon = '', group = 'Blur Widgets' ):
-    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group }
+def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False ):
+    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container }
     import os.path
     filename = os.path.split( __file__ )[0] + '/%splugin.py' % str( cls ).lower()
     f = open( filename, 'w' )

@@ -85,7 +85,7 @@ class XMLDocument(XMLElement):
             return XMLElement(self._object.childNodes[0], self.__file__)
         return None
 
-    def save(self, fileName, pretty=False):
+    def save(self, fileName, pretty=True):
         """
         #-------------------------------------------------------------------------------------------------------------
         #	\remarks
@@ -103,7 +103,7 @@ class XMLDocument(XMLElement):
 
             f = open(fileName, 'w')
             if pretty:
-                f.write(self.toprettyxml())
+                f.write(self.formatXml(self.toxml()))
             else:
                 f.write(self.toxml())
             f.close()

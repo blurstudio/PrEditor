@@ -8,119 +8,170 @@
 # 	\date		08/19/10
 #
 
-from blurdev.enum import enum
-
-ProjectType = enum('Application', 'Custom', 'Library', 'Tool', 'LegacyTool')
+from PyQt4.QtCore import QObject
 
 
-class IdeProject:
-    projects = {}
+class IdeProjectItem(QObject):
+    def __init__(self, parent):
+        QObject.__init__(self, parent)
 
-    Command = {'.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common')}
+        self._filePath = ''
+        self._group = True
+        self._fileSystem = False
+        self._icon = None
 
-    def __init__(self, projectType):
-        self._name = ''
-        self._path = ''
-        self._icon = ''
-        self._projectType = projectType
+        self._exclude = ['.svn']
+        self._fileTypes = ['*.py', '*.pyw', '*.xml', '*.ui']
+
+    def filePath(self):
+        return self._filePath
+
+    def fileInfo(self):
+        from PyQt4.QtCore import QFileInfo
+
+        if self.isFileSystem():
+            return QFileInfo(self.filePath())
+        return QFileInfo()
 
     def icon(self):
+        if not self._icon:
+            from PyQt4.QtGui import QIcon
+
+            if self.isFileSystem():
+                from PyQt4.QtGui import QFileIconProvider
+
+                provider = QFileIconProvider()
+                self._icon = provider.icon(self.fileInfo())
+            else:
+                import blurdev
+
+                iconfile = blurdev.relativePath(__file__, 'img/folder.png')
+                self._icon = QIcon(iconfile)
+
         return self._icon
 
-    def name(self):
-        return self._name
+    def isGroup(self):
+        return self._group
 
-    def path(self):
-        return self._path
+    def isFileSystem(self):
+        return self._fileSystem
 
-    def projectType(self):
-        return self._projectType
+    def load(self):
+        if self.isGroup():
+            return False
 
-    def setName(self, name):
-        self._name = name
+        dirmap = {}
 
-    def setIcon(self, icon):
-        self._icon = icon
+        import os
 
-    def setPath(self, path):
-        self._path = path
+        first = True
+        for root, dirs, files in os.walk(str(self.filePath())):
+            if first:
+                parent = self
+            else:
+                parent = dirmap.get(root, None)
 
-    @staticmethod
-    def projectsByType(projectType):
-        output = []
+            if not parent:
+                continue
 
-        # tools use the environment system
-        if projectType in (ProjectType.Tool, ProjectType.LegacyTool):
-            from blurdev.tools import ToolsEnvironment
+            # load the dirs
+            dirs.sort()
+            for d in dirs:
+                if not d in self._exclude:
+                    child = IdeProjectItem(parent)
+                    child.setObjectName(d)
+                    fpath = os.path.join(root, d)
+                    child.setFilePath(fpath)
+                    child.setFileSystem(True)
+                    dirmap[fpath] = child
 
-            tools = ToolsEnvironment.activeEnvironment().index().tools()
-            tools.sort(lambda x, y: cmp(x.displayName(), y.displayName()))
+            # load the files
+            files.sort()
+            for f in files:
+                ftype = os.path.splitext(f)[1]
+                if not self._fileTypes or ('*' + ftype) in self._fileTypes:
+                    child = IdeProjectItem(parent)
+                    child.setObjectName(f)
+                    fpath = os.path.join(root, f)
+                    child.setFilePath(fpath)
+                    child.setFileSystem(True)
 
-            legacy = ProjectType.LegacyTool == projectType
+            first = False
 
-            for tool in tools:
-                if tool.isLegacy() == legacy:
-                    output.append(IdeProject.fromTool(tool))
+        return True
 
-        # all other types use registration
-        else:
-            output = IdeProject.projects.get(projectType, [])
+    def refresh(self):
+        if not self.isGroup():
+            children = list(self.children())
+            for child in children:
+                child.setParent(None)
+                child.deleteLater()
 
-        return output
+            self.load()
 
-    @staticmethod
-    def register(project):
-        if not project.projectType() in IdeProject.projects:
-            IdeProject.projects[project.projectType()] = [project]
-        else:
-            IdeProject.projects[project.projectType()].append(project)
-            IdeProject.projects[project.projectType()].sort(
-                lambda x, y: cmp(x.name(), y.name())
-            )
+    def setGroup(self, state):
+        self._group = state
 
-    @staticmethod
-    def fromTool(tool):
-        if tool.isLegacy():
-            ptype = ProjectType.LegacyTool
-        else:
-            ptype = ProjectType.Tool
+    def setExclude(self, exclude):
+        self._exclude = exclude
 
-        proj = IdeProject(ptype)
-        proj.setName(tool.displayName())
-        proj.setPath(tool.path())
-        proj.setIcon(tool.icon())
-        return proj
+    def setFilePath(self, filePath):
+        self._filePath = filePath
+
+    def setFileSystem(self, state):
+        self._fileSystem = state
+
+    def setFileTypes(self, ftypes):
+        self._fileTypes = ftypes
 
     @staticmethod
     def fromXml(xml):
-        for child in xml.children():
-            '<project name="Trax" type="Application" loc="c:/blur/trax" icon="c:/blur/trax/icon.png"/>'
-            proj = IdeProject(ProjectType.value(child.attribute('type')))
-            proj.setName(child.attribute('name'))
-            proj.setPath(child.attribute('loc'))
-            proj.setIcon(child.attribute('icon'))
-            IdeProject.register(proj)
+        out = IdeProjectItem(None)
+        out.setObjectName(xml.attribute('name'))
+        out.setGroup(xml.attribute('group') != 'False')
+        out.setFilePath(xml.attribute('filePath'))
+        out.refresh()
+
+        exclude = xml.attribute('exclude')
+        if exclude:
+            out.setExclude(exclude.split(';;'))
+
+        ftypes = xml.attribute('fileTypes')
+        if ftypes:
+            out.setFileTypes(ftypes.split(';;'))
+
+        return out
+
+
+class IdeProject(IdeProjectItem):
+    def __init__(self, parent=None):
+        QObject.__init__(self, parent)
+
+    def findPathGroup(self, path):
+        import os.path
+
+        normpath = os.path.normcase(str(path))
+        for child in self.findChildren(IdeProjectItem):
+            if not child.isGroup():
+                normcheck = os.path.normcase(str(child.path()))
+                if normcheck == normpath:
+                    return child
+        return None
 
     @staticmethod
-    def toXml(parent):
-        node = parent.addNode('projects')
-        for grp in IdeProject.projects.values():
-            for proj in grp:
-                elem = node.addNode('project')
-                elem.setAttribute('name', elem.name())
-                elem.setAttribute('type', ProjectType.key(elem.projectType()))
-                elem.setAttribute('loc', elem.path())
-                elem.setAttribute('icon', elem.icon())
-
-    @staticmethod
-    def load(filename):
+    def fromXml(filename):
         from blurdev.XML import XMLDocument
 
         doc = XMLDocument()
+        output = None
         if doc.load(filename):
-            IdeProject.fromXml(doc.root())
+            root = doc.root()
+            if root.nodeName == 'bluride':
+                output = IdeProject()
+                output.setObjectName(root.attribute('project'))
 
-
-import os.path
-
-IdeProject.load(os.path.split(__file__)[0] + '/projects.xml')
+                folders = root.findChild('folders')
+                for folder in folders.children():
+                    item = IdeProjectItem.fromXml(folder)
+                    item.setParent(output)
+        return output

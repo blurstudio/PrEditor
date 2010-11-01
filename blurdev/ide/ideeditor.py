@@ -10,10 +10,13 @@
 
 from PyQt4.QtCore import pyqtSignal
 from blurdev.gui import Window
+from ideproject import IdeProject
 
 
 class IdeEditor(Window):
     documentTitleChanged = pyqtSignal()
+    currentProjectChanged = pyqtSignal(IdeProject)
+
     _instance = None
 
     Command = {'.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common')}
@@ -27,25 +30,20 @@ class IdeEditor(Window):
 
         blurdev.gui.loadUi(__file__, self)
 
-        # load the project types
-        from blurdev.ide.ideproject import ProjectType
-
-        self.uiTypeDDL.addItems(ProjectType.labels())
-        import os.path
-
-        path = os.path.split(__file__)[0]
         from PyQt4.QtGui import QIcon
 
-        for i in range(self.uiTypeDDL.count()):
-            self.uiTypeDDL.setItemIcon(
-                i, QIcon(path + '/img/%s.png' % self.uiTypeDDL.itemText(i))
-            )
-
-        self.setWindowIcon(QIcon(path + '/img/icon.png'))
+        self.setWindowIcon(QIcon(blurdev.relativePath(__file__, '/img/icon.png')))
 
         # create custom properties
         self._closing = False
-        self._projects = []
+        self._project = None
+        self._searchText = ''
+        self._searchFlags = 0
+        self._searchDialog = None
+
+        from finddialog import FindDialog
+
+        self._searchDialog = FindDialog(self)
 
         # create the filesystem model for the explorer tree
         from PyQt4.QtGui import QFileSystemModel
@@ -60,8 +58,6 @@ class IdeEditor(Window):
         self.restoreSettings()
 
         # create connections
-        self.uiTypeDDL.currentIndexChanged.connect(self.refreshProjects)
-        self.uiProjectDDL.currentIndexChanged.connect(self.refreshProject)
         self.uiProjectTREE.clicked.connect(self.updatePath)
         self.uiProjectTREE.doubleClicked.connect(self.editItem)
         self.uiOpenTREE.itemClicked.connect(self.editItem)
@@ -73,8 +69,12 @@ class IdeEditor(Window):
         self.uiCommandLineDDL.lineEdit().returnPressed.connect(self.runCommand)
 
         # connect file menu
+        from blurdev.ide.templatebuilder import TemplateBuilder
+
         self.uiNewACT.triggered.connect(self.documentNew)
+        self.uiNewFromTemplateACT.triggered.connect(TemplateBuilder.createTemplate)
         self.uiOpenACT.triggered.connect(self.documentOpen)
+        self.uiOpenProjectACT.triggered.connect(self.projectOpen)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
         self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
@@ -90,6 +90,9 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
+        self.uiFindACT.triggered.connect(self._searchDialog.show)
+        self.uiFindNextACT.triggered.connect(self.documentFindNext)
+        self.uiFindPrevACT.triggered.connect(self.documentFindPrev)
 
         # connect view menu
         self.uiDisplayWindowsACT.triggered.connect(self.displayWindows)
@@ -98,11 +101,8 @@ class IdeEditor(Window):
         self.uiDisplayCascadeACT.triggered.connect(self.uiWindowsAREA.cascadeSubWindows)
 
         # connect tools menu
-        from blurdev.ide.templatebuilder import TemplateBuilder
-
         self.uiAssistantACT.triggered.connect(self.showAssistant)
         self.uiDesignerACT.triggered.connect(self.showDesigner)
-        self.uiTemplateBuilderACT.triggered.connect(TemplateBuilder.createTemplate)
         self.uiShowLoggerACT.triggered.connect(blurdev.core.showLogger)
 
         # connect advanced menu
@@ -126,15 +126,7 @@ class IdeEditor(Window):
         return None
 
     def currentProject(self):
-        index = self.uiProjectDDL.currentIndex()
-        if 0 <= index and index < len(self._projects):
-            return self._projects[index]
-        return None
-
-    def currentProjectType(self):
-        from blurdev.ide.ideproject import ProjectType
-
-        return ProjectType.valueByLabel(self.uiTypeDDL.currentText())
+        return self._project
 
     def currentPath(self):
         path = ''
@@ -148,11 +140,7 @@ class IdeEditor(Window):
             path = self.uiProjectTREE.model().filePath(
                 self.uiProjectTREE.currentIndex()
             )
-            if not path:
-                proj = self.currentProject()
-                if proj:
-                    path = str(proj.path())
-            else:
+            if path:
                 path = os.path.split(str(path))[0]
         else:
             path = str(
@@ -216,6 +204,22 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.copy()
+
+    def documentFindNext(self):
+        doc = self.currentDocument()
+        if not doc:
+            return False
+
+        doc.findNext(self.searchText(), self.searchFlags())
+        return True
+
+    def documentFindPrev(self):
+        doc = self.currentDocument()
+        if not doc:
+            return False
+
+        doc.findPrev(self.searchText(), self.searchFlags())
+        return True
 
     def documentPaste(self):
         doc = self.currentDocument()
@@ -329,6 +333,25 @@ class IdeEditor(Window):
                 self.uiWindowsAREA.width() - 20, self.uiWindowsAREA.height() - 20
             )
 
+    def projectOpen(self):
+        from PyQt4.QtGui import QFileDialog
+
+        filename = QFileDialog.getOpenFileName(
+            self,
+            'Blur IDE Project',
+            '',
+            'Blur IDE Project (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
+        )
+        if filename:
+            from ideproject import IdeProject
+
+            proj = IdeProject.fromXml(filename)
+
+            # load the project
+            self.setCurrentProject(proj)
+            self.uiBrowserTAB.setCurrentIndex(0)
+            self.refreshProject()
+
     def recordSettings(self):
         import blurdev
         from blurdev import prefs
@@ -354,40 +377,12 @@ class IdeEditor(Window):
         self.uiOpenTREE.blockSignals(False)
         self.uiOpenTREE.setUpdatesEnabled(True)
 
-    def refreshProjects(self):
-        from blurdev.ide.ideproject import IdeProject
-
-        self._projects = IdeProject.projectsByType(self.currentProjectType())
-
-        self.uiProjectDDL.blockSignals(True)
-        self.uiProjectDDL.clear()
-        self.uiProjectDDL.addItems([proj.name() for proj in self._projects])
-
-        from PyQt4.QtGui import QIcon
-
-        default = QIcon(self.uiTypeDDL.itemIcon(self.uiTypeDDL.currentIndex()))
-        for i in range(len(self._projects)):
-            icon = QIcon(self._projects[i].icon())
-            if icon.isNull():
-                icon = default
-            self.uiProjectDDL.setItemIcon(i, icon)
-
-        self.uiProjectDDL.blockSignals(False)
-        self.refreshProject()
-
     def refreshProject(self):
         proj = self.currentProject()
         if proj:
-            # create the filesystem model for the tree
-            from PyQt4.QtGui import QFileSystemModel
+            from ideprojectmodel import IdeProjectModel
 
-            # create the system model
-            model = QFileSystemModel()
-            model.setRootPath(proj.path())
-            self.uiProjectTREE.setModel(model)
-            self.uiProjectTREE.setRootIndex(model.index(proj.path()))
-            for i in range(1, 4):
-                self.uiProjectTREE.setColumnHidden(i, True)
+            self.uiProjectTREE.setModel(IdeProjectModel(proj))
         else:
             self.uiProjectTREE.setModel(None)
 
@@ -424,6 +419,23 @@ class IdeEditor(Window):
 
         self.uiCommandLineDDL.lineEdit().setText('')
 
+    def searchFlags(self):
+        return self._searchFlags
+
+    def searchText(self):
+        if not self._searchDialog:
+            return ''
+
+        # refresh the search text
+        if not self._searchDialog.isVisible():
+            doc = self.currentDocument()
+            if doc:
+                text = doc.selectedText()
+                if text:
+                    self._searchText = text
+
+        return self._searchText
+
     def showAssistant(self):
         from PyQt4.QtCore import QProcess
 
@@ -449,20 +461,15 @@ class IdeEditor(Window):
         print 'coming soon'
 
     def setCurrentProject(self, project):
-        if project:
-            self.setCurrentProjectType(project.projectType())
-            self.uiProjectDDL.setCurrentIndex(
-                self.uiProjectDDL.findText(project.name())
-            )
-        else:
-            from blurdev.ide.ideproject import ProjectType
+        self._project = project
+        self.currentProjectChanged.emit(project)
+        self.refreshProject()
 
-            self.setCurrentProjectType(ProjectType.Custom)
+    def setSearchText(self, text):
+        self._searchText = text
 
-    def setCurrentProjectType(self, projectType):
-        from blurdev.ide.ideproject import ProjectType
-
-        self.uiTypeDDL.setCurrentIndex(ProjectType.indexByValue(projectType))
+    def setSearchFlags(self, flags):
+        self._searchFlags = flags
 
     def updatePath(self):
         self.uiPathLBL.setText(self.currentPath() + '>')
