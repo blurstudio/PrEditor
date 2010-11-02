@@ -41,6 +41,10 @@ class IdeEditor(Window):
         self._searchFlags = 0
         self._searchDialog = None
 
+        from PyQt4.QtCore import QDir
+
+        QDir.setCurrent('c:/blur/dev')
+
         from finddialog import FindDialog
 
         self._searchDialog = FindDialog(self)
@@ -60,6 +64,7 @@ class IdeEditor(Window):
         # create connections
         self.uiProjectTREE.clicked.connect(self.updatePath)
         self.uiProjectTREE.doubleClicked.connect(self.editItem)
+        self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.doubleClicked.connect(self.editItem)
         self.uiExplorerTREE.clicked.connect(self.updatePath)
@@ -69,10 +74,12 @@ class IdeEditor(Window):
         self.uiCommandLineDDL.lineEdit().returnPressed.connect(self.runCommand)
 
         # connect file menu
-        from blurdev.ide.templatebuilder import TemplateBuilder
+        from blurdev.ide.idetemplatebrowser import IdeTemplateBrowser
 
         self.uiNewACT.triggered.connect(self.documentNew)
-        self.uiNewFromTemplateACT.triggered.connect(TemplateBuilder.createTemplate)
+        self.uiNewFromTemplateACT.triggered.connect(
+            IdeTemplateBrowser.createFromTemplate
+        )
         self.uiOpenACT.triggered.connect(self.documentOpen)
         self.uiOpenProjectACT.triggered.connect(self.projectOpen)
         self.uiCloseACT.triggered.connect(self.documentClose)
@@ -90,9 +97,10 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
-        self.uiFindACT.triggered.connect(self._searchDialog.show)
         self.uiFindNextACT.triggered.connect(self.documentFindNext)
         self.uiFindPrevACT.triggered.connect(self.documentFindPrev)
+        self.uiGotoACT.triggered.connect(self.documentGoTo)
+        self.uiFindACT.triggered.connect(self._searchDialog.show)
 
         # connect view menu
         self.uiDisplayWindowsACT.triggered.connect(self.displayWindows)
@@ -204,6 +212,11 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.copy()
+
+    def documentGoTo(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.goToLine()
 
     def documentFindNext(self):
         doc = self.currentDocument()
@@ -441,16 +454,29 @@ class IdeEditor(Window):
 
         QProcess.startDetached('c:/blur/common/assistant.exe', [], '')
 
+    def showProjectMenu(self):
+        from PyQt4.QtGui import QMenu, QCursor
+
+        menu = QMenu(self)
+        menu.addAction(self.uiNewACT)
+        menu.addAction(self.uiNewFromTemplateACT)
+        menu.addSeparator()
+        menu.addAction('Open')
+        menu.addAction('Explore')
+
+        menu.popup(QCursor.pos())
+
     def showConfig(self):
-        from blurdev.gui.dialogs.configdialog import ConfigDialog
+        pass
 
-        # create the general options
-        general = {}
-        from blurdev.ide.config.projectconfig import ProjectConfig
+    # 		from blurdev.gui.dialogs.configdialog 	import ConfigDialog
 
-        general['Projects'] = ProjectConfig
+    # create the general options
+    # 		general = {}
+    # 		from blurdev.ide.config.projectconfig import ProjectConfig
+    # 		general[ 'Projects' ] = ProjectConfig
 
-        ConfigDialog.edit({'General Options': general})
+    # 		ConfigDialog.edit( { 'General Options': general } )
 
     def showDesigner(self):
         from PyQt4.QtCore import QProcess

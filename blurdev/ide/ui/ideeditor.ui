@@ -33,6 +33,9 @@
          <height>0</height>
         </size>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -50,7 +53,7 @@
          <item>
           <widget class="QTreeView" name="uiProjectTREE">
            <property name="contextMenuPolicy">
-            <enum>Qt::ActionsContextMenu</enum>
+            <enum>Qt::CustomContextMenu</enum>
            </property>
           </widget>
          </item>
@@ -168,8 +171,6 @@
     <addaction name="uiNewFromTemplateACT"/>
     <addaction name="uiOpenACT"/>
     <addaction name="separator"/>
-    <addaction name="uiOpenProjectACT"/>
-    <addaction name="separator"/>
     <addaction name="uiCloseACT"/>
     <addaction name="uiCloseAllACT"/>
     <addaction name="uiCloseAllExceptACT"/>
@@ -234,16 +235,29 @@
     <addaction name="separator"/>
     <addaction name="uiAboutACT"/>
    </widget>
-   <widget class="QMenu" name="uiEnvironmentsMENU">
+   <widget class="QMenu" name="uiRunMENU">
     <property name="title">
-     <string>Environments</string>
+     <string>&amp;Run</string>
     </property>
     <addaction name="uiCleanPathsACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiRunScriptACT"/>
+   </widget>
+   <widget class="QMenu" name="menu_Project">
+    <property name="title">
+     <string>&amp;Project</string>
+    </property>
+    <addaction name="uiNewProjectACT"/>
+    <addaction name="uiOpenProjectACT"/>
+    <addaction name="uiEditProjectACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiCloseProjectACT"/>
    </widget>
    <addaction name="uiFileMENU"/>
+   <addaction name="menu_Project"/>
    <addaction name="menuEdit"/>
    <addaction name="uiSearchMENU"/>
-   <addaction name="uiEnvironmentsMENU"/>
+   <addaction name="uiRunMENU"/>
    <addaction name="uiViewMENU"/>
    <addaction name="uiToolsMENU"/>
    <addaction name="uiAdvancedMENU"/>
@@ -270,7 +284,7 @@
   </action>
   <action name="uiNewACT">
    <property name="text">
-    <string>&amp;New</string>
+    <string>&amp;New File</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -278,7 +292,7 @@
   </action>
   <action name="uiOpenACT">
    <property name="text">
-    <string>Open...</string>
+    <string>Open File...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -515,7 +529,7 @@
   </action>
   <action name="uiCleanPathsACT">
    <property name="text">
-    <string>Clean Paths</string>
+    <string>Clean Sys Path</string>
    </property>
   </action>
   <action name="uiDisplayTileACT">
@@ -532,6 +546,9 @@
    <property name="text">
     <string>Open Project...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
   </action>
   <action name="uiNewFromTemplateACT">
    <property name="text">
@@ -539,6 +556,31 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
+   </property>
+  </action>
+  <action name="uiCloseProjectACT">
+   <property name="text">
+    <string>Close Project</string>
+   </property>
+  </action>
+  <action name="uiNewProjectACT">
+   <property name="text">
+    <string>New Project...</string>
+   </property>
+  </action>
+  <action name="uiSaveProjectACT">
+   <property name="text">
+    <string>Save Project...</string>
+   </property>
+  </action>
+  <action name="uiEditProjectACT">
+   <property name="text">
+    <string>Edit Project...</string>
+   </property>
+  </action>
+  <action name="uiRunScriptACT">
+   <property name="text">
+    <string>Run Script...</string>
    </property>
   </action>
  </widget>

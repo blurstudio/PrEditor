@@ -58,6 +58,9 @@ class DocumentEditor(QsciScintilla):
         self.setMarginsForegroundColor(QColor(Qt.gray))
         self.setFoldMarginColors(QColor(Qt.yellow), QColor(Qt.blue))
 
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self.showMenu)
+
         # create the connections
         self.textChanged.connect(self.refreshTitle)
 
@@ -82,6 +85,26 @@ class DocumentEditor(QsciScintilla):
             elif result == QMessageBox.Cancel:
                 return False
         return True
+
+    def commentAdd(self):
+        pass
+
+    def commentRemove(self):
+        pass
+
+    def findInFiles(self):
+        from ideeditor import IdeEditor
+
+        window = self.window()
+        if isinstance(window, IdeEditor):
+            window.uiFindInFilesACT.triggered.emit()
+
+    def goToLine(self):
+        from PyQt4.QtGui import QInputDialog
+
+        line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
+        if accepted:
+            self.setCursorPosition(line + 1, 0)
 
     def language(self):
         return self._language
@@ -204,6 +227,25 @@ class DocumentEditor(QsciScintilla):
 
     def setShowLineNumbers(self, state):
         self.setMarginLineNumbers(self.SymbolMargin, state)
+
+    def showMenu(self):
+        from PyQt4.QtGui import QMenu, QCursor
+
+        menu = QMenu(self)
+
+        menu.addAction('Find in Files...').triggered.connect(self.findInFiles)
+        menu.addAction('Go to Line...').triggered.connect(self.goToLine)
+
+        menu.addSeparator()
+
+        menu.addAction('Toggle Folding').triggered.connect(self.foldAll)
+
+        menu.addSeparator()
+
+        menu.addAction('Comment Add').triggered.connect(self.commentAdd)
+        menu.addAction('Comment Remove').triggered.connect(self.commentRemove)
+
+        menu.popup(QCursor.pos())
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
