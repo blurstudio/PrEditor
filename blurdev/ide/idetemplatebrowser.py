@@ -30,11 +30,21 @@ class IdeTemplateBrowser(Dialog):
         from PyQt4.QtCore import Qt, QSize
         from PyQt4.QtGui import QTreeWidgetItem
 
-        for grp in templates.templateGroups():
-            item = QTreeWidgetItem([grp])
-            item.setSizeHint(0, QSize(250, 18))
+        for lang in templates.templateLanguages():
+            item = QTreeWidgetItem([lang])
+            item.setSizeHint(0, QSize(250, 23))
             item.setIcon(0, folder)
+
+            for grp in templates.templateGroups(lang):
+                gitem = QTreeWidgetItem([grp])
+                gitem.setSizeHint(0, QSize(250, 23))
+                gitem.setIcon(
+                    0, QIcon(blurdev.relativePath(__file__, 'img/%s.png' % grp))
+                )
+                item.addChild(gitem)
+
             self.uiTemplateTREE.addTopLevelItem(item)
+            item.setExpanded(True)
 
         # create the thumbnail scene
         from blurdev.gui.scenes.thumbnailscene import ThumbnailScene
@@ -74,17 +84,17 @@ class IdeTemplateBrowser(Dialog):
         self.uiDescriptionLBL.setText('')
 
         item = self.uiTemplateTREE.currentItem()
-        if not item:
+        if not (item and item.parent()):
             return
 
         import templates
         from PyQt4.QtCore import Qt
 
-        templs = templates.templates(item.text(0))
+        templs = templates.templates(item.parent().text(0), item.text(0))
         for templ in templs:
             item = scene.addThumbnail(templ.iconFile)
             item.setToolTip(templ.toolTip)
-            item.setData(Qt.UserRole, templ.name)
+            item.setData(Qt.UserRole, templ.templateId)
 
         scene.recalculate(scene.sceneRect(), True)
 
