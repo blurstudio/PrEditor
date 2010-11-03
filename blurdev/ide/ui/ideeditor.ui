@@ -55,6 +55,12 @@
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
           </widget>
          </item>
         </layout>
@@ -72,6 +78,12 @@
          </property>
          <item row="0" column="0">
           <widget class="QTreeWidget" name="uiOpenTREE">
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
            <column>
             <property name="text">
              <string notr="true">Documents</string>
@@ -93,7 +105,14 @@
           <number>0</number>
          </property>
          <item row="0" column="0">
-          <widget class="QTreeView" name="uiExplorerTREE"/>
+          <widget class="QTreeView" name="uiExplorerTREE">
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="headerVisible">
+            <bool>false</bool>
+           </attribute>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -149,6 +168,8 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="uiTreegruntACT"/>
+    <addaction name="separator"/>
     <addaction name="uiAssistantACT"/>
     <addaction name="uiDesignerACT"/>
     <addaction name="separator"/>
@@ -201,6 +222,15 @@
     <property name="title">
      <string>Search</string>
     </property>
+    <widget class="QMenu" name="uiMarkersMENU">
+     <property name="title">
+      <string>Markers</string>
+     </property>
+     <addaction name="uiAddRemoveMarkerACT"/>
+     <addaction name="uiNextMarkerACT"/>
+     <addaction name="separator"/>
+     <addaction name="uiClearMarkersACT"/>
+    </widget>
     <addaction name="uiFindACT"/>
     <addaction name="uiFindNextACT"/>
     <addaction name="uiFindPrevACT"/>
@@ -210,6 +240,7 @@
     <addaction name="uiReplaceInFilesACT"/>
     <addaction name="separator"/>
     <addaction name="uiGotoACT"/>
+    <addaction name="uiMarkersMENU"/>
     <addaction name="separator"/>
     <addaction name="uiFunctionListACT"/>
    </widget>
@@ -242,21 +273,24 @@
     <addaction name="uiCleanPathsACT"/>
     <addaction name="separator"/>
     <addaction name="uiRunScriptACT"/>
+    <addaction name="uiRunStandaloneACT"/>
    </widget>
    <widget class="QMenu" name="menu_Project">
     <property name="title">
      <string>&amp;Project</string>
     </property>
     <addaction name="uiNewProjectACT"/>
-    <addaction name="uiOpenProjectACT"/>
     <addaction name="uiEditProjectACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiOpenProjectACT"/>
+    <addaction name="uiOpenFavoritesACT"/>
     <addaction name="separator"/>
     <addaction name="uiCloseProjectACT"/>
    </widget>
    <addaction name="uiFileMENU"/>
-   <addaction name="menu_Project"/>
    <addaction name="menuEdit"/>
    <addaction name="uiSearchMENU"/>
+   <addaction name="menu_Project"/>
    <addaction name="uiRunMENU"/>
    <addaction name="uiViewMENU"/>
    <addaction name="uiToolsMENU"/>
@@ -267,6 +301,9 @@
   <action name="uiShowLoggerACT">
    <property name="text">
     <string>Show Logger</string>
+   </property>
+   <property name="shortcut">
+    <string>F2</string>
    </property>
   </action>
   <action name="uiTemplateBuilderACT">
@@ -302,6 +339,9 @@
    <property name="text">
     <string>E&amp;xit</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
   </action>
   <action name="uiUndoACT">
    <property name="text">
@@ -324,7 +364,7 @@
     <string>Close</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+W</string>
+    <string>Ctrl+F4</string>
    </property>
   </action>
   <action name="uiCloseAllACT">
@@ -332,7 +372,7 @@
     <string>Close All Files</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+F4</string>
+    <string>Ctrl+Shift+W</string>
    </property>
   </action>
   <action name="uiCloseAllExceptACT">
@@ -546,9 +586,6 @@
    <property name="text">
     <string>Open Project...</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Shift+O</string>
-   </property>
   </action>
   <action name="uiNewFromTemplateACT">
    <property name="text">
@@ -580,7 +617,75 @@
   </action>
   <action name="uiRunScriptACT">
    <property name="text">
-    <string>Run Script...</string>
+    <string>Run as Script...</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
+   </property>
+  </action>
+  <action name="uiRunStandaloneACT">
+   <property name="text">
+    <string>Run as Standalone...</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="uiOpenFavoritesACT">
+   <property name="text">
+    <string>Open Favorites...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
+  <action name="uiTreegruntACT">
+   <property name="text">
+    <string>Treegrunt</string>
+   </property>
+  </action>
+  <action name="actionAdd_Marker">
+   <property name="text">
+    <string>Add Marker</string>
+   </property>
+  </action>
+  <action name="actionFind_Next_Marker">
+   <property name="text">
+    <string>Find Next Marker</string>
+   </property>
+  </action>
+  <action name="uiAddRemoveMarkerACT">
+   <property name="text">
+    <string>Add/Remove Marker</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="uiNextMarkerACT">
+   <property name="text">
+    <string>Next Marker</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
+   </property>
+  </action>
+  <action name="uiPreviousMarkerACT">
+   <property name="text">
+    <string>Previous Marker</string>
+   </property>
+  </action>
+  <action name="uiRemoveMarkerACT">
+   <property name="text">
+    <string>Remove Marker</string>
+   </property>
+  </action>
+  <action name="uiClearMarkersACT">
+   <property name="text">
+    <string>Clear Markers</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
    </property>
   </action>
  </widget>

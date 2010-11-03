@@ -134,6 +134,8 @@ class StudiomaxCore(Core):
                 if not filename:
                     return
 
+        filename = str(filename)
+
         # run a maxscript file
         import os.path
 

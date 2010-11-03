@@ -19,6 +19,24 @@ class LexerMap:
         self.lexerClass = lexerClass
 
 
+def fileTypes():
+    load()
+    langs = _mapping.keys()
+    langs.sort()
+
+    output = []
+    for lang in langs:
+        lexerm = _mapping[lang]
+        output.append(
+            '%s Files (%s)'
+            % (lang, ','.join(['*' + ftype for ftype in lexerm.fileTypes]))
+        )
+
+    output.append('Text Files (*.txt')
+    output.append('All Files (*.*)')
+    return ';;'.join(output)
+
+
 def load():
     global _loaded
     if not _loaded:
@@ -41,10 +59,21 @@ def languageFor(lexer):
     return ''
 
 
+def lexerMap(lang):
+    return _mapping.get(str(lang))
+
+
 def lexerFor(ext):
     for lexerMap in _mapping.values():
         if ext in lexerMap.fileTypes:
             return lexerMap.lexerClass()
+    return None
+
+
+def languageForExt(ext):
+    for lang, lexerMap in _mapping.items():
+        if ext in lexerMap.fileTypes:
+            return lang
     return None
 
 
@@ -71,5 +100,7 @@ def register(lang, fileTypes, lexerClass):
 from PyQt4.Qsci import *
 
 # create default mappings
+register('C++ Files', ('.cpp', '.c', '.h'), QsciLexerCPP)
+register('Maxscript', ('.ms', '.mcr'), QsciLexerCPP)
 register('Python', ('.py', '.pyw', '.pys'), QsciLexerPython)
 register('XML', ('.xml', '.ui'), QsciLexerXML)

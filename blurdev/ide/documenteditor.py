@@ -42,6 +42,9 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(0, True)
         self.setAutoIndent(True)  # automatically match line indentations on new lines
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
+        self.setIndentationsUseTabs(True)
+        self.setTabIndents(True)
+        self.setTabWidth(4)
 
         # set code folding options
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
@@ -92,6 +95,18 @@ class DocumentEditor(QsciScintilla):
     def commentRemove(self):
         pass
 
+    def exec_(self):
+        if self.save():
+            import blurdev
+
+            blurdev.core.runScript(self.filename())
+
+    def execStandalone(self):
+        if self.save():
+            import os
+
+            os.startfile(str(self.filename()))
+
     def findInFiles(self):
         from ideeditor import IdeEditor
 
@@ -108,6 +123,12 @@ class DocumentEditor(QsciScintilla):
 
     def language(self):
         return self._language
+
+    def languageChosen(self, action):
+        if action.text() == 'Plain Text':
+            self.setLanguage('')
+        else:
+            self.setLanguage(action.text())
 
     def lineMarginWidth(self):
         return self.marginWidth(self.SymbolMargin)
@@ -170,8 +191,46 @@ class DocumentEditor(QsciScintilla):
         else:
             QsciScintilla.findNext(self)
 
+    def keyPressEvent(self, event):
+        from PyQt4.QtCore import Qt
+
+        if event.key() == Qt.Key_Backtab:
+            self.unindentSelection()
+        else:
+            return QsciScintilla.keyPressEvent(self, event)
+
+    def markerNext(self):
+
+        line, index = self.getCursorPosition()
+
+        newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
+
+        # wrap around the document if necessary
+
+        if newline == -1:
+
+            newline = self.markerFindNext(0, self.marginMarkerMask(1))
+
+        self.setCursorPosition(newline, index)
+
+    def markerToggle(self):
+
+        line, index = self.getCursorPosition()
+
+        markers = self.markersAtLine(line)
+
+        if not markers:
+
+            marker = self.markerDefine(self.Circle)
+
+            self.markerAdd(line, marker)
+
+        else:
+
+            self.markerDelete(line)
+
     def save(self):
-        self.saveAs(self.filename())
+        return self.saveAs(self.filename())
 
     def saveAs(self, filename=''):
         if not filename:
@@ -180,7 +239,8 @@ class DocumentEditor(QsciScintilla):
             filename = QFileDialog.getSaveFileName(self.window(), 'Save File as...')
 
         if filename:
-            f = open(str(filename), 'w')
+            filename = str(filename)
+            f = open(filename, 'w')
             f.write(self.text())
             f.close()
 
@@ -188,6 +248,16 @@ class DocumentEditor(QsciScintilla):
             self.setModified(False)
             self.window().documentTitleChanged.emit()
             self.refreshTitle()
+
+            import os.path
+            import lexers
+
+            lexers.load()
+            lexer = lexers.lexerFor(os.path.splitext(filename)[1])
+            if lexer:
+                lexer.setFont(self.font())
+                self._language = lexers.languageFor(lexer)
+
             return True
         return False
 
@@ -208,12 +278,16 @@ class DocumentEditor(QsciScintilla):
             parent.setWindowTitle(self.windowTitle())
 
     def setLanguage(self, language):
+        language = str(language)
         self._language = language
 
         from blurdev.ide import lexers
 
         lexers.load()
         lexer = lexers.lexer(language)
+        if lexer:
+            lexer.setFont(self.font())
+
         self.setLexer(lexer)
 
     def setLineMarginWidth(self, width):
@@ -238,12 +312,25 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
-        menu.addAction('Toggle Folding').triggered.connect(self.foldAll)
+        menu.addAction('Collapse/Expand All').triggered.connect(self.toggleFolding)
 
         menu.addSeparator()
 
         menu.addAction('Comment Add').triggered.connect(self.commentAdd)
         menu.addAction('Comment Remove').triggered.connect(self.commentRemove)
+
+        menu.addSeparator()
+
+        submenu = menu.addMenu('View as...')
+        submenu.addAction('Plain Text')
+        submenu.addSeparator()
+
+        import lexers
+
+        for language in lexers.languages():
+            submenu.addAction(language)
+
+        submenu.triggered.connect(self.languageChosen)
 
         menu.popup(QCursor.pos())
 
@@ -252,6 +339,25 @@ class DocumentEditor(QsciScintilla):
 
     def showLineNumbers(self):
         return self.marginLineNumbers(self.SymbolMargin)
+
+    def toggleFolding(self):
+
+        from PyQt4.QtGui import QApplication
+
+        from PyQt4.QtCore import Qt
+
+        self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
+
+    def unindentSelection(self):
+        lineFrom = 0
+        indexFrom = 0
+        lineTo = 0
+        indexTo = 0
+
+        lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
+
+        for line in range(lineFrom, lineTo + 1):
+            self.unindent(line)
 
     # expose properties for the designer
     pyLanguage = pyqtProperty("QString", language, setLanguage)

@@ -42,6 +42,25 @@ class Wizard(QWizard):
         # set this property to true to properly handle tracking events to control keyboard overrides
         self.setMouseTracking(True)
 
+        self.initWizardStyle()
+
+    def initWizardStyle(self):
+        # set the window title
+        self.setWizardStyle(QWizard.MacStyle)
+
+        import blurdev
+        from PyQt4.QtGui import QPixmap
+
+        self.setPixmap(
+            QWizard.BackgroundPixmap,
+            QPixmap(blurdev.relativePath(__file__, 'img/watermark.png')),
+        )
+
+        self.initWizardPages()
+
+    def initWizardPages(self):
+        pass
+
     def closeEvent(self, event):
         QWizard.closeEvent(self, event)
 
@@ -64,3 +83,9 @@ class Wizard(QWizard):
 
         # execute the wizard
         return QWizard.exec_(self)
+
+    @classmethod
+    def runWizard(cls, parent=None):
+        if cls(parent).exec_():
+            return True
+        return False

@@ -439,6 +439,8 @@ class Core(QObject):
         if scope == None:
             scope = {}
 
+        filename = str(filename)
+
         # run the script
         from blurdev import debug
         import os

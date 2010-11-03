@@ -99,13 +99,15 @@ class Tool(QObject):
     def path(self):
         return self._path
 
+    def projectFile(self):
+
+        return self.relativePath('%s.blurproj' % self.displayName())
+
     def relativePath(self, relpath):
         import os.path
 
         output = os.path.join(self.path(), relpath)
-        if output and os.path.exists(output):
-            return output
-        return ''
+        return output
 
     def setFavorite(self, state=True):
         self._favorite = state
@@ -119,14 +121,9 @@ class Tool(QObject):
         self._icon = icon
 
     def setPath(self, path):
-        import os.path
-
-        if os.path.exists(path):
-            self._path = str(path).replace(
-                str(self.objectName()).lower(), self.objectName()
-            )  # ensure that the tool id is properly formated since it is case sensitive
-        else:
-            self._path = ''
+        self._path = str(path).replace(
+            str(self.objectName()).lower(), self.objectName()
+        )  # ensure that the tool id is properly formated since it is case sensitive
 
     def setSourcefile(self, sourcefile):
         self._sourcefile = str(sourcefile).replace(

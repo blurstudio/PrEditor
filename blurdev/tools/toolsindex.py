@@ -272,7 +272,9 @@ class ToolsIndex(QObject):
             from blurdev.XML import XMLDocument
 
             doc = XMLDocument()
-            if doc.load(self.filename()):
+
+            filename = self.filename()
+            if doc.load(filename):
                 from toolscategory import ToolsCategory
                 from tool import Tool
 

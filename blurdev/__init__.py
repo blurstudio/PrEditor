@@ -54,7 +54,7 @@ def init():
         core.init()
 
 
-def launch(cls, modal=False):
+def launch(cls, modal=False, coreName=''):
     """
         \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
                     the trax system.  Using this function call, trax will determine what the application is
@@ -78,7 +78,9 @@ def launch(cls, modal=False):
         app = QApplication([])
         app.setStyle('Plastique')
 
-        if core.objectName() == 'blurdev':
+        if coreName:
+            core.setObjectName(coreName)
+        elif core.objectName() == 'blurdev':
             core.setObjectName('external')
 
     # always run wizards modally

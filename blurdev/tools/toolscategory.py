@@ -46,11 +46,7 @@ class ToolsCategory(QObject):
             \remarks	returns a list of the sub-categories for this category
             \return		<list> [ <ToolsCategory>, .. ]
         """
-        return [
-            child
-            for child in self.findChildren(ToolsCategory)
-            if child.parent() == self
-        ]
+        return [child for child in self.children() if isinstance(child, ToolsCategory)]
 
     def tools(self, toolType=None):
         """
@@ -59,7 +55,7 @@ class ToolsCategory(QObject):
         """
         from tool import Tool
 
-        return [child for child in self.findChildren(Tool) if child.parent() == self]
+        return [child for child in self.children() if isinstance(child, Tool)]
 
     def toolType(self):
         """

@@ -40,10 +40,12 @@ class IdeEditor(Window):
         self._searchText = ''
         self._searchFlags = 0
         self._searchDialog = None
+        self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
+        from ideproject import IdeProject
 
-        QDir.setCurrent('c:/blur/dev')
+        QDir.setCurrent(IdeProject.DefaultPath)
 
         from finddialog import FindDialog
 
@@ -81,7 +83,6 @@ class IdeEditor(Window):
             IdeTemplateBrowser.createFromTemplate
         )
         self.uiOpenACT.triggered.connect(self.documentOpen)
-        self.uiOpenProjectACT.triggered.connect(self.projectOpen)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
         self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
@@ -90,6 +91,13 @@ class IdeEditor(Window):
         self.uiSaveAllACT.triggered.connect(self.documentSaveAll)
         self.uiExitACT.triggered.connect(self.close)
 
+        # project menus
+        self.uiNewProjectACT.triggered.connect(self.projectNew)
+        self.uiOpenProjectACT.triggered.connect(self.projectOpen)
+        self.uiOpenFavoritesACT.triggered.connect(self.projectFavorites)
+        self.uiEditProjectACT.triggered.connect(self.projectEdit)
+        self.uiCloseProjectACT.triggered.connect(self.projectClose)
+
         # connect edit menu
         self.uiUndoACT.triggered.connect(self.documentUndo)
         self.uiRedoACT.triggered.connect(self.documentRedo)
@@ -97,10 +105,19 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
+
+        # connect search menu
         self.uiFindNextACT.triggered.connect(self.documentFindNext)
         self.uiFindPrevACT.triggered.connect(self.documentFindPrev)
         self.uiGotoACT.triggered.connect(self.documentGoTo)
         self.uiFindACT.triggered.connect(self._searchDialog.show)
+        self.uiAddRemoveMarkerACT.triggered.connect(self.documentMarkerToggle)
+        self.uiNextMarkerACT.triggered.connect(self.documentMarkerNext)
+        self.uiClearMarkersACT.triggered.connect(self.documentMarkerClear)
+
+        # connect run menu
+        self.uiRunScriptACT.triggered.connect(self.documentExec)
+        self.uiRunStandaloneACT.triggered.connect(self.documentExecStandalone)
 
         # connect view menu
         self.uiDisplayWindowsACT.triggered.connect(self.displayWindows)
@@ -111,6 +128,7 @@ class IdeEditor(Window):
         # connect tools menu
         self.uiAssistantACT.triggered.connect(self.showAssistant)
         self.uiDesignerACT.triggered.connect(self.showDesigner)
+        self.uiTreegruntACT.triggered.connect(blurdev.core.showTreegrunt)
         self.uiShowLoggerACT.triggered.connect(blurdev.core.showLogger)
 
         # connect advanced menu
@@ -213,10 +231,15 @@ class IdeEditor(Window):
         if doc:
             doc.copy()
 
-    def documentGoTo(self):
+    def documentExec(self):
         doc = self.currentDocument()
         if doc:
-            doc.goToLine()
+            doc.exec_()
+
+    def documentExecStandalone(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.execStandalone()
 
     def documentFindNext(self):
         doc = self.currentDocument()
@@ -234,6 +257,26 @@ class IdeEditor(Window):
         doc.findPrev(self.searchText(), self.searchFlags())
         return True
 
+    def documentGoTo(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.goToLine()
+
+    def documentMarkerToggle(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.markerToggle()
+
+    def documentMarkerNext(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.markerNext()
+
+    def documentMarkerClear(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.markerDeleteAll()
+
     def documentPaste(self):
         doc = self.currentDocument()
         if doc:
@@ -250,8 +293,11 @@ class IdeEditor(Window):
 
     def documentOpen(self):
         from PyQt4.QtGui import QFileDialog
+        import lexers
 
-        filename = QFileDialog.getOpenFileName(self, 'Open file...')
+        filename = QFileDialog.getOpenFileName(
+            self, 'Open file...', '', lexers.fileTypes()
+        )
         if filename:
             self.load(filename)
 
@@ -284,7 +330,60 @@ class IdeEditor(Window):
         if doc:
             doc.undo()
 
+    def dragEnterEvent(self, event):
+        # allow drag & drop events for files
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+        # allow drag & drop events for tools
+        source = event.source()
+        if source and source.inherits('QTreeWidget'):
+            event.acceptProposedAction()
+
+    def dragMoveEvent(self, event):
+        # allow drag & drop events for files
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+
+        # allow drag & drop events for tools
+        source = event.source()
+        if source and source.inherits('QTreeWidget'):
+            event.acceptProposedAction()
+
+    def dropEvent(self, event):
+        # drop a file
+        if event.mimeData().hasUrls():
+            urls = event.mimeData().urls()
+            import os.path
+
+            for url in urls:
+                text = str(url.toString())
+                if text.startswith('file:///'):
+                    filename = text.replace('file:///', '')
+
+                    # load a blur project
+                    if os.path.splitext(filename)[1] == '.blurproj':
+                        self.setCurrentProject(IdeProject.fromXml(filename))
+                    else:
+                        self.load(filename)
+
+        # drop a tool
+        else:
+            source = event.source()
+            item = source.currentItem()
+
+            tool = None
+            try:
+                tool = item.tool()
+            except:
+                pass
+
+            if tool:
+                self.setCurrentProject(IdeProject.fromTool(tool))
+
     def editItem(self, index):
+        import blurdev
+
         import os
 
         filename = ''
@@ -305,7 +404,22 @@ class IdeEditor(Window):
 
         # load the file
         if filename:
-            self.load(filename)
+            from PyQt4.QtCore import Qt
+
+            # when shift+doubleclick, run the file
+            from PyQt4.QtGui import QApplication
+
+            modifiers = QApplication.instance().keyboardModifiers()
+            if modifiers == Qt.ShiftModifier:
+                import blurdev
+
+                blurdev.core.runScript(filename)
+            elif modifiers == (Qt.ShiftModifier | Qt.ControlModifier):
+                from PyQt4.QtCore import QProcess
+
+                QProcess.startDetached(filename, [filename], self.currentPath())
+            else:
+                self.load(filename)
 
     def eventFilter(self, object, event):
         if not self._closing and event.type() == event.Close:
@@ -315,6 +429,8 @@ class IdeEditor(Window):
         return False
 
     def load(self, filename):
+        filename = str(filename)
+
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
             if window.widget().filename() == filename:
@@ -346,6 +462,30 @@ class IdeEditor(Window):
                 self.uiWindowsAREA.width() - 20, self.uiWindowsAREA.height() - 20
             )
 
+    def projectNew(self):
+        from ideprojectdialog import IdeProjectDialog
+        from ideproject import IdeProject
+
+        proj = IdeProject()
+        proj.setObjectName('New Project')
+        if IdeProjectDialog.edit(proj):
+            self.setCurrentProject(proj)
+
+    def projectEdit(self):
+        from ideprojectdialog import IdeProjectDialog
+        from ideproject import IdeProject
+
+        proj = IdeProject.fromXml(self.currentProject().filename())
+        if IdeProjectDialog.edit(proj):
+            self.setCurrentProject(proj)
+
+    def projectFavorites(self):
+        from ideprojectfavoritesdialog import IdeProjectFavoritesDialog
+
+        proj = IdeProjectFavoritesDialog.getProject()
+        if proj:
+            self.setCurrentProject(proj)
+
     def projectOpen(self):
         from PyQt4.QtGui import QFileDialog
 
@@ -363,7 +503,46 @@ class IdeEditor(Window):
             # load the project
             self.setCurrentProject(proj)
             self.uiBrowserTAB.setCurrentIndex(0)
-            self.refreshProject()
+
+    def projectOpenIndex(self):
+        model = self.uiProjectTREE.model()
+        object = model.object(self.uiProjectTREE.currentIndex())
+        if not object:
+            return
+
+        import os.path
+
+        path = str(object.filePath())
+        if os.path.isfile(path):
+            self.load(path)
+
+    def projectExploreIndex(self):
+        model = self.uiProjectTREE.model()
+        object = model.object(self.uiProjectTREE.currentIndex())
+        if not object:
+            return
+
+        import os
+
+        path = str(object.filePath())
+        if os.path.isfile(path):
+            path = os.path.split(path)[0]
+
+        if os.path.exists(path):
+            os.startfile(path)
+        else:
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.critical(None, 'Missing Path', 'Could not find %s' % path)
+
+    def projectRefreshIndex(self):
+        model = self.uiProjectTREE.model()
+        object = model.object(self.uiProjectTREE.currentIndex())
+        if object:
+            object.refresh()
+
+    def projectClose(self):
+        self.setCurrentProject(None)
 
     def recordSettings(self):
         import blurdev
@@ -371,6 +550,16 @@ class IdeEditor(Window):
 
         pref = prefs.find('ide/ideeditor')
 
+        filename = ''
+        proj = self.currentProject()
+        if proj:
+            filename = proj.filename()
+
+        pref.recordProperty('currproj', filename)
+
+        from ideproject import IdeProject
+
+        pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
 
         pref.save()
@@ -396,8 +585,12 @@ class IdeEditor(Window):
             from ideprojectmodel import IdeProjectModel
 
             self.uiProjectTREE.setModel(IdeProjectModel(proj))
+            self.uiEditProjectACT.setEnabled(True)
+            self.uiCloseProjectACT.setEnabled(True)
         else:
             self.uiProjectTREE.setModel(None)
+            self.uiEditProjectACT.setEnabled(False)
+            self.uiCloseProjectACT.setEnabled(False)
 
         self.updatePath()
 
@@ -406,6 +599,16 @@ class IdeEditor(Window):
         from blurdev import prefs
 
         pref = prefs.find('ide/ideeditor')
+
+        # update project options
+        from ideproject import IdeProject
+
+        self.setCurrentProject(IdeProject.fromXml(pref.restoreProperty('currproj')))
+
+        # update project favorites
+        from ideproject import IdeProject
+
+        IdeProject.Favorites = pref.restoreProperty('proj_favorites', [])
 
         # update ui items
         from PyQt4.QtCore import QRect
@@ -461,22 +664,24 @@ class IdeEditor(Window):
         menu.addAction(self.uiNewACT)
         menu.addAction(self.uiNewFromTemplateACT)
         menu.addSeparator()
-        menu.addAction('Open')
-        menu.addAction('Explore')
+        menu.addAction('Open').triggered.connect(self.projectOpenIndex)
+        menu.addAction('Explore').triggered.connect(self.projectExploreIndex)
+        menu.addAction('Refresh').triggered.connect(self.projectRefreshIndex)
+        menu.addSeparator()
+        menu.addAction(self.uiEditProjectACT)
 
         menu.popup(QCursor.pos())
 
     def showConfig(self):
+        # 		from blurdev.gui.dialogs.configdialog 	import ConfigDialog
+
+        # create the general options
+        # 		general = {}
+        # 		from blurdev.ide.config.projectconfig import ProjectConfig
+        # 		general[ 'Projects' ] = ProjectConfig
+
+        # 		ConfigDialog.edit( { 'General Options': general } )
         pass
-
-    # 		from blurdev.gui.dialogs.configdialog 	import ConfigDialog
-
-    # create the general options
-    # 		general = {}
-    # 		from blurdev.ide.config.projectconfig import ProjectConfig
-    # 		general[ 'Projects' ] = ProjectConfig
-
-    # 		ConfigDialog.edit( { 'General Options': general } )
 
     def showDesigner(self):
         from PyQt4.QtCore import QProcess
@@ -536,4 +741,4 @@ class IdeEditor(Window):
 if __name__ == '__main__':
     import blurdev
 
-    blurdev.launch(IdeEditor)
+    blurdev.launch(IdeEditor, coreName='ide')
