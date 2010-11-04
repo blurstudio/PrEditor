@@ -58,12 +58,18 @@ class IdeProjectFavoritesDialog(Dialog):
         self.uiFavoriteTREE.clear()
 
         from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QTreeWidgetItem
+        from PyQt4.QtGui import QTreeWidgetItem, QIcon
+
         import os.path
         from ideproject import IdeProject
 
         filenames = IdeProject.Favorites
         filenames.sort()
+
+        import blurdev
+
+        favicon = QIcon(blurdev.relativePath(__file__, 'img/favorite.png'))
+
         for filename in filenames:
             name = os.path.basename(str(filename)).split('.')[0]
             item = QTreeWidgetItem([name])
@@ -71,6 +77,8 @@ class IdeProjectFavoritesDialog(Dialog):
                 0, '<b>%s Project</b><hr><small>%s</small>' % (name, filename)
             )
             item.setData(0, Qt.UserRole, filename)
+
+            item.setIcon(0, favicon)
             self.uiFavoriteTREE.addTopLevelItem(item)
 
         self.uiFavoriteTREE.setUpdatesEnabled(True)

@@ -49,16 +49,31 @@ class FindDialog(Dialog):
                 event.key() in (Qt.Key_Enter, Qt.Key_Return)
                 and not event.modifiers() == Qt.ShiftModifier
             ):
+
+                self.accept()
                 self.parent().uiFindNextACT.triggered.emit(True)
                 return True
         return False
 
-    def show(self):
-        Dialog.show(self)
+    def search(self, text):
+
+        # show the dialog
+
+        self.show()
+
+        # make sure not to lose the memory
 
         from PyQt4.QtCore import Qt
 
         self.setAttribute(Qt.WA_DeleteOnClose, False)
+
+        # set the search text
+
+        self.uiSearchTXT.setText(text)
+
+        self.uiSearchTXT.setFocus()
+
+        self.uiSearchTXT.selectAll()
 
     def updateSearchTerms(self):
         parent = self.parent()

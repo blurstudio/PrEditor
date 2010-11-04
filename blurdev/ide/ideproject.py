@@ -68,12 +68,9 @@ class IdeProjectItem(QObject):
 
         dirmap = {}
 
-        if self.isFileSystem():
-            root = self
-            while root and root.isFileSystem():
-                root = root.parent()
-        else:
-            root = self
+        root = self
+        while root and root.isFileSystem():
+            root = root.parent()
 
         exclude = root.exclude()
         fileTypes = root.fileTypes()
@@ -119,9 +116,13 @@ class IdeProjectItem(QObject):
     def refresh(self):
         if not self.isGroup():
             children = list(self.children())
+
+            # clear the children
             for child in children:
-                child.setParent(None)
-                child.deleteLater()
+
+                if isinstance(child, IdeProjectItem):
+                    child.setParent(None)
+                    child.deleteLater()
 
             self.load()
 
@@ -136,6 +137,10 @@ class IdeProjectItem(QObject):
 
     def setFileSystem(self, state):
         self._fileSystem = state
+
+        if state:
+
+            self._group = False
 
     def setFileTypes(self, ftypes):
         self._fileTypes = ftypes

@@ -19,7 +19,10 @@ class IdeEditor(Window):
 
     _instance = None
 
-    Command = {'.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common')}
+    Command = {
+        '.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common'),
+        '.schema': ('c:/blur/classmaker/classmaker.exe', '-s', 'c:/blur/classmaker'),
+    }
 
     def __init__(self, parent=None):
         Window.__init__(self, parent)
@@ -76,12 +79,8 @@ class IdeEditor(Window):
         self.uiCommandLineDDL.lineEdit().returnPressed.connect(self.runCommand)
 
         # connect file menu
-        from blurdev.ide.idetemplatebrowser import IdeTemplateBrowser
-
         self.uiNewACT.triggered.connect(self.documentNew)
-        self.uiNewFromTemplateACT.triggered.connect(
-            IdeTemplateBrowser.createFromTemplate
-        )
+        self.uiNewFromTemplateACT.triggered.connect(self.documentFromTemplate)
         self.uiOpenACT.triggered.connect(self.documentOpen)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
@@ -110,14 +109,15 @@ class IdeEditor(Window):
         self.uiFindNextACT.triggered.connect(self.documentFindNext)
         self.uiFindPrevACT.triggered.connect(self.documentFindPrev)
         self.uiGotoACT.triggered.connect(self.documentGoTo)
-        self.uiFindACT.triggered.connect(self._searchDialog.show)
+        self.uiFindACT.triggered.connect(self.showSearchDialog)
         self.uiAddRemoveMarkerACT.triggered.connect(self.documentMarkerToggle)
         self.uiNextMarkerACT.triggered.connect(self.documentMarkerNext)
         self.uiClearMarkersACT.triggered.connect(self.documentMarkerClear)
 
         # connect run menu
         self.uiRunScriptACT.triggered.connect(self.documentExec)
-        self.uiRunStandaloneACT.triggered.connect(self.documentExecStandalone)
+        self.uiCleanRunACT.triggered.connect(self.documentExecClean)
+        self.uiCleanPathsACT.triggered.connect(self.cleanEnvironment)
 
         # connect view menu
         self.uiDisplayWindowsACT.triggered.connect(self.displayWindows)
@@ -145,6 +145,11 @@ class IdeEditor(Window):
         ):
             self.refreshOpen()
 
+    def cleanEnvironment(self):
+        import blurdev
+
+        blurdev.activeEnvironment().resetPaths()
+
     def currentDocument(self):
         window = self.uiWindowsAREA.activeSubWindow()
         if window:
@@ -154,7 +159,7 @@ class IdeEditor(Window):
     def currentProject(self):
         return self._project
 
-    def currentPath(self):
+    def currentBasePath(self):
         path = ''
         import os.path
 
@@ -176,6 +181,23 @@ class IdeEditor(Window):
                 path = os.path.split(str(path))[0]
 
         return os.path.normpath(path)
+
+    def currentFilePath(self):
+        filename = ''
+
+        # load a project file
+        if self.uiBrowserTAB.currentIndex() == 0:
+            filename = str(
+                self.uiProjectTREE.model().filePath(self.uiProjectTREE.currentIndex())
+            )
+
+        # load an explorer file
+        elif self.uiBrowserTAB.currentIndex() == 2:
+            filename = str(
+                self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
+            )
+
+        return filename
 
     def closeEvent(self, event):
         closedown = True
@@ -236,10 +258,11 @@ class IdeEditor(Window):
         if doc:
             doc.exec_()
 
-    def documentExecStandalone(self):
+    def documentExecClean(self):
+        self.cleanEnvironment()
         doc = self.currentDocument()
         if doc:
-            doc.execStandalone()
+            doc.exec_()
 
     def documentFindNext(self):
         doc = self.currentDocument()
@@ -256,6 +279,15 @@ class IdeEditor(Window):
 
         doc.findPrev(self.searchText(), self.searchFlags())
         return True
+
+    def documentFromTemplate(self):
+        from PyQt4.QtCore import QDir
+
+        QDir.setCurrent(self.currentFilePath())
+
+        from idetemplatebrowser import IdeTemplateBrowser
+
+        IdeTemplateBrowser.createFromTemplate()
 
     def documentGoTo(self):
         doc = self.currentDocument()
@@ -382,44 +414,39 @@ class IdeEditor(Window):
                 self.setCurrentProject(IdeProject.fromTool(tool))
 
     def editItem(self, index):
-        import blurdev
-
-        import os
-
-        filename = ''
-
-        # load a project file
-        if self.uiBrowserTAB.currentIndex() == 0:
-            filename = str(self.uiProjectTREE.model().filePath(index))
-
-        # focus an existing item
-        elif self.uiBrowserTAB.currentIndex() == 1:
-            self.uiWindowsAREA.subWindowList()[
-                self.uiOpenTREE.indexOfTopLevelItem(index)
-            ].setFocus()
-
-        # load an explorer file
-        elif self.uiBrowserTAB.currentIndex() == 2:
-            filename = str(self.uiExplorerTREE.model().filePath(index))
+        filename = str(self.currentFilePath())
 
         # load the file
         if filename:
+            import os.path
+
+            if not os.path.isfile(filename):
+                return False
+
             from PyQt4.QtCore import Qt
 
             # when shift+doubleclick, run the file
             from PyQt4.QtGui import QApplication
 
             modifiers = QApplication.instance().keyboardModifiers()
+
+            # run script
             if modifiers == Qt.ShiftModifier:
-                import blurdev
+                self.runCurrentScript()
 
-                blurdev.core.runScript(filename)
+            # run standalone
             elif modifiers == (Qt.ShiftModifier | Qt.ControlModifier):
-                from PyQt4.QtCore import QProcess
+                self.runCurrentStandalone()
 
-                QProcess.startDetached(filename, [filename], self.currentPath())
+            # load in the editor
             else:
                 self.load(filename)
+
+        # focus an existing item
+        elif self.uiBrowserTAB.currentIndex() == 1:
+            self.uiWindowsAREA.subWindowList()[
+                self.uiOpenTREE.indexOfTopLevelItem(index)
+            ].setFocus()
 
     def eventFilter(self, object, event):
         if not self._closing and event.type() == event.Close:
@@ -441,8 +468,14 @@ class IdeEditor(Window):
 
         ext = os.path.splitext(str(filename))[1]
 
+        # run inside of a command context, provided ALT is not selected
+        from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QApplication
+
+        mods = QApplication.instance().keyboardModifiers()
+
         cmd, key, path = IdeEditor.Command.get(ext, ('', '', ''))
-        if cmd:
+        if mods != Qt.AltModifier and cmd:
             from PyQt4.QtCore import QProcess
 
             if key:
@@ -537,9 +570,24 @@ class IdeEditor(Window):
 
     def projectRefreshIndex(self):
         model = self.uiProjectTREE.model()
-        object = model.object(self.uiProjectTREE.currentIndex())
+        index = self.uiProjectTREE.currentIndex()
+        object = model.object(index)
+
+        # grab the object
         if object:
+            # check to see if this object is expanded or not
+            expanded = self.uiProjectTREE.isExpanded(index)
+
+            # force the item to be collapsed or this will CRASH
+            self.uiProjectTREE.setExpanded(index, False)
+
+            # cache and refresh the system
+            model.submit()
             object.refresh()
+            model.revert()
+
+            # reset the expanded state
+            self.uiProjectTREE.setExpanded(index, expanded)
 
     def projectClose(self):
         self.setCurrentProject(None)
@@ -548,7 +596,7 @@ class IdeEditor(Window):
         import blurdev
         from blurdev import prefs
 
-        pref = prefs.find('ide/ideeditor')
+        pref = prefs.find('ide/%s' % blurdev.core.objectName())
 
         filename = ''
         proj = self.currentProject()
@@ -598,7 +646,7 @@ class IdeEditor(Window):
         import blurdev
         from blurdev import prefs
 
-        pref = prefs.find('ide/ideeditor')
+        pref = prefs.find('ide/%s' % blurdev.core.objectName())
 
         # update project options
         from ideproject import IdeProject
@@ -626,7 +674,7 @@ class IdeEditor(Window):
         if not cmd:
             return
 
-        path = self.currentPath()
+        path = self.currentBasePath()
 
         if path:
             from PyQt4.QtCore import QProcess
@@ -634,6 +682,34 @@ class IdeEditor(Window):
             QProcess.startDetached(path + '/' + cmd, args, path)
 
         self.uiCommandLineDDL.lineEdit().setText('')
+
+    def runCurrentScript(self):
+        filename = self.currentFilePath()
+        if not filename:
+            return False
+
+        import blurdev
+
+        blurdev.core.runScript(filename)
+        return True
+
+    def runCurrentStandalone(self):
+        filename = self.currentFilePath()
+        if not filename:
+            return False
+
+        from PyQt4.QtCore import QProcess
+
+        QProcess.startDetached(filename, [], self.currentBasePath())
+
+    def runCurrentStandaloneDebug(self):
+        filename = self.currentFilePath()
+        if not filename:
+            return False
+
+        from PyQt4.QtCore import QProcess
+
+        QProcess.startDetached('cmd.exe', ['/k', filename], self.currentBasePath())
 
     def searchFlags(self):
         return self._searchFlags
@@ -668,6 +744,14 @@ class IdeEditor(Window):
         menu.addAction('Explore').triggered.connect(self.projectExploreIndex)
         menu.addAction('Refresh').triggered.connect(self.projectRefreshIndex)
         menu.addSeparator()
+        menu.addAction('Run...').triggered.connect(self.runCurrentScript)
+        menu.addAction('Run (Standalone)...').triggered.connect(
+            self.runCurrentStandalone
+        )
+        menu.addAction('Run (Debug)...').triggered.connect(
+            self.runCurrentStandaloneDebug
+        )
+        menu.addSeparator()
         menu.addAction(self.uiEditProjectACT)
 
         menu.popup(QCursor.pos())
@@ -691,6 +775,9 @@ class IdeEditor(Window):
     def showSdkBrowser(self):
         print 'coming soon'
 
+    def showSearchDialog(self):
+        self._searchDialog.search(self.searchText())
+
     def setCurrentProject(self, project):
         self._project = project
         self.currentProjectChanged.emit(project)
@@ -703,7 +790,7 @@ class IdeEditor(Window):
         self._searchFlags = flags
 
     def updatePath(self):
-        self.uiPathLBL.setText(self.currentPath() + '>')
+        self.uiPathLBL.setText(self.currentBasePath() + '>')
 
     def updateTitle(self, window):
         if window:
@@ -727,9 +814,8 @@ class IdeEditor(Window):
         return IdeEditor._instance
 
     @staticmethod
-    def edit(project=None, filename=None):
+    def edit(filename=None):
         window = IdeEditor.instance()
-        window.setCurrentProject(project)
         window.show()
 
         # set the filename

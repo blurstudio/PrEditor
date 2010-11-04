@@ -9,7 +9,8 @@
 #
 
 from ideeditor import IdeEditor
-from idemenu import IdeMenu
+
+from ideproject import IdeProject
 
 
 def createFromTemplate(filename, templateName, outputFilename, options):

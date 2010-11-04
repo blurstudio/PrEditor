@@ -171,9 +171,18 @@ class DocumentEditor(QsciScintilla):
             wrap = True
             forward = True
 
-            self.findFirst(text, re, cs, wo, wrap, forward)
+            result = self.findFirst(text, re, cs, wo, wrap, forward)
         else:
-            QsciScintilla.findNext(self)
+            result = QsciScintilla.findNext(self)
+
+        if not result:
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.critical(
+                None, 'No Text Found', 'Search string "%s" was not found.' % text
+            )
+
+        return result
 
     def findPrev(self, text, flags):
         from PyQt4.QtGui import QTextDocument
@@ -187,9 +196,19 @@ class DocumentEditor(QsciScintilla):
             wrap = True
             forward = False
 
-            self.findFirst(text, re, cs, wo, wrap, forward)
+            result = self.findFirst(text, re, cs, wo, wrap, forward)
         else:
-            QsciScintilla.findNext(self)
+            result = QsciScintilla.findNext(self)
+
+        if not result:
+
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.critical(
+                None, 'No Text Found', 'Search string "%s" was not found.' % text
+            )
+
+        return result
 
     def keyPressEvent(self, event):
         from PyQt4.QtCore import Qt
@@ -200,33 +219,22 @@ class DocumentEditor(QsciScintilla):
             return QsciScintilla.keyPressEvent(self, event)
 
     def markerNext(self):
-
         line, index = self.getCursorPosition()
-
         newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
 
         # wrap around the document if necessary
-
         if newline == -1:
-
             newline = self.markerFindNext(0, self.marginMarkerMask(1))
 
         self.setCursorPosition(newline, index)
 
     def markerToggle(self):
-
         line, index = self.getCursorPosition()
-
         markers = self.markersAtLine(line)
-
         if not markers:
-
             marker = self.markerDefine(self.Circle)
-
             self.markerAdd(line, marker)
-
         else:
-
             self.markerDelete(line)
 
     def save(self):
@@ -236,7 +244,9 @@ class DocumentEditor(QsciScintilla):
         if not filename:
             from PyQt4.QtGui import QFileDialog
 
-            filename = QFileDialog.getSaveFileName(self.window(), 'Save File as...')
+            filename = QFileDialog.getSaveFileName(
+                self.window(), 'Save File as...', self.filename()
+            )
 
         if filename:
             filename = str(filename)
@@ -341,9 +351,7 @@ class DocumentEditor(QsciScintilla):
         return self.marginLineNumbers(self.SymbolMargin)
 
     def toggleFolding(self):
-
         from PyQt4.QtGui import QApplication
-
         from PyQt4.QtCore import Qt
 
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)

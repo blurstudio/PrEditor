@@ -105,5 +105,12 @@ class IdeTemplateBrowser(Dialog):
                 self.accept()
 
     @staticmethod
-    def createFromTemplate(parent):
-        IdeTemplateBrowser(parent).show()
+    def createFromTemplate():
+
+        import blurdev
+
+        if IdeTemplateBrowser(blurdev.core.activeWindow()).exec_():
+
+            return True
+
+        return False
