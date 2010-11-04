@@ -44,6 +44,10 @@ class ObjectTreeModel(QAbstractItemModel):
             return index.internalPointer()
         return None
 
+    def indexOf(self, object, column=0):
+
+        return self.createIndex(self.rowForObject(object), column, object)
+
     def findObjectAtRow(self, parent, row):
         return parent.children()[row]
 

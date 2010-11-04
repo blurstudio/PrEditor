@@ -281,6 +281,14 @@ class Core(QObject):
 
             app.installEventFilter(self)
 
+        # create a new application
+
+        elif not app:
+
+            return QApplication([])
+
+        return None
+
     def isMfcApp(self):
         return self._mfcApp
 
@@ -599,6 +607,12 @@ class Core(QObject):
         smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
 
         smtp.close()
+
+    def showIdeEditor(self):
+
+        from blurdev.ide import IdeEditor
+
+        IdeEditor.instance().edit()
 
     def showTreegrunt(self):
         self.treegrunt().show()

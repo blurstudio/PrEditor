@@ -59,10 +59,6 @@ def findPixmap(filename, thumbSize=None):
             if not QPixmapCache.find(filename, cache):
                 cache.load(filename)
 
-                # load a missing file
-                if cache.isNull():
-                    cache.load(findIconFile('missing'))
-
                 # cache the source
                 QPixmapCache.insert(filename, cache)
 
@@ -82,10 +78,6 @@ def findPixmap(filename, thumbSize=None):
         # pull the pixmap, autoloading it when necessary
         if not QPixmapCache.find(filename, cache):
             cache.load(filename)
-
-            # load a missing file
-            if cache.isNull():
-                cache.load(findIconFile('missing'))
 
             # cache the source
             QPixmapCache.insert(filename, cache)

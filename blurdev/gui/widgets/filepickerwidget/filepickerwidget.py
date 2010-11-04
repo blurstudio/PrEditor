@@ -113,6 +113,8 @@ class FilePickerWidget(QWidget):
     def setFilePath(self, filePath):
         self.uiFilenameTXT.setText(filePath)
 
+        self.resolve()
+
     def setFilters(self, filters):
         self._filters = filters
 

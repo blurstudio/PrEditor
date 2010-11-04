@@ -8,6 +8,7 @@
 # 	\date		06/11/10
 #
 
+
 # include the blur path
 from tools import ToolsEnvironment
 
@@ -17,7 +18,9 @@ ToolsEnvironment.registerPath('c:/blur')
 # register the beta blur path as an overload for beta tools
 ToolsEnvironment.registerPath('c:/blur/beta')
 
-core = None
+
+application = None  # create a managed QApplication
+core = None  # create a mangaed Core instance
 
 
 def activeEnvironment():
@@ -46,12 +49,17 @@ def findTool(name, environment=''):
 
 def init():
     global core
+
+    global application
     if not core:
         # create the core instance
         from blurdev.cores import Core
 
+        # create the core
         core = Core()
-        core.init()
+
+        # initialize the application
+        application = core.init()
 
 
 def launch(cls, modal=False, coreName=''):
@@ -72,14 +80,16 @@ def launch(cls, modal=False, coreName=''):
 
     # create the app if necessary
     app = None
-    from PyQt4.QtGui import QApplication, QWizard
+    from PyQt4.QtGui import QWizard
 
-    if not QApplication.instance():
-        app = QApplication([])
-        app.setStyle('Plastique')
+    from blurdev.cores.core import Core
+
+    if application:
+        application.setStyle('Plastique')
 
         if coreName:
             core.setObjectName(coreName)
+
         elif core.objectName() == 'blurdev':
             core.setObjectName('external')
 
@@ -96,8 +106,8 @@ def launch(cls, modal=False, coreName=''):
     else:
         widget.show()
 
-        if app:
-            app.exec_()
+        if application:
+            application.exec_()
 
         return widget
 
@@ -149,4 +159,5 @@ def setActiveEnvironment(env):
     return ToolsEnvironment.findEnvironment(env).setActive()
 
 
+# the blurdev system will create and manage a QApplication instance
 init()
