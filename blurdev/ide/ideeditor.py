@@ -291,7 +291,9 @@ class IdeEditor(Window):
 
         from idetemplatebrowser import IdeTemplateBrowser
 
-        IdeTemplateBrowser.createFromTemplate()
+        if IdeTemplateBrowser.createFromTemplate():
+
+            self.projectRefreshIndex()
 
     def documentGoTo(self):
         doc = self.currentDocument()

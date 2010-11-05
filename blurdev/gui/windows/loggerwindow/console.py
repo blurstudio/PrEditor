@@ -367,8 +367,10 @@ class ConsoleEdit(QTextEdit):
 
             from PyQt4.QtGui import QMessageBox
 
+            import blurdev
+
             result = QMessageBox.question(
-                None,
+                blurdev.core.rootWindow(),
                 'Error Occurred',
                 'An error has occurred in your Python script.  Would you like to see the log?',
                 QMessageBox.Yes | QMessageBox.No,

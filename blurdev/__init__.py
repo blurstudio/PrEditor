@@ -135,6 +135,33 @@ def launch(ctor, modal=False, coreName=''):
         return widget
 
 
+def packageForPath(path):
+
+    import os.path
+
+    path = str(path)
+
+    splt = os.path.normpath(path).split(os.path.sep)
+
+    index = 1
+
+    filename = os.path.join(path, '__init__.py')
+
+    package = []
+
+    while os.path.exists(filename):
+
+        package.append(splt[-index])
+
+        filename = os.path.join(os.path.sep.join(splt[:-index]), '__init__.py')
+
+        index += 1
+
+    package.reverse()
+
+    return '.'.join(package)
+
+
 def registerScriptPath(filename):
     from tools import ToolsEnvironment
 
