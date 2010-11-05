@@ -100,7 +100,7 @@ def register(lang, fileTypes, lexerClass):
 from PyQt4.Qsci import *
 
 # create default mappings
-register('C++ Files', ('.cpp', '.c', '.h'), QsciLexerCPP)
+register('C++', ('.cpp', '.c', '.h'), QsciLexerCPP)
 register('Maxscript', ('.ms', '.mcr'), QsciLexerCPP)
 register('Python', ('.py', '.pyw', '.pys'), QsciLexerPython)
 register('XML', ('.xml', '.ui'), QsciLexerXML)

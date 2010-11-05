@@ -198,6 +198,17 @@ class ToolsEnvironment(QObject):
         return ToolsEnvironment()
 
     @staticmethod
+    def findDevelopmentEnvironment():
+
+        for env in ToolsEnvironment.environments:
+
+            if env.isDevelopment():
+
+                return env
+
+        return ToolsEnvironment.activeEnvironment()
+
+    @staticmethod
     def fromXml(xml):
         """
             \remarks	generates a new tools environment based on the inputed xml information

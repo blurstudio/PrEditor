@@ -19,7 +19,7 @@ class IdeEditor(Window):
 
     _instance = None
 
-    Command = {
+    Registry = {
         '.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common'),
         '.schema': ('c:/blur/classmaker/classmaker.exe', '-s', 'c:/blur/classmaker'),
     }
@@ -168,11 +168,13 @@ class IdeEditor(Window):
 
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
-            path = self.uiProjectTREE.model().filePath(
-                self.uiProjectTREE.currentIndex()
-            )
-            if path:
-                path = os.path.split(str(path))[0]
+
+            model = self.uiProjectTREE.model()
+
+            if model:
+                path = model.filePath(self.uiProjectTREE.currentIndex())
+                if path:
+                    path = os.path.split(str(path))[0]
         else:
             path = str(
                 self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
@@ -187,9 +189,11 @@ class IdeEditor(Window):
 
         # load a project file
         if self.uiBrowserTAB.currentIndex() == 0:
-            filename = str(
-                self.uiProjectTREE.model().filePath(self.uiProjectTREE.currentIndex())
-            )
+
+            model = self.uiProjectTREE.model()
+
+            if model:
+                filename = str(model.filePath(self.uiProjectTREE.currentIndex()))
 
         # load an explorer file
         elif self.uiBrowserTAB.currentIndex() == 2:
@@ -392,12 +396,7 @@ class IdeEditor(Window):
                 text = str(url.toString())
                 if text.startswith('file:///'):
                     filename = text.replace('file:///', '')
-
-                    # load a blur project
-                    if os.path.splitext(filename)[1] == '.blurproj':
-                        self.setCurrentProject(IdeProject.fromXml(filename))
-                    else:
-                        self.load(filename)
+                    self.load(filename)
 
         # drop a tool
         else:
@@ -455,7 +454,7 @@ class IdeEditor(Window):
                 return True
         return False
 
-    def load(self, filename):
+    def load(self, filename, lineno=0):
         filename = str(filename)
 
         # make sure the file is not already loaded
@@ -474,7 +473,9 @@ class IdeEditor(Window):
 
         mods = QApplication.instance().keyboardModifiers()
 
-        cmd, key, path = IdeEditor.Command.get(ext, ('', '', ''))
+        cmd, key, path = IdeEditor.Registry.get(ext, ('', '', ''))
+
+        # load using a command from the registry
         if mods != Qt.AltModifier and cmd:
             from PyQt4.QtCore import QProcess
 
@@ -483,10 +484,20 @@ class IdeEditor(Window):
             else:
                 args = [filename]
             QProcess.startDetached(cmd, args, path)
+
+        # load a blurproject
+
+        elif mods != Qt.AltModifier and ext == '.blurproj':
+
+            self.setCurrentProject(IdeProject.fromXml(filename))
+
+        # otherwise, load it standard
         else:
             from documenteditor import DocumentEditor
 
-            window = self.uiWindowsAREA.addSubWindow(DocumentEditor(self, filename))
+            window = self.uiWindowsAREA.addSubWindow(
+                DocumentEditor(self, filename, lineno)
+            )
             window.installEventFilter(self)
             window.setWindowTitle(os.path.basename(filename))
             window.show()
@@ -698,18 +709,37 @@ class IdeEditor(Window):
         if not filename:
             return False
 
+        import os.path
+
         from PyQt4.QtCore import QProcess
 
-        QProcess.startDetached(filename, [], self.currentBasePath())
+        # run a python file
+
+        if os.path.splitext(filename)[1].startswith('.py'):
+
+            QProcess.startDetached('pythonw.exe', [filename], self.currentBasePath())
+
+        else:
+            QProcess.startDetached(filename, [], self.currentBasePath())
 
     def runCurrentStandaloneDebug(self):
         filename = self.currentFilePath()
         if not filename:
             return False
 
+        import os.path
         from PyQt4.QtCore import QProcess
 
-        QProcess.startDetached('cmd.exe', ['/k', filename], self.currentBasePath())
+        # run a python file
+
+        if os.path.splitext(filename)[1].startswith('.py'):
+
+            QProcess.startDetached(
+                'cmd.exe', ['/k', 'python.exe %s' % filename], self.currentBasePath()
+            )
+
+        else:
+            QProcess.startDetached('cmd.exe', ['/k', filename], self.currentBasePath())
 
     def searchFlags(self):
         return self._searchFlags
@@ -727,6 +757,16 @@ class IdeEditor(Window):
                     self._searchText = text
 
         return self._searchText
+
+    def show(self):
+
+        Window.show(self)
+
+        # initialize the logger
+
+        import blurdev
+
+        blurdev.core.logger(self)
 
     def showAssistant(self):
         from PyQt4.QtCore import QProcess
@@ -779,15 +819,60 @@ class IdeEditor(Window):
         self._searchDialog.search(self.searchText())
 
     def setCurrentProject(self, project):
-        self._project = project
-        self.currentProjectChanged.emit(project)
-        self.refreshProject()
+
+        # check to see if we should prompt the user before changing projects
+
+        change = True
+
+        import os.path
+
+        if self._project and not (
+            project
+            and os.path.normcase(project.filename())
+            == os.path.normcase(self._project.filename())
+        ):
+
+            from PyQt4.QtGui import QMessageBox
+
+            change = (
+                QMessageBox.question(
+                    self,
+                    'Change Projects',
+                    'Are you sure you want to change to the %s project?'
+                    % project.objectName(),
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+                == QMessageBox.Yes
+            )
+
+        if change:
+            self._project = project
+            self.currentProjectChanged.emit(project)
+            self.refreshProject()
 
     def setSearchText(self, text):
         self._searchText = text
 
     def setSearchFlags(self, flags):
         self._searchFlags = flags
+
+    def shutdown(self):
+
+        # close out of the ide system
+
+        from PyQt4.QtCore import Qt
+
+        # if this is the global instance, then allow it to be deleted on close
+
+        if self == _instance._instance:
+
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+
+            _instance._instance = None
+
+        # clear out the system
+
+        self.close()
 
     def updatePath(self):
         self.uiPathLBL.setText(self.currentBasePath() + '>')
@@ -805,12 +890,32 @@ class IdeEditor(Window):
         window.show()
 
     @staticmethod
-    def instance():
+    def instance(parent=None):
+
+        # create the instance for the logger
+
         if not IdeEditor._instance:
+
+            # determine default parenting
+            import blurdev
+
+            parent = None
+            if not blurdev.core.isMfcApp():
+                parent = blurdev.core.rootWindow()
+
+            # create the logger instance
+
+            inst = IdeEditor(parent)
+
+            # protect the memory
+
             from PyQt4.QtCore import Qt
 
-            IdeEditor._instance = IdeEditor()
-            IdeEditor._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+
+            # cache the instance
+            IdeEditor._instance = inst
+
         return IdeEditor._instance
 
     @staticmethod
@@ -821,10 +926,3 @@ class IdeEditor(Window):
         # set the filename
         if filename:
             window.load(filename)
-
-
-# if this is run directly
-if __name__ == '__main__':
-    import blurdev
-
-    blurdev.launch(IdeEditor, coreName='ide')

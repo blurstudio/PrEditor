@@ -13,7 +13,7 @@ from PyQt4.Qsci import *
 
 
 class DocumentEditor(QsciScintilla):
-    def __init__(self, parent, filename=''):
+    def __init__(self, parent, filename='', lineno=0):
         QsciScintilla.__init__(self, parent)
 
         # create custom properties
@@ -72,6 +72,12 @@ class DocumentEditor(QsciScintilla):
             self.load(filename)
         else:
             self.refreshTitle()
+
+        # goto the line
+
+        if lineno:
+
+            self.setCursorPosition(lineno, 0)
 
     def checkForSave(self):
         if self.isModified():

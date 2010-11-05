@@ -132,7 +132,6 @@ class Core(QObject):
         self._lastFileName = ''
         self._mfcApp = False
         self._logger = None
-        self._treegrunt = None
 
         # set the preference root location
         self.setPreferenceRoot('c:/blur/prefs')
@@ -177,6 +176,10 @@ class Core(QObject):
                         app.setPalette(palette)
                     if stylesheet:
                         app.setStylesheet(stylesheet)
+
+                    # initialize the logger
+
+                    self.logger()
 
                 return True
             return False
@@ -268,6 +271,8 @@ class Core(QObject):
 
         app = QApplication.instance()
 
+        output = None
+
         if app and self.isMfcApp():
             from PyQt4.QtCore import Qt
 
@@ -285,15 +290,21 @@ class Core(QObject):
 
         elif not app:
 
-            return QApplication([])
+            output = QApplication([])
 
-        return None
+        return output
 
     def isMfcApp(self):
         return self._mfcApp
 
     def hwnd(self):
         return self._hwnd
+
+    def ideeditor(self, parent=None):
+
+        from blurdev.ide.ideeditor import IdeEditor
+
+        return IdeEditor.instance(parent)
 
     def isKeystrokesEnabled(self):
         return self._keysEnabled
@@ -305,14 +316,10 @@ class Core(QObject):
         """
             \remarks	creates and returns the logger instance
         """
-        if not self._logger:
-            from blurdev.gui.windows.loggerwindow import LoggerWindow
 
-            parent = None
-            if self.objectName() == 'trax':
-                parent = self.rootWindow()
-            self._logger = LoggerWindow(parent)
-        return self._logger
+        from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+        return LoggerWindow.instance(parent)
 
     def newScript(self):
         """
@@ -547,6 +554,12 @@ class Core(QObject):
 
         return False
 
+    def sdkBrowser(self, parent=None):
+
+        from blurdev.gui.windows.sdkwindow import SdkWindow
+
+        return SdkWindow.instance(parent)
+
     def setLastFileName(self, filename):
         return self._lastFileName
 
@@ -621,6 +634,7 @@ class Core(QObject):
         """
             \remarks	creates the python logger and displays it
         """
+
         self.logger().show()
 
     def unprotectModule(self, moduleName):
@@ -647,15 +661,7 @@ class Core(QObject):
         """
             \remarks	creates and returns the logger instance
         """
-        if not self._treegrunt:
-            from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
-            parent = None
-            if self.objectName() == 'trax':
-                parent = self.rootWindow()
-            self._treegrunt = TreegruntDialog(parent)
+        from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
-            from PyQt4.QtCore import Qt
-
-            self._treegrunt.setAttribute(Qt.WA_DeleteOnClose, False)
-        return self._treegrunt
+        return TreegruntDialog.instance(parent)

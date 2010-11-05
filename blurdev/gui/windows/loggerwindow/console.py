@@ -76,8 +76,14 @@ class ConsoleEdit(QTextEdit):
 
         # store the error buffer
         self._completer = None
-        self._errorBuffer = []
-        self._errorId = 0
+
+        from PyQt4.QtCore import QTimer
+
+        self._errorTimer = QTimer()
+
+        self._errorTimer.setSingleShot(True)
+
+        self._errorTimer.timeout.connect(self.handleError)
 
         # create the completer
         from completer import PythonCompleter
@@ -104,7 +110,6 @@ class ConsoleEdit(QTextEdit):
     def clear(self):
         """ clears the text in the editor """
         QTextEdit.clear(self)
-        self._errorBuffer = []
         self.startInputLine()
 
     def completer(self):
@@ -242,6 +247,16 @@ class ConsoleEdit(QTextEdit):
             cursor.insertText(completion[len(self.completer().completionPrefix()) :])
             self.setTextCursor(cursor)
 
+    def lastError(self):
+
+        import traceback, sys
+
+        return ''.join(
+            traceback.format_exception(
+                sys.last_type, sys.last_value, sys.last_traceback
+            )
+        )
+
     def keyPressEvent(self, event):
         """ overload the key press event to handle custom events """
 
@@ -332,19 +347,36 @@ class ConsoleEdit(QTextEdit):
 
             self.insertPlainText(inputstr)
 
-    def timerEvent(self, event):
-        """ kill the error event """
-        self.killTimer(self._errorId)
+    def handleError(self):
+        """ process an error event handling """
 
         # determine the error email path
         from blurdev.tools import ToolsEnvironment
 
         emails = ToolsEnvironment.activeEnvironment().emailOnError()
         if emails:
-            self.emailError(emails, ''.join(self._errorBuffer))
+            self.emailError(emails, ''.join(self.lastError()))
 
-        # clear the error buffer
-        self._errorBuffer = []
+        # if the logger is not visible, prompt the user
+
+        from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+        inst = LoggerWindow.instance()
+
+        if not inst.isVisible():
+
+            from PyQt4.QtGui import QMessageBox
+
+            result = QMessageBox.question(
+                None,
+                'Error Occurred',
+                'An error has occurred in your Python script.  Would you like to see the log?',
+                QMessageBox.Yes | QMessageBox.No,
+            )
+
+            if result == QMessageBox.Yes:
+
+                inst.show()
 
     def write(self, msg, error=False):
         """ write the message to the logger """
@@ -359,11 +391,12 @@ class ConsoleEdit(QTextEdit):
             charFormat.setForeground(QColor(17, 154, 255))
         else:
             # start recording information to the error buffer
-            if not self._errorBuffer:
-                self._errorId = self.startTimer(1000)
+
+            self._errorTimer.stop()
+
+            self._errorTimer.start(50)
 
             charFormat.setForeground(Qt.red)
-            self._errorBuffer.append(msg)
 
         self.setCurrentCharFormat(charFormat)
         self.insertPlainText(msg)

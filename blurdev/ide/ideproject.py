@@ -21,12 +21,29 @@ class IdeProjectItem(QObject):
         self._icon = None
 
         self._exclude = ['.svn']
-        self._fileTypes = ['*.py', '*.pyw', '*.xml', '*.ui']
+        self._fileTypes = '*.py;;*.pyw;;*.xml;;*.ui;;*.nsi;;*.bat;;*.schema;;*.txt;;*.blurproj'.split(
+            ';;'
+        )
 
     def exclude(self):
         return self._exclude
 
     def filePath(self):
+
+        if not self.isFileSystem() and self._filePath:
+
+            if self.project():
+
+                options = {'PROJECTPATH': self.project().filePath()}
+
+            else:
+
+                options = {}
+
+            from blurdev.ide.idetemplate import IdeTemplate
+
+            return IdeTemplate.formatText(self._filePath, options)
+
         return self._filePath
 
     def fileInfo(self):
@@ -113,13 +130,22 @@ class IdeProjectItem(QObject):
 
         return True
 
+    def project(self):
+
+        output = self
+
+        while output and not isinstance(output, IdeProject):
+
+            output = output.parent()
+
+        return output
+
     def refresh(self):
         if not self.isGroup():
             children = list(self.children())
 
             # clear the children
             for child in children:
-
                 if isinstance(child, IdeProjectItem):
                     child.setParent(None)
                     child.deleteLater()
@@ -137,9 +163,7 @@ class IdeProjectItem(QObject):
 
     def setFileSystem(self, state):
         self._fileSystem = state
-
         if state:
-
             self._group = False
 
     def setFileTypes(self, ftypes):
@@ -160,8 +184,8 @@ class IdeProjectItem(QObject):
             child.toXml(xml)
 
     @staticmethod
-    def fromXml(xml):
-        out = IdeProjectItem(None)
+    def fromXml(xml, parent):
+        out = IdeProjectItem(parent)
         out.setObjectName(xml.attribute('name'))
         out.setGroup(xml.attribute('group') != 'False')
         out.setFilePath(xml.attribute('filePath'))
@@ -173,6 +197,12 @@ class IdeProjectItem(QObject):
         ftypes = xml.attribute('fileTypes')
         if ftypes:
             out.setFileTypes(ftypes.split(';;'))
+
+        # load children
+
+        for child in xml.children():
+
+            IdeProjectItem.fromXml(child, out)
 
         # load the filesystem
         out.refresh()
@@ -192,6 +222,12 @@ class IdeProject(IdeProjectItem):
 
     def filename(self):
         return self._filename
+
+    def filePath(self):
+
+        import os.path
+
+        return os.path.split(str(self.filename()))[0]
 
     def isNull(self):
         return self._filename == ''
@@ -335,6 +371,5 @@ class IdeProject(IdeProjectItem):
 
                 folders = root.findChild('folders')
                 for folder in folders.children():
-                    item = IdeProjectItem.fromXml(folder)
-                    item.setParent(output)
+                    IdeProjectItem.fromXml(folder, output)
         return output

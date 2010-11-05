@@ -12,6 +12,9 @@ from blurdev.gui import Window
 
 
 class LoggerWindow(Window):
+
+    _instance = None
+
     def __init__(self, parent):
         Window.__init__(self, parent)
 
@@ -19,25 +22,26 @@ class LoggerWindow(Window):
 
         blurdev.gui.loadUi(__file__, self)
 
-        # disable the delete on close attribute
-        from PyQt4.QtCore import Qt
-
-        self.setAttribute(Qt.WA_DeleteOnClose, False)
-
         # create the console widget
         from console import ConsoleEdit
 
-        console = ConsoleEdit(self)
+        self._console = ConsoleEdit(self)
 
         # create the layout
         from PyQt4.QtGui import QVBoxLayout
 
         layout = QVBoxLayout()
-        layout.addWidget(console)
+        layout.addWidget(self._console)
         self.centralWidget().setLayout(layout)
 
         # create the connections
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
+
+        self.uiNewScriptACT.triggered.connect(blurdev.core.newScript)
+        self.uiOpenScriptACT.triggered.connect(blurdev.core.openScript)
+        self.uiRunScriptACT.triggered.connect(blurdev.core.runScript)
+        self.uiGotoErrorACT.triggered.connect(self.gotoError)
+
         self.uiNoDebugACT.triggered.connect(self.setNoDebug)
         self.uiDebugLowACT.triggered.connect(self.setLowDebug)
         self.uiDebugMidACT.triggered.connect(self.setMidDebug)
@@ -45,6 +49,21 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
+
+    def gotoError(self):
+        text = self._console.textCursor().selectedText()
+        import re
+
+        results = re.match('[ \t]*File "([^"]+)", line (\d+)', unicode(text))
+        if results:
+
+            from blurdev.ide import IdeEditor
+
+            IdeEditor.instance().show()
+
+            filename, lineno = results.groups()
+
+            IdeEditor.instance().load(filename, int(lineno))
 
     def refreshDebugLevels(self):
         from blurdev.debug import DebugLevel, debugLevel
@@ -78,3 +97,50 @@ class LoggerWindow(Window):
         from blurdev import debug
 
         debug.setDebugLevel(debug.DebugLevel.High)
+
+    def shutdown(self):
+
+        # close out of the ide system
+
+        from PyQt4.QtCore import Qt
+
+        # if this is the global instance, then allow it to be deleted on close
+
+        if self == _instance._instance:
+
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+
+            _instance._instance = None
+
+        # clear out the system
+
+        self.close()
+
+    @staticmethod
+    def instance(parent=None):
+
+        # create the instance for the logger
+
+        if not LoggerWindow._instance:
+
+            # determine default parenting
+            import blurdev
+
+            parent = None
+            if not blurdev.core.isMfcApp():
+                parent = blurdev.core.rootWindow()
+
+            # create the logger instance
+
+            inst = LoggerWindow(parent)
+
+            # protect the memory
+
+            from PyQt4.QtCore import Qt
+
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+
+            # cache the instance
+            LoggerWindow._instance = inst
+
+        return LoggerWindow._instance

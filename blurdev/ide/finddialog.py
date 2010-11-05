@@ -50,8 +50,9 @@ class FindDialog(Dialog):
                 and not event.modifiers() == Qt.ShiftModifier
             ):
 
-                self.accept()
                 self.parent().uiFindNextACT.triggered.emit(True)
+
+                self.accept()
                 return True
         return False
 

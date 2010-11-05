@@ -44,7 +44,7 @@ class IdeProjectItemDialog(Dialog):
         self.uiGroupCHK.setChecked(projectItem.isGroup())
         self.uiFileTypesTXT.setText(';;'.join(projectItem.fileTypes()))
         self.uiExcludeTXT.setText(';;'.join(projectItem.exclude()))
-        self.uiFilePATH.setFilePath(projectItem.filePath())
+        self.uiFilePATH.setFilePath(projectItem._filePath)
 
     @staticmethod
     def edit(projectItem):

@@ -489,7 +489,7 @@
      <x>0</x>
      <y>0</y>
      <width>578</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -501,6 +501,8 @@
     <addaction name="uiDebugLowACT"/>
     <addaction name="uiDebugMidACT"/>
     <addaction name="uiDebugHighACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiGotoErrorACT"/>
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
@@ -603,15 +605,24 @@
    <property name="text">
     <string>&amp;New Script</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="uiOpenScriptACT">
    <property name="text">
     <string>&amp;Open Script...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="uiRunScriptACT">
    <property name="text">
     <string>&amp;Run Script...</string>
+   </property>
+   <property name="shortcut">
+    <string>F5</string>
    </property>
   </action>
   <action name="uiHintingEnabledACT">
@@ -623,6 +634,14 @@
    </property>
    <property name="text">
     <string>Use &amp;Auto-Complete</string>
+   </property>
+  </action>
+  <action name="uiGotoErrorACT">
+   <property name="text">
+    <string>Goto Error...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

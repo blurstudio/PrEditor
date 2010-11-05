@@ -458,11 +458,11 @@ class XMLElement:
 
     def recordProperty(self, name, value):
         element = self.findChild(name)
-        if not element:
-            element = self.addNode(name)
-        else:
-            element.clear()
+        if element:
 
+            element.remove()
+
+        element = self.addNode(name)
         element.recordValue(value)
 
     def restoreProperty(self, name, fail=None):

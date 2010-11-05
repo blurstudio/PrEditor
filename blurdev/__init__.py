@@ -20,13 +20,20 @@ ToolsEnvironment.registerPath('c:/blur/beta')
 
 
 application = None  # create a managed QApplication
-core = None  # create a mangaed Core instance
+core = None  # create a managed Core instance
 
 
 def activeEnvironment():
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.activeEnvironment()
+
+
+def findDevelopmentEnvironment():
+
+    from blurdev.tools import ToolsEnvironment
+
+    return ToolsEnvironment.findDevelopmentEnvironment()
 
 
 def findTool(name, environment=''):
@@ -62,7 +69,7 @@ def init():
         application = core.init()
 
 
-def launch(cls, modal=False, coreName=''):
+def launch(ctor, modal=False, coreName=''):
     """
         \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
                     the trax system.  Using this function call, trax will determine what the application is
@@ -72,9 +79,13 @@ def launch(cls, modal=False, coreName=''):
         
         \sa			trax.api.tools
         
-        \param		cls		QWidget 	(Dialog/Window most commonly>
+        \param		ctor		QWidget || method 	(constructor for a widget, most commonly a Dialog/Window/Wizard>
+
+        \param		modal		<bool>	whether or not the system should run modally
+
+        \param		coreName	<str>	string to give to the core if the application is going to be rooted under this widget
         
-        \return		<bool>	success (when exec_ keyword is set) || <cls> instance (when exec_ keyword is not set)
+        \return		<bool>	success (when exec_ keyword is set) || <ctor> instance (when exec_ keyword is not set)
     """
     init()
 
@@ -94,11 +105,22 @@ def launch(cls, modal=False, coreName=''):
             core.setObjectName('external')
 
     # always run wizards modally
-    if issubclass(cls, QWizard):
+
+    iswiz = False
+
+    try:
+
+        iswiz = issubclass(ctor, QWizard)
+
+    except:
+
+        pass
+
+    if iswiz:
         modal = True
 
     # create the output instance from the class
-    widget = cls(None)
+    widget = ctor(None)
 
     # check to see if the tool is running modally and return the result
     if modal:
@@ -106,6 +128,7 @@ def launch(cls, modal=False, coreName=''):
     else:
         widget.show()
 
+        # run the application if this item controls it
         if application:
             application.exec_()
 

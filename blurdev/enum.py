@@ -30,6 +30,8 @@ class enum:
 
     def __init__(self, *args, **kwds):
         self._keys = list(args) + kwds.keys()
+
+        self._compound = kwds.keys()
         self._descr = {}
         key = 1
         for i in range(len(args)):
@@ -55,6 +57,11 @@ class enum:
         import re
 
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
+
+    def labelByValue(self, value):
+        import re
+
+        return ' '.join(re.findall('[A-Z]+[^A-Z]*', self.keyByValue(value)))
 
     def isValid(self, value):
         return self.keyByValue(value) != ''
@@ -99,7 +106,8 @@ class enum:
     def toString(self, value, default='None'):
         parts = []
         for key in self._keys:
-            if value & self.value(key):
+
+            if not key in self._compound and value & self.value(key):
                 parts.append(key)
 
         if parts:
