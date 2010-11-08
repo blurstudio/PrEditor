@@ -93,6 +93,8 @@ class IdeTemplateBrowser(Dialog):
         templs = templates.templates(item.parent().text(0), item.text(0))
         for templ in templs:
             item = scene.addThumbnail(templ.iconFile)
+
+            item.setCaption(templ.name)
             item.setToolTip(templ.toolTip)
             item.setData(Qt.UserRole, templ.templateId)
 

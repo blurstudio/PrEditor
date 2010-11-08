@@ -35,7 +35,7 @@ class IdeEditor(Window):
 
         from PyQt4.QtGui import QIcon
 
-        self.setWindowIcon(QIcon(blurdev.relativePath(__file__, '/img/icon.png')))
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
 
         # create custom properties
         self._closing = False

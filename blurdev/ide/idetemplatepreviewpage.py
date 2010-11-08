@@ -24,12 +24,7 @@ class ComponentItem(QTreeWidgetItem):
 
         import blurdev
 
-        self.setIcon(
-            0,
-            QIcon(
-                blurdev.relativePath(blurdev.__file__, 'ide/img/%s.png' % xml.nodeName)
-            ),
-        )
+        self.setIcon(0, QIcon(blurdev.resourcePath('img/%s.png' % xml.nodeName)))
 
         self.setCheckState(0, Qt.Checked)
 

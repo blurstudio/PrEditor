@@ -275,7 +275,7 @@
     <addaction name="uiRunScriptACT"/>
     <addaction name="uiCleanRunACT"/>
    </widget>
-   <widget class="QMenu" name="menu_Project">
+   <widget class="QMenu" name="uiProjectMENU">
     <property name="title">
      <string>&amp;Project</string>
     </property>
@@ -287,10 +287,20 @@
     <addaction name="separator"/>
     <addaction name="uiCloseProjectACT"/>
    </widget>
+   <widget class="QMenu" name="uiDebugMENU">
+    <property name="title">
+     <string>Debugging</string>
+    </property>
+    <addaction name="uiNoDebugACT"/>
+    <addaction name="uiLowDebugACT"/>
+    <addaction name="uiMidDebugACT"/>
+    <addaction name="uiHighDebugACT"/>
+   </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="menuEdit"/>
    <addaction name="uiSearchMENU"/>
-   <addaction name="menu_Project"/>
+   <addaction name="uiProjectMENU"/>
+   <addaction name="uiDebugMENU"/>
    <addaction name="uiRunMENU"/>
    <addaction name="uiViewMENU"/>
    <addaction name="uiToolsMENU"/>
@@ -653,6 +663,29 @@
    </property>
    <property name="shortcut">
     <string>Shift+F5</string>
+   </property>
+  </action>
+  <action name="uiNoDebugACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Disabled</string>
+   </property>
+  </action>
+  <action name="uiLowDebugACT">
+   <property name="text">
+    <string>Low Level</string>
+   </property>
+  </action>
+  <action name="uiMidDebugACT">
+   <property name="text">
+    <string>Mid Level</string>
+   </property>
+  </action>
+  <action name="uiHighDebugACT">
+   <property name="text">
+    <string>High Level</string>
    </property>
   </action>
  </widget>

@@ -22,13 +22,20 @@ class ThumbnailItem(QGraphicsRectItem):
         self._filename = filename
         self._thumbGroup = None
         self._sortData = ''
-        self._dragEnabled = False
+
         self._mimeText = ''
+
+        self._caption = ''
+        self._dragEnabled = False
 
         # update the flag options
         self.setFlags(
             QGraphicsRectItem.ItemIsSelectable | QGraphicsRectItem.ItemIsFocusable
         )
+
+    def caption(self):
+
+        return self._caption
 
     def clearThumbnail(self):
         self._thumbnail = None
@@ -37,7 +44,7 @@ class ThumbnailItem(QGraphicsRectItem):
         return self._dragEnabled
 
     def paint(self, painter, option, widget):
-        from PyQt4.QtCore import Qt
+        from PyQt4.QtCore import Qt, QRect
 
         # draw the thumbnail
         scene = self.scene()
@@ -47,7 +54,7 @@ class ThumbnailItem(QGraphicsRectItem):
         px = ((thumbsize.width() + padding.width()) - thumb.width()) / 2
         py = ((thumbsize.height() + padding.height()) - thumb.height()) / 2
 
-        painter.drawPixmap(px, py, thumb)
+        caption = self.caption()
 
         # draw highlight around the thumbnail
         if self.isSelected():
@@ -56,7 +63,29 @@ class ThumbnailItem(QGraphicsRectItem):
             pen.setColor(scene.highlightBrush().color())
             pen.setWidth(2)
             painter.setPen(pen)
-            painter.drawRect(px - 2, py - 2, thumb.width() + 4, thumb.height() + 4)
+
+            if not caption:
+                painter.drawRect(px - 1, py - 1, thumb.width() + 2, thumb.height() + 2)
+
+        painter.drawPixmap(px, py, thumb)
+
+        # draw caption
+
+        if caption:
+
+            # draw the caption
+
+            flags = int(Qt.AlignCenter) | int(Qt.TextWordWrap)
+
+            font = painter.font()
+
+            font.setPointSize(7)
+
+            painter.setFont(font)
+
+            painter.drawText(
+                0, thumbsize.height() + 2, thumbsize.width(), 16, flags, caption
+            )
 
     def mimeText(self):
         return self._mimeText
@@ -97,6 +126,10 @@ class ThumbnailItem(QGraphicsRectItem):
                 )
 
                 drag.exec_()
+
+    def setCaption(self, caption):
+
+        self._caption = caption
 
     def setDragEnabled(self, state):
         self._dragEnabled = state

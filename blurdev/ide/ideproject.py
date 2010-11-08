@@ -68,7 +68,7 @@ class IdeProjectItem(QObject):
             else:
                 import blurdev
 
-                iconfile = blurdev.relativePath(__file__, 'img/folder.png')
+                iconfile = blurdev.resourcePath('img/folder.png')
                 self._icon = QIcon(iconfile)
 
         return self._icon

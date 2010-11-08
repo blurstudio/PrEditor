@@ -68,7 +68,7 @@ class IdeProjectFavoritesDialog(Dialog):
 
         import blurdev
 
-        favicon = QIcon(blurdev.relativePath(__file__, 'img/favorite.png'))
+        favicon = QIcon(blurdev.resourcePath('img/favorite.png'))
 
         for filename in filenames:
             name = os.path.basename(str(filename)).split('.')[0]

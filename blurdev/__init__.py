@@ -8,7 +8,6 @@
 # 	\date		06/11/10
 #
 
-
 # include the blur path
 from tools import ToolsEnvironment
 
@@ -17,7 +16,6 @@ ToolsEnvironment.registerPath('c:/blur')
 
 # register the beta blur path as an overload for beta tools
 ToolsEnvironment.registerPath('c:/blur/beta')
-
 
 application = None  # create a managed QApplication
 core = None  # create a managed Core instance
@@ -30,7 +28,6 @@ def activeEnvironment():
 
 
 def findDevelopmentEnvironment():
-
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.findDevelopmentEnvironment()
@@ -56,7 +53,6 @@ def findTool(name, environment=''):
 
 def init():
     global core
-
     global application
     if not core:
         # create the core instance
@@ -80,9 +76,7 @@ def launch(ctor, modal=False, coreName=''):
         \sa			trax.api.tools
         
         \param		ctor		QWidget || method 	(constructor for a widget, most commonly a Dialog/Window/Wizard>
-
         \param		modal		<bool>	whether or not the system should run modally
-
         \param		coreName	<str>	string to give to the core if the application is going to be rooted under this widget
         
         \return		<bool>	success (when exec_ keyword is set) || <ctor> instance (when exec_ keyword is not set)
@@ -92,7 +86,6 @@ def launch(ctor, modal=False, coreName=''):
     # create the app if necessary
     app = None
     from PyQt4.QtGui import QWizard
-
     from blurdev.cores.core import Core
 
     if application:
@@ -105,15 +98,10 @@ def launch(ctor, modal=False, coreName=''):
             core.setObjectName('external')
 
     # always run wizards modally
-
     iswiz = False
-
     try:
-
         iswiz = issubclass(ctor, QWizard)
-
     except:
-
         pass
 
     if iswiz:
@@ -135,30 +123,47 @@ def launch(ctor, modal=False, coreName=''):
         return widget
 
 
-def packageForPath(path):
+def quickReload(modulename):
+    """	
+        \remarks	searches through the loaded sys modules and looks up matching module names based on the imported module
+        \param		modulename 	<str>
+    """
+    import sys, re
 
+    expr = re.compile(str(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
+
+    # reload longer chains first
+
+    keys = sys.modules.keys()
+
+    keys.sort()
+
+    keys.reverse()
+
+    for key in keys:
+
+        module = sys.modules[key]
+        if expr.match(key) and module != None:
+
+            print 'reloading', key
+            reload(module)
+
+
+def packageForPath(path):
     import os.path
 
     path = str(path)
-
     splt = os.path.normpath(path).split(os.path.sep)
-
     index = 1
 
     filename = os.path.join(path, '__init__.py')
-
     package = []
-
     while os.path.exists(filename):
-
         package.append(splt[-index])
-
         filename = os.path.join(os.path.sep.join(splt[:-index]), '__init__.py')
-
         index += 1
 
     package.reverse()
-
     return '.'.join(package)
 
 
@@ -172,6 +177,11 @@ def relativePath(path, additional):
     import os.path
 
     return os.path.join(os.path.split(str(path))[0], additional)
+
+
+def resourcePath(relpath):
+
+    return relativePath(__file__, 'resource/%s' % relpath)
 
 
 def runTool(toolId, macro=""):

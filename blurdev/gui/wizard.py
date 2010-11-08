@@ -30,9 +30,9 @@ class Wizard(QWizard):
         else:
             QWizard.__init__(self, parent)
 
-        import PyQt4.uic, os.path
+        import PyQt4.uic
 
-        PyQt4.uic.loadUi(os.path.split(__file__)[0] + '/palette.ui', self)
+        PyQt4.uic.loadUi(blurdev.resourcePath('palette.ui'), self)
 
         # set the delete attribute to clean up the window once it is closed
         from PyQt4.QtCore import Qt
@@ -52,8 +52,7 @@ class Wizard(QWizard):
         from PyQt4.QtGui import QPixmap
 
         self.setPixmap(
-            QWizard.BackgroundPixmap,
-            QPixmap(blurdev.relativePath(__file__, 'img/watermark.png')),
+            QWizard.BackgroundPixmap, QPixmap(blurdev.resourcePath('img/watermark.png'))
         )
 
         self.initWizardPages()

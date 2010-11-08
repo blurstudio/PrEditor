@@ -143,7 +143,7 @@ class StudiomaxCore(Core):
             if os.path.exists(filename):
                 import Py3dsMax
 
-                Py3dsMax.mxs.filein(filename)
+                Py3dsMax.runMaxscript(filename)
                 return True
             return False
 
