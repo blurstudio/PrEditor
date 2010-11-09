@@ -257,7 +257,7 @@
     <addaction name="uiDisplayTileACT"/>
     <addaction name="uiDisplayCascadeACT"/>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
      <string>Help</string>
     </property>
@@ -292,9 +292,10 @@
      <string>Debugging</string>
     </property>
     <addaction name="uiNoDebugACT"/>
-    <addaction name="uiLowDebugACT"/>
-    <addaction name="uiMidDebugACT"/>
-    <addaction name="uiHighDebugACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiDebugLowACT"/>
+    <addaction name="uiDebugMidACT"/>
+    <addaction name="uiDebugHighACT"/>
    </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="menuEdit"/>
@@ -305,7 +306,7 @@
    <addaction name="uiViewMENU"/>
    <addaction name="uiToolsMENU"/>
    <addaction name="uiAdvancedMENU"/>
-   <addaction name="menuHelp"/>
+   <addaction name="uiHelpMENU"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="uiShowLoggerACT">
@@ -673,17 +674,26 @@
     <string>Disabled</string>
    </property>
   </action>
-  <action name="uiLowDebugACT">
+  <action name="uiDebugLowACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Low Level</string>
    </property>
   </action>
-  <action name="uiMidDebugACT">
+  <action name="uiDebugMidACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Mid Level</string>
    </property>
   </action>
-  <action name="uiHighDebugACT">
+  <action name="uiDebugHighACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>High Level</string>
    </property>

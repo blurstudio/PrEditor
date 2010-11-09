@@ -47,6 +47,16 @@ class LoggerWindow(Window):
         self.uiDebugMidACT.triggered.connect(self.setMidDebug)
         self.uiDebugHighACT.triggered.connect(self.setHighDebug)
 
+        from PyQt4.QtGui import QIcon
+
+        self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
+
+        self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
+
+        self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
+
+        self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
+
         # refresh the ui
         self.refreshDebugLevels()
 

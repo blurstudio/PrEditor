@@ -138,6 +138,28 @@ class IdeEditor(Window):
         self.uiHelpAssistantACT.triggered.connect(self.showAssistant)
         self.uiSdkBrowserACT.triggered.connect(self.showSdkBrowser)
 
+        # connect debug menu
+
+        blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
+
+        self.uiNoDebugACT.triggered.connect(self.setNoDebug)
+        self.uiDebugLowACT.triggered.connect(self.setLowDebug)
+        self.uiDebugMidACT.triggered.connect(self.setMidDebug)
+        self.uiDebugHighACT.triggered.connect(self.setHighDebug)
+
+        from PyQt4.QtGui import QIcon
+
+        self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
+
+        self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
+
+        self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
+
+        self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
+
+        # refresh the ui
+        self.refreshDebugLevels()
+
     def checkOpen(self):
         # determine if there have been any changes
         if self.uiOpenTREE.topLevelItemCount() != len(
@@ -625,6 +647,19 @@ class IdeEditor(Window):
 
         pref.save()
 
+    def refreshDebugLevels(self):
+        from blurdev.debug import DebugLevel, debugLevel
+
+        for act, level in [
+            (self.uiNoDebugACT, 0),
+            (self.uiDebugLowACT, DebugLevel.Low),
+            (self.uiDebugMidACT, DebugLevel.Mid),
+            (self.uiDebugHighACT, DebugLevel.High),
+        ]:
+            act.blockSignals(True)
+            act.setChecked(level == debugLevel())
+            act.blockSignals(False)
+
     def refreshOpen(self):
         self.uiOpenTREE.blockSignals(True)
         self.uiOpenTREE.setUpdatesEnabled(False)
@@ -759,6 +794,26 @@ class IdeEditor(Window):
                     self._searchText = text
 
         return self._searchText
+
+    def setNoDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(None)
+
+    def setLowDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.Low)
+
+    def setMidDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.Mid)
+
+    def setHighDebug(self):
+        from blurdev import debug
+
+        debug.setDebugLevel(debug.DebugLevel.High)
 
     def show(self):
 
