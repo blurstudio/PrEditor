@@ -116,11 +116,11 @@ class LoggerWindow(Window):
 
         # if this is the global instance, then allow it to be deleted on close
 
-        if self == _instance._instance:
+        if self == LoggerWindow._instance:
 
             self.setAttribute(Qt.WA_DeleteOnClose, True)
 
-            _instance._instance = None
+            LoggerWindow._instance = None
 
         # clear out the system
 
