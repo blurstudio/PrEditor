@@ -139,7 +139,6 @@ class IdeEditor(Window):
         self.uiSdkBrowserACT.triggered.connect(self.showSdkBrowser)
 
         # connect debug menu
-
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
 
         self.uiNoDebugACT.triggered.connect(self.setNoDebug)
@@ -150,14 +149,12 @@ class IdeEditor(Window):
         from PyQt4.QtGui import QIcon
 
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
-
         self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
-
         self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
-
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
 
         # refresh the ui
+        self.updateTitle(None)
         self.refreshDebugLevels()
 
     def checkOpen(self):
@@ -190,9 +187,7 @@ class IdeEditor(Window):
 
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
-
             model = self.uiProjectTREE.model()
-
             if model:
                 path = model.filePath(self.uiProjectTREE.currentIndex())
                 if path:
@@ -211,9 +206,7 @@ class IdeEditor(Window):
 
         # load a project file
         if self.uiBrowserTAB.currentIndex() == 0:
-
             model = self.uiProjectTREE.model()
-
             if model:
                 filename = str(model.filePath(self.uiProjectTREE.currentIndex()))
 
@@ -314,7 +307,6 @@ class IdeEditor(Window):
         from idetemplatebrowser import IdeTemplateBrowser
 
         if IdeTemplateBrowser.createFromTemplate():
-
             self.projectRefreshIndex()
 
     def documentGoTo(self):
@@ -510,9 +502,7 @@ class IdeEditor(Window):
             QProcess.startDetached(cmd, args, path)
 
         # load a blurproject
-
         elif mods != Qt.AltModifier and ext == '.blurproj':
-
             self.setCurrentProject(IdeProject.fromXml(filename))
 
         # otherwise, load it standard
@@ -747,15 +737,11 @@ class IdeEditor(Window):
             return False
 
         import os.path
-
         from PyQt4.QtCore import QProcess
 
         # run a python file
-
         if os.path.splitext(filename)[1].startswith('.py'):
-
             QProcess.startDetached('pythonw.exe', [filename], self.currentBasePath())
-
         else:
             QProcess.startDetached(filename, [], self.currentBasePath())
 
@@ -768,13 +754,10 @@ class IdeEditor(Window):
         from PyQt4.QtCore import QProcess
 
         # run a python file
-
         if os.path.splitext(filename)[1].startswith('.py'):
-
             QProcess.startDetached(
                 'cmd.exe', ['/k', 'python.exe %s' % filename], self.currentBasePath()
             )
-
         else:
             QProcess.startDetached('cmd.exe', ['/k', filename], self.currentBasePath())
 
@@ -816,11 +799,9 @@ class IdeEditor(Window):
         debug.setDebugLevel(debug.DebugLevel.High)
 
     def show(self):
-
         Window.show(self)
 
         # initialize the logger
-
         import blurdev
 
         blurdev.core.logger(self)
@@ -876,11 +857,8 @@ class IdeEditor(Window):
         self._searchDialog.search(self.searchText())
 
     def setCurrentProject(self, project):
-
         # check to see if we should prompt the user before changing projects
-
         change = True
-
         import os.path
 
         if self._project and not (
@@ -888,7 +866,6 @@ class IdeEditor(Window):
             and os.path.normcase(project.filename())
             == os.path.normcase(self._project.filename())
         ):
-
             from PyQt4.QtGui import QMessageBox
 
             change = (
@@ -914,31 +891,30 @@ class IdeEditor(Window):
         self._searchFlags = flags
 
     def shutdown(self):
-
         # close out of the ide system
-
         from PyQt4.QtCore import Qt
 
         # if this is the global instance, then allow it to be deleted on close
-
         if self == IdeEditor._instance:
-
             self.setAttribute(Qt.WA_DeleteOnClose, True)
-
             IdeEditor._instance = None
 
         # clear out the system
-
         self.close()
 
     def updatePath(self):
         self.uiPathLBL.setText(self.currentBasePath() + '>')
 
     def updateTitle(self, window):
+        from blurdev import version
+
         if window:
-            self.setWindowTitle('IDE | Code Editor - [%s]' % window.windowTitle())
+            self.setWindowTitle(
+                'IDE | Code Editor - [%s] - %s'
+                % (window.windowTitle(), version.toString())
+            )
         else:
-            self.setWindowTitle('IDE | Code Editor')
+            self.setWindowTitle('IDE | Code Editor - %s' % (version.toString()))
 
     @staticmethod
     def createNew():
@@ -948,11 +924,8 @@ class IdeEditor(Window):
 
     @staticmethod
     def instance(parent=None):
-
         # create the instance for the logger
-
         if not IdeEditor._instance:
-
             # determine default parenting
             import blurdev
 
@@ -961,11 +934,9 @@ class IdeEditor(Window):
                 parent = blurdev.core.rootWindow()
 
             # create the logger instance
-
             inst = IdeEditor(parent)
 
             # protect the memory
-
             from PyQt4.QtCore import Qt
 
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
