@@ -21,6 +21,10 @@ class WinWidget(QWinWidget):
         out = WinWidget(hwnd)
         out.showCentered()
 
+        import PyQt4.uic
+
+        PyQt4.uic.loadUi(blurdev.resourcePath('palette.ui'), self)
+
         import sip
 
         sip.transferback(out)
