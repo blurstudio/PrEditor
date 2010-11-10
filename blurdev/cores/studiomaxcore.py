@@ -113,6 +113,30 @@ class StudiomaxCore(Core):
         # init the base class
         Core.init(self)
 
+    def registerPaths(self, oldenv, newenv):
+
+        # update the old blur maxscript library system
+
+        env = str(newenv.objectName()).lower()
+
+        if env != 'local':
+
+            env = 'network'
+
+        # update the old library system
+
+        from Py3dsMax import mxs
+
+        blurlib = mxs._blurLibrary
+
+        if blurlib:
+
+            blurlib.setCodePath(env)
+
+        # register standard paths
+
+        return Core.registerPaths(self, oldenv, newenv)
+
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
             \remarks	[overloaded] handle maxscript script running

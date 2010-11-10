@@ -25,7 +25,7 @@ class IdeTemplateBrowser(Dialog):
 
         from PyQt4.QtGui import QIcon
 
-        folder = QIcon(blurdev.relativePath(__file__, 'img/folder.png'))
+        folder = QIcon(blurdev.resourcePath('img/folder.png'))
 
         from PyQt4.QtCore import Qt, QSize
         from PyQt4.QtGui import QTreeWidgetItem
@@ -38,9 +38,7 @@ class IdeTemplateBrowser(Dialog):
             for grp in templates.templateGroups(lang):
                 gitem = QTreeWidgetItem([grp])
                 gitem.setSizeHint(0, QSize(250, 23))
-                gitem.setIcon(
-                    0, QIcon(blurdev.relativePath(__file__, 'img/%s.png' % grp))
-                )
+                gitem.setIcon(0, QIcon(blurdev.resourcePath('img/%s.png' % grp)))
                 item.addChild(gitem)
 
             self.uiTemplateTREE.addTopLevelItem(item)
