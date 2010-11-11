@@ -476,7 +476,7 @@ class Core(QObject):
             # run a python file
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
-                if self.objectName() == 'external':
+                if self.objectName() in ('external', 'treegrunt'):
                     if debug.debugLevel():
                         f = open('c:/temp/debug.bat', 'w')
                         f.write(
