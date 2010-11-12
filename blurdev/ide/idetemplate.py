@@ -138,6 +138,18 @@ class IdeTemplate:
 
                     repl = ' '.join(re.findall('[A-Z][^A-Z]+', repl))
 
+                # lower option
+
+                if option == 'lower':
+
+                    repl = repl.lower()
+
+                # upper option
+
+                if option == 'upper':
+
+                    repl = repl.upper()
+
                 force = True
 
             if repl or force:

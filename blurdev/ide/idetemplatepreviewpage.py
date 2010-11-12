@@ -220,7 +220,9 @@ class IdeTemplatePreviewPage(QWizardPage):
 
         import blurdev
 
-        self._options['package'] = blurdev.packageForPath(path)
+        if not 'package' in self._options:
+
+            self._options['package'] = blurdev.packageForPath(path)
 
         # record the installpath for future use
 
