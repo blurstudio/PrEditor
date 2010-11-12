@@ -49,7 +49,7 @@ class ObjectTreeModel(QAbstractItemModel):
         return self.createIndex(self.rowForObject(object), column, object)
 
     def findObjectAtRow(self, parent, row):
-        return parent.children()[row]
+        return self.childrenOf(parent)[row]
 
     def flags(self, index):
         if not index.isValid():
@@ -104,6 +104,10 @@ class ObjectTreeModel(QAbstractItemModel):
 
         return QModelIndex()
 
+    def rootObject(self):
+
+        return self._rootObject
+
     def rowCount(self, parent=None):
         from PyQt4.QtCore import QModelIndex
 
@@ -123,4 +127,10 @@ class ObjectTreeModel(QAbstractItemModel):
         if not parent:
             return 0
 
-        return parent.children().index(object)
+        children = self.childrenOf(parent)
+
+        if object in children:
+
+            return children.index(object)
+
+        return 0
