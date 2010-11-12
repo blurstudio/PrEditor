@@ -91,7 +91,13 @@ class ObjectTreeModel(QAbstractItemModel):
             return QModelIndex()
 
         object = index.internalPointer()
-        parent = object.parent()
+
+        try:
+            parent = object.parent()
+
+        except:
+
+            parent = None
 
         if parent and parent != self._rootObject:
             return self.createIndex(self.rowForObject(parent), 0, parent)

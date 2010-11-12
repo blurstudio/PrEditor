@@ -29,7 +29,7 @@ def fileTypes():
         lexerm = _mapping[lang]
         output.append(
             '%s Files (%s)'
-            % (lang, ','.join(['*' + ftype for ftype in lexerm.fileTypes]))
+            % (lang, ';'.join(['*' + ftype for ftype in lexerm.fileTypes]))
         )
 
     output.append('Text Files (*.txt')
@@ -100,7 +100,9 @@ def register(lang, fileTypes, lexerClass):
 from PyQt4.Qsci import *
 
 # create default mappings
-register('C++', ('.cpp', '.c', '.h'), QsciLexerCPP)
-register('Maxscript', ('.ms', '.mcr'), QsciLexerCPP)
-register('Python', ('.py', '.pyw', '.pys'), QsciLexerPython)
-register('XML', ('.xml', '.ui'), QsciLexerXML)
+register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP)
+register('Maxscript', ('.ms', '.mcr',), QsciLexerCPP)
+register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython)
+register('XML', ('.xml', '.ui',), QsciLexerXML)
+
+register('Batch', ('.bat',), QsciLexerBatch)

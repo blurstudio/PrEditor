@@ -8,7 +8,7 @@
 	<include href="c:/blur/prefs/designer_plugins.xml"/>
 	
 	<!-- include storm plugins -->
-	<include href="[STORMDEVPATH]/storm/designer_plugins.xml"/>
+	<include href="[STORMDEVPATH]/storm/designer_plugins.xml" root="[STORMDEVPATH]"/>
 	
 	<!-- include trax widgets -->
 	<include href="[TRAXDEVPATH]/trax/definitions/designer_plugins.xml" root="[TRAXDEVPATH]"/>
