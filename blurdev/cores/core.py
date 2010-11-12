@@ -260,11 +260,9 @@ class Core(QObject):
         )  # do not want to affect this module during environment switching
 
         # initialize the tools environments
-        import os.path
+        import blurdev
 
-        ToolsEnvironment.loadConfig(
-            os.path.abspath(os.path.split(__file__)[0] + '/../config/tools.xml')
-        )
+        ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
 
         # initialize the application
         from PyQt4.QtGui import QApplication

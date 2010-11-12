@@ -76,7 +76,7 @@ def init():
     
     # load the plugins file
     import blurdev
-    loadPlugins( os.path.split( blurdev.__file__ )[0] + '/config/designer_plugins.xml' )
+    loadPlugins( blurdev.resourcePath( 'designer_plugins.xml' ) )
     
     # import the modules
     filenames = glob.glob( os.path.split( __file__ )[0] + '/*.py' )
