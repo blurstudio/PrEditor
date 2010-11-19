@@ -54,6 +54,22 @@ class IdeEditor(Window):
 
         self._searchDialog = FindDialog(self)
 
+        # create a template completer
+
+        from blurdev import template
+
+        from PyQt4.QtCore import Qt
+
+        from PyQt4.QtGui import QListWidget
+
+        self._templateCompleter = QListWidget(self)
+
+        self._templateCompleter.addItems(template.templNames())
+
+        self._templateCompleter.setWindowFlags(Qt.Popup)
+
+        self._templateCompleter.installEventFilter(self)
+
         # create the filesystem model for the explorer tree
         from PyQt4.QtGui import QFileSystemModel
 
@@ -104,6 +120,12 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
+
+        self.uiInsertTemplateACT.triggered.connect(self.documentChooseTemplate)
+
+        self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
+
+        self.uiTemplateManagerACT.triggered.connect(self.showTemplateManager)
 
         # connect search menu
         self.uiFindNextACT.triggered.connect(self.documentFindNext)
@@ -314,6 +336,34 @@ class IdeEditor(Window):
         if doc:
             doc.goToLine()
 
+    def documentChooseTemplate(self):
+
+        from PyQt4.QtGui import QCursor
+
+        self._templateCompleter.move(QCursor.pos())
+
+        self._templateCompleter.show()
+
+    def documentInsertTemplate(self, item):
+
+        doc = self.currentDocument()
+
+        if doc:
+
+            options = {}
+
+            options['selection'] = doc.selectedText()
+
+            from blurdev import template
+
+            text = template.templ(item.text(), options)
+
+            if text:
+
+                doc.insert(text)
+
+        self._templateCompleter.close()
+
     def documentMarkerToggle(self):
         doc = self.currentDocument()
         if doc:
@@ -464,6 +514,23 @@ class IdeEditor(Window):
             ].setFocus()
 
     def eventFilter(self, object, event):
+
+        if object == self._templateCompleter:
+
+            from PyQt4.QtCore import Qt
+
+            if event.type() == event.KeyPress:
+
+                if event.key() == Qt.Key_Escape:
+
+                    self._templateCompleter.close()
+
+                elif event.key() in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab):
+
+                    self.documentInsertTemplate(self._templateCompleter.currentItem())
+
+            return False
+
         if not self._closing and event.type() == event.Close:
             if not object.widget().checkForSave():
                 event.ignore()
@@ -855,6 +922,10 @@ class IdeEditor(Window):
 
     def showSearchDialog(self):
         self._searchDialog.search(self.searchText())
+
+    def showTemplateManager(self):
+
+        pass
 
     def setCurrentProject(self, project):
         # check to see if we should prompt the user before changing projects

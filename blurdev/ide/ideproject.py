@@ -40,9 +40,9 @@ class IdeProjectItem(QObject):
 
                 options = {}
 
-            from blurdev.template import Template
+            from blurdev import template
 
-            return Template.formatText(self._filePath, options)
+            return template.formatText(self._filePath, options)
 
         return self._filePath
 

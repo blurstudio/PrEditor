@@ -217,6 +217,9 @@
     <addaction name="separator"/>
     <addaction name="uiCommentAddACT"/>
     <addaction name="uiCommentRemoveACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiInsertTemplateACT"/>
+    <addaction name="uiTemplateManagerACT"/>
    </widget>
    <widget class="QMenu" name="uiSearchMENU">
     <property name="title">
@@ -696,6 +699,19 @@
    </property>
    <property name="text">
     <string>High Level</string>
+   </property>
+  </action>
+  <action name="uiInsertTemplateACT">
+   <property name="text">
+    <string>Insert Template...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="uiTemplateManagerACT">
+   <property name="text">
+    <string>Template Manager...</string>
    </property>
   </action>
  </widget>

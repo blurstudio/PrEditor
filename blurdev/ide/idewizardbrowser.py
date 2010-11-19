@@ -1,7 +1,7 @@
 ##
 # 	\namespace	blurdev.ide.idewizardbrowser
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
+# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin wizards
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -94,7 +94,7 @@ class IdeWizardBrowser(Dialog):
 
             item.setCaption(templ.name)
             item.setToolTip(templ.toolTip)
-            item.setData(Qt.UserRole, templ.templateId)
+            item.setData(Qt.UserRole, templ.wizardId)
 
         scene.recalculate(scene.sceneRect(), True)
 

@@ -126,15 +126,15 @@ class IdeWizardPreviewPage(QWizardPage):
 
     def formatFile(self, input, output):
 
-        from blurdev.template import Template
+        from blurdev import template
 
-        return Template.formatFile(input, output, self._options)
+        return template.formatFile(input, output, self._options)
 
     def formatText(self, text):
 
-        from blurdev.template import Template
+        from blurdev import template
 
-        return Template.formatText(text, self._options)
+        return template.formatText(text, self._options)
 
     def initializePage(self):
 
