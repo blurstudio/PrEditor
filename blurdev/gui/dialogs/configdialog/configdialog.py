@@ -8,7 +8,33 @@
 # 	\date		04/20/10
 #
 
-from blurdev.gui import Dialog
+from blurdev.gui import Dialog, QTreeWidgetItem
+
+
+class ConfigTreeItem(QTreeWidgetItem):
+    def __init__(self, configSetItem):
+
+        QTreeWidgetItem.__init__(self, [configSetItem.objectName()])
+
+        from PyQt4.QtCore import QSize
+
+        from PyQt4.QtGui import QIcon
+
+        # store the config set item
+
+        self._configSetItem = configSetItem
+
+        # set the icon
+
+        self.setIcon(0, QIcon(configSetItem.icon()))
+        self.setSizeHint(0, QSize(200, 20))
+
+    def configSetItem(self):
+
+        return self._configSetItem
+
+
+# --------------------------------------------------------------------------------
 
 
 class ConfigDialog(Dialog):
@@ -19,7 +45,12 @@ class ConfigDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
+        # initialize the header
         self.uiPluginsTREE.header().setVisible(False)
+
+        # create custom properties
+
+        self._configSet = None
 
         # create connections
         self.uiExitBTN.clicked.connect(self.reject)
@@ -30,84 +61,66 @@ class ConfigDialog(Dialog):
 
     def accept(self):
         """ commits the config information and then closes down """
-        self.commit()
-        Dialog.accept(self)
+        if self.commit():
+            Dialog.accept(self)
 
     def checkForSave(self):
         """ tries to run the active config widget's checkForSave method, if it exists """
         widget = self.uiWidgetAREA.widget()
 
         if widget:
-            try:
-                return widget.checkForSave()
-            except:
-                self.logMissingMethod('checkForSave')
 
+            return widget.checkForSave()
         return True
 
     def commit(self):
         """ tries to run the active config widget's commit method, if it exists """
         widget = self.uiWidgetAREA.widget()
-
         if widget:
-            try:
-                return widget.commit()
-            except:
-                self.logMissingMethod('commit')
-
+            return widget.commit()
         return True
 
-    def setWidgets(self, classes):
+    def setConfigSet(self, configSet):
         """ 
-            \remarks	sets the plugins to be displayed by this system 
-            \param		classes		<dict> { <str> groupName: <dict> { <str> name: <QWidget> class, .. }, .. }
+            \remarks	sets the config set that should be edited
+            \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
         from PyQt4.QtCore import QSize
         from PyQt4.QtGui import QTreeWidgetItem
 
-        from configitem import ConfigItem
+        self.uiPluginsTREE.blockSignals(True)
+
+        self.uiPluginsTREE.setUpdatesEnabled(False)
 
         # clear the tree
         self.uiPluginsTREE.clear()
 
-        # load the tree
-        keys = classes.keys()
-        keys.sort()
-
-        for key in keys:
+        for group in configSet.configGroups():
             # create the group item
-            grpItem = QTreeWidgetItem([key])
-            font = grpItem.font(0)
-            font.setBold(True)
+            grpItem = QTreeWidgetItem([group])
 
-            grpItem.setFont(0, font)
+            grpItem.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
+
             grpItem.setSizeHint(0, QSize(200, 20))
 
-            plugs = classes[key]
-            subkeys = plugs.keys()
-            subkeys.sort()
+            # update the font
+            font = grpItem.font(0)
+            font.setBold(True)
+            grpItem.setFont(0, font)
 
-            for subkey in subkeys:
-                grpItem.addChild(ConfigItem(subkey, plugs[subkey]))
+            # create the config set items
 
+            for configSetItem in configSet.configGroupItems(group):
+
+                grpItem.addChild(ConfigSetItem(configSetItem))
+
+            # add the group item to the tree
             self.uiPluginsTREE.addTopLevelItem(grpItem)
             grpItem.setExpanded(True)
 
-    def logMissingMethod(self, method):
-        """ debugs the system and displays the missing method name """
-        from blurdev import debug
+        self.uiPluginsTREE.blockSignals(False)
 
-        item = self.uiPluginsTREE.currentItem()
-        if item:
-            debug.debugObject(
-                self.logMissingMethod,
-                '%s not implemented for %s plugin' % (method, item.text(0)),
-            )
-        else:
-            debug.debugObject(
-                self.logMissingMethod,
-                '%s not implemented for missing plugin' % (method),
-            )
+        self.uiPluginsTREE.setUpdatesEnabled(True)
 
     def reject(self):
         """ checks this system to make sure the current widget has been saved before exiting """
@@ -116,33 +129,42 @@ class ConfigDialog(Dialog):
 
     def refreshWidget(self):
         """ reloads this dialog with the current plugin instance """
-        from configitem import ConfigItem
-        from PyQt4.QtGui import QWidget
-
         self.uiPluginsTREE.blockSignals(True)
 
         item = self.uiPluginsTREE.currentItem()
 
-        if isinstance(item, ConfigItem):
-            widget = self.uiWidgetAREA.widget()
+        if isinstance(item, ConfigSetItem):
+            widget = self.uiWidgetAREA.takeWidget()
 
             # clear out an old widget
-            if widget and type(widget) != QWidget:
-                if not self.checkForSave():
+            if widget:
+
+                # make sure the old widget can be saved
+
+                if not widget.checkForSave():
+
+                    self.uiPluginsTREE.blockSignals(True)
+
                     self.uiPluginsTREE.clearSelection()
-                    self.selectPlugin(widget.objectName())
+
+                    self.uiPluginsTREE.selectItem(widget.objectName())
+
                     self.uiPluginsTREE.blockSignals(False)
+
                     return False
 
+                # close the old widget
                 widget.close()
+
+                widget.setParent(None)
                 widget.deleteLater()
-                self.uiWidgetAREA.setWidget(None)
 
             # create the new widgets plugin
-            widget = item.widgetClass()(self)
+            widget = item.configSetItem().configClass()(self)
+
+            widget.setObjectName(item.configSetItem().objectName())
             self.uiWidgetAREA.setWidget(widget)
 
-        self.uiPluginsTREE.blockSignals(False)
         return True
 
     def reset(self):
@@ -150,35 +172,34 @@ class ConfigDialog(Dialog):
         widget = self.uiWidgetAREA.widget()
 
         if widget:
-            try:
-                return widget.reset()
-            except:
-                self.logMissingMethod('reset')
+            return widget.reset()
 
         return True
 
-    def selectPlugin(self, name):
+    def selectItem(self, name):
         """ selects the widget item whose name matches the inputed name """
-        self.uiPluginsTREE.blockSignals(True)
 
+        # go through the group level
         for i in range(self.uiPluginsTREE.topLevelItemCount()):
             item = self.uiPluginsTREE.topLevelItem(i)
+
+            # go through the config level
             for c in range(item.childCount()):
                 pitem = item.child(c)
+
+                # select the item if the name matches
                 if pitem.text(0) == name:
                     pitem.setSelected(True)
-                    self.uiPluginsTREE.blockSignals(False)
                     return True
 
-        self.uiPluginsTREE.blockSignals(False)
         return False
 
     @staticmethod
-    def edit(classes):
+    def edit(configSet):
         """ 
             \remarks 	creates a modal config dialog using the specified plugins 
-            \param		classes		<dict> { <str> name: <QWidget> class, .. }
+            \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
-        dialog = ConfigDialog(None)
-        dialog.setWidgets(classes)
+        dialog = ConfigDialog(parent)
+        dialog.setConfigSet(configSet)
         return dialog.exec_()

@@ -9,3 +9,7 @@
 #
 
 from configdialog import ConfigDialog
+
+from configset import ConfigSet
+
+from configwidget import ConfigWidget
