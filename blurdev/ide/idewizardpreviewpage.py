@@ -1,5 +1,5 @@
 ##
-# 	\namespace	blurdev.ide.templatebuilder
+# 	\namespace	blurdev.ide.idewizardpreviewpage
 #
 # 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
 #
@@ -109,7 +109,7 @@ class ComponentItem(QTreeWidgetItem):
         return self.treeWidget().parent()
 
 
-class IdeTemplatePreviewPage(QWizardPage):
+class IdeWizardPreviewPage(QWizardPage):
     def __init__(self, parent, moduleFile):
         QWizardPage.__init__(self, parent)
 

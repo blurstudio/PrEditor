@@ -8,6 +8,14 @@
 # 	\date		06/11/10
 #
 
+
+# track the install path
+
+import os.path
+
+installPath = os.path.split(__file__)[0]
+
+
 # include the blur path
 from tools import ToolsEnvironment
 
@@ -25,6 +33,13 @@ def activeEnvironment():
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.activeEnvironment()
+
+
+def bindMethod(object, name, method):
+    """ Properly binds a new python method to an existing C++ object as a dirty alternative to sub-classing when not possible """
+    import types
+
+    object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
 def findDevelopmentEnvironment():
@@ -68,12 +83,10 @@ def init():
 def launch(ctor, modal=False, coreName=''):
     """
         \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
-                    the trax system.  Using this function call, trax will determine what the application is
+                    the blurdev system.  Using this function call, blurdev will determine what the application is
                     and how the window should be instantiated, this way if a tool is run as a standalone, a
                     new application instance will be created, otherwise it will run on top of a currently
                     running application.
-        
-        \sa			trax.api.tools
         
         \param		ctor		QWidget || method 	(constructor for a widget, most commonly a Dialog/Window/Wizard>
         \param		modal		<bool>	whether or not the system should run modally

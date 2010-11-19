@@ -1,7 +1,7 @@
 ##
-# 	\namespace	blurdev.ide.templatebuilder
+# 	\namespace	blurdev.ide.ideeditor
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
+# 	\remarks	This is the main ide window
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -80,7 +80,7 @@ class IdeEditor(Window):
 
         # connect file menu
         self.uiNewACT.triggered.connect(self.documentNew)
-        self.uiNewFromTemplateACT.triggered.connect(self.documentFromTemplate)
+        self.uiNewFromWizardACT.triggered.connect(self.documentFromWizard)
         self.uiOpenACT.triggered.connect(self.documentOpen)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
@@ -299,14 +299,14 @@ class IdeEditor(Window):
         doc.findPrev(self.searchText(), self.searchFlags())
         return True
 
-    def documentFromTemplate(self):
+    def documentFromWizard(self):
         from PyQt4.QtCore import QDir
 
         QDir.setCurrent(self.currentFilePath())
 
-        from idetemplatebrowser import IdeTemplateBrowser
+        from idewizardbrowser import IdeWizardBrowser
 
-        if IdeTemplateBrowser.createFromTemplate():
+        if IdeWizardBrowser.createFromWizard():
             self.projectRefreshIndex()
 
     def documentGoTo(self):
@@ -816,7 +816,7 @@ class IdeEditor(Window):
 
         menu = QMenu(self)
         menu.addAction(self.uiNewACT)
-        menu.addAction(self.uiNewFromTemplateACT)
+        menu.addAction(self.uiNewFromWizardACT)
         menu.addSeparator()
         menu.addAction('Open').triggered.connect(self.projectOpenIndex)
         menu.addAction('Explore').triggered.connect(self.projectExploreIndex)

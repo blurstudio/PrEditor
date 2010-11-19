@@ -16,6 +16,8 @@ class FilePickerWidget(QWidget):
     filenamePicked = pyqtSignal(str)
     filenameChanged = pyqtSignal(str)
 
+    filenameEdited = pyqtSignal(str)
+
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
@@ -30,7 +32,9 @@ class FilePickerWidget(QWidget):
         self._resolvePath = False
         self._resolved = False
 
-        self.uiFilenameTXT.textChanged.connect(self.filenameChanged.emit)
+        self.uiFilenameTXT.textChanged.connect(self.emitFilenameChanged)
+
+        self.uiFilenameTXT.editingFinished.connect(self.emitFilenameEdited)
         self.uiFilenameTXT.editingFinished.connect(self.resolve)
         self.uiPickFileBTN.clicked.connect(self.pickPath)
 
@@ -38,6 +42,18 @@ class FilePickerWidget(QWidget):
 
     def caption(self):
         return self._caption
+
+    def emitFilenameChanged(self):
+
+        if not self.signalsBlocked():
+
+            self.filenameChanged.emit(self.uiFilenameTXT.text())
+
+    def emitFilenameEdited(self):
+
+        if not self.signalsBlocked():
+
+            self.filenameEdited.emit(self.uiFilenameTXT.text())
 
     def filePath(self):
         return self.uiFilenameTXT.text()
@@ -73,7 +89,9 @@ class FilePickerWidget(QWidget):
 
         if filepath:
             self.uiFilenameTXT.setText(filepath)
-            self.filenamePicked.emit(filepath)
+
+            if not self.signalsBlocked():
+                self.filenamePicked.emit(filepath)
 
     def resolve(self):
 

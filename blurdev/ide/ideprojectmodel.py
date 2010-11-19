@@ -1,7 +1,7 @@
 ##
-# 	\namespace	blurdev.ide.templatebuilder
+# 	\namespace	blurdev.ide.ideprojectmodel
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
+# 	\remarks	Creates a treeview model for viewing IdeProject hierarchies
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio

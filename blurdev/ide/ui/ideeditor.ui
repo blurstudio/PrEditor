@@ -189,7 +189,7 @@
      <string>&amp;File</string>
     </property>
     <addaction name="uiNewACT"/>
-    <addaction name="uiNewFromTemplateACT"/>
+    <addaction name="uiNewFromWizardACT"/>
     <addaction name="uiOpenACT"/>
     <addaction name="separator"/>
     <addaction name="uiCloseACT"/>
@@ -590,9 +590,9 @@
     <string>Open Project...</string>
    </property>
   </action>
-  <action name="uiNewFromTemplateACT">
+  <action name="uiNewFromWizardACT">
    <property name="text">
-    <string>New from &amp;Template...</string>
+    <string>New from &amp;Wizard...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>

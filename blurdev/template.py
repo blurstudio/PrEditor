@@ -1,5 +1,5 @@
 ##
-# 	\namespace	blurdev.ide.pluginbuilder.plugins
+# 	\namespace	blurdev.template
 #
 # 	\remarks	These plugins allow you to quickly and easily create components of a tool or class
 #
@@ -9,7 +9,7 @@
 #
 
 
-class IdeTemplate:
+class Template:
     def __init__(self):
         self.name = ''
 
@@ -49,7 +49,7 @@ class IdeTemplate:
 
             return ''
 
-        return IdeTemplate.formatText(data, options)
+        return Template.formatText(data, options)
 
     @staticmethod
     def formatFile(input, output, options):
@@ -74,7 +74,7 @@ class IdeTemplate:
 
             # format the data
 
-            formatted = IdeTemplate.formatText(data, options)
+            formatted = Template.formatText(data, options)
 
             # save the data
 
@@ -123,13 +123,11 @@ class IdeTemplate:
 
             if check.startswith('templ'):
 
-                fname = blurdev.relativePath(
-                    blurdev.installPath, 'blurdev/ide/templ/%s.templ' % option
-                )
+                fname = blurdev.resourcePath('templ/%s.templ' % option)
 
                 if os.path.exists(fname):
 
-                    result = IdeTemplate.fromFile(fname, options)
+                    result = Template.fromFile(fname, options)
 
                     if result:
 
@@ -227,7 +225,7 @@ class IdeTemplate:
             root = doc.root()
 
             for xml in root.children():
-                templ = IdeTemplate()
+                templ = Template()
 
                 templ.language = xml.attribute('language', 'Python')
                 templ.name = xml.attribute('name', 'New Template')

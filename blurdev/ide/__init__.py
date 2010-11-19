@@ -11,35 +11,3 @@
 from ideeditor import IdeEditor
 
 from ideproject import IdeProject
-
-
-def createFromTemplate(filename, templateName, outputFilename, options):
-    templ = template(filename, templateName)
-    f = open(outputFilename, 'w')
-    f.write(templ % options)
-    f.close()
-    return True
-
-
-def remarks(text):
-    remarks = []
-    first = True
-    for line in str(text).split('\n'):
-        if not first:
-            remarks.append('#\t\t%s' % line)
-        else:
-            remarks.append(line)
-
-    return '\n'.join(remarks)
-
-
-def template(filename, templateName):
-    import os.path
-
-    templpath = os.path.split(filename)[0] + '/tmpl/%s' % templateName
-    if os.path.exists(templpath):
-        f = open(templpath, 'r')
-        data = f.read()
-        f.close()
-        return data
-    return ''
