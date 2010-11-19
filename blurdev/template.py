@@ -1,7 +1,7 @@
 ##
 # 	\namespace	blurdev.template
 #
-# 	\remarks	These plugins allow you to quickly and easily create components of a tool or class
+# 	\remarks	A module of methods for dealing with templating of files and texts
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -9,242 +9,204 @@
 #
 
 
-class Template:
-    def __init__(self):
-        self.name = ''
+def templ(templname, options={}):
 
-        self.templateId = ''
+    import os.path, blurdev
 
-        self.language = ''
-        self.group = ''
-        self.desc = ''
-        self.toolTip = ''
-        self.iconFile = ''
-        self.module = ''
-        self.cls = ''
+    fname = blurdev.resourcePath('templ/%s.templ' % templname)
 
-    def runWizard(self):
-        import sys
+    if os.path.exists(fname):
 
-        __import__(self.module)
+        return fromFile(fname, options)
 
-        module = sys.modules[self.module]
-        cls = module.__dict__.get(self.cls)
-        return cls.runWizard()
+    return ''
 
-    @staticmethod
-    def fromFile(filename, options):
 
-        try:
+def templNames():
 
-            f = open(filename, 'r')
+    import glob, os.path, blurdev
 
-            data = f.read()
+    filenames = glob.glob(blurdev.resourcePath('templ/*.templ'))
 
-            f.close()
+    names = [os.path.basename(filename).split('.')[0] for filename in filenames]
 
-        except:
+    names.sort()
 
-            print 'Error opening file', filename
+    return names
 
-            return ''
 
-        return Template.formatText(data, options)
+def fromFile(filename, options={}):
 
-    @staticmethod
-    def formatFile(input, output, options):
+    try:
 
-        try:
+        f = open(filename, 'r')
 
-            # load the data
+        data = f.read()
 
-            f = open(input, 'r')
+        f.close()
 
-            data = f.read()
+    except:
 
-            f.close()
+        print 'Error opening file', filename
 
-        except:
+        return ''
 
-            print 'Error opening file from: ', input
+    return formatText(data, options)
 
-            return False
 
-        if data:
+def formatFile(input, output, options={}):
 
-            # format the data
+    try:
 
-            formatted = Template.formatText(data, options)
+        # load the data
 
-            # save the data
+        f = open(input, 'r')
 
-            f = open(output, 'w')
+        data = f.read()
 
-            f.write(formatted)
+        f.close()
 
-            f.close()
+    except:
 
-            return True
+        print 'Error opening file from: ', input
 
         return False
 
-    @staticmethod
-    def formatText(text, options):
+    if data:
 
-        text = str(text)
+        # format the data
 
-        import re, os.path, blurdev
+        formatted = formatText(data, options)
 
-        results = re.findall('\[([^\]]+)\]', text)
+        # save the data
 
-        from PyQt4.QtCore import QDate, QDateTime
+        f = open(output, 'w')
 
-        for result in results:
+        f.write(formatted)
 
-            force = False
+        f.close()
 
-            repl = ''
+        return True
 
-            split = result.split('::')
+    return False
 
-            # use additional options
 
-            if len(split) == 2:
+def formatText(text, options={}):
 
-                check, option = split
+    text = str(text)
 
-            else:
+    import re
 
-                check = result
+    results = re.findall('\[([^\]]+)\]', text)
 
-                option = ''
+    from PyQt4.QtCore import QDate, QDateTime
 
-            # use standard templates
+    for result in results:
 
-            if check.startswith('templ'):
+        force = False
 
-                fname = blurdev.resourcePath('templ/%s.templ' % option)
+        repl = ''
 
-                if os.path.exists(fname):
+        split = result.split('::')
 
-                    result = Template.fromFile(fname, options)
+        # use additional options
 
-                    if result:
+        if len(split) == 2:
 
-                        repl = result
+            check, option = split
 
-            # format date times
+        else:
 
-            elif check.startswith('datetime'):
+            check = result
 
-                if not option:
+            option = ''
 
-                    option = 'MM/dd/yy h:mm ap'
+        # use standard templates
 
-                repl = QDateTime.currentDateTime().toString(option)
+        if check.startswith('templ'):
 
-            # format dates
+            result = templ(option)
 
-            elif check.startswith('date'):
+            if result:
 
-                if not option:
+                repl = result
 
-                    option = 'MM/dd/yy'
+        # format date times
 
-                repl = QDate.currentDate().toString(option)
+        elif check.startswith('datetime'):
 
-            # format author info
+            if not option:
 
-            elif check.startswith('author'):
+                option = 'MM/dd/yy h:mm ap'
 
-                # include the author's email
+            repl = QDateTime.currentDateTime().toString(option)
 
-                if option == 'email':
+        # format dates
 
-                    repl = 'beta@blur.com'
+        elif check.startswith('date'):
 
-                # include the author's company
+            if not option:
 
-                if option == 'company':
+                option = 'MM/dd/yy'
 
-                    repl = 'Blur Studio'
+            repl = QDate.currentDate().toString(option)
 
-                # include the author's initials
+        # format author info
 
-                if option == 'initials':
+        elif check.startswith('author'):
 
-                    repl = 'EKH'
+            # include the author's email
 
-            # format standard options
+            if option == 'email':
 
-            elif check in options:
+                repl = 'beta@blur.com'
 
-                repl = options[check]
+            # include the author's company
 
-                # additional formatting options
+            if option == 'company':
 
-                if option == 'commented':
+                repl = 'Blur Studio'
 
-                    repl = '\n#'.join(repl.split('\n'))
+            # include the author's initials
 
-                # word option
+            if option == 'initials':
 
-                if option == 'words':
+                repl = 'EKH'
 
-                    repl = ' '.join(re.findall('[A-Z][^A-Z]+', repl))
+        # format standard options
 
-                # lower option
+        elif check in options:
 
-                if option == 'lower':
+            repl = options[check]
 
-                    repl = repl.lower()
+            # additional formatting options
 
-                # upper option
+            if option == 'commented':
 
-                if option == 'upper':
+                repl = '\n#'.join(repl.split('\n'))
 
-                    repl = repl.upper()
+            # word option
 
-                force = True
+            if option == 'words':
 
-            if repl or force:
+                repl = ' '.join(re.findall('[A-Z][^A-Z]+', repl))
 
-                text = text.replace('[%s]' % result, str(repl))
+            # lower option
 
-        return text
+            if option == 'lower':
 
-    @staticmethod
-    def fromXml(filename):
-        from blurdev.XML import XMLDocument
+                repl = repl.lower()
 
-        doc = XMLDocument()
-        import os.path
+            # upper option
 
-        output = []
-        if doc.load(filename):
-            root = doc.root()
+            if option == 'upper':
 
-            for xml in root.children():
-                templ = Template()
+                repl = repl.upper()
 
-                templ.language = xml.attribute('language', 'Python')
-                templ.name = xml.attribute('name', 'New Template')
-                templ.group = xml.attribute('group', 'Default')
+            force = True
 
-                templ.templateId = '%s::%s::%s' % (
-                    templ.language,
-                    templ.group,
-                    templ.name,
-                )
-                templ.toolTip = '<b>%s</b><br><small>%s</small>' % (
-                    templ.name,
-                    xml.findProperty('toolTip'),
-                )
-                templ.desc = xml.findProperty('desc')
-                templ.iconFile = os.path.join(
-                    os.path.split(filename)[0], xml.findProperty('icon')
-                )
-                templ.module = xml.findProperty('module')
-                templ.cls = xml.findProperty('class')
-                output.append(templ)
-        return output
+        if repl or force:
+
+            text = text.replace('[%s]' % result, str(repl))
+
+    return text
