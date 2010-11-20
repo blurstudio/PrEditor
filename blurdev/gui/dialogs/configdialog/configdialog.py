@@ -47,6 +47,16 @@ class ConfigDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
+        # clear the widget
+
+        widget = self.uiWidgetAREA.takeWidget()
+
+        widget.close()
+
+        widget.setParent(None)
+
+        widget.deleteLater()
+
         # initialize the header
         self.uiPluginsTREE.header().setVisible(False)
 
@@ -89,8 +99,11 @@ class ConfigDialog(Dialog):
             \remarks	sets the config set that should be edited
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
+
+        import blurdev
+
         from PyQt4.QtCore import QSize
-        from PyQt4.QtGui import QTreeWidgetItem
+        from PyQt4.QtGui import QTreeWidgetItem, QIcon
 
         self.uiPluginsTREE.blockSignals(True)
 
@@ -116,7 +129,7 @@ class ConfigDialog(Dialog):
 
             for configSetItem in configSet.configGroupItems(group):
 
-                grpItem.addChild(ConfigSetItem(configSetItem))
+                grpItem.addChild(ConfigTreeItem(configSetItem))
 
             # add the group item to the tree
             self.uiPluginsTREE.addTopLevelItem(grpItem)
@@ -137,7 +150,7 @@ class ConfigDialog(Dialog):
 
         item = self.uiPluginsTREE.currentItem()
 
-        if isinstance(item, ConfigSetItem):
+        if isinstance(item, ConfigTreeItem):
             widget = self.uiWidgetAREA.takeWidget()
 
             # clear out an old widget
@@ -201,7 +214,7 @@ class ConfigDialog(Dialog):
         return False
 
     @staticmethod
-    def edit(configSet):
+    def edit(configSet, parent=None):
         """ 
             \remarks 	creates a modal config dialog using the specified plugins 
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>

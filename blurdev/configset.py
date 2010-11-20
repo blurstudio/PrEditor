@@ -26,6 +26,14 @@ class ConfigSetItem(QObject):
 
         return self._configClass
 
+    def groupName(self):
+
+        return self._groupName
+
+    def icon(self):
+
+        return self._icon
+
     def setConfigClass(self, configClass):
 
         self._configClass = configClass
@@ -63,7 +71,7 @@ class ConfigSet(QObject):
 
         return output
 
-    def configsForGroup(self, groupName):
+    def configGroupItems(self, groupName):
 
         output = [
             child

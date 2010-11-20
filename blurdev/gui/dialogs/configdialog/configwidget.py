@@ -17,12 +17,6 @@ from PyQt4.QtGui import QWidget
 
 
 class ConfigWidget(QWidget):
-    def __init__(self, parent):
-
-        QWidget.__init__(self, parent)
-
-        self.refreshUi()
-
     def checkForSave(self):
 
         """

@@ -125,11 +125,9 @@ def formatText(text, options={}):
 
         if check.startswith('templ'):
 
-            result = templ(option)
+            print 'looking up standard template option', option
 
-            if result:
-
-                repl = result
+            repl = templ(option)
 
         # format date times
 
@@ -155,23 +153,33 @@ def formatText(text, options={}):
 
         elif check.startswith('author'):
 
+            from blurdev.config import configSet
+
+            author = configSet.find('Author')
+
             # include the author's email
 
             if option == 'email':
 
-                repl = 'beta@blur.com'
+                repl = author.email
 
             # include the author's company
 
-            if option == 'company':
+            elif option == 'company':
 
-                repl = 'Blur Studio'
+                repl = author.company
 
             # include the author's initials
 
-            if option == 'initials':
+            elif option == 'initials':
 
-                repl = 'EKH'
+                repl = author.initials
+
+            # include the author's name
+
+            elif option == 'name':
+
+                repl = author.name
 
         # format standard options
 

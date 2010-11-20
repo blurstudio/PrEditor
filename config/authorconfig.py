@@ -26,6 +26,20 @@ class AuthorConfig(ConfigWidget):
 
     initials = 'BS'
 
+    def __init__(self, parent):
+
+        ConfigWidget.__init__(self, parent)
+
+        # load the ui
+
+        import blurdev.gui
+
+        blurdev.gui.loadUi(__file__, self)
+
+        # refresh the ui
+
+        self.refreshUi()
+
     def recordUi(self):
 
         AuthorConfig.name = self.uiNameTXT.text()

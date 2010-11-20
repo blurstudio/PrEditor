@@ -346,6 +346,10 @@ class IdeEditor(Window):
 
     def documentInsertTemplate(self, item):
 
+        if not item:
+
+            return
+
         doc = self.currentDocument()
 
         if doc:
@@ -902,15 +906,10 @@ class IdeEditor(Window):
         menu.popup(QCursor.pos())
 
     def showConfig(self):
-        # 		from blurdev.gui.dialogs.configdialog 	import ConfigDialog
 
-        # create the general options
-        # 		general = {}
-        # 		from blurdev.ide.config.projectconfig import ProjectConfig
-        # 		general[ 'Projects' ] = ProjectConfig
+        from blurdev.config import configSet
 
-        # 		ConfigDialog.edit( { 'General Options': general } )
-        pass
+        configSet.edit()
 
     def showDesigner(self):
         from PyQt4.QtCore import QProcess
