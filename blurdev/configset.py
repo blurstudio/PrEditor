@@ -75,15 +75,53 @@ class ConfigSet(QObject):
 
         return output
 
-    def findConfig(self, configName):
+    def edit(self, parent=None):
+
+        from blurdev.gui.dialogs.configdialog import ConfigDialog
+
+        return ConfigDialog.edit(self, parent)
+
+    def find(self, configName):
 
         for child in self.findChildren(ConfigSetItem):
 
             if child.objectName() == configName:
 
-                return child.configWidget()
+                return child.configClass()
 
         return None
+
+    def loadFrom(self, filename, package):
+
+        # load the config plugins
+
+        import os.path, glob, sys
+
+        filenames = glob.glob(os.path.split(filename)[0] + '/*.py')
+
+        for f in filenames:
+
+            modname = os.path.basename(f).split('.')[0]
+
+            if modname != '__init__':
+
+                configmodule = '%s.%s' % (package, modname)
+
+                try:
+
+                    __import__(configmodule)
+
+                except:
+
+                    print 'could not import %s' % configmodule
+
+                    continue
+
+                mod = sys.modules.get(configmodule)
+
+                if mod:
+
+                    mod.registerConfig(self)
 
     def registerConfig(self, configName, configClass, group='Default', icon=''):
 
@@ -96,5 +134,9 @@ class ConfigSet(QObject):
         item.setConfigClass(configClass)
 
         item.setIcon(icon)
+
+        # load the last settings
+
+        configClass.reset()
 
         return item

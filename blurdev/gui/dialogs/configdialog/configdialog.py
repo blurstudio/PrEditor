@@ -8,7 +8,9 @@
 # 	\date		04/20/10
 #
 
-from blurdev.gui import Dialog, QTreeWidgetItem
+from blurdev.gui import Dialog
+
+from PyQt4.QtGui import QTreeWidgetItem
 
 
 class ConfigTreeItem(QTreeWidgetItem):
@@ -77,6 +79,8 @@ class ConfigDialog(Dialog):
         """ tries to run the active config widget's commit method, if it exists """
         widget = self.uiWidgetAREA.widget()
         if widget:
+
+            widget.recordUi()
             return widget.commit()
         return True
 
@@ -172,7 +176,9 @@ class ConfigDialog(Dialog):
         widget = self.uiWidgetAREA.widget()
 
         if widget:
-            return widget.reset()
+            widget.reset()
+
+            widget.refreshUi()
 
         return True
 

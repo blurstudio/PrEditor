@@ -17,14 +17,54 @@ from PyQt4.QtGui import QWidget
 
 
 class ConfigWidget(QWidget):
-    @staticmethod
-    def checkForSave():
+    def __init__(self, parent):
+
+        QWidget.__init__(self, parent)
+
+        self.refreshUi()
+
+    def checkForSave(self):
 
         """
 
             \remarks	checks the widget to see if the data stored is invalid
 
             \return		<bool>	if the data is successfully saved or ready to otherwise close/update
+
+        """
+
+        return True
+
+    def recordUi(self):
+
+        """
+
+            \remarks	records the ui to the current data
+
+        """
+
+        pass
+
+    def refreshUi(self):
+
+        """
+
+            \remarks	refreshes the ui to match the latest data
+
+        """
+
+        pass
+
+    @staticmethod
+    def commit():
+
+        """
+
+            \remarks	saves the current config values to the system
+
+                        this method will be called by the config dialog's Save/Save & Exit buttons
+
+            \return		<bool> 	should return True if the commit was successful
 
         """
 
@@ -44,35 +84,3 @@ class ConfigWidget(QWidget):
         """
 
         return True
-
-    @staticmethod
-    def commit():
-
-        """
-
-            \remarks	saves the current config values to the system
-
-                        this method will be called by the config dialog's Save/Save & Exit buttons
-
-            \return		<bool> 	should return True if the commit was successful
-
-        """
-
-        return True
-
-    @staticmethod
-    def register(configSet):
-
-        """
-
-            \remarks	registers this class to the inputed config set
-
-                        this should call the configSet.registerConfig() method
-
-            \sa			blurdev.gui.dialogs.configdialog.ConfigSet.registerConfig
-
-            \param		configSet		<blurdev.gui.dialogs.configdialog.ConfigSet>
-
-        """
-
-        pass
