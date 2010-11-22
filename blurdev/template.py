@@ -125,9 +125,7 @@ def formatText(text, options={}):
 
         if check.startswith('templ'):
 
-            print 'looking up standard template option', option
-
-            repl = templ(option)
+            repl = templ(option, options)
 
         # format date times
 
