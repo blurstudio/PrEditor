@@ -8,41 +8,40 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.QtCore import QObject
+from PyQt4.QtGui import QTreeWidgetItem
 
 
-class IdeProjectItem(QObject):
-    def __init__(self, parent):
-        QObject.__init__(self, parent)
+class IdeProjectItem(QTreeWidgetItem):
+    def __init__(self):
+        QTreeWidgetItem.__init__(self)
 
+        # create custom properties
         self._filePath = ''
         self._group = True
         self._fileSystem = False
-        self._icon = None
 
+        self._amfile = False
         self._exclude = ['.svn']
         self._fileTypes = '*.py;;*.pyw;;*.xml;;*.ui;;*.nsi;;*.bat;;*.schema;;*.txt;;*.blurproj'.split(
             ';;'
         )
 
+        self._loaded = False
+
+        # set the default icon
+
+        from PyQt4.QtGui import QIcon
+
+        import blurdev
+
+        self.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
+
+        self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+
     def exclude(self):
         return self._exclude
 
     def filePath(self):
-
-        if not self.isFileSystem() and self._filePath:
-
-            if self.project():
-
-                options = {'PROJECTPATH': self.project().filePath()}
-
-            else:
-
-                options = {}
-
-            from blurdev import template
-
-            return template.formatText(self._filePath, options)
 
         return self._filePath
 
@@ -56,79 +55,148 @@ class IdeProjectItem(QObject):
     def fileTypes(self):
         return self._fileTypes
 
-    def icon(self):
-        if not self._icon:
-            from PyQt4.QtGui import QIcon
-
-            if self.isFileSystem():
-                from PyQt4.QtGui import QFileIconProvider
-
-                provider = QFileIconProvider()
-                self._icon = provider.icon(self.fileInfo())
-            else:
-                import blurdev
-
-                iconfile = blurdev.resourcePath('img/folder.png')
-                self._icon = QIcon(iconfile)
-
-        return self._icon
-
     def isGroup(self):
         return self._group
+
+    def isFile(self):
+
+        return self._amfile
 
     def isFileSystem(self):
         return self._fileSystem
 
     def load(self):
+
+        if self._loaded:
+
+            return True
+
+        self._loaded = True
+
+        # don't need to load custom groups
         if self.isGroup():
             return False
 
-        dirmap = {}
+        # don't need to load files
 
-        root = self
-        while root and root.isFileSystem():
-            root = root.parent()
+        elif self.isFile():
 
-        exclude = root.exclude()
-        fileTypes = root.fileTypes()
+            return False
+
+        # only show the indicator when there are children
+
+        self.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
+
+        exclude = self.exclude()
+        fileTypes = self.fileTypes()
+
+        folders = []
+
+        files = []
 
         import os
 
-        first = True
-        for root, dirs, files in os.walk(str(self.filePath())):
-            if first:
-                parent = self
-            else:
-                parent = dirmap.get(root, None)
+        from PyQt4.QtCore import QFileInfo, QDir
 
-            if not parent:
+        path = str(self.filePath())
+
+        for d in os.listdir(str(self.filePath())):
+
+            # ignore directories in the exclude group
+
+            if d in exclude:
+
                 continue
 
-            # load the dirs
-            dirs.sort()
-            for d in dirs:
-                if not d in exclude:
-                    child = IdeProjectItem(parent)
-                    child.setObjectName(d)
-                    fpath = os.path.join(root, d)
-                    child.setFilePath(fpath)
-                    child.setFileSystem(True)
-                    dirmap[fpath] = child
+            fpath = os.path.join(path, d)
 
-            # load the files
-            files.sort()
-            for f in files:
-                ftype = os.path.splitext(f)[1]
-                if not fileTypes or ('*' + ftype) in fileTypes:
-                    child = IdeProjectItem(parent)
-                    child.setObjectName(f)
-                    fpath = os.path.join(root, f)
-                    child.setFilePath(fpath)
-                    child.setFileSystem(True)
+            finfo = QFileInfo(fpath)
 
-            first = False
+            if finfo.isFile():
 
-        return True
+                ext = '*' + os.path.splitext(fpath)[1]
+
+                if ext in fileTypes:
+
+                    files.append(fpath)
+
+            else:
+
+                folders.append(fpath)
+
+        # sort the data alphabetically
+
+        folders.sort()
+
+        files.sort()
+
+        # load the icon provider
+
+        from PyQt4.QtGui import QFileIconProvider
+
+        iconprovider = QFileIconProvider()
+
+        # add the folders
+
+        for folder in folders:
+
+            item = IdeProjectItem()
+
+            item.setText(0, QDir(folder).dirName())
+
+            item.setIcon(0, iconprovider.icon(QFileInfo(folder)))
+
+            item.setFilePath(folder)
+
+            item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+
+            item.setFileSystem(True)
+
+            item.setExclude(exclude)
+
+            item.setFileTypes(fileTypes)
+
+            self.addChild(item)
+
+        # add the files
+
+        for file in files:
+
+            item = IdeProjectItem()
+
+            item.setText(0, os.path.basename(file))
+
+            item.setIcon(0, iconprovider.icon(QFileInfo(file)))
+
+            item.setFilePath(file)
+
+            item.setFileSystem(True)
+
+            item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
+
+            item._amfile = True
+
+            self.addChild(item)
+
+    def loadXml(self, xml):
+
+        self.setText(0, xml.attribute('name'))
+        self.setGroup(xml.attribute('group') != 'False')
+        self.setFilePath(xml.attribute('filePath'))
+
+        exclude = xml.attribute('exclude')
+        if exclude:
+            self.setExclude(exclude.split(';;'))
+
+        ftypes = xml.attribute('fileTypes')
+        if ftypes:
+            self.setFileTypes(ftypes.split(';;'))
+
+        # load children
+
+        for child in xml.children():
+
+            self.addChild(IdeProjectItem.fromXml(child, out))
 
     def project(self):
 
@@ -141,15 +209,17 @@ class IdeProjectItem(QObject):
         return output
 
     def refresh(self):
+
+        # refreshing only happens on non-groups
         if not self.isGroup():
-            children = list(self.children())
 
-            # clear the children
-            for child in children:
-                if isinstance(child, IdeProjectItem):
-                    child.setParent(None)
-                    child.deleteLater()
+            # remove the children
 
+            self.takeChildren()
+
+            self._loaded = False
+
+            # load the items
             self.load()
 
     def setGroup(self, state):
@@ -174,38 +244,20 @@ class IdeProjectItem(QObject):
             return
 
         xml = parent.addNode('folder')
-        xml.setAttribute('name', self.objectName())
+        xml.setAttribute('name', self.text(0))
         xml.setAttribute('group', self.isGroup())
         xml.setAttribute('filePath', self.filePath())
         xml.setAttribute('exclude', ';;'.join(self.exclude()))
         xml.setAttribute('fileTypes', ';;'.join(self.fileTypes()))
 
-        for child in self.children():
-            child.toXml(xml)
+        for c in range(self.childCount()):
+            self.child(c).toXml(xml)
 
     @staticmethod
     def fromXml(xml, parent):
-        out = IdeProjectItem(parent)
-        out.setObjectName(xml.attribute('name'))
-        out.setGroup(xml.attribute('group') != 'False')
-        out.setFilePath(xml.attribute('filePath'))
+        out = IdeProjectItem()
 
-        exclude = xml.attribute('exclude')
-        if exclude:
-            out.setExclude(exclude.split(';;'))
-
-        ftypes = xml.attribute('fileTypes')
-        if ftypes:
-            out.setFileTypes(ftypes.split(';;'))
-
-        # load children
-
-        for child in xml.children():
-
-            IdeProjectItem.fromXml(child, out)
-
-        # load the filesystem
-        out.refresh()
+        out.loadXml(xml)
         return out
 
 
@@ -215,22 +267,18 @@ class IdeProject(IdeProjectItem):
     DefaultPath = 'c:/blur/dev'
     Favorites = []
 
-    def __init__(self, parent=None):
-        QObject.__init__(self, parent)
+    def __init__(self):
+        IdeProjectItem.__init__(self)
 
+        from PyQt4.QtGui import QIcon
+
+        import blurdev
+
+        self.setIcon(0, QIcon(blurdev.resourcePath('img/project.png')))
         self._filename = ''
 
     def filename(self):
         return self._filename
-
-    def filePath(self):
-
-        import os.path
-
-        return os.path.split(str(self.filename()))[0]
-
-    def isNull(self):
-        return self._filename == ''
 
     def save(self):
         return self.saveAs(self.filename())
@@ -251,24 +299,11 @@ class IdeProject(IdeProjectItem):
             root = doc.addNode('blurproj')
             root.setAttribute('version', self.__version__)
 
-            folders = root.addNode('folders')
-            for child in self.children():
-                child.toXml(folders)
+            self.toXml(root)
 
             doc.save(filename)
             return True
         return False
-
-    def findPathGroup(self, path):
-        import os.path
-
-        normpath = os.path.normcase(str(path))
-        for child in self.findChildren(IdeProjectItem):
-            if not child.isGroup():
-                normcheck = os.path.normcase(str(child.path()))
-                if normcheck == normpath:
-                    return child
-        return None
 
     def setFilename(self, filename):
         self._filename = filename
@@ -284,7 +319,7 @@ class IdeProject(IdeProjectItem):
 
         # otherwise, generate a project on the fly
         proj = IdeProject()
-        proj.setObjectName(tool.objectName())
+        proj.setText(0, tool.objectName())
 
         import blurdev
 
@@ -308,8 +343,8 @@ class IdeProject(IdeProjectItem):
         # support legacy libraries & structures
         if tool.isLegacy():
             # create the library path
-            libs = IdeProjectItem(proj)
-            libs.setObjectName('Libraries')
+            libs = IdeProjectItem()
+            libs.setText(0, 'Libraries')
             libs.setFilePath(
                 blurdev.activeEnvironment().relativePath('maxscript/treegrunt/lib')
             )
@@ -317,25 +352,31 @@ class IdeProject(IdeProjectItem):
             libs.setGroup(False)
             libs.refresh()
 
+            proj.addChild(libs)
+
             # create the resource folder
-            resc = IdeProjectItem(proj)
-            resc.setObjectName('Resources')
+            resc = IdeProjectItem()
+            resc.setText(0, 'Resources')
             resc.setFilePath(tool.path())
             resc.setFileTypes(fileTypes)
             resc.setGroup(False)
             resc.refresh()
 
+            proj.addChild('Resources')
+
             # create the main file
-            src = IdeProjectItem(proj)
-            src.setObjectName(os.path.basename(sourcefile))
+            src = IdeProjectItem()
+            src.setText(0, os.path.basename(sourcefile))
             src.setFilePath(sourcefile)
             src.setFileSystem(True)
+
+            proj.addChild(src)
 
         else:
             if lang:
                 # create the library path
-                libs = IdeProjectItem(proj)
-                libs.setObjectName('Libraries')
+                libs = IdeProjectItem()
+                libs.setText(0, 'Libraries')
                 libs.setFilePath(
                     blurdev.activeEnvironment().relativePath('code/%s/lib' % lang)
                 )
@@ -343,13 +384,17 @@ class IdeProject(IdeProjectItem):
                 libs.setFileTypes(fileTypes)
                 libs.refresh()
 
+                proj.addChild(libs)
+
             # create the main package
-            packg = IdeProjectItem(proj)
-            packg.setObjectName(tool.displayName())
+            packg = IdeProjectItem()
+            packg.setText(0, tool.displayName())
             packg.setFileTypes(fileTypes)
             packg.setFilePath(tool.path())
             packg.setGroup(False)
             packg.refresh()
+
+            proj.addChild(packg)
 
         return proj
 
@@ -367,9 +412,21 @@ class IdeProject(IdeProjectItem):
             if root.nodeName == 'blurproj':
                 output = IdeProject()
                 output.setFilename(filename)
-                output.setObjectName(os.path.basename(filename).split('.')[0])
+                output.setText(0, os.path.basename(filename).split('.')[0])
 
+                # load old style
                 folders = root.findChild('folders')
-                for folder in folders.children():
-                    IdeProjectItem.fromXml(folder, output)
+
+                if folders:
+                    for folder in folders.children():
+                        output.addChild(IdeProjectItem.fromXml(folder, output))
+
+                # load new style
+
+                folder = root.findChild('folder')
+
+                if folder:
+
+                    output.loadXml(folder)
+
         return output

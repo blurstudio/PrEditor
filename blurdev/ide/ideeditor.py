@@ -83,9 +83,11 @@ class IdeEditor(Window):
         self.restoreSettings()
 
         # create connections
-        self.uiProjectTREE.clicked.connect(self.updatePath)
-        self.uiProjectTREE.doubleClicked.connect(self.editItem)
+        self.uiProjectTREE.itemClicked.connect(self.updatePath)
+        self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
+
+        self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.doubleClicked.connect(self.editItem)
         self.uiExplorerTREE.clicked.connect(self.updatePath)
@@ -204,15 +206,17 @@ class IdeEditor(Window):
         path = ''
         import os.path
 
-        if not self.uiProjectTREE.model():
-            return ''
-
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
-            model = self.uiProjectTREE.model()
-            if model:
-                path = model.filePath(self.uiProjectTREE.currentIndex())
+
+            item = self.uiProjectTREE.currentItem()
+
+            if item:
+
+                path = item.filePath()
+
                 if path:
+
                     path = os.path.split(str(path))[0]
         else:
             path = str(
@@ -228,9 +232,12 @@ class IdeEditor(Window):
 
         # load a project file
         if self.uiBrowserTAB.currentIndex() == 0:
-            model = self.uiProjectTREE.model()
-            if model:
-                filename = str(model.filePath(self.uiProjectTREE.currentIndex()))
+
+            item = self.uiProjectTREE.currentItem()
+
+            if item:
+
+                filename = item.filePath()
 
         # load an explorer file
         elif self.uiBrowserTAB.currentIndex() == 2:
@@ -329,7 +336,7 @@ class IdeEditor(Window):
         from idewizardbrowser import IdeWizardBrowser
 
         if IdeWizardBrowser.createFromWizard():
-            self.projectRefreshIndex()
+            self.projectRefreshItem()
 
     def documentGoTo(self):
         doc = self.currentDocument()
@@ -482,7 +489,7 @@ class IdeEditor(Window):
             if tool:
                 self.setCurrentProject(IdeProject.fromTool(tool))
 
-    def editItem(self, index):
+    def editItem(self):
         filename = str(self.currentFilePath())
 
         # load the file
@@ -595,18 +602,18 @@ class IdeEditor(Window):
         from ideprojectdialog import IdeProjectDialog
         from ideproject import IdeProject
 
-        proj = IdeProject()
-        proj.setObjectName('New Project')
-        if IdeProjectDialog.edit(proj):
+        proj = IdeProjectDialog.createNew()
+
+        if proj:
             self.setCurrentProject(proj)
 
     def projectEdit(self):
         from ideprojectdialog import IdeProjectDialog
         from ideproject import IdeProject
 
-        proj = IdeProject.fromXml(self.currentProject().filename())
-        if IdeProjectDialog.edit(proj):
-            self.setCurrentProject(proj)
+        filename = self.currentProject().filename()
+        if IdeProjectDialog.edit(filename):
+            self.setCurrentProject(IdeProject.fromXml(filename))
 
     def projectFavorites(self):
         from ideprojectfavoritesdialog import IdeProjectFavoritesDialog
@@ -614,6 +621,12 @@ class IdeEditor(Window):
         proj = IdeProjectFavoritesDialog.getProject()
         if proj:
             self.setCurrentProject(proj)
+
+    def projectInitItem(self, item):
+
+        item.load()
+
+        self.updatePath()
 
     def projectOpen(self):
         from PyQt4.QtGui import QFileDialog
@@ -633,27 +646,29 @@ class IdeEditor(Window):
             self.setCurrentProject(proj)
             self.uiBrowserTAB.setCurrentIndex(0)
 
-    def projectOpenIndex(self):
-        model = self.uiProjectTREE.model()
-        object = model.object(self.uiProjectTREE.currentIndex())
-        if not object:
+    def projectOpenItem(self):
+
+        item = self.uiProjectTREE.currentItem()
+
+        if not item:
+
             return
 
         import os.path
 
-        path = str(object.filePath())
+        path = str(item.filePath())
         if os.path.isfile(path):
             self.load(path)
 
-    def projectExploreIndex(self):
-        model = self.uiProjectTREE.model()
-        object = model.object(self.uiProjectTREE.currentIndex())
-        if not object:
+    def projectExploreItem(self):
+        item = self.uiProjectTREE.currentItem()
+        if not item:
+
             return
 
         import os
 
-        path = str(object.filePath())
+        path = str(item.filePath())
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
@@ -664,26 +679,14 @@ class IdeEditor(Window):
 
             QMessageBox.critical(None, 'Missing Path', 'Could not find %s' % path)
 
-    def projectRefreshIndex(self):
-        model = self.uiProjectTREE.model()
-        index = self.uiProjectTREE.currentIndex()
-        object = model.object(index)
+    def projectRefreshItem(self):
+        item = self.uiProjectTREE.currentItem()
 
-        # grab the object
-        if object:
-            # check to see if this object is expanded or not
-            expanded = self.uiProjectTREE.isExpanded(index)
+        if not item:
 
-            # force the item to be collapsed or this will CRASH
-            self.uiProjectTREE.setExpanded(index, False)
+            return False
 
-            # cache and refresh the system
-            model.submit()
-            object.refresh()
-            model.revert()
-
-            # reset the expanded state
-            self.uiProjectTREE.setExpanded(index, expanded)
+        item.refresh()
 
     def projectClose(self):
         self.setCurrentProject(None)
@@ -735,21 +738,6 @@ class IdeEditor(Window):
 
         self.uiOpenTREE.blockSignals(False)
         self.uiOpenTREE.setUpdatesEnabled(True)
-
-    def refreshProject(self):
-        proj = self.currentProject()
-        if proj:
-            from ideprojectmodel import IdeProjectModel
-
-            self.uiProjectTREE.setModel(IdeProjectModel(proj))
-            self.uiEditProjectACT.setEnabled(True)
-            self.uiCloseProjectACT.setEnabled(True)
-        else:
-            self.uiProjectTREE.setModel(None)
-            self.uiEditProjectACT.setEnabled(False)
-            self.uiCloseProjectACT.setEnabled(False)
-
-        self.updatePath()
 
     def restoreSettings(self):
         import blurdev
@@ -889,9 +877,9 @@ class IdeEditor(Window):
         menu.addAction(self.uiNewACT)
         menu.addAction(self.uiNewFromWizardACT)
         menu.addSeparator()
-        menu.addAction('Open').triggered.connect(self.projectOpenIndex)
-        menu.addAction('Explore').triggered.connect(self.projectExploreIndex)
-        menu.addAction('Refresh').triggered.connect(self.projectRefreshIndex)
+        menu.addAction('Open').triggered.connect(self.projectOpenItem)
+        menu.addAction('Explore').triggered.connect(self.projectExploreItem)
+        menu.addAction('Refresh').triggered.connect(self.projectRefreshItem)
         menu.addSeparator()
         menu.addAction('Run...').triggered.connect(self.runCurrentScript)
         menu.addAction('Run (Standalone)...').triggered.connect(
@@ -931,10 +919,11 @@ class IdeEditor(Window):
         change = True
         import os.path
 
-        if self._project and not (
+        if (
             project
+            and self._project
             and os.path.normcase(project.filename())
-            == os.path.normcase(self._project.filename())
+            != os.path.normcase(self._project.filename())
         ):
             from PyQt4.QtGui import QMessageBox
 
@@ -943,16 +932,29 @@ class IdeEditor(Window):
                     self,
                     'Change Projects',
                     'Are you sure you want to change to the %s project?'
-                    % project.objectName(),
+                    % project.text(0),
                     QMessageBox.Yes | QMessageBox.No,
                 )
                 == QMessageBox.Yes
             )
 
         if change:
+
+            self.uiProjectTREE.blockSignals(True)
+
+            self.uiProjectTREE.setUpdatesEnabled(False)
+
             self._project = project
+
+            self.uiProjectTREE.clear()
+
+            self.uiProjectTREE.addTopLevelItem(self._project)
+
+            self.uiProjectTREE.blockSignals(False)
+
+            self.uiProjectTREE.setUpdatesEnabled(True)
+
             self.currentProjectChanged.emit(project)
-            self.refreshProject()
 
     def setSearchText(self, text):
         self._searchText = text

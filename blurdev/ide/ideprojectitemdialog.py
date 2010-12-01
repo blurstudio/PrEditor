@@ -25,12 +25,11 @@ class IdeProjectItemDialog(Dialog):
         if not self._projectItem:
             return False
 
-        self._projectItem.setObjectName(self.uiNameTXT.text())
+        self._projectItem.setText(0, self.uiNameTXT.text())
         self._projectItem.setGroup(self.uiGroupCHK.isChecked())
         self._projectItem.setFileTypes(str(self.uiFileTypesTXT.text()).split(';;'))
         self._projectItem.setExclude(str(self.uiExcludeTXT.text()).split(';;'))
         self._projectItem.setFilePath(str(self.uiFilePATH.filePath()))
-        self._projectItem.refresh()
 
         Dialog.accept(self)
 
@@ -40,7 +39,7 @@ class IdeProjectItemDialog(Dialog):
     def setProjectItem(self, projectItem):
         self._projectItem = projectItem
 
-        self.uiNameTXT.setText(projectItem.objectName())
+        self.uiNameTXT.setText(projectItem.text(0))
         self.uiGroupCHK.setChecked(projectItem.isGroup())
         self.uiFileTypesTXT.setText(';;'.join(projectItem.fileTypes()))
         self.uiExcludeTXT.setText(';;'.join(projectItem.exclude()))

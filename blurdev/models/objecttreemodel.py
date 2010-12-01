@@ -18,40 +18,115 @@ class ObjectTreeModel(QAbstractItemModel):
         # store the root object
         self._rootObject = object
 
-    def childrenOf(self, object):
-        return object.children()
+    def childrenOf(self, parent):
+
+        """
+
+            \remarks	returns a list of the children for the inputed object, by default will return the QObject's children
+
+            \param		parent	<QObject>
+
+            \return		<list> [ <QObject>, .. ]
+
+        """
+        return parent.children()
 
     def columnCount(self, index):
+
+        """
+
+            \remarks	returns the number of columns the inputed model has
+
+            \param		index	<QModelIndex>
+
+            \return		<int>
+
+        """
         return 1
 
     def data(self, index, role):
+
+        """
+
+            \remarks	returns a variant containing the information for the inputed index and the given role
+
+            \param		index	<QModelIndex>
+
+            \param		role	<Qt::Role>
+
+            \return		<QVariant>
+
+        """
         from PyQt4.QtCore import QVariant
 
         if not index.isValid():
             return QVariant()
 
-        # retrieve the object
-        object = index.internalPointer()
-
         # return the name of the object
         if role == Qt.DisplayRole:
-            return object.objectName()
+            return index.internalPointer().objectName()
 
-        return QVariant()
+        # for all else, return a blank variant
+        else:
+            return QVariant()
 
     def object(self, index):
+
+        """
+
+            \remarks	returns the object that the index contains
+
+            \param		index	<QModelIndex>
+
+            \return		<QObject>
+
+        """
         if index and index.isValid():
             return index.internalPointer()
         return None
 
     def indexOf(self, object, column=0):
 
+        """
+
+            \remarks	returns a model index representing the inputed object at the given column
+
+            \param		object		<QObject>
+
+            \param		column		<int>
+
+            \return		<QModelIndex>
+
+        """
+
         return self.createIndex(self.rowForObject(object), column, object)
 
     def findObjectAtRow(self, parent, row):
+
+        """
+
+            \remarks	returns the child object of the inputed parent at the given row
+
+            \param		parent		<QObject>
+
+            \param		column		<int>
+
+            \return		<QModelIndex>
+
+        """
         return self.childrenOf(parent)[row]
 
     def flags(self, index):
+
+        """
+
+            \remarks	returns the item flags for the inputed index
+
+            \param		index		<QModelIndex>
+
+            \return		<QModelIndex>
+
+        """
         if not index.isValid():
             return Qt.NoItemFlags
 
@@ -64,7 +139,8 @@ class ObjectTreeModel(QAbstractItemModel):
             return self._rootObject.objectName()
         return QVariant()
 
-    def index(self, row, column, parent=None):
+    def index(self, row, column, parent):
+
         from PyQt4.QtCore import QModelIndex
 
         if not parent:
@@ -108,7 +184,7 @@ class ObjectTreeModel(QAbstractItemModel):
 
         return self._rootObject
 
-    def rowCount(self, parent=None):
+    def rowCount(self, parent):
         from PyQt4.QtCore import QModelIndex
 
         if not parent:
