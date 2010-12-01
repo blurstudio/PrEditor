@@ -227,7 +227,6 @@ class Core(QObject):
             QEvent.Enter,
             QEvent.ToolTip,
             QEvent.HoverMove,
-            QEvent.RequestSoftwareInputPanel,
             QEvent.KeyPress,
         ):
             self.disableKeystrokes()
