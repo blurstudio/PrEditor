@@ -80,6 +80,12 @@ class IdeEditor(Window):
         for i in range(1, 4):
             self.uiExplorerTREE.setColumnHidden(i, True)
 
+        # bind the mimeData method
+
+        import blurdev
+
+        blurdev.bindMethod(self.uiProjectTREE, 'mimeData', self.projectMimeData)
+
         self.restoreSettings()
 
         # create connections
@@ -597,6 +603,26 @@ class IdeEditor(Window):
             window.resize(
                 self.uiWindowsAREA.width() - 20, self.uiWindowsAREA.height() - 20
             )
+
+    def projectMimeData(self, items):
+
+        from PyQt4.QtCore import QMimeData, QUrl
+
+        data = QMimeData()
+
+        urls = []
+
+        for item in items:
+
+            fpath = item.filePath()
+
+            if fpath:
+
+                urls.append(QUrl('file:///' + fpath))
+
+        data.setUrls(urls)
+
+        return data
 
     def projectNew(self):
         from ideprojectdialog import IdeProjectDialog

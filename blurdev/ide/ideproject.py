@@ -196,7 +196,7 @@ class IdeProjectItem(QTreeWidgetItem):
 
         for child in xml.children():
 
-            self.addChild(IdeProjectItem.fromXml(child, out))
+            self.addChild(IdeProjectItem.fromXml(child, self))
 
     def project(self):
 

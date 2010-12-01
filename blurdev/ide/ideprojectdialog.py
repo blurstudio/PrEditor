@@ -169,6 +169,8 @@ class IdeProjectDialog(Dialog):
         dlg.setProject(None)
         if dlg.exec_():
 
+            from ideproject import IdeProject
+
             return IdeProject.fromXml(dlg.filename())
         return None
 
