@@ -727,7 +727,7 @@ class IdeEditor(Window):
         import blurdev
         from blurdev import prefs
 
-        pref = prefs.find('ide/%s' % blurdev.core.objectName())
+        pref = prefs.find('ide/interface')
 
         filename = ''
         proj = self.currentProject()
@@ -775,7 +775,7 @@ class IdeEditor(Window):
         import blurdev
         from blurdev import prefs
 
-        pref = prefs.find('ide/%s' % blurdev.core.objectName())
+        pref = prefs.find('ide/interface')
 
         # update project options
         from ideproject import IdeProject

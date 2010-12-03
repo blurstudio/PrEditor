@@ -126,15 +126,11 @@ class Core(QObject):
 
         # create custom properties
         self._protectedModules = []
-        self._preferenceRoot = ''
         self._hwnd = hwnd
         self._keysEnabled = True
         self._lastFileName = ''
         self._mfcApp = False
         self._logger = None
-
-        # set the preference root location
-        self.setPreferenceRoot('c:/blur/prefs')
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -240,15 +236,6 @@ class Core(QObject):
             QApplication.instance().closeAllWindows()
             QApplication.instance().quit()
 
-    def relativePreferencePath(self, pref):
-        """
-            \remarks	loads the path for the inputed preference file
-            \param		pref	<str>
-        """
-        import os.path
-
-        return os.path.join(self.preferenceRoot(), pref)
-
     def init(self):
         """
             \remarks	initializes the core system
@@ -352,9 +339,6 @@ class Core(QObject):
             from blurdev.ide import IdeEditor
 
             IdeEditor.edit(filename=filename)
-
-    def preferenceRoot(self):
-        return self._preferenceRoot
 
     def protectModule(self, moduleName):
         """
@@ -584,9 +568,6 @@ class Core(QObject):
 
     def setHwnd(self, hwnd):
         self._hwnd = hwnd
-
-    def setPreferenceRoot(self, path):
-        self._preferenceRoot = path
 
     def sendEmail(self, sender, targets, subject, message, attachments=None):
         from email import Encoders

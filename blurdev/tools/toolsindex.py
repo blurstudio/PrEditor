@@ -303,8 +303,7 @@ class ToolsIndex(QObject):
             from blurdev import prefs
 
             pref = prefs.find(
-                'treegrunt/%s/%s'
-                % (blurdev.core.objectName(), self.environment().objectName())
+                'treegrunt/%s_favorites' % (self.environment().objectName())
             )
 
             children = pref.root().children()
@@ -383,8 +382,7 @@ class ToolsIndex(QObject):
             from blurdev import prefs
 
             pref = prefs.find(
-                'treegrunt/%s/%s'
-                % (blurdev.core.objectName(), self.environment().objectName())
+                'treegrunt/%s_favorites' % (self.environment().objectName())
             )
             root = pref.root()
             root.clear()
