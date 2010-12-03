@@ -413,6 +413,38 @@ class Core(QObject):
         print '[blurdev.cores.core.Core.runMacro] virtual method not defined'
         return False
 
+    def runStandalone(self, filename, debugLevel=None, basePath=''):
+
+        from blurdev import debug
+
+        if debugLevel == None:
+
+            debugLevel = debug.debugLevel()
+
+        import os.path
+        from PyQt4.QtCore import QProcess
+
+        filename = str(filename)
+
+        if not basePath:
+
+            basePath = os.path.split(filename)[0]
+
+        if debugLevel == debug.DebugLevel.High:
+            # run a python file
+            if os.path.splitext(filename)[1].startswith('.py'):
+                QProcess.startDetached(
+                    'cmd.exe', ['/k', 'python.exe %s' % filename], basePath
+                )
+            else:
+                QProcess.startDetached('cmd.exe', ['/k', filename], basePath)
+
+        elif os.path.splitext(filename)[1].startswith('.py'):
+            QProcess.startDetached('pythonw.exe', [filename], basePath)
+
+        else:
+            QProcess.startDetached(filename, [], basePath)
+
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
             \remarks	Runs an inputed file in the best way this core knows how
@@ -474,17 +506,7 @@ class Core(QObject):
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
                 if self.objectName() in ('external', 'treegrunt'):
-                    if debug.debugLevel():
-                        f = open('c:/temp/debug.bat', 'w')
-                        f.write(
-                            'c:/python24/python.exe %s\nping -n 10 localhost > NUL'
-                            % filename
-                        )
-                        f.close()
-
-                        os.startfile('c:/temp/debug.bat')
-                    else:
-                        os.startfile(filename)
+                    self.runStandalone(filename)
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)

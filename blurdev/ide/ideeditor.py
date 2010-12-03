@@ -557,6 +557,12 @@ class IdeEditor(Window):
     def load(self, filename, lineno=0):
         filename = str(filename)
 
+        from PyQt4.QtCore import QFileInfo
+
+        if not QFileInfo(filename).isFile():
+
+            return False
+
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
             if window.widget().filename() == filename:
@@ -821,30 +827,22 @@ class IdeEditor(Window):
         if not filename:
             return False
 
-        import os.path
-        from PyQt4.QtCore import QProcess
+        import blurdev
 
-        # run a python file
-        if os.path.splitext(filename)[1].startswith('.py'):
-            QProcess.startDetached('pythonw.exe', [filename], self.currentBasePath())
-        else:
-            QProcess.startDetached(filename, [], self.currentBasePath())
+        blurdev.core.runStandalone(filename, basePath=self.currentBasePath())
 
     def runCurrentStandaloneDebug(self):
         filename = self.currentFilePath()
         if not filename:
             return False
 
-        import os.path
-        from PyQt4.QtCore import QProcess
+        import blurdev
 
-        # run a python file
-        if os.path.splitext(filename)[1].startswith('.py'):
-            QProcess.startDetached(
-                'cmd.exe', ['/k', 'python.exe %s' % filename], self.currentBasePath()
-            )
-        else:
-            QProcess.startDetached('cmd.exe', ['/k', filename], self.currentBasePath())
+        from blurdev import debug
+
+        blurdev.core.runStandalone(
+            filename, debugLevel=debug.DebugLevel.High, basePath=self.currentBasePath()
+        )
 
     def searchFlags(self):
         return self._searchFlags

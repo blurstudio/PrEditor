@@ -53,10 +53,17 @@ class Tool(QObject):
             \remarks	runs this tool with the inputed macro command
             \param		macro	<str>
         """
+
         import blurdev
 
-        blurdev.init()
-        blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
+        # run standalone
+
+        if self.toolType() & ToolType.LegacyExternal:
+
+            blurdev.core.runStandalone(self.sourcefile())
+
+        else:
+            blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
     def favoriteGroup(self):
         return self._favoriteGroup

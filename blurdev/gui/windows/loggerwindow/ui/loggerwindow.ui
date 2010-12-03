@@ -503,6 +503,7 @@
     <addaction name="uiDebugHighACT"/>
     <addaction name="separator"/>
     <addaction name="uiGotoErrorACT"/>
+    <addaction name="uiResetPathsACT"/>
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
@@ -642,6 +643,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="uiResetPathsACT">
+   <property name="text">
+    <string>Reset Paths</string>
    </property>
   </action>
  </widget>

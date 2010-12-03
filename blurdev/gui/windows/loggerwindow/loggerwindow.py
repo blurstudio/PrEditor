@@ -57,6 +57,8 @@ class LoggerWindow(Window):
 
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
 
+        self.uiResetPathsACT.triggered.connect(self.resetPaths)
+
         # refresh the ui
         self.refreshDebugLevels()
 
@@ -87,6 +89,12 @@ class LoggerWindow(Window):
             act.blockSignals(True)
             act.setChecked(level == debugLevel())
             act.blockSignals(False)
+
+    def resetPaths(self):
+
+        import blurdev
+
+        blurdev.activeEnvironment().resetPaths()
 
     def setNoDebug(self):
         from blurdev import debug

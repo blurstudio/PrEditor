@@ -19,8 +19,6 @@ class IdeProjectItem(QTreeWidgetItem):
         self._filePath = ''
         self._group = True
         self._fileSystem = False
-
-        self._amfile = False
         self._exclude = ['.svn']
         self._fileTypes = '*.py;;*.pyw;;*.xml;;*.ui;;*.nsi;;*.bat;;*.schema;;*.txt;;*.blurproj'.split(
             ';;'
@@ -60,7 +58,9 @@ class IdeProjectItem(QTreeWidgetItem):
 
     def isFile(self):
 
-        return self._amfile
+        from PyQt4.QtCore import QFileInfo
+
+        return QFileInfo(self.filePath()).isFile()
 
     def isFileSystem(self):
         return self._fileSystem
@@ -140,43 +140,17 @@ class IdeProjectItem(QTreeWidgetItem):
 
         for folder in folders:
 
-            item = IdeProjectItem()
-
-            item.setText(0, QDir(folder).dirName())
-
-            item.setIcon(0, iconprovider.icon(QFileInfo(folder)))
-
-            item.setFilePath(folder)
-
-            item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-
-            item.setFileSystem(True)
-
-            item.setExclude(exclude)
-
-            item.setFileTypes(fileTypes)
-
-            self.addChild(item)
+            self.addChild(
+                IdeProjectItem.createFolderItem(
+                    folder, iconprovider, fileTypes, exclude
+                )
+            )
 
         # add the files
 
         for file in files:
 
-            item = IdeProjectItem()
-
-            item.setText(0, os.path.basename(file))
-
-            item.setIcon(0, iconprovider.icon(QFileInfo(file)))
-
-            item.setFilePath(file)
-
-            item.setFileSystem(True)
-
-            item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
-
-            item._amfile = True
-
-            self.addChild(item)
+            self.addChild(IdeProjectItem.createFileItem(file, iconprovider))
 
     def loadXml(self, xml):
 
@@ -252,6 +226,62 @@ class IdeProjectItem(QTreeWidgetItem):
 
         for c in range(self.childCount()):
             self.child(c).toXml(xml)
+
+    @staticmethod
+    def createFolderItem(folder, iconprovider=None, fileTypes=[], exclude=[]):
+
+        from PyQt4.QtCore import QFileInfo, QDir
+
+        if not iconprovider:
+
+            from PyQt4.QtGui import QFileIconProvider
+
+            iconprovider = QFileIconProvider()
+
+        item = IdeProjectItem()
+
+        item.setText(0, QDir(folder).dirName())
+
+        item.setIcon(0, iconprovider.icon(QFileInfo(folder)))
+
+        item.setFilePath(folder)
+
+        item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+
+        item.setFileSystem(True)
+
+        item.setExclude(exclude)
+
+        item.setFileTypes(fileTypes)
+
+        return item
+
+    @staticmethod
+    def createFileItem(filename, iconprovider=None):
+
+        from PyQt4.QtCore import QFileInfo
+
+        import os.path
+
+        if not iconprovider:
+
+            from PyQt4.QtGui import QFileIconProvider
+
+            iconprovider = QFileIconProvider()
+
+        # create the item and initialize its properties
+        item = IdeProjectItem()
+        item.setText(0, os.path.basename(filename))
+        item.setFilePath(filename)
+
+        item.setGroup(False)
+        item.setFileSystem(True)
+
+        item.setIcon(0, iconprovider.icon(QFileInfo(filename)))
+
+        item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
+
+        return item
 
     @staticmethod
     def fromXml(xml, parent):
@@ -350,7 +380,6 @@ class IdeProject(IdeProjectItem):
             )
             libs.setFileTypes(fileTypes)
             libs.setGroup(False)
-            libs.refresh()
 
             proj.addChild(libs)
 
@@ -360,17 +389,12 @@ class IdeProject(IdeProjectItem):
             resc.setFilePath(tool.path())
             resc.setFileTypes(fileTypes)
             resc.setGroup(False)
-            resc.refresh()
 
-            proj.addChild('Resources')
+            proj.addChild(resc)
 
             # create the main file
-            src = IdeProjectItem()
-            src.setText(0, os.path.basename(sourcefile))
-            src.setFilePath(sourcefile)
-            src.setFileSystem(True)
 
-            proj.addChild(src)
+            proj.addChild(IdeProjectItem.createFileItem(sourcefile))
 
         else:
             if lang:
@@ -382,7 +406,6 @@ class IdeProject(IdeProjectItem):
                 )
                 libs.setGroup(False)
                 libs.setFileTypes(fileTypes)
-                libs.refresh()
 
                 proj.addChild(libs)
 
@@ -392,7 +415,6 @@ class IdeProject(IdeProjectItem):
             packg.setFileTypes(fileTypes)
             packg.setFilePath(tool.path())
             packg.setGroup(False)
-            packg.refresh()
 
             proj.addChild(packg)
 
