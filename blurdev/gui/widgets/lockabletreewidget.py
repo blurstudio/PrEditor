@@ -55,6 +55,10 @@ class LockableTreeWidget(QTreeWidget):
 
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
+        view.setHorizontalScrollMode(self.horizontalScrollMode())
+
+        view.setVerticalScrollMode(self.horizontalScrollMode())
+
         view.setSelectionModel(self.selectionModel())
 
         view.setFrameShape(view.NoFrame)
@@ -71,9 +75,7 @@ class LockableTreeWidget(QTreeWidget):
 
         if alignment in (Qt.AlignLeft, Qt.AlignRight):
 
-            for c in range(span, self.columnCount()):
-
-                view.setColumnHidden(c, True)
+            view.horizontalScrollBar().valueChanged.connect(self.resetHScrollBar)
 
             self.verticalScrollBar().valueChanged.connect(
                 view.verticalScrollBar().setValue
@@ -89,7 +91,7 @@ class LockableTreeWidget(QTreeWidget):
 
         # create horizontal alignment options
 
-        else:
+        elif alignment in (Qt.AlignTop, Qt.AlignBottom):
 
             view.header().hide()
 
@@ -103,17 +105,21 @@ class LockableTreeWidget(QTreeWidget):
                 self.horizontalScrollBar().setValue
             )
 
-        # update the view
+        # compound alignment options
 
-        view.show()
+        else:
+
+            view.horizontalScrollBar().valueChanged.connect(self.resetHScrollBar)
+
+            view.verticalScrollBar().valueChanged.connect(self.resetVScrollBar)
+
+        # update the view
 
         self.updateLockedGeometry()
 
-        viewport = self.viewport()
+        view.show()
 
-        for v, span in self._lockedViews.values():
-
-            self.viewport().stackUnder(v)
+        view.raise_()
 
         return view
 
@@ -131,33 +137,71 @@ class LockableTreeWidget(QTreeWidget):
 
         from PyQt4.QtCore import Qt
 
-        v, span = self._lockedViews.get(int(Qt.AlignTop), (None, 0))
+        for align in self._lockedViews:
 
-        if v:
+            v, span = self._lockedViews[align]
 
-            bar = v.verticalScrollBar()
+            # lock top scrolling
 
-            bar.blockSignals(True)
+            if int(Qt.AlignTop) & align:
 
-            bar.setValue(0)
+                bar = v.verticalScrollBar()
 
-            bar.blockSignals(False)
+                bar.blockSignals(True)
 
-        v, span = self._lockedViews.get(int(Qt.AlignBottom), (None, 0))
+                bar.setValue(0)
 
-        if v:
+                bar.blockSignals(False)
 
-            bar = v.verticalScrollBar()
+            # lock bottom scrolling
 
-            bar.blockSignals(True)
+            elif int(Qt.AlignBottom) & align:
 
-            bar.setValue(0)
+                bar = v.verticalScrollBar()
 
-            bar.blockSignals(False)
+                bar.blockSignals(True)
+
+                bar.setValue(bar.maximum())
+
+                bar.blockSignals(False)
+
+    def resetHScrollBar(self):
+
+        from PyQt4.QtCore import Qt
+
+        for align, options in self._lockedViews.items():
+
+            v, span = options
+
+            # lock left scrolling
+
+            if int(Qt.AlignLeft) & align:
+
+                bar = v.horizontalScrollBar()
+
+                bar.blockSignals(True)
+
+                bar.setValue(0)
+
+                bar.blockSignals(False)
+
+            # lock left scrolling
+
+            elif int(Qt.AlignLeft) & align:
+
+                bar = v.horizontalScrollBar()
+
+                bar.blockSignals(True)
+
+                bar.setValue(bar.maximum())
+
+                bar.blockSignals(False)
 
     def setLocked(self, alignment, state, span=1):
 
         v = self._lockedViews.get(int(alignment))
+
+        changed = False
 
         # create a locked view
 
@@ -167,21 +211,53 @@ class LockableTreeWidget(QTreeWidget):
 
                 v = self._createLockedView(alignment, span)
 
-            # record the locked view
+                # record the locked view
 
-            self._lockedViews[int(alignment)] = (v, span)
+                self._lockedViews[int(alignment)] = (v, span)
+
+                changed = True
 
         # remove the existing locked view
 
         elif v:
 
-            v.close()
+            w = v[0]
 
-            v.setParent(None)
+            w.close()
 
-            v.deleteLater()
+            w.setParent(None)
+
+            w.deleteLater()
 
             self._lockedViews.pop(int(alignment))
+
+            changed = False
+
+        # create compound locks
+
+        if changed:
+
+            from PyQt4.QtCore import Qt
+
+            self.setLocked(
+                Qt.AlignLeft | Qt.AlignTop,
+                self.isLocked(Qt.AlignLeft) and self.isLocked(Qt.AlignTop),
+            )
+
+            self.setLocked(
+                Qt.AlignLeft | Qt.AlignBottom,
+                self.isLocked(Qt.AlignLeft) and self.isLocked(Qt.AlignBottom),
+            )
+
+            self.setLocked(
+                Qt.AlignRight | Qt.AlignTop,
+                self.isLocked(Qt.AlignRight) and self.isLocked(Qt.AlignTop),
+            )
+
+            self.setLocked(
+                Qt.AlignRight | Qt.AlignBottom,
+                self.isLocked(Qt.AlignRight) and self.isLocked(Qt.AlignBottom),
+            )
 
     def updateItemExpansion(self, item):
 
@@ -205,31 +281,7 @@ class LockableTreeWidget(QTreeWidget):
 
         from PyQt4.QtCore import Qt
 
-        # update locked vertical columns
-
-        v, span = self._lockedViews.get(int(Qt.AlignLeft), (None, 0))
-
-        if v and index < span:
-
-            v.setColumnWidth(index, newSize)
-
-        v, span = self._lockedViews.get(int(Qt.AlignRight), (None, 0))
-
-        if v and self.columnCount() - span <= index:
-
-            v.setColumnWidth(index, newSize)
-
-        # update locked horizontal columns
-
-        v, span = self._lockedViews.get(int(Qt.AlignTop), (None, 0))
-
-        if v:
-
-            v.setColumnWidth(index, newSize)
-
-        v, span = self._lockedViews.get(int(Qt.AlignBottom), (None, 0))
-
-        if v:
+        for v, span in self._lockedViews.values():
 
             v.setColumnWidth(index, newSize)
 
@@ -243,74 +295,223 @@ class LockableTreeWidget(QTreeWidget):
 
             v, span = options
 
+            w = 0
+
+            h = 0
+
+            x = 0
+
+            y = 0
+
             # update the left item
 
-            if align == Qt.AlignLeft:
+            if align == int(Qt.AlignLeft):
 
-                x = self.frameWidth()
+                # hide unnecessary columns
 
-                y = self.frameWidth()
+                for col in range(span, self.columnCount()):
+
+                    v.setColumnHidden(col, True)
 
                 w = sum([self.columnWidth(c) for c in range(span)])
 
                 h = self.viewport().height() + self.header().height()
 
+                x = self.frameWidth()
+
+                y = self.frameWidth()
+
             # update the right item
 
-            elif align == Qt.AlignRight:
+            elif align == int(Qt.AlignRight):
 
-                w = sum(
-                    [
-                        self.columnWidth(c)
-                        for c in range(
-                            self.columnCount() - 1, -1, self.columnCount() - span
-                        )
-                    ]
-                )
+                # hide unnecessary columns
+
+                cols = range(self.columnCount() - 1, self.columnCount() - span - 1, -1)
+
+                for col in cols:
+
+                    v.setColumnHidden(col, True)
+
+                w = sum([self.columnWidth(c) for c in cols])
 
                 h = self.viewport().height() + self.header().height()
 
                 x = self.width() - self.frameWidth() - w
 
-                h = self.viewport().height() + self.header().height()
+                y = self.frameWidth()
 
             # update the top item
 
-            elif align == Qt.AlignTop:
+            elif align == int(Qt.AlignTop):
+
+                w = self.viewport().width()
+
+                h = sum(
+                    [
+                        self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                        for i in range(span)
+                        if self.topLevelItem(i)
+                    ]
+                )
 
                 x = self.frameWidth()
 
                 y = self.frameWidth() + self.header().height()
 
-                w = self.viewport().width()
-
-                h = 0
-
-                for i in range(span):
-
-                    item = self.topLevelItem(i)
-
-                    if item:
-
-                        h += self.rowHeight(self.indexFromItem(item))
-
             # update the bottom item
 
-            elif align == Qt.AlignBottom:
+            elif align == int(Qt.AlignBottom):
 
                 w = self.viewport().width()
 
-                h = 0
-
-                for i in range(span):
-
-                    item = self.topLevelItem(i)
-
-                    if item:
-
-                        h += self.rowHeight(self.indexFromItem(item))
+                h = sum(
+                    [
+                        self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                        for i in range(
+                            self.topLevelItemCount() - 1,
+                            self.topLevelItemCount() - span - 1,
+                            -1,
+                        )
+                        if self.topLevelItem(i)
+                    ]
+                )
 
                 x = self.frameWidth()
+
+                y = self.height() - self.frameWidth() - h
+
+            # update the top left item
+
+            elif align == int(Qt.AlignLeft | Qt.AlignTop):
+
+                colspan = self._lockedViews.get(int(Qt.AlignLeft), (None, 0))[1]
+
+                rowspan = self._lockedViews.get(int(Qt.AlignTop), (None, 0))[1]
+
+                # hide unnecessary columns
+
+                for col in range(colspan, self.columnCount()):
+
+                    v.setColumnHidden(col, True)
+
+                w = sum([self.columnWidth(c) for c in range(colspan)])
+
+                h = (
+                    sum(
+                        [
+                            self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                            for i in range(rowspan)
+                            if self.topLevelItem(i)
+                        ]
+                    )
+                    + self.header().height()
+                )
+
+                x = self.frameWidth()
+
+                y = self.frameWidth()
+
+            # update the top right item
+
+            elif align == int(Qt.AlignRight | Qt.AlignTop):
+
+                colspan = self._lockedViews.get(int(Qt.AlignRight), (None, 0))[1]
+
+                rowspan = self._lockedViews.get(int(Qt.AlignTop), (None, 0))[1]
+
+                # hide unnecessary columns
+
+                cols = range(
+                    self.columnCount() - 1, self.columnCount() - colspan - 1, -1
+                )
+
+                for col in cols:
+
+                    v.setColumnHidden(col, True)
+
+                w = sum([self.columnWidth(c) for c in cols])
+
+                h = (
+                    sum(
+                        [
+                            self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                            for i in range(rowspan)
+                            if self.topLevelItem(i)
+                        ]
+                    )
+                    + self.header().height()
+                )
+
+                x = self.width() - self.frameWidth() - w
+
+                y = self.frameWidth()
+
+            # update the bottom left item
+
+            elif align == int(Qt.AlignLeft | Qt.AlignBottom):
+
+                colspan = self._lockedViews.get(int(Qt.AlignLeft), (None, 0))[1]
+
+                rowspan = self._lockedViews.get(int(Qt.AlignBottom), (None, 0))[1]
+
+                # hide unnecessary columns
+
+                for col in range(colspan, self.columnCount()):
+
+                    v.setColumnHidden(col, True)
+
+                w = sum([self.columnWidth(c) for c in range(colspan)])
+
+                h = sum(
+                    [
+                        self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                        for i in range(
+                            self.topLevelItemCount() - 1,
+                            self.topLevelItemCount() - rowspan - 1,
+                            -1,
+                        )
+                        if self.topLevelItem(i)
+                    ]
+                )
+
+                x = self.frameWidth()
+
+                y = self.height() - self.frameWidth() - h
+
+            # update the bottom right item
+
+            elif align == int(Qt.AlignRight | Qt.AlignBottom):
+
+                colspan = self._lockedViews.get(int(Qt.AlignRight), (None, 0))[1]
+
+                rowspan = self._lockedViews.get(int(Qt.AlignBottom), (None, 0))[1]
+
+                # hide unnecessary columns
+
+                cols = range(
+                    self.columnCount() - 1, self.columnCount() - colspan - 1, -1
+                )
+
+                for col in cols:
+
+                    v.setColumnHidden(col, True)
+
+                w = sum([self.columnWidth(c) for c in cols])
+
+                h = sum(
+                    [
+                        self.rowHeight(self.indexFromItem(self.topLevelItem(i)))
+                        for i in range(
+                            self.topLevelItemCount() - 1,
+                            self.topLevelItemCount() - rowspan - 1,
+                            -1,
+                        )
+                        if self.topLevelItem(i)
+                    ]
+                )
+
+                x = self.width() - self.frameWidth() - w
 
                 y = self.height() - self.frameWidth() - h
 
