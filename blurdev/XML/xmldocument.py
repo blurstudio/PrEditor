@@ -54,7 +54,14 @@ class XMLDocument(XMLElement):
         success = False
         fileName = str(fileName)
         if os.path.exists(fileName):
-            newObject = xml.dom.minidom.parse(fileName)
+
+            try:
+                newObject = xml.dom.minidom.parse(fileName)
+
+            except:
+
+                return False
+
             if newObject:
                 self.__file__ = fileName
                 self._object = newObject
@@ -119,4 +126,4 @@ class XMLDocument(XMLElement):
 
         doc = QDomDocument()
         doc.setContent(xmltext)
-        return str(doc.toString(indent=indented))
+        return str(doc.toString(indented))

@@ -99,10 +99,41 @@ def register(lang, fileTypes, lexerClass):
 
 from PyQt4.Qsci import *
 
+
 # create default mappings
-register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP)
-register('Maxscript', ('.ms', '.mcr',), QsciLexerCPP)
-register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython)
-register('XML', ('.xml', '.ui',), QsciLexerXML)
 
 register('Batch', ('.bat',), QsciLexerBatch)
+
+register('CSS', ('.css'), QsciLexerCSS)
+
+register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP)
+
+register('HTML', ('.htm', '.html'), QsciLexerHTML)
+
+register('Lua', ('.lua'), QsciLexerLua)
+
+register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython)
+
+register('XML', ('.xml', '.ui',), QsciLexerXML)
+
+
+# register default items
+
+# from PyQt4 import Qsci
+
+# for key in Qsci.__dict__.keys():
+
+# 	if ( key.startswith( 'QsciLexer' ) ):
+
+# 		name = key.replace( 'QsciLexer', '' )
+
+# 		if ( name and not name in _mapping ):
+
+# 			register( name, [], Qsci.__dict__[key] )
+
+
+# create custom mappings
+
+from maxscriptlexer import MaxscriptLexer
+
+register('Maxscript', ('.ms', '.mcr',), MaxscriptLexer)

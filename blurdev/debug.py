@@ -12,7 +12,14 @@ from enum import enum
 
 _currentLevel = 0
 
+_debugLogger = None
+
 DebugLevel = enum('Low', 'Mid', 'High')
+
+
+class DebugLogger:
+
+    pass
 
 
 def debugMsg(msg, level=2):
@@ -23,7 +30,7 @@ def debugMsg(msg, level=2):
         \return		<void>
     """
     if level <= debugLevel():
-        print 'DEBUG (L%i) : %s' % (level, msg)
+        print 'DEBUG (%s) : %s' % (DebugLevel.keyByValue(level), msg)
 
 
 def debugObject(object, msg, level=2):

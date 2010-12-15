@@ -41,8 +41,13 @@ class ToolsEnvironment(QObject):
         newpaths = [spath for spath in sys.path if not path in spath.lower()]
         sys.path = newpaths
 
-        print '%s were removed from sys.path' % list(
-            set(oldpaths).difference(set(newpaths))
+        from blurdev import debug
+
+        debug.debugObject(
+            self.clearPathSymbols,
+            '%s were removed from sys.path'
+            % list(set(oldpaths).difference(set(newpaths))),
+            debug.DebugLevel.Mid,
         )
 
         newmodules = {}
@@ -59,7 +64,11 @@ class ToolsEnvironment(QObject):
                     pass
 
                 if found:
-                    print 'removing %s from sys.modules' % key
+                    debug.debugObject(
+                        self.clearPathSymbols,
+                        'removing %s from sys.modules' % key,
+                        debug.DebugLevel.Mid,
+                    )
                     sys.modules.pop(key)
 
         return True
