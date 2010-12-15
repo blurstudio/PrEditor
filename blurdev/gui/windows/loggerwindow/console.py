@@ -100,9 +100,9 @@ class ConsoleEdit(QTextEdit):
             sys.stderr = ErrorLog(self)
 
         # create the highlighter
-        from blurdev.gui.highlighter import Highlighter
+        from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 
-        highlight = Highlighter(self)
+        highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
 
         self.startInputLine()
