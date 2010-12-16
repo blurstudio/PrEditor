@@ -414,20 +414,40 @@ class Core(QObject):
 
             basePath = os.path.split(filename)[0]
 
+        success = False
+
         if debugLevel == debug.DebugLevel.High:
             # run a python file
             if os.path.splitext(filename)[1].startswith('.py'):
-                QProcess.startDetached(
+                success, value = QProcess.startDetached(
                     'cmd.exe', ['/k', 'python.exe %s' % filename], basePath
                 )
             else:
-                QProcess.startDetached('cmd.exe', ['/k', filename], basePath)
+                success, value = QProcess.startDetached(
+                    'cmd.exe', ['/k', filename], basePath
+                )
 
         elif os.path.splitext(filename)[1].startswith('.py'):
-            QProcess.startDetached('pythonw.exe', [filename], basePath)
+            success, value = QProcess.startDetached('pythonw.exe', [filename], basePath)
 
         else:
-            QProcess.startDetached(filename, [], basePath)
+            success, value = QProcess.startDetached(filename, [], basePath)
+
+        if not success:
+
+            import os
+
+            try:
+
+                os.startfile(filename)
+
+                success = True
+
+            except:
+
+                pass
+
+        return success
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
