@@ -28,7 +28,9 @@ except:
 
     from blurdev import debug
 
-    debug.debugObject(SpellingHighlighter, 'pyenchant library could not be found')
+    debug.debugMsg(
+        '[blurdev.gui.highlighters.spellinghighlighter] - pyenchant library could not be found'
+    )
 
 
 class SpellingHighlighter(QSyntaxHighlighter):
