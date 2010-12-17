@@ -83,7 +83,7 @@ class XMLElement:
 
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
-            value = str(value)
+            value = unicode(value)
 
         valtype = type(value)
 
@@ -137,7 +137,13 @@ class XMLElement:
         # Record a basic property
         else:
             self.setAttribute('value', value)
-            self.setAttribute('type', type(value).__name__)
+
+            typ = type(value).__name__
+
+            if typ == 'unicode':
+
+                typ = 'str'
+            self.setAttribute('type', typ)
 
     def restoreValue(self, fail=None):
         from PyQt4.QtCore import QRect, QRectF, QPoint, QPointF, QSize, QDate, QDateTime
@@ -191,8 +197,8 @@ class XMLElement:
             value = self.findColor('color')
 
         # Restore a string
-        elif valtype in ('str', 'QString'):
-            value = self.attribute('value')
+        elif valtype in ('str', 'unicode', 'QString'):
+            value = unicode(self.attribute('value'))
 
         # Restore a basic value
         else:
@@ -251,7 +257,7 @@ class XMLElement:
         #				<string>
         #-------------------------------------------------------------------------------------------------------------
         """
-        out = str(self._object.getAttribute(attr))
+        out = unicode(self._object.getAttribute(attr))
         if out:
             return out
         return fail
@@ -491,7 +497,7 @@ class XMLElement:
         #-------------------------------------------------------------------------------------------------------------
         """
         if val != '' and self._object:
-            self._object.setAttribute(attr, str(val))
+            self._object.setAttribute(attr, unicode(val))
             return True
         return False
 
@@ -552,11 +558,11 @@ class XMLElement:
             # find existing text node & update
             for child in self._object.childNodes:
                 if isinstance(child, xml.dom.minidom.Text):
-                    child.data = str(val)
+                    child.data = unicode(val)
                     return True
 
             # create new text node
-            text = self._document().createTextNode(str(val))
+            text = self._document().createTextNode(unicode(val))
             self._object.appendChild(text)
             return True
         return False

@@ -93,7 +93,7 @@ def formatFile(input, output, options={}):
 
 def formatText(text, options={}):
 
-    text = str(text)
+    text = unicode(text)
 
     import re
 
@@ -213,6 +213,6 @@ def formatText(text, options={}):
 
         if repl or force:
 
-            text = text.replace('[%s]' % result, str(repl))
+            text = text.replace('[%s]' % result, unicode(repl))
 
     return text

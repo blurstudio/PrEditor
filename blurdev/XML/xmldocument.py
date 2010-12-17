@@ -52,7 +52,7 @@ class XMLDocument(XMLElement):
         #-------------------------------------------------------------------------------------------------------------
         """
         success = False
-        fileName = str(fileName)
+        fileName = unicode(fileName)
         if os.path.exists(fileName):
 
             try:
@@ -70,7 +70,7 @@ class XMLDocument(XMLElement):
 
     def parse(self, xmlString):
         success = False
-        xmlString = str(xmlString)
+        xmlString = unicode(xmlString).encode('utf-8')
         if xmlString:
             tempObject = xml.dom.minidom.parseString(xmlString)
             if tempObject:
@@ -110,9 +110,11 @@ class XMLDocument(XMLElement):
 
             f = open(fileName, 'w')
             if pretty:
-                f.write(self.formatXml(self.toxml()))
+
+                text = self.formatXml(self.toxml())
+                f.write(text.encode('utf-8'))
             else:
-                f.write(self.toxml())
+                f.write(unicode(self.toxml()).encode('utf-8'))
             f.close()
             return True
         return False
@@ -122,8 +124,10 @@ class XMLDocument(XMLElement):
 
     @staticmethod
     def formatXml(xmltext, indented=4):
+
+        from PyQt4.QtCore import QString
         from PyQt4.QtXml import QDomDocument
 
         doc = QDomDocument()
-        doc.setContent(xmltext)
-        return str(doc.toString(indented))
+        doc.setContent(QString(xmltext))
+        return unicode(doc.toString(indented))
