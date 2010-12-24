@@ -92,14 +92,16 @@ class XMLDocument(XMLElement):
             return XMLElement(self._object.childNodes[0], self.__file__)
         return None
 
-    def save(self, fileName, pretty=True):
+    def save(self, fileName, pretty=True, showDialog=False):
         """
         #-------------------------------------------------------------------------------------------------------------
         #	\remarks
         #				Saves the xml document to the given file, converting it to a pretty XML document if so desired
         #
         #	\param		fileName		<string>
-        #	\param		pretty			<boolean>		Pretty will format spaces and line breaks
+        #	\param		pretty			<boolean>		Pretty will format spaces and line breaks. Default: True
+
+        #	\param		showDialog		<boolean>		If a error occurs while saving, show dialog boxes explaining the problem. Default: False
         #
         #	\return
         #				<boolean> success
@@ -108,15 +110,44 @@ class XMLDocument(XMLElement):
         if os.path.exists(os.path.split(fileName)[0]):
             self.__file__ = fileName
 
-            f = open(fileName, 'w')
-            if pretty:
+            try:
+                if pretty:
 
-                text = self.formatXml(self.toxml())
-                f.write(text.encode('utf-8'))
-            else:
-                f.write(unicode(self.toxml()).encode('utf-8'))
+                    text = self.formatXml(self.toxml()).encode('utf-8')
+                else:
+
+                    text = unicode(self.toxml()).encode('utf-8')
+
+            except:
+
+                print 'Encoding error while saving XML'
+
+                if showDialog:
+
+                    from PyQt4.QtGui import QMessageBox
+
+                    QMessageBox.critical(
+                        None,
+                        'Encoding Error',
+                        'Unable to save xml data, please check for unsupported characters.',
+                    )
+
+                return False
+
+            f = open(fileName, 'w')
+            f.write(text)
             f.close()
             return True
+
+        if showDialog:
+
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.warning(
+                None,
+                'Unable to Save',
+                'Unable to save xml data, please verify you have the correct privileges.',
+            )
         return False
 
     def toxml(self):

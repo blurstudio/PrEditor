@@ -83,7 +83,7 @@ class XMLElement:
 
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
-            value = unicode(value)
+            value = unicode(value).encode('utf-8')
 
         valtype = type(value)
 
@@ -497,7 +497,7 @@ class XMLElement:
         #-------------------------------------------------------------------------------------------------------------
         """
         if val != '' and self._object:
-            self._object.setAttribute(attr, unicode(val))
+            self._object.setAttribute(attr, unicode(val).encode('utf-8'))
             return True
         return False
 
@@ -558,11 +558,11 @@ class XMLElement:
             # find existing text node & update
             for child in self._object.childNodes:
                 if isinstance(child, xml.dom.minidom.Text):
-                    child.data = unicode(val)
+                    child.data = unicode(val).encode('utf-8')
                     return True
 
             # create new text node
-            text = self._document().createTextNode(unicode(val))
+            text = self._document().createTextNode(unicode(val).encode('utf-8'))
             self._object.appendChild(text)
             return True
         return False
