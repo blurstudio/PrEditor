@@ -43,16 +43,28 @@ class Dialog(QDialog):
         self.setMouseTracking(True)
 
     def closeEvent(self, event):
+
+        from PyQt4.QtCore import Qt
+
+        # ensure this object gets deleted
+
+        wwidget = None
+
+        if self.testAttribute(Qt.WA_DeleteOnClose):
+
+            # collect the win widget to uncache it
+
+            if self.parent() and self.parent().inherits('QWinWidget'):
+
+                wwidget = self.parent()
+
         QDialog.closeEvent(self, event)
 
         # uncache the win widget if necessary
-        from PyQt4.QtCore import Qt
+        if wwidget:
+            from winwidget import WinWidget
 
-        if self.testAttribute(Qt.WA_DeleteOnClose):
-            if self.parent() and self.parent().inherits('QWinWidget'):
-                from winwidget import WinWidget
-
-                WinWidget.uncache(self.parent())
+            WinWidget.uncache(wwidget)
 
     def exec_(self):
         # do not use the DeleteOnClose attribute when executing a dialog as often times a user will be accessing

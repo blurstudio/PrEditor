@@ -41,13 +41,25 @@ class Window(QMainWindow):
         self.setAttribute(Qt.WA_DeleteOnClose)
 
     def closeEvent(self, event):
+
+        from PyQt4.QtCore import Qt
+
+        # ensure this object gets deleted
+
+        wwidget = None
+
+        if self.testAttribute(Qt.WA_DeleteOnClose):
+
+            # collect the win widget to uncache it
+
+            if self.parent() and self.parent().inherits('QWinWidget'):
+
+                wwidget = self.parent()
+
         QMainWindow.closeEvent(self, event)
 
         # uncache the win widget if necessary
-        from PyQt4.QtCore import Qt
+        if wwidget:
+            from winwidget import WinWidget
 
-        if self.testAttribute(Qt.WA_DeleteOnClose):
-            if self.parent() and self.parent().inherits('QWinWidget'):
-                from winwidget import WinWidget
-
-                WinWidget.uncache(self.parent())
+            WinWidget.uncache(wwidget)
