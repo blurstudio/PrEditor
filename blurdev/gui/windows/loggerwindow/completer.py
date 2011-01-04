@@ -30,7 +30,7 @@ class PythonCompleter(QCompleter):
     def refreshList(self, scope=None):
         """ refreshes the string list based on the cursor word """
         word = self.textUnderCursor()
-        split = str(word).split('.')
+        split = unicode(word).split('.')
 
         # make sure there is more than 1 item for this symbol
         if len(split) > 1:
@@ -79,7 +79,7 @@ class PythonCompleter(QCompleter):
 
         # grab the selected word
         word = cursor.selectedText()
-        block = str(cursor.block().text())
+        block = unicode(cursor.block().text())
 
         # lookup previous words using '.'
         pos = cursor.position() - cursor.block().position() - len(word) - 1

@@ -25,6 +25,11 @@ def fileTypes():
     langs.sort()
 
     output = []
+
+    output.append('All Files (*.*)')
+
+    output.append('Text Files (*.txt')
+
     for lang in langs:
         lexerm = _mapping[lang]
         output.append(
@@ -32,8 +37,6 @@ def fileTypes():
             % (lang, ';'.join(['*' + ftype for ftype in lexerm.fileTypes]))
         )
 
-    output.append('Text Files (*.txt')
-    output.append('All Files (*.*)')
     return ';;'.join(output)
 
 

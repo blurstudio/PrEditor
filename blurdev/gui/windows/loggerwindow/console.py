@@ -178,7 +178,7 @@ class ConsoleEdit(QTextEdit):
         message.append(
             '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
         )
-        message.append(str(error).replace('\n', '<br>'))
+        message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
 
         import blurdev
@@ -200,7 +200,7 @@ class ConsoleEdit(QTextEdit):
 
         # grab the command from the line
         block = self.textCursor().block().text()
-        results = re.search('>>> (.*)', str(block))
+        results = re.search('>>> (.*)', unicode(block))
 
         if results:
             # if the cursor position is at the end of the line
@@ -211,20 +211,20 @@ class ConsoleEdit(QTextEdit):
                 # evaluate the command
                 cmdresult = None
                 try:
-                    cmdresult = eval(str(results.groups()[0]))
+                    cmdresult = eval(unicode(results.groups()[0]))
                 except:
-                    exec (str(results.groups()[0])) in globals()
+                    exec (unicode(results.groups()[0])) in globals()
 
                 # print the resulting commands
                 if cmdresult != None:
-                    self.write(str(cmdresult))
+                    self.write(unicode(cmdresult))
 
                 self.startInputLine()
 
             # otherwise, move the command to the end of the line
             else:
                 self.startInputLine()
-                self.insertPlainText(str(results.groups()[0]))
+                self.insertPlainText(unicode(results.groups()[0]))
 
         # if no command, then start a new line
         else:
@@ -246,6 +246,36 @@ class ConsoleEdit(QTextEdit):
             cursor.movePosition(QTextCursor.EndOfWord)
             cursor.insertText(completion[len(self.completer().completionPrefix()) :])
             self.setTextCursor(cursor)
+
+    def insertFromMimeData(self, mimeData):
+        html = False
+        if mimeData.hasHtml():
+            text = mimeData.html()
+            html = True
+        else:
+            text = mimeData.text()
+
+        from PyQt4.QtGui import QTextDocument
+
+        doc = QTextDocument()
+
+        if html:
+            doc.setHtml(text)
+        else:
+            doc.setPlainText(text)
+
+        text = doc.toPlainText()
+
+        import re
+
+        exp = re.compile(
+            '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
+        )
+        newText = unicode(text).encode('utf-8')
+        for each in exp.findall(newText):
+            newText = newText.replace(each, '?')
+
+        self.insertPlainText(newText)
 
     def lastError(self):
 
@@ -313,7 +343,7 @@ class ConsoleEdit(QTextEdit):
 
         # grab the cursor
         cursor = self.textCursor()
-        block = str(cursor.block().text()).split()
+        block = unicode(cursor.block().text()).split()
         cursor.movePosition(QTextCursor.StartOfBlock, mode)
         cursor.movePosition(
             QTextCursor.Right, mode, 4
@@ -342,7 +372,7 @@ class ConsoleEdit(QTextEdit):
             self.setCurrentCharFormat(charFormat)
 
             inputstr = '>>> '
-            if str(self.textCursor().block().text()):
+            if unicode(self.textCursor().block().text()):
                 inputstr = '\n' + inputstr
 
             self.insertPlainText(inputstr)
