@@ -38,14 +38,19 @@ class Preference(XMLDocument):
     def filename(self):
         """ return this documents filename, deriving the default filename from its name and standard preference location  """
         if not self._filename:
-            import blurdev, os.path
-
+            # import blurdev, os.path
             key = self.name().lower().replace(' ', '-')
-            self._filename = os.path.join(
-                Preference.RootPath, 'app_%s/%s.pref' % (blurdev.core.objectName(), key)
-            )
+            self._filename = self.path() + '%s.pref' % key
 
         return self._filename
+
+    def path(self):
+
+        """ return the path to the application's prefrences folder """
+
+        import blurdev, os.path
+
+        return os.path.join(Preference.RootPath, 'app_%s/' % blurdev.core.objectName())
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """
@@ -114,9 +119,7 @@ def find(name, reload=False):
         pref = Preference()
 
         # look for a default preference file
-        filename = os.path.join(
-            Preference.RootPath, 'app_%s/%s.pref' % (blurdev.core.objectName(), key)
-        )
+        filename = pref.path() + '%s.pref' % key
         if os.path.exists(filename):
             pref.load(filename)
         else:
