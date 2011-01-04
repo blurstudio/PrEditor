@@ -154,9 +154,10 @@ class DocumentEditor(QsciScintilla):
             lexer = lexers.lexerFor(os.path.splitext(filename)[1])
             if lexer:
                 lexer.setFont(self.font())
+
+                lexer.setParent(self)
                 self._language = lexers.languageFor(lexer)
 
-            lexer.setParent(self)
             self.setLexer(lexer)
             self.refreshTitle()
             self.setModified(False)
@@ -305,7 +306,8 @@ class DocumentEditor(QsciScintilla):
         if lexer:
             lexer.setFont(self.font())
 
-        lexer.setParent(self)
+            lexer.setParent(self)
+
         self.setLexer(lexer)
 
     def setLineMarginWidth(self, width):
