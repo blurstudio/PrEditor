@@ -209,6 +209,7 @@
     <addaction name="uiSaveAllACT"/>
     <addaction name="separator"/>
     <addaction name="uiExitACT"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">

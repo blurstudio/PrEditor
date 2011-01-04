@@ -43,6 +43,12 @@ class IdeEditor(Window):
         self._searchText = ''
         self._searchFlags = 0
         self._searchDialog = None
+
+        self._recentFiles = []
+
+        self._recentFileMax = 10
+
+        self._recentFileMenu = None
         self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
@@ -87,6 +93,8 @@ class IdeEditor(Window):
         blurdev.bindMethod(self.uiProjectTREE, 'mimeData', self.projectMimeData)
 
         self.restoreSettings()
+
+        self.refreshRecentFiles()
 
         # create connections
         self.uiProjectTREE.itemClicked.connect(self.updatePath)
@@ -420,6 +428,14 @@ class IdeEditor(Window):
         if filename:
             self.load(filename)
 
+    def documentOpenRecentTriggered(self, action):
+
+        filename = unicode(action.data().toString())
+
+        if filename:
+
+            self.load(filename)
+
     def documentRedo(self):
         doc = self.currentDocument()
         if doc:
@@ -562,6 +578,18 @@ class IdeEditor(Window):
         if not QFileInfo(filename).isFile():
 
             return False
+
+        # record the file to the recent files
+
+        if filename in self._recentFiles:
+
+            self._recentFiles.remove(filename)
+
+        self._recentFiles.insert(0, filename)
+
+        self._recentFiles = self._recentFiles[: self._recentFileMax]
+
+        self.refreshRecentFiles()
 
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
@@ -736,6 +764,8 @@ class IdeEditor(Window):
 
         pref.recordProperty('currproj', filename)
 
+        pref.recordProperty('recentFiles', self._recentFiles)
+
         from ideproject import IdeProject
 
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
@@ -771,11 +801,57 @@ class IdeEditor(Window):
         self.uiOpenTREE.blockSignals(False)
         self.uiOpenTREE.setUpdatesEnabled(True)
 
+    def refreshRecentFiles(self):
+
+        # remove the recent file menu
+
+        if self._recentFileMenu:
+
+            self._recentFileMenu.triggered.disconnect(self.documentOpenRecentTriggered)
+
+            self._recentFileMenu.close()
+
+            self._recentFileMenu.setParent(None)
+
+            self._recentFileMenu.deleteLater()
+
+            self._recentFileMenu = None
+
+        if self._recentFiles:
+
+            # create a new recent file menu
+
+            import os.path
+
+            from PyQt4.QtGui import QMenu, QAction
+
+            self._recentFileMenu = QMenu(self)
+
+            self._recentFileMenu.setTitle('Recent Files')
+
+            self._recentFileMenu.triggered.connect(self.documentOpenRecentTriggered)
+
+            for index, filename in enumerate(self._recentFiles):
+
+                action = QAction(self._recentFileMenu)
+
+                action.setText('%i: %s' % (index + 1, os.path.basename(filename)))
+
+                action.setData(filename)
+
+                self._recentFileMenu.addAction(action)
+
+            self.uiFileMENU.addMenu(self._recentFileMenu)
+
     def restoreSettings(self):
         import blurdev
         from blurdev import prefs
 
         pref = prefs.find('ide/interface')
+
+        # load the recent files
+
+        self._recentFiles = pref.restoreProperty('recentFiles', [])
 
         # update project options
         from ideproject import IdeProject
