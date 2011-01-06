@@ -38,7 +38,9 @@ class ToolsEnvironment(QObject):
         import sys
 
         oldpaths = sys.path
-        newpaths = [spath for spath in sys.path if not path in spath.lower()]
+        newpaths = [
+            spath for spath in sys.path if not path in spath.lower() and spath != '.'
+        ]
         sys.path = newpaths
 
         from blurdev import debug
@@ -275,7 +277,7 @@ class ToolsEnvironment(QObject):
         """
         import os.path
 
-        if path:
+        if path and path != '.':
             import sys
 
             sys.path.insert(0, ToolsEnvironment.normalizePath(path))

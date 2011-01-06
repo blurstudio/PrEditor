@@ -449,7 +449,9 @@ class IdeEditor(Window):
     def documentSaveAs(self):
         doc = self.currentDocument()
         if doc:
-            doc.saveAs()
+            if doc.saveAs():
+
+                self.recordRecentFile(doc.filename())
 
     def documentSaveAll(self):
         for window in self.uiWindowsAREA.subWindowList():
@@ -581,15 +583,7 @@ class IdeEditor(Window):
 
         # record the file to the recent files
 
-        if filename in self._recentFiles:
-
-            self._recentFiles.remove(filename)
-
-        self._recentFiles.insert(0, filename)
-
-        self._recentFiles = self._recentFiles[: self._recentFileMax]
-
-        self.refreshRecentFiles()
+        self.recordRecentFile(filename)
 
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
@@ -772,6 +766,18 @@ class IdeEditor(Window):
         pref.recordProperty('geom', self.geometry())
 
         pref.save()
+
+    def recordRecentFile(self, filename):
+
+        if filename in self._recentFiles:
+
+            self._recentFiles.remove(filename)
+
+        self._recentFiles.insert(0, filename)
+
+        self._recentFiles = self._recentFiles[: self._recentFileMax]
+
+        self.refreshRecentFiles()
 
     def refreshDebugLevels(self):
         from blurdev.debug import DebugLevel, debugLevel

@@ -276,6 +276,7 @@ class DocumentEditor(QsciScintilla):
                 lexer.setFont(self.font())
                 self._language = lexers.languageFor(lexer)
 
+            self.setLexer(lexer)
             return True
         return False
 
