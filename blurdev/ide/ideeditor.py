@@ -1084,15 +1084,24 @@ class IdeEditor(Window):
         self.uiPathLBL.setText(self.currentBasePath() + '>')
 
     def updateTitle(self, window):
+
+        import blurdev
         from blurdev import version
 
         if window:
             self.setWindowTitle(
-                'IDE | Code Editor - [%s] - %s'
-                % (window.windowTitle(), version.toString())
+                '%s | Code Editor - [%s] - %s'
+                % (
+                    str(blurdev.core.objectName()).capitalize(),
+                    window.windowTitle(),
+                    version.toString(),
+                )
             )
         else:
-            self.setWindowTitle('IDE | Code Editor - %s' % (version.toString()))
+            self.setWindowTitle(
+                '%s | Code Editor - %s'
+                % (str(blurdev.core.objectName()).capitalize(), version.toString())
+            )
 
     @staticmethod
     def createNew():

@@ -93,6 +93,8 @@ class MaxscriptLexer(QsciLexerCustom):
 
         # process the length of the chunk
 
+        chunk = unicode(chunk)
+
         length = len(chunk)
 
         # check to see if our last state was a block comment
@@ -111,7 +113,7 @@ class MaxscriptLexer(QsciLexerCustom):
 
                 self.setStyling(length, self.Comment)
 
-                return self.Comment
+                return (self.Comment, 0)
 
         # check to see if our last state was a string
 
@@ -141,7 +143,7 @@ class MaxscriptLexer(QsciLexerCustom):
 
                 self.setStyling(length, self.String)
 
-                return self.String
+                return (self.String, 0)
 
         # otherwise, process a default chunk
 
@@ -153,71 +155,81 @@ class MaxscriptLexer(QsciLexerCustom):
 
             strpos = chunk.find('"')
 
-            # process a string
+            order = [blockpos, linepos, strpos]
 
-            if (
-                strpos != -1
-                and (blockpos == -1 or strpos < blockpos)
-                and (linepos == -1 or strpos < linepos)
-            ):
+            order.sort()
 
-                self.processChunk(chunk[:strpos], lastState, keywords)
+            # any of the above symbols will affect how a symbol following it is treated, so make sure we process
 
-                self.setStyling(1, self.String)
+            # in the proper order
 
-                return self.processChunk(chunk[strpos + 1 :], self.String, keywords)
+            for i in order:
 
-            # process a line comment
+                if i == -1:
 
-            elif (
-                linepos != -1
-                and (blockpos == -1 or linepos < blockpos)
-                and (strpos == -1 or linepos < strpos)
-            ):
+                    continue
 
-                self.processChunk(chunk[:linepos], lastState, keywords)
+                # process a string
 
-                self.setStyling(length - linepos, self.CommentLine)
+                if i == strpos:
 
-                return self.CommentLine
+                    state, folding = self.processChunk(chunk[:i], lastState, keywords)
 
-            # process a block comment
+                    self.setStyling(1, self.String)
 
-            elif (
-                blockpos != -1
-                and (linepos == -1 or blockpos < linepos)
-                and (strpos == -1 or blockpos < strpos)
-            ):
+                    newstate, newfolding = self.processChunk(
+                        chunk[i + 1 :], self.String, keywords
+                    )
 
-                self.processChunk(chunk[:blockpos], lastState, keywords)
+                    return (newstate, newfolding + folding)
 
-                self.setStyling(2, self.Comment)
+                # process a line comment
 
-                return self.processChunk(chunk[blockpos + 2 :], self.Comment, keywords)
+                elif i == linepos:
 
-            # process a clean bit of text
+                    state, folding = self.processChunk(chunk[:i], lastState, keywords)
 
-            else:
+                    self.setStyling(length - i, self.CommentLine)
 
-                results = re.findall('([^A-Za-z0-9]*)([A-Za-z0-9]*)', chunk)
+                    return (self.Default, folding)
 
-                for space, kwd in results:
+                # process a block comment
 
-                    if not (space or kwd):
+                elif i == blockpos:
 
-                        break
+                    state, folding = self.processChunk(chunk[:i], lastState, keywords)
 
-                    self.setStyling(len(space), self.Default)
+                    self.setStyling(2, self.Comment)
 
-                    if kwd in keywords:
+                    newstate, newfolding = self.processChunk(
+                        chunk[i + 2 :], self.Comment, keywords
+                    )
 
-                        self.setStyling(len(kwd), self.Keyword)
+                    return (newstate, newfolding + folding)
 
-                    else:
+            # otherwise, we are processing a default set of text whose syntaxing is irrelavent from the previous one
 
-                        self.setStyling(len(kwd), self.Default)
+            results = re.findall('([^A-Za-z0-9]*)([A-Za-z0-9]*)', chunk)
 
-                return self.Default
+            for space, kwd in results:
+
+                if not (space or kwd):
+
+                    break
+
+                self.setStyling(len(space), self.Default)
+
+                if kwd in keywords:
+
+                    self.setStyling(len(kwd), self.Keyword)
+
+                else:
+
+                    self.setStyling(len(kwd), self.Default)
+
+            # in this context, look for opening and closing parenthesis which will determine folding scope
+
+            return (self.Default, chunk.count('(') - chunk.count(')'))
 
     def styleText(self, start, end):
 
@@ -290,37 +302,23 @@ class MaxscriptLexer(QsciLexerCustom):
 
         # scintilla always asks to style whole lines
 
-        lastIndent = ''
-
-        import re
-
         for line in source.splitlines(True):
 
-            lastState = self.processChunk(line, lastState, MS_KEYWORDS.split())
+            lastState, folding = self.processChunk(line, lastState, MS_KEYWORDS.split())
 
-            # handle folding alla python, based on the spaces at the front of the line
+            # open folding levels
 
-            results = re.match('([ \t]*)', line)
+            if folding > 0:
 
-            indent = results.groups()[0].replace('\t', ' ')
+                SCI(SETFOLDLEVEL, index, CURRFOLDLEVEL | HEADERFLAG)
 
-            diff = len(indent) - len(lastIndent)
+                CURRFOLDLEVEL += folding
 
-            lastIndent = indent
-
-            # show the collapse level
-
-            if diff > 0:
-
-                SCI(SETFOLDLEVEL, index - 1, CURRFOLDLEVEL | HEADERFLAG)
-
-            # update the current fold level
-
-            CURRFOLDLEVEL += diff
-
-            if lastIndent:
+            else:
 
                 SCI(SETFOLDLEVEL, index, CURRFOLDLEVEL)
+
+                CURRFOLDLEVEL += folding
 
             # folding implementation goes here
 
