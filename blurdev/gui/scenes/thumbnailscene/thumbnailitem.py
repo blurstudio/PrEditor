@@ -11,6 +11,11 @@
 
 from PyQt4.QtGui import QGraphicsRectItem
 
+from blurdev.enum import enum
+
+
+ThumbnailHighlightMode = enum('Boxed', 'Text', 'Grayscale')
+
 # -------------------------------------------------------------------------------------------------------------
 
 
@@ -28,6 +33,10 @@ class ThumbnailItem(QGraphicsRectItem):
         self._caption = ''
         self._dragEnabled = False
 
+        self._highlightMode = ThumbnailHighlightMode.Boxed
+
+        self._customData = {}
+
         # update the flag options
         self.setFlags(
             QGraphicsRectItem.ItemIsSelectable | QGraphicsRectItem.ItemIsFocusable
@@ -40,8 +49,16 @@ class ThumbnailItem(QGraphicsRectItem):
     def clearThumbnail(self):
         self._thumbnail = None
 
+    def customData(self, key, default=None):
+
+        return self._customData.get(str(key), default)
+
     def dragEnabled(self):
         return self._dragEnabled
+
+    def highlightMode(self):
+
+        return self._highlightMode
 
     def paint(self, painter, option, widget):
         from PyQt4.QtCore import Qt, QRect
@@ -64,7 +81,7 @@ class ThumbnailItem(QGraphicsRectItem):
             pen.setWidth(2)
             painter.setPen(pen)
 
-            if not caption:
+            if self.highlightMode() & ThumbnailHighlightMode.Boxed:
                 painter.drawRect(px - 1, py - 1, thumb.width() + 2, thumb.height() + 2)
 
         painter.drawPixmap(px, py, thumb)
@@ -129,10 +146,18 @@ class ThumbnailItem(QGraphicsRectItem):
 
     def setCaption(self, caption):
 
-        self._caption = caption
+        self._caption = str(caption)
+
+    def setCustomData(self, key, value):
+
+        self._customData[str(key)] = value
 
     def setDragEnabled(self, state):
         self._dragEnabled = state
+
+    def setHighlightMode(self, highlightMode):
+
+        self._highlightMode = highlightMode
 
     def setMimeText(self, text):
         self._mimeText = text

@@ -9,5 +9,5 @@
 # 	\date		03/31/10
 #
 
-from thumbnailitem import ThumbnailItem
+from thumbnailitem import ThumbnailItem, ThumbnailHighlightMode
 from thumbnailscene import ThumbnailScene

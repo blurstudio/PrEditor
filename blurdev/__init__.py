@@ -80,7 +80,7 @@ def init():
         application = core.init()
 
 
-def launch(ctor, modal=False, coreName=''):
+def launch(ctor, modal=False, coreName='external'):
     """
         \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
                     the blurdev system.  Using this function call, blurdev will determine what the application is
@@ -104,11 +104,8 @@ def launch(ctor, modal=False, coreName=''):
     if application:
         application.setStyle('Plastique')
 
-        if coreName:
+        if core.objectName() == 'blurdev':
             core.setObjectName(coreName)
-
-        elif core.objectName() == 'blurdev':
-            core.setObjectName('external')
 
     # always run wizards modally
     iswiz = False

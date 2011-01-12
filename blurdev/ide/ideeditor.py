@@ -604,7 +604,16 @@ class IdeEditor(Window):
         cmd, key, path = IdeEditor.Registry.get(ext, ('', '', ''))
 
         # load using a command from the registry
-        if mods != Qt.AltModifier and cmd:
+
+        if mods != Qt.AltModifier and ext == '.sdk':
+
+            # launch a blur SDK file
+
+            import blurdev
+
+            blurdev.core.sdkBrowser().showSdk(filename)
+
+        elif mods != Qt.AltModifier and cmd:
             from PyQt4.QtCore import QProcess
 
             if key:

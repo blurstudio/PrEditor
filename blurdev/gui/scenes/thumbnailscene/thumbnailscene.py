@@ -45,6 +45,8 @@ class ThumbnailScene(QGraphicsScene):
         self._thumbnailSize = QSize(128, 128)
         self._cellPadding = QSize(6, 6)
 
+        self._showCaptions = False
+
     def addThumbGroup(self, name):
         from thumbnailgroup import ThumbnailGroup
 
@@ -189,9 +191,9 @@ class ThumbnailScene(QGraphicsScene):
 
         rect = view.rect()
         if self.layoutDirection() == Qt.Vertical:
-            rect.setWidth(rect.width() - 20)  # factor out vertical scroll bar
+            rect.setWidth(rect.width() - 25)  # factor out vertical scroll bar
         else:
-            rect.setHeight(rect.height() - 20)  # factor out horizontal scroll bar
+            rect.setHeight(rect.height() - 25)  # factor out horizontal scroll bar
 
         self.recalculate(rect, force)
 
@@ -220,6 +222,11 @@ class ThumbnailScene(QGraphicsScene):
         padding = self.cellPadding()
         cellwidth = icowidth + (2 * padding.width())
         cellheight = icoheight + (2 * padding.height())
+
+        if self.showCaptions():
+
+            cellheight += 18
+
         bottom = 0
         right = 0
 
@@ -246,7 +253,7 @@ class ThumbnailScene(QGraphicsScene):
         if self.reverseSort():
             keys.reverse()
 
-        ypos = 0
+        ypos = padding.height()
         for key in keys:
             if key:
                 key.setRect(0, 0, width, 25)
@@ -259,7 +266,7 @@ class ThumbnailScene(QGraphicsScene):
 
             # calculate the grid for a vertical scene
             if self.layoutDirection() == Qt.Vertical:
-                colcount = int(float(width - (2 * padding.width())) / cellwidth) + 1
+                colcount = int(float(width - (2 * padding.width())) / cellwidth)
                 if colcount == 0:
                     colcount = 1
 
@@ -272,7 +279,7 @@ class ThumbnailScene(QGraphicsScene):
 
             # calculate the grid for a horizontal scene
             else:
-                rowcount = int(float(height - (2 * padding.height())) / cellheight) + 1
+                rowcount = int(float(height - (2 * padding.height())) / cellheight)
                 if rowcount == 0:
                     rowcount = 1
 
@@ -326,8 +333,30 @@ class ThumbnailScene(QGraphicsScene):
     def setLayoutDirection(self, direction):
         self._layoutDirection = direction
 
+        from PyQt4.QtCore import Qt
+
+        if direction == Qt.Vertical:
+
+            for view in self.views():
+
+                view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        else:
+
+            for view in self.views():
+
+                view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+                view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+
     def setReverseSort(self, state=True):
         self._reverseSort = state
+
+    def setShowCaptions(self, state):
+
+        self._showCaptions = state
 
     def setThumbnailSize(self, size):
         if size != self._thumbnailSize:
@@ -340,6 +369,10 @@ class ThumbnailScene(QGraphicsScene):
                     item.clearThumbnail()
 
             self.recalculateFromView(self.views()[0], True)
+
+    def showCaptions(self):
+
+        return self._showCaptions
 
     def thumbnailSize(self):
         return self._thumbnailSize
