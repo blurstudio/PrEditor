@@ -259,7 +259,7 @@ class DocumentEditor(QsciScintilla):
         if filename:
             filename = str(filename)
             f = open(filename, 'w')
-            f.write(self.text())
+            f.write(unicode(self.text()).replace('\r', ''))  # scintilla puts both
             f.close()
 
             self._filename = filename
