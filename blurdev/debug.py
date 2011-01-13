@@ -17,9 +17,54 @@ _debugLogger = None
 DebugLevel = enum('Low', 'Mid', 'High')
 
 
+# ---------------------------------------
+
+
 class DebugLogger:
 
     pass
+
+
+# ---------------------------------------
+
+
+class Stopwatch:
+    def __init__(self):
+
+        import datetime
+
+        self._starttime = datetime.datetime.now()
+
+        self._laptime = None
+
+    def record(self, message, level=1):
+
+        import datetime
+
+        curr = datetime.datetime.now()
+
+        # record the total time
+
+        total = str(curr - self._starttime)
+
+        # record the difference in the laptime
+
+        if self._laptime:
+
+            lap = str(curr - self._laptime)
+
+        else:
+
+            lap = '0:00:00.000000'
+
+        # record the current time as the laptime
+
+        self._laptime = curr
+
+        debugMsg('lap: %s | total: %s | %s' % (lap, total, message), level)
+
+
+# ---------------------------------------
 
 
 def debugMsg(msg, level=2):

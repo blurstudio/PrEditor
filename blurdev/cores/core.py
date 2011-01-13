@@ -366,6 +366,18 @@ class Core(QObject):
         newenv.registerPath(newenv.relativePath('maxscript/treegrunt/lib'))
         newenv.registerPath(newenv.relativePath('code/python/lib'))
 
+    def restoreToolbars(self):
+
+        from blurdev import prefs
+
+        tbars = prefs.find('toolbars')
+
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
+        if not ToolsToolBarDialog.restoreToolbars(tbars.root()):
+
+            self.toolbarDialog().show()
+
     def rootWindow(self):
         """
             \remarks	returns the currently active window
@@ -665,6 +677,12 @@ class Core(QObject):
         key = str(moduleName)
         while key in self._protectedModules:
             self._protectedModules.remove(key)
+
+    def toolbarDialog(self, parent=None, title='Blur Tools'):
+
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
+        return ToolsToolBarDialog.instance(parent, title=title)
 
     def toolTypes(self):
         """

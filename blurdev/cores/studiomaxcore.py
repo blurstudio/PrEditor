@@ -34,6 +34,8 @@ class StudiomaxCore(Core):
         Core.__init__(self)
         self.setObjectName('studiomax')
 
+        self._supportLegacy = False
+
     def createToolMacro(self, tool, macro=''):
         """
             \remarks	Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
@@ -113,6 +115,8 @@ class StudiomaxCore(Core):
         # init the base class
         Core.init(self)
 
+        self.restoreToolbars()
+
     def registerPaths(self, oldenv, newenv):
 
         # update the old blur maxscript library system
@@ -125,13 +129,15 @@ class StudiomaxCore(Core):
 
         # update the old library system
 
-        from Py3dsMax import mxs
+        if self.supportLegacy():
 
-        blurlib = mxs._blurLibrary
+            from Py3dsMax import mxs
 
-        if blurlib:
+            blurlib = mxs._blurLibrary
 
-            blurlib.setCodePath(env)
+            if blurlib:
+
+                blurlib.setCodePath(env)
 
         # register standard paths
 
@@ -182,6 +188,14 @@ class StudiomaxCore(Core):
             return False
 
         return Core.runScript(self, filename, scope, argv, toolType)
+
+    def setSupportLegacy(self, state):
+
+        self._supportLegacy = state
+
+    def supportLegacy(self):
+
+        return self._supportLegacy
 
     def toolTypes(self):
         """

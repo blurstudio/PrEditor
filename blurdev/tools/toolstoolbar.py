@@ -67,8 +67,8 @@ class ToolbarAction(QAction):
 class ToolsToolBar(QToolBar):
     """ QToolBar sub-class to contain actions for Tools """
 
-    def __init__(self, title):
-        QToolBar.__init__(self)
+    def __init__(self, parent, title):
+        QToolBar.__init__(self, parent)
 
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
@@ -82,6 +82,16 @@ class ToolsToolBar(QToolBar):
 
         # create connections
         self.actionTriggered.connect(self.runAction)
+
+    def clear(self):
+
+        for act in self.findChildren(ToolbarAction):
+
+            self.removeAction(act)
+
+            act.setParent(None)
+
+            act.deleteLater()
 
     def dragEnterEvent(self, event):
         """ filter drag events for specific items, treegrunt tools or script files """
@@ -111,6 +121,9 @@ class ToolsToolBar(QToolBar):
 
     def fromXml(self, xml):
         """ loads a toolbar from an xml element """
+
+        self.clear()
+
         bar = xml.findChild('toolbar')
 
         if not bar:
@@ -172,3 +185,104 @@ class ToolsToolBar(QToolBar):
         for action in self.actions():
 
             action.toXml(actionsxml)
+
+
+from blurdev.gui import Dialog
+
+
+class ToolsToolBarDialog(Dialog):
+
+    _instances = {}
+
+    def __init__(self, parent, title):
+
+        Dialog.__init__(self, parent)
+
+        self.setWindowTitle(title)
+
+        from PyQt4.QtGui import QHBoxLayout
+
+        layout = QHBoxLayout()
+
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout.setSpacing(0)
+
+        self._toolbar = ToolsToolBar(self, title)
+
+        layout.addWidget(self._toolbar)
+
+        self.setLayout(layout)
+
+        self.setFixedHeight(30)
+
+        from PyQt4.QtCore import Qt
+
+        self.setWindowFlags(Qt.Tool)
+
+    def closeEvent(self, event):
+
+        from blurdev import prefs
+
+        pref = prefs.find('toolbars')
+
+        self.recordToolbars(pref.root())
+
+        pref.save()
+
+        Dialog.closeEvent(self, event)
+
+    @staticmethod
+    def recordToolbars(xml):
+
+        for name, inst in ToolsToolBarDialog._instances.items():
+
+            child = xml.addNode('toolbardialog')
+
+            child.setAttribute('title', name)
+
+            child.setAttribute('visible', inst.isVisible())
+
+            child.recordProperty('geom', inst.geometry())
+
+            inst._toolbar.toXml(child)
+
+    @staticmethod
+    def restoreToolbars(xml):
+
+        count = 0
+
+        for child in xml.children():
+
+            inst = ToolsToolBarDialog.instance(None, title=child.attribute('title'))
+
+            inst.setVisible(child.attribute('visible') == 'True')
+
+            geom = child.restoreProperty('geom')
+
+            if geom and geom.isValid():
+
+                inst.setGeometry(geom)
+
+            inst._toolbar.fromXml(child)
+
+            count += 1
+
+        return count
+
+    @staticmethod
+    def instance(parent, title='Blur Tools'):
+
+        inst = ToolsToolBarDialog._instances.get(title)
+
+        if not inst:
+
+            inst = ToolsToolBarDialog(parent, title)
+
+            from PyQt4.QtCore import Qt
+
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+
+            ToolsToolBarDialog._instances[title] = inst
+
+        return inst
