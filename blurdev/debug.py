@@ -11,17 +11,14 @@
 from enum import enum
 
 _currentLevel = 0
-
 _debugLogger = None
 
 DebugLevel = enum('Low', 'Mid', 'High')
-
 
 # ---------------------------------------
 
 
 class DebugLogger:
-
     pass
 
 
@@ -29,39 +26,64 @@ class DebugLogger:
 
 
 class Stopwatch:
-    def __init__(self):
+    def __init__(self, name, debugLevel=1):
+        self._name = str(name)
+        self._count = 0
+        self._debugLevel = debugLevel
+        self._lapStack = []
 
+        self.reset()
+
+    def reset(self):
         import datetime
 
         self._starttime = datetime.datetime.now()
-
         self._laptime = None
+        self._records = []
+        self._laps = []
 
-    def record(self, message, level=1):
+    def startLap(self, message):
+        import datetime
+
+        self._lapStack.append((message, datetime.datetime.now()))
+
+    def stop(self):
+        # pop all the laps
+        while self._lapStack:
+            self.stopLap()
+
+        import datetime
+
+        ttime = str(datetime.datetime.now() - self._starttime)
+
+        # output the logs
+        output = ['time:%s | %s Stopwatch' % (ttime, self._name)]
+        output.append('------------------------------------------')
+        output += self._records
+        output.append('')
+
+        debugMsg('\n'.join(output), self._debugLevel)
+
+    def stopLap(self):
+        if not self._lapStack:
+            return False
 
         import datetime
 
         curr = datetime.datetime.now()
 
-        # record the total time
+        message, sstart = self._lapStack.pop()
 
-        total = str(curr - self._starttime)
+        # process the elapsed time
+        elapsed = str(curr - sstart)
+        if not '.' in elapsed:
+            elapsed += '.'
 
-        # record the difference in the laptime
+        while len(elapsed) < 14:
+            elapsed += '0'
 
-        if self._laptime:
-
-            lap = str(curr - self._laptime)
-
-        else:
-
-            lap = '0:00:00.000000'
-
-        # record the current time as the laptime
-
-        self._laptime = curr
-
-        debugMsg('lap: %s | total: %s | %s' % (lap, total, message), level)
+        # record a lap
+        self._records.append('\tlap: %s | %s' % (elapsed, message))
 
 
 # ---------------------------------------
