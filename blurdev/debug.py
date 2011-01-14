@@ -43,11 +43,18 @@ class Stopwatch:
         self._laps = []
 
     def startLap(self, message):
+        if _currentLevel < self._debugLevel:
+            return False
+
         import datetime
 
         self._lapStack.append((message, datetime.datetime.now()))
+        return True
 
     def stop(self):
+        if _currentLevel < self._debugLevel:
+            return False
+
         # pop all the laps
         while self._lapStack:
             self.stopLap()
@@ -63,6 +70,7 @@ class Stopwatch:
         output.append('')
 
         debugMsg('\n'.join(output), self._debugLevel)
+        return True
 
     def stopLap(self):
         if not self._lapStack:
