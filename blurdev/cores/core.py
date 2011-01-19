@@ -174,7 +174,6 @@ class Core(QObject):
                         app.setStylesheet(stylesheet)
 
                     # initialize the logger
-
                     self.logger()
 
                 return True
@@ -204,6 +203,11 @@ class Core(QObject):
             \param		*args	<tuple> additional arguments
         """
         self.emit(SIGNAL(signal), *args)
+
+    def emitEnvironmentActivated(self, oldenv, newenv):
+        self.recordSettings()
+        if not self.signalsBlocked():
+            self.environmentActivated.emit(oldenv, newenv)
 
     def enableKeystrokes(self):
         # enable the client keystrokes
@@ -254,7 +258,6 @@ class Core(QObject):
         from PyQt4.QtGui import QApplication
 
         app = QApplication.instance()
-
         output = None
 
         if app and self.isMfcApp():
@@ -271,10 +274,11 @@ class Core(QObject):
             app.installEventFilter(self)
 
         # create a new application
-
         elif not app:
-
             output = QApplication([])
+
+        # restore the core settings
+        self.restoreSettings()
 
         return output
 
@@ -285,7 +289,6 @@ class Core(QObject):
         return self._hwnd
 
     def ideeditor(self, parent=None):
-
         from blurdev.ide.ideeditor import IdeEditor
 
         return IdeEditor.instance(parent)
@@ -300,7 +303,6 @@ class Core(QObject):
         """
             \remarks	creates and returns the logger instance
         """
-
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
@@ -366,16 +368,36 @@ class Core(QObject):
         newenv.registerPath(newenv.relativePath('maxscript/treegrunt/lib'))
         newenv.registerPath(newenv.relativePath('code/python/lib'))
 
-    def restoreToolbars(self):
-
+    def recordSettings(self):
         from blurdev import prefs
 
-        tbars = prefs.find('toolbars')
+        pref = prefs.find('blurdev/core')
 
+        from blurdev.tools import ToolsEnvironment
+
+        pref.recordProperty(
+            'environment', ToolsEnvironment.activeEnvironment().objectName()
+        )
+        pref.save()
+
+    def restoreSettings(self):
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev/core')
+
+        env = pref.restoreProperty('environment')
+        if env:
+            from blurdev.tools import ToolsEnvironment
+
+            ToolsEnvironment.findEnvironment(env).setActive()
+
+    def restoreToolbars(self):
+        from blurdev import prefs
+
+        tbars = prefs.find('blurdev/toolbars')
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
         if not ToolsToolBarDialog.restoreToolbars(tbars.root()):
-
             self.toolbarDialog().show()
 
     def rootWindow(self):
@@ -410,24 +432,19 @@ class Core(QObject):
         return False
 
     def runStandalone(self, filename, debugLevel=None, basePath=''):
-
         from blurdev import debug
 
         if debugLevel == None:
-
             debugLevel = debug.debugLevel()
 
         import os.path
         from PyQt4.QtCore import QProcess
 
         filename = str(filename)
-
         if not basePath:
-
             basePath = os.path.split(filename)[0]
 
         success = False
-
         if debugLevel == debug.DebugLevel.High:
             # run a python file
             if os.path.splitext(filename)[1].startswith('.py'):
@@ -446,17 +463,12 @@ class Core(QObject):
             success, value = QProcess.startDetached(filename, [], basePath)
 
         if not success:
-
             import os
 
             try:
-
                 os.startfile(filename)
-
                 success = True
-
             except:
-
                 pass
 
         return success
@@ -590,7 +602,6 @@ class Core(QObject):
         return False
 
     def sdkBrowser(self, parent=None):
-
         from blurdev.gui.windows.sdkwindow import SdkWindow
 
         return SdkWindow.instance(parent)
@@ -654,7 +665,6 @@ class Core(QObject):
         smtp.close()
 
     def showIdeEditor(self):
-
         from blurdev.ide import IdeEditor
 
         IdeEditor.instance().edit()
@@ -666,7 +676,6 @@ class Core(QObject):
         """
             \remarks	creates the python logger and displays it
         """
-
         self.logger().show()
 
     def unprotectModule(self, moduleName):
@@ -679,7 +688,6 @@ class Core(QObject):
             self._protectedModules.remove(key)
 
     def toolbarDialog(self, parent=None, title='Blur Tools'):
-
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
         return ToolsToolBarDialog.instance(parent, title=title)
@@ -699,7 +707,6 @@ class Core(QObject):
         """
             \remarks	creates and returns the logger instance
         """
-
         from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
         return TreegruntDialog.instance(parent)

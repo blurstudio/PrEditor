@@ -127,7 +127,7 @@ class ToolsEnvironment(QObject):
 
         blurdev.core.environmentActivated.emit(self, self)
 
-    def setActive(self):
+    def setActive(self, silent=False):
         """
             \remarks	sets this environment as the active environment and switches the currently running modules from the
                         system
@@ -143,9 +143,11 @@ class ToolsEnvironment(QObject):
             self.registerPath(self.path())
 
             # emit the environment activateion change signal
-            import blurdev
+            if not silent:
+                import blurdev
 
-            blurdev.core.environmentActivated.emit(old, self)
+                blurdev.core.emitEnvironmentActivated(old, self)
+
             return True
         return False
 
@@ -210,13 +212,9 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def findDevelopmentEnvironment():
-
         for env in ToolsEnvironment.environments:
-
             if env.isDevelopment():
-
                 return env
-
         return ToolsEnvironment.activeEnvironment()
 
     @staticmethod
@@ -266,7 +264,7 @@ class ToolsEnvironment(QObject):
                 ToolsEnvironment.environments.append(ToolsEnvironment.fromXml(child))
 
             # initialize the default environment
-            ToolsEnvironment.defaultEnvironment().setActive()
+            ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
     @staticmethod
     def registerPath(path):

@@ -44,7 +44,6 @@ class ThumbnailScene(QGraphicsScene):
         self._layoutDirection = Qt.Vertical
         self._thumbnailSize = QSize(128, 128)
         self._cellPadding = QSize(6, 6)
-
         self._showCaptions = False
 
     def addThumbGroup(self, name):
@@ -222,9 +221,7 @@ class ThumbnailScene(QGraphicsScene):
         padding = self.cellPadding()
         cellwidth = icowidth + (2 * padding.width())
         cellheight = icoheight + (2 * padding.height())
-
         if self.showCaptions():
-
             cellheight += 18
 
         bottom = 0
@@ -271,7 +268,7 @@ class ThumbnailScene(QGraphicsScene):
                     colcount = 1
 
                 if colcount < numthumbs:
-                    rowcount = numthumbs / colcount
+                    rowcount = numthumbs / colcount + 1
                     if numthumbs % colcount:
                         rowcount += 1
                 else:
@@ -284,7 +281,7 @@ class ThumbnailScene(QGraphicsScene):
                     rowcount = 1
 
                 if rowcount < numthumbs:
-                    colcount = numthumbs / rowcount
+                    colcount = numthumbs / rowcount + 1
                     if numthumbs % rowcount:
                         colcount += 1
                 else:
@@ -336,26 +333,18 @@ class ThumbnailScene(QGraphicsScene):
         from PyQt4.QtCore import Qt
 
         if direction == Qt.Vertical:
-
             for view in self.views():
-
                 view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-
                 view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
         else:
-
             for view in self.views():
-
                 view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
                 view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
 
     def setReverseSort(self, state=True):
         self._reverseSort = state
 
     def setShowCaptions(self, state):
-
         self._showCaptions = state
 
     def setThumbnailSize(self, size):
@@ -371,7 +360,6 @@ class ThumbnailScene(QGraphicsScene):
             self.recalculateFromView(self.views()[0], True)
 
     def showCaptions(self):
-
         return self._showCaptions
 
     def thumbnailSize(self):

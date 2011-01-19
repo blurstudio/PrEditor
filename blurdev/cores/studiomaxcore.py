@@ -33,7 +33,6 @@ class StudiomaxCore(Core):
     def __init__(self):
         Core.__init__(self)
         self.setObjectName('studiomax')
-
         self._supportLegacy = False
 
     def createToolMacro(self, tool, macro=''):
@@ -53,13 +52,14 @@ class StudiomaxCore(Core):
         }
 
         # create the macroscript
-        import Py3dsMax
+        from Py3dsMax import mxs
 
-        filename = Py3dsMax.mxs.pathConfig.resolvePathSymbols(
+        filename = mxs.pathConfig.resolvePathSymbols(
             '$usermacros/Blur_%s_Macro.mcr' % options['id']
         )
         f = open(filename, 'w')
         f.write(STUDIOMAX_MACRO_TEMPLATE % options)
+        f.close()
 
         # convert icon files to max standard ...
         from PyQt4.QtGui import QImage
@@ -68,7 +68,7 @@ class StudiomaxCore(Core):
         icon24 = root.scaled(24, 24)
 
         # ... for 24x24 pixels (image & alpha icons)
-        basename = Py3dsMax.mxs.pathConfig.resolvePathSymbols(
+        basename = mxs.pathConfig.resolvePathSymbols(
             '$usericons/Blur_%s_Macro' % options['id']
         )
         icon24.save(basename + '_24i.bmp')
@@ -80,9 +80,9 @@ class StudiomaxCore(Core):
         icon16.alphaChannel().save(basename + '_16a.bmp')
 
         # run the macroscript & refresh the icons
-        Py3dsMax.mxs.filein(filename)
-        Py3dsMax.mxs.colorman.setIconFolder('.')
-        Py3dsMax.mxs.colorman.setIconFolder('Icons')
+        mxs.filein(filename)
+        mxs.colorman.setIconFolder('.')
+        mxs.colorman.setIconFolder('Icons')
 
         return True
 
@@ -118,29 +118,20 @@ class StudiomaxCore(Core):
         self.restoreToolbars()
 
     def registerPaths(self, oldenv, newenv):
-
         # update the old blur maxscript library system
-
         env = str(newenv.objectName()).lower()
-
         if env != 'local':
-
             env = 'network'
 
         # update the old library system
-
         if self.supportLegacy():
-
             from Py3dsMax import mxs
 
             blurlib = mxs._blurLibrary
-
             if blurlib:
-
                 blurlib.setCodePath(env)
 
         # register standard paths
-
         return Core.registerPaths(self, oldenv, newenv)
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
@@ -174,11 +165,8 @@ class StudiomaxCore(Core):
                 import Py3dsMax
 
                 try:
-
                     runcmd = Py3dsMax.runMaxscript
-
                 except:
-
                     from Py3dsMax import mxs
 
                     runcmd = mxs.filein
@@ -190,11 +178,9 @@ class StudiomaxCore(Core):
         return Core.runScript(self, filename, scope, argv, toolType)
 
     def setSupportLegacy(self, state):
-
         self._supportLegacy = state
 
     def supportLegacy(self):
-
         return self._supportLegacy
 
     def toolTypes(self):
