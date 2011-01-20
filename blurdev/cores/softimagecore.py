@@ -45,6 +45,8 @@ class SoftimageCore(Core):
         # init the base class
         Core.init(self)
 
+        self.restoreToolbars()
+
     def toolTypes(self):
         """
             \remarks	Overloads the toolTypes method from the Core class to show tool types that are related to
