@@ -47,3 +47,42 @@ def isMovie(filename):
 
     # return if the extension type is in the movies dictionary
     return ext in _movieFileTypes
+
+
+def isImageSequence(filename):
+    import os.path
+
+    ext = os.path.splitext(str(filename))[0]
+
+    # return if the extension type is in the image dictionary and there is a '#' in the filename
+    return ext in _imageFileTypes and '#' in filename
+
+
+def isImage(filename):
+    import os.path
+
+    ext = os.path.splitext(str(filename))[0]
+
+    # return if the extension is in the image dictionary
+    return ext in _imageFileTypes
+
+
+def imageFileTypes():
+    return ';;'.join(
+        ['%s (*%s)' % (value[0], key) for key, value in _imageFileTypes.items()]
+    )
+
+
+def movieFileTypes():
+    return ';;'.join(
+        ['%s (*%s)' % (value[0], key) for key, value in _movieFileTypes.items()]
+    )
+
+
+def mediaFileTypes():
+    return ';;'.join(
+        [
+            '%s (*%s)' % (value[0], key)
+            for key, value in _imageFileTypes.items() + _movieFileTypes.items()
+        ]
+    )
