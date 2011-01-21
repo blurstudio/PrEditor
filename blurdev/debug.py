@@ -207,14 +207,14 @@ def setDebugLevel(level):
     """
     from PyQt4.QtCore import QString
 
+    import blurdev
+
     global _currentLevel
 
     # clear the debug level
     if not level:
-        import blurdev
-
-        blurdev.core.debugLevelChanged.emit()
         _currentLevel = 0
+        blurdev.core.emitDebugLevelChanged()
         return True
 
     # check for the debug value if a string is passed in
@@ -224,9 +224,7 @@ def setDebugLevel(level):
     # assign the debug flag
     if DebugLevel.isValid(level):
         _currentLevel = level
-        import blurdev
-
-        blurdev.core.debugLevelChanged.emit()
+        blurdev.core.emitDebugLevelChanged()
         return True
     else:
         debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)

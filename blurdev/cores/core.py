@@ -15,9 +15,7 @@ from blurdev.tools import ToolsEnvironment
 
 class Core(QObject):
     # CUSTOM SIGNALS
-    environmentActivated = pyqtSignal(
-        ToolsEnvironment, ToolsEnvironment
-    )  # emits that the environment has changed from old to new
+    environmentActivated = pyqtSignal()  # emits that the active environment has changed
     debugLevelChanged = pyqtSignal()
     fileCheckedIn = pyqtSignal(str)
     fileCheckedOut = pyqtSignal(str)
@@ -121,8 +119,7 @@ class Core(QObject):
 
     def __init__(self, hwnd=0):
         QObject.__init__(self)
-
-        self.setObjectName('blurdev')
+        QObject.setObjectName(self, 'blurdev')
 
         # create custom properties
         self._protectedModules = []
@@ -134,6 +131,8 @@ class Core(QObject):
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
+        self.environmentActivated.connect(self.recordSettings)
+        self.debugLevelChanged.connect(self.recordSettings)
 
     def activeWindow(self):
         from PyQt4.QtGui import QApplication
@@ -204,10 +203,13 @@ class Core(QObject):
         """
         self.emit(SIGNAL(signal), *args)
 
-    def emitEnvironmentActivated(self, oldenv, newenv):
-        self.recordSettings()
+    def emitEnvironmentActivated(self):
         if not self.signalsBlocked():
-            self.environmentActivated.emit(oldenv, newenv)
+            self.environmentActivated.emit()
+
+    def emitDebugLevelChanged(self):
+        if not self.signalsBlocked():
+            self.debugLevelChanged.emit()
 
     def enableKeystrokes(self):
         # enable the client keystrokes
@@ -279,6 +281,7 @@ class Core(QObject):
 
         # restore the core settings
         self.restoreSettings()
+        self.registerPaths()
 
         return output
 
@@ -358,15 +361,15 @@ class Core(QObject):
         """
         return self._protectedModules
 
-    def registerPaths(self, oldenv, newenv):
+    def registerPaths(self):
         """
             \remarks	registers the paths that are needed based on this core
-            \param		oldenv		<blurdev.tools.ToolsEnvironment>
-            \param		newenv		<blurdev.tools.ToolsEnvironment>
         """
+        from blurdev.tools import ToolsEnvironment
 
-        newenv.registerPath(newenv.relativePath('maxscript/treegrunt/lib'))
-        newenv.registerPath(newenv.relativePath('code/python/lib'))
+        env = ToolsEnvironment.activeEnvironment()
+        env.registerPath(env.relativePath('maxscript/treegrunt/lib'))
+        env.registerPath(env.relativePath('code/python/lib'))
 
     def recordSettings(self):
         from blurdev import prefs
@@ -378,18 +381,34 @@ class Core(QObject):
         pref.recordProperty(
             'environment', ToolsEnvironment.activeEnvironment().objectName()
         )
+
+        from blurdev import debug
+
+        pref.recordProperty('debugLevel', debug.debugLevel())
         pref.save()
 
     def restoreSettings(self):
+        self.blockSignals(True)
+
         from blurdev import prefs
 
         pref = prefs.find('blurdev/core')
 
+        # restore the active environment
         env = pref.restoreProperty('environment')
         if env:
             from blurdev.tools import ToolsEnvironment
 
             ToolsEnvironment.findEnvironment(env).setActive()
+
+        # restore the active debug level
+        level = pref.restoreProperty('debugLevel')
+        if level != None:
+            from blurdev import debug
+
+            debug.setDebugLevel(level)
+
+        self.blockSignals(False)
 
     def restoreToolbars(self):
         from blurdev import prefs
@@ -663,6 +682,18 @@ class Core(QObject):
         smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
 
         smtp.close()
+
+    def setObjectName(self, objectName):
+        if objectName != self.objectName():
+            QObject.setObjectName(self, objectName)
+
+            # clear the caching environments
+            from blurdev import prefs
+
+            prefs.clearCache()
+
+            # make sure we have the proper settings restored based on the new application
+            self.restoreSettings()
 
     def showIdeEditor(self):
         from blurdev.ide import IdeEditor

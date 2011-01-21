@@ -8,13 +8,10 @@
 # 	\date		06/11/10
 #
 
-
 # track the install path
-
 import os.path
 
 installPath = os.path.split(__file__)[0]
-
 
 # include the blur path
 from tools import ToolsEnvironment
@@ -143,18 +140,13 @@ def quickReload(modulename):
     expr = re.compile(str(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
 
     # reload longer chains first
-
     keys = sys.modules.keys()
-
     keys.sort()
-
     keys.reverse()
 
     for key in keys:
-
         module = sys.modules[key]
         if expr.match(key) and module != None:
-
             print 'reloading', key
             reload(module)
 
@@ -190,7 +182,6 @@ def relativePath(path, additional):
 
 
 def resourcePath(relpath):
-
     return relativePath(__file__, 'resource/%s' % relpath)
 
 

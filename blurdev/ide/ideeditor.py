@@ -43,11 +43,8 @@ class IdeEditor(Window):
         self._searchText = ''
         self._searchFlags = 0
         self._searchDialog = None
-
         self._recentFiles = []
-
         self._recentFileMax = 10
-
         self._recentFileMenu = None
         self.setAcceptDrops(True)
 
@@ -61,19 +58,14 @@ class IdeEditor(Window):
         self._searchDialog = FindDialog(self)
 
         # create a template completer
-
         from blurdev import template
 
         from PyQt4.QtCore import Qt
-
         from PyQt4.QtGui import QListWidget
 
         self._templateCompleter = QListWidget(self)
-
         self._templateCompleter.addItems(template.templNames())
-
         self._templateCompleter.setWindowFlags(Qt.Popup)
-
         self._templateCompleter.installEventFilter(self)
 
         # create the filesystem model for the explorer tree
@@ -87,20 +79,17 @@ class IdeEditor(Window):
             self.uiExplorerTREE.setColumnHidden(i, True)
 
         # bind the mimeData method
-
         import blurdev
 
         blurdev.bindMethod(self.uiProjectTREE, 'mimeData', self.projectMimeData)
 
         self.restoreSettings()
-
         self.refreshRecentFiles()
 
         # create connections
         self.uiProjectTREE.itemClicked.connect(self.updatePath)
         self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
-
         self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.doubleClicked.connect(self.editItem)
@@ -136,11 +125,8 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
-
         self.uiInsertTemplateACT.triggered.connect(self.documentChooseTemplate)
-
         self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
-
         self.uiTemplateManagerACT.triggered.connect(self.showTemplateManager)
 
         # connect search menu
@@ -222,15 +208,10 @@ class IdeEditor(Window):
 
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
-
             item = self.uiProjectTREE.currentItem()
-
             if item:
-
                 path = item.filePath()
-
                 if path:
-
                     path = os.path.split(str(path))[0]
         else:
             path = str(
@@ -246,11 +227,8 @@ class IdeEditor(Window):
 
         # load a project file
         if self.uiBrowserTAB.currentIndex() == 0:
-
             item = self.uiProjectTREE.currentItem()
-
             if item:
-
                 filename = item.filePath()
 
         # load an explorer file
@@ -358,33 +336,23 @@ class IdeEditor(Window):
             doc.goToLine()
 
     def documentChooseTemplate(self):
-
         from PyQt4.QtGui import QCursor
 
         self._templateCompleter.move(QCursor.pos())
-
         self._templateCompleter.show()
 
     def documentInsertTemplate(self, item):
-
         if not item:
-
             return
 
         doc = self.currentDocument()
-
         if doc:
-
             options = {}
-
             options['selection'] = doc.selectedText()
-
             from blurdev import template
 
             text = template.templ(item.text(), options)
-
             if text:
-
                 doc.insert(text)
 
         self._templateCompleter.close()
@@ -429,11 +397,8 @@ class IdeEditor(Window):
             self.load(filename)
 
     def documentOpenRecentTriggered(self, action):
-
         filename = unicode(action.data().toString())
-
         if filename:
-
             self.load(filename)
 
     def documentRedo(self):
@@ -450,7 +415,6 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             if doc.saveAs():
-
                 self.recordRecentFile(doc.filename())
 
     def documentSaveAll(self):
@@ -549,19 +513,14 @@ class IdeEditor(Window):
             ].setFocus()
 
     def eventFilter(self, object, event):
-
         if object == self._templateCompleter:
-
             from PyQt4.QtCore import Qt
 
             if event.type() == event.KeyPress:
-
                 if event.key() == Qt.Key_Escape:
-
                     self._templateCompleter.close()
 
                 elif event.key() in (Qt.Key_Enter, Qt.Key_Return, Qt.Key_Tab):
-
                     self.documentInsertTemplate(self._templateCompleter.currentItem())
 
             return False
@@ -578,11 +537,9 @@ class IdeEditor(Window):
         from PyQt4.QtCore import QFileInfo
 
         if not QFileInfo(filename).isFile():
-
             return False
 
         # record the file to the recent files
-
         self.recordRecentFile(filename)
 
         # make sure the file is not already loaded
@@ -604,11 +561,8 @@ class IdeEditor(Window):
         cmd, key, path = IdeEditor.Registry.get(ext, ('', '', ''))
 
         # load using a command from the registry
-
         if mods != Qt.AltModifier and ext == '.sdk':
-
             # launch a blur SDK file
-
             import blurdev
 
             blurdev.core.sdkBrowser().showSdk(filename)
@@ -642,23 +596,16 @@ class IdeEditor(Window):
             )
 
     def projectMimeData(self, items):
-
         from PyQt4.QtCore import QMimeData, QUrl
 
         data = QMimeData()
-
         urls = []
-
         for item in items:
-
             fpath = item.filePath()
-
             if fpath:
-
                 urls.append(QUrl('file:///' + fpath))
 
         data.setUrls(urls)
-
         return data
 
     def projectNew(self):
@@ -666,7 +613,6 @@ class IdeEditor(Window):
         from ideproject import IdeProject
 
         proj = IdeProjectDialog.createNew()
-
         if proj:
             self.setCurrentProject(proj)
 
@@ -686,9 +632,7 @@ class IdeEditor(Window):
             self.setCurrentProject(proj)
 
     def projectInitItem(self, item):
-
         item.load()
-
         self.updatePath()
 
     def projectOpen(self):
@@ -710,11 +654,8 @@ class IdeEditor(Window):
             self.uiBrowserTAB.setCurrentIndex(0)
 
     def projectOpenItem(self):
-
         item = self.uiProjectTREE.currentItem()
-
         if not item:
-
             return
 
         import os.path
@@ -726,7 +667,6 @@ class IdeEditor(Window):
     def projectExploreItem(self):
         item = self.uiProjectTREE.currentItem()
         if not item:
-
             return
 
         import os
@@ -744,9 +684,7 @@ class IdeEditor(Window):
 
     def projectRefreshItem(self):
         item = self.uiProjectTREE.currentItem()
-
         if not item:
-
             return False
 
         item.refresh()
@@ -766,7 +704,6 @@ class IdeEditor(Window):
             filename = proj.filename()
 
         pref.recordProperty('currproj', filename)
-
         pref.recordProperty('recentFiles', self._recentFiles)
 
         from ideproject import IdeProject
@@ -777,20 +714,16 @@ class IdeEditor(Window):
         pref.save()
 
     def recordRecentFile(self, filename):
-
         if filename in self._recentFiles:
-
             self._recentFiles.remove(filename)
-
         self._recentFiles.insert(0, filename)
-
         self._recentFiles = self._recentFiles[: self._recentFileMax]
-
         self.refreshRecentFiles()
 
     def refreshDebugLevels(self):
         from blurdev.debug import DebugLevel, debugLevel
 
+        dlevel = debugLevel()
         for act, level in [
             (self.uiNoDebugACT, 0),
             (self.uiDebugLowACT, DebugLevel.Low),
@@ -798,7 +731,7 @@ class IdeEditor(Window):
             (self.uiDebugHighACT, DebugLevel.High),
         ]:
             act.blockSignals(True)
-            act.setChecked(level == debugLevel())
+            act.setChecked(level == dlevel)
             act.blockSignals(False)
 
     def refreshOpen(self):
@@ -817,43 +750,27 @@ class IdeEditor(Window):
         self.uiOpenTREE.setUpdatesEnabled(True)
 
     def refreshRecentFiles(self):
-
         # remove the recent file menu
-
         if self._recentFileMenu:
-
             self._recentFileMenu.triggered.disconnect(self.documentOpenRecentTriggered)
-
             self._recentFileMenu.close()
-
             self._recentFileMenu.setParent(None)
-
             self._recentFileMenu.deleteLater()
-
             self._recentFileMenu = None
 
         if self._recentFiles:
-
             # create a new recent file menu
-
             import os.path
-
             from PyQt4.QtGui import QMenu, QAction
 
             self._recentFileMenu = QMenu(self)
-
             self._recentFileMenu.setTitle('Recent Files')
-
             self._recentFileMenu.triggered.connect(self.documentOpenRecentTriggered)
 
             for index, filename in enumerate(self._recentFiles):
-
                 action = QAction(self._recentFileMenu)
-
                 action.setText('%i: %s' % (index + 1, os.path.basename(filename)))
-
                 action.setData(filename)
-
                 self._recentFileMenu.addAction(action)
 
             self.uiFileMENU.addMenu(self._recentFileMenu)
@@ -865,7 +782,6 @@ class IdeEditor(Window):
         pref = prefs.find('ide/interface')
 
         # load the recent files
-
         self._recentFiles = pref.restoreProperty('recentFiles', [])
 
         # update project options
@@ -928,7 +844,6 @@ class IdeEditor(Window):
             return False
 
         import blurdev
-
         from blurdev import debug
 
         blurdev.core.runStandalone(
@@ -1009,7 +924,6 @@ class IdeEditor(Window):
         menu.popup(QCursor.pos())
 
     def showConfig(self):
-
         from blurdev.config import configSet
 
         configSet.edit()
@@ -1026,7 +940,6 @@ class IdeEditor(Window):
         self._searchDialog.search(self.searchText())
 
     def showTemplateManager(self):
-
         pass
 
     def setCurrentProject(self, project):
@@ -1054,19 +967,13 @@ class IdeEditor(Window):
             )
 
         if change:
-
             self.uiProjectTREE.blockSignals(True)
-
             self.uiProjectTREE.setUpdatesEnabled(False)
 
             self._project = project
-
             self.uiProjectTREE.clear()
-
             self.uiProjectTREE.addTopLevelItem(self._project)
-
             self.uiProjectTREE.blockSignals(False)
-
             self.uiProjectTREE.setUpdatesEnabled(True)
 
             self.currentProjectChanged.emit(project)
@@ -1093,7 +1000,6 @@ class IdeEditor(Window):
         self.uiPathLBL.setText(self.currentBasePath() + '>')
 
     def updateTitle(self, window):
-
         import blurdev
         from blurdev import version
 

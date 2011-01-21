@@ -117,11 +117,15 @@ class StudiomaxCore(Core):
 
         self.restoreToolbars()
 
-    def registerPaths(self, oldenv, newenv):
+    def registerPaths(self):
+        from blurdev.tools import ToolsEnvironment
+
+        env = ToolsEnvironment.activeEnvironment()
+
         # update the old blur maxscript library system
-        env = str(newenv.objectName()).lower()
-        if env != 'local':
-            env = 'network'
+        envname = str(env.objectName()).lower()
+        if envname != 'local':
+            envname = 'network'
 
         # update the old library system
         if self.supportLegacy():
@@ -129,10 +133,10 @@ class StudiomaxCore(Core):
 
             blurlib = mxs._blurLibrary
             if blurlib:
-                blurlib.setCodePath(env)
+                blurlib.setCodePath(envname)
 
         # register standard paths
-        return Core.registerPaths(self, oldenv, newenv)
+        return Core.registerPaths(self)
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """

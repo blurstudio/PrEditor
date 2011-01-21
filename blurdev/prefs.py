@@ -45,9 +45,7 @@ class Preference(XMLDocument):
         return self._filename
 
     def path(self):
-
         """ return the path to the application's prefrences folder """
-
         import blurdev, os.path
 
         return os.path.join(Preference.RootPath, 'app_%s/' % blurdev.core.objectName())
@@ -96,6 +94,10 @@ class Preference(XMLDocument):
 _cache = {}
 
 
+def clearCache():
+    _cache.clear()
+
+
 def find(name, reload=False):
     """
         \remarks	Finds a preference for the with the inputed name
@@ -103,7 +105,6 @@ def find(name, reload=False):
                     otherwise, it is loaded from the blurdev preference location
         
         \param		name	<str>	the name of the preference to retrieve
-
         \param		reload	<bool>	reloads the cached item
         
         \return		<blurdev.prefs.Preference>
