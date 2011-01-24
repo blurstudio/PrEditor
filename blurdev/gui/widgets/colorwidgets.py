@@ -416,6 +416,7 @@ if __name__ == '__main__':
     from PyQt4.QtGui import QApplication
 
     app = QApplication([])
+    app.setStyle('Plastique')
     dlg = test()
     dlg.show()
     app.exec_()
