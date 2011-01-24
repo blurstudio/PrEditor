@@ -33,7 +33,7 @@ class ColorPickerWidget(QWidget):
 
         self._hue = 0  # defines red color
         self._saturation = 255
-        self._lightness = 128
+        self._lightness = 255
         self._alpha = 255
         self._showAlpha = True
         self._editing = None
@@ -221,7 +221,7 @@ class ColorPickerWidget(QWidget):
         painter.drawRect(crect)
 
         # create the color location
-        x = crect.x() + (self.saturation() / 128.0) * crect.width()
+        x = crect.x() + (self.saturation() / 255.0) * crect.width()
         y = crect.y() + (1 - (self.lightness() / 255.0)) * crect.height()
 
         painter.setPen(Qt.black)
@@ -301,7 +301,7 @@ class ColorPickerWidget(QWidget):
         else:
             y -= rect.y()
 
-        self._saturation = (x / float(rect.width())) * 128
+        self._saturation = (x / float(rect.width())) * 255
         self._lightness = (1 - (y / float(rect.height()))) * 255
 
         self.emitColorChanged(self.color())

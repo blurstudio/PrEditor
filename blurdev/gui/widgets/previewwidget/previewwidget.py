@@ -37,25 +37,3 @@ class PreviewWidget(QGraphicsView):
         # update the tools widget
         self._toolsWidget.move(5, 5)
         self._toolsWidget.resize(self._toolsWidget.width(), self.height() - 10)
-
-
-def test():
-    from blurdev.gui import Dialog
-    from PyQt4.QtGui import QVBoxLayout
-
-    dlg = Dialog()
-    dlg.setWindowTitle('testing')
-    layout = QVBoxLayout()
-    layout.addWidget(PreviewWidget(dlg))
-    dlg.setLayout(layout)
-    dlg.show()
-    return dlg
-
-
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-
-    app = QApplication([])
-    app.setStyle('Plastique')
-    dlg = test()
-    app.exec_()

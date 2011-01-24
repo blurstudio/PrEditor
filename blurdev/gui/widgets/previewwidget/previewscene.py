@@ -221,13 +221,6 @@ class PreviewScene(QGraphicsScene):
         # clear the current scene
         self.clear()
 
-        # create the background layer
-        layer = self.createLayer('Background')
-        if layer:
-            from PyQt4.QtGui import QColor
-
-            layer.fill(self.backgroundColor())
-
     def pencilWidth(self):
         return self._pencilWidth
 
