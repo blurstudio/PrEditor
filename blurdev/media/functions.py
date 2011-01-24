@@ -69,19 +69,22 @@ def isImage(filename):
 
 def imageFileTypes():
     return ';;'.join(
-        ['%s (*%s)' % (value[0], key) for key, value in _imageFileTypes.items()]
+        ['All File Types (*.*)']
+        + ['%s (*%s)' % (value[0], key) for key, value in _imageFileTypes.items()]
     )
 
 
 def movieFileTypes():
     return ';;'.join(
-        ['%s (*%s)' % (value[0], key) for key, value in _movieFileTypes.items()]
+        ['All File Types (*.*)']
+        + ['%s (*%s)' % (value[0], key) for key, value in _movieFileTypes.items()]
     )
 
 
-def mediaFileTypes():
+def fileTypes():
     return ';;'.join(
-        [
+        ['All File Types (*.*)']
+        + [
             '%s (*%s)' % (value[0], key)
             for key, value in _imageFileTypes.items() + _movieFileTypes.items()
         ]
