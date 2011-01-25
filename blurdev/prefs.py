@@ -44,11 +44,15 @@ class Preference(XMLDocument):
 
         return self._filename
 
-    def path(self):
+    def path(self, coreName=''):
         """ return the path to the application's prefrences folder """
         import blurdev, os.path
 
-        return os.path.join(Preference.RootPath, 'app_%s/' % blurdev.core.objectName())
+        # use the core
+        if not coreName and blurdev.core:
+            coreName = blurdev.core.objectName()
+
+        return os.path.join(Preference.RootPath, 'app_%s/' % coreName)
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """
@@ -98,7 +102,7 @@ def clearCache():
     _cache.clear()
 
 
-def find(name, reload=False):
+def find(name, reload=False, coreName=''):
     """
         \remarks	Finds a preference for the with the inputed name
                     If a pref already exists within the cache, then the cached pref is returned,
@@ -120,7 +124,7 @@ def find(name, reload=False):
         pref = Preference()
 
         # look for a default preference file
-        filename = pref.path() + '%s.pref' % key
+        filename = pref.path(coreName) + '%s.pref' % key
         if os.path.exists(filename):
             pref.load(filename)
         else:

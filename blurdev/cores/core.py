@@ -374,7 +374,7 @@ class Core(QObject):
     def recordSettings(self):
         from blurdev import prefs
 
-        pref = prefs.find('blurdev/core')
+        pref = prefs.find('blurdev/core', coreName=self.objectName())
 
         from blurdev.tools import ToolsEnvironment
 
@@ -392,7 +392,7 @@ class Core(QObject):
 
         from blurdev import prefs
 
-        pref = prefs.find('blurdev/core')
+        pref = prefs.find('blurdev/core', coreName=self.objectName())
 
         # restore the active environment
         env = pref.restoreProperty('environment')
@@ -413,7 +413,7 @@ class Core(QObject):
     def restoreToolbars(self):
         from blurdev import prefs
 
-        tbars = prefs.find('blurdev/toolbars')
+        tbars = prefs.find('blurdev/toolbars', coreName=self.objectName())
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
         if not ToolsToolBarDialog.restoreToolbars(tbars.root()):

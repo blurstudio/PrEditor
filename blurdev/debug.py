@@ -214,7 +214,10 @@ def setDebugLevel(level):
     # clear the debug level
     if not level:
         _currentLevel = 0
-        blurdev.core.emitDebugLevelChanged()
+
+        if blurdev.core:
+            blurdev.core.emitDebugLevelChanged()
+
         return True
 
     # check for the debug value if a string is passed in
@@ -224,7 +227,10 @@ def setDebugLevel(level):
     # assign the debug flag
     if DebugLevel.isValid(level):
         _currentLevel = level
-        blurdev.core.emitDebugLevelChanged()
+
+        if blurdev.core:
+            blurdev.core.emitDebugLevelChanged()
+
         return True
     else:
         debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)
