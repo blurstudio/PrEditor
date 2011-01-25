@@ -37,11 +37,17 @@ class AbstractPreviewLayer:
     def layerType(self):
         return self._layerType
 
+    def loadFrom(self, filename):
+        print 'loading from: ', filename
+
     def name(self):
         return self._name
 
     def remove(self):
         return False
+
+    def saveTo(self, filename):
+        print 'saving to: ', filename
 
     def scene(self):
         return self._scene
@@ -106,6 +112,18 @@ class CanvasLayer(AbstractPreviewLayer):
         self._canvas.fill(color)
         self.refresh()
 
+    def loadFrom(self, filename):
+        from PyQt4.QtGui import QPixmap
+
+        pixmap = QPixmap(filename)
+
+        if not pixmap.isNull():
+            self._canvas = pixmap
+            self.refresh()
+            return True
+
+        return False
+
     def refresh(self):
         self._canvasItem.setPixmap(self._canvas)
 
@@ -117,6 +135,15 @@ class CanvasLayer(AbstractPreviewLayer):
         self._scene.removeItem(self._canvasItem)
         self._scene.emitLayerRemoved(self)
         return True
+
+    def saveTo(self, filename):
+        import os.path
+
+        bpath = os.path.split(str(filename))[0]
+        if not os.path.exists(bpath):
+            os.mkdir(bpath)
+
+        return self._canvas.save(filename)
 
     def startEditing(self, event):
         scene = self._scene
@@ -173,7 +200,7 @@ class MediaLayer(AbstractPreviewLayer):
         self._scene.emitLayerRemoved(self)
         return True
 
-    def setFilename(self, filename):
+    def setFilename(self, filename, autoResizeCanvas=False):
         # make sure the name is actually changing
         if filename == self._filename:
             return False
@@ -184,8 +211,10 @@ class MediaLayer(AbstractPreviewLayer):
         # create the movie widget item
         if media.isMovie(filename):
             print 'create movie widget item'
+
         elif media.isImageSequence(filename):
             print 'create image sequence item'
+
         else:
             from PyQt4.QtCore import Qt
             from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QMessageBox, QImage
@@ -193,12 +222,16 @@ class MediaLayer(AbstractPreviewLayer):
             pixmap = QPixmap(filename)
 
             if pixmap.size() != self._scene.canvasSize():
-                result = QMessageBox.question(
-                    None,
-                    'Different Canvas Sizes',
-                    'The media you are loading has a different size than the current canvas size.  Would you like to resize the canvas to fit the media?',
-                    QMessageBox.Yes | QMessageBox.No,
-                )
+                if autoResizeCanvas:
+                    result = QMessageBox.Yes
+                else:
+                    result = QMessageBox.question(
+                        None,
+                        'Different Canvas Sizes',
+                        'The media you are loading has a different size than the current canvas size.  Would you like to resize the canvas to fit the media?',
+                        QMessageBox.Yes | QMessageBox.No,
+                    )
+
                 if result == QMessageBox.Yes:
                     self._scene.setCanvasSize(pixmap.size())
                 else:

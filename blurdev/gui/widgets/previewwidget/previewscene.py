@@ -20,6 +20,7 @@ class PreviewScene(QGraphicsScene):
     activeLayerChanged = pyqtSignal()
     canvasSizeChanged = pyqtSignal(QSize)
     interactionModeChanged = pyqtSignal(int)
+    layersChanged = pyqtSignal()
     layerRemoved = pyqtSignal('Py_Object')
 
     def __init__(self, view):
@@ -78,9 +79,10 @@ class PreviewScene(QGraphicsScene):
         layer = AbstractPreviewLayer.createLayer(self, layerType, name)
         self._layers.append(layer)
         self.setActiveLayer(layer)
+        self.layersChanged.emit()
         return layer
 
-    def createMediaLayer(self, name='Media Layer', filename=''):
+    def createMediaLayer(self, name='Media Layer', filename='', autoResizeCanvas=False):
         if not filename:
             from PyQt4.QtGui import QFileDialog
             from blurdev import media
@@ -93,7 +95,7 @@ class PreviewScene(QGraphicsScene):
             return None
 
         layer = self.createLayer(name, LayerType.Media)
-        layer.setFilename(str(filename))
+        layer.setFilename(str(filename), autoResizeCanvas=autoResizeCanvas)
         return layer
 
     def canvasSize(self):
@@ -107,12 +109,18 @@ class PreviewScene(QGraphicsScene):
         """
             \remarks	clears out all the data currently on this scene
         """
-        # clear the scene
-        QGraphicsScene.clear(self)
+        self.blockSignals(True)
+        for layer in self._layers:
+            layer.remove()
+        self.blockSignals(False)
 
-        # clear the layers
         self._layers = []
         self._activeLayer = None
+
+        self.layersChanged.emit()
+
+        # clear the scene
+        QGraphicsScene.clear(self)
 
     def emitActiveLayerChanged(self):
         if not self.signalsBlocked():
@@ -131,6 +139,7 @@ class PreviewScene(QGraphicsScene):
             self._layers.remove(layer)
 
         if not self.signalsBlocked():
+            self.layersChanged.emit()
             self.layerRemoved.emit(layer)
 
     def emitInteractionModeChanged(self, mode):
@@ -263,7 +272,12 @@ class PreviewScene(QGraphicsScene):
 
         self._canvasSize = size
         self.setSceneRect(0, 0, size.width(), size.height())
-        self._previewWidget.fitInView(0, 0, size.width(), size.height())
+
+        from PyQt4.QtCore import Qt
+
+        self._previewWidget.fitInView(
+            0, 0, size.width(), size.height(), Qt.KeepAspectRatio
+        )
         self.emitCanvasSizeChanged(size)
 
         return True

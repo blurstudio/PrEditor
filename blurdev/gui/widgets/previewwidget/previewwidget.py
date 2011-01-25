@@ -8,29 +8,42 @@
 # 	\date		01/21/11
 #
 
-from PyQt4.QtGui import QGraphicsView
+from PyQt4.QtGui import QWidget
 
 
-class PreviewWidget(QGraphicsView):
+class PreviewWidget(QWidget):
     def __init__(self, parent):
         # initialize the super class
-        QGraphicsView.__init__(self, parent)
+        QWidget.__init__(self, parent)
+
+        # create the QGraphicsView
+        from PyQt4.QtGui import QGraphicsView, QVBoxLayout
+
+        self._view = QGraphicsView(self)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self._view)
+        self.setLayout(layout)
 
         # create the scene
         from previewscene import PreviewScene
 
-        self.setScene(PreviewScene(self))
+        self._view.setScene(PreviewScene(self._view))
 
         # create the tools widget
         from toolswidget import ToolsWidget
 
-        self._toolsWidget = ToolsWidget(self)
+        self._toolsWidget = ToolsWidget(self._view)
 
         # update the geometry
         self.updateGeometry()
 
+    def scene(self):
+        return self._view.scene()
+
     def resizeEvent(self, event):
-        QGraphicsView.resizeEvent(self, event)
+        QWidget.resizeEvent(self, event)
         self.updateGeometry()
 
     def updateGeometry(self):

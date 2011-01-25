@@ -97,6 +97,8 @@ class LayerItem(QTreeWidgetItem):
 
         if layer.layerType() == LayerType.Text:
             self.setIcon(1, QIcon(blurdev.resourcePath('img/preview/type.png')))
+        elif layer.layerType() == LayerType.Media:
+            self.setIcon(1, QIcon(blurdev.resourcePath('img/preview/media.png')))
         else:
             self.setIcon(1, QIcon(blurdev.resourcePath('img/preview/layers.png')))
 
@@ -124,6 +126,7 @@ class LayersWidget(QWidget):
         # create custom properties
         self._scene = scene
         self._editCache = None
+        scene.layersChanged.connect(self.refresh)
 
         # initialize ui
         columns = ['Visible', 'Name']

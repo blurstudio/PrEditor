@@ -10,3 +10,4 @@
 
 # import the PreviewGraphicsView to expose the symbol to the package
 from previewwidget import PreviewWidget
+from previewlayers import *
