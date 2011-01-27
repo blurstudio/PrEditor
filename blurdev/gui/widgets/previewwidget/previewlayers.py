@@ -43,6 +43,11 @@ class AbstractPreviewLayer:
     def name(self):
         return self._name
 
+    def pixmap(self):
+        from PyQt4.QtGui import QPixmap
+
+        return QPixmap()
+
     def remove(self):
         return False
 
@@ -124,6 +129,9 @@ class CanvasLayer(AbstractPreviewLayer):
 
         return False
 
+    def pixmap(self):
+        return self._canvas
+
     def refresh(self):
         self._canvasItem.setPixmap(self._canvas)
 
@@ -194,6 +202,14 @@ class MediaLayer(AbstractPreviewLayer):
 
     def filename(self):
         return self._filename
+
+    def pixmap(self):
+        from PyQt4.QtGui import QGraphicsPixmapItem
+
+        if isinstance(self._mediaItem, QGraphicsPixmapItem):
+            return self._mediaItem.pixmap()
+
+        return AbstractPreviewLayer.pixmap(self)
 
     def remove(self):
         self.clear()

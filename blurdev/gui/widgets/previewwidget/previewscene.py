@@ -153,6 +153,23 @@ class PreviewScene(QGraphicsScene):
     def foregroundColor(self):
         return self._foregroundColor
 
+    def flattenedPixmap(self):
+        from PyQt4.QtGui import QPixmap, QPainter
+
+        # create an output image
+        output = QPixmap(self.canvasSize())
+
+        # create a painter
+        painter = QPainter()
+        painter.begin(output)
+
+        # merge the layers down
+        for layer in self.layers():
+            painter.drawPixmap(0, 0, layer.pixmap())
+
+        painter.end()
+        return output
+
     def isInteractionMode(self, mode):
         return (self._interactionMode & mode) != 0
 
