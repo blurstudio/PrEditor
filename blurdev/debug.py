@@ -185,6 +185,12 @@ def debugLevel():
     return _currentLevel
 
 
+def emailList():
+    import blurdev
+
+    return blurdev.activeEnvironment().emailOnError()
+
+
 def isDebugLevel(level):
     """
         \remarks	Checks to see if the current debug level greater than or equal to the inputed level
