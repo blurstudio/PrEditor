@@ -10,9 +10,7 @@
 #
 
 from PyQt4.QtGui import QGraphicsRectItem
-
 from blurdev.enum import enum
-
 
 ThumbnailHighlightMode = enum('Boxed', 'Text', 'Grayscale')
 
@@ -27,14 +25,10 @@ class ThumbnailItem(QGraphicsRectItem):
         self._filename = filename
         self._thumbGroup = None
         self._sortData = ''
-
         self._mimeText = ''
-
         self._caption = ''
         self._dragEnabled = False
-
         self._highlightMode = ThumbnailHighlightMode.Boxed
-
         self._customData = {}
 
         # update the flag options
@@ -43,21 +37,18 @@ class ThumbnailItem(QGraphicsRectItem):
         )
 
     def caption(self):
-
         return self._caption
 
     def clearThumbnail(self):
         self._thumbnail = None
 
     def customData(self, key, default=None):
-
         return self._customData.get(str(key), default)
 
     def dragEnabled(self):
         return self._dragEnabled
 
     def highlightMode(self):
-
         return self._highlightMode
 
     def paint(self, painter, option, widget):
@@ -66,11 +57,12 @@ class ThumbnailItem(QGraphicsRectItem):
         # draw the thumbnail
         scene = self.scene()
         padding = scene.cellPadding()
+        captionPad = scene.captionPadding()
+        captionHeight = scene.captionHeight()
         thumbsize = scene.thumbnailSize()
         thumb = self.thumbnail()
         px = ((thumbsize.width() + padding.width()) - thumb.width()) / 2
         py = ((thumbsize.height() + padding.height()) - thumb.height()) / 2
-
         caption = self.caption()
 
         # draw highlight around the thumbnail
@@ -87,21 +79,19 @@ class ThumbnailItem(QGraphicsRectItem):
         painter.drawPixmap(px, py, thumb)
 
         # draw caption
-
         if caption:
-
             # draw the caption
-
-            flags = int(Qt.AlignCenter) | int(Qt.TextWordWrap)
-
+            flags = int(Qt.AlignHCenter | Qt.AlignTop) | int(Qt.TextWordWrap)
             font = painter.font()
-
             font.setPointSize(7)
-
             painter.setFont(font)
-
             painter.drawText(
-                0, thumbsize.height() + 2, thumbsize.width(), 16, flags, caption
+                0,
+                thumbsize.height() + captionPad,
+                thumbsize.width(),
+                captionHeight,
+                flags,
+                caption,
             )
 
     def mimeText(self):
@@ -145,18 +135,26 @@ class ThumbnailItem(QGraphicsRectItem):
                 drag.exec_()
 
     def setCaption(self, caption):
-
         self._caption = str(caption)
 
-    def setCustomData(self, key, value):
+        scene = self.scene()
+        thumbsize = scene.thumbnailSize()
+        captionPad = scene.captionPadding()
+        captionHeight = scene.captionHeight()
 
+        addtl = 0
+        if caption:
+            addtl = captionPad + captionHeight
+
+        self.setRect(0, 0, thumbsize.width(), thumbsize.height() + addtl)
+
+    def setCustomData(self, key, value):
         self._customData[str(key)] = value
 
     def setDragEnabled(self, state):
         self._dragEnabled = state
 
     def setHighlightMode(self, highlightMode):
-
         self._highlightMode = highlightMode
 
     def setMimeText(self, text):

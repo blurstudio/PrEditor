@@ -45,6 +45,8 @@ class ThumbnailScene(QGraphicsScene):
         self._thumbnailSize = QSize(128, 128)
         self._cellPadding = QSize(6, 6)
         self._showCaptions = False
+        self._captionPadding = 2
+        self._captionHeight = 24
 
     def addThumbGroup(self, name):
         from thumbnailgroup import ThumbnailGroup
@@ -59,6 +61,12 @@ class ThumbnailScene(QGraphicsScene):
         newitem = ThumbnailItem(filename)
         self.addItem(newitem)
         return newitem
+
+    def captionPadding(self):
+        return self._captionPadding
+
+    def captionHeight(self):
+        return self._captionHeight
 
     def cellPadding(self):
         return self._cellPadding
@@ -222,7 +230,7 @@ class ThumbnailScene(QGraphicsScene):
         cellwidth = icowidth + (2 * padding.width())
         cellheight = icoheight + (2 * padding.height())
         if self.showCaptions():
-            cellheight += 18
+            cellheight += self.captionPadding() + self.captionHeight()
 
         bottom = 0
         right = 0
@@ -318,6 +326,12 @@ class ThumbnailScene(QGraphicsScene):
 
     def reverseSort(self):
         return self._reverseSort
+
+    def setCaptionPadding(self, padding):
+        self._captionPadding = padding
+
+    def setCaptionHeight(self, height):
+        self._captionHeight = height
 
     def setCellPadding(self, padding):
         self._cellPadding = padding
