@@ -14,108 +14,53 @@ from blurdev.tools import ToolsEnvironment
 
 
 class Core(QObject):
-    # CUSTOM SIGNALS
-    environmentActivated = pyqtSignal()  # emits that the active environment has changed
+    # ----------------------------------------------------------------
+    # blurdev signals
+    environmentActivated = pyqtSignal()
     debugLevelChanged = pyqtSignal()
     fileCheckedIn = pyqtSignal(str)
     fileCheckedOut = pyqtSignal(str)
 
-    # COMMON SIGNALS
+    # ----------------------------------------------------------------
+    # 3d Application Signals (common)
 
-    # \params : frame number
-    currentFrameChanged = pyqtSignal(
-        int
-    )  # emitted when the current frame has been updated				( 3dsMax | Softimage )
-    fileExportRequested = (
-        pyqtSignal()
-    )  # emitted before a client is about to export a file			 	( 3dsMax | Softimage )
-    fileExportFinished = (
-        pyqtSignal()
-    )  # emitted after a client has finished exporting a file			( 3dsMax | Softimage )
-    fileImportRequested = (
-        pyqtSignal()
-    )  # emitted before a client is about to import a file				( 3dsMax | Softimage )
-    fileImportFinished = (
-        pyqtSignal()
-    )  # emitted after a client has finished importing a file			( 3dsMax | Softimage )
-    objectAdded = (
-        pyqtSignal()
-    )  # emitted after a client has created a new scene object			( 3dsMax | Softimage )
-    objectRemoved = (
-        pyqtSignal()
-    )  # emitted after a client has removed a scene object				( 3dsMax | Softimage )
+    # scene signals
+    sceneClosed = pyqtSignal()
+    sceneExportRequested = pyqtSignal()
+    sceneExportFinished = pyqtSignal()
+    sceneImportRequested = pyqtSignal()
+    sceneImportFinished = pyqtSignal()
+    sceneInvalidated = pyqtSignal()
+    sceneMergeRequested = pyqtSignal()
+    sceneMergeFinished = pyqtSignal()
+    sceneNewRequested = pyqtSignal()
+    sceneNewFinished = pyqtSignal()
+    sceneOpenRequested = pyqtSignal(str)
+    sceneOpenFinished = pyqtSignal(str)
+    sceneReset = pyqtSignal()
+    sceneSaveRequested = pyqtSignal(str)
+    sceneSaveFinished = pyqtSignal(str)
 
-    #  Softimage \params : RenderType, FileName, Frame, Sequence, RenderField
-    renderFrameRequested = pyqtSignal(
-        int, str, int, int, int
-    )  # emitted when a client is going to render a frame				( 3dsMax | Softimage )
-    renderFrameFinished = pyqtSignal(
-        int, str, int, int, int
-    )  # emitted when a client has finished rendering a frame			( 3dsMax | Softimage )
+    # layer signals
+    layerCreated = pyqtSignal()
+    layerDeleted = pyqtSignal()
+    layersModified = pyqtSignal()
+    layerStateChanged = pyqtSignal()
 
-    sceneClosed = (
-        pyqtSignal()
-    )  # emitted when a client has closed a scene file					( 3dsMax | Softimage )
-    sceneNewRequested = (
-        pyqtSignal()
-    )  # emitted when a client is requesting a new scene				( 3dsMax | Softimage )
-    sceneNewFinished = (
-        pyqtSignal()
-    )  # emitted when a client has created a new scene					( 3dsMax | Softimage )
+    # object signals
+    selectionChanged = pyqtSignal()
 
-    # \params : filename
-    sceneOpenRequested = pyqtSignal(
-        str
-    )  # emitted when a client is attempting to open a scene			( 3dsMax | Softiamge )
-    sceneOpenFinished = pyqtSignal(
-        str
-    )  # emitted when a client is finished opening a scene				( 3dsMax | Softimage )
-    sceneSaveRequested = (
-        pyqtSignal()
-    )  # emitted when a client is attempting to save a scene			( 3dsMax | Softimage )
-    sceneSaveFinished = (
-        pyqtSignal()
-    )  # emitted when a client is done saving a scene					( 3dsMax | Softimage )
+    # render signals
+    rednerFrameRequested = pyqtSignal(int)
+    renderFrameFinished = pyqtSignal()
+    renderSceneRequested = pyqtSignal(list)
+    renderSceneFinished = pyqtSignal()
 
-    # \params : filename
-    sceneSaveAsRequested = pyqtSignal(
-        str
-    )  # emitted when a client is attempting to save a scene			( 3dsMax | Softimage )
-    sceneSaveAsFinished = pyqtSignal(
-        str
-    )  # emitted when a client is done saving a scene to a filename	( 3dsMax | Softimage )
-    selectionChanged = (
-        pyqtSignal()
-    )  # emitted when a client has changed its selection				( 3dsMax | Softimage )
+    # time signals
+    currentFrameChanged = pyqtSignal(int)
+    frameRangeChanged = pyqtSignal()
 
-    # SOFTIMAGE SPECIFIC SIGNALS
-
-    # \params : old project, new project
-    projectChanged = pyqtSignal(
-        str, str
-    )  # emitted after a project has been changed						( Softimage )
-    refModelSaved = (
-        pyqtSignal()
-    )  # emitted after a reference model has been saved				( Softimage )
-    refModelLoadRequested = (
-        pyqtSignal()
-    )  # emitted when a model load requested							( Softimage )
-    refModelLoadFinished = (
-        pyqtSignal()
-    )  # emitted when a model is finished loading						( Softimage )
-
-    # \params : RenderType, Filename, Frame, Sequence, RenderField
-    sequenceRenderRequested = pyqtSignal(
-        int, str, int, int, int
-    )  # emitted when a squence is requested to render					( Softimage )
-    sequenceRenderFinished = pyqtSignal(
-        int, str, int, int, int
-    )  # emitted when a sequence is finished rendering					( Softimage )
-
-    # \params : object, fullname, previous value
-    valueChanged = pyqtSignal(
-        str, str, str
-    )  # emitted when an objects value has changed						( Softimage )
+    # ----------------------------------------------------------------
 
     def __init__(self, hwnd=0):
         QObject.__init__(self)
@@ -128,6 +73,7 @@ class Core(QObject):
         self._lastFileName = ''
         self._mfcApp = False
         self._logger = None
+        self._linkedSignals = {}
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -140,6 +86,12 @@ class Core(QObject):
         if QApplication.instance():
             return QApplication.instance().activeWindow()
         return None
+
+    def connectAppSignals(self):
+        """
+            \remarks	[virtual] connect the signals emitted by the application we're in to the blurdev core system
+        """
+        pass
 
     def connectPlugin(
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
@@ -201,7 +153,26 @@ class Core(QObject):
             \param		signal	<str>
             \param		*args	<tuple> additional arguments
         """
-        self.emit(SIGNAL(signal), *args)
+        if self.signalsBlocked():
+            return
+
+        # emit a defined pyqtSignal
+        if (
+            hasattr(self, signal)
+            and type(getattr(self, signal)).__name__ == 'pyqtBoundSignal'
+        ):
+            getattr(self, signal).emit(*args)
+
+        # otherwise emit a custom signal
+        else:
+            from PyQt4.QtCore import SIGNAL
+
+            self.emit(SIGNAL(signal), *args)
+
+        # emit linked signals
+        if signal in self._linkedSignals:
+            for trigger in self._linkedSignals[signal]:
+                self.dispatch(trigger)
 
     def emitEnvironmentActivated(self):
         if not self.signalsBlocked():
@@ -235,12 +206,17 @@ class Core(QObject):
 
         return QObject.eventFilter(self, object, event)
 
-    def shutdown(self):
-        from PyQt4.QtGui import QApplication
-
-        if QApplication.instance():
-            QApplication.instance().closeAllWindows()
-            QApplication.instance().quit()
+    def linkSignals(self, signal, trigger):
+        """
+            \remarks	creates a dependency so that when the inputed signal is dispatched, the dependent trigger signal is also dispatched.  This will only work
+                        for trigger signals that do not take any arguments for the dispatch.
+            \param		signal		<str>
+            \param		trigger		<str>
+        """
+        if not signal in self._linkedSignals:
+            self._linkedSignals[signal] = [trigger]
+        elif not trigger in self._linkedSignals[signal]:
+            self._linkedSignals[signal].append(trigger)
 
     def init(self):
         """
@@ -282,6 +258,7 @@ class Core(QObject):
         # restore the core settings
         self.restoreSettings()
         self.registerPaths()
+        self.connectAppSignals()
 
         return output
 
@@ -694,6 +671,13 @@ class Core(QObject):
 
             # make sure we have the proper settings restored based on the new application
             self.restoreSettings()
+
+    def shutdown(self):
+        from PyQt4.QtGui import QApplication
+
+        if QApplication.instance():
+            QApplication.instance().closeAllWindows()
+            QApplication.instance().quit()
 
     def showIdeEditor(self):
         from blurdev.ide import IdeEditor

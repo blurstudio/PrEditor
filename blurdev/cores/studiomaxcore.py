@@ -26,7 +26,12 @@ icon:#( "Blur_%(id)s_Macro", 1 )
 )
 """
 
-# -------------------------------------------------------------------------------------------------------------
+# initialize callback scripts
+STUDIOMAX_CALLBACK_TEMPLATE = """
+global pyblurdev
+if ( pyblurdev == undefined ) then ( pyblurdev = python.import "blurdev" )
+if ( pyblurdev != undefined ) then ( pyblurdev.core.dispatch "%(signal)s" %(args)s )
+"""
 
 
 class StudiomaxCore(Core):
@@ -34,6 +39,42 @@ class StudiomaxCore(Core):
         Core.__init__(self)
         self.setObjectName('studiomax')
         self._supportLegacy = False
+
+    def connectAppSignals(self):
+        self.connectStudiomaxSignal('systemPreNew', 'sceneNewRequested')
+        self.connectStudiomaxSignal('systemPostNew', 'sceneNewFinished')
+        self.connectStudiomaxSignal('filePreOpen', 'sceneOpenRequested', '""')
+        self.connectStudiomaxSignal('filePostOpen', 'sceneOpenFinished', '""')
+        self.connectStudiomaxSignal('filePreMerge', 'sceneMergeRequested')
+        self.connectStudiomaxSignal('filePostMerge', 'sceneMergeFinished')
+        self.connectStudiomaxSignal(
+            'filePreSave', 'sceneSaveRequested', '(callbacks.notificationParam())[1]'
+        )
+        self.connectStudiomaxSignal(
+            'filePostSave', 'sceneSaveFinished', '(callbacks.notificationParam())[1]'
+        )
+        self.connectStudiomaxSignal('systemPostReset', 'sceneReset')
+        self.connectStudiomaxSignal('layerCreated', 'layerCreated')
+        self.connectStudiomaxSignal('layerDeleted', 'layerDeleted')
+
+        # create a signal linking between 2 signals
+        self.linkSignals('sceneNewFinished', 'sceneInvalidated')
+        self.linkSignals('sceneOpenFinished', 'sceneInvalidated')
+        self.linkSignals('sceneMergeFinished', 'sceneInvalidated')
+        self.linkSignals('sceneReset', 'sceneInvalidated')
+
+    def connectStudiomaxSignal(self, maxSignal, blurdevSignal, args=''):
+        from Py3dsMax import mxs
+
+        # store the maxscript methods needed
+        _n = mxs.pyhelper.namify
+        callbacks = mxs.callbacks
+        blurdevid = _n('blurdev')
+
+        callbacks.addScript(
+            _n(maxSignal),
+            STUDIOMAX_CALLBACK_TEMPLATE % {'signal': blurdevSignal, 'args': args},
+        )
 
     def createToolMacro(self, tool, macro=''):
         """
