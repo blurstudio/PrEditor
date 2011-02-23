@@ -125,6 +125,7 @@ def launch(ctor, modal=False, coreName='external'):
 
         # run the application if this item controls it
         if application:
+            application.setWindowIcon(widget.windowIcon())
             application.exec_()
 
         return widget

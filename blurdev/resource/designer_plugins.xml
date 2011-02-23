@@ -11,7 +11,7 @@
 	<include href="c:/blur/prefs/designer_plugins.xml"/>
 	
 	<!-- include elemental plugins -->
-	<include href="[ELEMENTALDEVPATH]/elemental/designer_plugins.xml" root="[ELEMENTALDEVPATH]"/>
+	<include href="[ELEMENTALDEVPATH]/elemental/resource/designer_plugins.xml" root="[ELEMENTALDEVPATH]"/>
 	
 	<!-- include trax widgets -->
 	<include href="[TRAXDEVPATH]/trax/definitions/designer_plugins.xml" root="[TRAXDEVPATH]"/>
