@@ -273,8 +273,8 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="uiHelpAssistantACT"/>
     <addaction name="uiSdkBrowserACT"/>
+    <addaction name="uiHelpAssistantACT"/>
     <addaction name="separator"/>
     <addaction name="uiAboutACT"/>
    </widget>
@@ -566,15 +566,18 @@
   </action>
   <action name="uiHelpAssistantACT">
    <property name="text">
-    <string>Qt Assistant...</string>
+    <string>Qt Assistant</string>
    </property>
    <property name="shortcut">
-    <string>F1</string>
+    <string>Shift+F1</string>
    </property>
   </action>
   <action name="uiSdkBrowserACT">
    <property name="text">
-    <string>SDK Browser...</string>
+    <string>SDK Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
   <action name="uiAboutACT">

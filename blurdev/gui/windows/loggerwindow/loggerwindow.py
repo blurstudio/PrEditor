@@ -54,6 +54,8 @@ class LoggerWindow(Window):
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
 
+        self.uiSdkBrowserACT.triggered.connect(self.showSdk)
+
         # refresh the ui
         self.refreshDebugLevels()
 
@@ -107,6 +109,11 @@ class LoggerWindow(Window):
         from blurdev import debug
 
         debug.setDebugLevel(debug.DebugLevel.High)
+
+    def showSdk(self):
+        import blurdev
+
+        blurdev.core.sdkBrowser().show()
 
     def shutdown(self):
         # close out of the ide system

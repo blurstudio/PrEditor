@@ -934,7 +934,9 @@ class IdeEditor(Window):
         QProcess.startDetached('c:/blur/common/designer.exe', [], '')
 
     def showSdkBrowser(self):
-        print 'coming soon'
+        import blurdev
+
+        blurdev.core.sdkBrowser().show()
 
     def showSearchDialog(self):
         self._searchDialog.search(self.searchText())

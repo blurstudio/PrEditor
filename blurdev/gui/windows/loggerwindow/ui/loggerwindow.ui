@@ -523,9 +523,16 @@
     <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
    </widget>
+   <widget class="QMenu" name="uiHelpMENU">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="uiSdkBrowserACT"/>
+   </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="uiFileMENU"/>
+   <addaction name="uiHelpMENU"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="uiSaveLogACT">
@@ -648,6 +655,14 @@
   <action name="uiResetPathsACT">
    <property name="text">
     <string>Reset Paths</string>
+   </property>
+  </action>
+  <action name="uiSdkBrowserACT">
+   <property name="text">
+    <string>SDK Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
  </widget>
