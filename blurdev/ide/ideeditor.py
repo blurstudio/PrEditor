@@ -1003,19 +1003,30 @@ class IdeEditor(Window):
         import blurdev
         from blurdev import version
 
+        proj = self.currentProject()
+        if proj:
+            projtext = 'Project: %s' % proj.text(0)
+        else:
+            projtext = 'Project: <None>'
+
         if window:
             self.setWindowTitle(
-                '%s | Code Editor - [%s] - %s'
+                '%s | %s - [%s] - %s'
                 % (
                     str(blurdev.core.objectName()).capitalize(),
+                    projtext,
                     window.windowTitle(),
                     version.toString(),
                 )
             )
         else:
             self.setWindowTitle(
-                '%s | Code Editor - %s'
-                % (str(blurdev.core.objectName()).capitalize(), version.toString())
+                '%s | %s - %s'
+                % (
+                    str(blurdev.core.objectName()).capitalize(),
+                    projtext,
+                    version.toString(),
+                )
             )
 
     @staticmethod
