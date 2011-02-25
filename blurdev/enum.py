@@ -30,7 +30,6 @@ class enum:
 
     def __init__(self, *args, **kwds):
         self._keys = list(args) + kwds.keys()
-
         self._compound = kwds.keys()
         self._descr = {}
         key = 1
@@ -80,14 +79,21 @@ class enum:
     def keys(self):
         return self._keys
 
-    def value(self, key):
-        return self.__dict__.get(str(key), 0)
+    def value(self, key, caseSensitive=True):
+        if caseSensitive:
+            return self.__dict__.get(str(key), 0)
+        else:
+            key = str(key).lower()
+            for k in self.__dict__.keys():
+                if k.lower() == key:
+                    return self.__dict__[k]
+            return 0
 
     def values(self):
         return [self.__dict__[key] for key in self.keys()]
 
-    def valueByLabel(self, label):
-        return self.value(''.join(str(label).split(' ')))
+    def valueByLabel(self, label, caseSensitive=True):
+        return self.value(''.join(str(label).split(' ')), caseSensitive=caseSensitive)
 
     def valueByIndex(self, index):
         return self.value(self.keyByIndex(index))
@@ -106,7 +112,6 @@ class enum:
     def toString(self, value, default='None'):
         parts = []
         for key in self._keys:
-
             if not key in self._compound and value & self.value(key):
                 parts.append(key)
 
