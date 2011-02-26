@@ -10,9 +10,9 @@
 	<!-- include user defined blur prefs widgets -->
 	<include href="c:/blur/prefs/designer_plugins.xml"/>
 	
-	<!-- include elemental plugins -->
-	<include href="[ELEMENTALDEVPATH]/elemental/resource/designer_plugins.xml" root="[ELEMENTALDEVPATH]"/>
-	
 	<!-- include trax widgets -->
 	<include href="[TRAXDEVPATH]/trax/definitions/designer_plugins.xml" root="[TRAXDEVPATH]"/>
+	
+	<!-- include blur library plugins -->
+	<include href="[BLURLIBSPATH]/designer_plugins.xml"	root="[BLURLIBSPATH]"/>
 </plugins>
