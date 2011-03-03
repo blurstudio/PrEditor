@@ -114,6 +114,9 @@
          </property>
          <item row="0" column="0">
           <widget class="QTreeView" name="uiExplorerTREE">
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
            <attribute name="headerVisible">
             <bool>false</bool>
            </attribute>
@@ -127,39 +130,6 @@
       </widget>
       <widget class="QMdiArea" name="uiWindowsAREA"/>
      </widget>
-    </item>
-    <item row="1" column="0">
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <item>
-       <widget class="QLabel" name="uiPathLBL">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="uiCommandLineDDL">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="editable">
-         <bool>true</bool>
-        </property>
-        <property name="insertPolicy">
-         <enum>QComboBox::InsertAtTop</enum>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>
@@ -188,9 +158,6 @@
      <string>Advanced</string>
     </property>
     <addaction name="uiConfigurationACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiImportSettingsACT"/>
-    <addaction name="uiExportSettingsACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -228,7 +195,6 @@
     <addaction name="uiCommentRemoveACT"/>
     <addaction name="separator"/>
     <addaction name="uiInsertTemplateACT"/>
-    <addaction name="uiTemplateManagerACT"/>
    </widget>
    <widget class="QMenu" name="uiSearchMENU">
     <property name="title">
@@ -246,15 +212,9 @@
     <addaction name="uiFindACT"/>
     <addaction name="uiFindNextACT"/>
     <addaction name="uiFindPrevACT"/>
-    <addaction name="uiReplaceACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiFindInFilesACT"/>
-    <addaction name="uiReplaceInFilesACT"/>
     <addaction name="separator"/>
     <addaction name="uiGotoACT"/>
     <addaction name="uiMarkersMENU"/>
-    <addaction name="separator"/>
-    <addaction name="uiFunctionListACT"/>
    </widget>
    <widget class="QMenu" name="uiViewMENU">
     <property name="title">
@@ -276,7 +236,7 @@
     <addaction name="uiSdkBrowserACT"/>
     <addaction name="uiHelpAssistantACT"/>
     <addaction name="separator"/>
-    <addaction name="uiAboutACT"/>
+    <addaction name="uiBlurDevSiteACT"/>
    </widget>
    <widget class="QMenu" name="uiRunMENU">
     <property name="title">
@@ -722,8 +682,16 @@
    </property>
   </action>
   <action name="uiTemplateManagerACT">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
-    <string>Template Manager...</string>
+    <string>Template Manager... (coming soon)</string>
+   </property>
+  </action>
+  <action name="uiBlurDevSiteACT">
+   <property name="text">
+    <string>blur-dev website</string>
    </property>
   </action>
  </widget>

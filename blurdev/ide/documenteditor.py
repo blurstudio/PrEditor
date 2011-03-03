@@ -74,9 +74,7 @@ class DocumentEditor(QsciScintilla):
             self.refreshTitle()
 
         # goto the line
-
         if lineno:
-
             self.setCursorPosition(lineno, 0)
 
     def checkForSave(self):
@@ -96,10 +94,63 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def commentAdd(self):
-        pass
+        from blurdev.ide import lexers
+
+        lexerMap = lexers.lexerMap(self._language)
+        lineComment = ''
+        if lexerMap:
+            lineComment = lexerMap.lineComment
+
+        if not lineComment:
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.critical(
+                None,
+                'Line Comment Not Defined',
+                'There is no line comment symbol defined for the "%s" language'
+                % (self._language),
+            )
+            return False
+
+        # lookup the selected text positions
+        startline, startcol, endline, endcol = self.getSelection()
+
+        for line in range(startline, endline + 1):
+            self.setCursorPosition(line, 0)
+            self.insert(lineComment)
+        return True
 
     def commentRemove(self):
-        pass
+        from blurdev.ide import lexers
+
+        lexerMap = lexers.lexerMap(self._language)
+
+        lineComment = ''
+        if lexerMap:
+            lineComment = lexerMap.lineComment
+
+        lineComment = lexerMap.lineComment
+        if not lineComment:
+            from PyQt4.QtGui import QMessageBox
+
+            QMessageBox.critical(
+                None,
+                'Line Comment Not Defined',
+                'There is no line comment symbol defined for the "%s" language'
+                % (self._language),
+            )
+            return False
+
+        # lookup the selected text positions
+        startline, startcol, endline, endcol = self.getSelection()
+        commentlen = len(lineComment)
+
+        for line in range(startline, endline + 1):
+            self.setSelection(line, 0, line, commentlen)
+            if self.selectedText() == lineComment:
+                self.removeSelectedText()
+
+        return True
 
     def exec_(self):
         if self.save():
@@ -154,7 +205,6 @@ class DocumentEditor(QsciScintilla):
             lexer = lexers.lexerFor(os.path.splitext(filename)[1])
             if lexer:
                 lexer.setFont(self.font())
-
                 lexer.setParent(self)
                 self._language = lexers.languageFor(lexer)
 
@@ -209,7 +259,6 @@ class DocumentEditor(QsciScintilla):
             result = QsciScintilla.findNext(self)
 
         if not result:
-
             from PyQt4.QtGui import QMessageBox
 
             QMessageBox.critical(
@@ -306,7 +355,6 @@ class DocumentEditor(QsciScintilla):
         lexer = lexers.lexer(language)
         if lexer:
             lexer.setFont(self.font())
-
             lexer.setParent(self)
 
         self.setLexer(lexer)

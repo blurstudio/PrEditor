@@ -108,6 +108,15 @@ class ToolsEnvironment(QObject):
     def path(self):
         return self._path
 
+    def recordXml(self, xml):
+        xml.setAttribute('name', self.objectName())
+        xml.setAttribute('loc', self.path())
+        xml.setAtribute('default', self._default)
+        xml.setAttribute('development', self._development)
+        xml.setAttribute('offline', self._offline)
+        if self._emailOnError:
+            xml.setAttribute(':'.join(self._emailOnError))
+
     def relativePath(self, path):
         """
             \remarks	returns the relative path from the inputed path to this environment
@@ -188,6 +197,21 @@ class ToolsEnvironment(QObject):
         return ToolsEnvironment()
 
     @staticmethod
+    def createNewEnvironment(
+        name, path, default=False, development=False, offline=True
+    ):
+        output = ToolsEnvironment()
+
+        output.setObjectName(name)
+        output.setPath(path)
+        output.setDefault(default)
+        output.setDevelopment(development)
+        output.setOffline(offline)
+
+        ToolsEnvironment.environments.append(output)
+        return output
+
+    @staticmethod
     def defaultEnvironment():
         """
             \remarks	looks up the default environment for the system
@@ -264,6 +288,27 @@ class ToolsEnvironment(QObject):
 
             # initialize the default environment
             ToolsEnvironment.defaultEnvironment().setActive(silent=True)
+
+    @staticmethod
+    def recordConfig(filename):
+        if not filename:
+            import blurdev
+
+            filename = blurdev.resourcePath('tools_environments.xml')
+
+        if not filename:
+            return False
+
+        from blurdev.XML import XMLDocument
+
+        doc = XMLDocument()
+        root = doc.addNode('tools_environments')
+        root.setAttribute('version', 1.0)
+
+        for env in ToolsEnvironment.environments:
+            env.recordXml(root)
+
+        return doc.save(filename)
 
     @staticmethod
     def registerPath(path):

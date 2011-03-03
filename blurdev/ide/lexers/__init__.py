@@ -13,10 +13,11 @@ _mapping = {}
 
 
 class LexerMap:
-    def __init__(self, name, fileTypes, lexerClass):
+    def __init__(self, name, fileTypes, lexerClass, lineComment):
         self.name = name
         self.fileTypes = fileTypes
         self.lexerClass = lexerClass
+        self.lineComment = lineComment
 
 
 def fileTypes():
@@ -25,9 +26,7 @@ def fileTypes():
     langs.sort()
 
     output = []
-
     output.append('All Files (*.*)')
-
     output.append('Text Files (*.txt')
 
     for lang in langs:
@@ -93,8 +92,8 @@ def languages():
     return keys
 
 
-def register(lang, fileTypes, lexerClass):
-    _mapping[str(lang)] = LexerMap(str(lang), fileTypes, lexerClass)
+def register(lang, fileTypes, lexerClass, lineComment=''):
+    _mapping[str(lang)] = LexerMap(str(lang), fileTypes, lexerClass, lineComment)
 
 
 # -----------------------------------------------------------------------------
@@ -102,41 +101,16 @@ def register(lang, fileTypes, lexerClass):
 
 from PyQt4.Qsci import *
 
-
 # create default mappings
-
 register('Batch', ('.bat',), QsciLexerBatch)
-
 register('CSS', ('.css'), QsciLexerCSS)
-
-register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP)
-
+register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP, '//')
 register('HTML', ('.htm', '.html'), QsciLexerHTML)
-
 register('Lua', ('.lua'), QsciLexerLua)
-
-register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython)
-
+register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython, '#')
 register('XML', ('.xml', '.ui',), QsciLexerXML)
 
-
-# register default items
-
-# from PyQt4 import Qsci
-
-# for key in Qsci.__dict__.keys():
-
-# 	if ( key.startswith( 'QsciLexer' ) ):
-
-# 		name = key.replace( 'QsciLexer', '' )
-
-# 		if ( name and not name in _mapping ):
-
-# 			register( name, [], Qsci.__dict__[key] )
-
-
 # create custom mappings
-
 from maxscriptlexer import MaxscriptLexer
 
-register('Maxscript', ('.ms', '.mcr',), MaxscriptLexer)
+register('Maxscript', ('.ms', '.mcr',), MaxscriptLexer, '--')

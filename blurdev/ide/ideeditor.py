@@ -87,17 +87,15 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
 
         # create connections
-        self.uiProjectTREE.itemClicked.connect(self.updatePath)
         self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
         self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.doubleClicked.connect(self.editItem)
-        self.uiExplorerTREE.clicked.connect(self.updatePath)
+        self.uiExplorerTREE.customContextMenuRequested.connect(self.showExplorerMenu)
         self.uiWindowsAREA.subWindowActivated.connect(self.updateTitle)
         self.uiWindowsAREA.subWindowActivated.connect(self.checkOpen)
         self.documentTitleChanged.connect(self.refreshOpen)
-        self.uiCommandLineDDL.lineEdit().returnPressed.connect(self.runCommand)
 
         # connect file menu
         self.uiNewACT.triggered.connect(self.documentNew)
@@ -126,6 +124,8 @@ class IdeEditor(Window):
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
         self.uiInsertTemplateACT.triggered.connect(self.documentChooseTemplate)
+        self.uiCommentAddACT.triggered.connect(self.documentCommentAdd)
+        self.uiCommentRemoveACT.triggered.connect(self.documentCommentRemove)
         self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
         self.uiTemplateManagerACT.triggered.connect(self.showTemplateManager)
 
@@ -161,6 +161,7 @@ class IdeEditor(Window):
         # connect help menu
         self.uiHelpAssistantACT.triggered.connect(self.showAssistant)
         self.uiSdkBrowserACT.triggered.connect(self.showSdkBrowser)
+        self.uiBlurDevSiteACT.triggered.connect(self.showBlurDevSite)
 
         # connect debug menu
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
@@ -187,6 +188,32 @@ class IdeEditor(Window):
             self.uiWindowsAREA.subWindowList()
         ):
             self.refreshOpen()
+
+    def createNewFolder(self):
+        path = self.currentFilePath()
+        if not path:
+            return False
+
+        import os
+
+        if os.path.isfile(path):
+            path = os.path.split(str(path))[0]
+
+        from PyQt4.QtGui import QInputDialog, QMessageBox
+
+        text, accepted = QInputDialog.getText(self, 'New Folder Name', '')
+        if accepted:
+            folder = os.path.join(path, str(text))
+            try:
+                os.mkdir(folder)
+            except:
+                QMessageBox.critical(
+                    self, 'Error Creating Folder', 'Could not create folder: ', folder
+                )
+
+        item = self.uiProjectTREE.currentItem()
+        if item:
+            item.refresh()
 
     def cleanEnvironment(self):
         import blurdev
@@ -288,6 +315,16 @@ class IdeEditor(Window):
         if doc:
             doc.cut()
 
+    def documentCommentAdd(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.commentAdd()
+
+    def documentCommentRemove(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.commentRemove()
+
     def documentCopy(self):
         doc = self.currentDocument()
         if doc:
@@ -353,6 +390,7 @@ class IdeEditor(Window):
 
             text = template.templ(item.text(), options)
             if text:
+                doc.removeSelectedText()
                 doc.insert(text)
 
         self._templateCompleter.close()
@@ -633,7 +671,6 @@ class IdeEditor(Window):
 
     def projectInitItem(self, item):
         item.load()
-        self.updatePath()
 
     def projectOpen(self):
         from PyQt4.QtGui import QFileDialog
@@ -653,25 +690,17 @@ class IdeEditor(Window):
             self.setCurrentProject(proj)
             self.uiBrowserTAB.setCurrentIndex(0)
 
-    def projectOpenItem(self):
-        item = self.uiProjectTREE.currentItem()
-        if not item:
-            return
-
+    def documentOpenItem(self):
         import os.path
 
-        path = str(item.filePath())
+        path = str(self.currentFilePath())
         if os.path.isfile(path):
             self.load(path)
 
-    def projectExploreItem(self):
-        item = self.uiProjectTREE.currentItem()
-        if not item:
-            return
-
+    def documentExploreItem(self):
         import os
 
-        path = str(item.filePath())
+        path = str(self.currentFilePath())
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
@@ -801,24 +830,6 @@ class IdeEditor(Window):
         if geom and not geom.isNull():
             self.setGeometry(geom)
 
-    def runCommand(self):
-        cmd = str(self.uiCommandLineDDL.currentText())
-        split = cmd.split(' ')
-        cmd = split[0]
-        args = split[1:]
-
-        if not cmd:
-            return
-
-        path = self.currentBasePath()
-
-        if path:
-            from PyQt4.QtCore import QProcess
-
-            QProcess.startDetached(path + '/' + cmd, args, path)
-
-        self.uiCommandLineDDL.lineEdit().setText('')
-
     def runCurrentScript(self):
         filename = self.currentFilePath()
         if not filename:
@@ -900,15 +911,21 @@ class IdeEditor(Window):
 
         QProcess.startDetached('c:/blur/common/assistant.exe', [], '')
 
+    def showBlurDevSite(self):
+        import os
+
+        os.startfile('http://blur-dev.googlecode.com')
+
     def showProjectMenu(self):
         from PyQt4.QtGui import QMenu, QCursor
 
         menu = QMenu(self)
         menu.addAction(self.uiNewACT)
+        menu.addAction('New Folder').triggered.connect(self.createNewFolder)
         menu.addAction(self.uiNewFromWizardACT)
         menu.addSeparator()
-        menu.addAction('Open').triggered.connect(self.projectOpenItem)
-        menu.addAction('Explore').triggered.connect(self.projectExploreItem)
+        menu.addAction('Open').triggered.connect(self.documentOpenItem)
+        menu.addAction('Explore').triggered.connect(self.documentExploreItem)
         menu.addAction('Refresh').triggered.connect(self.projectRefreshItem)
         menu.addSeparator()
         menu.addAction('Run...').triggered.connect(self.runCurrentScript)
@@ -920,6 +937,27 @@ class IdeEditor(Window):
         )
         menu.addSeparator()
         menu.addAction(self.uiEditProjectACT)
+
+        menu.popup(QCursor.pos())
+
+    def showExplorerMenu(self):
+        from PyQt4.QtGui import QMenu, QCursor
+
+        menu = QMenu(self)
+        menu.addAction(self.uiNewACT)
+        menu.addAction('New Folder').triggered.connect(self.createNewFolder)
+        menu.addAction(self.uiNewFromWizardACT)
+        menu.addSeparator()
+        menu.addAction('Open').triggered.connect(self.documentOpenItem)
+        menu.addAction('Explore').triggered.connect(self.documentExploreItem)
+        menu.addSeparator()
+        menu.addAction('Run...').triggered.connect(self.runCurrentScript)
+        menu.addAction('Run (Standalone)...').triggered.connect(
+            self.runCurrentStandalone
+        )
+        menu.addAction('Run (Debug)...').triggered.connect(
+            self.runCurrentStandaloneDebug
+        )
 
         menu.popup(QCursor.pos())
 
@@ -997,9 +1035,6 @@ class IdeEditor(Window):
 
         # clear out the system
         self.close()
-
-    def updatePath(self):
-        self.uiPathLBL.setText(self.currentBasePath() + '>')
 
     def updateTitle(self, window):
         import blurdev

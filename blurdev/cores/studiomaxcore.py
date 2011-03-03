@@ -30,7 +30,10 @@ icon:#( "Blur_%(id)s_Macro", 1 )
 STUDIOMAX_CALLBACK_TEMPLATE = """
 global pyblurdev
 if ( pyblurdev == undefined ) then ( pyblurdev = python.import "blurdev" )
-if ( pyblurdev != undefined ) then ( pyblurdev.core.dispatch "%(signal)s" %(args)s )
+if ( pyblurdev != undefined ) then ( 
+    local ms_args = (callbacks.notificationParam())
+    pyblurdev.core.dispatch "%(signal)s" %(args)s 
+)
 """
 
 
@@ -48,10 +51,14 @@ class StudiomaxCore(Core):
         self.connectStudiomaxSignal('filePreMerge', 'sceneMergeRequested')
         self.connectStudiomaxSignal('filePostMerge', 'sceneMergeFinished')
         self.connectStudiomaxSignal(
-            'filePreSave', 'sceneSaveRequested', '(callbacks.notificationParam())[1]'
+            'filePreSave',
+            'sceneSaveRequested',
+            '(if (ms_args != undefined) then (ms_args as string) else "")',
         )
         self.connectStudiomaxSignal(
-            'filePostSave', 'sceneSaveFinished', '(callbacks.notificationParam())[1]'
+            'filePostSave',
+            'sceneSaveFinished',
+            '(if (ms_args != undefined) then (ms_args as string) else "")',
         )
         self.connectStudiomaxSignal('systemPostReset', 'sceneReset')
         self.connectStudiomaxSignal('layerCreated', 'layerCreated')
