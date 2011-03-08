@@ -170,8 +170,10 @@ class ToolsIndex(QObject):
 
                 # store the tool information
                 doc = XMLDocument()
-                doc.load(toolPath)
-                toolIndex.addChild(doc.root())
+                if doc.load(toolPath) and doc.root():
+                    toolIndex.addChild(doc.root())
+                else:
+                    print 'Error loading tool: ', toolPath
 
                 processed.append(toolPath)
 

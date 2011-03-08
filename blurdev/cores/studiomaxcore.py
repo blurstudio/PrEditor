@@ -63,6 +63,8 @@ class StudiomaxCore(Core):
         self.connectStudiomaxSignal('systemPostReset', 'sceneReset')
         self.connectStudiomaxSignal('layerCreated', 'layerCreated')
         self.connectStudiomaxSignal('layerDeleted', 'layerDeleted')
+        self.connectStudiomaxSignal('postSystemStartup', 'startupFinished')
+        self.connectStudiomaxSignal('preSystemShutdown', 'shutdownStarted')
 
         # create a signal linking between 2 signals
         self.linkSignals('sceneNewFinished', 'sceneInvalidated')
@@ -95,7 +97,7 @@ class StudiomaxCore(Core):
             'tool': tool.objectName(),
             'displayName': tool.displayName(),
             'macro': macro,
-            'tooltip': tool.toolTip(),
+            'tooltip': tool.displayName(),
             'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
         }
 
@@ -161,9 +163,7 @@ class StudiomaxCore(Core):
         self.connectPlugin(Py3dsMax.GetPluginInstance(), Py3dsMax.GetWindowHandle())
 
         # init the base class
-        Core.init(self)
-
-        self.restoreToolbars()
+        return Core.init(self)
 
     def registerPaths(self):
         from blurdev.tools import ToolsEnvironment

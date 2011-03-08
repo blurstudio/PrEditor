@@ -154,7 +154,7 @@ from blurdev.gui import Dialog
 
 
 class ToolsToolBarDialog(Dialog):
-    _instances = {}
+    _instance = None
 
     def __init__(self, parent, title):
         Dialog.__init__(self, parent)
@@ -175,44 +175,40 @@ class ToolsToolBarDialog(Dialog):
 
         self.setWindowFlags(Qt.Tool)
 
-    def closeEvent(self, event):
-        from blurdev import prefs
+    def fromXml(self, xml):
+        child = xml.findChild('toolbardialog')
+        if not child:
+            return False
 
-        pref = prefs.find('blurdev/toolbars')
-        self.recordToolbars(pref.root())
-        pref.save()
+        # restore the geometry
+        rect = child.restoreProperty('geom')
+        if rect and rect.isValid() and not rect.isNull() and not rect.isEmpty():
+            self.setGeometry(rect)
 
-        Dialog.closeEvent(self, event)
+        # restore the visibility
+        if child.attribute('visible') == 'True':
+            self.show()
+        else:
+            self.hide()
 
-    @staticmethod
-    def recordToolbars(xml):
-        for name, inst in ToolsToolBarDialog._instances.items():
-            child = xml.addNode('toolbardialog')
-            child.setAttribute('title', name)
-            child.setAttribute('visible', inst.isVisible())
-            child.recordProperty('geom', inst.geometry())
-            inst._toolbar.toXml(child)
+        # restore the actions
+        self._toolbar.fromXml(child)
 
-    @staticmethod
-    def restoreToolbars(xml):
-        count = 0
-        for child in xml.children():
-            inst = ToolsToolBarDialog.instance(None, title=child.attribute('title'))
-            inst.setVisible(child.attribute('visible') == 'True')
-            geom = child.restoreProperty('geom')
-            if geom and geom.isValid():
-                inst.setGeometry(geom)
-            inst._toolbar.fromXml(child)
-            count += 1
-        return count
+    def toXml(self, xml):
+        child = xml.addNode('toolbardialog')
+        child.setAttribute('visible', self.isVisible())
+        child.recordProperty('geom', self.geometry())
+        self._toolbar.toXml(child)
 
     @staticmethod
-    def instance(parent, title='Blur Tools'):
-        inst = ToolsToolBarDialog._instances.get(title)
-        if not inst:
-            inst = ToolsToolBarDialog(parent, title)
+    def instance(parent=None):
+        if not ToolsToolBarDialog._instance:
+            inst = ToolsToolBarDialog(parent, 'Blur Tools')
+
             from PyQt4.QtCore import Qt
 
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
-            ToolsToolBarDialog._instances[title] = inst
-        return inst
+
+            ToolsToolBarDialog._instance = inst
+
+        return ToolsToolBarDialog._instance

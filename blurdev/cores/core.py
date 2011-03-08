@@ -60,6 +60,10 @@ class Core(QObject):
     currentFrameChanged = pyqtSignal(int)
     frameRangeChanged = pyqtSignal()
 
+    # application signals
+    startupFinished = pyqtSignal()
+    shutdownStarted = pyqtSignal()
+
     # ----------------------------------------------------------------
 
     def __init__(self, hwnd=0):
@@ -74,6 +78,7 @@ class Core(QObject):
         self._mfcApp = False
         self._logger = None
         self._linkedSignals = {}
+        self._defaultPalette = -1
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -86,6 +91,23 @@ class Core(QObject):
         if QApplication.instance():
             return QApplication.instance().activeWindow()
         return None
+
+    def createDefaultPalette(self):
+        import blurdev
+        from PyQt4.QtGui import QWidget
+
+        w = QWidget(None)
+
+        import PyQt4.uic
+
+        PyQt4.uic.loadUi(blurdev.resourcePath('palette.ui'), w)
+
+        palette = w.palette()
+
+        w.close()
+        w.deleteLater()
+
+        return palette
 
     def connectAppSignals(self):
         """
@@ -142,6 +164,11 @@ class Core(QObject):
         """
         print '[blurdev.cores.core.Core.createToolMacro] virtual method not defined'
         return False
+
+    def defaultPalette(self):
+        if self._defaultPalette == -1:
+            self._defaultPalette = self.createDefaultPalette()
+        return self._defaultPalette
 
     def disableKeystrokes(self):
         # disable the client keystrokes
@@ -249,6 +276,8 @@ class Core(QObject):
             app.setEffectEnabled(Qt.UI_FadeTooltip, False)
             app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
 
+            app.aboutToQuit.connect(self.recordToolbar)
+
             app.installEventFilter(self)
 
         # create a new application
@@ -259,6 +288,8 @@ class Core(QObject):
         self.restoreSettings()
         self.registerPaths()
         self.connectAppSignals()
+
+        self.restoreToolbar()
 
         return output
 
@@ -353,15 +384,37 @@ class Core(QObject):
 
         pref = prefs.find('blurdev/core', coreName=self.objectName())
 
+        # record the tools environment
         from blurdev.tools import ToolsEnvironment
 
         pref.recordProperty(
             'environment', ToolsEnvironment.activeEnvironment().objectName()
         )
 
+        # record the debug
         from blurdev import debug
 
         pref.recordProperty('debugLevel', debug.debugLevel())
+
+        pref.save()
+
+    def recordToolbar(self):
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev/toolbar', coreName=self.objectName())
+
+        # record the toolbar
+        child = pref.root().findChild('toolbardialog')
+
+        # remove the old instance
+        if child:
+            child.remove()
+
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
+        if ToolsToolBarDialog._instance:
+            ToolsToolBarDialog._instance.toXml(pref.root())
+
         pref.save()
 
     def restoreSettings(self):
@@ -387,14 +440,15 @@ class Core(QObject):
 
         self.blockSignals(False)
 
-    def restoreToolbars(self):
+    def restoreToolbar(self):
         from blurdev import prefs
 
-        tbars = prefs.find('blurdev/toolbars', coreName=self.objectName())
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+        pref = prefs.find('blurdev/toolbar', coreName=self.objectName())
 
-        if not ToolsToolBarDialog.restoreToolbars(tbars.root()):
-            self.toolbarDialog().show()
+        # restore the toolbar
+        child = pref.root().findChild('toolbardialog')
+        if child:
+            self.toolbar().fromXml(pref.root())
 
     def rootWindow(self):
         """
@@ -675,6 +729,9 @@ class Core(QObject):
     def shutdown(self):
         from PyQt4.QtGui import QApplication
 
+        # record the settings
+        self.recordToolbar()
+
         if QApplication.instance():
             QApplication.instance().closeAllWindows()
             QApplication.instance().quit()
@@ -683,6 +740,11 @@ class Core(QObject):
         from blurdev.ide import IdeEditor
 
         IdeEditor.instance().edit()
+
+    def showToolbar(self, parent=None):
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
+        ToolsToolBarDialog.instance(parent).show()
 
     def showTreegrunt(self):
         self.treegrunt().show()
@@ -702,10 +764,10 @@ class Core(QObject):
         while key in self._protectedModules:
             self._protectedModules.remove(key)
 
-    def toolbarDialog(self, parent=None, title='Blur Tools'):
+    def toolbar(self, parent=None):
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
-        return ToolsToolBarDialog.instance(parent, title=title)
+        return ToolsToolBarDialog.instance(parent)
 
     def toolTypes(self):
         """
