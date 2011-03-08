@@ -6,6 +6,7 @@
 	<plugin module="blurdev.gui.widgets.colorwidgets" 		class="ColorPickerWidget"/>
 	<plugin module="blurdev.gui.widgets.colorwidgets" 		class="ColorPickerButton"/>
 	<plugin module="blurdev.gui.widgets.previewwidget"		class="PreviewWidget"/>
+	<plugin module="blurdev.gui.widgets.blurtreewidget"		class="BlurTreeWidget"/>
 	
 	<!-- include user defined blur prefs widgets -->
 	<include href="c:/blur/prefs/designer_plugins.xml"/>
