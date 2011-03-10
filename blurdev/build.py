@@ -28,6 +28,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-v', '--version', dest='version', default='Python24')
     parser.add_option('-i', '--install', dest='install', default='0')
+    parser.add_option('-o', '--offline', dest='offline', default='0')
 
     (options, args) = parser.parse_args()
     dictionary = options.__dict__
@@ -37,7 +38,18 @@ if __name__ == '__main__':
     f.write('!define MUI_PRODUCT "%s"\n' % product)
     f.write('!define MUI_VERSION "v1.0.X"\n')
     f.write('!define INSTALL_VERSION "v%i.%02i"\n' % (version.major(), version.minor()))
-    f.write('!define PYTHON_VERSION "%s"' % dictionary['version'])
+    f.write('!define PYTHON_VERSION "%s"\n' % dictionary['version'])
+    f.write('!define OFFLINE %s\n' % dictionary['offline'])
+
+    if dictionary['offline'] == '1':
+        f.write(
+            '!define OUTPUT_FILENAME "bin\offline\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}-offline.exe"\n'
+        )
+    else:
+        f.write(
+            '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
+        )
+
     f.close()
 
     svnnsi = WCRevTarget(
