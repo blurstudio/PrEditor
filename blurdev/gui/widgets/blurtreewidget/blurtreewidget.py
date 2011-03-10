@@ -50,7 +50,9 @@
 # |		self.uiTREE.restorePrefs( pref )
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot
-from PyQt4.QtGui import QTreeWidget, QItemDelegate
+from PyQt4.QtGui import QItemDelegate, QTreeWidget
+
+# from blurdev.gui.widgets.lockabletreewidget		import LockableTreeWidget
 
 
 class BlurTreeWidget(QTreeWidget):
@@ -209,6 +211,26 @@ class BlurTreeWidget(QTreeWidget):
         for index in range(count):
             self.resizeColumnToContents(index)
 
+    def resizeColumnsToWindow(self):
+        """
+            \remarks	Reduce the width of all columns until they fit on screen.
+        """
+        # get view width and data width
+        viewWidth = self.width()
+        tableWidth = 0.0
+        for column in range(self.columnCount()):
+            tableWidth += self.columnWidth(column)
+        # remove the vertical scroll bar width if it is visible
+        vert = self.verticalScrollBar()
+        if vert.isVisible():
+            viewWidth -= vert.width()
+        # calculate the percentage each column needs reduced
+        resizePercent = viewWidth / tableWidth
+        if resizePercent > 1:
+            return
+        for column in range(self.columnCount()):
+            self.setColumnWidth(column, self.columnWidth(column) * resizePercent)
+
     def restoreColumnVisibility(self, visibility):
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
@@ -329,6 +351,8 @@ class BlurTreeWidget(QTreeWidget):
             menu.addSeparator()
             action = menu.addAction('Resize to fit contents')
             action.triggered.connect(self.resizeColumnsToContents)
+            action = menu.addAction('Resize to fit window')
+            action.triggered.connect(self.resizeColumnsToWindow)
 
         # call delegate so user can add custom menu items if they wish
         result = True
