@@ -43,9 +43,7 @@ class SoftimageCore(Core):
         xsi.LoadPlugin(__file__)
 
         # init the base class
-        Core.init(self)
-
-        self.restoreToolbars()
+        return Core.init(self)
 
     def toolTypes(self):
         """
