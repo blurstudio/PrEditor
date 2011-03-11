@@ -53,15 +53,20 @@ class Tool(QObject):
             \remarks	runs this tool with the inputed macro command
             \param		macro	<str>
         """
-
+        from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QApplication
         import blurdev
 
+        from blurdev import debug
+
+        if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier or debug.isDebugLevel(
+            debug.DebugLevel.Mid
+        ):
+            blurdev.activeEnvironment().resetPaths()
+
         # run standalone
-
         if self.toolType() & ToolType.LegacyExternal:
-
             blurdev.core.runStandalone(self.sourcefile())
-
         else:
             blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
@@ -107,7 +112,6 @@ class Tool(QObject):
         return self._path
 
     def projectFile(self):
-
         return self.relativePath('%s.blurproj' % self.displayName())
 
     def relativePath(self, relpath):
