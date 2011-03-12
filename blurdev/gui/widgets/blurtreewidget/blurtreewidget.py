@@ -51,6 +51,7 @@
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot
 from PyQt4.QtGui import QItemDelegate, QTreeWidget
+import blurdev
 
 # from blurdev.gui.widgets.lockabletreewidget		import LockableTreeWidget
 
@@ -86,7 +87,7 @@ class BlurTreeWidget(QTreeWidget):
         """
             \remarks	Recursively goes down the tree hierarchy expanding/collapsing all the tree items.  This method is called in the expandAll, itemExpanded, and itemCollapsed methods
                         and should not be called directly.
-            \param		item	<trax.gui.views.DeliveryQueueView.DeliveryTreeItem>
+            \param		item	<QTreeWidgetItem>
             \param		state	<bool>	Expand or collapse state
             \param		filter	<str>	Only expand items with text in column matching this will be set to state
             \param		column	<int>	The column filter is applied to
@@ -110,6 +111,10 @@ class BlurTreeWidget(QTreeWidget):
         else:
             item.setExpanded(state)
             return True
+
+    def closeTearOffMenu(self):
+        if self._columnsMenu and self._columnsMenu.isTearOffEnabled():
+            self._columnsMenu.hideTearOffMenu()
 
     def columnVisibility(self):
         visibility = {}
@@ -163,11 +168,9 @@ class BlurTreeWidget(QTreeWidget):
         """
             \remarks	Marks this item as being collapsed, then calls the update items method to reflect the tree state in the dateline scene.  If the user has
                         the CTRL modifier clicked, then the collapse will be recursive
-            \param		item	<trax.gui.views.DeliveryQueueView.DeliveryTreeItem>
+            \param		item	<QTreeWidgetItem>
         """
-        import trax.api
-
-        if trax.api.core.keyboardModifiers() == Qt.ControlModifier:
+        if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
             self.blockSignals(True)
             self._itemExpandAll(item, False)
             self.blockSignals(False)
@@ -176,11 +179,9 @@ class BlurTreeWidget(QTreeWidget):
         """
             \remarks	Marks this item as being expanded, then calls the update items method to reflect the tree state in the dateline scene.  If the user has
                         the CTRL modifier clicked, then the expansion will be recursive
-            \param		item	<trax.gui.views.DeliveryQueueView.DeliveryTreeItem>
+            \param		item	<QTreeWidgetItem>
         """
-        import trax.api
-
-        if trax.api.core.keyboardModifiers() == Qt.ControlModifier:
+        if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
             self.blockSignals(True)
             self._itemExpandAll(item, True)
             self.blockSignals(False)
@@ -320,15 +321,14 @@ class BlurTreeWidget(QTreeWidget):
             \Remarks	Shows the header menu if the header menu is enabled. It populates the menu with column visiblity if this is enabled.
                         If a delegate is set, it will pass the menu item to headerMenu( menu ). You can customize the menu in this delegate function, headerMenu( menu ) must return a <bool> if the menu is to be shown
         """
-        import trax.gui
-        from trax.gui.advancedmenu import AdvancedMenu
         from PyQt4.QtGui import QCursor, QMenu
 
-        menu = AdvancedMenu(self)
+        menu = QMenu(self)
         header = self.headerItem()
 
         if self._userCanHideColumns:
-            self._columnsMenu = AdvancedMenu(self)
+            self._columnsMenu = QMenu(self)
+            self._columnsMenu.setTearOffEnabled(True)
 
             columns = {}
             hideable = self.hideableColumns()
@@ -343,6 +343,7 @@ class BlurTreeWidget(QTreeWidget):
             self._columnsMenu.addSeparator()
             action = self._columnsMenu.addAction(self._showAllColumnsText)
             action.triggered.connect(self.showAllColumns)
+            action.triggered.connect(self.closeTearOffMenu)
 
             colAction = menu.addMenu(self._columnsMenu)
             colAction.setText('Column visibility')
