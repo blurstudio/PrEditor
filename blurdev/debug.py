@@ -12,6 +12,7 @@ from enum import enum
 
 _currentLevel = 0
 _debugLogger = None
+_errorReport = []
 
 DebugLevel = enum('Low', 'Mid', 'High')
 
@@ -95,6 +96,14 @@ class Stopwatch:
 
 
 # ---------------------------------------
+
+
+def clearErrorReport():
+    """
+        \remarks	clears the current report
+    """
+    global _errorReport
+    _errorReport = []
 
 
 def debugMsg(msg, level=2):
@@ -191,6 +200,14 @@ def emailList():
     return blurdev.activeEnvironment().emailOnError()
 
 
+def errorsReported():
+    """
+        \remarks	returns whether or not the error report is empty
+        \return		<bool>
+    """
+    return len(_errorReport) > 0
+
+
 def isDebugLevel(level):
     """
         \remarks	Checks to see if the current debug level greater than or equal to the inputed level
@@ -203,6 +220,26 @@ def isDebugLevel(level):
         level = DebugLevel.value(str(level))
 
     return level <= debugLevel()
+
+
+def reportError(msg):
+    """
+        \remarks	adds the inputed message to the debug report
+        \param		msg <str>
+    """
+    _errorReport.append(str(msg))
+
+
+def showErrorReport(
+    subject='Errors Occurred',
+    message='There were errors that occurred.  Click the Details button for more info.',
+    debugLevel=1,
+):
+    from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog
+
+    DetailReportDialog.showReport(
+        None, subject, message, '<br>'.join([str(r) for r in _errorReport])
+    )
 
 
 def setDebugLevel(level):
