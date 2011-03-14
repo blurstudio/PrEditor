@@ -59,7 +59,7 @@ class Tool(QObject):
 
         from blurdev import debug
 
-        if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier or debug.isDebugLevel(
+        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier or debug.isDebugLevel(
             debug.DebugLevel.Mid
         ):
             blurdev.activeEnvironment().resetPaths()

@@ -79,6 +79,13 @@ class MultiProgressDialog(Dialog):
     def errored(self):
         return self._errored
 
+    def finish(self):
+        for i in range(self.uiProgressTREE.topLevelItemCount()):
+            item = self.uiProgressTREE.topLevelItem(i)
+            item._value = item._count - 1
+
+        self.update()
+
     def reset(self, items):
         self.uiProgressTREE.blockSignals(True)
         self.uiProgressTREE.setUpdatesEnabled(False)
@@ -99,6 +106,13 @@ class MultiProgressDialog(Dialog):
             if item.text(0) == name:
                 return item
         return None
+
+    def show(self):
+        Dialog.show(self)
+
+        from PyQt4.QtGui import QApplication
+
+        QApplication.processEvents()
 
     def update(self):
         # we need to force the events to process to check if the user pressed the cancel button since this is not multi-threaded

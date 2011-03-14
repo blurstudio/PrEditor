@@ -79,6 +79,10 @@ def clear():
     _dialog.clear()
 
 
+def finish():
+    _dialog.finish()
+
+
 def start(title='Progress'):
     _dialog.setWindowTitle(title)
     _dialog.update()

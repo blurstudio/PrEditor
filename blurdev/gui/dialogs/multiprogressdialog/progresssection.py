@@ -57,6 +57,9 @@ class ProgressSection(QTreeWidgetItem):
     def errored(self):
         return self._errorText != ''
 
+    def finish(self):
+        self.setValue(self._count - 1)
+
     def increment(self):
         self.setValue(self._value + 1)
 
