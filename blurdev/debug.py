@@ -222,24 +222,30 @@ def isDebugLevel(level):
     return level <= debugLevel()
 
 
-def reportError(msg):
+def reportError(msg, debugLevel=1):
     """
         \remarks	adds the inputed message to the debug report
         \param		msg <str>
     """
-    _errorReport.append(str(msg))
+    if isDebugLevel(debugLevel):
+        _errorReport.append(str(msg))
 
 
 def showErrorReport(
     subject='Errors Occurred',
     message='There were errors that occurred.  Click the Details button for more info.',
-    debugLevel=1,
 ):
-    from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog
+    if not errorsReported():
+        from PyQt4.QtGui import QMessageBox
 
-    DetailReportDialog.showReport(
-        None, subject, message, '<br>'.join([str(r) for r in _errorReport])
-    )
+        QMessageBox.critical(None, subject, message)
+    else:
+        from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog
+
+        DetailReportDialog.showReport(
+            None, subject, message, '<br>'.join([str(r) for r in _errorReport])
+        )
+        return True
 
 
 def setDebugLevel(level):
