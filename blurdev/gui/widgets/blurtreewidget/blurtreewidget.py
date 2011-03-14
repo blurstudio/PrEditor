@@ -49,7 +49,7 @@
 # |		pref = prefs.find( 'Test_Widget_View' )
 # |		self.uiTREE.restorePrefs( pref )
 
-from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot
+from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
 from PyQt4.QtGui import QItemDelegate, QTreeWidget
 import blurdev
 
@@ -57,6 +57,9 @@ import blurdev
 
 
 class BlurTreeWidget(QTreeWidget):
+    columnShown = pyqtSignal(int)
+    columnsAllShown = pyqtSignal()
+
     def __init__(self, parent):
         # initialize the super class
         QTreeWidget.__init__(self, parent)
@@ -312,6 +315,11 @@ class BlurTreeWidget(QTreeWidget):
             if self.columnWidth(column) == 0:
                 self.resizeColumnToContents(column)
 
+    def showAllColumnsMenu(self):
+        self.showAllColumns()
+        self.closeTearOffMenu()
+        self.columnsAllShown.emit()
+
     def showColumnControls(self):
         return self._showColumnControls
 
@@ -327,6 +335,7 @@ class BlurTreeWidget(QTreeWidget):
         header = self.headerItem()
 
         if self._userCanHideColumns:
+            self.closeTearOffMenu()
             self._columnsMenu = QMenu(self)
             self._columnsMenu.setTearOffEnabled(True)
 
@@ -342,8 +351,7 @@ class BlurTreeWidget(QTreeWidget):
                     action.toggled.connect(self.updateColumnVisibility)
             self._columnsMenu.addSeparator()
             action = self._columnsMenu.addAction(self._showAllColumnsText)
-            action.triggered.connect(self.showAllColumns)
-            action.triggered.connect(self.closeTearOffMenu)
+            action.triggered.connect(self.showAllColumnsMenu)
 
             colAction = menu.addMenu(self._columnsMenu)
             colAction.setText('Column visibility')
@@ -366,6 +374,10 @@ class BlurTreeWidget(QTreeWidget):
     def updateColumnVisibility(self):
         if self._columnsMenu:
             header = self.headerItem()
+            hidden = []
+            for column in range(header.columnCount()):
+                if self.isColumnHidden(column):
+                    hidden.append(column)
             self.showAllColumns()
             for action in self._columnsMenu.actions():
                 name = str(action.text())
@@ -374,7 +386,11 @@ class BlurTreeWidget(QTreeWidget):
                         if header.text(column) == name:
                             if not action.isChecked():
                                 self.hideColumn(column)
+                                if column in hidden:
+                                    hidden.remove(column)
                             break
+            if hidden:
+                self.columnShown.emit(hidden[0])
 
     def userCanHideColumns(self):
         return self._userCanHideColumns
