@@ -23,7 +23,10 @@ class MultiProgressDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
+        self._shutdown = False
+        self._cancelled = False
         self._errored = False
+        self._overriddenCursor = False
 
         # create the columns
         self.uiProgressTREE.setColumnCount(2)
@@ -57,6 +60,15 @@ class MultiProgressDialog(Dialog):
 
         return section
 
+    def applyOverrideCursor(self):
+        # make sure we restore the override the cursor
+        if not self._overriddenCursor:
+            from PyQt4.QtCore import Qt
+            from PyQt4.QtGui import QApplication
+
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            self._overriddenCursor = True
+
     def cancel(self):
         item = self.uiProgressTREE.currentItem()
         if item:
@@ -72,7 +84,20 @@ class MultiProgressDialog(Dialog):
         self.uiProgressTREE.blockSignals(False)
         self.uiProgressTREE.setUpdatesEnabled(True)
 
+    def clearOverrideCursor(self):
+        # make sure we restore the override the cursor
+        if self._overriddenCursor:
+            from PyQt4.QtGui import QApplication
+
+            QApplication.restoreOverrideCursor()
+            self._overriddenCursor = False
+
     def closeEvent(self, event):
+        if not (self._errored or self._shutdown):
+            event.ignore()
+            return
+
+        self.clearOverrideCursor()
         Dialog.closeEvent(self, event)
         self.closed.emit()
 
@@ -114,6 +139,10 @@ class MultiProgressDialog(Dialog):
 
         QApplication.processEvents()
 
+    def shutdown(self):
+        self._shutdown = True
+        self.close()
+
     def update(self):
         # we need to force the events to process to check if the user pressed the cancel button since this is not multi-threaded
         from PyQt4.QtGui import QApplication
@@ -135,8 +164,8 @@ class MultiProgressDialog(Dialog):
 
             # if the item has accepted a user cancel, stop the progress dialog
             if item.cancelAccepted():
-                self.close()
-                break
+                self.shutdown()
+                return
 
             # convert an errored item to a message box style system
             elif item.errored():
@@ -162,9 +191,14 @@ class MultiProgressDialog(Dialog):
         self.uiItemPBAR.setValue(secondaryPerc)
         self.updateOptions()
 
+        if self._errored:
+            self.clearOverrideCursor()
+        else:
+            self.applyOverrideCursor()
+
         # close out when all items are finished
         if self.uiMainPBAR.value() == 100:
-            self.close()
+            self.shutdown()
 
     def updateOptions(self):
         item = self.uiProgressTREE.currentItem()

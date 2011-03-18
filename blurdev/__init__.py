@@ -8,6 +8,8 @@
 # 	\date		06/11/10
 #
 
+__DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
+
 # track the install path
 import os.path
 
