@@ -21,16 +21,32 @@ class LoggerWindow(Window):
 
         blurdev.gui.loadUi(__file__, self)
 
+        # create the splitter layout
+        from PyQt4.QtGui import QSplitter
+        from PyQt4.QtCore import Qt
+
+        self._splitter = QSplitter(self)
+        self._splitter.setOrientation(Qt.Vertical)
+
         # create the console widget
         from console import ConsoleEdit
 
-        self._console = ConsoleEdit(self)
+        self._console = ConsoleEdit(self._splitter)
+        self._console.setMinimumHeight(1)
+
+        # create the workbox
+        from workboxwidget import WorkboxWidget
+
+        self._workbox = WorkboxWidget(self._splitter)
+        self._workbox.setConsole(self._console)
+        self._workbox.setMinimumHeight(1)
+        self._workbox.setLanguage('Python')
 
         # create the layout
         from PyQt4.QtGui import QVBoxLayout
 
         layout = QVBoxLayout()
-        layout.addWidget(self._console)
+        layout.addWidget(self._splitter)
         self.centralWidget().setLayout(layout)
 
         # create the connections
@@ -58,6 +74,11 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
+        self.restorePrefs()
+
+    def closeEvent(self, event):
+        self.recordPrefs()
+        Window.closeEvent(self, event)
 
     def gotoError(self):
         text = self._console.textCursor().selectedText()
@@ -89,6 +110,32 @@ class LoggerWindow(Window):
         import blurdev
 
         blurdev.activeEnvironment().resetPaths()
+
+    def recordPrefs(self):
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev\LoggerWindow')
+        pref.recordProperty('loggergeom', self.geometry())
+        pref.recordProperty(
+            'WorkboxText', unicode(self._workbox.text()).replace('\r', '')
+        )
+        pref.recordProperty('SplitterSize', self._splitter.sizes())
+
+        pref.save()
+
+    def restorePrefs(self):
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev\LoggerWindow')
+        rect = pref.restoreProperty('loggergeom')
+        if rect and not rect.isNull():
+            self.setGeometry(rect)
+        self._workbox.setText(pref.restoreProperty('WorkboxText', ''))
+        sizes = pref.restoreProperty('SplitterSize', None)
+        if sizes:
+            self._splitter.setSizes(sizes)
+        else:
+            self._splitter.moveSplitter(self._splitter.getRange(1)[1], 1)
 
     def setNoDebug(self):
         from blurdev import debug
