@@ -385,7 +385,23 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             options = {}
+
+            fname = doc.filename()
             options['selection'] = doc.selectedText()
+            options['filename'] = fname
+
+            # include package, module info for python files
+            import os.path, blurdev
+
+            if os.path.splitext(fname)[1].startswith('.py'):
+                options['package'] = blurdev.packageForPath(os.path.split(fname)[0])
+                mname = os.path.basename(fname).split('.')[0]
+
+                if mname != '__init__':
+                    options['module'] = mname
+                else:
+                    options['module'] = ''
+
             from blurdev import template
 
             text = template.templ(item.text(), options)
