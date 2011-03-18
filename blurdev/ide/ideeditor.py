@@ -740,6 +740,9 @@ class IdeEditor(Window):
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
 
+        if blurdev.core.objectName() == 'ide':
+            blurdev.core.logger().recordPrefs()
+
         pref.save()
 
     def recordRecentFile(self, filename):
