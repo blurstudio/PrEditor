@@ -52,26 +52,21 @@
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
 from PyQt4.QtGui import QItemDelegate, QTreeWidget
 import blurdev
+from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 
-# from blurdev.gui.widgets.lockabletreewidget		import LockableTreeWidget
 
-
-class BlurTreeWidget(QTreeWidget):
+class BlurTreeWidget(LockableTreeWidget):
     columnShown = pyqtSignal(int)
     columnsAllShown = pyqtSignal()
 
     def __init__(self, parent):
         # initialize the super class
-        QTreeWidget.__init__(self, parent)
+        LockableTreeWidget.__init__(self, parent)
 
         # initialize the ui data
         self.itemExpanded.connect(self.itemIsExpanded)
         self.itemCollapsed.connect(self.itemIsCollapsed)
-        header = self.header()
-        header.setContextMenuPolicy(Qt.CustomContextMenu)
-        header.customContextMenuRequested.connect(
-            self.showHeaderMenu, type=Qt.UniqueConnection
-        )
+        self.connectHeaderMenu()
 
         # create custom properties
         self._userCanHideColumns = False
@@ -81,6 +76,8 @@ class BlurTreeWidget(QTreeWidget):
         self._columnsMenu = None
         self._delegate = None
         self._showAllColumnsText = 'Show all columns'
+        self._columnIndex = []
+        self._indexBuilt = False
 
         # create connections
 
@@ -115,9 +112,41 @@ class BlurTreeWidget(QTreeWidget):
             item.setExpanded(state)
             return True
 
+    def buildColumnIndex(self):
+        """
+            \remarks	Builds column name index. This is called automatically the first time columnIndex or columnNames is called.
+        """
+        self._columnIndex = []
+        headerItem = self.headerItem()
+        for column in range(headerItem.columnCount()):
+            self._columnIndex.append(str(headerItem.text(column)))
+        self._indexBuilt = True
+
     def closeTearOffMenu(self):
         if self._columnsMenu and self._columnsMenu.isTearOffEnabled():
             self._columnsMenu.hideTearOffMenu()
+
+    def columnIndex(self, label):
+        """
+            \remarks	Returns the column index for column named label. If label is not a <str> it converts it to <str>.
+            \return		<int>
+        """
+        if not self._indexBuilt:
+            self.buildColumnIndex()
+        if type(label) != str:
+            label = str(label)
+        if label in self._columnIndex:
+            return self._columnIndex.index(label)
+        return None
+
+    def columnNames(self):
+        """
+            \Remarks	Returns a list of column names as <str>.
+            \return		<list>
+        """
+        if not self._indexBuilt:
+            self.buildColumnIndex()
+        return self._columnIndex
 
     def columnVisibility(self):
         visibility = {}
@@ -135,6 +164,15 @@ class BlurTreeWidget(QTreeWidget):
             widths.update({str(headerItem.text(column)): self.columnWidth(column)})
         return widths
 
+    def connectHeaderMenu(self, view=None):
+        if view == None:
+            view = self
+        header = view.header()
+        header.setContextMenuPolicy(Qt.CustomContextMenu)
+        header.customContextMenuRequested.connect(
+            self.showHeaderMenu, type=Qt.UniqueConnection
+        )
+
     def delegate(self):
         return self._delegate
 
@@ -144,10 +182,10 @@ class BlurTreeWidget(QTreeWidget):
             \param		state	<bool>	Expand or contract items
         """
         # block the signals so the other slots won't be called
-        self.blockSignals(True)
+        # self.blockSignals( True )
         for index in range(self.topLevelItemCount()):
             self._itemExpandAll(self.topLevelItem(index), state, timesheets=timesheets)
-        self.blockSignals(False)
+        # self.blockSignals( False )
 
     def hideableColumns(self):
         count = self.columnCount()
@@ -174,9 +212,9 @@ class BlurTreeWidget(QTreeWidget):
             \param		item	<QTreeWidgetItem>
         """
         if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
-            self.blockSignals(True)
+            # self.blockSignals( True )
             self._itemExpandAll(item, False)
-            self.blockSignals(False)
+            # self.blockSignals( False )
 
     def itemIsExpanded(self, item):
         """
@@ -185,9 +223,9 @@ class BlurTreeWidget(QTreeWidget):
             \param		item	<QTreeWidgetItem>
         """
         if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
-            self.blockSignals(True)
+            # self.blockSignals( True )
             self._itemExpandAll(item, True)
-            self.blockSignals(False)
+            # self.blockSignals( False )
 
     def recordOpenState(self, item=None, key=''):
         output = []
@@ -209,11 +247,18 @@ class BlurTreeWidget(QTreeWidget):
             pref.recordProperty('ColumnWidths', self.columnWidths())
 
     def resizeColumnsToContents(self):
+        """
+            \remarks	Resizes all columns to fit contents, If the header is set to stretch the last section, it will properly stretch the last column if it falls short of the view's width
+        """
         count = self.columnCount()
-        if self.header().stretchLastSection():
-            count -= 1
         for index in range(count):
             self.resizeColumnToContents(index)
+        treeWidth = self.treeWidth()
+        viewWidth = self.width()
+        # If the tree has resized to smaller than the visible table, resize the last column to fill the remaining if this is enabled
+        if self.header().stretchLastSection() and treeWidth < viewWidth:
+            treeWidth -= self.columnWidth(-1)
+            self.setColumnWidth(-1, viewWidth - treeWidth)
 
     def resizeColumnsToWindow(self):
         """
@@ -221,15 +266,13 @@ class BlurTreeWidget(QTreeWidget):
         """
         # get view width and data width
         viewWidth = self.width()
-        tableWidth = 0.0
-        for column in range(self.columnCount()):
-            tableWidth += self.columnWidth(column)
+        treeWidth = self.treeWidth()
         # remove the vertical scroll bar width if it is visible
         vert = self.verticalScrollBar()
         if vert.isVisible():
             viewWidth -= vert.width()
         # calculate the percentage each column needs reduced
-        resizePercent = viewWidth / tableWidth
+        resizePercent = viewWidth / treeWidth
         if resizePercent > 1:
             return
         for column in range(self.columnCount()):
@@ -274,11 +317,39 @@ class BlurTreeWidget(QTreeWidget):
         if self._saveColumnWidths:
             self.restoreColumnWidths(pref.restoreProperty('ColumnWidths', {}))
 
+    def setColumnCount(self, columns):
+        """
+            \remarks	overloaded from QTreeWidget.setColumnCount( int columns ). Invalidates column name index before setting column count.
+        """
+        self._indexBuilt = False
+        QTreeWidget.setColumnCount(self, columns)
+
     def saveColumnWidths(self):
         return self._saveColumnWidths
 
     def setDelegate(self, delegate):
         self._delegate = delegate
+
+    def setHeaderItem(self, item):
+        """
+            \remarks	overloaded from QTreeWidget.setHeaderItem (self, QTreeWidgetItem item). Invalidates column name index before setting header item
+        """
+        self._indexBuilt = False
+        QTreeWidget.setHeaderItem(self, item)
+
+    def setHeaderLabel(self, alabel):
+        """
+            \remarks	overloaded from QTreeWidget.setHeaderLabel (self, QString alabel). Invalidates column name index before setting header item
+        """
+        self._indexBuilt = False
+        QTreeWidget.setHeaderLabel(self, alabel)
+
+    def setHeaderLabels(self, labels):
+        """
+            \remarks	overloaded from QTreeWidget.setHeaderLabels (self, QStringList labels). Invalidates column name index before setting header item
+        """
+        self._indexBuilt = False
+        QTreeWidget.setHeaderLabels(self, labels)
 
     def setHideableColumns(self, columns):
         count = self.columnCount()
@@ -299,6 +370,12 @@ class BlurTreeWidget(QTreeWidget):
                 break
         if not failed:
             self._hideableColumns = output
+
+    def setLocked(self, alignment, state, span=1):
+        view = LockableTreeWidget.setLocked(self, alignment, state, span)
+        if state:
+            self.connectHeaderMenu(view)
+        return view
 
     def setSaveColumnWidths(self, state):
         self._saveColumnWidths = state
@@ -370,6 +447,15 @@ class BlurTreeWidget(QTreeWidget):
             result = self._delegate.headerMenu(menu)
         if result:
             menu.popup(cursorPos)
+
+    def treeWidth(self):
+        """
+            \remarks	Calculates the width of the tree's contents
+        """
+        treeWidth = 0.0
+        for column in range(self.columnCount()):
+            treeWidth += self.columnWidth(column)
+        return treeWidth
 
     def updateColumnVisibility(self):
         if self._columnsMenu:
