@@ -36,8 +36,8 @@ def packageFiles(files, outputfile):
     # call the package path function
     success = packagePath(temppath, outputfile)
 
-    # clean up the temp path
-    os.remove(temppath)
+    # remove the temp path
+    shutil.rmtree(temppath)
 
     return success
 
