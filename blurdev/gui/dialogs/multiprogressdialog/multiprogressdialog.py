@@ -15,6 +15,8 @@ from blurdev.gui import Dialog
 class MultiProgressDialog(Dialog):
     closed = pyqtSignal()
 
+    _instance = None
+
     def __init__(self, parent=None):
         Dialog.__init__(self, parent)
 
@@ -27,6 +29,7 @@ class MultiProgressDialog(Dialog):
         self._cancelled = False
         self._errored = False
         self._overriddenCursor = False
+        self._stackCount = 1
 
         # create the columns
         self.uiProgressTREE.setColumnCount(2)
@@ -93,16 +96,31 @@ class MultiProgressDialog(Dialog):
             self._overriddenCursor = False
 
     def closeEvent(self, event):
-        if not (self._errored or self._shutdown):
-            event.ignore()
-            return
+        from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QApplication
+
+        if not QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
+            if not (self._errored or self._shutdown):
+                event.ignore()
+                return
 
         self.clearOverrideCursor()
         Dialog.closeEvent(self, event)
         self.closed.emit()
 
+    def complete(self):
+        self._stackCount -= 1
+        if self._stackCount < 0:
+            self._stackCount = 0
+
+        if not self._stackCount:
+            self.shutdown()
+
     def errored(self):
         return self._errored
+
+    def incrementStack(self):
+        self._stackCount += 1
 
     def finish(self):
         for i in range(self.uiProgressTREE.topLevelItemCount()):
@@ -132,6 +150,17 @@ class MultiProgressDialog(Dialog):
                 return item
         return None
 
+    def sectionUpdated(self, sectionName, percent, message=''):
+        section = self.section(sectionName)
+        if section:
+            section.setPercentComplete(percent)
+            section.setMessage(message)
+
+    def sectionErrored(self, sectionName, error):
+        section = self.section(sectionName)
+        if section:
+            section.setErrorText(error)
+
     def show(self):
         Dialog.show(self)
 
@@ -154,6 +183,7 @@ class MultiProgressDialog(Dialog):
 
         citem = tree.currentItem()
         count = tree.topLevelItemCount()
+        message = ''
         completeCount = 0.0
         secondaryPerc = 0
         self._errored = False
@@ -183,10 +213,12 @@ class MultiProgressDialog(Dialog):
 
             if item == citem:
                 secondaryPerc = 100 * iperc
+                message = item.message()
 
         if count < 1:
             count = 1
 
+        self.uiMessageLBL.setText(message)
         self.uiMainPBAR.setValue(100 * (completeCount / count))
         self.uiItemPBAR.setValue(secondaryPerc)
         self.updateOptions()
@@ -206,3 +238,20 @@ class MultiProgressDialog(Dialog):
             self.uiDialogBTNS.setEnabled(item.allowsCancel() or self.errored())
         else:
             self.uiDialogBTNS.setEnabled(self.errored())
+
+    @staticmethod
+    def clear():
+        MultiProgressDialog._instance = None
+
+    @staticmethod
+    def start(title='Progress', parent=None):
+        if MultiProgressDialog._instance:
+            MultiProgressDialog._instance.incrementStack()
+        else:
+            inst = MultiProgressDialog(parent)
+            inst.setWindowTitle(title)
+            inst.show()
+            inst.closed.connect(inst.clear)
+            MultiProgressDialog._instance = inst
+
+        return MultiProgressDialog._instance

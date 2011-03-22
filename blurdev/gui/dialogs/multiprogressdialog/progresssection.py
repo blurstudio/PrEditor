@@ -63,6 +63,9 @@ class ProgressSection(QTreeWidgetItem):
     def increment(self):
         self.setValue(self._value + 1)
 
+    def message(self):
+        return self._message
+
     def percentComplete(self):
         return float(self._value + 1) / self._count
 
@@ -120,6 +123,12 @@ class ProgressSection(QTreeWidgetItem):
 
         self._count = count
         self.refreshLook()
+
+    def setMessage(self, message):
+        self._message = message
+
+    def setPercentComplete(self, percent):
+        self.setValue((percent / 100.0) * self._count)
 
     def setValue(self, value):
         self._value = value

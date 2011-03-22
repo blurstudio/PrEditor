@@ -223,5 +223,11 @@ def setActiveEnvironment(env):
     return ToolsEnvironment.findEnvironment(env).setActive()
 
 
+def startProgress(title='Progress', parent=None):
+    from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
+
+    return MultiProgressDialog.start(title)
+
+
 # the blurdev system will create and manage a QApplication instance
 init()
