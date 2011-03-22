@@ -11,6 +11,8 @@
 from PyQt4.QtGui import QTextEdit
 from PyQt4.QtCore import QEvent, Qt
 from blurdev.ide.documenteditor import DocumentEditor
+from PyQt4.QtGui import QApplication
+
 import blurdev
 
 
@@ -35,7 +37,7 @@ class WorkboxWidget(DocumentEditor):
 
     def keyPressEvent(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
+            if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
                 if self._console:
                     # grab the command from the selected line
                     text = self.selectedText()
