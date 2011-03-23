@@ -18,6 +18,7 @@ class LockableTreeWidget(QTreeWidget):
         QTreeWidget.__init__(self, parent)
         # create lockable options
         self._lockedViews = {}
+        self._metric = None
         # initialize the tree options
         self.setHorizontalScrollMode(QTreeWidget.ScrollPerPixel)
         self.setVerticalScrollMode(QTreeWidget.ScrollPerPixel)
@@ -109,8 +110,16 @@ class LockableTreeWidget(QTreeWidget):
 
         QTreeWidget.closeEvent(self, event)
 
+    def initFontMetric(self, font):
+        from PyQt4.QtGui import QFontMetrics
+
+        self._metric = QFontMetrics(font)
+
     def isLocked(self, alignment):
         return self._lockedViews.get(int(alignment)) != None
+
+    def lockedViews(self):
+        return self._lockedViews
 
     def resizeEvent(self, event):
         QTreeWidget.resizeEvent(self, event)
@@ -237,18 +246,31 @@ class LockableTreeWidget(QTreeWidget):
         # self.blockSignals( False )
 
     def updateItemExpansion(self, item):
+        from PyQt4.QtCore import Qt
+
         index = self.indexFromItem(item, 0)
-        for view, span in self._lockedViews.values():
-            # view.blockSignals( True )
+        # for view, span in self._lockedViews.values():
+        # view.blockSignals( True )
+        # view.setExpanded( index, True )
+        # view.blockSignals( False )
+        for align in self._lockedViews:
+            view, span = self._lockedViews[align]
             view.setExpanded(index, True)
-            # view.blockSignals( False )
+
+    # 			if align == Qt.AlignLeft:
+    # 				colRange = range( span )
+    # 			elif align == Qt.AlignRight:
+    # 				count = self.columnCount()
+    # 				colRange = range( count - span, count )
+    # 			for column in colRange:
+    # 				self.updateSizeHintForItem( item, column, True )
 
     def updateItemCollapsed(self, item):
         index = self.indexFromItem(item, 0)
         for view, span in self._lockedViews.values():
-            view.blockSignals(True)
+            # view.blockSignals( True )
             view.setExpanded(index, False)
-            view.blockSignals(False)
+            # view.blockSignals( False )
 
     def updateRootItemCollapsed(self, index):
         item = self.itemFromIndex(index)
@@ -266,6 +288,29 @@ class LockableTreeWidget(QTreeWidget):
             v.setColumnWidth(index, newSize)
 
         self.updateLockedGeometry()
+
+    def updateSizeHintForItem(self, item, column, recursive=False):
+        if recursive:
+            for index in range(item.childCount()):
+                self.updateSizeHintForItem(item.child(index), column, recursive)
+        hint = self.itemSizeHint(item, column)
+        if hint.isValid():
+            item.setSizeHint(column, hint)
+
+    def itemSizeHint(self, item, column):
+        hint = item.sizeHint(column)
+        height = self.rowHeight(self.indexFromItem(item, 0))
+        if height:
+            hint.setHeight(height)
+        if not self._metric:
+            self.initFontMetric(item.font(column))
+        width = self._metric.size(0, item.text(column)).width()
+        parent = item.parent()
+        while parent:
+            parent = parent.parent()
+            width += 22
+        hint.setWidth(width)
+        return hint
 
     def updateLockedGeometry(self):
         from PyQt4.QtCore import Qt

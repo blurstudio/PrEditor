@@ -481,6 +481,16 @@ class BlurTreeWidget(LockableTreeWidget):
     def userCanHideColumns(self):
         return self._userCanHideColumns
 
+    def visibleTopLevelItem(self, index):
+        visibleIndex = 0
+        for row in range(self.topLevelItemCount()):
+            child = self.topLevelItem(row)
+            if not child.isHidden():
+                if visibleIndex == index:
+                    return child
+                visibleIndex += 1
+        return None
+
     pyEnableColumnHideMenu = pyqtProperty(
         'bool', userCanHideColumns, setUserCanHideColumns
     )
