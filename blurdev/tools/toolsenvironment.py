@@ -10,6 +10,8 @@
 
 from PyQt4.QtCore import QObject, pyqtSignal
 
+USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
+
 
 class ToolsEnvironment(QObject):
     # static members
@@ -23,7 +25,9 @@ class ToolsEnvironment(QObject):
         self._default = False
         self._active = False
         self._offline = False
+        self._custom = False
         self._index = None
+        self._sourcefile = ''
         self._emailOnError = []
 
     def clearPathSymbols(self):
@@ -96,6 +100,9 @@ class ToolsEnvironment(QObject):
     def isEmpty(self):
         return self._path == ''
 
+    def isCustom(self):
+        return self._custom
+
     def isDevelopment(self):
         return self._development
 
@@ -109,13 +116,18 @@ class ToolsEnvironment(QObject):
         return self._path
 
     def recordXml(self, xml):
-        xml.setAttribute('name', self.objectName())
-        xml.setAttribute('loc', self.path())
-        xml.setAtribute('default', self._default)
-        xml.setAttribute('development', self._development)
-        xml.setAttribute('offline', self._offline)
+        envxml = xml.addNode('environment')
+        envxml.setAttribute('name', self.objectName())
+        envxml.setAttribute('loc', self.path())
+        envxml.setAttribute('default', self._default)
+        envxml.setAttribute('development', self._development)
+        envxml.setAttribute('offline', self._offline)
+
+        if self._custom:
+            envxml.setAttribute('custom', True)
+
         if self._emailOnError:
-            xml.setAttribute(':'.join(self._emailOnError))
+            envxml.setAttribute(':'.join(self._emailOnError))
 
     def relativePath(self, path):
         """
@@ -159,6 +171,9 @@ class ToolsEnvironment(QObject):
             return True
         return False
 
+    def setCustom(self, state=True):
+        self._custom = state
+
     def setDefault(self, state=True):
         self._default = state
 
@@ -173,6 +188,12 @@ class ToolsEnvironment(QObject):
 
     def setPath(self, path):
         self._path = path
+
+    def setSourceFile(self, filename):
+        self._sourcefile = filename
+
+    def sourceFile(self):
+        return self._sourcefile
 
     def stripRelativePath(self, path):
         """
@@ -198,15 +219,20 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def createNewEnvironment(
-        name, path, default=False, development=False, offline=True
+        name, path, default=False, development=False, offline=True, environmentFile=''
     ):
         output = ToolsEnvironment()
+
+        if not environmentFile:
+            environmentFile = USER_ENVIRONMENT_FILE
 
         output.setObjectName(name)
         output.setPath(path)
         output.setDefault(default)
         output.setDevelopment(development)
         output.setOffline(offline)
+        output.setSourceFile(environmentFile)
+        output.setCustom(True)
 
         ToolsEnvironment.environments.append(output)
         return output
@@ -255,6 +281,7 @@ class ToolsEnvironment(QObject):
         output.setDevelopment(xml.attribute('development') == 'True')
         output.setOffline(xml.attribute('offline') == 'True')
         output.setEmailOnError(xml.attribute('emailOnError').split(';'))
+        output.setCustom(xml.attribute('custom') == 'True')
 
         return output
 
@@ -270,31 +297,42 @@ class ToolsEnvironment(QObject):
         return os.path.abspath(str(path)).lower()
 
     @staticmethod
-    def loadConfig(filename):
+    def loadConfig(filename, included=False):
         """
             \remarks	loads the environments from the inputed config file
             \param		filename		<str>
+            \param		included		<bool> 	marks whether or not this is an included file
+            \return		<bool> success
         """
-
-        ToolsEnvironment.environments = []
-
         from blurdev.XML import XMLDocument
 
         doc = XMLDocument()
         if doc.load(filename):
             root = doc.root()
+
             for child in root.children():
-                ToolsEnvironment.environments.append(ToolsEnvironment.fromXml(child))
+                # include another config file
+                if child.nodeName == 'include':
+                    ToolsEnvironment.loadConfig(child.attribute('loc'), True)
+
+                # load an environment
+                elif child.nodeName == 'environment':
+                    env = ToolsEnvironment.fromXml(child)
+                    env.setSourceFile(filename)
+                    print 'loaded env', env.objectName()
+                    ToolsEnvironment.environments.append(env)
 
             # initialize the default environment
-            ToolsEnvironment.defaultEnvironment().setActive(silent=True)
+            if not included:
+                ToolsEnvironment.defaultEnvironment().setActive(silent=True)
+
+            return True
+        return False
 
     @staticmethod
-    def recordConfig(filename):
+    def recordConfig(filename=''):
         if not filename:
-            import blurdev
-
-            filename = blurdev.resourcePath('tools_environments.xml')
+            filename = USER_ENVIRONMENT_FILE
 
         if not filename:
             return False
@@ -305,8 +343,12 @@ class ToolsEnvironment(QObject):
         root = doc.addNode('tools_environments')
         root.setAttribute('version', 1.0)
 
+        import os.path
+
+        filename = os.path.normcase(filename)
         for env in ToolsEnvironment.environments:
-            env.recordXml(root)
+            if os.path.normcase(env.sourceFile()) == filename:
+                env.recordXml(root)
 
         return doc.save(filename)
 

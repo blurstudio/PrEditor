@@ -13,7 +13,6 @@ from sys import maxint
 
 
 class enum:
-
     INDICES = xrange(maxint)  # indices constant to use for looping
 
     def __call__(self, key):
@@ -25,6 +24,8 @@ class enum:
             for k in self._keys:
                 out |= self.__dict__[k]
             return out
+        elif key == '__name__':
+            return 'enum'
         else:
             raise AttributeError, key
 

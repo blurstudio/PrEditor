@@ -105,8 +105,8 @@ class MultiProgressDialog(Dialog):
                 return
 
         self.clearOverrideCursor()
-        Dialog.closeEvent(self, event)
         self.closed.emit()
+        Dialog.closeEvent(self, event)
 
     def complete(self):
         self._stackCount -= 1
@@ -155,11 +155,13 @@ class MultiProgressDialog(Dialog):
         if section:
             section.setPercentComplete(percent)
             section.setMessage(message)
+            self.update()
 
     def sectionErrored(self, sectionName, error):
         section = self.section(sectionName)
         if section:
             section.setErrorText(error)
+            self.update()
 
     def show(self):
         Dialog.show(self)
@@ -173,6 +175,9 @@ class MultiProgressDialog(Dialog):
         self.close()
 
     def update(self):
+        if self._shutdown:
+            return
+
         # we need to force the events to process to check if the user pressed the cancel button since this is not multi-threaded
         from PyQt4.QtGui import QApplication
 
@@ -240,8 +245,12 @@ class MultiProgressDialog(Dialog):
             self.uiDialogBTNS.setEnabled(self.errored())
 
     @staticmethod
-    def clear():
-        MultiProgressDialog._instance = None
+    def clearInstance():
+        if MultiProgressDialog._instance:
+            Dialog.closeEvent(MultiProgressDialog._instance, None)
+            MultiProgressDialog._instance.setParent(None)
+            MultiProgressDialog._instance.deleteLater()
+            MultiProgressDialog._instance = None
 
     @staticmethod
     def start(title='Progress', parent=None):
@@ -251,7 +260,11 @@ class MultiProgressDialog(Dialog):
             inst = MultiProgressDialog(parent)
             inst.setWindowTitle(title)
             inst.show()
-            inst.closed.connect(inst.clear)
+            inst.closed.connect(MultiProgressDialog.clearInstance)
+
             MultiProgressDialog._instance = inst
+            from PyQt4.QtCore import Qt
+
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
 
         return MultiProgressDialog._instance
