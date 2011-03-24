@@ -319,7 +319,6 @@ class ToolsEnvironment(QObject):
                 elif child.nodeName == 'environment':
                     env = ToolsEnvironment.fromXml(child)
                     env.setSourceFile(filename)
-                    print 'loaded env', env.objectName()
                     ToolsEnvironment.environments.append(env)
 
             # initialize the default environment
