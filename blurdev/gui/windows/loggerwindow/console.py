@@ -199,7 +199,6 @@ class ConsoleEdit(QTextEdit):
         # grab the command from the line
         block = self.textCursor().block().text()
         results = re.search('>>> (.*)', unicode(block))
-
         if command:
             if not results:
                 self.startInputLine()
@@ -208,7 +207,7 @@ class ConsoleEdit(QTextEdit):
             if results:
                 command = results.groups()[0]
 
-        if command:
+        if command or results:
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
                 # insert a new line

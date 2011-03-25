@@ -440,6 +440,11 @@ class BlurTreeWidget(LockableTreeWidget):
             action = menu.addAction('Resize to fit window')
             action.triggered.connect(self.resizeColumnsToWindow)
 
+        if self.lockedViews():
+            menu.addSeparator()
+            action = menu.addAction('Update locked alignment')
+            action.triggered.connect(self.updateSizeHints)
+
         # call delegate so user can add custom menu items if they wish
         result = True
         cursorPos = QCursor.pos()

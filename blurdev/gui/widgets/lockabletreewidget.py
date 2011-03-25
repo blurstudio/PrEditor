@@ -9,6 +9,7 @@
 #
 
 from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem
+from PyQt4.QtCore import QSize
 import blurdev
 
 
@@ -289,6 +290,21 @@ class LockableTreeWidget(QTreeWidget):
 
         self.updateLockedGeometry()
 
+    def updateSizeHints(self):
+        from PyQt4.QtCore import Qt
+
+        for index in range(self.topLevelItemCount()):
+            item = self.topLevelItem(index)
+            for align in self._lockedViews:
+                view, span = self._lockedViews[align]
+                if align == Qt.AlignLeft:
+                    colRange = range(span)
+                elif align == Qt.AlignRight:
+                    count = self.columnCount()
+                    colRange = range(count - span, count)
+                for column in colRange:
+                    self.updateSizeHintForItem(item, column, recursive=True)
+
     def updateSizeHintForItem(self, item, column, recursive=False):
         if recursive:
             for index in range(item.childCount()):
@@ -298,7 +314,8 @@ class LockableTreeWidget(QTreeWidget):
             item.setSizeHint(column, hint)
 
     def itemSizeHint(self, item, column):
-        hint = item.sizeHint(column)
+        # hint = item.sizeHint( column )
+        hint = QSize()
         height = self.rowHeight(self.indexFromItem(item, 0))
         if height:
             hint.setHeight(height)
