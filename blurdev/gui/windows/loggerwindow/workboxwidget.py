@@ -39,7 +39,11 @@ class WorkboxWidget(DocumentEditor):
         """
             \remarks	reimplement the DocumentEditor.exec_ method to run this code without saving
         """
-        exec unicode(self.text()).replace('\r', '\n') in locals(), globals()
+        import __main__
+
+        exec unicode(self.text()).replace(
+            '\r', '\n'
+        ) in __main__.__dict__, __main__.__dict__
 
     def execSelected(self):
         text = unicode(self.selectedText()).replace('\r', '\n')
@@ -47,7 +51,9 @@ class WorkboxWidget(DocumentEditor):
             line, index = self.getCursorPosition()
             text = unicode(self.text(line)).replace('\r', '\n')
 
-        exec text in locals(), globals()
+        import __main__
+
+        exec text in __main__.__dict__, __main__.__dict__
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Enter:
