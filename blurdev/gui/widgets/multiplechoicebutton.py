@@ -8,7 +8,7 @@
 # 	\date		03/28/11
 #
 
-from PyQt4.QtCore import pyqtSignal, QLine, pyqtProperty, Qt, QRect
+from PyQt4.QtCore import pyqtSignal, QLine, pyqtProperty, Qt, QRect, QSize
 from PyQt4.QtGui import (
     QAbstractButton,
     QPainter,
@@ -32,6 +32,7 @@ class MultipleChoiceButton(QAbstractButton):
         QAbstractButton.__init__(self, parent)
 
         self.setMouseTracking(True)
+        self.setMinimumSize(QSize(80, 22))
 
         # create custom properties
         self._currentChoice = 'Option A'
@@ -114,12 +115,12 @@ class MultipleChoiceButton(QAbstractButton):
         # \TODO: 	figure out a good way to do "mouse over" look	- # EKH 03/28/11
         if False:
             grad.setColorAt(0, self.highlightColor())
-            grad.setColorAt(0.05, self.palette().color(QPalette.Button))
-            grad.setColorAt(0.95, self.palette().color(QPalette.Mid))
+            grad.setColorAt(0.05, self.palette().color(QPalette.Button).lighter(110))
+            grad.setColorAt(0.95, self.palette().color(QPalette.Button).darker(110))
             grad.setColorAt(1, self.highlightColor())
         else:
-            grad.setColorAt(0, self.palette().color(QPalette.Button))
-            grad.setColorAt(1, self.palette().color(QPalette.Mid))
+            grad.setColorAt(0, self.palette().color(QPalette.Button).lighter(110))
+            grad.setColorAt(1, self.palette().color(QPalette.Button).darker(110))
 
         brush = QBrush(grad)
 
@@ -128,8 +129,8 @@ class MultipleChoiceButton(QAbstractButton):
 
         # create the choice brush
         choicegrad = QLinearGradient(x, y, x, h)
-        choicegrad.setColorAt(0, self.highlightColor())
-        choicegrad.setColorAt(1, self.highlightColor().lighter(130))
+        choicegrad.setColorAt(0, self.highlightColor().darker(110))
+        choicegrad.setColorAt(1, self.highlightColor().lighter(110))
 
         choicebrush = QBrush(choicegrad)
 
@@ -222,6 +223,8 @@ class MultipleChoiceButton(QAbstractButton):
         # emit the current choice changed signal
         if not self.signalsBlocked():
             self.currentChoiceChanged.emit(choice)
+            if self._enum:
+                self.currentValueChanged.emit(self.currentValue())
 
         self.repaint()
         return True
