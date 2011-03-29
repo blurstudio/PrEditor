@@ -533,7 +533,6 @@
     <property name="title">
      <string>&amp;Run</string>
     </property>
-    <addaction name="uiRunLineACT"/>
     <addaction name="uiRunSelectedACT"/>
     <addaction name="uiRunAllACT"/>
    </widget>
@@ -679,7 +678,7 @@
     <string>Run Line...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Return</string>
+    <string>Enter</string>
    </property>
   </action>
   <action name="uiRunAllACT">
@@ -687,7 +686,7 @@
     <string>Run All...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+Return</string>
+    <string>Ctrl+Enter</string>
    </property>
   </action>
   <action name="uiClearWorkspaceACT">

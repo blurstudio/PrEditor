@@ -42,11 +42,18 @@ class WorkboxWidget(DocumentEditor):
         exec unicode(self.text()).replace('\r', '\n') in locals(), globals()
 
     def execSelected(self):
-        exec unicode(self.selectedText()).replace('\r', '\n') in locals(), globals()
+        text = unicode(self.selectedText()).replace('\r', '\n')
+        if not text:
+            line, index = self.getCursorPosition()
+            text = unicode(self.text(line)).replace('\r', '\n')
 
-    def execLine(self):
-        line, index = self.getCursorPosition()
-        exec unicode(self.text(line)).replace('\r', '\n') in locals(), globals()
+        exec text in locals(), globals()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Enter:
+            self.execSelected()
+        else:
+            DocumentEditor.keyPressEvent(self, event)
 
     def setConsole(self, console):
         self._console = console

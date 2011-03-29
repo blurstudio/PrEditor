@@ -63,7 +63,6 @@ class LoggerWindow(Window):
         self.uiDebugHighACT.triggered.connect(self.setHighDebug)
 
         self.uiRunAllACT.triggered.connect(self._workbox.execAll)
-        self.uiRunLineACT.triggered.connect(self._workbox.execLine)
         self.uiRunSelectedACT.triggered.connect(self._workbox.execSelected)
 
         from PyQt4.QtGui import QIcon
