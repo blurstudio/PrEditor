@@ -62,6 +62,10 @@ class LoggerWindow(Window):
         self.uiDebugMidACT.triggered.connect(self.setMidDebug)
         self.uiDebugHighACT.triggered.connect(self.setHighDebug)
 
+        self.uiRunAllACT.triggered.connect(self._workbox.execAll)
+        self.uiRunLineACT.triggered.connect(self._workbox.execLine)
+        self.uiRunSelectedACT.triggered.connect(self._workbox.execSelected)
+
         from PyQt4.QtGui import QIcon
 
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))

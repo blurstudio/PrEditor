@@ -80,7 +80,9 @@ class ConsoleEdit(QTextEdit):
         from PyQt4.QtCore import QTimer
 
         self._errorTimer = QTimer()
+
         self._errorTimer.setSingleShot(True)
+
         self._errorTimer.timeout.connect(self.handleError)
 
         # create the completer
@@ -192,22 +194,15 @@ class ConsoleEdit(QTextEdit):
         """ end the error lookup """
         self._timer.stop()
 
-    def executeCommand(self, command=''):
+    def executeCommand(self):
         """ executes the current line of code """
         import re
 
         # grab the command from the line
         block = self.textCursor().block().text()
         results = re.search('>>> (.*)', unicode(block))
-        if command:
-            if not results:
-                self.startInputLine()
-            self.insertPlainText(unicode(command))
-        else:
-            if results:
-                command = results.groups()[0]
 
-        if command or results:
+        if results:
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
                 # insert a new line
@@ -216,9 +211,9 @@ class ConsoleEdit(QTextEdit):
                 # evaluate the command
                 cmdresult = None
                 try:
-                    cmdresult = eval(unicode(command))
+                    cmdresult = eval(unicode(results.groups()[0]))
                 except:
-                    exec (unicode(command)) in globals()
+                    exec (unicode(results.groups()[0])) in globals()
 
                 # print the resulting commands
                 if cmdresult != None:
@@ -229,7 +224,7 @@ class ConsoleEdit(QTextEdit):
             # otherwise, move the command to the end of the line
             else:
                 self.startInputLine()
-                self.insertPlainText(unicode(command))
+                self.insertPlainText(unicode(results.groups()[0]))
 
         # if no command, then start a new line
         else:
@@ -283,6 +278,7 @@ class ConsoleEdit(QTextEdit):
         self.insertPlainText(newText)
 
     def lastError(self):
+
         import traceback, sys
 
         return ''.join(
@@ -392,11 +388,15 @@ class ConsoleEdit(QTextEdit):
             self.emailError(emails, ''.join(self.lastError()))
 
         # if the logger is not visible, prompt the user
+
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         inst = LoggerWindow.instance()
+
         if not inst.isVisible():
+
             from PyQt4.QtGui import QMessageBox
+
             import blurdev
 
             result = QMessageBox.question(
@@ -405,7 +405,9 @@ class ConsoleEdit(QTextEdit):
                 'An error has occurred in your Python script.  Would you like to see the log?',
                 QMessageBox.Yes | QMessageBox.No,
             )
+
             if result == QMessageBox.Yes:
+
                 inst.show()
 
     def write(self, msg, error=False):
@@ -421,7 +423,9 @@ class ConsoleEdit(QTextEdit):
             charFormat.setForeground(QColor(17, 154, 255))
         else:
             # start recording information to the error buffer
+
             self._errorTimer.stop()
+
             self._errorTimer.start(50)
 
             charFormat.setForeground(Qt.red)

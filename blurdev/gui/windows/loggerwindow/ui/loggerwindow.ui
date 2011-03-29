@@ -529,8 +529,17 @@
     </property>
     <addaction name="uiSdkBrowserACT"/>
    </widget>
+   <widget class="QMenu" name="menu_Run">
+    <property name="title">
+     <string>&amp;Run</string>
+    </property>
+    <addaction name="uiRunLineACT"/>
+    <addaction name="uiRunSelectedACT"/>
+    <addaction name="uiRunAllACT"/>
+   </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="uiDebugMENU"/>
+   <addaction name="menu_Run"/>
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
@@ -663,6 +672,35 @@
    </property>
    <property name="shortcut">
     <string>F1</string>
+   </property>
+  </action>
+  <action name="uiRunLineACT">
+   <property name="text">
+    <string>Run Line...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
+   </property>
+  </action>
+  <action name="uiRunAllACT">
+   <property name="text">
+    <string>Run All...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Return</string>
+   </property>
+  </action>
+  <action name="uiClearWorkspaceACT">
+   <property name="text">
+    <string>Clear Workspace...</string>
+   </property>
+  </action>
+  <action name="uiRunSelectedACT">
+   <property name="text">
+    <string>Run Selected...</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Return</string>
    </property>
   </action>
  </widget>

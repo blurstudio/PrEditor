@@ -35,15 +35,18 @@ class WorkboxWidget(DocumentEditor):
     def console(self):
         return self._console
 
-    def keyPressEvent(self, event):
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
-                if self._console:
-                    # grab the command from the selected line
-                    text = self.selectedText()
-                    self._console.executeCommand(text)
+    def execAll(self):
+        """
+            \remarks	reimplement the DocumentEditor.exec_ method to run this code without saving
+        """
+        exec unicode(self.text()).replace('\r', '\n') in locals(), globals()
 
-        DocumentEditor.keyPressEvent(self, event)
+    def execSelected(self):
+        exec unicode(self.selectedText()).replace('\r', '\n') in locals(), globals()
+
+    def execLine(self):
+        line, index = self.getCursorPosition()
+        exec unicode(self.text(line)).replace('\r', '\n') in locals(), globals()
 
     def setConsole(self, console):
         self._console = console
