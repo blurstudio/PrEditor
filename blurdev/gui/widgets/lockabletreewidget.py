@@ -332,6 +332,8 @@ class LockableTreeWidget(QTreeWidget):
     def updateLockedGeometry(self):
         from PyQt4.QtCore import Qt
 
+        if not hasattr(self, '_lockedViews'):
+            self._lockedViews = {}
         for align, options in self._lockedViews.items():
             v, span = options
 
