@@ -22,6 +22,10 @@ class WorkboxWidget(DocumentEditor):
         DocumentEditor.__init__(self, parent)
 
         self._console = console
+        # Store the software name so we can handle custom keyboard shortcuts bassed on software
+        import blurdev
+
+        self._software = blurdev.core.objectName()
         # define the user interface data
 
     #! 		finish initializing the class
@@ -56,10 +60,15 @@ class WorkboxWidget(DocumentEditor):
         exec text in __main__.__dict__, __main__.__dict__
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Enter:
-            self.execSelected()
-        else:
+        if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
+        else:
+            if event.key() == Qt.Key_Enter or (
+                event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
+            ):
+                self.execSelected()
+            else:
+                DocumentEditor.keyPressEvent(self, event)
 
     def setConsole(self, console):
         self._console = console

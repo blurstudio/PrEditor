@@ -686,7 +686,7 @@
     <string>Run All...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Enter</string>
+    <string>Ctrl+Return</string>
    </property>
   </action>
   <action name="uiClearWorkspaceACT">

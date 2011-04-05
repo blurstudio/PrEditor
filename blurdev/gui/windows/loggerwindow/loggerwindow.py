@@ -42,6 +42,11 @@ class LoggerWindow(Window):
         self._workbox.setMinimumHeight(1)
         self._workbox.setLanguage('Python')
 
+        # Store the software name so we can handle custom keyboard shortcuts bassed on software
+        import blurdev
+
+        self._software = blurdev.core.objectName()
+
         # create the layout
         from PyQt4.QtGui import QVBoxLayout
 
@@ -78,6 +83,7 @@ class LoggerWindow(Window):
         # refresh the ui
         self.refreshDebugLevels()
         self.restorePrefs()
+        self.overrideKeyboardShortcuts()
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -94,6 +100,22 @@ class LoggerWindow(Window):
             IdeEditor.instance().show()
             filename, lineno = results.groups()
             IdeEditor.instance().load(filename, int(lineno))
+
+    def overrideKeyboardShortcuts(self):
+        """
+            \remarks	If a specific software has limitations preventing keyboard shortcuts from working, they can be overidden here
+                        Example: Softimage treats both enter keys as Qt.Key_Enter, It ignores Qt.Key_Return
+        """
+        if self._software == 'softimage':
+            from PyQt4.QtGui import QKeySequence
+            from PyQt4.QtCore import Qt
+
+            self.uiRunSelectedACT.setShortcut(
+                QKeySequence(Qt.Key_Enter + Qt.ShiftModifier)
+            )
+            self.uiRunAllACT.setShortcut(
+                QKeySequence(Qt.Key_Enter + Qt.ControlModifier)
+            )
 
     def refreshDebugLevels(self):
         from blurdev.debug import DebugLevel, debugLevel
