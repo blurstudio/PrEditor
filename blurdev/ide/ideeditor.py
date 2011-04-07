@@ -1066,12 +1066,13 @@ class IdeEditor(Window):
             projtext = 'Project: <None>'
 
         if window:
+            path = window.widget().filename().replace('/', '\\')
             self.setWindowTitle(
                 '%s | %s - [%s] - %s'
                 % (
                     str(blurdev.core.objectName()).capitalize(),
                     projtext,
-                    window.windowTitle(),
+                    path,
                     version.toString(),
                 )
             )
