@@ -59,6 +59,7 @@ class ToolsToolBar(QToolBar):
 
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
+        self.setObjectName(title)
         self.setToolTip('Drag & Drop Scripts and Tools')
 
         from PyQt4.QtCore import QSize

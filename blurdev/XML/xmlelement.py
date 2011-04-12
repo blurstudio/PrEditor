@@ -78,7 +78,7 @@ class XMLElement:
             QDate,
             QDateTime,
             QString,
-        )
+        )  # , QByteArray
         from PyQt4.QtGui import QColor
 
         # Convert Qt basics to python basics where possible
@@ -134,19 +134,29 @@ class XMLElement:
             self.setAttribute('type', 'QColor')
             self.setColor('color', value)
 
+        # Record a QByteArray (Experimental)
+        # 		elif ( valtype == QByteArray ):
+        # 			self.setAttribute( 'type', 'QByteArray' )
+        # 			self.setAttribute( 'value', value.toPercentEncoding() )
+
         # Record a basic property
         else:
             self.setAttribute('value', value)
-
             typ = type(value).__name__
-
             if typ == 'unicode':
-
                 typ = 'str'
             self.setAttribute('type', typ)
 
     def restoreValue(self, fail=None):
-        from PyQt4.QtCore import QRect, QRectF, QPoint, QPointF, QSize, QDate, QDateTime
+        from PyQt4.QtCore import (
+            QRect,
+            QRectF,
+            QPoint,
+            QPointF,
+            QSize,
+            QDate,
+            QDateTime,
+        )  # , QByteArray
         from PyQt4.QtGui import QColor
 
         valtype = self.attribute('type')
@@ -199,6 +209,10 @@ class XMLElement:
         # Restore a string
         elif valtype in ('str', 'unicode', 'QString'):
             value = unicode(self.attribute('value'))
+
+        # Restore a QByteArray (Experimental)
+        # 		elif ( valtype == 'QByteArray' ):
+        # 			value = QByteArray.fromPercentEncoding( self.attribute( 'value', '' ) )
 
         # Restore a basic value
         else:
@@ -465,7 +479,6 @@ class XMLElement:
     def recordProperty(self, name, value):
         element = self.findChild(name)
         if element:
-
             element.remove()
 
         element = self.addNode(name)

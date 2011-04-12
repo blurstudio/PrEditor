@@ -755,6 +755,7 @@ class IdeEditor(Window):
 
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
+        pref.recordProperty('windowState', self.windowState().__int__())
 
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
@@ -843,11 +844,12 @@ class IdeEditor(Window):
         IdeProject.Favorites = pref.restoreProperty('proj_favorites', [])
 
         # update ui items
-        from PyQt4.QtCore import QRect
+        from PyQt4.QtCore import QRect, Qt
 
         geom = pref.restoreProperty('geom', QRect())
         if geom and not geom.isNull():
             self.setGeometry(geom)
+        self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
 
     def runCurrentScript(self):
         filename = self.currentFilePath()
