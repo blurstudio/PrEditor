@@ -176,7 +176,8 @@ class DocumentEditor(QsciScintilla):
 
         line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
         if accepted:
-            self.setCursorPosition(line + 1, 0)
+            # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog go to the correct line.
+            self.setCursorPosition(line - 1, 0)
 
     def language(self):
         return self._language

@@ -210,6 +210,10 @@ class XMLElement:
         elif valtype in ('str', 'unicode', 'QString'):
             value = unicode(self.attribute('value'))
 
+        elif valtype == 'ViewMode':
+            # If treated as a basic value would return fail
+            value = int(self.attribute('value'))
+
         # Restore a QByteArray (Experimental)
         # 		elif ( valtype == 'QByteArray' ):
         # 			value = QByteArray.fromPercentEncoding( self.attribute( 'value', '' ) )

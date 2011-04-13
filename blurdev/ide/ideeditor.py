@@ -644,10 +644,11 @@ class IdeEditor(Window):
             window.installEventFilter(self)
             window.setWindowTitle(os.path.basename(filename))
             window.show()
-            window.move(10, 10)
-            window.resize(
-                self.uiWindowsAREA.width() - 20, self.uiWindowsAREA.height() - 20
-            )
+            if not self.uiWindowsAREA.viewMode() & self.uiWindowsAREA.TabbedView:
+                window.move(10, 10)
+                window.resize(
+                    self.uiWindowsAREA.width() - 20, self.uiWindowsAREA.height() - 20
+                )
 
     def projectMimeData(self, items):
         from PyQt4.QtCore import QMimeData, QUrl
@@ -757,6 +758,8 @@ class IdeEditor(Window):
         pref.recordProperty('geom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
 
+        pref.recordProperty('MidiViewMode', self.uiWindowsAREA.viewMode())
+
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
 
@@ -850,6 +853,11 @@ class IdeEditor(Window):
         if geom and not geom.isNull():
             self.setGeometry(geom)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
+
+        # restore tabbed prefrence
+        self.uiWindowsAREA.setViewMode(
+            pref.restoreProperty('MidiViewMode', self.uiWindowsAREA.SubWindowView)
+        )
 
     def runCurrentScript(self):
         filename = self.currentFilePath()
@@ -1068,7 +1076,7 @@ class IdeEditor(Window):
             projtext = 'Project: <None>'
 
         if window:
-            path = window.widget().filename().replace('/', '\\')
+            path = self.currentFilePath().replace('/', '\\')
             self.setWindowTitle(
                 '%s | %s - [%s] - %s'
                 % (
