@@ -46,6 +46,7 @@ class IdeEditor(Window):
         self._recentFiles = []
         self._recentFileMax = 10
         self._recentFileMenu = None
+        self._filenameForCallback = None
         self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
@@ -1066,6 +1067,7 @@ class IdeEditor(Window):
         self.close()
 
     def updateTitle(self, window):
+        print 'Updating title'
         import blurdev
         from blurdev import version
 
@@ -1076,7 +1078,7 @@ class IdeEditor(Window):
             projtext = 'Project: <None>'
 
         if window:
-            path = self.currentFilePath().replace('/', '\\')
+            path = window.widget().filename().replace('/', '\\')
             self.setWindowTitle(
                 '%s | %s - [%s] - %s'
                 % (
@@ -1096,6 +1098,10 @@ class IdeEditor(Window):
                 )
             )
 
+    def timerCallback(self):
+        if self._filenameForCallback:
+            self.load(self._filenameForCallback)
+
     @staticmethod
     def createNew():
         window = IdeEditor.instance()
@@ -1103,7 +1109,7 @@ class IdeEditor(Window):
         window.show()
 
     @staticmethod
-    def instance(parent=None):
+    def instance(parent=None, filename=None):
         # create the instance for the logger
         if not IdeEditor._instance:
             # determine default parenting
@@ -1124,13 +1130,22 @@ class IdeEditor(Window):
             # cache the instance
             IdeEditor._instance = inst
 
+        if filename:
+            IdeEditor._instance._filenameForCallback = filename
+            # Simply calling IdeEditor._instance.load( filename ) will result in the opened file not being sized correctly because the window has not been shown yet.
+            # HACK: calling a singleShot timer allows the window to get sized correctly before the file is displayed
+            from PyQt4.QtCore import QTimer
+
+            QTimer.singleShot(0, IdeEditor._instance.timerCallback)
+
         return IdeEditor._instance
 
     @staticmethod
     def edit(filename=None):
         window = IdeEditor.instance()
         window.show()
-
+        print 'showing window'
         # set the filename
         if filename:
             window.load(filename)
+        print 'loaded'

@@ -79,7 +79,7 @@ def init():
         application = core.init()
 
 
-def launch(ctor, modal=False, coreName='external'):
+def launch(ctor, modal=False, coreName='external', *args, **kwargs):
     """
         \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
                     the blurdev system.  Using this function call, blurdev will determine what the application is
@@ -117,19 +117,22 @@ def launch(ctor, modal=False, coreName='external'):
         modal = True
 
     # create the output instance from the class
-    widget = ctor(None)
+    if not (args or kwargs):
+        print 'Loading with default None'
+        widget = ctor(None)
+    else:
+        print 'loading with args or kwargs', args, kwargs
+        widget = ctor(*args, **kwargs)
 
     # check to see if the tool is running modally and return the result
     if modal:
         return widget.exec_()
     else:
         widget.show()
-
         # run the application if this item controls it
         if application:
             application.setWindowIcon(widget.windowIcon())
             application.exec_()
-
         return widget
 
 
