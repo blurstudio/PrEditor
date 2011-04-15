@@ -281,9 +281,13 @@ class IdeEditor(Window):
 
     def displayTabs(self):
         self.uiWindowsAREA.setViewMode(self.uiWindowsAREA.TabbedView)
+        self.uiDisplayTabsACT.setEnabled(False)
+        self.uiDisplayWindowsACT.setEnabled(True)
 
     def displayWindows(self):
         self.uiWindowsAREA.setViewMode(self.uiWindowsAREA.SubWindowView)
+        self.uiDisplayTabsACT.setEnabled(True)
+        self.uiDisplayWindowsACT.setEnabled(False)
 
     def documentClose(self):
         window = self.uiWindowsAREA.activeSubWindow()
@@ -856,9 +860,13 @@ class IdeEditor(Window):
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
 
         # restore tabbed prefrence
-        self.uiWindowsAREA.setViewMode(
+        if (
             pref.restoreProperty('MidiViewMode', self.uiWindowsAREA.SubWindowView)
-        )
+            == self.uiWindowsAREA.TabbedView
+        ):
+            self.displayTabs()
+        else:
+            self.displayWindows()
 
     def runCurrentScript(self):
         filename = self.currentFilePath()
@@ -1067,7 +1075,6 @@ class IdeEditor(Window):
         self.close()
 
     def updateTitle(self, window):
-        print 'Updating title'
         import blurdev
         from blurdev import version
 

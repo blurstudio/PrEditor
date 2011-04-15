@@ -10,9 +10,12 @@
 
 from PyQt4.QtCore import pyqtProperty
 from PyQt4.Qsci import *
+from blurdev.enum import enum
 
 
 class DocumentEditor(QsciScintilla):
+    SearchDirection = enum('First', 'Forward', 'Backward')
+
     def __init__(self, parent, filename='', lineno=0):
         QsciScintilla.__init__(self, parent)
 
@@ -20,7 +23,7 @@ class DocumentEditor(QsciScintilla):
         self._filename = ''
         self._language = ''
         self._lastSearch = ''
-        self._lastSearchBackward = False
+        self._lastSearchDirection = self.SearchDirection.First
 
         # initialize the look of the system
         from PyQt4.QtCore import Qt
@@ -221,9 +224,13 @@ class DocumentEditor(QsciScintilla):
     def findNext(self, text, flags):
         from PyQt4.QtGui import QTextDocument
 
-        if not (text == self._lastSearch and not self._lastSearchBackward):
+        if not (
+            text == self._lastSearch
+            and not self._lastSearchDirection
+            & (self.SearchDirection.First | self.SearchDirection.Backward)
+        ):
             self._lastSearch = text
-            self._lastSearchBackward = True
+            self._lastSearchDirection = self.SearchDirection.Forward
             re = False
             cs = (flags & QTextDocument.FindCaseSensitively) != 0
             wo = (flags & QTextDocument.FindWholeWords) != 0
@@ -246,9 +253,13 @@ class DocumentEditor(QsciScintilla):
     def findPrev(self, text, flags):
         from PyQt4.QtGui import QTextDocument
 
-        if not (text == self._lastSearch and self._lastSearchBackward):
+        if not (
+            text == self._lastSearch
+            and not self._lastSearchDirection
+            & (self.SearchDirection.First | self.SearchDirection.Forward)
+        ):
             self._lastSearch = text
-            self._lastSearchBackward = True
+            self._lastSearchDirection = self.SearchDirection.Backward
             re = False
             cs = (flags & QTextDocument.FindCaseSensitively) != 0
             wo = (flags & QTextDocument.FindWholeWords) != 0
