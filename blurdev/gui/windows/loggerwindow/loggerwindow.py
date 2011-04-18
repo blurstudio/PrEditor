@@ -9,6 +9,9 @@
 #
 
 from blurdev.gui import Window
+from blurdev import prefs
+from PyQt4.QtGui import QSplitter, QKeySequence
+from PyQt4.QtCore import Qt
 
 
 class LoggerWindow(Window):
@@ -22,9 +25,6 @@ class LoggerWindow(Window):
         blurdev.gui.loadUi(__file__, self)
 
         # create the splitter layout
-        from PyQt4.QtGui import QSplitter
-        from PyQt4.QtCore import Qt
-
         self._splitter = QSplitter(self)
         self._splitter.setOrientation(Qt.Vertical)
 
@@ -107,9 +107,6 @@ class LoggerWindow(Window):
                         Example: Softimage treats both enter keys as Qt.Key_Enter, It ignores Qt.Key_Return
         """
         if self._software == 'softimage':
-            from PyQt4.QtGui import QKeySequence
-            from PyQt4.QtCore import Qt
-
             self.uiRunSelectedACT.setShortcut(
                 QKeySequence(Qt.Key_Enter + Qt.ShiftModifier)
             )
@@ -137,10 +134,9 @@ class LoggerWindow(Window):
         blurdev.activeEnvironment().resetPaths()
 
     def recordPrefs(self):
-        from blurdev import prefs
-
         pref = prefs.find('blurdev\LoggerWindow')
         pref.recordProperty('loggergeom', self.geometry())
+        pref.recordProperty('windowState', self.windowState().__int__())
         pref.recordProperty(
             'WorkboxText', unicode(self._workbox.text()).replace('\r', '')
         )
@@ -149,8 +145,6 @@ class LoggerWindow(Window):
         pref.save()
 
     def restorePrefs(self):
-        from blurdev import prefs
-
         pref = prefs.find('blurdev\LoggerWindow')
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
@@ -161,6 +155,7 @@ class LoggerWindow(Window):
             self._splitter.setSizes(sizes)
         else:
             self._splitter.moveSplitter(self._splitter.getRange(1)[1], 1)
+        self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
 
     def setNoDebug(self):
         from blurdev import debug
@@ -189,7 +184,6 @@ class LoggerWindow(Window):
 
     def shutdown(self):
         # close out of the ide system
-        from PyQt4.QtCore import Qt
 
         # if this is the global instance, then allow it to be deleted on close
         if self == LoggerWindow._instance:
@@ -214,8 +208,6 @@ class LoggerWindow(Window):
             inst = LoggerWindow(parent)
 
             # protect the memory
-            from PyQt4.QtCore import Qt
-
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
 
             # cache the instance
