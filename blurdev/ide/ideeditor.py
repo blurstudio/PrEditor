@@ -724,14 +724,20 @@ class IdeEditor(Window):
 
         path = str(self.currentFilePath())
         if os.path.isfile(path):
-            path = os.path.split(path)[0]
+            if os.name == 'nt':
+                os.system('explorer /select,%s' % path.replace('/', '\\'))
+                return
+            else:
+                path = os.path.split(path)[0]
 
         if os.path.exists(path):
             os.startfile(path)
         else:
             from PyQt4.QtGui import QMessageBox
 
-            QMessageBox.critical(None, 'Missing Path', 'Could not find %s' % path)
+            QMessageBox.critical(
+                None, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
+            )
 
     def projectRefreshItem(self):
         item = self.uiProjectTREE.currentItem()
