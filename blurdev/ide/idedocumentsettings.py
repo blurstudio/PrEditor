@@ -158,8 +158,8 @@ class IdeDocumentSettings(object):
             defaults.indentationsUseTabs = True
             defaults.tabIndents = True
             defaults.tabWidth = 4
-            defaults.caretLineVisible = False
-            defaults.showWhitespaces = False
+            defaults.caretLineVisible = True
+            defaults.showWhitespaces = True
             defaults.showLineNumbers = True
 
             IdeDocumentSettings._defaultSettings = defaults
