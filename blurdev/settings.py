@@ -2,8 +2,18 @@
 import os
 import platform
 
+# Workaround: The tuple seems to have changed for 2.6 changed the tuple for platfrom.uname completely
+# Python 2.4.x is ('Microsoft', 'INHUMAN032', 'Windows', '6.1.7600', '', '')
+# Python 2.6.x is ('Windows', 'INHUMAN032', 'post2008Server', '6.1.7600', 'AMD64', 'Intel64 Family 6 Model 15 Stepping 7, GenuineIntel')
+import sys
+
+dotVer = sys.version_info
+if dotVer == 4:  # python 2.4.x
+    pos = 2
+else:  # python 2.6.x and 2.7.x
+    pos = 0
 # define the default environment variables
-OS_TYPE = platform.uname()[2]
+OS_TYPE = platform.uname()[pos]
 
 _inited = False
 defaults = {}
