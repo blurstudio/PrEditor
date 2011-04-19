@@ -35,6 +35,12 @@ def init():
         '-d', '--debug', dest='debug', help='set the debug level for the system'
     )
     parser.add_option(
+        '-e',
+        '--environment',
+        dest='environment',
+        help='set the trax startup environment',
+    )
+    parser.add_option(
         '-p', '--preference_root', dest='preference_root', help='set the user pref file'
     )
     parser.add_option(
@@ -63,6 +69,8 @@ def init():
         os.environ['BDEV_ZIP_EXEC'] = options.zip_exc
     if options.debug:
         os.environ['BDEV_DEBUG_LEVEL'] = options.debug
+    if options.environment:
+        os.environ['TRAX_ENVIRONMENT'] = options.environment
 
     # initialize the default variables
     setup(os.environ['BDEV_SETTINGS_ENV'])
