@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
         if results:
 
-            if dictionary['offline']:
+            if dictionary['offline'] == '1':
                 filename = (
                     path
                     + '/installers/bin/offline/%s-install-v%i.%02i.%s-offline.exe'
