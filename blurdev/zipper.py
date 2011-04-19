@@ -8,8 +8,6 @@
 # 	\date		03/21/11
 #
 
-_ZIP_EXE = 'c:/blur/assburner/zip.exe'
-
 
 def packageFiles(files, outputfile):
     """
@@ -50,12 +48,16 @@ def packagePath(path, outputfile):
         \return		<bool> success
     """
     from blurdev import debug
-    import os.path
+    import os
     from PyQt4.QtCore import QProcess
+
+    zipexe = os.get('BDEV_ZIP_EXEC')
+    if not zipexe:
+        return False
 
     # create the zip command
     zipcmd = r'%s -j %s %s\*' % (
-        os.path.normpath(_ZIP_EXE),
+        os.path.normpath(zipexe),
         os.path.normpath(outputfile),
         os.path.normpath(path),
     )

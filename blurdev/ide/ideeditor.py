@@ -10,7 +10,8 @@
 
 from PyQt4.QtCore import pyqtSignal
 from blurdev.gui import Window
-from ideproject import IdeProject
+from blurdev.ide.ideproject import IdeProject
+import os
 
 
 class IdeEditor(Window):
@@ -20,8 +21,16 @@ class IdeEditor(Window):
     _instance = None
 
     Registry = {
-        '.ui': ('c:/blur/common/designer.exe', '', 'c:/blur/common'),
-        '.schema': ('c:/blur/classmaker/classmaker.exe', '-s', 'c:/blur/classmaker'),
+        '.ui': (
+            os.environ['BDEV_QT_DESIGNER'],
+            '',
+            os.path.dirname(os.environ['BDEV_QT_DESIGNER']),
+        ),
+        '.schema': (
+            os.environ['BDEV_CLASSMAKER'],
+            '-s',
+            os.path.dirname(os.environ['BDEV_CLASSMAKER']),
+        ),
     }
 
     def __init__(self, parent=None):
@@ -39,7 +48,6 @@ class IdeEditor(Window):
 
         # create custom properties
         self._closing = False
-        self._project = None
         self._searchText = ''
         self._searchFlags = 0
         self._searchDialog = None
@@ -50,7 +58,6 @@ class IdeEditor(Window):
         self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
-        from ideproject import IdeProject
 
         QDir.setCurrent(IdeProject.DefaultPath)
 
@@ -86,6 +93,7 @@ class IdeEditor(Window):
 
         self.restoreSettings()
         self.refreshRecentFiles()
+        self.setupIcons()
 
         # create connections
         self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
@@ -151,7 +159,6 @@ class IdeEditor(Window):
         self.uiDisplayCascadeACT.triggered.connect(self.uiWindowsAREA.cascadeSubWindows)
 
         # connect tools menu
-        self.uiAssistantACT.triggered.connect(self.showAssistant)
         self.uiDesignerACT.triggered.connect(self.showDesigner)
         self.uiTreegruntACT.triggered.connect(blurdev.core.showTreegrunt)
         self.uiShowLoggerACT.triggered.connect(blurdev.core.showLogger)
@@ -228,7 +235,7 @@ class IdeEditor(Window):
         return None
 
     def currentProject(self):
-        return self._project
+        return IdeProject.currentProject()
 
     def currentBasePath(self):
         path = ''
@@ -520,6 +527,13 @@ class IdeEditor(Window):
                 text = str(url.toString())
                 if text.startswith('file:///'):
                     filename = text.replace('file:///', '')
+
+                    # if we're in linux, make sure to start with a '/'
+                    from blurdev import settings
+
+                    if settings.OS_TYPE != 'Windows' and not filename.startswith('/'):
+                        filename = '/' + filename
+
                     self.load(filename)
 
         # drop a tool
@@ -568,7 +582,7 @@ class IdeEditor(Window):
         # focus an existing item
         elif self.uiBrowserTAB.currentIndex() == 1:
             self.uiWindowsAREA.subWindowList()[
-                self.uiOpenTREE.indexOfTopLevelItem(index)
+                self.uiOpenTREE.indexOfTopLevelItem(self.uiOpenTREE.currentItem())
             ].setFocus()
 
     def eventFilter(self, object, event):
@@ -721,6 +735,7 @@ class IdeEditor(Window):
 
     def documentExploreItem(self):
         import os
+        from blurdev import settings
 
         path = str(self.currentFilePath())
         if os.path.isfile(path):
@@ -731,7 +746,10 @@ class IdeEditor(Window):
                 path = os.path.split(path)[0]
 
         if os.path.exists(path):
-            os.startfile(path)
+            if settings.OS_TYPE == 'Windows':
+                os.startfile(os.path.normpath(path))
+            else:
+                subprocess.call(os.path.normpath(path), shell=True)
         else:
             from PyQt4.QtGui import QMessageBox
 
@@ -863,7 +881,13 @@ class IdeEditor(Window):
         geom = pref.restoreProperty('geom', QRect())
         if geom and not geom.isNull():
             self.setGeometry(geom)
-        self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
+
+        try:
+            self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
+        except:
+            from blurdev import debug
+
+            debug.debugObject(self.restoreSettings, 'error restoring window state')
 
         # restore tabbed prefrence
         if (
@@ -942,6 +966,73 @@ class IdeEditor(Window):
 
         debug.setDebugLevel(debug.DebugLevel.High)
 
+    def setupIcons(self):
+        from PyQt4.QtGui import QIcon
+        import blurdev
+
+        self.uiNewACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
+        self.uiNewFromWizardACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/newwizard.png'))
+        )
+        self.uiOpenACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
+        self.uiCloseACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
+        self.uiSaveACT.setIcon(QIcon(blurdev.resourcePath('img/ide/save.png')))
+        self.uiSaveAsACT.setIcon(QIcon(blurdev.resourcePath('img/ide/saveas.png')))
+        self.uiExitACT.setIcon(QIcon(blurdev.resourcePath('img/ide/quit.png')))
+
+        self.uiUndoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/undo.png')))
+        self.uiRedoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/redo.png')))
+        self.uiCopyACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        self.uiCutACT.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
+        self.uiCommentAddACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/comment_add.png'))
+        )
+        self.uiCommentRemoveACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/comment_remove.png'))
+        )
+        self.uiPasteACT.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
+        self.uiConfigurationACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/preferences.png'))
+        )
+
+        self.uiNewProjectACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/newproject.png'))
+        )
+        self.uiOpenProjectACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
+        self.uiCloseProjectACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
+        self.uiEditProjectACT.setIcon(QIcon(blurdev.resourcePath('img/ide/edit.png')))
+        self.uiOpenFavoritesACT.setIcon(QIcon(blurdev.resourcePath('img/favorite.png')))
+
+        self.uiCleanPathsACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clean.png')))
+        self.uiRunScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
+
+        self.uiDisplayRulerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/ruler.png')))
+        self.uiDisplayTabsACT.setIcon(QIcon(blurdev.resourcePath('img/ide/tabbed.png')))
+        self.uiDisplayCascadeACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/windowed.png'))
+        )
+        self.uiDisplayTileACT.setIcon(QIcon(blurdev.resourcePath('img/ide/tile.png')))
+        self.uiDisplayWindowsACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/windowed.png'))
+        )
+
+        self.uiTreegruntACT.setIcon(
+            QIcon(
+                blurdev.relativePath(
+                    blurdev.__file__, 'gui/dialogs/treegruntdialog/img/icon.png'
+                )
+            )
+        )
+        self.uiShowLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
+
+        self.uiFindACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
+        self.uiGotoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
+
+        self.uiSdkBrowserACT.setIcon(QIcon(blurdev.resourcePath('img/ide/sdk.png')))
+        self.uiHelpAssistantACT.setIcon(QIcon(blurdev.resourcePath('img/ide/qt.png')))
+        self.uiDesignerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/qt.png')))
+        self.uiBlurDevSiteACT.setIcon(QIcon(blurdev.resourcePath('img/ide/help.png')))
+
     def show(self):
         Window.show(self)
 
@@ -953,26 +1044,35 @@ class IdeEditor(Window):
     def showAssistant(self):
         from PyQt4.QtCore import QProcess
 
-        QProcess.startDetached('c:/blur/common/assistant.exe', [], '')
+        QProcess.startDetached(os.environ['BDEV_QT_ASSISTANT'], [], '')
 
     def showBlurDevSite(self):
-        import os
+        import subprocess
 
-        os.startfile('http://blur-dev.googlecode.com')
+        subprocess.call('http://blur-dev.googlecode.com', shell=True)
 
     def showProjectMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        from PyQt4.QtGui import QMenu, QCursor, QIcon
+        import blurdev
 
         menu = QMenu(self)
         menu.addAction(self.uiNewACT)
-        menu.addAction('New Folder').triggered.connect(self.createNewFolder)
+        act = menu.addAction('New Folder')
+        act.triggered.connect(self.createNewFolder)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/newfolder.png')))
         menu.addAction(self.uiNewFromWizardACT)
         menu.addSeparator()
-        menu.addAction('Open').triggered.connect(self.documentOpenItem)
+        act = menu.addAction('Open')
+        act.triggered.connect(self.documentOpenItem)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
         menu.addAction('Explore').triggered.connect(self.documentExploreItem)
-        menu.addAction('Refresh').triggered.connect(self.projectRefreshItem)
+        act = menu.addAction('Refresh')
+        act.triggered.connect(self.projectRefreshItem)
+        act.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
         menu.addSeparator()
-        menu.addAction('Run...').triggered.connect(self.runCurrentScript)
+        act = menu.addAction('Run...')
+        act.triggered.connect(self.runCurrentScript)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
         menu.addAction('Run (Standalone)...').triggered.connect(
             self.runCurrentStandalone
         )
@@ -1013,7 +1113,7 @@ class IdeEditor(Window):
     def showDesigner(self):
         from PyQt4.QtCore import QProcess
 
-        QProcess.startDetached('c:/blur/common/designer.exe', [], '')
+        QProcess.startDetached(os.environ['BDEV_QT_DESIGNER'], [], '')
 
     def showSdkBrowser(self):
         import blurdev
@@ -1033,9 +1133,9 @@ class IdeEditor(Window):
 
         if (
             project
-            and self._project
+            and IdeProject.currentProject()
             and os.path.normcase(project.filename())
-            != os.path.normcase(self._project.filename())
+            != os.path.normcase(IdeProject.currentProject().filename())
         ):
             from PyQt4.QtGui import QMessageBox
 
@@ -1054,9 +1154,9 @@ class IdeEditor(Window):
             self.uiProjectTREE.blockSignals(True)
             self.uiProjectTREE.setUpdatesEnabled(False)
 
-            self._project = project
+            IdeProject.setCurrentProject(project)
             self.uiProjectTREE.clear()
-            self.uiProjectTREE.addTopLevelItem(self._project)
+            self.uiProjectTREE.addTopLevelItem(project)
             self.uiProjectTREE.blockSignals(False)
             self.uiProjectTREE.setUpdatesEnabled(True)
 
@@ -1157,8 +1257,7 @@ class IdeEditor(Window):
     def edit(filename=None):
         window = IdeEditor.instance()
         window.show()
-        print 'showing window'
+
         # set the filename
         if filename:
             window.load(filename)
-        print 'loaded'

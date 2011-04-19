@@ -289,12 +289,13 @@ class ToolsEnvironment(QObject):
     def normalizePath(path):
         """
             \remarks	returns a normalized path for this environment to use when registering paths to the sys path
+            \warning	deprecated method - use blurdev.settings.normalizePath
             \param		path		<str> || <QString>
             \return		<str>
         """
-        import os.path
+        from blurdev import settings
 
-        return os.path.abspath(str(path)).lower()
+        return settings.normalizePath(path)
 
     @staticmethod
     def loadConfig(filename, included=False):
@@ -355,17 +356,13 @@ class ToolsEnvironment(QObject):
     def registerPath(path):
         """
             \remarks	registers the inputed path to the system
+            \warning	deprecated method - use blurdev.settings.registerPath
             \param		path		<str>
             \return		<bool> success
         """
-        import os.path
+        from blurdev import settings
 
-        if path and path != '.':
-            import sys
-
-            sys.path.insert(0, ToolsEnvironment.normalizePath(path))
-            return True
-        return False
+        settings.registerPath(path)
 
     @staticmethod
     def registerScriptPath(filename):

@@ -25,49 +25,19 @@ class DocumentEditor(QsciScintilla):
         self._lastSearch = ''
         self._lastSearchDirection = self.SearchDirection.First
 
-        # initialize the look of the system
+        # intialize settings
         from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QFont, QFontMetrics, QColor
 
-        font = QFont()
-        font.setFamily('Courier New')
-        font.setFixedPitch(True)
-        font.setPointSize(9)
+        self.initSettings()
 
-        # set the font information
-        self.setFont(font)
-        mfont = QFont(font)
-        mfont.setPointSize(7)
-        self.setMarginsFont(mfont)
-
-        # set the margin information
-        self.setMarginWidth(0, QFontMetrics(mfont).width('00000') + 5)
-        self.setMarginLineNumbers(0, True)
-        self.setAutoIndent(True)  # automatically match line indentations on new lines
-        self.setAutoCompletionSource(QsciScintilla.AcsAll)
-        self.setIndentationsUseTabs(True)
-        self.setTabIndents(True)
-        self.setTabWidth(4)
-
-        # set code folding options
+        # set one time properties
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
-
-        # set brace matching
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
-
-        # set editing line color
-        self.setCaretLineVisible(True)
-        self.setCaretLineBackgroundColor(QColor(Qt.white))
-
-        # set margin colors
-        self.setMarginsBackgroundColor(QColor(Qt.lightGray))
-        self.setMarginsForegroundColor(QColor(Qt.gray))
-        self.setFoldMarginColors(QColor(Qt.yellow), QColor(Qt.blue))
-
         self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.showMenu)
+        self.setAcceptDrops(False)
 
-        # create the connections
+        # create connections
+        self.customContextMenuRequested.connect(self.showMenu)
         self.textChanged.connect(self.refreshTitle)
 
         # load the file
@@ -200,21 +170,7 @@ class DocumentEditor(QsciScintilla):
         filename = str(filename)
         if filename and os.path.exists(filename):
             self.setText(open(filename).read())
-
-            self._filename = filename
-
-            import lexers
-
-            lexers.load()
-            lexer = lexers.lexerFor(os.path.splitext(filename)[1])
-            if lexer:
-                lexer.setFont(self.font())
-                lexer.setParent(self)
-                self._language = lexers.languageFor(lexer)
-
-            self.setLexer(lexer)
-            self.refreshTitle()
-            self.setModified(False)
+            self.updateFilename(filename)
             return True
         return False
 
@@ -287,6 +243,20 @@ class DocumentEditor(QsciScintilla):
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
+    def initSettings(self):
+        # load default settings
+        from blurdev.ide.idedocumentsettings import IdeDocumentSettings
+
+        defaults = IdeDocumentSettings.defaultSettings()
+        defaults.setupEditor(self)
+
+        # override with project specific settings
+        from blurdev.ide.ideproject import IdeProject
+
+        project = IdeProject.currentProject()
+        if project:
+            project.documentSettings().setupEditor(self)
+
     def markerNext(self):
         line, index = self.getCursorPosition()
         newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
@@ -318,26 +288,14 @@ class DocumentEditor(QsciScintilla):
             )
 
         if filename:
+            # save the file to disk
             filename = str(filename)
             f = open(filename, 'w')
             f.write(unicode(self.text()).replace('\r', ''))  # scintilla puts both
             f.close()
 
-            self._filename = filename
-            self.setModified(False)
-            self.window().documentTitleChanged.emit()
-            self.refreshTitle()
-
-            import os.path
-            import lexers
-
-            lexers.load()
-            lexer = lexers.lexerFor(os.path.splitext(filename)[1])
-            if lexer:
-                lexer.setFont(self.font())
-                self._language = lexers.languageFor(lexer)
-
-            self.setLexer(lexer)
+            # update the file
+            self.updateFilename(filename)
             return True
         return False
 
@@ -370,6 +328,7 @@ class DocumentEditor(QsciScintilla):
             lexer.setParent(self)
 
         self.setLexer(lexer)
+        self.initSettings()
 
     def setLineMarginWidth(self, width):
         self.setMarginWidth(self.SymbolMargin, width)
@@ -382,6 +341,12 @@ class DocumentEditor(QsciScintilla):
 
     def setShowLineNumbers(self, state):
         self.setMarginLineNumbers(self.SymbolMargin, state)
+
+    def setShowWhitespaces(self, state):
+        if state:
+            self.setWhitespaceVisibility(QsciScintilla.WsVisible)
+        else:
+            self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
 
     def showMenu(self):
         from PyQt4.QtGui import QMenu, QCursor
@@ -421,11 +386,42 @@ class DocumentEditor(QsciScintilla):
     def showLineNumbers(self):
         return self.marginLineNumbers(self.SymbolMargin)
 
+    def showWhitespaces(self):
+        return self.whitespaceVisibility() == QsciScintilla.WsVisible
+
     def toggleFolding(self):
         from PyQt4.QtGui import QApplication
         from PyQt4.QtCore import Qt
 
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
+
+    def updateFilename(self, filename):
+        import os.path
+
+        # determine if we need to modify the language
+        if (
+            not self._filename
+            or os.path.splitext(filename)[1] != os.path.splitext(self._filename)[1]
+        ):
+            import lexers
+
+            lexers.load()
+            lexer = lexers.lexerFor(os.path.splitext(filename)[1])
+            if lexer:
+                lexer.setFont(self.font())
+                lexer.setParent(self)
+                self._language = lexers.languageFor(lexer)
+            else:
+                self._language = ''
+
+            self.setLexer(lexer)
+            self.initSettings()
+
+        # update the filename information
+        self._filename = filename
+        self.setModified(False)
+        self.window().documentTitleChanged.emit()
+        self.refreshTitle()
 
     def unindentSelection(self):
         lineFrom = 0

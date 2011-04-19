@@ -17,8 +17,6 @@ class Preference(XMLDocument):
     """ a preference document is a sub-class of the XMLDocument and is used for storing custom information
         about blurdev components, most often tools or views """
 
-    RootPath = 'c:/blur/userprefs'  # this is the folder where all preference files will be saved per core
-
     def __init__(self):
         XMLDocument.__init__(self)
         self._filename = ''
@@ -46,13 +44,13 @@ class Preference(XMLDocument):
 
     def path(self, coreName=''):
         """ return the path to the application's prefrences folder """
-        import blurdev, os.path
+        import blurdev, os
 
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
 
-        return os.path.join(Preference.RootPath, 'app_%s/' % coreName)
+        return os.path.join(os.environ['BDEV_PREFERENCE_ROOT'], 'app_%s/' % coreName)
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """
@@ -107,10 +105,10 @@ def find(name, reload=False, coreName=''):
         \remarks	Finds a preference for the with the inputed name
                     If a pref already exists within the cache, then the cached pref is returned,
                     otherwise, it is loaded from the blurdev preference location
-        
+
         \param		name	<str>	the name of the preference to retrieve
         \param		reload	<bool>	reloads the cached item
-        
+
         \return		<blurdev.prefs.Preference>
     """
     import blurdev

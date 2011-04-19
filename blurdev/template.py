@@ -94,6 +94,8 @@ def formatText(text, options={}):
         elif check.startswith('datetime'):
             if not option:
                 option = 'MM/dd/yy h:mm ap'
+            else:
+                option = option.replace('_', ' ')
 
             repl = QDateTime.currentDateTime().toString(option)
 
@@ -101,6 +103,9 @@ def formatText(text, options={}):
         elif check.startswith('date'):
             if not option:
                 option = 'MM/dd/yy'
+            else:
+                option = option.replace('_', ' ')
+
             repl = QDate.currentDate().toString(option)
 
         # format author info
@@ -112,6 +117,9 @@ def formatText(text, options={}):
             # include the author's email
             if option == 'email':
                 repl = author.email
+
+            if option == 'user':
+                repl = author.email.split('@')[0]
 
             # include the author's company
             elif option == 'company':
@@ -151,9 +159,9 @@ def formatText(text, options={}):
             text = text.replace('[%s]' % result, unicode(repl))
 
     # process code snippets
-    results = re.findall('{%.*(?=%})%}', text)
+    results = re.findall('{!.*(?=!})!}', text)
     for result in results:
-        c = result.replace('{%', '').replace('%}', '').strip()
+        c = result.replace('{!', '').replace('!}', '').strip()
         try:
             ctext = eval(c)
         except:

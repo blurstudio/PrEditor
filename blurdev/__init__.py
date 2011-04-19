@@ -11,18 +11,7 @@
 __DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 
 # track the install path
-import os.path
-
-installPath = os.path.split(__file__)[0]
-
-# include the blur path
-from tools import ToolsEnvironment
-
-# register the standard blur path
-ToolsEnvironment.registerPath('c:/blur')
-
-# register the beta blur path as an overload for beta tools
-ToolsEnvironment.registerPath('c:/blur/beta')
+import os
 
 application = None  # create a managed QApplication
 core = None  # create a managed Core instance
@@ -66,6 +55,12 @@ def findTool(name, environment=''):
 
 
 def init():
+    # initialize the settings
+    import settings
+
+    settings.init()
+
+    # create the core and application
     global core
     global application
     if not core:
@@ -86,11 +81,11 @@ def launch(ctor, modal=False, coreName='external', *args, **kwargs):
                     and how the window should be instantiated, this way if a tool is run as a standalone, a
                     new application instance will be created, otherwise it will run on top of a currently
                     running application.
-        
+
         \param		ctor		QWidget || method 	(constructor for a widget, most commonly a Dialog/Window/Wizard>
         \param		modal		<bool>	whether or not the system should run modally
         \param		coreName	<str>	string to give to the core if the application is going to be rooted under this widget
-        
+
         \return		<bool>	success (when exec_ keyword is set) || <ctor> instance (when exec_ keyword is not set)
     """
     init()
@@ -137,7 +132,7 @@ def launch(ctor, modal=False, coreName='external', *args, **kwargs):
 
 
 def quickReload(modulename):
-    """	
+    """
         \remarks	searches through the loaded sys modules and looks up matching module names based on the imported module
         \param		modulename 	<str>
     """
@@ -232,5 +227,8 @@ def startProgress(title='Progress', parent=None):
     return MultiProgressDialog.start(title)
 
 
-# the blurdev system will create and manage a QApplication instance
+# track the install path
+installPath = os.path.split(__file__)[0]
+
+# initialize the core
 init()

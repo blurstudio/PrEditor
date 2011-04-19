@@ -114,12 +114,11 @@ class CodeHighlighter(QSyntaxHighlighter):
     def setLanguage(self, lang):
         """ sets the language of the highlighter by loading the XML definition """
         from blurdev.XML import XMLDocument
-
         import blurdev
         import os.path
 
         doc = XMLDocument()
-        if doc.load(blurdev.resourcePath('lang/%s.xml' % lang)):
+        if doc.load(blurdev.resourcePath('lang/%s.xml' % lang.lower())):
             # clear out the current definition
             root = doc.root()
             self.setObjectName(root.attribute('name'))

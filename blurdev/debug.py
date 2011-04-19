@@ -8,9 +8,10 @@
 # 	\date		04/09/10
 #
 
+import os
 from enum import enum
 
-_currentLevel = 0
+_currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
 _debugLogger = None
 _errorReport = []
 
@@ -120,13 +121,13 @@ def debugMsg(msg, level=2):
 def debugObject(object, msg, level=2):
     """
         \remarks	Usees the debugMsg function to output to the stdout a debug message including the reference of where the object calling the method is located
-        
+
         \sa			debugMsg
-        
+
         \param		object		<module> || <class> || <method> || <function>
         \param		msg			<str>
         \param		level		<DebugLevel>
-        
+
         \return		<void>
     """
     import inspect
@@ -164,13 +165,13 @@ def debugObject(object, msg, level=2):
 def debugStubMethod(object, msg, level=2):
     """
         \remarks	Uses the debugObject function to display that a stub method has not been provided functionality
-        
+
         \sa			debugObject
-        
+
         \param		object		<function> || <method>
         \param		msg			<str>
         \param		level		<DebugLevel>
-        
+
         \return		<void>
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
@@ -179,9 +180,9 @@ def debugStubMethod(object, msg, level=2):
 def debugVirtualMethod(cls, object):
     """
         \remarks	Uses the debugObject function to display that a virtual function has not been overloaded
-        
+
         \sa			debugObject
-        
+
         \param		cls			<class>						base class where the method is defined
         \param		object		<function> || <method>
     """

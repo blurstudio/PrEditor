@@ -148,16 +148,9 @@
     </property>
     <addaction name="uiTreegruntACT"/>
     <addaction name="separator"/>
-    <addaction name="uiAssistantACT"/>
     <addaction name="uiDesignerACT"/>
     <addaction name="separator"/>
     <addaction name="uiShowLoggerACT"/>
-   </widget>
-   <widget class="QMenu" name="uiAdvancedMENU">
-    <property name="title">
-     <string>Advanced</string>
-    </property>
-    <addaction name="uiConfigurationACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -195,6 +188,8 @@
     <addaction name="uiCommentRemoveACT"/>
     <addaction name="separator"/>
     <addaction name="uiInsertTemplateACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiConfigurationACT"/>
    </widget>
    <widget class="QMenu" name="uiSearchMENU">
     <property name="title">
@@ -277,7 +272,6 @@
    <addaction name="uiRunMENU"/>
    <addaction name="uiViewMENU"/>
    <addaction name="uiToolsMENU"/>
-   <addaction name="uiAdvancedMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -291,7 +285,7 @@
   </action>
   <action name="uiConfigurationACT">
    <property name="text">
-    <string>Configuration</string>
+    <string>Preferences</string>
    </property>
   </action>
   <action name="uiNewACT">
@@ -420,10 +414,16 @@
    <property name="text">
     <string>Comment Add</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
   <action name="uiCommentRemoveACT">
    <property name="text">
     <string>Comment Remove</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="uiFindACT">
@@ -678,7 +678,7 @@
     <string>Insert Template...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+I</string>
+    <string>Ctrl+Space</string>
    </property>
   </action>
   <action name="uiTemplateManagerACT">

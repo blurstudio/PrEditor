@@ -79,12 +79,20 @@ if __name__ == '__main__':
         results = re.search('!define MUI_SVNREV "(\d+)"', lines)
 
         if results:
-            filename = path + '/installers/bin/%s-install-v%i.%02i.%s.exe' % (
-                product,
-                version.major(),
-                version.minor(),
-                results.groups()[0],
-            )
+
+            if dictionary['offline']:
+                filename = (
+                    path
+                    + '/installers/bin/offline/%s-install-v%i.%02i.%s-offline.exe'
+                    % (product, version.major(), version.minor(), results.groups()[0])
+                )
+            else:
+                filename = path + '/installers/bin/%s-install-v%i.%02i.%s.exe' % (
+                    product,
+                    version.major(),
+                    version.minor(),
+                    results.groups()[0],
+                )
             import os
 
             os.startfile(filename)

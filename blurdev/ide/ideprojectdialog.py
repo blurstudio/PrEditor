@@ -25,7 +25,6 @@ class IdeProjectDialog(Dialog):
         self.uiProjectTREE.customContextMenuRequested.connect(self.showMenu)
 
     def accept(self):
-
         import os.path
 
         path = str(self.uiProjectPATH.filePath())
@@ -68,7 +67,6 @@ class IdeProjectDialog(Dialog):
         from ideproject import IdeProjectItem
 
         # pull the parent from the tree
-
         item = IdeProjectItem()
         if IdeProjectItemDialog.edit(item):
             self._project.addChild(item)
@@ -78,11 +76,8 @@ class IdeProjectDialog(Dialog):
         from ideproject import IdeProjectItem
 
         # pull the parent from the tree
-
         item = self.uiProjectTREE.currentItem()
-
         if not item:
-
             item = self._project
 
         child = IdeProjectItem()
@@ -94,13 +89,11 @@ class IdeProjectDialog(Dialog):
         from ideproject import IdeProjectItem
 
         # pull the item from the tree
-
         item = self.uiProjectTREE.currentItem()
         if item:
             IdeProjectItemDialog.edit(item)
 
     def filename(self):
-
         import os.path
 
         path = str(self.uiProjectPATH.filePath())
@@ -112,11 +105,8 @@ class IdeProjectDialog(Dialog):
         return self._project
 
     def removeItem(self):
-
         item = self.uiProjectTREE.currentItem()
-
         if item.parent():
-
             item.parent().takeChild(item.parent().indexOfChild(item))
 
     def setProject(self, project):
@@ -137,9 +127,7 @@ class IdeProjectDialog(Dialog):
             self.uiProjectNameTXT.setEnabled(False)
 
         self._project = project
-
         self.uiProjectTREE.clear()
-
         self.uiProjectTREE.addTopLevelItem(self._project)
 
     def showMenu(self):
@@ -155,20 +143,16 @@ class IdeProjectDialog(Dialog):
         menu.popup(QCursor.pos())
 
     def updateProjectName(self):
-
         if self._project:
-
             self._project.setText(0, self.uiProjectNameTXT.text())
 
     @staticmethod
     def createNew():
-
         import blurdev
 
         dlg = IdeProjectDialog(blurdev.core.activeWindow())
         dlg.setProject(None)
         if dlg.exec_():
-
             from ideproject import IdeProject
 
             return IdeProject.fromXml(dlg.filename())
@@ -177,7 +161,6 @@ class IdeProjectDialog(Dialog):
     @staticmethod
     def edit(filename):
         import blurdev
-
         from ideproject import IdeProject
 
         dlg = IdeProjectDialog(blurdev.core.activeWindow())

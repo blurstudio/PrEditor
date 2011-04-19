@@ -38,7 +38,10 @@ class IdeWizardBrowser(Dialog):
             for grp in wizards.wizardGroups(lang):
                 gitem = QTreeWidgetItem([grp])
                 gitem.setSizeHint(0, QSize(250, 23))
-                gitem.setIcon(0, QIcon(blurdev.resourcePath('img/%s.png' % grp)))
+                print blurdev.resourcePath('img/%s.png' % grp)
+                gitem.setIcon(
+                    0, QIcon(blurdev.resourcePath('img/%s.png' % grp.lower()))
+                )
                 item.addChild(gitem)
 
             self.uiWizardTREE.addTopLevelItem(item)
@@ -91,7 +94,6 @@ class IdeWizardBrowser(Dialog):
         templs = wizards.wizards(item.parent().text(0), item.text(0))
         for templ in templs:
             item = scene.addThumbnail(templ.iconFile)
-
             item.setCaption(templ.name)
             item.setToolTip(templ.toolTip)
             item.setData(Qt.UserRole, templ.wizardId)
@@ -106,11 +108,8 @@ class IdeWizardBrowser(Dialog):
 
     @staticmethod
     def createFromWizard():
-
         import blurdev
 
         if IdeWizardBrowser(blurdev.core.activeWindow()).exec_():
-
             return True
-
         return False

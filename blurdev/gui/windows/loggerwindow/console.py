@@ -235,6 +235,9 @@ class ConsoleEdit(QTextEdit):
         else:
             self.startInputLine()
 
+    def flush(self):
+        self.clear()
+
     def focusInEvent(self, event):
         """ overload the focus in event to ensure the completer has the proper widget """
         if self.completer():

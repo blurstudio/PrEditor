@@ -753,7 +753,11 @@ class Core(QObject):
         """
             \remarks	creates the python logger and displays it
         """
-        self.logger().show()
+        logger = self.logger()
+        logger.show()
+        logger.activateWindow()
+        logger.raise_()
+        logger.console().setFocus()
 
     def unprotectModule(self, moduleName):
         """

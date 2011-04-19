@@ -107,8 +107,10 @@ register('CSS', ('.css'), QsciLexerCSS)
 register('C++', ('.cpp', '.c', '.h',), QsciLexerCPP, '//')
 register('HTML', ('.htm', '.html'), QsciLexerHTML)
 register('Lua', ('.lua'), QsciLexerLua)
-register('Python', ('.py', '.pyw', '.pys',), QsciLexerPython, '#')
-register('XML', ('.xml', '.ui', '.sdk',), QsciLexerXML)
+register('Python', ('.py', '.pyw', '.pys', '.b'), QsciLexerPython, '#')
+register('XML', ('.xml', '.ui', '.sdk', '.blurproj', '.pref',), QsciLexerXML)
+register('Bash', ('.sh',), QsciLexerBash)
+register('Javascript', ('.js'), QsciLexerJavaScript)
 
 # create custom mappings
 from maxscriptlexer import MaxscriptLexer

@@ -85,6 +85,9 @@ class LoggerWindow(Window):
         self.restorePrefs()
         self.overrideKeyboardShortcuts()
 
+    def console(self):
+        return self._console
+
     def closeEvent(self, event):
         self.recordPrefs()
         Window.closeEvent(self, event)
