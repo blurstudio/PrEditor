@@ -95,6 +95,16 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
         self.setupIcons()
 
+        # make tree's resize to contents so they have a horizontal scroll bar
+        for header in (
+            self.uiProjectTREE.header(),
+            self.uiOpenTREE.header(),
+            self.uiExplorerTREE.header(),
+        ):
+            header.setStretchLastSection(False)
+            header.setMovable(False)
+            header.setResizeMode(header.ResizeToContents)
+
         # create connections
         self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
