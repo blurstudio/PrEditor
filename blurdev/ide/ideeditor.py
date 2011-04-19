@@ -54,7 +54,7 @@ class IdeEditor(Window):
         self._recentFiles = []
         self._recentFileMax = 10
         self._recentFileMenu = None
-        self._filenameForCallback = None
+        self._loaded = False
         self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
@@ -1041,6 +1041,11 @@ class IdeEditor(Window):
 
         blurdev.core.logger(self)
 
+        # If a filename was passed in on launch, open the file
+        if not self._loaded and 'BIDE_FILENAME' in os.environ:
+            self.load(os.environ['BIDE_FILENAME'])
+        self._loaded = True
+
     def showAssistant(self):
         from PyQt4.QtCore import QProcess
 
@@ -1211,10 +1216,6 @@ class IdeEditor(Window):
                 )
             )
 
-    def timerCallback(self):
-        if self._filenameForCallback:
-            self.load(self._filenameForCallback)
-
     @staticmethod
     def createNew():
         window = IdeEditor.instance()
@@ -1242,14 +1243,6 @@ class IdeEditor(Window):
 
             # cache the instance
             IdeEditor._instance = inst
-
-        if filename:
-            IdeEditor._instance._filenameForCallback = filename
-            # Simply calling IdeEditor._instance.load( filename ) will result in the opened file not being sized correctly because the window has not been shown yet.
-            # HACK: calling a singleShot timer allows the window to get sized correctly before the file is displayed
-            from PyQt4.QtCore import QTimer
-
-            QTimer.singleShot(0, IdeEditor._instance.timerCallback)
 
         return IdeEditor._instance
 

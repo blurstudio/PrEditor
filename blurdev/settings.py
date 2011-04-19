@@ -55,6 +55,9 @@ def init():
     parser.add_option(
         '-z', '--zip_exec', dest='zip_exec', help='set the zip executable location'
     )
+    parser.add_option(
+        '-f', '--filename', dest='filename', help='set the filename to load in ide'
+    )
 
     import sys
 
@@ -71,6 +74,8 @@ def init():
         os.environ['BDEV_DEBUG_LEVEL'] = options.debug
     if options.environment:
         os.environ['TRAX_ENVIRONMENT'] = options.environment
+    if options.filename:
+        os.environ['BIDE_FILENAME'] = options.filename
 
     # initialize the default variables
     setup(os.environ['BDEV_SETTINGS_ENV'])
