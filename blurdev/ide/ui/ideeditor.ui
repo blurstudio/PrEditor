@@ -415,7 +415,7 @@
     <string>Comment Add</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+D</string>
+    <string>Alt+3</string>
    </property>
   </action>
   <action name="uiCommentRemoveACT">
@@ -423,7 +423,7 @@
     <string>Comment Remove</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+D</string>
+    <string>Alt+#</string>
    </property>
   </action>
   <action name="uiFindACT">
