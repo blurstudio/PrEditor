@@ -302,6 +302,8 @@ class LockableTreeWidget(QTreeWidget):
                 elif align == Qt.AlignRight:
                     count = self.columnCount()
                     colRange = range(count - span, count)
+                else:
+                    colRange = range(0)
                 for column in colRange:
                     self.updateSizeHintForItem(item, column, recursive=True)
 

@@ -50,7 +50,7 @@
 # |		self.uiTREE.restorePrefs( pref )
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
-from PyQt4.QtGui import QItemDelegate, QTreeWidget
+from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon
 import blurdev
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 
@@ -406,7 +406,6 @@ class BlurTreeWidget(LockableTreeWidget):
             \Remarks	Shows the header menu if the header menu is enabled. It populates the menu with column visiblity if this is enabled.
                         If a delegate is set, it will pass the menu item to headerMenu( menu ). You can customize the menu in this delegate function, headerMenu( menu ) must return a <bool> if the menu is to be shown
         """
-        from PyQt4.QtGui import QCursor, QMenu
 
         menu = QMenu(self)
         header = self.headerItem()
@@ -443,6 +442,7 @@ class BlurTreeWidget(LockableTreeWidget):
         if self.lockedViews():
             menu.addSeparator()
             action = menu.addAction('Update locked alignment')
+            action.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
             action.triggered.connect(self.updateSizeHints)
 
         # call delegate so user can add custom menu items if they wish
