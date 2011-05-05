@@ -48,6 +48,7 @@ class LockableTreeWidget(QTreeWidget):
         view.setColumnWidth(0, self.columnWidth(0))
         view.setVerticalScrollMode(self.verticalScrollMode())
         view.setAlternatingRowColors(self.alternatingRowColors())
+        view.setContextMenuPolicy(self.contextMenuPolicy())
 
         # create vertical alignment options
         if alignment in (Qt.AlignLeft, Qt.AlignRight):
@@ -82,6 +83,10 @@ class LockableTreeWidget(QTreeWidget):
             view.horizontalScrollBar().valueChanged.connect(self.resetHScrollBar)
             view.verticalScrollBar().valueChanged.connect(self.resetVScrollBar)
 
+        # remap click events to the QTreeWidget version
+        view.clicked.connect(self.viewClicked)
+        view.customContextMenuRequested.connect(self.customContextMenuRequestedForView)
+
         # update the view
         self.updateLockedGeometry()
         view.show()
@@ -110,6 +115,9 @@ class LockableTreeWidget(QTreeWidget):
         self._lockedViews.clear()
 
         QTreeWidget.closeEvent(self, event)
+
+    def customContextMenuRequestedForView(self, point):
+        self.customContextMenuRequested.emit(point)
 
     def initFontMetric(self, font):
         from PyQt4.QtGui import QFontMetrics
@@ -508,3 +516,10 @@ class LockableTreeWidget(QTreeWidget):
                 y = self.height() - self.frameWidth() - h
 
             v.setGeometry(x, y, w, h)
+
+    def viewClicked(self, index):
+        """
+            \remark		convert the QTreeView.clicked to a QTreeView.itemClicked signal for transparent mapping
+        """
+        item = self.itemFromIndex(index)
+        self.itemClicked.emit(item, index.column())

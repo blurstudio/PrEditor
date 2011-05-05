@@ -8,7 +8,7 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.QtCore import pyqtProperty
+from PyQt4.QtCore import pyqtProperty, Qt
 from PyQt4.Qsci import *
 from blurdev.enum import enum
 
@@ -180,22 +180,13 @@ class DocumentEditor(QsciScintilla):
     def findNext(self, text, flags):
         from PyQt4.QtGui import QTextDocument
 
-        if not (
-            text == self._lastSearch
-            and not self._lastSearchDirection
-            & (self.SearchDirection.First | self.SearchDirection.Backward)
-        ):
-            self._lastSearch = text
-            self._lastSearchDirection = self.SearchDirection.Forward
-            re = False
-            cs = (flags & QTextDocument.FindCaseSensitively) != 0
-            wo = (flags & QTextDocument.FindWholeWords) != 0
-            wrap = True
-            forward = True
+        re = False
+        cs = (flags & QTextDocument.FindCaseSensitively) != 0
+        wo = (flags & QTextDocument.FindWholeWords) != 0
+        wrap = True
+        forward = True
 
-            result = self.findFirst(text, re, cs, wo, wrap, forward)
-        else:
-            result = QsciScintilla.findNext(self)
+        result = self.findFirst(text, re, cs, wo, wrap, forward)
 
         if not result:
             from PyQt4.QtGui import QMessageBox
@@ -209,21 +200,16 @@ class DocumentEditor(QsciScintilla):
     def findPrev(self, text, flags):
         from PyQt4.QtGui import QTextDocument
 
-        if not (
-            text == self._lastSearch
-            and not self._lastSearchDirection
-            & (self.SearchDirection.First | self.SearchDirection.Forward)
-        ):
-            self._lastSearch = text
-            self._lastSearchDirection = self.SearchDirection.Backward
-            re = False
-            cs = (flags & QTextDocument.FindCaseSensitively) != 0
-            wo = (flags & QTextDocument.FindWholeWords) != 0
-            wrap = True
-            forward = False
+        re = False
+        cs = (flags & QTextDocument.FindCaseSensitively) != 0
+        wo = (flags & QTextDocument.FindWholeWords) != 0
+        wrap = True
+        forward = False
 
-            result = self.findFirst(text, re, cs, wo, wrap, forward)
-        else:
+        isSelected = self.hasSelectedText()
+        result = self.findFirst(text, re, cs, wo, wrap, forward)
+        if result and isSelected:
+            # If text is selected when finding previous, it will find the currently selected text so do another find.
             result = QsciScintilla.findNext(self)
 
         if not result:
@@ -276,6 +262,49 @@ class DocumentEditor(QsciScintilla):
         else:
             self.markerDelete(line)
 
+    def replace(self, text, all=False):
+        # replace the current text with the inputed text
+        searchtext = self.selectedText()
+
+        # make sure something is selected
+        if not searchtext:
+            return 0
+
+        sel = self.getSelection()
+        alltext = self.text()
+
+        # replace all of the instances of the text
+        if all:
+            count = alltext.count(searchtext)
+            alltext.replace(searchtext, text, Qt.CaseSensitive)
+
+        # replace a single instance of the text
+        else:
+            count = 1
+            startpos = self.positionFromLineIndex(sel[0], sel[1])
+            alltext.replace(startpos, len(searchtext), text)
+
+        self.setText(alltext)
+        self.setSelection(*sel)
+
+        return count
+
+    def refreshTitle(self):
+        if self.filename():
+            import os.path
+
+            title = os.path.basename(str(self.filename()))
+        else:
+            title = 'New Document'
+
+        if self.isModified():
+            title += '*'
+
+        self.setWindowTitle(title)
+        parent = self.parent()
+        if parent.inherits('QMdiSubWindow'):
+            parent.setWindowTitle(self.windowTitle())
+
     def save(self):
         return self.saveAs(self.filename())
 
@@ -298,22 +327,6 @@ class DocumentEditor(QsciScintilla):
             self.updateFilename(filename)
             return True
         return False
-
-    def refreshTitle(self):
-        if self.filename():
-            import os.path
-
-            title = os.path.basename(str(self.filename()))
-        else:
-            title = 'New Document'
-
-        if self.isModified():
-            title += '*'
-
-        self.setWindowTitle(title)
-        parent = self.parent()
-        if parent.inherits('QMdiSubWindow'):
-            parent.setWindowTitle(self.windowTitle())
 
     def setLanguage(self, language):
         language = str(language)
@@ -397,6 +410,8 @@ class DocumentEditor(QsciScintilla):
 
     def updateFilename(self, filename):
         import os.path
+
+        filename = str(filename)
 
         # determine if we need to modify the language
         if (

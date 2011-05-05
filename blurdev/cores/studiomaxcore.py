@@ -160,7 +160,23 @@ class StudiomaxCore(Core):
         # connect the plugin to 3dsmax
         import Py3dsMax
 
-        self.connectPlugin(Py3dsMax.GetPluginInstance(), Py3dsMax.GetWindowHandle())
+        hInstance = Py3dsMax.GetPluginInstance()
+        hwnd = Py3dsMax.GetWindowHandle()
+
+        # create a max plugin connection
+        if not self.connectPlugin(hInstance, hwnd):
+            from PyQt4.QtGui import QApplication
+
+            # initialize the look for the application instance
+            app = QApplication.instance()
+            app.setStyle('plastique')
+
+            # we will still need these variables set to work properly
+            self.setHwnd(hwnd)
+            self._mfcApp = True
+
+            # initialize the logger
+            self.logger()
 
         # init the base class
         return Core.init(self)

@@ -267,11 +267,50 @@ class IdeProject(IdeProjectItem):
 
         self._documentSettings = IdeDocumentSettings()
 
+        # record project specific environment variables and sys.paths
+        self._envvars = {}
+        self._syspaths = []
+        self._origEnv = None
+        self._origSys = None
+
+    def activateSystem(self):
+        # update the os.environ variable with this projects environment variables
+        import os
+        import sys
+
+        # record the original information
+        self._origEnv = os.environ.copy()
+        self._origSys = list(sys.path)
+
+        os.environ.update(self._envvars)
+
+        # update the sys.paths variable with this environments paths
+        sys.path = self._syspaths + sys.path
+
+    def deactivateSystem(self):
+        # unregister all the project specific override information
+        import os
+        import sys
+
+        # restore the system variables
+        if self._origEnv != None:
+            os.environ = self._origEnv
+        if self._origSys != None:
+            sys.path = self._origSys
+
     def documentSettings(self):
         return self._documentSettings
 
     def filename(self):
         return self._filename
+
+    def registerVariable(self, key, value):
+        self._envvars[str(key)] = str(value)
+
+    def registerPath(self, path):
+        path = str(path).strip()
+        if path and not path in self._syspaths:
+            self._syspaths.append(path)
 
     def save(self):
         return self.saveAs(self.filename())
@@ -291,8 +330,23 @@ class IdeProject(IdeProjectItem):
 
             root = doc.addNode('blurproj')
             root.setAttribute('version', self.__version__)
+
+            # define the settings xml
             settingsxml = root.addNode('settings')
             self.documentSettings().recordXml(settingsxml)
+
+            # define the env variables
+            envvarsxml = root.addNode('envvars')
+            for key, value in self._envvars.items():
+                envvar = envvarsxml.addNode('variable')
+                envvar.setAttribute('key', key)
+                envvar.setAttribute('value', value)
+
+            # define the sys paths
+            syspathsxml = root.addNode('syspaths')
+            for path in self._syspaths:
+                syspath = syspathsxml.addNode('path')
+                syspath.setAttribute('path', path)
 
             self.toXml(root)
 
@@ -309,7 +363,13 @@ class IdeProject(IdeProjectItem):
 
     @staticmethod
     def setCurrentProject(project):
+        # clear the old project information
+        if IdeProject._currentProject:
+            IdeProject._currentProject.deactivateSystem()
+
         IdeProject._currentProject = project
+        if project:
+            project.activateSystem()
 
     @staticmethod
     def fromTool(tool):
@@ -399,6 +459,8 @@ class IdeProject(IdeProjectItem):
 
         if doc.load(filename):
             root = doc.root()
+
+            # load a blur project
             if root.nodeName == 'blurproj':
                 output = IdeProject()
                 output.setFilename(filename)
@@ -414,6 +476,20 @@ class IdeProject(IdeProjectItem):
                 settingsxml = root.findChild('settings')
                 if settingsxml:
                     output.documentSettings().loadXml(settingsxml)
+
+                # load environment variables per project
+                environvars = root.findChild('envvars')
+                if environvars:
+                    for child in environvars.children():
+                        output.registerVariable(
+                            child.attribute('key'), child.attribute('value')
+                        )
+
+                # load sys path variables per project
+                syspaths = root.findChild('syspaths')
+                if syspaths:
+                    for child in syspaths.children():
+                        output.registerPath(child.attribute('path'))
 
                 # load new style
                 folder = root.findChild('folder')

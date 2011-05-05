@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 import os
-import platform
+import sys
 
-if os.name == 'nt':
+# define the default environment variables
+OS_TYPE = ''
+if os.name == 'posix':
+    OS_TYPE = 'Linux'
+elif os.name == 'nt':
     OS_TYPE = 'Windows'
-elif os.name == 'posix':
-    OS_TYPE == 'Linux'
-else:
+elif os.name == 'osx':
     OS_TYPE = 'MacOS'
 
 _inited = False
@@ -31,59 +33,65 @@ def init():
         return
 
     _inited = True
-    from optparse import OptionParser
 
-    # initialize command line options
-    parser = OptionParser()
-    parser.add_option(
-        '-d', '--debug', dest='debug', help='set the debug level for the system'
-    )
-    parser.add_option(
-        '-e',
-        '--environment',
-        dest='environment',
-        help='set the trax startup environment',
-    )
-    parser.add_option(
-        '-p', '--preference_root', dest='preference_root', help='set the user pref file'
-    )
-    parser.add_option(
-        '-t', '--trax_root', dest='trax_root', help='set the import location for trax'
-    )
-    parser.add_option(
-        '-s',
-        '--settings_env',
-        dest='settings_env',
-        help='set the default settings environment',
-    )
-    parser.add_option(
-        '-z', '--zip_exec', dest='zip_exec', help='set the zip executable location'
-    )
-    parser.add_option(
-        '-f', '--filename', dest='filename', help='set the filename to load in ide'
-    )
+    # set this variable in any runtime to load arguments from command line
+    if hasattr(sys, 'argv') and os.environ.get('BDEV_EXEC') == '1':
+        from optparse import OptionParser
 
-    import sys
+        # initialize command line options
+        parser = OptionParser()
+        parser.add_option(
+            '-d', '--debug', dest='debug', help='set the debug level for the system'
+        )
+        parser.add_option(
+            '-e',
+            '--environment',
+            dest='environment',
+            help='set the trax startup environment',
+        )
+        parser.add_option(
+            '-p',
+            '--preference_root',
+            dest='preference_root',
+            help='set the user pref file',
+        )
+        parser.add_option(
+            '-t',
+            '--trax_root',
+            dest='trax_root',
+            help='set the import location for trax',
+        )
+        parser.add_option(
+            '-s',
+            '--settings_env',
+            dest='settings_env',
+            help='set the default settings environment',
+        )
+        parser.add_option(
+            '-z', '--zip_exec', dest='zip_exec', help='set the zip executable location'
+        )
+        parser.add_option(
+            '-f', '--filename', dest='filename', help='set the filename to load in ide'
+        )
 
-    (options, args) = parser.parse_args(sys.argv)
-    if options.preference_root:
-        os.environ['BDEV_PREFERENCE_ROOT'] = options.preference_root
-    if options.trax_root:
-        os.environ['BDEV_TRAX_ROOT'] = options.trax_root
-    if options.settings_env:
-        os.environ['BDEV_SETTINGS_ENV'] = options.settings_env
-    if options.zip_exec:
-        os.environ['BDEV_ZIP_EXEC'] = options.zip_exc
-    if options.debug:
-        os.environ['BDEV_DEBUG_LEVEL'] = options.debug
-    if options.environment:
-        os.environ['TRAX_ENVIRONMENT'] = options.environment
-    if options.filename:
-        os.environ['BIDE_FILENAME'] = options.filename
-
+        (options, args) = parser.parse_args(sys.argv)
+        if options.preference_root:
+            os.environ['BDEV_PREFERENCE_ROOT'] = options.preference_root
+        if options.trax_root:
+            os.environ['BDEV_TRAX_ROOT'] = options.trax_root
+        if options.settings_env:
+            os.environ['BDEV_SETTINGS_ENV'] = options.settings_env
+        if options.zip_exec:
+            os.environ['BDEV_ZIP_EXEC'] = options.zip_exc
+        if options.debug:
+            os.environ['BDEV_DEBUG_LEVEL'] = options.debug
+        if options.environment:
+            os.environ['TRAX_ENVIRONMENT'] = options.environment
+        if options.filename:
+            os.environ['BIDE_FILENAME'] = options.filename
     # initialize the default variables
-    setup(os.environ['BDEV_SETTINGS_ENV'])
-    registerPath(os.environ['BDEV_TRAX_ROOT'])
+    setup(os.environ.get('BDEV_SETTINGS_ENV', 'default'))
+    registerPath(os.environ.get('BDEV_TRAX_ROOT', ''))
 
 
 def normalizePath(path):

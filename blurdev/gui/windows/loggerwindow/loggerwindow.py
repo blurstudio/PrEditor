@@ -203,8 +203,7 @@ class LoggerWindow(Window):
             # determine default parenting
             import blurdev
 
-            parent = None
-            if not blurdev.core.isMfcApp():
+            if not (parent or blurdev.core.isMfcApp()):
                 parent = blurdev.core.rootWindow()
 
             # create the logger instance

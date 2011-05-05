@@ -27,8 +27,12 @@ class IdeProjectItemDialog(Dialog):
 
         self._projectItem.setText(0, self.uiNameTXT.text())
         self._projectItem.setGroup(self.uiGroupCHK.isChecked())
-        self._projectItem.setFileTypes(str(self.uiFileTypesTXT.text()).split(';;'))
-        self._projectItem.setExclude(str(self.uiExcludeTXT.text()).split(';;'))
+        self._projectItem.setFileTypes(
+            str(self.uiFileTypesTXT.text()).replace(';;', ';').split(';')
+        )
+        self._projectItem.setExclude(
+            str(self.uiExcludeTXT.text()).replace(';;', ';').split(';')
+        )
         self._projectItem.setFilePath(str(self.uiFilePATH.filePath()))
 
         Dialog.accept(self)
@@ -41,8 +45,8 @@ class IdeProjectItemDialog(Dialog):
 
         self.uiNameTXT.setText(projectItem.text(0))
         self.uiGroupCHK.setChecked(projectItem.isGroup())
-        self.uiFileTypesTXT.setText(';;'.join(projectItem.fileTypes()))
-        self.uiExcludeTXT.setText(';;'.join(projectItem.exclude()))
+        self.uiFileTypesTXT.setText(';'.join(projectItem.fileTypes()))
+        self.uiExcludeTXT.setText(';'.join(projectItem.exclude()))
         self.uiFilePATH.setFilePath(projectItem._filePath)
 
     @staticmethod

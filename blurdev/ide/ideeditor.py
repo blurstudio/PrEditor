@@ -42,28 +42,34 @@ class IdeEditor(Window):
 
         blurdev.gui.loadUi(__file__, self)
 
-        from PyQt4.QtGui import QIcon
-
-        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
-
         # create custom properties
         self._closing = False
         self._searchText = ''
         self._searchFlags = 0
         self._searchDialog = None
+        self._searchReplaceDialog = None
+        self._searchFileDialog = None
         self._recentFiles = []
         self._recentFileMax = 10
         self._recentFileMenu = None
         self._loaded = False
+        self._initfiles = []
+
         self.setAcceptDrops(True)
 
         from PyQt4.QtCore import QDir
 
         QDir.setCurrent(IdeProject.DefaultPath)
 
-        from finddialog import FindDialog
+        # create the search dialog
+        from blurdev.ide.finddialog import FindDialog
 
         self._searchDialog = FindDialog(self)
+
+        # create a search replace dialog
+        from blurdev.ide.findreplacedialog import FindReplaceDialog
+
+        self._searchReplaceDialog = FindReplaceDialog(self)
 
         # create a template completer
         from blurdev import template
@@ -142,17 +148,21 @@ class IdeEditor(Window):
         self.uiCopyACT.triggered.connect(self.documentCopy)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
+        self.uiSelectToMatchingBraceACT.triggered.connect(self.documentSelectMatching)
         self.uiInsertTemplateACT.triggered.connect(self.documentChooseTemplate)
         self.uiCommentAddACT.triggered.connect(self.documentCommentAdd)
         self.uiCommentRemoveACT.triggered.connect(self.documentCommentRemove)
         self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
-        self.uiTemplateManagerACT.triggered.connect(self.showTemplateManager)
 
         # connect search menu
+        self.uiFindAndReplaceACT.triggered.connect(self.showSearchReplaceDialog)
+        self.uiFindACT.triggered.connect(self.showSearchDialog)
+        self.uiFindInFilesACT.triggered.connect(self.showSearchFilesDialog)
         self.uiFindNextACT.triggered.connect(self.documentFindNext)
         self.uiFindPrevACT.triggered.connect(self.documentFindPrev)
+        self.uiReplaceACT.triggered.connect(self.documentReplace)
+        self.uiReplaceAllACT.triggered.connect(self.documentReplaceAll)
         self.uiGotoACT.triggered.connect(self.documentGoTo)
-        self.uiFindACT.triggered.connect(self.showSearchDialog)
         self.uiAddRemoveMarkerACT.triggered.connect(self.documentMarkerToggle)
         self.uiNextMarkerACT.triggered.connect(self.documentMarkerNext)
         self.uiClearMarkersACT.triggered.connect(self.documentMarkerClear)
@@ -188,13 +198,6 @@ class IdeEditor(Window):
         self.uiDebugLowACT.triggered.connect(self.setLowDebug)
         self.uiDebugMidACT.triggered.connect(self.setMidDebug)
         self.uiDebugHighACT.triggered.connect(self.setHighDebug)
-
-        from PyQt4.QtGui import QIcon
-
-        self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
-        self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
-        self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
-        self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
 
         # refresh the ui
         self.updateTitle(None)
@@ -306,6 +309,9 @@ class IdeEditor(Window):
         self.uiDisplayTabsACT.setEnabled(True)
         self.uiDisplayWindowsACT.setEnabled(False)
 
+    def documents(self):
+        return [subwindow.widget() for subwindow in self.uiWindowsAREA.subWindowList()]
+
     def documentClose(self):
         window = self.uiWindowsAREA.activeSubWindow()
         if window and window.widget().checkForSave():
@@ -378,6 +384,26 @@ class IdeEditor(Window):
 
         doc.findPrev(self.searchText(), self.searchFlags())
         return True
+
+    def documentReplace(self):
+        doc = self.currentDocument()
+        if not doc:
+            return False
+
+        count = doc.replace(self.replaceText())
+        return True
+
+    def documentReplaceAll(self):
+        doc = self.currentDocument()
+        if not doc:
+            return False
+
+        count = doc.replace(self.replaceText(), all=True)
+
+        # show the results in the messagebox
+        from PyQt4.QtGui import QMessageBox
+
+        QMessageBox.critical(self, 'Replace Results', '%i results replaced' % count)
 
     def documentFromWizard(self):
         from PyQt4.QtCore import QDir
@@ -502,6 +528,11 @@ class IdeEditor(Window):
         if doc:
             doc.selectAll()
 
+    def documentSelectMatching(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.selectToMatchingBrace()
+
     def documentUndo(self):
         doc = self.currentDocument()
         if doc:
@@ -613,6 +644,22 @@ class IdeEditor(Window):
                 event.ignore()
                 return True
         return False
+
+    def initialize(self):
+        """ initialize the settings once the application has loaded """
+
+        # restore initial files
+        for filename in self._initfiles:
+            self.load(filename)
+
+        # initialize the logger
+        import blurdev
+
+        blurdev.core.logger(self)
+
+        # launch with a given filename
+        if 'BIDE_FILENAME' in os.environ:
+            self.load(os.environ['BIDE_FILENAME'])
 
     def load(self, filename, lineno=0):
         filename = str(filename)
@@ -798,10 +845,20 @@ class IdeEditor(Window):
         pref.recordProperty('windowState', self.windowState().__int__())
 
         pref.recordProperty('MidiViewMode', self.uiWindowsAREA.viewMode())
+        pref.recordProperty(
+            'openFiles',
+            [str(doc.filename()) for doc in self.documents() if doc.filename()],
+        )
 
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
 
+        # record module properties
+        from blurdev.ide import ideprefs
+
+        pref.recordModule(ideprefs)
+
+        # save the preferences
         pref.save()
 
     def recordRecentFile(self, filename):
@@ -908,6 +965,14 @@ class IdeEditor(Window):
         else:
             self.displayWindows()
 
+        # restore module settings
+        from blurdev.ide import ideprefs
+
+        pref.restoreModule(ideprefs)
+
+        # record which files should load on open
+        self._initfiles = pref.restoreProperty('openFiles', [])
+
     def runCurrentScript(self):
         filename = self.currentFilePath()
         if not filename:
@@ -943,11 +1008,13 @@ class IdeEditor(Window):
         return self._searchFlags
 
     def searchText(self):
-        if not self._searchDialog:
+        if not (self._searchDialog and self._searchReplaceDialog):
             return ''
 
         # refresh the search text
-        if not self._searchDialog.isVisible():
+        if not (
+            self._searchDialog.isVisible() or self._searchReplaceDialog.isVisible()
+        ):
             doc = self.currentDocument()
             if doc:
                 text = doc.selectedText()
@@ -955,6 +1022,13 @@ class IdeEditor(Window):
                     self._searchText = text
 
         return self._searchText
+
+    def replaceText(self):
+        if not self._searchReplaceDialog:
+            return ''
+
+        # refresh the replace results
+        return self._searchReplaceDialog.replaceText()
 
     def setNoDebug(self):
         from blurdev import debug
@@ -979,6 +1053,13 @@ class IdeEditor(Window):
     def setupIcons(self):
         from PyQt4.QtGui import QIcon
         import blurdev
+
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
+
+        self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
+        self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
+        self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
+        self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
 
         self.uiNewACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiNewFromWizardACT.setIcon(
@@ -1036,6 +1117,12 @@ class IdeEditor(Window):
         self.uiShowLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
 
         self.uiFindACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
+        self.uiFindInFilesACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/folder_find.png'))
+        )
+        self.uiFindAndReplaceACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/find_replace.png'))
+        )
         self.uiGotoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
 
         self.uiSdkBrowserACT.setIcon(QIcon(blurdev.resourcePath('img/ide/sdk.png')))
@@ -1046,14 +1133,11 @@ class IdeEditor(Window):
     def show(self):
         Window.show(self)
 
-        # initialize the logger
-        import blurdev
-
-        blurdev.core.logger(self)
-
         # If a filename was passed in on launch, open the file
-        if not self._loaded and 'BIDE_FILENAME' in os.environ:
-            self.load(os.environ['BIDE_FILENAME'])
+        if not self._loaded:
+            # call the initialize method
+            self.initialize()
+
         self._loaded = True
 
     def showAssistant(self):
@@ -1138,8 +1222,16 @@ class IdeEditor(Window):
     def showSearchDialog(self):
         self._searchDialog.search(self.searchText())
 
-    def showTemplateManager(self):
-        pass
+    def showSearchReplaceDialog(self):
+        self._searchReplaceDialog.search(self.searchText())
+
+    def showSearchFilesDialog(self):
+        if not self._searchFileDialog:
+            from blurdev.ide.findfilesdialog import FindFilesDialog
+
+            self._searchFileDialog = FindFilesDialog.instance(self)
+            self._searchFileDialog.fileDoubleClicked.connect(self.load)
+        self._searchFileDialog.show()
 
     def setCurrentProject(self, project):
         # check to see if we should prompt the user before changing projects

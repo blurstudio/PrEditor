@@ -183,6 +183,7 @@
     <addaction name="uiPasteACT"/>
     <addaction name="separator"/>
     <addaction name="uiSelectAllACT"/>
+    <addaction name="uiSelectToMatchingBraceACT"/>
     <addaction name="separator"/>
     <addaction name="uiCommentAddACT"/>
     <addaction name="uiCommentRemoveACT"/>
@@ -208,6 +209,9 @@
     <addaction name="uiFindNextACT"/>
     <addaction name="uiFindPrevACT"/>
     <addaction name="separator"/>
+    <addaction name="uiFindAndReplaceACT"/>
+    <addaction name="uiFindInFilesACT"/>
+    <addaction name="separator"/>
     <addaction name="uiGotoACT"/>
     <addaction name="uiMarkersMENU"/>
    </widget>
@@ -232,6 +236,7 @@
     <addaction name="uiHelpAssistantACT"/>
     <addaction name="separator"/>
     <addaction name="uiBlurDevSiteACT"/>
+    <addaction name="uiAboutACT"/>
    </widget>
    <widget class="QMenu" name="uiRunMENU">
     <property name="title">
@@ -373,11 +378,6 @@
     <string>Alt+F12</string>
    </property>
   </action>
-  <action name="actionRecent_Files">
-   <property name="text">
-    <string>Recent Files...</string>
-   </property>
-  </action>
   <action name="uiCutACT">
    <property name="text">
     <string>Cut</string>
@@ -450,22 +450,12 @@
     <string>Ctrl+F3</string>
    </property>
   </action>
-  <action name="uiReplaceACT">
-   <property name="text">
-    <string>Replace...</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+R</string>
-   </property>
-  </action>
   <action name="uiFindInFilesACT">
    <property name="text">
     <string>Find in Files...</string>
    </property>
-  </action>
-  <action name="uiReplaceInFilesACT">
-   <property name="text">
-    <string>Replace in Files...</string>
+   <property name="shortcut">
+    <string>Ctrl+Alt+F</string>
    </property>
   </action>
   <action name="uiGotoACT">
@@ -474,14 +464,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
-   </property>
-  </action>
-  <action name="uiFunctionListACT">
-   <property name="text">
-    <string>Function List...</string>
-   </property>
-   <property name="shortcut">
-    <string>F8</string>
    </property>
   </action>
   <action name="uiDisplayLineNumbersACT">
@@ -504,24 +486,9 @@
     <string>Windowed Documents</string>
    </property>
   </action>
-  <action name="uiImportSettingsACT">
-   <property name="text">
-    <string>Import Settings</string>
-   </property>
-  </action>
-  <action name="uiExportSettingsACT">
-   <property name="text">
-    <string>Export Settings</string>
-   </property>
-  </action>
   <action name="uiDesignerACT">
    <property name="text">
     <string>Qt Designer...</string>
-   </property>
-  </action>
-  <action name="uiAssistantACT">
-   <property name="text">
-    <string>Qt Assistant...</string>
    </property>
   </action>
   <action name="uiHelpAssistantACT">
@@ -538,11 +505,6 @@
    </property>
    <property name="shortcut">
     <string>F1</string>
-   </property>
-  </action>
-  <action name="uiAboutACT">
-   <property name="text">
-    <string>About IDE...</string>
    </property>
   </action>
   <action name="uiCleanPathsACT">
@@ -681,17 +643,40 @@
     <string>Ctrl+Space</string>
    </property>
   </action>
-  <action name="uiTemplateManagerACT">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Template Manager... (coming soon)</string>
-   </property>
-  </action>
   <action name="uiBlurDevSiteACT">
    <property name="text">
     <string>blur-dev website</string>
+   </property>
+  </action>
+  <action name="uiFindAndReplaceACT">
+   <property name="text">
+    <string>Find &amp;&amp; Replace...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="uiAboutACT">
+   <property name="text">
+    <string>About IDE</string>
+   </property>
+  </action>
+  <action name="uiReplaceACT">
+   <property name="text">
+    <string>Replace</string>
+   </property>
+  </action>
+  <action name="uiReplaceAllACT">
+   <property name="text">
+    <string>Replace All</string>
+   </property>
+  </action>
+  <action name="uiSelectToMatchingBraceACT">
+   <property name="text">
+    <string>Select to Matching Brace</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
  </widget>

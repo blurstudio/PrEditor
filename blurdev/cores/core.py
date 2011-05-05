@@ -150,8 +150,7 @@ class Core(QObject):
                     self.logger()
 
                 return True
-            return False
-        return True
+        return False
 
     def createToolMacro(self, tool, macro=''):
         """

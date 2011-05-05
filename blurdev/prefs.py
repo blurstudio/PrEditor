@@ -56,6 +56,24 @@ class Preference(XMLDocument):
         """ connects to the root recordProperty method """
         return self.root().recordProperty(key, value)
 
+    def recordModule(self, module):
+        """ record the variables in the inputed module from its dict """
+        for key, value in module.__dict__.items():
+            # ignore built-ints
+            if key.startswith('__'):
+                continue
+
+            self.recordProperty(key, value)
+
+    def restoreModule(self, module):
+        """ restore proeprties in the module's variables from its dict """
+        for key, value in module.__dict__.items():
+            # ignore built-ins
+            if key.startswith('__'):
+                continue
+
+            module.__dict__[key] = self.restoreProperty(key, value)
+
     def restoreProperty(self, key, default=None):
         """ connects to the root restoreProperty method """
         return self.root().restoreProperty(key, default)

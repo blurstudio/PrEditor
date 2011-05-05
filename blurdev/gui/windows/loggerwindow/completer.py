@@ -56,11 +56,7 @@ class PythonCompleter(QCompleter):
                 import inspect
 
                 # Collect non-hidden method/variable names
-                keys = [
-                    name
-                    for name, value in inspect.getmembers(object)
-                    if not name.startswith('_')
-                ]
+                keys = [key for key in dir(object) if not key.startswith('_')]
                 keys.sort()
 
                 self.model().setStringList(keys)

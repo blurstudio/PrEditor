@@ -92,7 +92,7 @@ class IdeDocumentSettings(object):
 
         # set the autocompletion source
         if self.autoCompleteSource != None:
-            editor.setAutoCompleteSource(self.autoCompleteSource)
+            editor.setAutoCompletionSource(self.autoCompleteSource)
 
         # set indentation options
         if self.indentationsUseTabs != None:
@@ -154,7 +154,7 @@ class IdeDocumentSettings(object):
 
             # set default options
             defaults.autoIndent = True
-            defaults.autoCompletionSource = QsciScintilla.AcsAll
+            defaults.autoCompleteSource = QsciScintilla.AcsAll
             defaults.indentationsUseTabs = True
             defaults.tabIndents = True
             defaults.tabWidth = 4

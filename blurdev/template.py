@@ -8,6 +8,8 @@
 # 	\date		08/19/10
 #
 
+import os
+
 
 def templ(templname, options={}):
     import os.path, blurdev
@@ -70,7 +72,7 @@ def formatText(text, options={}):
     import re
 
     # process templates
-    results = re.findall('\[([a-zA-Z:_-]+)\]', text)
+    results = re.findall('\[([a-zA-Z0-9:_-]+)\]', text)
 
     from PyQt4.QtCore import QDate, QDateTime
 
@@ -116,22 +118,22 @@ def formatText(text, options={}):
 
             # include the author's email
             if option == 'email':
-                repl = author.email
+                repl = os.environ.get('BDEV_AUTHOR_EMAIL', author.email)
 
             if option == 'user':
-                repl = author.email.split('@')[0]
+                repl = os.environ.get('BDEV_AUTHOR_EMAIL', author.email).split('@')[0]
 
             # include the author's company
             elif option == 'company':
-                repl = author.company
+                repl = os.environ.get('BDEV_AUTHOR_COMPANY', author.company)
 
             # include the author's initials
             elif option == 'initials':
-                repl = author.initials
+                repl = os.environ.get('BDEV_AUTHOR_INITIALS', author.initials)
 
             # include the author's name
             elif option == 'name':
-                repl = author.name
+                repl = os.environ.get('BDEV_AUTHOR_NAME', author.name)
 
         # format standard options
         elif check in options:
