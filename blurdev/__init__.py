@@ -182,6 +182,24 @@ def relativePath(path, additional):
     return os.path.join(os.path.split(str(path))[0], additional)
 
 
+def resetWindowPos():
+    """
+        Reset any top level widgets(windows) to 0,0 use this to find windows that are offscreen.
+    """
+    from PyQt4.QtGui import QApplication
+
+    for widget in QApplication.instance().topLevelWidgets():
+        if widget.isVisible():
+            geo = widget.geometry()
+            width = geo.width()
+            height = geo.height()
+            geo.setX(8)
+            geo.setY(30)
+            geo.setWidth(width)
+            geo.setHeight(height)
+            widget.setGeometry(geo)
+
+
 def resourcePath(relpath):
     return relativePath(__file__, 'resource/%s' % relpath)
 
