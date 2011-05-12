@@ -36,7 +36,10 @@ if __name__ == '__main__':
     # create the global defines from input
     f = open(path + '/installers/autogen.nsi', 'w')
     f.write('!define MUI_PRODUCT "%s"\n' % product)
-    f.write('!define MUI_VERSION "v1.0.X"\n')
+    f.write(
+        '!define MUI_VERSION "v%i.%02i.%i"\n'
+        % (version.major(), version.minor(), version.currentBuild())
+    )
     f.write('!define INSTALL_VERSION "v%i.%02i"\n' % (version.major(), version.minor()))
     f.write('!define PYTHON_VERSION "%s"\n' % dictionary['version'])
     f.write('!define OFFLINE %s\n' % dictionary['offline'])
