@@ -167,7 +167,7 @@ def setup(name):
 
     doc = XMLDocument()
     settingsfile = blurdev.resourcePath('settings_env/%s.xml' % name)
-    print 'loading settingsfile', settingsfile
+    # print 'loading settingsfile', settingsfile
 
     # load the settings file
     if not doc.load(settingsfile):

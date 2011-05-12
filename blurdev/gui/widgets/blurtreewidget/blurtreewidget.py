@@ -80,8 +80,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self._indexBuilt = False
 
         # create connections
-
-    #! 		self.uiNameTXT.textChanged.connect( self.setCustomProperty )
+        self.destroyed.connect(self.aboutToBeDestroyed)
 
     def _itemExpandAll(self, item, state, filter=None, column=0):
         """
@@ -111,6 +110,10 @@ class BlurTreeWidget(LockableTreeWidget):
         else:
             item.setExpanded(state)
             return True
+
+    def aboutToBeDestroyed(self):
+        """ Prevent crashes due to "delete loops" """
+        self._delegate = None
 
     def buildColumnIndex(self):
         """
