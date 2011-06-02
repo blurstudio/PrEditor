@@ -27,7 +27,7 @@ class Preference(XMLDocument):
         if not filename:
             filename = self.filename()
 
-        XMLDocument.load(self, filename)
+        return XMLDocument.load(self, filename)
 
     def name(self):
         """ return the name attribute """
