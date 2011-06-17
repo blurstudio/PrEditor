@@ -95,6 +95,8 @@ def launch(ctor, modal=False, coreName='external'):
     from PyQt4.QtGui import QWizard
     from blurdev.cores.core import Core
 
+    # setAppUserModelID(coreName)
+
     if application:
         application.setStyle('Plastique')
 
@@ -232,6 +234,21 @@ def setActiveEnvironment(env):
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.findEnvironment(env).setActive()
+
+
+def setAppUserModelID(id, prefix='Blur'):
+    """
+        \remarks	Specifies a Explicit App User Model ID that Windows 7 uses to controll grouping of windows on the taskbar.
+                    This must be set before any ui is displayed. The best place to call it is in the first widget to be displayed __init__ method.
+        \param		id	<str>	The id of the application. Should use full camel-case. http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how
+        \param		prefix	<str>	The prefix attached to the id. For a blur tool called fooBar, the associated appid should be Blur.FooBar
+                    
+                    To set the window's icon: widget.setWindowIcon(QIcon('img/icon.png'))
+    """
+    import blur.Stone
+
+    if hasattr(blur.Stone, 'qSetCurrentProcessExplicitAppUserModelID'):
+        blur.Stone.qSetCurrentProcessExplicitAppUserModelID('%s.%s' % (prefix, id))
 
 
 def startProgress(title='Progress', parent=None):

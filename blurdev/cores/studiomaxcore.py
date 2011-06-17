@@ -65,6 +65,7 @@ class StudiomaxCore(Core):
         self.connectStudiomaxSignal('layerDeleted', 'layerDeleted')
         self.connectStudiomaxSignal('postSystemStartup', 'startupFinished')
         self.connectStudiomaxSignal('preSystemShutdown', 'shutdownStarted')
+        self.connectStudiomaxSignal('selectionSetChanged', 'selectionChanged')
 
         # create a signal linking between 2 signals
         self.linkSignals('sceneNewFinished', 'sceneInvalidated')

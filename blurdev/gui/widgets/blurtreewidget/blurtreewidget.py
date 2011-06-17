@@ -50,7 +50,7 @@
 # |		self.uiTREE.restorePrefs( pref )
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
-from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon
+from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon, QApplication
 import blurdev
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 
@@ -214,7 +214,7 @@ class BlurTreeWidget(LockableTreeWidget):
                         the CTRL modifier clicked, then the collapse will be recursive
             \param		item	<QTreeWidgetItem>
         """
-        if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
+        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
             self._itemExpandAll(item, False)
             # self.blockSignals( False )
@@ -225,7 +225,7 @@ class BlurTreeWidget(LockableTreeWidget):
                         the CTRL modifier clicked, then the expansion will be recursive
             \param		item	<QTreeWidgetItem>
         """
-        if blurdev.application.keyboardModifiers() == Qt.ControlModifier:
+        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
             self._itemExpandAll(item, True)
             # self.blockSignals( False )

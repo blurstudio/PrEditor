@@ -101,6 +101,8 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
         self.setupIcons()
 
+        blurdev.setAppUserModelID('BlurIDE')
+
         # make tree's resize to contents so they have a horizontal scroll bar
         for header in (
             self.uiProjectTREE.header(),
