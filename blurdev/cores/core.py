@@ -20,9 +20,11 @@ class Core(QObject):
     debugLevelChanged = pyqtSignal()
     fileCheckedIn = pyqtSignal(str)
     fileCheckedOut = pyqtSignal(str)
+    aboutToClearPaths = pyqtSignal()  # emited before environment is changed or reloaded
 
     # ----------------------------------------------------------------
     # 3d Application Signals (common)
+    # Depreciated, use blur3d signals
 
     # scene signals
     sceneClosed = pyqtSignal()

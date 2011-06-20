@@ -53,6 +53,7 @@ from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
 from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon, QApplication
 import blurdev
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
+from blurdev.gui.delegates.griddelegate import GridDelegate
 
 
 class BlurTreeWidget(LockableTreeWidget):
@@ -78,6 +79,8 @@ class BlurTreeWidget(LockableTreeWidget):
         self._showAllColumnsText = 'Show all columns'
         self._columnIndex = []
         self._indexBuilt = False
+        # grid Delegate properties
+        self._enableGradiated = False
 
         # create connections
         self.destroyed.connect(self.aboutToBeDestroyed)
@@ -179,6 +182,15 @@ class BlurTreeWidget(LockableTreeWidget):
     def delegate(self):
         return self._delegate
 
+    def enableGridDelegate(self, enable):
+        if enable:
+            self.setItemDelegate(GridDelegate(self))
+            # self.itemDelegate().setDelegate( self )
+            if self._enableGradiated:
+                self.setGradiated(True)
+        else:
+            self.setItemDelegate(QItemDelegate())
+
     def expandAll(self, state=True):
         """
             \remarks	Expands all the tree items based on the inputed parent item
@@ -207,6 +219,12 @@ class BlurTreeWidget(LockableTreeWidget):
         for item in items:
             textItems.append(str(item))
         return QByteArray(','.join(textItems))
+
+    def isGradiated(self):
+        return self._enableGradiated
+
+    def isGridDelegateEnabled(self):
+        return type(self.itemDelegate()) == GridDelegate
 
     def itemIsCollapsed(self, item):
         """
@@ -244,10 +262,16 @@ class BlurTreeWidget(LockableTreeWidget):
                 output += self.recordOpenState(item.child(c), key)
         return output
 
-    def recordPrefs(self, pref):
-        pref.recordProperty('ColumnVis', self.columnVisibility())
+    def recordPrefs(self, pref, identifier=''):
+        names = ['ColumnVis']
+        if identifier:
+            names.append(identifier)
+        pref.recordProperty('-'.join(names), self.columnVisibility())
         if self._saveColumnWidths:
-            pref.recordProperty('ColumnWidths', self.columnWidths())
+            names = ['ColumnWidths']
+            if identifier:
+                names.append(identifier)
+            pref.recordProperty('-'.join(names), self.columnWidths())
 
     def resizeColumnsToContents(self):
         """
@@ -315,10 +339,16 @@ class BlurTreeWidget(LockableTreeWidget):
             for c in range(item.childCount()):
                 self.restoreOpenState(openState, item.child(c), key)
 
-    def restorePrefs(self, pref):
-        self.restoreColumnVisibility(pref.restoreProperty('ColumnVis', {}))
+    def restorePrefs(self, pref, identifier=''):
+        names = ['ColumnVis']
+        if identifier:
+            names.append(identifier)
+        self.restoreColumnVisibility(pref.restoreProperty('-'.join(names), {}))
         if self._saveColumnWidths:
-            self.restoreColumnWidths(pref.restoreProperty('ColumnWidths', {}))
+            names = ['ColumnWidths']
+            if identifier:
+                names.append(identifier)
+            self.restoreColumnWidths(pref.restoreProperty('-'.join(names), {}))
 
     def setColumnCount(self, columns):
         """
@@ -332,6 +362,23 @@ class BlurTreeWidget(LockableTreeWidget):
 
     def setDelegate(self, delegate):
         self._delegate = delegate
+        self.setGridsDelegate(delegate)
+
+    def setGridsDelegate(self, delegate):
+        """
+            \remarks	If the Grid Delegate is enabled set its delegate to delegate. Seting this allows you to define delegate methods in the controling class instead of subclassing <trax.gui.delegates.griddelegate.GridDelegate>.
+            \return		<bool>	Grid Delegate is enabled and its delegate is now set to delegate
+        """
+        if self.isGridDelegateEnabled():
+            self.itemDelegate().setDelegate(delegate)
+            return True
+        return False
+
+    def setGradiated(self, state):
+        itemDelegate = self.itemDelegate()
+        if type(itemDelegate) == GridDelegate:
+            itemDelegate.setGradiated(state)
+        self._enableGradiated = state
 
     def setHeaderItem(self, item):
         """
@@ -509,3 +556,8 @@ class BlurTreeWidget(LockableTreeWidget):
         'QByteArray', hideableColumnsArray, setHideableColumnsArray
     )
     pySaveColumnWidths = pyqtProperty('bool', saveColumnWidths, setSaveColumnWidths)
+
+    pyEnableGradiated = pyqtProperty('bool', isGradiated, setGradiated)
+    pyEnableGridDelegate = pyqtProperty(
+        'bool', isGridDelegateEnabled, enableGridDelegate
+    )

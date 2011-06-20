@@ -44,6 +44,8 @@ class StudiomaxCore(Core):
         self._supportLegacy = False
 
     def connectAppSignals(self):
+        # moved to blur3d
+        return
         self.connectStudiomaxSignal('systemPreNew', 'sceneNewRequested')
         self.connectStudiomaxSignal('systemPostNew', 'sceneNewFinished')
         self.connectStudiomaxSignal('filePreOpen', 'sceneOpenRequested', '""')

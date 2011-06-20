@@ -141,10 +141,11 @@ class ToolsEnvironment(QObject):
         return ''
 
     def resetPaths(self):
-        self.clearPathSymbols()
-        self.registerPath(self.path())
         import blurdev
 
+        blurdev.core.aboutToClearPaths.emit()
+        self.clearPathSymbols()
+        self.registerPath(self.path())
         blurdev.core.emitEnvironmentActivated()
 
     def setActive(self, silent=False):
