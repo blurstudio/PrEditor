@@ -236,13 +236,11 @@ class StudiomaxCore(Core):
                 import Py3dsMax
 
                 try:
-                    runcmd = Py3dsMax.runMaxscript
+                    Py3dsMax.runMaxscript(filename)
                 except:
-                    from Py3dsMax import mxs
+                    print 'Except', filename
+                    Py3dsMax.mxs.filein(filename)
 
-                    runcmd = mxs.filein
-
-                runcmd(filename)
                 return True
             return False
 
