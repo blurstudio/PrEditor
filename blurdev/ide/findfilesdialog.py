@@ -29,12 +29,21 @@ class FindFilesThread(QThread):
         self._searchText = ''
         self._findall = False
         self._results = {}  # file, lines pairing
+        self._resultsCount = 0
 
     def clear(self):
         self._results.clear()
+        self._resultsCount = 0
 
     def results(self):
         return self._results
+
+    def resultsCount(self):
+        """
+            \remarks	returns the total number of lines containing the search text
+            \return		<int>
+        """
+        return self._resultsCount
 
     def run(self):
         # create expressions
@@ -72,6 +81,7 @@ class FindFilesThread(QThread):
         # search through the lines in the file
         for lineno, line in enumerate(lines):
             if self._searchText in line:
+                self._resultsCount += 1
                 if not filename in self._results:
                     self._results[filename] = [(lineno + 1, line.strip())]
                 else:
@@ -135,7 +145,7 @@ class FindFilesDialog(Dialog):
             filename = str(item.parent().data(0, Qt.UserRole).toString())
             lineno = item.data(0, Qt.UserRole).toInt()[0]
         else:
-            filename = str(item.parent().data(0, Qt.UserRole).toString())
+            filename = str(item.data(0, Qt.UserRole).toString())
             lineno = 0
 
         self.fileDoubleClicked.emit(filename, lineno)
@@ -153,6 +163,8 @@ class FindFilesDialog(Dialog):
 
         self.uiResultsTREE.clear()
         results = self._searchThread.results()
+        self.setFileCount(len(results))
+        self.setResultsCount(self._searchThread.resultsCount())
         filenames = results.keys()
         filenames.sort()
         for filename in filenames:
@@ -200,6 +212,8 @@ class FindFilesDialog(Dialog):
         # clear the data
         self._searchThread.clear()
         self.uiResultsTREE.clear()
+        self.setFileCount(0)
+        self.setResultsCount(0)
 
         # set the search options
         self._searchThread.setSearchText(str(self.uiSearchTXT.text()))
@@ -209,6 +223,14 @@ class FindFilesDialog(Dialog):
         # start the search thrad
         self._refreshTimer.start()
         self._searchThread.start()
+
+    def setFileCount(self, count):
+        """ Updates the file count label """
+        self.uiFileCountLBL.setText('Files: %i' % count)
+
+    def setResultsCount(self, count):
+        """ Updates the results count label """
+        self.uiResultsCountLBL.setText('Instances: %i' % count)
 
     def stopSearch(self):
         self._searchThread.terminate()

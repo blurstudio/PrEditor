@@ -236,6 +236,8 @@ class StudiomaxCore(Core):
                 import Py3dsMax
 
                 try:
+                    # in max 2012 this would generate a error when processing specific return character of \n which is the linux end line convention.
+                    # see http://redmine.blur.com/issues/6446 for more details.
                     Py3dsMax.runMaxscript(filename)
                 except:
                     print 'Except', filename
