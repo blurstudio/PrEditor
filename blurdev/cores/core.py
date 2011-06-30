@@ -9,7 +9,8 @@
 # 	\date		06/11/10
 #
 
-from PyQt4.QtCore import QObject, pyqtSignal
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent
+from PyQt4.QtGui import QApplication
 from blurdev.tools import ToolsEnvironment
 
 
@@ -66,6 +67,9 @@ class Core(QObject):
     startupFinished = pyqtSignal()
     shutdownStarted = pyqtSignal()
 
+    # the event id for Queue Processing
+    qProcessID = 15648
+
     # ----------------------------------------------------------------
 
     def __init__(self, hwnd=0):
@@ -81,6 +85,7 @@ class Core(QObject):
         self._logger = None
         self._linkedSignals = {}
         self._defaultPalette = -1
+        self._itemQueue = []
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -88,8 +93,6 @@ class Core(QObject):
         self.debugLevelChanged.connect(self.recordSettings)
 
     def activeWindow(self):
-        from PyQt4.QtGui import QApplication
-
         if QApplication.instance():
             return QApplication.instance().activeWindow()
         return None
@@ -129,7 +132,6 @@ class Core(QObject):
             \param		stylesheet	<str>
             \return		<bool> success
         """
-        from PyQt4.QtGui import QApplication
 
         # check to see if there is an application already running
         if not QApplication.instance():
@@ -214,6 +216,13 @@ class Core(QObject):
         # enable the client keystrokes
         self._keysEnabled = True
 
+    def event(self, event):
+        if event.type() == self.qProcessID:
+            # process the next item in the queue
+            self.processQueueItem()
+            return True
+        return False
+
     def eventFilter(self, object, event):
         from PyQt4.QtCore import QEvent
 
@@ -261,8 +270,6 @@ class Core(QObject):
         ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
 
         # initialize the application
-        from PyQt4.QtGui import QApplication
-
         app = QApplication.instance()
         output = None
 
@@ -332,7 +339,7 @@ class Core(QObject):
             \remarks	opens the an existing script in a new window for editing
         """
         if not filename:
-            from PyQt4.QtGui import QApplication, QFileDialog
+            from PyQt4.QtGui import QFileDialog
 
             # make sure there is a QApplication running
             if QApplication.instance():
@@ -353,6 +360,23 @@ class Core(QObject):
             from blurdev.ide import IdeEditor
 
             IdeEditor.edit(filename=filename)
+
+    def postQueueEvent(self):
+        """
+            \remarks	Insert a call to processQueueItem on the next event loop
+        """
+        QApplication.postEvent(self, QEvent(self.qProcessID))
+
+    def processQueueItem(self):
+        """
+            \remarks	Call the current queue item and post the next queue event if it exists
+        """
+        if self._itemQueue:
+            item = self._itemQueue.pop(0)
+            item[0](*item[1], **item[2])
+            if self._itemQueue:
+                # if there are still items in the queue process the next item
+                self.postQueueEvent()
 
     def protectModule(self, moduleName):
         """
@@ -460,8 +484,6 @@ class Core(QObject):
         if self.isMfcApp():
             return None
 
-        from PyQt4.QtGui import QApplication
-
         window = None
         if QApplication.instance():
             window = QApplication.instance().activeWindow()
@@ -472,6 +494,29 @@ class Core(QObject):
                     window = window.parent()
 
         return window
+
+    def runDelayed(self, function, *args, **kargs):
+        """
+            \remarks	Alternative to a for loop that will not block the ui. Each item added with this method will be processed during a single application event loop.
+                        If you add 5 items with runDelayed it will process the first item, update the ui, process the second item, update the ui, etc.
+                        This is usefull if you have a large amount of items to process, but processing of a individual item does not take a long time. Also it does not
+                        need to happen immediately.
+            \param		function	The function to call when ready to process.
+            \param		*args, **kargs	any arguments that need to be called on function
+            | #A simplified code example of what is happening.
+            | queue = []
+            | for i in range(100): queue.append(myFunction)
+            | while True:	# program event loop
+            | 	updateUI()	# update the programs ui
+            |	if queue:
+            |		item = queue.pop(0)	# remove the first item in the list
+            |		item()	# call the stored function
+        """
+        isProcessing = bool(self._itemQueue)
+        self._itemQueue.append((function, args, kargs))
+        if not isProcessing:
+            # start the queue processing if it was empty
+            self.postQueueEvent()
 
     def runMacro(self, command):
         """
@@ -536,7 +581,7 @@ class Core(QObject):
             \return		<bool> success
         """
         import sys
-        from PyQt4.QtGui import QApplication, QFileDialog, QMessageBox
+        from PyQt4.QtGui import QFileDialog, QMessageBox
 
         if not filename:
             # make sure there is a QApplication running
@@ -728,7 +773,6 @@ class Core(QObject):
             self.restoreSettings()
 
     def shutdown(self):
-        from PyQt4.QtGui import QApplication
 
         # record the settings
         self.recordToolbar()

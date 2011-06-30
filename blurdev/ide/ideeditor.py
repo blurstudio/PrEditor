@@ -212,6 +212,18 @@ class IdeEditor(Window):
         ):
             self.refreshOpen()
 
+    def copyFilenameToClipboard(self):
+        item = self.uiProjectTREE.currentItem()
+        if item.isFileSystem():
+            import os
+
+            path = os.path.abspath(item.filePath())
+        else:
+            path = item.text(0)
+        from PyQt4.QtGui import QApplication
+
+        QApplication.clipboard().setText(path)
+
     def createNewFolder(self):
         path = self.currentFilePath()
         if not path:
@@ -1180,6 +1192,8 @@ class IdeEditor(Window):
         menu.addAction('Run (Debug)...').triggered.connect(
             self.runCurrentStandaloneDebug
         )
+        menu.addSeparator()
+        menu.addAction('Copy Filename').triggered.connect(self.copyFilenameToClipboard)
         menu.addSeparator()
         menu.addAction(self.uiEditProjectACT)
 
