@@ -663,43 +663,45 @@ class IdeEditor(Window):
         self.uiCommandDDL.setCurrentIndex(self.uiCommandDDL.findText(level))
 
     def runButtonPressed(self):
-        selected = str(self.uiCommandDDL.currentText())
-        commandList = self.currentProject().commandList()
-        if not selected in commandList:
-            return False
-        command = commandList[selected][1]
-        text = self.uiExecuteDDL.currentText()
-        if not command:
-            return False
+        project = self.currentProject()
+        if project:
+            selected = str(self.uiCommandDDL.currentText())
+            commandList = project().commandList()
+            if not selected in commandList:
+                return False
+            command = commandList[selected][1]
+            text = self.uiExecuteDDL.currentText()
+            if not command:
+                return False
 
-        import blurdev
-        import os, sys, subprocess
+            import blurdev
+            import os, sys, subprocess
 
-        if text == 'Run':
-            blurdev.core.runStandalone(
-                command,
-                basePath=self.currentBasePath(),
-                environ=os.environ,
-                paths=sys.path,
-                isFile=False,
-            )
-        elif text == 'Standalone':
-            blurdev.core.runStandalone(
-                command,
-                basePath=self.currentBasePath(),
-                environ=os.environ,
-                paths=sys.path,
-                isFile=False,
-            )
-        elif text == 'Debug':
-            from blurdev import debug
+            if text == 'Run':
+                blurdev.core.runStandalone(
+                    command,
+                    basePath=self.currentBasePath(),
+                    environ=os.environ,
+                    paths=sys.path,
+                    isFile=False,
+                )
+            elif text == 'Standalone':
+                blurdev.core.runStandalone(
+                    command,
+                    basePath=self.currentBasePath(),
+                    environ=os.environ,
+                    paths=sys.path,
+                    isFile=False,
+                )
+            elif text == 'Debug':
+                from blurdev import debug
 
-            blurdev.core.runStandalone(
-                command,
-                debugLevel=debug.DebugLevel.High,
-                basePath=self.currentBasePath(),
-                isFile=False,
-            )
+                blurdev.core.runStandalone(
+                    command,
+                    debugLevel=debug.DebugLevel.High,
+                    basePath=self.currentBasePath(),
+                    isFile=False,
+                )
 
     def editItem(self):
         filename = str(self.currentFilePath())
@@ -1398,9 +1400,10 @@ class IdeEditor(Window):
 
             # update the list of runable commands
             self.uiCommandDDL.clear()
-            cmds = project.commandList()
-            for key in sorted(cmds.keys(), key=lambda i: cmds[i][0]):
-                self.uiCommandDDL.addItem(key)
+            if project:
+                cmds = project.commandList()
+                for key in sorted(cmds.keys(), key=lambda i: cmds[i][0]):
+                    self.uiCommandDDL.addItem(key)
 
             self.currentProjectChanged.emit(project)
 
