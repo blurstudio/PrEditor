@@ -9,6 +9,9 @@
 #
 
 if __name__ == '__main__':
+    import sys
+
+    print(sys.version)
     from blur.build import *
     import sys, os
 

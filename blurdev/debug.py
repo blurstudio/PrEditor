@@ -9,6 +9,7 @@
 #
 
 import os
+import datetime
 from enum import enum
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
@@ -36,9 +37,12 @@ class Stopwatch:
 
         self.reset()
 
-    def reset(self):
-        import datetime
+    def newLap(self, message):
+        """ Convenience method to stop the current lap and create a new lap """
+        self.stopLap()
+        self.startLap(message)
 
+    def reset(self):
         self._starttime = datetime.datetime.now()
         self._laptime = None
         self._records = []
@@ -47,8 +51,6 @@ class Stopwatch:
     def startLap(self, message):
         if _currentLevel < self._debugLevel:
             return False
-
-        import datetime
 
         self._lapStack.append((message, datetime.datetime.now()))
         return True
@@ -60,8 +62,6 @@ class Stopwatch:
         # pop all the laps
         while self._lapStack:
             self.stopLap()
-
-        import datetime
 
         ttime = str(datetime.datetime.now() - self._starttime)
 
@@ -77,8 +77,6 @@ class Stopwatch:
     def stopLap(self):
         if not self._lapStack:
             return False
-
-        import datetime
 
         curr = datetime.datetime.now()
 
@@ -221,6 +219,42 @@ def isDebugLevel(level):
         level = DebugLevel.value(str(level))
 
     return level <= debugLevel()
+
+
+def printCallingFunction(compact=False):
+    """
+        \remarks	Prints and returns info about the calling function
+    """
+    import inspect
+
+    current = inspect.currentframe().f_back
+    try:
+        parent = current.f_back
+    except:
+        print 'No Calling function found'
+        return
+    currentInfo = inspect.getframeinfo(current)
+    parentInfo = inspect.getframeinfo(parent)
+    if compact:
+        output = '# %s Calling Function: %s Filename: %s Line: %i Context: %s' % (
+            currentInfo[2],
+            parentInfo[2],
+            parentInfo[0],
+            parentInfo[1],
+            ', '.join(parentInfo[3]).strip('\t'),
+        )
+    else:
+        output = ["Function: '%s' in file '%s'" % (currentInfo[2], currentInfo[0])]
+        output.append(
+            "    Calling Function: '%s' in file '%s'" % (parentInfo[2], parentInfo[0])
+        )
+        output.append("    Line: '%i'" % parentInfo[1])
+        output.append(
+            "    Context: '%s'" % ', '.join(parentInfo[3]).strip('\t').rstrip()
+        )
+        output = '\n'.join(output)
+    print output
+    return output
 
 
 def reportError(msg, debugLevel=1):

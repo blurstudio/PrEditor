@@ -10,6 +10,8 @@
 
 from PyQt4.QtCore import QObject
 from PyQt4.QtGui import QTextEdit
+
+import re
 import __main__
 
 emailformat = """
@@ -324,11 +326,13 @@ class ConsoleEdit(QTextEdit):
             QTextEdit.keyPressEvent(self, event)
 
             # check for particular events for the completion
-            if self.completer() and not (event.modifiers() and event.text().isEmpty()):
-                self.completer().refreshList(scope=__main__.__dict__)
-                self.completer().popup().setCurrentIndex(
-                    self.completer().completionModel().index(0, 0)
-                )
+            if self.completer():
+                # determine if we need to show the popup or if it already is visible, we need to updte it
+                if event.key() == Qt.Key_Period or self.completer().popup().isVisible():
+                    self.completer().refreshList(scope=__main__.__dict__)
+                    self.completer().popup().setCurrentIndex(
+                        self.completer().completionModel().index(0, 0)
+                    )
 
             rect = self.cursorRect()
             rect.setWidth(

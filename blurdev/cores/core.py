@@ -497,11 +497,44 @@ class Core(QObject):
 
     def runDelayed(self, function, *args, **kargs):
         """
+            \remarks	Alternative to a for loop that will not block the ui. Each item added with this method will be processed during a single application event loop. If you add 5 items with runDelayed it will process the first item, update the ui, process the second item, update the ui, etc. This is usefull if you have a large amount of items to process, but processing of a individual item does not take a long time. Also it does not need to happen immediately.
+            \param		function		<function>	The function to call when ready to process.
+            \param		*args, **kargs	<list> || <dict>	any arguments that need to be called on function
+            \sa			<blurdev.core.runDelayedReplace>, <blurdev.core._runDelayed>
+            | #A simplified code example of what is happening.
+            | queue = []
+            | for i in range(100): queue.append(myFunction)
+            | while True:	# program event loop
+            | 	updateUI()	# update the programs ui
+            |	if queue:
+            |		item = queue.pop(0)	# remove the first item in the list
+            |		item()	# call the stored function
+        """
+        self._runDelayed(function, False, *args, **kargs)
+
+    def runDelayedReplace(self, function, *args, **kargs):
+        """
+            \remarks	Same as the runDelayed, but will check if the queue contains a matching function, *args, and **kargs. If found it will remove it and append it at the end of the queue.
+        """
+        self._runDelayed(function, True, *args, **kargs)
+
+    def isDelayed(self, function, *args, **kwargs):
+        """
+            \remarks	Is the supplied function and arguments are in the runDelayed queue
+            \return		<bool>
+        """
+        if (function, args, kargs) in self._itemQueue:
+            return True
+        return False
+
+    def _runDelayed(self, function, replace, *args, **kargs):
+        """
             \remarks	Alternative to a for loop that will not block the ui. Each item added with this method will be processed during a single application event loop.
                         If you add 5 items with runDelayed it will process the first item, update the ui, process the second item, update the ui, etc.
                         This is usefull if you have a large amount of items to process, but processing of a individual item does not take a long time. Also it does not
                         need to happen immediately.
-            \param		function	The function to call when ready to process.
+            \param		function	<>	The function to call when ready to process.
+            \param		replace		<bool>	If true, it will attempt to remove the first item in the queue with matching function, *args, **kargs
             \param		*args, **kargs	any arguments that need to be called on function
             | #A simplified code example of what is happening.
             | queue = []
@@ -513,6 +546,10 @@ class Core(QObject):
             |		item()	# call the stored function
         """
         isProcessing = bool(self._itemQueue)
+        queueItem = (function, args, kargs)
+        if replace:
+            if queueItem in self._itemQueue:
+                self._itemQueue.remove(queueItem)
         self._itemQueue.append((function, args, kargs))
         if not isProcessing:
             # start the queue processing if it was empty
@@ -527,47 +564,18 @@ class Core(QObject):
         print '[blurdev.cores.core.Core.runMacro] virtual method not defined'
         return False
 
-    def runStandalone(self, filename, debugLevel=None, basePath=''):
-        from blurdev import debug
+    def runStandalone(
+        self,
+        filename,
+        debugLevel=None,
+        basePath='',
+        environ=None,
+        paths=None,
+        isFile=True,
+    ):
+        from blurdev import osystem
 
-        if debugLevel == None:
-            debugLevel = debug.debugLevel()
-
-        import os.path
-        from PyQt4.QtCore import QProcess
-
-        filename = str(filename)
-        if not basePath:
-            basePath = os.path.split(filename)[0]
-
-        success = False
-        if debugLevel == debug.DebugLevel.High:
-            # run a python file
-            if os.path.splitext(filename)[1].startswith('.py'):
-                success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', 'python.exe %s' % filename], basePath
-                )
-            else:
-                success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', filename], basePath
-                )
-
-        elif os.path.splitext(filename)[1].startswith('.py'):
-            success, value = QProcess.startDetached('pythonw.exe', [filename], basePath)
-
-        else:
-            success, value = QProcess.startDetached(filename, [], basePath)
-
-        if not success:
-            import os
-
-            try:
-                os.startfile(filename)
-                success = True
-            except:
-                pass
-
-        return success
+        osystem.startfile(filename, debugLevel, basePath, isFile)
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """

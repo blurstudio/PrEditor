@@ -145,7 +145,7 @@ class FindFilesDialog(Dialog):
             filename = str(item.parent().data(0, Qt.UserRole).toString())
             lineno = item.data(0, Qt.UserRole).toInt()[0]
         else:
-            filename = str(item.data(0, Qt.UserRole).toString())
+            filename = str(item.parent().data(0, Qt.UserRole).toString())
             lineno = 0
 
         self.fileDoubleClicked.emit(filename, lineno)
@@ -223,6 +223,9 @@ class FindFilesDialog(Dialog):
         # start the search thrad
         self._refreshTimer.start()
         self._searchThread.start()
+
+    def setBasePath(self, path):
+        self.uiBasePathTXT.setText(path)
 
     def setFileCount(self, count):
         """ Updates the file count label """

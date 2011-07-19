@@ -11,6 +11,7 @@ elif os.name == 'nt':
 elif os.name == 'osx':
     OS_TYPE = 'MacOS'
 
+_currentEnv = ''
 _inited = False
 defaults = {}
 
@@ -25,6 +26,11 @@ for option in config.options(OS_TYPE):
         if value == 'None':
             value = ''
         os.environ[option.upper()] = value
+
+
+def current():
+    return _currentEnv
+
 
 # define environment loading/restoring methods
 def init():
@@ -195,5 +201,9 @@ def setup(name):
                 continue
 
             sys.path.insert(0, loc)
+
+    global _currentEnv
+    if name != 'default':
+        _currentEnv = name
 
     return True

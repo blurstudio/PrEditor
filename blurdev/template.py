@@ -72,7 +72,7 @@ def formatText(text, options={}):
     import re
 
     # process templates
-    results = re.findall('\[([a-zA-Z0-9:_-]+)\]', text)
+    results = re.findall('\[([a-zA-Z:_-]+)\]', text)
 
     from PyQt4.QtCore import QDate, QDateTime
 
@@ -141,24 +141,35 @@ def formatText(text, options={}):
 
             # additional formatting options
             if option == 'commented':
-                repl = '\n#'.join(repl.split('\n'))
+                repl = repl.replace('\n', '\n#')
+
+            # escaped option
+            elif option == 'escaped':
+                repl = repl.replace('\n', '>\n')
 
             # word option
-            if option == 'words':
+            elif option == 'words':
                 repl = ' '.join(re.findall('[A-Z][^A-Z]+', repl))
 
+            # camelhumps option
+            elif option == 'camelhumps':
+                repl = ''.join(re.findall('[A-Z][^A-Z]+', repl))
+
             # lower option
-            if option == 'lower':
+            elif option == 'lower':
                 repl = repl.lower()
 
             # upper option
-            if option == 'upper':
+            elif option == 'upper':
                 repl = repl.upper()
 
             force = True
 
         if repl or force:
             text = text.replace('[%s]' % result, unicode(repl))
+
+    # replace placeholder []'s
+    text = text.replace('\[', '[').replace('\]', ']')
 
     # process code snippets
     results = re.findall('{!.*(?=!})!}', text)

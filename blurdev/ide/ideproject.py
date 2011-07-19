@@ -9,7 +9,29 @@
 #
 
 import os
-from PyQt4.QtGui import QTreeWidgetItem
+from PyQt4.QtGui import QTreeWidgetItem, QItemDelegate, QPixmap
+
+
+class IdeProjectDelegate(QItemDelegate):
+    def __init__(self, tree):
+        QItemDelegate.__init__(self, tree)
+
+        self._currOverlay = None
+
+    def drawDecoration(self, painter, option, rect, pixmap):
+        QItemDelegate.drawDecoration(self, painter, option, rect, pixmap)
+
+        # draw overlay icon
+        if self._currOverlay:
+            painter.drawPixmap(rect, QPixmap(self._currOverlay))
+
+    def paint(self, painter, option, index):
+        # extract the filesystem information
+        item = self.parent().itemFromIndex(index)
+        self._currOverlay = item.overlay()
+
+        # paint the standard way
+        super(IdeProjectDelegate, self).paint(painter, option, index)
 
 
 class IdeProjectItem(QTreeWidgetItem):
@@ -17,6 +39,7 @@ class IdeProjectItem(QTreeWidgetItem):
         QTreeWidgetItem.__init__(self)
 
         # create custom properties
+        self._dataType = 'folder'
         self._filePath = ''
         self._group = True
         self._fileSystem = False
@@ -32,8 +55,12 @@ class IdeProjectItem(QTreeWidgetItem):
             '.txt',
             '.blurproj',
             '.ini',
+            '.js',
+            '.html',
+            '.css',
         ]
         self._loaded = False
+        self._overlay = None
 
         # set the default icon
         from PyQt4.QtGui import QIcon
@@ -41,6 +68,23 @@ class IdeProjectItem(QTreeWidgetItem):
 
         self.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
         self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+
+    def __cmp__(self, other):
+        if not isinstance(other, IdeProjectItem):
+            return -1
+
+        # compare two items of the same type
+        if self.dataType() == other.dataType():
+            return cmp(self.text(0), other.text(0))
+
+        # sort folder items first
+        elif self.dataType() == 'folder':
+            return -1
+        else:
+            return 1
+
+    def dataType(self):
+        return self._dataType
 
     def exclude(self):
         return self._exclude
@@ -69,6 +113,9 @@ class IdeProjectItem(QTreeWidgetItem):
     def isFileSystem(self):
         return self._fileSystem
 
+    def overlay(self):
+        return self._overlay
+
     def load(self):
         if self._loaded:
             return True
@@ -81,6 +128,20 @@ class IdeProjectItem(QTreeWidgetItem):
         # don't need to load files
         elif self.isFile():
             return False
+
+        # collect overlay finders
+        tree = self.treeWidget()
+        overlayFinder = None
+        if tree:
+            from blurdev.ide.ideregistry import RegistryType
+
+            overlayFinder, args, path = (
+                tree.window().registry().find(RegistryType.Overlay, '*')
+            )
+
+        # set the overlay for this item
+        if overlayFinder:
+            self.setOverlay(overlayFinder(self.filePath()))
 
         # only show the indicator when there are children
         self.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
@@ -119,13 +180,21 @@ class IdeProjectItem(QTreeWidgetItem):
         for folder in folders:
             self.addChild(
                 IdeProjectItem.createFolderItem(
-                    folder, iconprovider, fileTypes, exclude
+                    folder,
+                    iconprovider,
+                    fileTypes,
+                    exclude,
+                    overlayFinder=overlayFinder,
                 )
             )
 
         # add the files
         for file in files:
-            self.addChild(IdeProjectItem.createFileItem(file, iconprovider))
+            self.addChild(
+                IdeProjectItem.createFileItem(
+                    file, iconprovider, overlayFinder=overlayFinder
+                )
+            )
 
     def loadXml(self, xml):
         self.setText(0, xml.attribute('name'))
@@ -146,8 +215,15 @@ class IdeProjectItem(QTreeWidgetItem):
             )
 
         # load children
+        children = []
         for child in xml.children():
-            self.addChild(IdeProjectItem.fromXml(child, self))
+            children.append(IdeProjectItem.fromXml(child, self))
+
+        # sort the children
+        children.sort()
+
+        # add the children to the item
+        self.addChildren(children)
 
     def project(self):
         output = self
@@ -182,11 +258,14 @@ class IdeProjectItem(QTreeWidgetItem):
     def setFileTypes(self, ftypes):
         self._fileTypes = ftypes
 
+    def setOverlay(self, overlay):
+        self._overlay = overlay
+
     def toXml(self, parent):
         if self.isFileSystem():
             return
 
-        xml = parent.addNode('folder')
+        xml = parent.addNode(self.dataType())
         xml.setAttribute('name', self.text(0))
         xml.setAttribute('group', self.isGroup())
         xml.setAttribute('filePath', self.filePath())
@@ -197,7 +276,9 @@ class IdeProjectItem(QTreeWidgetItem):
             self.child(c).toXml(xml)
 
     @staticmethod
-    def createFolderItem(folder, iconprovider=None, fileTypes=[], exclude=[]):
+    def createFolderItem(
+        folder, iconprovider=None, fileTypes=[], exclude=[], overlayFinder=None
+    ):
         from PyQt4.QtCore import QFileInfo, QDir
 
         if not iconprovider:
@@ -214,10 +295,16 @@ class IdeProjectItem(QTreeWidgetItem):
         item.setExclude(exclude)
         item.setFileTypes(fileTypes)
 
+        # lookup the overlay icon
+        if overlayFinder:
+            overlay = overlayFinder(folder)
+            if overlay:
+                item.setOverlay(overlay)
+
         return item
 
     @staticmethod
-    def createFileItem(filename, iconprovider=None):
+    def createFileItem(filename, iconprovider=None, overlayFinder=None):
         from PyQt4.QtCore import QFileInfo
         import os.path
 
@@ -228,6 +315,7 @@ class IdeProjectItem(QTreeWidgetItem):
 
         # create the item and initialize its properties
         item = IdeProjectItem()
+        item._dataType = 'file'
         item.setText(0, os.path.basename(filename))
         item.setFilePath(filename)
         item.setGroup(False)
@@ -235,12 +323,26 @@ class IdeProjectItem(QTreeWidgetItem):
         item.setIcon(0, iconprovider.icon(QFileInfo(filename)))
         item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
 
+        # lookup the overlay icon
+        if overlayFinder:
+            overlay = overlayFinder(filename)
+            if overlay:
+                item.setOverlay(overlay)
+
         return item
 
     @staticmethod
     def fromXml(xml, parent):
-        out = IdeProjectItem()
-        out.loadXml(xml)
+        # create a custom group
+        if xml.nodeName == 'folder':
+            out = IdeProjectItem()
+            out.loadXml(xml)
+
+        # create a file item (ignoring the filesystem option)
+        else:
+            out = IdeProjectItem.createFileItem(xml.attribute('filePath'))
+            out.setFileSystem(False)
+
         return out
 
 
@@ -272,6 +374,7 @@ class IdeProject(IdeProjectItem):
         self._syspaths = []
         self._origEnv = None
         self._origSys = None
+        self._commandList = {}
 
     def activateSystem(self):
         # update the os.environ variable with this projects environment variables
@@ -286,6 +389,9 @@ class IdeProject(IdeProjectItem):
 
         # update the sys.paths variable with this environments paths
         sys.path = self._syspaths + sys.path
+
+    def commandList(self):
+        return self._commandList
 
     def deactivateSystem(self):
         # unregister all the project specific override information
@@ -348,11 +454,17 @@ class IdeProject(IdeProjectItem):
                 syspath = syspathsxml.addNode('path')
                 syspath.setAttribute('path', path)
 
+            command = root.addNode('commands')
+            command.recordProperty('commandList', self._commandList)
+
             self.toXml(root)
 
             doc.save(filename)
             return True
         return False
+
+    def setCommandList(self, commandList):
+        self._commandList = commandList
 
     def setFilename(self, filename):
         self._filename = filename
@@ -394,14 +506,13 @@ class IdeProject(IdeProjectItem):
         if ext == '.lnk':
             ext = '.py'
 
-        import lexers
+        from blurdev.ide import lang
 
-        lang = lexers.languageForExt(ext)
-        lexerMap = lexers.lexerMap(lang)
+        language = lang.byExtension(ext)
 
         fileTypes = ['.xml', '.ui', '.txt', '.ini']
-        if lexerMap:
-            fileTypes += lexerMap.fileTypes
+        if language:
+            fileTypes += language.filetypes()
 
         # support legacy libraries & structures
         if tool.isLegacy():
@@ -490,6 +601,13 @@ class IdeProject(IdeProjectItem):
                 if syspaths:
                     for child in syspaths.children():
                         output.registerPath(child.attribute('path'))
+
+                # load the command list
+                commands = root.findChild('commands')
+                if commands:
+                    cmds = commands.restoreProperty('commandList', {})
+                    if cmds:
+                        output.setCommandList(cmds)
 
                 # load new style
                 folder = root.findChild('folder')

@@ -9,6 +9,7 @@
 #
 
 from blurdev.gui import Dialog
+from blurdev.ide.ideproject import IdeProjectItem
 
 
 class IdeProjectDialog(Dialog):
@@ -62,15 +63,6 @@ class IdeProjectDialog(Dialog):
         if self._project.save():
             Dialog.accept(self)
 
-    def addRootItem(self):
-        from ideprojectitemdialog import IdeProjectItemDialog
-        from ideproject import IdeProjectItem
-
-        # pull the parent from the tree
-        item = IdeProjectItem()
-        if IdeProjectItemDialog.edit(item):
-            self._project.addChild(item)
-
     def addItem(self):
         from ideprojectitemdialog import IdeProjectItemDialog
         from ideproject import IdeProjectItem
@@ -82,6 +74,23 @@ class IdeProjectDialog(Dialog):
 
         child = IdeProjectItem()
         if IdeProjectItemDialog.edit(child):
+            item.addChild(child)
+
+    def addFile(self):
+        from PyQt4.QtGui import QFileDialog
+
+        filename = QFileDialog.getOpenFileName(
+            self, 'Select File', '', 'All Files (*.*)'
+        )
+
+        if filename:
+            # pull the parent from the tree
+            item = self.uiProjectTREE.currentItem()
+            if not item:
+                item = self._project
+
+            child = IdeProjectItem.createFileItem(str(filename))
+            child.setFileSystem(False)
             item.addChild(child)
 
     def editItem(self):
@@ -134,9 +143,9 @@ class IdeProjectDialog(Dialog):
         from PyQt4.QtGui import QMenu, QCursor
 
         menu = QMenu(self)
-        menu.addAction('Add Root Item...').triggered.connect(self.addRootItem)
-        menu.addAction('Add Item...').triggered.connect(self.addItem)
-        menu.addAction('Edit Item...').triggered.connect(self.editItem)
+        menu.addAction('Add Folder...').triggered.connect(self.addItem)
+        menu.addAction('Edit Folder...').triggered.connect(self.editItem)
+        menu.addAction('Add File...').triggered.connect(self.addFile)
         menu.addSeparator()
         menu.addAction('Remove Item').triggered.connect(self.removeItem)
 

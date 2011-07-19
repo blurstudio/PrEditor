@@ -54,6 +54,12 @@ def findTool(name, environment=''):
     return Tool()
 
 
+def runtime(filepath):
+    import os.path
+
+    return os.path.join(installPath, 'runtimes', filepath)
+
+
 def init():
     # initialize the settings
     import settings

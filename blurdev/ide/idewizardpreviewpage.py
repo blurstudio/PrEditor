@@ -8,7 +8,8 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.QtGui import QWizardPage, QTreeWidgetItem
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QWizardPage, QTreeWidgetItem, QColor
 
 
 class ComponentItem(QTreeWidgetItem):
@@ -22,7 +23,7 @@ class ComponentItem(QTreeWidgetItem):
 
         self.setIcon(0, QIcon(blurdev.resourcePath('img/%s.png' % xml.nodeName)))
 
-        if xml.attribute('checked') != 'False':
+        if page.formatText(xml.attribute('checked')) != 'False':
             self.setCheckState(0, Qt.Checked)
         else:
             self.setCheckState(0, Qt.Unchecked)
@@ -34,6 +35,23 @@ class ComponentItem(QTreeWidgetItem):
 
         for child in xml.children():
             self.addChild(ComponentItem(page, child))
+
+    def refreshChecked(self, inherit=False, state=None):
+        if state == None or not inherit:
+            state = self.checkState(0)
+
+        elif inherit:
+            self.setCheckState(0, state)
+
+        if not state == Qt.Checked:
+            self.setExpanded(False)
+            self.setForeground(0, QColor('grey'))
+        else:
+            self.setExpanded(True)
+            self.setForeground(0, QColor('black'))
+
+        for i in range(self.childCount()):
+            self.child(i).refreshChecked(inherit, state)
 
     def create(self, path):
         from PyQt4.QtCore import Qt
@@ -91,6 +109,7 @@ class IdeWizardPreviewPage(QWizardPage):
 
         self._moduleFile = moduleFile
         self._options = {}
+        self.uiComponentsTREE.itemChanged.connect(self.refreshChecked)
 
         self.registerField('components', self)
 
@@ -142,8 +161,19 @@ class IdeWizardPreviewPage(QWizardPage):
             for child in root.children():
                 item = ComponentItem(self, child)
                 self.uiComponentsTREE.addTopLevelItem(item)
+                item.refreshChecked()
 
         self.uiComponentsTREE.setUpdatesEnabled(True)
+        self.uiComponentsTREE.blockSignals(False)
+
+    def refreshChecked(self, item):
+        self.uiComponentsTREE.blockSignals(True)
+        from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QApplication
+
+        item.refreshChecked(
+            inherit=QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
+        )
         self.uiComponentsTREE.blockSignals(False)
 
     def relativePath(self, relpath):

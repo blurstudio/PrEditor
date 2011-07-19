@@ -9,8 +9,10 @@
 #
 
 from PyQt4.QtCore import pyqtProperty, Qt
-from PyQt4.Qsci import *
+from PyQt4.Qsci import QsciScintilla
+
 from blurdev.enum import enum
+from blurdev.ide import lang
 
 
 class DocumentEditor(QsciScintilla):
@@ -67,20 +69,25 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def commentAdd(self):
-        from blurdev.ide import lexers
+        from PyQt4.QtGui import QMessageBox as msg
 
-        lexerMap = lexers.lexerMap(self._language)
-        lineComment = ''
-        if lexerMap:
-            lineComment = lexerMap.lineComment
-
-        if not lineComment:
-            from PyQt4.QtGui import QMessageBox
-
-            QMessageBox.critical(
+        # collect the language
+        language = lang.byName(self._language)
+        if not language:
+            msg.critical(
                 None,
-                'Line Comment Not Defined',
-                'There is no line comment symbol defined for the "%s" language'
+                'No Language Defined',
+                'There is no language defined for this editor.',
+            )
+            return False
+
+        # grab the line comment
+        comment = language.lineComment()
+        if not comment:
+            msg.critical(
+                None,
+                'No Line Comment Defined',
+                'There is no line comment symbol defined for the %s language.'
                 % (self._language),
             )
             return False
@@ -88,27 +95,30 @@ class DocumentEditor(QsciScintilla):
         # lookup the selected text positions
         startline, startcol, endline, endcol = self.getSelection()
 
-        for line in range(startline, endline + 1):
-            self.setCursorPosition(line, 0)
-            self.insert(lineComment)
+        for lineno in range(startline, endline + 1):
+            self.setCursorPosition(lineno, 0)
+            self.insert(comment)
         return True
 
     def commentRemove(self):
-        from blurdev.ide import lexers
+        from PyQt4.QtGui import QMessageBox
 
-        lexerMap = lexers.lexerMap(self._language)
-
-        lineComment = ''
-        if lexerMap:
-            lineComment = lexerMap.lineComment
-
-        lineComment = lexerMap.lineComment
-        if not lineComment:
-            from PyQt4.QtGui import QMessageBox
-
-            QMessageBox.critical(
+        # collect the language
+        language = lang.byName(self._language)
+        if not language:
+            msg.critical(
                 None,
-                'Line Comment Not Defined',
+                'No Language Defined',
+                'There is no language defined for this editor.',
+            )
+            return False
+
+        # collect the expression
+        comment = language.lineComment()
+        if not comment:
+            msg.critical(
+                None,
+                'No Line Comment Defined',
                 'There is no line comment symbol defined for the "%s" language'
                 % (self._language),
             )
@@ -116,11 +126,11 @@ class DocumentEditor(QsciScintilla):
 
         # lookup the selected text positions
         startline, startcol, endline, endcol = self.getSelection()
-        commentlen = len(lineComment)
+        commentlen = len(comment)
 
         for line in range(startline, endline + 1):
             self.setSelection(line, 0, line, commentlen)
-            if self.selectedText() == lineComment:
+            if self.selectedText() == comment:
                 self.removeSelectedText()
 
         return True
@@ -144,10 +154,14 @@ class DocumentEditor(QsciScintilla):
         if isinstance(window, IdeEditor):
             window.uiFindInFilesACT.triggered.emit()
 
-    def goToLine(self):
+    def goToLine(self, line=None):
         from PyQt4.QtGui import QInputDialog
 
-        line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
+        if line == None:
+            line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
+        else:
+            accepted = True
+
         if accepted:
             # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog go to the correct line.
             self.setCursorPosition(line - 1, 0)
@@ -318,9 +332,11 @@ class DocumentEditor(QsciScintilla):
 
         if filename:
             # save the file to disk
-            filename = str(filename)
-            f = open(filename, 'w')
-            f.write(unicode(self.text()).replace('\r', ''))  # scintilla puts both
+            from PyQt4.QtCore import QFile, QByteArray
+
+            f = QFile(filename)
+            f.open(QFile.WriteOnly)
+            f.write(self.text().replace('\r', '').toUtf8())  # scintilla puts both in
             f.close()
 
             # update the file
@@ -329,17 +345,20 @@ class DocumentEditor(QsciScintilla):
         return False
 
     def setLanguage(self, language):
-        language = str(language)
-        self._language = language
+        # grab the language from the lang module if it is a string
+        if type(language) != lang.Language:
+            language = str(language)
+            language = lang.byName(language)
 
-        from blurdev.ide import lexers
+        # collect the language's lexer
+        if language:
+            lexer = language.createLexer(self)
+            self._language = language.name()
+        else:
+            lexer = None
+            self._language = ''
 
-        lexers.load()
-        lexer = lexers.lexer(language)
-        if lexer:
-            lexer.setFont(self.font())
-            lexer.setParent(self)
-
+        # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
 
@@ -362,21 +381,32 @@ class DocumentEditor(QsciScintilla):
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
 
     def showMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        import blurdev
+        from PyQt4.QtGui import QMenu, QCursor, QIcon
 
         menu = QMenu(self)
 
-        menu.addAction('Find in Files...').triggered.connect(self.findInFiles)
-        menu.addAction('Go to Line...').triggered.connect(self.goToLine)
+        act = menu.addAction('Find in Files...')
+        act.triggered.connect(self.findInFiles)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/folder_find.png')))
+        act = menu.addAction('Go to Line...')
+        act.triggered.connect(self.goToLine)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
 
         menu.addSeparator()
 
-        menu.addAction('Collapse/Expand All').triggered.connect(self.toggleFolding)
+        act = menu.addAction('Collapse/Expand All')
+        act.triggered.connect(self.toggleFolding)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/plus_minus.png')))
 
         menu.addSeparator()
 
-        menu.addAction('Comment Add').triggered.connect(self.commentAdd)
-        menu.addAction('Comment Remove').triggered.connect(self.commentRemove)
+        act = menu.addAction('Comment Add')
+        act.triggered.connect(self.commentAdd)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_add.png')))
+        act = menu.addAction('Comment Remove')
+        act.triggered.connect(self.commentRemove)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_remove.png')))
 
         menu.addSeparator()
 
@@ -384,9 +414,7 @@ class DocumentEditor(QsciScintilla):
         submenu.addAction('Plain Text')
         submenu.addSeparator()
 
-        import lexers
-
-        for language in lexers.languages():
+        for language in lang.languages():
             submenu.addAction(language)
 
         submenu.triggered.connect(self.languageChosen)
@@ -412,25 +440,11 @@ class DocumentEditor(QsciScintilla):
         import os.path
 
         filename = str(filename)
+        extension = os.path.splitext(filename)[1]
 
         # determine if we need to modify the language
-        if (
-            not self._filename
-            or os.path.splitext(filename)[1] != os.path.splitext(self._filename)[1]
-        ):
-            import lexers
-
-            lexers.load()
-            lexer = lexers.lexerFor(os.path.splitext(filename)[1])
-            if lexer:
-                lexer.setFont(self.font())
-                lexer.setParent(self)
-                self._language = lexers.languageFor(lexer)
-            else:
-                self._language = ''
-
-            self.setLexer(lexer)
-            self.initSettings()
+        if not self._filename or extension != os.path.splitext(self._filename)[1]:
+            self.setLanguage(lang.byExtension(extension))
 
         # update the filename information
         self._filename = filename

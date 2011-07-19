@@ -9,5 +9,6 @@
 #
 
 from ideeditor import IdeEditor
-
 from ideproject import IdeProject
+from ideaddon import IdeAddon
+from ideregistry import RegistryType

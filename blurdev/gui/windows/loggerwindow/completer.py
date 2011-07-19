@@ -8,7 +8,7 @@
 # 	\date		01/15/08
 #
 
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtCore import pyqtSignal, SIGNAL
 from PyQt4.QtGui import QCompleter
 from PyQt4.QtGui import QStringListModel
 
@@ -20,12 +20,19 @@ class PythonCompleter(QCompleter):
         # use the python model for information
         self.setModel(QStringListModel())
 
+        self._currentText = ''
+
         # update this completer
         from PyQt4.QtCore import Qt
 
         self.setWidget(widget)
         self.setCompletionMode(QCompleter.PopupCompletion)
         self.setCaseSensitivity(Qt.CaseSensitive)
+
+        self.connect(self, SIGNAL('highlighted(const QString &)'), self.setCurrentText)
+
+    def currentCompletion(self):
+        return self._currentText
 
     def refreshList(self, scope=None):
         """ refreshes the string list based on the cursor word """
@@ -65,6 +72,9 @@ class PythonCompleter(QCompleter):
                 self.model().setStringList([])
         else:
             self.model().setStringList([])
+
+    def setCurrentText(self, text):
+        self._currentText = text
 
     def textUnderCursor(self):
         """ pulls out the text underneath the cursor of this items widget """

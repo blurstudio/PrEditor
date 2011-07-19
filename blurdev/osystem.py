@@ -19,6 +19,10 @@ COMMAND_MAP = {
         'BDEV_CMD_DEBUG',
         'konsole --noclose --workdir %(basepath)s -e "%(filepath)s"',
     ),
+    'shell': (
+        'BDEV_CMD_SHELL',
+        'konsole --noclose --workdir %(basepath)s -e %(command)s',
+    ),
     'console': ('BDEV_CMD_CONSOLE', 'konsole --workdir %(filepath)s'),
     'web': ('BDEV_CMD_WEB', 'firefox %(filepath)s'),
     '.py': ('BDEV_CMD_PYTHON', 'python "%(filepath)s"'),
@@ -65,13 +69,55 @@ def explore(filename):
         )
 
 
-def startfile(filename, debugLevel=None, basePath=''):
+def shell(command, basepath=''):
     """
-        \remarks	runs the filename in a shell with proper commands given
+        \remarks	runs the inputed shell command in its own window
+        
+        \param		command		<command to run>
+    """
+    if not basepath:
+        basepath = os.curdir
+
+    # run it in debug mode for windows
+    if settings.OS_TYPE == 'Windows':
+        success, value = QProcess.startDetached('cmd.exe', ['/k', command], basePath)
+
+    # run it for Linux systems
+    elif settings.OS_TYPE == 'Linux':
+        shellcmd = os.environ.get(*COMMAND_MAP['shell'])
+
+        # create a temp shell file
+        temppath = os.environ.get('BDEV_TEMP_PATH', '')
+        if not temppath:
+            return False
+
+        if not os.path.exists(temppath):
+            os.mkdir(temppath)
+
+        # write a temp shell command
+        tempfilename = os.path.join(temppath, 'debug.sh')
+        tempfile = open(tempfilename, 'w')
+        tempfile.write('echo "running command: %s"\n' % (command))
+        tempfile.write(command)
+        tempfile.close()
+
+        # make sure the system can run the file
+        os.system('chmod 0755 %s' % tempfilename)
+
+        # run the file
+        succes = subprocess.Popen(
+            shellcmd % {'basepath': basepath, 'command': command}, shell=True
+        )
+
+
+def startfile(filename, debugLevel=None, basePath='', isFile=True):
+    """
+        \remarks	runs the filename in a shell with proper commands given, or passes the command to the shell. (CMD  in windows)
                     the current platform
         \param		filename	<str>
         \param		debugLevel	<blurdev.debug.DebugLevel>
         \param		basePath	<str>
+        \param		isFile		<bool>
         \return		<bool> success
     """
     # determine the debug level
@@ -82,14 +128,13 @@ def startfile(filename, debugLevel=None, basePath=''):
 
     success = False
     filename = str(filename)
-    if not (os.path.isfile(filename) or filename.startswith('http://')):
+    if isFile and not (os.path.isfile(filename) or filename.startswith('http://')):
         return False
 
     if debugLevel == None:
         debugLevel = debug.debugLevel()
 
     # determine the base path for the system
-    filename = str(filename)
     if not basePath:
         basePath = os.path.split(filename)[0]
 
@@ -106,9 +151,14 @@ def startfile(filename, debugLevel=None, basePath=''):
         # run it in debug mode for windows
         if settings.OS_TYPE == 'Windows':
             if cmd:
-                success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', '%s "%s"' % (cmd, filename)], basePath
-                )
+                if cmd.startswith('python'):
+                    success, value = QProcess.startDetached(
+                        'cmd.exe', ['/k', 'python', filename], basePath
+                    )
+                else:
+                    success, value = QProcess.startDetached(
+                        'cmd.exe', ['/k', cmd % options], basePath
+                    )
             else:
                 success, value = QProcess.startDetached(
                     'cmd.exe', ['/k', filename], basePath
@@ -151,10 +201,19 @@ def startfile(filename, debugLevel=None, basePath=''):
         # run the command in windows
         if settings.OS_TYPE == 'Windows':
             if cmd and not ext == 'web':
-                success, value = QProcess.startDetached(cmd, [filename], basePath)
+                if cmd.startswith('python'):
+                    success, value = QProcess.startDetached(
+                        'python %s' % filename, [], basePath
+                    )
+                else:
+                    success, value = QProcess.startDetached(cmd % options, [], basePath)
+            elif not isFile:
+                # This is a command prompt command so run it with cmd.exe but is not persistant
+                success, value = QProcess.startDetached(
+                    'cmd.exe', ['/c', filename], basePath
+                )
             else:
                 success, value = QProcess.startDetached(filename, [], basePath)
-
             if not success:
                 try:
                     success = os.startfile(filename)
@@ -169,5 +228,8 @@ def startfile(filename, debugLevel=None, basePath=''):
                 success = subprocess.Popen(
                     os.environ.get(*COMMAND_MAP['open']) % options, shell=True
                 )
-
     return success
+
+
+def tempfile(filepath):
+    return os.path.join(os.environ.get('BDEV_TEMP_PATH', ''), filepath)
