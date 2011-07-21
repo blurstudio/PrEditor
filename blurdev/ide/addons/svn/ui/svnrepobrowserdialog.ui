@@ -54,6 +54,9 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <widget class="QTreeWidget" name="uiBrowserTREE">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <attribute name="headerVisible">
        <bool>false</bool>
       </attribute>
@@ -63,7 +66,10 @@
        </property>
       </column>
      </widget>
-     <widget class="QTreeWidget" name="uiFilesTREE">
+     <widget class="QTreeWidget" name="uiDetailsTREE">
+      <property name="contextMenuPolicy">
+       <enum>Qt::CustomContextMenu</enum>
+      </property>
       <property name="alternatingRowColors">
        <bool>true</bool>
       </property>

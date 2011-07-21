@@ -173,6 +173,19 @@ def packageForPath(path):
     return '.'.join(package)
 
 
+def prefPath(relpath, coreName=''):
+    # use the core
+    if not coreName and core:
+        coreName = core.objectName()
+
+    import osystem, os.path
+
+    basepath = os.path.join(
+        osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
+    )
+    return os.path.normpath(os.path.join(basepath, relpath))
+
+
 def registerScriptPath(filename):
     from tools import ToolsEnvironment
 

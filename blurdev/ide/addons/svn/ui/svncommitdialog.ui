@@ -87,6 +87,9 @@
    </item>
    <item row="3" column="0">
     <widget class="QTreeWidget" name="uiChangeTREE">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="selectionMode">
       <enum>QAbstractItemView::ExtendedSelection</enum>
      </property>

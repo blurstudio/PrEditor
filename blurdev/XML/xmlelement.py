@@ -79,7 +79,7 @@ class XMLElement:
             QDateTime,
             QString,
         )  # , QByteArray
-        from PyQt4.QtGui import QColor
+        from PyQt4.QtGui import QColor, QFont
 
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
@@ -124,6 +124,11 @@ class XMLElement:
             self.setAttribute('type', valtype.__name__)
             self.setPoint('point', value)
 
+        # record a font
+        elif valtype == QFont:
+            self.setAttribute('type', 'font')
+            self.setAttribute('value', value.toString())
+
         # Record a size
         elif valtype == QSize:
             self.setAttribute('type', QSize)
@@ -157,7 +162,7 @@ class XMLElement:
             QDate,
             QDateTime,
         )  # , QByteArray
-        from PyQt4.QtGui import QColor
+        from PyQt4.QtGui import QColor, QFont
 
         valtype = self.attribute('type')
         value = None
@@ -205,6 +210,11 @@ class XMLElement:
         # Restore a QColor
         elif valtype == 'QColor':
             value = self.findColor('color')
+
+        # restore a font
+        elif valtype == 'QFont':
+            value = QFont()
+            value.fromString(self.attribute('value'))
 
         # Restore a string
         elif valtype in ('str', 'unicode', 'QString'):

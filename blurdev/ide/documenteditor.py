@@ -10,6 +10,7 @@
 
 from PyQt4.QtCore import pyqtProperty, Qt
 from PyQt4.Qsci import QsciScintilla
+from PyQt4.QtGui import QApplication
 
 from blurdev.enum import enum
 from blurdev.ide import lang
@@ -135,6 +136,9 @@ class DocumentEditor(QsciScintilla):
 
         return True
 
+    def copyFilenameToClipboard(self):
+        QApplication.clipboard().setText(self._filename)
+
     def exec_(self):
         if self.save():
             import blurdev
@@ -244,18 +248,97 @@ class DocumentEditor(QsciScintilla):
             return QsciScintilla.keyPressEvent(self, event)
 
     def initSettings(self):
-        # load default settings
-        from blurdev.ide.idedocumentsettings import IdeDocumentSettings
+        # grab the document settings config set
+        from blurdev.ide.ideeditor import IdeEditor
+        from PyQt4.QtGui import QFont, QFontMetrics, QColor
 
-        defaults = IdeDocumentSettings.defaultSettings()
-        defaults.setupEditor(self)
+        configSet = IdeEditor.documentConfigSet()
 
-        # override with project specific settings
-        from blurdev.ide.ideproject import IdeProject
+        # set the document settings
+        section = configSet.section('Common::Document')
 
-        project = IdeProject.currentProject()
-        if project:
-            project.documentSettings().setupEditor(self)
+        self.setAutoIndent(section.value('autoIndent'))
+        self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
+        self.setTabIndents(section.value('tabIndents'))
+        self.setTabWidth(section.value('tabWidth'))
+        self.setCaretLineVisible(section.value('caretLineVisible'))
+        self.setShowWhitespaces(section.value('showWhitespaces'))
+        self.setMarginLineNumbers(0, section.value('showLineNumbers'))
+
+        # set the autocompletion source
+        if section.value('autoComplete'):
+            self.setAutoCompletionSource(QsciScintilla.AcsAll)
+        else:
+            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+
+        # set the scheme settings
+        scheme = configSet.section('Editor::Scheme')
+
+        font = QFont()
+        font.fromString(scheme.value('document_font'))
+
+        mfont = QFont()
+        mfont.fromString(scheme.value('document_marginFont'))
+
+        self.setFont(font)
+        self.setMarginsFont(mfont)
+        self.setMarginWidth(0, QFontMetrics(mfont).width('0000000') + 5)
+
+        # check to see if the user is using a custom color scheme
+        if not scheme.value('document_override_colors'):
+            return
+
+        # setup the colors
+        default_fg = scheme.value('document_color_text')
+        default_bg = scheme.value('document_color_background')
+        lexer = self.lexer()
+
+        # set the coloring for a lexer
+        if lexer:
+            lexer.setFont(font)
+            lexer.setDefaultPaper(default_bg)
+            lexer.setDefaultColor(default_fg)
+            lexer.setColor(default_bg)
+            lexer.setColor(default_fg)
+
+            # set the default coloring
+            for i in range(128):
+                lexer.setPaper(default_bg, i)
+                lexer.setColor(default_fg, i)
+
+            # lookup the language
+            language = lang.byName(self.language())
+            if language:
+                for key, values in language.lexerColorTypes().items():
+                    clr = scheme.value('document_color_%s' % key)
+                    if not clr:
+                        continue
+
+                    for value in values:
+                        lexer.setColor(clr, value)
+                        lexer.setPaper(default_bg)
+
+        # set the coloring for a document
+        else:
+            self.setColor(default_fg)
+            self.setPaper(default_bg)
+
+        # set editor level colors
+        self.setFoldMarginColors(
+            scheme.value('document_color_background'),
+            QColor('document_color_background').darker(120),
+        )
+        self.setCaretLineBackgroundColor(scheme.value('document_color_currentLine'))
+        self.setCaretForegroundColor(scheme.value('document_color_cursor'))
+        self.setSelectionForegroundColor(scheme.value('document_color_highlightText'))
+        self.setSelectionBackgroundColor(scheme.value('document_color_highlight'))
+        self.setMarginsBackgroundColor(scheme.value('document_color_margins'))
+        self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
+
+        palette = self.palette()
+        palette.setColor(palette.Base, scheme.value('document_color_background'))
+        palette.setColor(palette.Text, scheme.value('document_color_text'))
+        self.setPalette(palette)
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -401,6 +484,20 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
+        act = menu.addAction('Cut')
+        act.triggered.connect(self.cut)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
+
+        act = menu.addAction('Copy')
+        act.triggered.connect(self.copy)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+
+        act = menu.addAction('Paste')
+        act.triggered.connect(self.paste)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
+
+        menu.addSeparator()
+
         act = menu.addAction('Comment Add')
         act.triggered.connect(self.commentAdd)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_add.png')))
@@ -449,7 +546,12 @@ class DocumentEditor(QsciScintilla):
         # update the filename information
         self._filename = filename
         self.setModified(False)
-        self.window().documentTitleChanged.emit()
+
+        try:
+            self.window().emitDocumentTitleChanged()
+        except:
+            pass
+
         self.refreshTitle()
 
     def unindentSelection(self):

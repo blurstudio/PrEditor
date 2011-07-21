@@ -29,14 +29,7 @@ class UpdateThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            client.update(self._filepath)
-        except pysvn.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown update error occurred.'})
-            return
+        client.update(self._filepath)
 
     def setFilepath(self, filepath):
         self._filepath = filepath

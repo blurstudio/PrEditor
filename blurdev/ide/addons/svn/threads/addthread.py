@@ -29,16 +29,8 @@ class AddThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            for path in self._filepaths:
-                client.add(path)
-        except pysvn._pysvn_2_5.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown add error occurred.'})
-            return
-
+        for path in self._filepaths:
+            client.add(path)
         self.notify({'action': 'Completed', 'path': 'Add has completed successfully.'})
 
     def setFilepaths(self, filepaths):

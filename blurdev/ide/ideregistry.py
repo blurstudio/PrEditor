@@ -10,17 +10,44 @@
 #
 
 import os
+import re
 
 from blurdev.enum import enum
 
-RegistryType = enum('Extension', 'Filename', 'Overlay')
+RegistryType = enum(
+    'Extension', 'Filename', 'Overlay', 'GlobalOverride', 'ProjectOverride'
+)
 
 
 class IdeRegistry(object):
     def __init__(self):
-        self._commands = {}
+        self._commands = dict([(rtype, {}) for rtype in RegistryType.values()])
 
         self.registerDefaults()
+
+    def commands(self):
+        return self._commands
+
+    def findCommand(self, filename):
+        """
+            \remarks	looks up the command based on the inputed filename
+            \param		filename	<str>
+            \return		<str> || <method> || None
+        """
+        filename = str(filename)
+        ext = os.path.splitext(filename)[-1]
+
+        # look through the different options
+        for rtype in (
+            RegistryType.ProjectOverride,
+            RegistryType.GlobalOverride,
+            RegistryType.Filename,
+            RegistryType.Extension,
+        ):
+            for expr in self._commands[rtype]:
+                if re.match('^%s$' % expr, filename) or re.match('^%s$' % expr, ext):
+                    return self._commands[rtype][expr]
+        return None
 
     def find(self, registryType, expression):
         """
@@ -34,26 +61,25 @@ class IdeRegistry(object):
         """
         cmds = self._commands.get(registryType)
         if cmds:
-            import re
-
             for regex in cmds.keys():
-                if re.match(regex, expression):
+                if re.match('^%s$' % regex, expression):
                     return cmds[regex]
-        return (None, '', '')
+        return None
+
+    def flush(self, registryType):
+        """
+            \remarks	clears the registry type based on the inputed class
+        """
+        self._commands[registryType] = {}
 
     def registerDefaults(self):
         # create default extension registry
         extensions = {
-            '^.ui$': (
-                os.environ['BDEV_QT_DESIGNER'],
-                '',
-                os.path.dirname(os.environ['BDEV_QT_DESIGNER']),
-            ),
-            '^.schema$': (
-                os.environ['BDEV_CLASSMAKER'],
-                '',
-                os.path.dirname(os.environ['BDEV_CLASSMAKER']),
-            ),
+            '.ui': '$BDEV_APP_QDESIGNER "%(filepath)s"',
+            '.schema': '$BDEV_APP_CLASSMAKER -s "%(filepath)s"',
+            '.png': '$BDEV_APP_IMAGEEDITOR "%(filepath)s"',
+            '.sh': '$BDEV_CMD_SHELL_EXECFILE',
+            '.bat': '$BDEV_CMD_SHELL_EXECFILE',
         }
 
         # create default filename registry

@@ -53,7 +53,7 @@ def filetypes():
             '%s Files (%s)' % (key, '*' + ';*'.join(_plugins[key].fileTypes()))
         )
 
-    return output
+    return ';;'.join(output)
 
 
 # load the plugins

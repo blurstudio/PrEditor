@@ -29,16 +29,8 @@ class RevertThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            for path in self._filepaths:
-                client.revert(path)
-        except pysvn._pysvn_2_5.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown revert error occurred.'})
-            return
-
+        for path in self._filepaths:
+            client.revert(path)
         self.notify(
             {'action': 'Completed', 'path': 'Revert has completed successfully.'}
         )

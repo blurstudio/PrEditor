@@ -9,31 +9,25 @@
 #
 
 from blurdev.gui import Dialog
-
 from PyQt4.QtGui import QTreeWidgetItem
 
 
-class ConfigTreeItem(QTreeWidgetItem):
-    def __init__(self, configSetItem):
-
-        QTreeWidgetItem.__init__(self, [configSetItem.objectName()])
+class ConfigSectionItem(QTreeWidgetItem):
+    def __init__(self, section):
+        QTreeWidgetItem.__init__(self, [section.name()])
 
         from PyQt4.QtCore import QSize
-
         from PyQt4.QtGui import QIcon
 
         # store the config set item
-
-        self._configSetItem = configSetItem
+        self._section = section
 
         # set the icon
-
-        self.setIcon(0, QIcon(configSetItem.icon()))
+        self.setIcon(0, QIcon(section.icon()))
         self.setSizeHint(0, QSize(200, 20))
 
-    def configSetItem(self):
-
-        return self._configSetItem
+    def section(self):
+        return self._section
 
 
 # --------------------------------------------------------------------------------
@@ -48,21 +42,17 @@ class ConfigDialog(Dialog):
         blurdev.gui.loadUi(__file__, self)
 
         # clear the widget
-
         widget = self.uiWidgetAREA.takeWidget()
-
         widget.close()
-
         widget.setParent(None)
-
         widget.deleteLater()
 
         # initialize the header
         self.uiPluginsTREE.header().setVisible(False)
 
         # create custom properties
-
         self._configSet = None
+        self._sectionCache = {}
 
         # create connections
         self.uiExitBTN.clicked.connect(self.reject)
@@ -81,18 +71,38 @@ class ConfigDialog(Dialog):
         widget = self.uiWidgetAREA.widget()
 
         if widget:
-
             return widget.checkForSave()
         return True
 
     def commit(self):
         """ tries to run the active config widget's commit method, if it exists """
-        widget = self.uiWidgetAREA.widget()
-        if widget:
 
+        success = True
+
+        # save all the widgets in the configset
+        for widget in self._sectionCache.values():
+            # record the interface
             widget.recordUi()
-            return widget.commit()
-        return True
+
+            # save the widget
+            if not widget.commit():
+                success = False
+
+        if success:
+            self._configSet.save()
+
+        return success
+
+    def configData(self, key, default=None):
+        """
+            \remarks	returns the custom value for the inputed key based on the
+                        current config set
+            \param		key			<str>
+            \param		default		<variant>
+            
+            \return		<variant>
+        """
+        return self._configSet.customData(key, default)
 
     def setConfigSet(self, configSet):
         """ 
@@ -100,24 +110,23 @@ class ConfigDialog(Dialog):
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
 
+        self._configSet = configSet
+
         import blurdev
 
         from PyQt4.QtCore import QSize
         from PyQt4.QtGui import QTreeWidgetItem, QIcon
 
         self.uiPluginsTREE.blockSignals(True)
-
         self.uiPluginsTREE.setUpdatesEnabled(False)
 
         # clear the tree
         self.uiPluginsTREE.clear()
 
-        for group in configSet.configGroups():
+        for group in configSet.sectionGroups():
             # create the group item
             grpItem = QTreeWidgetItem([group])
-
             grpItem.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
-
             grpItem.setSizeHint(0, QSize(200, 20))
 
             # update the font
@@ -126,17 +135,14 @@ class ConfigDialog(Dialog):
             grpItem.setFont(0, font)
 
             # create the config set items
-
-            for configSetItem in configSet.configGroupItems(group):
-
-                grpItem.addChild(ConfigTreeItem(configSetItem))
+            for section in configSet.sectionsInGroup(group):
+                grpItem.addChild(ConfigSectionItem(section))
 
             # add the group item to the tree
             self.uiPluginsTREE.addTopLevelItem(grpItem)
             grpItem.setExpanded(True)
 
         self.uiPluginsTREE.blockSignals(False)
-
         self.uiPluginsTREE.setUpdatesEnabled(True)
 
     def reject(self):
@@ -150,38 +156,25 @@ class ConfigDialog(Dialog):
 
         item = self.uiPluginsTREE.currentItem()
 
-        if isinstance(item, ConfigTreeItem):
+        if isinstance(item, ConfigSectionItem):
+            # remove the current widget
             widget = self.uiWidgetAREA.takeWidget()
 
-            # clear out an old widget
+            # close the old widget
             if widget:
-
-                # make sure the old widget can be saved
-
-                if not widget.checkForSave():
-
-                    self.uiPluginsTREE.blockSignals(True)
-
-                    self.uiPluginsTREE.clearSelection()
-
-                    self.uiPluginsTREE.selectItem(widget.objectName())
-
-                    self.uiPluginsTREE.blockSignals(False)
-
-                    return False
-
-                # close the old widget
                 widget.close()
 
-                widget.setParent(None)
-                widget.deleteLater()
+                # make sure the parenting remains intact
+                widget.setParent(self)
+            # create a new widget to cache
+            key = item.section().uniqueName()
+            if not key in self._sectionCache:
+                self._sectionCache[key] = item.section().widget(self)
 
             # create the new widgets plugin
-            widget = item.configSetItem().configClass()(self)
+            self.uiWidgetAREA.setWidget(self._sectionCache[key])
 
-            widget.setObjectName(item.configSetItem().objectName())
-            self.uiWidgetAREA.setWidget(widget)
-
+        self.uiPluginsTREE.blockSignals(False)
         return True
 
     def reset(self):
@@ -190,14 +183,12 @@ class ConfigDialog(Dialog):
 
         if widget:
             widget.reset()
-
             widget.refreshUi()
 
         return True
 
     def selectItem(self, name):
         """ selects the widget item whose name matches the inputed name """
-
         # go through the group level
         for i in range(self.uiPluginsTREE.topLevelItemCount()):
             item = self.uiPluginsTREE.topLevelItem(i)
@@ -213,12 +204,40 @@ class ConfigDialog(Dialog):
 
         return False
 
+    def setConfigData(self, key, value):
+        """
+            \remarks	sets the custom data on the config set to the inputed value
+            
+            \param		key		<str>
+            \param		value	<variant>
+        """
+        return self._configSet.setCustomData(key, value)
+
+    def setCurrentSection(self, section):
+        """
+            \remarks	sets the current section based on the inputed section id
+            
+            \param		section 	<str>
+        """
+        found = False
+        for i in range(self.uiPluginsTREE.topLevelItemCount()):
+            item = self.uiPluginsTREE.topLevelItem(i)
+            for c in range(item.childCount()):
+                child = item.child(c)
+                if child.section().uniqueName() == section:
+                    self.uiPluginsTREE.setCurrentItem(child)
+                    found = True
+                    break
+            if found:
+                break
+
     @staticmethod
-    def edit(configSet, parent=None):
+    def edit(configSet, parent=None, defaultSection=''):
         """ 
             \remarks 	creates a modal config dialog using the specified plugins 
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
         dialog = ConfigDialog(parent)
         dialog.setConfigSet(configSet)
+        dialog.setCurrentSection(defaultSection)
         return dialog.exec_()

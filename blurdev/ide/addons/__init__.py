@@ -3,16 +3,17 @@
 #
 # 	\remarks	Defines additional addons for the IDE system
 #
-# 	\author		eric.hulser@drdstudios.com
-# 	\author		Dr. D Studios
+# 	\author		eric@blur.com
+# 	\author		Blur Studio
 # 	\date		05/03/11
 #
 
 import sys
+import traceback
 
-# define global variables
+from blurdev.ide.ideaddon import IdeAddon
+
 _loaded = False
-_plugins = {}
 
 # define global functions
 def init():
@@ -34,23 +35,4 @@ def init():
                 try:
                     __import__(package)
                 except:
-                    print 'Error importing %s plugin: %s' % (__name__, modname)
-
-
-def findPlugin(pluginName, fail=None):
-    init()
-    return _plugins.get(str(pluginName), fail)
-
-
-def pluginNames():
-    init()
-    return _plugins.keys()
-
-
-def plugins():
-    init()
-    return _plugins.values()
-
-
-def registerPlugin(pluginName, plugin):
-    _plugins[str(pluginName)] = plugin
+                    IdeAddon.registerErrored(package, traceback.format_exc())

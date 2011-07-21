@@ -7,3 +7,5 @@
 # 	\author		Blur Studio
 # 	\date		06/15/10
 #
+
+from sdkwindow.sdkwindow import SdkWindow

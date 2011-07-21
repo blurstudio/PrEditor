@@ -8,9 +8,16 @@
 # 	\date		01/15/08
 #
 
-from PyQt4.QtCore import pyqtSignal, SIGNAL
-from PyQt4.QtGui import QCompleter
-from PyQt4.QtGui import QStringListModel
+import inspect
+
+from PyQt4.QtCore import pyqtSignal, SIGNAL, Qt
+from PyQt4.QtGui import (
+    QStringListModel,
+    QToolTip,
+    QCursor,
+    QCompleter,
+    QMessageBox as msg,
+)
 
 
 class PythonCompleter(QCompleter):
@@ -23,8 +30,6 @@ class PythonCompleter(QCompleter):
         self._currentText = ''
 
         # update this completer
-        from PyQt4.QtCore import Qt
-
         self.setWidget(widget)
         self.setCompletionMode(QCompleter.PopupCompletion)
         self.setCaseSensitivity(Qt.CaseSensitive)
@@ -34,15 +39,23 @@ class PythonCompleter(QCompleter):
     def currentCompletion(self):
         return self._currentText
 
-    def refreshList(self, scope=None):
-        """ refreshes the string list based on the cursor word """
+    def currentObject(self, scope=None, docMode=False):
         word = self.textUnderCursor()
+        # determine if we are in docMode or not
+        if word.endswith('(') and not docMode:
+            return None
+
+        word = word.rstrip('(')
         split = unicode(word).split('.')
 
         # make sure there is more than 1 item for this symbol
-        if len(split) > 1:
-            symbol = '.'.join(split[:-1])
-            prefix = split[-1]
+        if len(split) > 1 or docMode:
+            if not docMode:
+                symbol = '.'.join(split[:-1])
+                prefix = split[-1]
+            else:
+                symbol = word
+                prefix = ''
 
             # try to evaluate the object to pull out the keys
             keys = []
@@ -58,25 +71,48 @@ class PythonCompleter(QCompleter):
                 if symbol in sys.modules:
                     object = sys.modules[symbol]
 
-            # pull the keys from the object
-            if object:
-                import inspect
+            return (object, prefix)
+        return (None, '')
 
-                # Collect non-hidden method/variable names
-                keys = [key for key in dir(object) if not key.startswith('_')]
-                keys.sort()
+    def hideDocumentation(self):
+        QToolTip.hideText()
 
-                self.model().setStringList(keys)
-                self.setCompletionPrefix(prefix)
-            else:
-                self.model().setStringList([])
+    def refreshList(self, scope=None):
+        """ refreshes the string list based on the cursor word """
+        object, prefix = self.currentObject(scope)
+        if object:
+            # Collect non-hidden method/variable names
+            keys = [key for key in dir(object) if not key.startswith('_')]
+            keys.sort()
+
+            self.model().setStringList(keys)
+            self.setCompletionPrefix(prefix)
         else:
             self.model().setStringList([])
+
+    def clear(self):
+        self.popup().hide()
+        self.hideDocumentation()
+
+    def showDocumentation(self, pos=None, scope=None):
+        # hide the existing popup widget
+        self.popup().hide()
+
+        # create the default position
+        if pos == None:
+            pos = QCursor.pos()
+
+        # collect the object
+        object, prefix = self.currentObject(scope, docMode=True)
+        if object:
+            docs = inspect.getdoc(object)
+            if docs:
+                QToolTip.showText(pos, docs)
 
     def setCurrentText(self, text):
         self._currentText = text
 
-    def textUnderCursor(self):
+    def textUnderCursor(self, useParens=False):
         """ pulls out the text underneath the cursor of this items widget """
         from PyQt4.QtGui import QTextCursor
 
@@ -89,13 +125,14 @@ class PythonCompleter(QCompleter):
 
         # lookup previous words using '.'
         pos = cursor.position() - cursor.block().position() - len(word) - 1
+
         import re
 
         while -1 < pos:
             char = block[pos]
-            if not re.match('[a-zA-Z0-9\.]', char):
+            if not re.match('^[a-zA-Z0-9_\.\(\)]$', char):
                 break
             word = char + word
             pos -= 1
 
-        return word
+        return str(word)

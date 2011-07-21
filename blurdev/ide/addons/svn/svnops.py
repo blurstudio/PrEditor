@@ -10,9 +10,12 @@
 
 import pysvn
 import os.path
-import blurdev
 
-from PyQt4.QtGui import QFileDialog, QInputDialog, QLineEdit
+import blurdev
+from blurdev import osystem, settings
+import subprocess
+
+from PyQt4.QtGui import QFileDialog, QInputDialog, QLineEdit, QMessageBox
 
 
 def add(filepath):
@@ -101,6 +104,33 @@ def cleanup(filepath):
     SvnActionDialog.start(ide, thread, title='Cleanup')
 
 
+def createFolder(url, folderName=''):
+    """
+        \remarks	creates a new folder at the given url with the inputed folder name
+                    if a blank folder name is supplied, the user will be prompted to 
+                    enter one
+        \param		url				<str>
+        \param		folderName		<str>
+        \return		<bool> success
+    """
+    if not folderName:
+        folderName, accepted = QInputDialog.getText(
+            None, 'Create folder...', 'Folder name:'
+        )
+        folderName = str(folderName)
+
+    if not folderName:
+        return False
+
+    client = pysvn.Client()
+    urlpath = os.path.join(url, folderName)
+    try:
+        client.mkdir(urlpath, 'Created %s folder' % folderName, False, None)
+        return True
+    except:
+        return False
+
+
 def commit(filepath):
     """
         \remarks	commits the filepath using the SvnCommitDialog gui
@@ -112,6 +142,49 @@ def commit(filepath):
     SvnCommitDialog.commit(ide, filepath)
 
 
+def compare(filepath, old=None, new=None):
+    """
+        \remarks	prompts the user for changes to compare given the inputed filepath
+        \param		filepath	<str>
+        \param      old         <int> || None   <old revision>
+        \param      new         <int> || None   <new revision>
+        \return		<bool> accepted
+    """
+    if old == None:
+        revision = 'HEAD'
+    else:
+        revision = str(old)
+
+    if new != None:
+        revision += ':%s' % new
+
+    if settings.OS_TYPE == 'Linux':
+        subprocess.Popen(
+            'svn diff --diff-cmd kdiff3 -r %s %s' % (revision, filepath), shell=True
+        )
+    else:
+        print 'compare is not supported'
+
+    # at somepoint, this may be useful code - # EKH 06/01/11
+    # client = pysvn.Client()
+    # diff = client.diff( osystem.tempfile(''), str(filepath), diff_options = ['--diff-cmd kdiff3'] )
+
+    # from svncomparedialog import SvnCompareDialog
+    # return SvnCompareDialog.compare( filepath, diff )
+
+
+def getMessage():
+    from svnrecentmessagedialog import SvnRecentMessageDialog
+
+    return SvnRecentMessageDialog.getMessage()
+
+
+def getRevisions(url):
+    from svnlogdialog import SvnLogDialog
+
+    return SvnLogDialog.getRevisions(url)
+
+
 def getUrl(url=''):
     """
         \remarks	prompts the user to select a url from the svn repository
@@ -121,6 +194,12 @@ def getUrl(url=''):
     from svnrepobrowserdialog import SvnRepoBrowserDialog
 
     return SvnRepoBrowserDialog.getUrl(url)
+
+
+def merge(filepath):
+    from svnmergewizard import SvnMergeWizard
+
+    SvnMergeWizard.runWizard(filepath)
 
 
 def findUrl(filepath):
@@ -172,6 +251,29 @@ def rename(basepath):
     return basepath
 
 
+def remove(filepath):
+    """
+        \remarks	removes the inptued filepath from svn
+        \param		filepath
+        \return		<bool> success
+    """
+    if (
+        QMessageBox.question(
+            None,
+            'Removing path',
+            'Are you sure you want to remove %s from svn?' % filepath,
+            QMessageBox.Yes | QMessageBox.No,
+        )
+        == QMessageBox.Yes
+    ):
+        client = pysvn.Client()
+        try:
+            client.remove(filepath)
+            return True
+        except:
+            return False
+
+
 def revert(filepath):
     """
         \remarks	prompts the user to revert changes using the SvnRevertDialog
@@ -184,7 +286,11 @@ def revert(filepath):
     from svnfilesdialog import SvnFilesDialog
 
     filepaths, accepted = SvnFilesDialog.collect(
-        ide, filepath, ['modified'], title='Revert', emptyMessage=emptyMessage
+        ide,
+        filepath,
+        ['modified', 'added', 'conflicted'],
+        title='Revert',
+        emptyMessage=emptyMessage,
     )
 
     # if the user selects the files, then add them
@@ -199,6 +305,12 @@ def revert(filepath):
         from svnactiondialog import SvnActionDialog
 
         SvnActionDialog.start(ide, thread, title='Revert')
+
+
+def showLog(filepath):
+    from svnlogdialog import SvnLogDialog
+
+    SvnLogDialog.showLog(filepath)
 
 
 def update(filepath):

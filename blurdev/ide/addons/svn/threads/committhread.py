@@ -33,15 +33,7 @@ class CommitThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            client.checkin(self._filepaths, self._comments)
-        except pysvn._pysvn_2_5.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown commit error occurred.'})
-            return
-
+        client.checkin(self._filepaths, self._comments)
         self.notify(
             {'action': 'Completed', 'path': 'Commit has completed successfully.'}
         )

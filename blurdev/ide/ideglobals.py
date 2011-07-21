@@ -1,5 +1,5 @@
 ##
-# 	\namespace	python.blurdev.ide.ideprefs
+# 	\namespace	python.blurdev.ide.ideglobals
 #
 # 	\remarks	common properties to be used across multiple ide modules
 #

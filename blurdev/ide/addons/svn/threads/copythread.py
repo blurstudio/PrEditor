@@ -43,15 +43,7 @@ class CopyThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            client.copy(self._source, self._target, self._revision)
-        except pysvn._pysvn_2_5.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown copy error occurred.'})
-            return
-
+        client.copy(self._source, self._target, self._revision)
         self.notify({'action': 'Completed', 'path': 'Copy has completed successfully.'})
 
     def setComments(self, comments):

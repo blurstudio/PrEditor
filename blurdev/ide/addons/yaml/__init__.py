@@ -23,9 +23,7 @@ class YamlAddon(IdeAddon):
         from blurdev.ide import RegistryType
 
         # reigister the yaml dialog to the registry
-        ide.registry().register(
-            RegistryType.Extension, '^.yaml$', (YamlDialog.edit, '', '')
-        )
+        ide.registry().register(RegistryType.Extension, '.yaml', YamlDialog.edit)
         return True
 
     def deactivate(self, ide):
@@ -38,7 +36,7 @@ class YamlAddon(IdeAddon):
 
         from blurdev.ide import RegistryType
 
-        return ide.registry().unregister(RegistryType.Extension, '^.yaml$')
+        return ide.registry().unregister(RegistryType.Extension, '.yaml')
 
 
 # register the IdeAddon to the IDE system

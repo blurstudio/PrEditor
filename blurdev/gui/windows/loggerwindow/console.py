@@ -8,7 +8,7 @@
 # 	\date		01/15/08
 #
 
-from PyQt4.QtCore import QObject
+from PyQt4.QtCore import QObject, QPoint
 from PyQt4.QtGui import QTextEdit
 
 import re
@@ -61,6 +61,9 @@ emailformat = """
 
 
 class ErrorLog(QObject):
+    def fileno(self):
+        return 0
+
     def flush(self):
         """ flush the logger instance """
         self.parent().flush()
@@ -237,6 +240,9 @@ class ConsoleEdit(QTextEdit):
         else:
             self.startInputLine()
 
+    def fileno(self):
+        return 0
+
     def flush(self):
         self.clear()
 
@@ -301,10 +307,19 @@ class ConsoleEdit(QTextEdit):
 
         from PyQt4.QtCore import Qt
 
+        completer = self.completer()
+
+        if completer and event.key() in (
+            Qt.Key_Backspace,
+            Qt.Key_Delete,
+            Qt.Key_Escape,
+        ):
+            completer.hideDocumentation()
+
         # enter || return keys will execute the command
         if event.key() in (Qt.Key_Return, Qt.Key_Enter):
-            if self.completer().popup().isVisible():
-                self.completer().popup().hide()
+            if completer.popup().isVisible():
+                completer.clear()
                 event.ignore()
             else:
                 self.executeCommand()
@@ -315,31 +330,43 @@ class ConsoleEdit(QTextEdit):
 
         # otherwise, ignore the event for completion events
         elif event.key() in (Qt.Key_Tab, Qt.Key_Backtab):
-            self.insertCompletion(self.completer().currentCompletion())
-            self.completer().popup().hide()
+            self.insertCompletion(completer.currentCompletion())
+            completer.clear()
 
         elif event.key() == Qt.Key_Escape:
-            self.completer().popup().hide()
+            completer.clear()
 
         # other wise handle the keypress
         else:
             QTextEdit.keyPressEvent(self, event)
 
             # check for particular events for the completion
-            if self.completer():
+            if completer:
+
+                # look for documentation popups
+                if event.key() == Qt.Key_ParenLeft:
+                    rect = self.cursorRect()
+                    point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
+                    completer.showDocumentation(pos=point, scope=__main__.__dict__)
+
+                # hide documentation popups
+                elif event.key() == Qt.Key_ParenRight:
+                    completer.hideDocumentation()
+
                 # determine if we need to show the popup or if it already is visible, we need to updte it
-                if event.key() == Qt.Key_Period or self.completer().popup().isVisible():
-                    self.completer().refreshList(scope=__main__.__dict__)
-                    self.completer().popup().setCurrentIndex(
-                        self.completer().completionModel().index(0, 0)
+                elif event.key() == Qt.Key_Period or completer.popup().isVisible():
+                    completer.refreshList(scope=__main__.__dict__)
+                    completer.popup().setCurrentIndex(
+                        completer.completionModel().index(0, 0)
                     )
 
-            rect = self.cursorRect()
-            rect.setWidth(
-                self.completer().popup().sizeHintForColumn(0)
-                + self.completer().popup().verticalScrollBar().sizeHint().width()
-            )
-            self.completer().complete(rect)
+                    # show the completer for the rect
+                    rect = self.cursorRect()
+                    rect.setWidth(
+                        completer.popup().sizeHintForColumn(0)
+                        + completer.popup().verticalScrollBar().sizeHint().width()
+                    )
+                    completer.complete(rect)
 
     def moveToHome(self):
         """ moves the cursor to the home location """

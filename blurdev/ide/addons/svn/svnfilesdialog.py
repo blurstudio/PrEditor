@@ -108,6 +108,12 @@ class SvnFilesDialog(Dialog):
         results = self._thread.results()
         results.sort(svnconfig.sortStatus)
 
+        # update the base path
+        if os.path.isfile(self._filepath):
+            basepath = os.path.dirname(self._filepath)
+        else:
+            basepath = self._filepath
+
         # reload the tree
         self.uiFilesTREE.clear()
         for result in results:
@@ -122,7 +128,7 @@ class SvnFilesDialog(Dialog):
             # create the item (only show relative paths)
             item = QTreeWidgetItem(
                 [
-                    result.path.replace(self._filepath, ''),
+                    result.path.replace(basepath, '.'),
                     os.path.splitext(result.path)[1],
                     str(result.text_status),
                 ]
@@ -131,8 +137,8 @@ class SvnFilesDialog(Dialog):
             item.setCheckState(0, Qt.Checked)
 
             # set the fg/bg colors based on status
-            fg = data['foreground']
-            bg = data['background']
+            fg = svnconfig.ACTION_COLORS[data['foreground']]
+            bg = svnconfig.ACTION_COLORS[data['background']]
 
             for i in range(item.columnCount()):
                 if fg:

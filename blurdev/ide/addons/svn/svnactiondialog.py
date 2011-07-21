@@ -41,6 +41,20 @@ class SvnActionDialog(Dialog):
         self._errored = False
         self._threads = []
 
+    def accept(self):
+        if self.canClose():
+            super(SvnActionDialog, self).accept()
+
+    def canClose(self):
+        for thread in self._threads:
+            if thread.isRunning():
+                return False
+        return True
+
+    def reject(self):
+        if self.canClose():
+            super(SvnActionDialog, self).reject()
+
     def threads(self):
         return self._threads
 

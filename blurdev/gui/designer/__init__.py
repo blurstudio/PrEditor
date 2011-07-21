@@ -70,13 +70,30 @@ import blurdev.gui.designer
 blurdev.gui.designer.register( '%(class)sPlugin', %(class)sPlugin )
 """
 
+import glob
+import os
+
+from blurdev import osystem
+
 def init():
-    import glob
-    import os.path
-    
-    # load the plugins file
+    # load the installed modules
     import blurdev
     loadPlugins( blurdev.resourcePath( 'designer_plugins.xml' ) )
+    
+    # load the user modules
+    loadPlugins( blurdev.prefPath( 'designer_plugins.xml' ) )
+    
+    # load any additional modules from the environment
+    for key in os.environ:
+        if ( key.startswith( 'BDEV_DESIGNERPLUG_' ) ):
+            osplt = os.environ[key].split(',')
+            if ( len(osplt) == 2 ):
+                href 		= osplt[0]
+                importPath 	= osplt[1]
+            else:
+                href		= osplt[0]
+                importPath	= ''
+            loadPlugins( href, importPath )
     
     # import the modules
     filenames = glob.glob( os.path.split( __file__ )[0] + '/*.py' )
@@ -90,9 +107,17 @@ def init():
             except:
                 print 'Error loading %s' % fullname
 
-def loadPlugins( filename ):
+def loadPlugins( filename, importPath = '' ):
     from blurdev.XML import XMLDocument
     doc = XMLDocument()
+    
+    # register the import path location
+    if ( importPath ):
+        importPath = osystem.expandvars(importPath)
+        if ( os.path.exists(importPath) and not importPath in sys.path ):
+            sys.path.insert(0,importPath)
+    
+    filename = osystem.expandvars(filename)
     
     if ( doc.load( filename ) ):
         import os, sys
@@ -100,30 +125,11 @@ def loadPlugins( filename ):
         blurdevpath = os.path.abspath( os.path.split( __file__ )[0] + '/../..' )
         
         for child in doc.root().children():
+            # load an included module
             if ( child.nodeName == 'include' ):
-                import re
-                href = child.attribute( 'href' )
-                
-                # replace sys globals
-                results 	= re.findall( '\[([^\]]+)', href )
-                for result in results:
-                    if ( result == 'BLURDEV' ):
-                        href = href.replace( '[%s]' % result, blurdevpath )
-                    else:
-                        href = href.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
-                
-                # make sure the location is importable
-                importPath = child.attribute( 'root' )
-                if ( importPath ):
-                    results 	= re.findall( '\[([^\]]+)', importPath )
-                    for result in results:
-                        importPath = importPath.replace( '[%s]' % result, os.environ.get( result, '[%s]' % result ) )
-                    
-                    if ( os.path.exists( importPath ) and not importPath in sys.path ):
-                        sys.path.insert( 0, importPath )
-                
-                # load the include file
-                loadPlugins( href )
+                loadPlugins( child.attribute('href'), child.attribute('root') )
+            
+            # create a standard plugin
             else:
                 createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )) )
 

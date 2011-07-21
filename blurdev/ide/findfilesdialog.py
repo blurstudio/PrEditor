@@ -15,7 +15,7 @@ from blurdev.gui import Dialog
 from PyQt4.QtGui import QTreeWidgetItem
 from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant
 
-from blurdev.ide import ideprefs
+from blurdev.ide import ideglobals
 
 
 class FindFilesThread(QThread):
@@ -120,9 +120,9 @@ class FindFilesDialog(Dialog):
         self._refreshTimer.timeout.connect(self.refreshResults)
 
         # initialize the ui from the prefs
-        self.uiSearchTXT.setText(ideprefs.FILE_SEARCH_TEXT)
-        self.uiBasePathTXT.setText(ideprefs.FILE_SEARCH_PATH)
-        self.uiFileTypesTXT.setText(ideprefs.FILE_SEARCH_TYPES)
+        self.uiSearchTXT.setText(ideglobals.FILE_SEARCH_TEXT)
+        self.uiBasePathTXT.setText(ideglobals.FILE_SEARCH_PATH)
+        self.uiFileTypesTXT.setText(ideglobals.FILE_SEARCH_TYPES)
 
         # create the connections
         self.uiSearchBTN.clicked.connect(self.toggleSearch)
@@ -133,19 +133,22 @@ class FindFilesDialog(Dialog):
         self._searchThread.finished.connect(self.searchFinished)
 
     def closeEvent(self, event):
+        # make sure to kill the thread before closing
+        self._searchThread.terminate()
+
         Dialog.closeEvent(self, event)
 
         # set the properties in the prefs module
-        ideprefs.FILE_SEARCH_TEXT = str(self.uiSearchTXT.text())
-        ideprefs.FILE_SEARCH_TYPES = str(self.uiFileTypesTXT.text())
-        ideprefs.FILE_SEARCH_PATH = str(self.uiBasePathTXT.text())
+        ideglobals.FILE_SEARCH_TEXT = str(self.uiSearchTXT.text())
+        ideglobals.FILE_SEARCH_TYPES = str(self.uiFileTypesTXT.text())
+        ideglobals.FILE_SEARCH_PATH = str(self.uiBasePathTXT.text())
 
     def loadFile(self, item):
         if item.parent():
             filename = str(item.parent().data(0, Qt.UserRole).toString())
             lineno = item.data(0, Qt.UserRole).toInt()[0]
         else:
-            filename = str(item.parent().data(0, Qt.UserRole).toString())
+            filename = str(item.data(0, Qt.UserRole).toString())
             lineno = 0
 
         self.fileDoubleClicked.emit(filename, lineno)

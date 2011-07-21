@@ -11,6 +11,9 @@
 import os
 from PyQt4.QtGui import QTreeWidgetItem, QItemDelegate, QPixmap
 
+import blurdev.ide.config.common
+import blurdev.ide.config.project
+
 
 class IdeProjectDelegate(QItemDelegate):
     def __init__(self, tree):
@@ -135,9 +138,7 @@ class IdeProjectItem(QTreeWidgetItem):
         if tree:
             from blurdev.ide.ideregistry import RegistryType
 
-            overlayFinder, args, path = (
-                tree.window().registry().find(RegistryType.Overlay, '*')
-            )
+            overlayFinder = tree.window().registry().find(RegistryType.Overlay, '*')
 
         # set the overlay for this item
         if overlayFinder:
@@ -349,7 +350,6 @@ class IdeProjectItem(QTreeWidgetItem):
 class IdeProject(IdeProjectItem):
     __version__ = 1.0
 
-    DefaultPath = os.environ['BDEV_PROJECT_PATH']
     Favorites = []
 
     _currentProject = None
@@ -359,15 +359,18 @@ class IdeProject(IdeProjectItem):
 
         # initialize the project item
         from PyQt4.QtGui import QIcon
+
         import blurdev
 
         self.setIcon(0, QIcon(blurdev.resourcePath('img/project.png')))
         self._filename = ''
 
         # intiailize the override settings
-        from blurdev.ide.idedocumentsettings import IdeDocumentSettings
+        from blurdev.gui.dialogs.configdialog import ConfigSet
 
-        self._documentSettings = IdeDocumentSettings()
+        self._configSet = ConfigSet()
+        self._configSet.loadPlugins(blurdev.ide.config.common)
+        self._configSet.loadPlugins(blurdev.ide.config.project)
 
         # record project specific environment variables and sys.paths
         self._envvars = {}
@@ -404,8 +407,11 @@ class IdeProject(IdeProjectItem):
         if self._origSys != None:
             sys.path = self._origSys
 
-    def documentSettings(self):
-        return self._documentSettings
+    def configSet(self):
+        return self._configSet
+
+    def exists(self):
+        return os.path.exists(self.filename())
 
     def filename(self):
         return self._filename
@@ -425,7 +431,7 @@ class IdeProject(IdeProjectItem):
         if not filename:
             from PyQt4.QtGui import QFileDialog
 
-            filename = QFileDialog.getSaveFileName(self.window(), 'Save File as...')
+            filename = QFileDialog.getSaveFileName(self, 'Save File as...')
 
         if filename:
             filename = str(filename)
@@ -437,9 +443,8 @@ class IdeProject(IdeProjectItem):
             root = doc.addNode('blurproj')
             root.setAttribute('version', self.__version__)
 
-            # define the settings xml
-            settingsxml = root.addNode('settings')
-            self.documentSettings().recordXml(settingsxml)
+            # record the config set
+            self.configSet().recordToXml(root)
 
             # define the env variables
             envvarsxml = root.addNode('envvars')
@@ -456,7 +461,6 @@ class IdeProject(IdeProjectItem):
 
             command = root.addNode('commands')
             command.recordProperty('commandList', self._commandList)
-
             self.toXml(root)
 
             doc.save(filename)
@@ -465,6 +469,9 @@ class IdeProject(IdeProjectItem):
 
     def setCommandList(self, commandList):
         self._commandList = commandList
+
+    def setConfigSet(self, configSet):
+        self._configSet = configSet
 
     def setFilename(self, filename):
         self._filename = filename
@@ -583,10 +590,8 @@ class IdeProject(IdeProjectItem):
                     for folder in folders.children():
                         output.addChild(IdeProjectItem.fromXml(folder, output))
 
-                # load the settings
-                settingsxml = root.findChild('settings')
-                if settingsxml:
-                    output.documentSettings().loadXml(settingsxml)
+                # restore the settings
+                output.configSet().restoreFromXml(root)
 
                 # load environment variables per project
                 environvars = root.findChild('envvars')
@@ -608,7 +613,6 @@ class IdeProject(IdeProjectItem):
                     cmds = commands.restoreProperty('commandList', {})
                     if cmds:
                         output.setCommandList(cmds)
-
                 # load new style
                 folder = root.findChild('folder')
                 if folder:

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import copy
 import os
 import sys
 
@@ -15,7 +16,7 @@ _currentEnv = ''
 _inited = False
 defaults = {}
 
-# load the default settings from the settings INI
+# load the default environment from the settings INI
 import ConfigParser
 
 config = ConfigParser.RawConfigParser()
@@ -26,6 +27,12 @@ for option in config.options(OS_TYPE):
         if value == 'None':
             value = ''
         os.environ[option.upper()] = value
+
+# store the blurdev path in the environment
+os.environ['BDEV_PATH'] = os.path.dirname(__file__)
+
+# store the environment variables as the startup variables
+startup_environ = copy.deepcopy(os.environ)
 
 
 def current():
@@ -44,8 +51,17 @@ def init():
     if hasattr(sys, 'argv') and os.environ.get('BDEV_EXEC') == '1':
         from optparse import OptionParser
 
-        # initialize command line options
         parser = OptionParser()
+
+        # add additional options from the environment
+        for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
+            if not addtl:
+                continue
+
+            option, help = addtl.split('=')
+            parser.add_option('', '--%s' % option, dest=option, help=help)
+
+        # initialize common command line options
         parser.add_option(
             '-d', '--debug', dest='debug', help='set the debug level for the system'
         )
@@ -68,12 +84,6 @@ def init():
             help='set the import location for trax',
         )
         parser.add_option(
-            '-s',
-            '--settings_env',
-            dest='settings_env',
-            help='set the default settings environment',
-        )
-        parser.add_option(
             '-z', '--zip_exec', dest='zip_exec', help='set the zip executable location'
         )
         parser.add_option(
@@ -82,22 +92,31 @@ def init():
 
         (options, args) = parser.parse_args(sys.argv)
         if options.preference_root:
-            os.environ['BDEV_PREFERENCE_ROOT'] = options.preference_root
+            os.environ['BDEV_PATH_PREFS'] = options.preference_root
         if options.trax_root:
-            os.environ['BDEV_TRAX_ROOT'] = options.trax_root
-        if options.settings_env:
-            os.environ['BDEV_SETTINGS_ENV'] = options.settings_env
+            os.environ['BDEV_PATH_TRAX'] = options.trax_root
         if options.zip_exec:
-            os.environ['BDEV_ZIP_EXEC'] = options.zip_exc
+            os.environ['BDEV_APP_ZIP'] = options.zip_exc
         if options.debug:
             os.environ['BDEV_DEBUG_LEVEL'] = options.debug
         if options.environment:
             os.environ['TRAX_ENVIRONMENT'] = options.environment
         if options.filename:
-            os.environ['BIDE_FILENAME'] = options.filename
-    # initialize the default variables
-    setup(os.environ.get('BDEV_SETTINGS_ENV', 'default'))
-    registerPath(os.environ.get('BDEV_TRAX_ROOT', ''))
+            os.environ['BDEV_FILE_START'] = options.filename
+
+        # set options
+        for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
+            if not addtl:
+                continue
+
+            option, help = addtl.split('=')
+            if option in options.__dict__ and options.__dict__[option] != None:
+                os.environ['BDEV_OPT_%s' % option.upper()] = options.__dict__[option]
+
+    # register default paths
+    for key in os.environ.keys():
+        if key.startswith('BDEV_INCLUDE_'):
+            registerPath(os.environ[key])
 
 
 def normalizePath(path):
@@ -113,48 +132,6 @@ def normalizePath(path):
     return path
 
 
-def record(name, inherits=''):
-    """
-        Records the current environment settings to the inputed environment
-        name.
-
-        :param name:
-            <str> name of the environment to record the current settings to
-        :param env_vars:
-            <bool> flag whether or not the os.environ variables should be saved
-        :param sys_paths:
-            <bool> flag whether or not the sys.path data should be saved
-    """
-    import blurdev
-    from blurdev.XML import XMLDocument
-
-    doc = XMLDocument()
-    root = doc.addNode('settings')
-    root.setAttribute('version', 1.0)
-    if inherits:
-        root.setAttribute('inherits', inherits)
-
-    # record environment variables
-    import os
-
-    variables = root.addNode('variables')
-
-    for key, value in os.environ.items():
-        xvariable = variables.addNode('variable')
-        xvariable.setAttribute('key', key)
-        xvariable.setAttribute('value', value)
-
-    # record the sys paths
-    import sys
-
-    paths = root.addNode('paths')
-    for path in sys.path:
-        xpath = paths.addNode('path')
-        xpath.setAttribute('value', path)
-
-    doc.save(blurdev.resourcePath('settings_env/%s.xml' % name))
-
-
 def registerPath(path):
     path = normalizePath(path)
     import os.path, sys
@@ -165,45 +142,3 @@ def registerPath(path):
         sys.path.insert(0, path)
         return True
     return False
-
-
-def setup(name):
-    import blurdev
-    from blurdev.XML import XMLDocument
-
-    doc = XMLDocument()
-    settingsfile = blurdev.resourcePath('settings_env/%s.xml' % name)
-    # print 'loading settingsfile', settingsfile
-
-    # load the settings file
-    if not doc.load(settingsfile):
-        return False
-
-    import os, sys
-
-    # use inheritance
-    inherits = doc.root().attribute('inherits')
-    if inherits:
-        setup(inherits)
-
-    # load the environment variables
-    vars = doc.root().findChild('variables')
-    if vars:
-        for var in vars.children():
-            os.environ[var.attribute('key')] = var.attribute('value')
-
-    # load the system paths
-    paths = doc.root().findChild('paths')
-    if paths:
-        for path in paths.children():
-            loc = path.attribute('value')
-            if loc in sys.path:
-                continue
-
-            sys.path.insert(0, loc)
-
-    global _currentEnv
-    if name != 'default':
-        _currentEnv = name
-
-    return True

@@ -26,6 +26,10 @@ class IdeMethodBrowserDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
+        self._document = None
+        self._resultcache = []
+        self._levelstack = []
+
         # set the icons
         from PyQt4.QtGui import QIcon
 
@@ -42,6 +46,47 @@ class IdeMethodBrowserDialog(Dialog):
         self.uiMethodTREE.itemClicked.connect(self.navigateToItem)
         self.uiSortedCHK.clicked.connect(self.updateSorting)
         self.uiSearchTXT.textChanged.connect(self.filterItems)
+
+    def cacheResult(self, text, position=0, currlevel='', typeName='function'):
+        self._resultcache.append((text, position, currlevel, typeName))
+
+    def addCachedResults(self):
+        self._resultcache.sort(lambda x, y: cmp(x[1], y[1]))
+        for text, position, currlevel, typeName in self._resultcache:
+            self.addItem(text, position, currlevel, typeName)
+
+    def addItem(self, text, position=0, currlevel='', typeName='function'):
+        clr = self.uiMethodTREE.palette().color(QPalette.Base).darker(140)
+        item = QTreeWidgetItem(
+            [
+                text.replace('\n', '').replace('\t', '').replace(' ', ''),
+                '%05i' % (self._document.lineIndexFromPosition(position)[0] + 1),
+            ]
+        )
+        iconpath = blurdev.resourcePath('img/ide/%s.png' % typeName.lower())
+        if not os.path.exists(iconpath):
+            iconpath = blurdev.resourcePath('img/ide/function.png')
+
+        item.setSizeHint(0, QSize(0, 20))
+        item.setIcon(0, QIcon(iconpath))
+        item.setTextAlignment(1, Qt.AlignRight | Qt.AlignVCenter)
+        item.setForeground(1, clr)
+
+        # make sure we have a previous level
+        if not currlevel:
+            self._levelstack = []
+
+        while self._levelstack and currlevel <= self._levelstack[-1][0]:
+            self._levelstack.pop()
+
+        # append the item to the current level
+        if self._levelstack:
+            self._levelstack[-1][1].addChild(item)
+        else:
+            self.uiMethodTREE.addTopLevelItem(item)
+
+        # append the parenting level
+        self._levelstack.append((currlevel, item))
 
     def filterItems(self, text, item=None):
         # sort from the root
@@ -75,10 +120,9 @@ class IdeMethodBrowserDialog(Dialog):
             return found
 
     def navigateToItem(self, item):
-        document = self.parent().currentDocument()
-        document.goToLine(int(item.text(1)))
-        document.window().activateWindow()
-        document.setFocus()
+        self._document.goToLine(int(item.text(1)))
+        self._document.window().activateWindow()
+        self._document.setFocus()
 
     def refresh(self):
         # only refresh for visible trees
@@ -90,58 +134,43 @@ class IdeMethodBrowserDialog(Dialog):
         self.uiMethodTREE.blockSignals(True)
 
         self.uiMethodTREE.clear()
+        self._resultcache = []
+        self._levelstack = []
 
-        document = self.parent().currentDocument()
-        if document:
+        self._document = self.parent().currentDocument()
+
+        # parse out the results for the document
+        if self._document:
             import re
             from blurdev.ide import lang
 
-            language = lang.byName(document.language())
+            language = lang.byName(self._document.language())
             if language:
                 descriptors = language.descriptors()
 
                 if descriptors:
                     levelstack = []
-                    text = self.parent().currentDocument().text()
-                    lines = text.split('\n')
-                    clr = self.uiMethodTREE.palette().color(QPalette.Base).darker(140)
+                    try:
+                        text = str(self.parent().currentDocument().text())
+                    except:
+                        self.cacheResult('Error converting text to string')
+                        text = ''
 
-                    for lineno, line in enumerate(lines):
+                    if text:
                         for descriptor in descriptors:
-                            results = descriptor.match(str(line))
+                            result = descriptor.search(text)
 
-                            if results:
-                                item = QTreeWidgetItem(
-                                    [results['name'], '%05i' % (lineno + 1)]
+                            while result:
+                                self.cacheResult(
+                                    result.group('name'),
+                                    result.start(),
+                                    result.group('level'),
+                                    result.groupdict().get('type', descriptor.dtype),
                                 )
-                                iconpath = blurdev.resourcePath(
-                                    'img/ide/%s.png' % results['type'].lower()
-                                )
-                                if not os.path.exists(iconpath):
-                                    iconpath = blurdev.resourcePath(
-                                        'img/ide/function.png'
-                                    )
+                                result = descriptor.search(text, result.end())
 
-                                item.setSizeHint(0, QSize(0, 20))
-                                item.setIcon(0, QIcon(iconpath))
-                                item.setTextAlignment(
-                                    1, Qt.AlignRight | Qt.AlignVCenter
-                                )
-                                item.setForeground(1, clr)
-
-                                # make sure we have a previous level
-                                currlevel = results['level']
-                                while levelstack and currlevel <= levelstack[-1][0]:
-                                    levelstack.pop()
-
-                                # append the item to the current level
-                                if levelstack:
-                                    levelstack[-1][1].addChild(item)
-                                else:
-                                    self.uiMethodTREE.addTopLevelItem(item)
-
-                                # append the parenting level
-                                levelstack.append((currlevel, item))
+        # add the items to the tree
+        self.addCachedResults()
 
         self.updateSorting()
         self.filterItems(self.uiSearchTXT.text())

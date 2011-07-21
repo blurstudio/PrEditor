@@ -9,19 +9,56 @@
 #
 
 import os
+import glob
+
+
+def allTemplNames():
+    names = list(set(templNames() + userTemplNames()))
+    names.sort()
+    return names
+
+
+def templFilename(templname):
+    import blurdev
+
+    return blurdev.resourcePath('templ/%s.templ' % templname)
 
 
 def templ(templname, options={}):
-    import os.path, blurdev
+    import blurdev
 
-    fname = blurdev.resourcePath('templ/%s.templ' % templname)
+    # look for the user template
+    fname = blurdev.prefPath('templ/%s.templ' % templname)
+
+    # look for the installed template
+    if not os.path.exists(fname):
+        fname = blurdev.resourcePath('templ/%s.templ' % templname)
+
+    # return the template
     if os.path.exists(fname):
         return fromFile(fname, options)
     return ''
 
 
+def userTemplFilename(templname):
+    import blurdev
+
+    return blurdev.prefPath('templ/%s.templ' % templname)
+
+
+def userTemplNames():
+    import blurdev
+
+    filenames = glob.glob(blurdev.prefPath('templ/*.templ'))
+
+    names = [os.path.basename(filename).split('.')[0] for filename in filenames]
+    names.sort()
+
+    return names
+
+
 def templNames():
-    import glob, os.path, blurdev
+    import blurdev
 
     filenames = glob.glob(blurdev.resourcePath('templ/*.templ'))
 
@@ -112,28 +149,24 @@ def formatText(text, options={}):
 
         # format author info
         elif check.startswith('author'):
-            from blurdev.config import configSet
-
-            author = configSet.find('Author')
-
             # include the author's email
             if option == 'email':
-                repl = os.environ.get('BDEV_AUTHOR_EMAIL', author.email)
+                repl = os.environ.get('BDEV_AUTHOR_EMAIL', '')
 
             if option == 'user':
-                repl = os.environ.get('BDEV_AUTHOR_EMAIL', author.email).split('@')[0]
+                repl = os.environ.get('BDEV_AUTHOR_EMAIL', '').split('@')[0]
 
             # include the author's company
             elif option == 'company':
-                repl = os.environ.get('BDEV_AUTHOR_COMPANY', author.company)
+                repl = os.environ.get('BDEV_AUTHOR_COMPANY', '')
 
             # include the author's initials
             elif option == 'initials':
-                repl = os.environ.get('BDEV_AUTHOR_INITIALS', author.initials)
+                repl = os.environ.get('BDEV_AUTHOR_INITIALS', '')
 
             # include the author's name
             elif option == 'name':
-                repl = os.environ.get('BDEV_AUTHOR_NAME', author.name)
+                repl = os.environ.get('BDEV_AUTHOR_NAME', '')
 
         # format standard options
         elif check in options:

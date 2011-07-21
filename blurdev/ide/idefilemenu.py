@@ -10,7 +10,8 @@
 
 import os.path
 
-from PyQt4.QtGui import QMenu, QIcon
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QMenu, QIcon, QApplication
 
 import blurdev
 
@@ -100,10 +101,7 @@ class IdeFileMenu(QMenu):
             act.triggered.connect(ide.runCurrentStandaloneDebug)
 
         self.addSeparator()
-        act = self.addAction('Copy Filename')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
-        act.triggered.connect(ide.copyFilenameToClipboard)
-
+        self.addAction(ide.uiCopyFilenameACT)
         if projectMode:
             self.addSeparator()
 
@@ -128,6 +126,8 @@ class IdeFileMenu(QMenu):
             )
             == msg.Yes
         ):
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+
             import os, shutil
 
             fpath = self.filepath()
@@ -140,6 +140,8 @@ class IdeFileMenu(QMenu):
             item = self.ide().currentProjectItem()
             if item and item.parent():
                 item.parent().refresh()
+
+            QApplication.restoreOverrideCursor()
 
     def filepath(self):
         return self._filepath

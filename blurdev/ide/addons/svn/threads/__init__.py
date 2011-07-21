@@ -9,9 +9,11 @@
 #
 
 import pysvn
-import blurdev
+import traceback
 
 from PyQt4.QtCore import QThread, pyqtSignal
+
+import blurdev
 
 from blurdev.decorators import abstractmethod
 from blurdev.ide.addons import svn
@@ -31,6 +33,68 @@ class DataCollectionThread(QThread):
         # create expressions
         client = pysvn.Client()
         self._results = client.status(self._filepath)
+
+    def setFilepath(self, filepath):
+        self._filepath = filepath
+
+
+class LogThread(QThread):
+    def __init__(self):
+        QThread.__init__(self)
+
+        self._results = []
+        self._filepath = ''
+        self._revisionStart = pysvn.Revision(pysvn.opt_revision_kind.head)
+        self._revisionEnd = pysvn.Revision(pysvn.opt_revision_kind.number, 0)
+        self._discoverChanged = False
+        self._strictHistory = True
+        self._limit = 0
+        self._pegRevision = pysvn.Revision(pysvn.opt_revision_kind.unspecified)
+        self._includeMergedRevisions = False
+
+    def filepath(self):
+        return self._filepath
+
+    def results(self):
+        return self._results
+
+    def run(self):
+        # create expressions
+        client = pysvn.Client()
+        try:
+            self._results = client.log(
+                self._filepath,
+                revision_start=self._revisionStart,
+                revision_end=self._revisionEnd,
+                discover_changed_paths=self._discoverChanged,
+                strict_node_history=self._strictHistory,
+                limit=self._limit,
+                peg_revision=self._pegRevision,
+                include_merged_revisions=self._includeMergedRevisions,
+            )
+        except:
+            self._results = []
+
+    def setRevisionStart(self, revision):
+        self._revisionStart = revision
+
+    def setRevisionEnd(self, revision):
+        self._revisionEnd = revision
+
+    def setDiscoverChanged(self, state):
+        self._discoverChanged = state
+
+    def setStrictHierarchy(self, state):
+        self._strictHistory = state
+
+    def setLimit(self, limit):
+        self._limit = limit
+
+    def setPegRevision(self, revision):
+        self._pegRevision = revision
+
+    def setIncludeMergedRevisions(self, state):
+        self._includeMergedRevisions = state
 
     def setFilepath(self, filepath):
         self._filepath = filepath
@@ -88,12 +152,8 @@ class ActionThread(QThread):
                 rev_number = -1
 
             # extract the user friendly action name
-            action = (
-                str(event_dict['action'])
-                .replace(self.title().lower() + '_', '')
-                .capitalize()
-            )
-            if action == 'Postfix_txdelta':
+            action = str(event_dict['action']).split('_')[-1].capitalize()
+            if action == 'Txdelta':
                 action = 'Sending content'
 
             # trigger the event occurred action
@@ -111,7 +171,15 @@ class ActionThread(QThread):
         # create the callbacks
         client = pysvn.Client()
         self.connectClient(client)
-        self.runClient(client)
+
+        try:
+            self.runClient(client)
+        except pysvn.ClientError, e:
+            self.notify({'error': str(e.message)})
+        except:
+            self.notify(
+                {'error': 'Unknown python error occurred.\n' + traceback.format_exc()}
+            )
 
     def title(self):
         return self._title

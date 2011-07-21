@@ -51,7 +51,7 @@ def packagePath(path, outputfile):
     import os
     from PyQt4.QtCore import QProcess
 
-    zipexe = os.get('BDEV_ZIP_EXEC')
+    zipexe = os.get('BDEV_APP_ZIP')
     if not zipexe:
         return False
 

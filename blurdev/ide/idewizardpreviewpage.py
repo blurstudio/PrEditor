@@ -29,7 +29,6 @@ class ComponentItem(QTreeWidgetItem):
             self.setCheckState(0, Qt.Unchecked)
 
         self._folder = xml.nodeName == 'folder'
-        self._name = name
         self._copyFrom = page.formatText(xml.attribute('copyFrom'))
         self._templateFrom = page.formatText(xml.attribute('templateFrom'))
 
@@ -62,7 +61,7 @@ class ComponentItem(QTreeWidgetItem):
         import os, shutil
 
         path = str(path)
-        newpath = os.path.join(path, self._name)
+        newpath = os.path.join(path, str(self.text(0)))
 
         # create a folder
         if self._folder:
@@ -110,6 +109,8 @@ class IdeWizardPreviewPage(QWizardPage):
         self._moduleFile = moduleFile
         self._options = {}
         self.uiComponentsTREE.itemChanged.connect(self.refreshChecked)
+        self.uiComponentsTREE.customContextMenuRequested.connect(self.showMenu)
+        self.uiComponentsTREE.itemDoubleClicked.connect(self.renameCurrentItem)
 
         self.registerField('components', self)
 
@@ -176,10 +177,34 @@ class IdeWizardPreviewPage(QWizardPage):
         )
         self.uiComponentsTREE.blockSignals(False)
 
+    def renameCurrentItem(self):
+        from PyQt4.QtGui import QInputDialog, QLineEdit
+
+        item = self.uiComponentsTREE.currentItem()
+        if not item:
+            return False
+
+        text, accepted = QInputDialog.getText(
+            self, 'Rename...', 'New Name:', QLineEdit.Normal, item.text(0)
+        )
+        if accepted:
+            item.setText(0, text)
+
     def relativePath(self, relpath):
         import blurdev
 
         return blurdev.relativePath(self._moduleFile, relpath)
+
+    def showMenu(self):
+        from PyQt4.QtGui import QMenu, QCursor
+
+        item = self.uiComponentsTREE.currentItem()
+        if not item:
+            return False
+
+        menu = QMenu(self)
+        menu.addAction('Rename...').triggered.connect(self.renameCurrentItem)
+        menu.exec_(QCursor.pos())
 
     def validatePage(self):
         if not self.uiRootPATH.isResolved():

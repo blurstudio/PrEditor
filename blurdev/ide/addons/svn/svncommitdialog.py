@@ -16,6 +16,7 @@ from PyQt4.QtCore import QThread, QFileInfo, QVariant, Qt
 from PyQt4.QtGui import QFileIconProvider, QTreeWidgetItem, QMessageBox
 
 from blurdev.ide.addons.svn import svnconfig
+from blurdev.ide.addons.svn import svnops
 from blurdev.ide.addons.svn.threads import DataCollectionThread
 
 
@@ -46,14 +47,19 @@ class SvnCommitDialog(Dialog):
 
         # create connections
         self._thread.finished.connect(self.refreshResults)
+        self.uiRecentBTN.clicked.connect(self.pickMessage)
         self.uiOkBTN.clicked.connect(self.accept)
         self.uiCancelBTN.clicked.connect(self.reject)
         self.uiShowUnversionedCHK.clicked.connect(self.refreshResults)
         self.uiChangeTREE.itemChanged.connect(self.updateInfo)
+        self.uiChangeTREE.customContextMenuRequested.connect(self.showMenu)
 
         self.uiOkBTN.setEnabled(False)
 
     def accept(self):
+        if self._thread.isRunning():
+            return
+
         # grab the commit comment
         comment = str(self.uiMessageTXT.toPlainText())
         if not comment:
@@ -65,6 +71,9 @@ class SvnCommitDialog(Dialog):
             )
             if answer == QMessageBox.No:
                 return False
+
+        # record the current message
+        svnconfig.recordMessage(comment)
 
         # collect the files to submit
         nonversioned = []
@@ -122,6 +131,22 @@ class SvnCommitDialog(Dialog):
         self._thread.setFilepath(self._filepath)
         self._thread.start()
 
+    def pickMessage(self):
+        message = svnops.getMessage()
+        if message:
+            self.uiMessageTXT.setText(message)
+
+    def reject(self):
+        if self._thread.isRunning():
+            return
+
+        # grab the commit comment
+        comment = str(self.uiMessageTXT.toPlainText())
+        if comment:
+            svnconfig.recordMessage(comment)
+
+        super(SvnCommitDialog, self).reject()
+
     def refreshResults(self):
         self.uiChangeTREE.blockSignals(True)
         self.uiChangeTREE.setUpdatesEnabled(False)
@@ -133,6 +158,11 @@ class SvnCommitDialog(Dialog):
         # collect the results and sort them
         results = self._thread.results()
         results.sort(svnconfig.sortStatus)
+
+        if os.path.isfile(self._filepath):
+            basepath = os.path.dirname(self._filepath)
+        else:
+            basepath = self._filepath
 
         # reload the tree
         self.uiChangeTREE.clear()
@@ -152,7 +182,7 @@ class SvnCommitDialog(Dialog):
             # create the item (only show relative paths)
             item = QTreeWidgetItem(
                 [
-                    result.path.replace(self._filepath, ''),
+                    result.path.replace(basepath, '.'),
                     os.path.splitext(result.path)[1],
                     str(result.text_status),
                 ]
@@ -166,8 +196,8 @@ class SvnCommitDialog(Dialog):
                 item.setCheckState(0, Qt.Unchecked)
 
             # set the fg/bg colors based on status
-            fg = data['foreground']
-            bg = data['background']
+            fg = svnconfig.ACTION_COLORS[data['foreground']]
+            bg = svnconfig.ACTION_COLORS[data['background']]
 
             for i in range(item.columnCount()):
                 if fg:
@@ -200,6 +230,17 @@ class SvnCommitDialog(Dialog):
 
         self.uiChangeTREE.setUpdatesEnabled(True)
         self.uiChangeTREE.blockSignals(False)
+
+    def showMenu(self):
+        item = self.uiChangeTREE.currentItem()
+        if item:
+            from PyQt4.QtGui import QCursor
+            from svnactionmenu import SvnActionMenu
+
+            menu = SvnActionMenu(
+                self, 'commit', str(item.data(0, Qt.UserRole).toString())
+            )
+            menu.exec_(QCursor.pos())
 
     def updateInfo(self):
         checked = 0

@@ -565,17 +565,11 @@ class Core(QObject):
         return False
 
     def runStandalone(
-        self,
-        filename,
-        debugLevel=None,
-        basePath='',
-        environ=None,
-        paths=None,
-        isFile=True,
+        self, filename, debugLevel=None, basePath='', environ=None, paths=None
     ):
         from blurdev import osystem
 
-        osystem.startfile(filename, debugLevel, basePath, isFile)
+        osystem.startfile(filename, debugLevel, basePath)
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """

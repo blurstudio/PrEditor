@@ -8,7 +8,9 @@
 # 	\date		11/02/10
 #
 
+import os
 from blurdev.gui import Dialog
+from blurdev import osystem
 
 
 class IdeProjectFavoritesDialog(Dialog):
@@ -31,7 +33,7 @@ class IdeProjectFavoritesDialog(Dialog):
             QFileDialog.getOpenFileName(
                 self,
                 'Blur IDE Project',
-                IdeProject.DefaultPath,
+                osystem.expandvars(os.environ.get('BDEV_PATH_PROJECT', '')),
                 'Blur IDE Projects (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
             )
         )
@@ -77,7 +79,6 @@ class IdeProjectFavoritesDialog(Dialog):
                 0, '<b>%s Project</b><hr><small>%s</small>' % (name, filename)
             )
             item.setData(0, Qt.UserRole, filename)
-
             item.setIcon(0, favicon)
             self.uiFavoriteTREE.addTopLevelItem(item)
 

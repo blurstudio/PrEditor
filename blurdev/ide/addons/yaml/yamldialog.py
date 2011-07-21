@@ -76,20 +76,6 @@ class YamlDialog(Dialog):
             self.uiRequiresLIST.addItem(text)
 
     def build(self):
-        from PyQt4.QtGui import QMessageBox as msg
-
-        query = (
-            'This will create a local build of %s v%s\n\nfrom:\n\n%s.\n\nContinue?'
-            % (
-                self.uiPackageTXT.text(),
-                self.uiVersionTXT.text(),
-                self.document().filename(),
-            )
-        )
-
-        if msg.question(self, 'Releasing Project', query, msg.Yes | msg.No) == msg.No:
-            return False
-
         # save the YAML file
         self.save()
 
@@ -135,18 +121,6 @@ class YamlDialog(Dialog):
         # pull out a message for the release
         from PyQt4.QtGui import QInputDialog as iput, QMessageBox as msg
 
-        query = (
-            'This will create a public build of %s v%s\n\nfrom:\n\n%s.\n\nContinue?'
-            % (
-                self.uiPackageTXT.text(),
-                self.uiVersionTXT.text(),
-                self.document().filename(),
-            )
-        )
-
-        if msg.question(self, 'Releasing Project', query, msg.Yes | msg.No) == msg.No:
-            return False
-
         message, accept = iput.getText(self, 'Release Message', 'Release Message')
         if not message:
             msg.critical(
@@ -170,26 +144,6 @@ class YamlDialog(Dialog):
 
         name = self.document().value('name')
         ver = self.document().value('version')
-
-        # prompt the user for the next steps
-        msg.critical(
-            self,
-            'Next Steps',
-            '%s v%s has been released.\n\nNext steps:\n\n1. Update the %s Puppet file to %s\n2. Commit to SVN\n'
-            % (name, ver, name, ver),
-        )
-
-        # update puppet
-        if (
-            msg.question(
-                self,
-                'Update Puppet',
-                'Would you like to update Puppet right now?\n\nWarning: Only click yes if you completed the previous steps.',
-                msg.Yes | msg.No,
-            )
-            == msg.Yes
-        ):
-            osystem.shell('/usr/local/bin/updatepuppet')
 
     def removeAuthor(self):
         from PyQt4.QtGui import QMessageBox as msg

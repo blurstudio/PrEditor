@@ -8,8 +8,12 @@
 # 	\date		11/02/10
 #
 
+import os
+
 from blurdev.gui import Dialog
 from blurdev.ide.ideproject import IdeProjectItem
+
+from blurdev import osystem
 
 
 class IdeProjectDialog(Dialog):
@@ -123,7 +127,9 @@ class IdeProjectDialog(Dialog):
             from ideproject import IdeProject
 
             project = IdeProject()
-            self.uiProjectPATH.setFilePath(IdeProject.DefaultPath)
+            self.uiProjectPATH.setFilePath(
+                osystem.expandvars(os.environ.get('BDEV_PATH_PROJECT', ''))
+            )
             self.uiProjectPATH.setEnabled(True)
             self.uiProjectNameTXT.setText('')
             self.uiProjectNameTXT.setEnabled(True)

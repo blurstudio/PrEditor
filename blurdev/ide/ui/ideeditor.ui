@@ -29,48 +29,6 @@
          <number>2</number>
         </property>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QComboBox" name="uiCommandDDL"/>
-          </item>
-          <item>
-           <widget class="QComboBox" name="uiExecuteDDL">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <item>
-             <property name="text">
-              <string>Run</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Standalone</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Debug</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QToolButton" name="uiRunBTN">
-            <property name="toolTip">
-             <string>Run the selected script in the selected mode</string>
-            </property>
-            <property name="text">
-             <string>...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <widget class="QTabWidget" name="uiBrowserTAB">
           <property name="minimumSize">
            <size>
@@ -751,6 +709,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+B</string>
+   </property>
+  </action>
+  <action name="uiCopyFilenameACT">
+   <property name="text">
+    <string>Copy Filename</string>
+   </property>
+   <property name="toolTip">
+    <string>Copy the filename to Clipboard.</string>
    </property>
   </action>
  </widget>

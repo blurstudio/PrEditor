@@ -29,15 +29,7 @@ class CleanupThread(ActionThread):
             \remarks	checkin the information to the client
             \param		client		<pysvn.Client>
         """
-        try:
-            client.cleanup(self._filepath)
-        except pysvn.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown cleanup error occurred.'})
-            return
-
+        client.cleanup(self._filepath)
         self.notify(
             {'action': 'Completed', 'path': 'Cleanup command completed successfully.'}
         )

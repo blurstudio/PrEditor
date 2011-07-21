@@ -9,8 +9,6 @@
 #
 
 # required python module for the SVN interface
-import pysvn
-
 from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.ideregistry import RegistryType
 
@@ -30,24 +28,50 @@ class SvnAddon(IdeAddon):
             \param		ide		<blurdev.ide.IdeEditor>
             \return		<bool> success
         """
+        # make sure that we can import the pysvn module
+        import pysvn
+
         # connect the filemenu class
         from blurdev.ide.addons.svn.svnfilemenu import SvnFileMenu
 
         ide.setFileMenuClass(SvnFileMenu)
 
         # connect the svn overlay lookup method
-        ide.registry().register(
-            RegistryType.Overlay, '.*', (self.filepathOverlay, '', '')
-        )
+        ide.registry().register(RegistryType.Overlay, '.*', self.filepathOverlay)
 
         # connect the settings recorded signal
         from blurdev.ide.addons.svn import svnconfig
 
         ide.settingsRecorded.connect(svnconfig.recordSettings)
 
+        # set the colors based on the ide preferences
+        from blurdev.ide.addons.svn import svnconfig
+
+        configSet = ide.globalConfigSet()
+        scheme = configSet.section('Editor::Scheme')
+
+        svnconfig.ACTION_COLORS['Add'] = scheme.value('document_color_string')
+        svnconfig.ACTION_COLORS['Added'] = scheme.value('document_color_string')
+        svnconfig.ACTION_COLORS['Conflict'] = scheme.value('document_color_number')
+        svnconfig.ACTION_COLORS['External'] = scheme.value('document_color_text')
+        svnconfig.ACTION_COLORS['Replace'] = scheme.value('document_color_text')
+        svnconfig.ACTION_COLORS['Replaced'] = scheme.value('document_color_text')
+        svnconfig.ACTION_COLORS['Modified'] = scheme.value('document_color_keyword')
+        svnconfig.ACTION_COLORS['Update'] = scheme.value('document_color_keyword')
+        svnconfig.ACTION_COLORS['Revert'] = scheme.value('document_color_keyword')
+        svnconfig.ACTION_COLORS['Delete'] = scheme.value('document_color_number')
+        svnconfig.ACTION_COLORS['Deleted'] = scheme.value('document_color_number')
+        svnconfig.ACTION_COLORS['Error'] = scheme.value('document_color_number')
+        svnconfig.ACTION_COLORS['COmmand'] = scheme.value('document_color_text')
+        svnconfig.ACTION_COLORS['Completed'] = scheme.value('document_color_comment')
+
         svnconfig.restoreSettings()
 
+        return True
+
     def filepathOverlay(self, filepath):
+        import pysvn
+
         client = pysvn.Client()
 
         # make sure we have a client svn area
@@ -92,6 +116,8 @@ class SvnAddon(IdeAddon):
         from blurdev.ide.addons.svn import svnconfig
 
         ide.settingsRecorded.disconnect(svnconfig.recordSettings)
+
+        return True
 
 
 def login(realm, username, may_save):

@@ -9,5 +9,5 @@
 #
 
 from configdialog import ConfigDialog
-
-from configwidget import ConfigWidget
+from configsectionwidget import ConfigSectionWidget
+from configset import ConfigSet

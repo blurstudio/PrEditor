@@ -9,6 +9,7 @@
 #
 
 from blurdev.XML import XMLDocument
+from blurdev import osystem
 
 # -------------------------------------------------------------------------------------------------------------
 
@@ -50,7 +51,9 @@ class Preference(XMLDocument):
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
 
-        return os.path.join(os.environ['BDEV_PREFERENCE_ROOT'], 'app_%s/' % coreName)
+        return os.path.join(
+            osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
+        )
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """

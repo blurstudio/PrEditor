@@ -20,23 +20,19 @@ class MethodDescriptor(object):
     def __init__(self, dtype, expr):
         self.dtype = dtype
         try:
-            self.expr = re.compile(expr)
+            self.expr = re.compile(expr, re.DOTALL | re.MULTILINE)
         except:
             print 'error generating expression', expr
             self.expr = None
 
-    def match(self, text):
+    def search(self, text, startpos=-1):
         if not self.expr:
-            return {}
+            return None
 
-        results = self.expr.match(text)
-
-        if results:
-            output = results.groupdict()
-            output.setdefault('type', self.dtype)
-            return output
+        if startpos != -1:
+            return self.expr.search(text, startpos)
         else:
-            return {}
+            return self.expr.search(text)
 
 
 class Language(object):
@@ -48,6 +44,7 @@ class Language(object):
         self._lexerClass = -1
         self._lexerClassName = ''
         self._lexerModule = ''
+        self._lexerColorTypes = {}
 
         # comment information
         self._lineComment = ''
@@ -71,6 +68,9 @@ class Language(object):
 
     def name(self):
         return self._name
+
+    def lexerColorTypes(self):
+        return self._lexerColorTypes
 
     def lineComment(self):
         return self._lineComment
@@ -146,5 +146,16 @@ class Language(object):
             expr = parser.get('DESCRIPTORS', option)
             option = re.match('([^\d]*)\d*', option).groups()[0]
             plugin._descriptors.append(MethodDescriptor(option, expr))
+
+        # load the different color map options
+        try:
+            options = parser.options('COLOR_TYPES')
+        except:
+            options = []
+
+        for option in options:
+            plugin._lexerColorTypes[option] = [
+                int(val) for val in parser.get('COLOR_TYPES', option).split(',')
+            ]
 
         return plugin

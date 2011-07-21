@@ -51,21 +51,14 @@ class CheckoutThread(ActionThread):
         elif not self.filepath():
             self.notify({'error': 'No filepath was specified to checkout to.'})
 
-        try:
-            client.checkout(
-                self.url(),
-                self.filepath(),
-                self.isRecursive(),
-                self.revision(),
-                self.pegRevision(),
-                self.ignoreExternals(),
-            )
-        except pysvn._pysvn_2_5.ClientError, e:
-            self.notify({'error': str(e.message)})
-            return
-        except:
-            self.notify({'error': 'Unknown checkout error occurred.'})
-            return
+        client.checkout(
+            self.url(),
+            self.filepath(),
+            self.isRecursive(),
+            self.revision(),
+            self.pegRevision(),
+            self.ignoreExternals(),
+        )
 
     def setFilepath(self, filepath):
         self._filepath = str(filepath)

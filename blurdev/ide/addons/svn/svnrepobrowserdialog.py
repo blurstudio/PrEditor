@@ -13,7 +13,7 @@ import datetime
 import pysvn
 
 from PyQt4.QtCore import Qt, QVariant
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication
+from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication, QCursor
 
 import blurdev
 from blurdev.gui import Dialog
@@ -23,27 +23,56 @@ from blurdev.ide.addons.svn import svnconfig
 client = pysvn.Client()
 
 
-class SvnFileItem(QTreeWidgetItem):
+class SvnDetailItem(QTreeWidgetItem):
     def __init__(self, info):
-        # extract the information
-        filename = os.path.basename(info.name)
-        extension = os.path.splitext(filename)[1]
-        revision = str(info.created_rev.number)
-        author = str(info.last_author)
-        size = str(info.size)
-        date = datetime.datetime.fromtimestamp(info.time).strftime('%Y-%m-%d %H:%M:%S')
-        lock = 'False'
+        if info:
+            # extract the information
+            url = info.name
+            filename = os.path.basename(info.name)
+            extension = os.path.splitext(filename)[1]
+            revision = str(info.created_rev.number)
+            author = str(info.last_author)
+            size = str(info.size)
+            date = datetime.datetime.fromtimestamp(info.time).strftime(
+                '%Y-%m-%d %H:%M:%S'
+            )
+            lock = 'False'
+            isfile = info.kind == pysvn.node_kind.file
+        else:
+            url = ''
+            filename = '..'
+            extension = ''
+            revision = ''
+            author = ''
+            size = ''
+            date = ''
+            lock = ''
+            isfile = False
 
         # initialize the item
         QTreeWidgetItem.__init__(
             self, [filename, extension, revision, author, size, date, lock]
         )
-        self._info = info
 
-        self.setIcon(0, QIcon(blurdev.resourcePath('img/file.png')))
+        # store additional information
+        self._info = info
+        self._isfile = isfile
+        self._url = url
+
+        if isfile:
+            self.setIcon(0, QIcon(blurdev.resourcePath('img/file.png')))
+        else:
+            self.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
+            self.setText(0, '/' + filename)
+
+    def isFile(self):
+        return self._isfile
 
     def info(self):
         return self._info
+
+    def url(self):
+        return self._url
 
 
 class SvnUrlItem(QTreeWidgetItem):
@@ -57,10 +86,14 @@ class SvnUrlItem(QTreeWidgetItem):
         self._info = None
         self._url = url
         self._files = []
+        self._folders = []
 
         # update the look of the item
         self._loaded = False
         self.setChildIndicatorPolicy(self.ShowIndicator)
+
+    def folders(self):
+        return self._folders
 
     def findChild(self, name):
         for i in range(self.childCount()):
@@ -120,6 +153,7 @@ class SvnUrlItem(QTreeWidgetItem):
         for entry in client.ls(self._url, recurse=False):
             if entry.kind != pysvn.node_kind.file:
                 self.addChild(SvnUrlItem(entry.name))
+                self._folders.append(entry)
             else:
                 self._files.append(entry)
 
@@ -143,19 +177,44 @@ class SvnRepoBrowserDialog(Dialog):
 
         self.uiUrlTXT.setText(svnconfig.CURRENT_URL)
 
-        header = self.uiFilesTREE.header()
-        for i in range(self.uiFilesTREE.columnCount() - 1):
+        header = self.uiDetailsTREE.header()
+        for i in range(self.uiDetailsTREE.columnCount() - 1):
             header.setResizeMode(i, header.ResizeToContents)
+
+        self.uiDetailsTREE.sortByColumn(0, Qt.AscendingOrder)
 
         # create connections
         self.uiUrlTXT.returnPressed.connect(self.reset)
 
         self.uiBrowserTREE.itemSelectionChanged.connect(self.showItem)
         self.uiBrowserTREE.itemExpanded.connect(self.loadItem)
+        self.uiBrowserTREE.customContextMenuRequested.connect(self.showBrowserMenu)
+
+        self.uiDetailsTREE.itemDoubleClicked.connect(self.detailNavigate)
+        self.uiDetailsTREE.customContextMenuRequested.connect(self.showDetailsMenu)
 
     def closeEvent(self, event):
         super(SvnRepoBrowserDialog, self).closeEvent(event)
         svnconfig.CURRENT_URL = self.url()
+
+    def detailNavigate(self, item):
+        if item.isFile():
+            return
+
+        path = str(item.text(0))
+        browseritem = self.uiBrowserTREE.currentItem()
+
+        # navigate up a level
+        if path == '/..':
+            parent = browseritem.parent()
+            if parent:
+                self.uiBrowserTREE.setCurrentItem(parent)
+        else:
+            for c in range(browseritem.childCount()):
+                child = browseritem.child(c)
+                if '/%s' % child.text(0) == path:
+                    self.uiBrowserTREE.setCurrentItem(child)
+                    break
 
     def loadItem(self, item):
         item.load()
@@ -192,20 +251,51 @@ class SvnRepoBrowserDialog(Dialog):
 
         self.uiUrlTXT.setText(item.url())
 
-        self.uiFilesTREE.setUpdatesEnabled(False)
-        self.uiFilesTREE.blockSignals(True)
+        self.uiDetailsTREE.setUpdatesEnabled(False)
+        self.uiDetailsTREE.blockSignals(True)
 
-        self.uiFilesTREE.clear()
+        self.uiDetailsTREE.clear()
+        self.uiDetailsTREE.addTopLevelItem(SvnDetailItem(None))
         if item:
             item.load()
-            for file in item.files():
-                self.uiFilesTREE.addTopLevelItem(SvnFileItem(file))
 
-        self.uiFilesTREE.setUpdatesEnabled(True)
-        self.uiFilesTREE.blockSignals(False)
+            # load the folder item
+            for folder in item.folders():
+                self.uiDetailsTREE.addTopLevelItem(SvnDetailItem(folder))
+
+            # load the file items
+            for file in item.files():
+                self.uiDetailsTREE.addTopLevelItem(SvnDetailItem(file))
+
+        self.uiDetailsTREE.setUpdatesEnabled(True)
+        self.uiDetailsTREE.blockSignals(False)
 
     def setUrl(self, url):
         self.uiUrlTXT.setText(url)
+
+    def showBrowserMenu(self):
+        item = self.uiBrowserTREE.currentItem()
+        if not item:
+            return
+
+        self.showMenu(item.url())
+
+    def showDetailsMenu(self):
+        item = self.uiDetailsTREE.currentItem()
+        if not item:
+            return
+
+        self.showMenu(item.url())
+
+    def showMenu(self, url):
+        if not url:
+            return
+
+        from blurdev.ide.addons.svn.svnactionmenu import SvnActionMenu
+
+        menu = SvnActionMenu(self, 'repobrowser', url)
+        menu.refreshRequested.connect(self.reset)
+        menu.exec_(QCursor.pos())
 
     def url(self):
         return str(self.uiUrlTXT.text())
