@@ -67,11 +67,11 @@ def init():
     settings.init()
 
     # create the core and application
-    global core
-    global application
+    global core, prefs, application, debug, osystem, settings
     if not core:
         # create the core instance
         from blurdev.cores import Core
+        import prefs, debug, osystem, settings
 
         # create the core
         core = Core()
