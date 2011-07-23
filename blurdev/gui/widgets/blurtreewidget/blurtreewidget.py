@@ -199,7 +199,7 @@ class BlurTreeWidget(LockableTreeWidget):
         # block the signals so the other slots won't be called
         # self.blockSignals( True )
         for index in range(self.topLevelItemCount()):
-            self._itemExpandAll(self.topLevelItem(index), state, timesheets=timesheets)
+            self._itemExpandAll(self.topLevelItem(index), state)
         # self.blockSignals( False )
 
     def hideableColumns(self):
