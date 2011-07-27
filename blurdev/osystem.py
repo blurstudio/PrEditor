@@ -71,8 +71,7 @@ def expandvars(text, cache=None):
 
         output = output.replace(repl, value)
 
-    # resolve any duplicated path separators, etc.
-    return os.path.normpath(output)
+    return output
 
 
 def console(filename):

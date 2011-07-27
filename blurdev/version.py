@@ -9,7 +9,7 @@
 #
 
 _major = 1  # User defined major version
-_minor = 00  # User defined minor version
+_minor = 10  # User defined minor version
 
 # -------------------------------------------------------------------------------------------------------------
 

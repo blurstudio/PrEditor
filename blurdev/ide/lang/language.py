@@ -19,6 +19,7 @@ import PyQt4.Qsci
 class MethodDescriptor(object):
     def __init__(self, dtype, expr):
         self.dtype = dtype
+        self.exprText = expr
         try:
             self.expr = re.compile(expr, re.DOTALL | re.MULTILINE)
         except:
@@ -45,12 +46,17 @@ class Language(object):
         self._lexerClassName = ''
         self._lexerModule = ''
         self._lexerColorTypes = {}
+        self._custom = False
+        self._sourcefile = ''
 
         # comment information
         self._lineComment = ''
 
         # method descriptors
         self._descriptors = []
+
+    def addDescriptor(self, type, expr):
+        self._descriptors.append(MethodDescriptor(type, expr))
 
     def createLexer(self, parent=None):
         # create an instance of the lexer
@@ -65,6 +71,9 @@ class Language(object):
 
     def descriptors(self):
         return self._descriptors
+
+    def isCustom(self):
+        return self._custom
 
     def name(self):
         return self._name
@@ -109,8 +118,67 @@ class Language(object):
 
         return self._lexerClass
 
+    def lexerClassName(self):
+        return self._lexerClassName
+
     def lexerModule(self):
         return self._lexerModule
+
+    def save(self, filename=''):
+        if not filename:
+            filename = self.filename()
+        if not filename:
+            return False
+
+        parser = ConfigParser()
+        parser.add_section('GLOBALS')
+        parser.set('GLOBALS', 'name', self.name())
+        parser.set('GLOBALS', 'filetypes', ';'.join(self.fileTypes()))
+        parser.set('GLOBALS', 'linecomment', self.lineComment())
+
+        parser.add_section('LEXER')
+        parser.set('LEXER', 'class', self.lexerClassName())
+        parser.set('LEXER', 'module', self.lexerModule())
+
+        parser.add_section('DESCRIPTORS')
+        for i, desc in enumerate(self._descriptors):
+            parser.set('DESCRIPTORS', '%s%i' % (desc.dtype, i), desc.exprText)
+
+        parser.add_section('COLOR_TYPES')
+        for key, value in self.lexerColorTypes().items():
+            parser.set('COLOR_TYPES', key, ','.join([str(val) for val in value]))
+
+        # save the language
+        f = open(filename, 'w')
+        parser.write(f)
+        f.close()
+
+        self._sourcefile = filename
+        return True
+
+    def setCustom(self, state):
+        self._custom = state
+
+    def setFileTypes(self, fileTypes):
+        self._fileTypes = fileTypes
+
+    def setLexerClassName(self, className):
+        self._lexerClassName = className
+
+    def setLexerModule(self, module):
+        self._lexerModule = module
+
+    def setLineComment(self, lineComment):
+        self._lineComment = lineComment
+
+    def setLexerColorTypes(self, lexerColorTypes):
+        self._lexerColorTypes = lexerColorTypes
+
+    def setName(self, name):
+        self._name = name
+
+    def sourcefile(self):
+        return self._sourcefile
 
     @staticmethod
     def fromConfig(filename):
@@ -154,8 +222,14 @@ class Language(object):
             options = []
 
         for option in options:
-            plugin._lexerColorTypes[option] = [
-                int(val) for val in parser.get('COLOR_TYPES', option).split(',')
-            ]
+            vals = []
+            for val in parser.get('COLOR_TYPES', option).split(','):
+                try:
+                    vals.append(int(val))
+                except:
+                    pass
+            plugin._lexerColorTypes[option] = vals
+
+        plugin._sourcefile = filename
 
         return plugin

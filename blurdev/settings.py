@@ -132,6 +132,11 @@ def normalizePath(path):
     return path
 
 
+def registerVariable(key, value):
+    os.environ[key] = value
+    startup_environ[key] = value
+
+
 def registerPath(path):
     path = normalizePath(path)
     import os.path, sys

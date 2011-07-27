@@ -254,6 +254,10 @@ class IdeEditor(Window):
         # connect browser menu actions
         self.uiCopyFilenameACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
         self.uiCopyFilenameACT.triggered.connect(self.copyFilenameToClipboard)
+        self.uiExploreACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
+        self.uiExploreACT.triggered.connect(self.documentExploreItem)
+        self.uiConsoleACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
+        self.uiConsoleACT.triggered.connect(self.launchConsole)
 
         self.uiNoDebugACT.triggered.connect(self.setNoDebug)
         self.uiDebugLowACT.triggered.connect(self.setLowDebug)
@@ -273,6 +277,9 @@ class IdeEditor(Window):
         # initialize the addons
         self.loadAddons()
 
+        # sync the environment again after all the addons have been loaded
+        self.syncEnvironment()
+
     def addSubWindow(self, widget):
         window = self.uiWindowsAREA.addSubWindow(widget)
         window.setWindowTitle(widget.windowTitle())
@@ -285,9 +292,13 @@ class IdeEditor(Window):
 
         # add new actions
         menu = window.systemMenu()
-        act = menu.addAction('Copy Filename')
-        act.setIcon(self.uiCopyFilenameACT.icon())
-        act.triggered.connect(widget.copyFilenameToClipboard)
+        # these actions need to have a new triggered call
+        self.duplicateAction(menu, self.uiExploreACT, widget.exploreDocument)
+        self.duplicateAction(menu, self.uiConsoleACT, widget.launchConsole)
+        menu.addSeparator()
+        self.duplicateAction(
+            menu, self.uiCopyFilenameACT, widget.copyFilenameToClipboard
+        )
         menu.addSeparator()
         menu.addAction(self.uiCloseACT)
         menu.addAction(self.uiCloseAllACT)
@@ -703,6 +714,19 @@ class IdeEditor(Window):
 
             if tool:
                 self.setCurrentProject(IdeProject.fromTool(tool))
+
+    def duplicateAction(self, menu, source, trigger=None):
+        """
+            \remarks	Creates a new action with the same name and icon and adds it to the provided menu. Optionaly connect triggered to the new action.
+            \param		menu	<QMenu>
+            \param		source	<QAction>
+            \param		trigger	<function> || <None>
+            \return		<QAction>
+        """
+        act = menu.addAction(source.text())
+        act.setIcon(source.icon())
+        act.triggered.connect(trigger)
+        return act
 
     def editGlobalConfig(self):
         # edit the globals config settings
@@ -1640,6 +1664,16 @@ class IdeEditor(Window):
                 section.value('application_color_highlightedText'),
             )
             self.setPalette(palette)
+
+            # if the ide is managing the application, then update the scheme
+            import blurdev
+
+            if (
+                blurdev.application
+                and blurdev.core
+                and blurdev.core.objectName() == 'ide'
+            ):
+                blurdev.application.setPalette(palette)
 
         # update the documents
         for doc in self.documents():

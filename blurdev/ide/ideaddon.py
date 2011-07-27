@@ -48,6 +48,7 @@ class IdeAddonModule(object):
             sys.path.append(os.path.normcase(self._path))
 
         # import the module
+        print 'loading addon', self._name
         try:
             __import__(self._name)
             sys.modules[self._name].init()

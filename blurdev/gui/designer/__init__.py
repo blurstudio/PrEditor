@@ -109,6 +109,7 @@ def init():
 
 def loadPlugins( filename, importPath = '' ):
     from blurdev.XML import XMLDocument
+    import os, sys
     doc = XMLDocument()
     
     # register the import path location
@@ -120,8 +121,6 @@ def loadPlugins( filename, importPath = '' ):
     filename = osystem.expandvars(filename)
     
     if ( doc.load( filename ) ):
-        import os, sys
-        
         blurdevpath = os.path.abspath( os.path.split( __file__ )[0] + '/../..' )
         
         for child in doc.root().children():

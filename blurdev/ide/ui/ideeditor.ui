@@ -719,6 +719,22 @@
     <string>Copy the filename to Clipboard.</string>
    </property>
   </action>
+  <action name="uiExploreACT">
+   <property name="text">
+    <string>Explore...</string>
+   </property>
+   <property name="toolTip">
+    <string>Show in a file browser.</string>
+   </property>
+  </action>
+  <action name="uiConsoleACT">
+   <property name="text">
+    <string>Explore in Shell...</string>
+   </property>
+   <property name="toolTip">
+    <string>Show folder location in Shell.</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

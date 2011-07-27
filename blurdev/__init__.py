@@ -61,13 +61,13 @@ def runtime(filepath):
 
 
 def init():
+    global core, prefs, application, debug, osystem, settings
     # initialize the settings
     import settings
 
     settings.init()
 
     # create the core and application
-    global core, prefs, application, debug, osystem, settings
     if not core:
         # create the core instance
         from blurdev.cores import Core
@@ -264,10 +264,14 @@ def setAppUserModelID(id, prefix='Blur'):
                     
                     To set the window's icon: widget.setWindowIcon(QIcon('img/icon.png'))
     """
-    import blur.Stone
-
+    try:
+        import blur.Stone
+    except:
+        return False
     if hasattr(blur.Stone, 'qSetCurrentProcessExplicitAppUserModelID'):
         blur.Stone.qSetCurrentProcessExplicitAppUserModelID('%s.%s' % (prefix, id))
+        return True
+    return False
 
 
 def startProgress(title='Progress', parent=None):

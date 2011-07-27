@@ -18,7 +18,6 @@ _loaded = False
 # define global functions
 def init():
     global _loaded
-    global _plugins
     if not _loaded:
         _loaded = True
 

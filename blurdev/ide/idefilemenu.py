@@ -50,16 +50,10 @@ class IdeFileMenu(QMenu):
         self.addSeparator()
 
         # create the explore action
-        act = self.addAction('Explore...')
-        act.setObjectName('uiExploreACT')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
-        act.triggered.connect(ide.documentExploreItem)
+        self.addAction(ide.uiExploreACT)
 
         # create the launch console action
-        act = self.addAction('Explore in Shell...')
-        act.setObjectName('uiConsoleACT')
-        act.triggered.connect(ide.launchConsole)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
+        self.addAction(ide.uiConsoleACT)
 
         if not isfile:
             # create the find in files action

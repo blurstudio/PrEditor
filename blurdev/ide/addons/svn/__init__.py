@@ -50,6 +50,15 @@ class SvnAddon(IdeAddon):
         configSet = ide.globalConfigSet()
         scheme = configSet.section('Editor::Scheme')
 
+        # set the default svn environment variables
+        from blurdev import settings
+
+        settings.startup_environ.setdefault('SVN_APP_COMPARE', 'kdiff3')
+        settings.startup_environ.setdefault(
+            'SVN_CMD_COMPARE',
+            'svn diff --diff-cmd $SVN_APP_COMPARE -r %(revision)s %(filepath)s',
+        )
+
         svnconfig.ACTION_COLORS['Add'] = scheme.value('document_color_string')
         svnconfig.ACTION_COLORS['Added'] = scheme.value('document_color_string')
         svnconfig.ACTION_COLORS['Conflict'] = scheme.value('document_color_number')

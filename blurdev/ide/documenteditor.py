@@ -139,6 +139,21 @@ class DocumentEditor(QsciScintilla):
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
+    def exploreDocument(self):
+        import os
+        from blurdev import osystem
+
+        path = self._filename
+        if os.path.isfile(path):
+            path = os.path.split(path)[0]
+
+        if os.path.exists(path):
+            osystem.explore(path)
+        else:
+            QMessageBox.critical(
+                None, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
+            )
+
     def exec_(self):
         if self.save():
             import blurdev
@@ -151,7 +166,7 @@ class DocumentEditor(QsciScintilla):
 
             os.startfile(str(self.filename()))
 
-    def findInFiles(self):
+    def findInFiles(self, state=False):
         from ideeditor import IdeEditor
 
         window = self.window()
@@ -161,7 +176,7 @@ class DocumentEditor(QsciScintilla):
     def goToLine(self, line=None):
         from PyQt4.QtGui import QInputDialog
 
-        if line == None:
+        if type(line) != int:
             line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
         else:
             accepted = True
@@ -178,6 +193,13 @@ class DocumentEditor(QsciScintilla):
             self.setLanguage('')
         else:
             self.setLanguage(action.text())
+
+    def launchConsole(self):
+        if not self._filename:
+            return False
+        from blurdev import osystem
+
+        osystem.console(self._filename)
 
     def lineMarginWidth(self):
         return self.marginWidth(self.SymbolMargin)
@@ -326,7 +348,7 @@ class DocumentEditor(QsciScintilla):
         # set editor level colors
         self.setFoldMarginColors(
             scheme.value('document_color_background'),
-            QColor('document_color_background').darker(120),
+            scheme.value('document_color_background').darker(120),
         )
         self.setCaretLineBackgroundColor(scheme.value('document_color_currentLine'))
         self.setCaretForegroundColor(scheme.value('document_color_cursor'))

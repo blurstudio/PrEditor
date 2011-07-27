@@ -30,10 +30,14 @@ class FindFilesThread(QThread):
         self._findall = False
         self._results = {}  # file, lines pairing
         self._resultsCount = 0
+        self._searchedCount = 0
 
     def clear(self):
         self._results.clear()
         self._resultsCount = 0
+
+    def searchedCount(self):
+        return self._searchedCount
 
     def results(self):
         return self._results
@@ -52,6 +56,9 @@ class FindFilesThread(QThread):
             for ftype in self._filetypes.split(';')
         ]
         filetypes = [os.path.splitext(ftype)[1] for ftype in self._filetypes.split(';')]
+
+        self._resultsCount = 0
+        self._searchedCount = 0
 
         # look up the files in a separate thread
         for (path, dirs, files) in os.walk(self._basepath):
@@ -77,6 +84,8 @@ class FindFilesThread(QThread):
 
         lines = f.readlines()
         f.close()
+
+        self._searchedCount += 1
 
         # search through the lines in the file
         for lineno, line in enumerate(lines):
@@ -132,6 +141,8 @@ class FindFilesDialog(Dialog):
 
         self._searchThread.finished.connect(self.searchFinished)
 
+        self.refreshFeedbackLabel(0, 0, 0)
+
     def closeEvent(self, event):
         # make sure to kill the thread before closing
         self._searchThread.terminate()
@@ -166,8 +177,13 @@ class FindFilesDialog(Dialog):
 
         self.uiResultsTREE.clear()
         results = self._searchThread.results()
-        self.setFileCount(len(results))
-        self.setResultsCount(self._searchThread.resultsCount())
+
+        self.refreshFeedbackLabel(
+            len(results),
+            self._searchThread.resultsCount(),
+            self._searchThread.searchedCount(),
+        )
+
         filenames = results.keys()
         filenames.sort()
         for filename in filenames:
@@ -215,8 +231,7 @@ class FindFilesDialog(Dialog):
         # clear the data
         self._searchThread.clear()
         self.uiResultsTREE.clear()
-        self.setFileCount(0)
-        self.setResultsCount(0)
+        self.refreshFeedbackLabel(0, 0, 0)
 
         # set the search options
         self._searchThread.setSearchText(str(self.uiSearchTXT.text()))
@@ -230,13 +245,19 @@ class FindFilesDialog(Dialog):
     def setBasePath(self, path):
         self.uiBasePathTXT.setText(path)
 
-    def setFileCount(self, count):
+    def refreshFeedbackLabel(self, fileCount, resultCount, searchedCount):
         """ Updates the file count label """
-        self.uiFileCountLBL.setText('Files: %i' % count)
+        self.uiFeedbackLBL.setText(
+            'Found %i times in %s files out of %s files searched.'
+            % (resultCount, fileCount, searchedCount)
+        )
 
     def setResultsCount(self, count):
         """ Updates the results count label """
         self.uiResultsCountLBL.setText('Instances: %i' % count)
+
+    def setSearchedCount(self, count):
+        self.uiSearchedLBL.setText('in %i' % count)
 
     def stopSearch(self):
         self._searchThread.terminate()
@@ -250,4 +271,6 @@ class FindFilesDialog(Dialog):
 
             FindFilesDialog._instance = FindFilesDialog(parent)
             FindFilesDialog._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+
+        FindFilesDialog._instance.uiSearchTXT.setFocus()
         return FindFilesDialog._instance

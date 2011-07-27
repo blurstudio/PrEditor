@@ -200,7 +200,7 @@ def registerSections(configSet):
         'document_color_highlight': apalette.color(apalette.Highlight),
         'document_color_highlightText': apalette.color(apalette.HighlightedText),
         'document_color_misc': QColor(200, 200, 200),
-        'document_color_attribute': QColor('darkYellow'),
+        'document_color_attribute': QColor('darkOrange'),
         'document_color_tag': QColor('darkBlue'),
         'document_color_entity': QColor('darkBlue'),
         'document_color_error': QColor('darkRed'),

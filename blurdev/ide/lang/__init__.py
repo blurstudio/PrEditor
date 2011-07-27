@@ -56,11 +56,39 @@ def filetypes():
     return ';;'.join(output)
 
 
-# load the plugins
-files = glob.glob(os.path.dirname(__file__) + '/config/*.ini')
-for file in files:
-    plugin = Language.fromConfig(file)
-    if plugin:
-        _plugins[plugin.name()] = plugin
-    else:
-        print '[blurdev.ide.lang Error] Could not import %s' % file
+def loadPlugins(path, custom=False):
+    from blurdev import osystem
+
+    path = osystem.expandvars(path)
+    if not os.path.exists(path):
+        return False
+
+    files = glob.glob(os.path.join(path, '*.ini'))
+
+    for file in files:
+        plugin = Language.fromConfig(file)
+        if plugin:
+            plugin.setCustom(custom)
+            _plugins[plugin.name()] = plugin
+        else:
+            print '[blurdev.ide.lang Error] Could not import %s' % file
+
+
+def refresh():
+    import blurdev
+
+    _plugins.clear()
+
+    # load the installed plugins
+    loadPlugins(os.path.dirname(__file__) + '/config')
+
+    # load languags from the environment
+    for key in os.environ.keys():
+        if key.startswith('BDEV_PATH_LANG_'):
+            loadPlugins(os.environ[key])
+
+    # load the user plugins
+    loadPlugins(blurdev.prefPath('lang'), True)
+
+
+refresh()

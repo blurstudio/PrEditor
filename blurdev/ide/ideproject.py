@@ -61,6 +61,9 @@ class IdeProjectItem(QTreeWidgetItem):
             '.js',
             '.html',
             '.css',
+            '.yaml',
+            '.sh',
+            '.pytempl',
         ]
         self._loaded = False
         self._overlay = None

@@ -158,19 +158,13 @@ def compare(filepath, old=None, new=None):
     if new != None:
         revision += ':%s' % new
 
-    if settings.OS_TYPE == 'Linux':
-        subprocess.Popen(
-            'svn diff --diff-cmd kdiff3 -r %s %s' % (revision, filepath), shell=True
-        )
-    else:
-        print 'compare is not supported'
+    from blurdev import osystem
 
-    # at somepoint, this may be useful code - # EKH 06/01/11
-    # client = pysvn.Client()
-    # diff = client.diff( osystem.tempfile(''), str(filepath), diff_options = ['--diff-cmd kdiff3'] )
-
-    # from svncomparedialog import SvnCompareDialog
-    # return SvnCompareDialog.compare( filepath, diff )
+    osystem.startfile(
+        filepath,
+        cmd=osystem.expandvars('$SVN_CMD_COMPARE')
+        % {'revision': revision, 'filepath': '%(filepath)s'},
+    )
 
 
 def getMessage():

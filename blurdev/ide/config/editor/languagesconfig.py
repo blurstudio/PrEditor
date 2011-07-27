@@ -10,11 +10,25 @@
 
 import os
 import blurdev
+from blurdev.ide import lang
 
-from PyQt4.QtCore import QSize
-from PyQt4.QtGui import QTreeWidgetItem
+from PyQt4.QtCore import QSize, Qt
+from PyQt4.QtGui import QTreeWidgetItem, QIcon, QMessageBox
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
+
+
+class LanguageItem(QTreeWidgetItem):
+    def __init__(self, language):
+        super(LanguageItem, self).__init__(
+            [language.name(), ','.join(language.fileTypes())]
+        )
+        self.setSizeHint(0, QSize(0, 18))
+        self.setToolTip(0, 'Loaded from: %s' % language.sourcefile())
+        self._language = language
+
+    def language(self):
+        return self._language
 
 
 class LanguagesConfig(ConfigSectionWidget):
@@ -26,6 +40,44 @@ class LanguagesConfig(ConfigSectionWidget):
 
         header = self.uiLanguageTREE.header()
         header.setResizeMode(0, header.Stretch)
+
+        header = self.uiUserLanguageTREE.header()
+        header.setResizeMode(0, header.Stretch)
+
+        # update the icons
+        self.uiAddBTN.setIcon(QIcon(blurdev.resourcePath('img/add.png')))
+        self.uiEditBTN.setIcon(QIcon(blurdev.resourcePath('img/edit.png')))
+        self.uiRemoveBTN.setIcon(QIcon(blurdev.resourcePath('img/remove.png')))
+
+        # create connections
+        self.uiAddBTN.clicked.connect(self.addLanguage)
+        self.uiEditBTN.clicked.connect(self.editLanguage)
+        self.uiRemoveBTN.clicked.connect(self.removeLanguage)
+        self.uiUserLanguageTREE.itemDoubleClicked.connect(self.editLanguage)
+        self.uiLanguageTREE.itemDoubleClicked.connect(self.editBaseLanguage)
+
+    def addLanguage(self):
+        from blurdev.ide.idelanguagedialog import IdeLanguageDialog
+
+        language = lang.Language()
+        language.setCustom(True)
+        if IdeLanguageDialog.edit(language, self):
+            lang.refresh()
+            self.refreshUi()
+
+    def editLanguage(self):
+        from blurdev.ide.idelanguagedialog import IdeLanguageDialog
+
+        item = self.uiUserLanguageTREE.currentItem()
+        if item:
+            if IdeLanguageDialog.edit(item.language(), self):
+                lang.refresh()
+                self.refreshUi()
+
+    def editBaseLanguage(self, item):
+        from blurdev.ide.idelanguagedialog import IdeLanguageDialog
+
+        IdeLanguageDialog.edit(item.language(), self)
 
     def recordUi(self):
         """
@@ -39,16 +91,39 @@ class LanguagesConfig(ConfigSectionWidget):
         """
         section = self.section()
 
-        from blurdev.ide import lang
-
         self.uiLanguageTREE.clear()
+        self.uiUserLanguageTREE.clear()
 
         languages = lang.languages()
         for name in languages:
             language = lang.byName(name)
-            item = QTreeWidgetItem([language.name(), ','.join(language.fileTypes())])
-            item.setSizeHint(0, QSize(0, 18))
-            self.uiLanguageTREE.addTopLevelItem(item)
+            item = LanguageItem(language)
+
+            if not language.isCustom():
+                self.uiLanguageTREE.addTopLevelItem(item)
+            else:
+                self.uiUserLanguageTREE.addTopLevelItem(item)
+
+    def removeLanguage(self):
+        item = self.uiUserLanguageTREE.currentItem()
+
+        if (
+            item
+            and QMessageBox.question(
+                self,
+                'Remove Template',
+                'Are you sure you want to remove the selected language?',
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            == QMessageBox.Yes
+        ):
+            filename = item.language().sourcefile()
+            if os.path.exists(filename):
+                os.remove(filename)
+
+            # refresh the languages
+            lang.refresh()
+            self.refreshUi()
 
 
 def registerSections(configSet):
