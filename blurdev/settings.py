@@ -31,6 +31,9 @@ for option in config.options(OS_TYPE):
 # store the blurdev path in the environment
 os.environ['BDEV_PATH'] = os.path.dirname(__file__)
 
+# setup defaults
+os.environ.setdefault('BDEV_PARAM_BLURQT', '1')
+
 # store the environment variables as the startup variables
 startup_environ = copy.deepcopy(os.environ)
 

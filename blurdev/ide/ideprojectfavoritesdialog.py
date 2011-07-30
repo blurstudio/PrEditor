@@ -51,8 +51,18 @@ class IdeProjectFavoritesDialog(Dialog):
 
         from ideproject import IdeProject
         from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QMessageBox
 
-        return IdeProject.fromXml(item.data(0, Qt.UserRole).toString())
+        filename = str(item.data(0, Qt.UserRole).toString())
+        if not os.path.exists(filename):
+            QMessageBox.critical(
+                self,
+                'Could not Find Favorite',
+                'Could not find the favorites file at: %s' % filename,
+            )
+            return None
+
+        return IdeProject.fromXml(filename)
 
     def refresh(self):
         self.uiFavoriteTREE.blockSignals(True)

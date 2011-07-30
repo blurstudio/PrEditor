@@ -70,8 +70,7 @@ import blurdev.gui.designer
 blurdev.gui.designer.register( '%(class)sPlugin', %(class)sPlugin )
 """
 
-import glob
-import os
+import glob, os, sys
 
 from blurdev import osystem
 
@@ -109,7 +108,6 @@ def init():
 
 def loadPlugins( filename, importPath = '' ):
     from blurdev.XML import XMLDocument
-    import os, sys
     doc = XMLDocument()
     
     # register the import path location
@@ -121,6 +119,7 @@ def loadPlugins( filename, importPath = '' ):
     filename = osystem.expandvars(filename)
     
     if ( doc.load( filename ) ):
+        
         blurdevpath = os.path.abspath( os.path.split( __file__ )[0] + '/../..' )
         
         for child in doc.root().children():
@@ -138,7 +137,6 @@ def register( name, plugin ):
 
 def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False ):
     options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container }
-    import os.path
     filename = os.path.split( __file__ )[0] + '/%splugin.py' % str( cls ).lower()
     f = open( filename, 'w' )
     f.write( plugindef % options )

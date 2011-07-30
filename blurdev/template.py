@@ -11,6 +11,12 @@
 import os
 import glob
 
+from blurdev import osystem
+
+_templPaths = {
+    'default': '$BDEV_PATH/resource/templ/',
+}
+
 
 def allTemplNames():
     names = list(set(templNames() + userTemplNames()))
@@ -18,10 +24,22 @@ def allTemplNames():
     return names
 
 
-def templFilename(templname):
+def registerPath(key, path):
+    _templPaths[str(key)] = path
+
+
+def unregisterPath(key):
+    if key in _templPaths:
+        _templPaths.pop(key)
+
+
+def templFilename(templname, key='default'):
     import blurdev
 
-    return blurdev.resourcePath('templ/%s.templ' % templname)
+    path = _templPaths.get(key)
+    if not path and key != 'default':
+        return templFilename(templname, key)
+    return os.path.join(osystem.expandvars(path), '%s.templ' % templname)
 
 
 def templ(templname, options={}):
@@ -30,12 +48,24 @@ def templ(templname, options={}):
     # look for the user template
     fname = blurdev.prefPath('templ/%s.templ' % templname)
 
+    keys = _templPaths.keys()
+    keys.sort()
+    index = 0
+
+    # make sure to use the default templates last
+    if 'default' in keys:
+        keys.remove('default')
+        keys.append('default')
+
     # look for the installed template
-    if not os.path.exists(fname):
-        fname = blurdev.resourcePath('templ/%s.templ' % templname)
+    while fname and not os.path.exists(fname):
+        fname = os.path.join(
+            osystem.expandvars(_templPaths[keys[index]]), '%s.templ' % templname
+        )
+        index += 1
 
     # return the template
-    if os.path.exists(fname):
+    if fname and os.path.exists(fname):
         return fromFile(fname, options)
     return ''
 
@@ -60,7 +90,9 @@ def userTemplNames():
 def templNames():
     import blurdev
 
-    filenames = glob.glob(blurdev.resourcePath('templ/*.templ'))
+    filenames = []
+    for path in _templPaths.values():
+        filenames += glob.glob(os.path.join(osystem.expandvars(path), '*.templ'))
 
     names = [os.path.basename(filename).split('.')[0] for filename in filenames]
     names.sort()
@@ -107,6 +139,9 @@ def formatText(text, options={}):
     text = unicode(text)
 
     import re
+
+    # replace the document indent with preferenced spacing
+    text = text.replace('[  ]', os.environ.get('BDEV_DOCUMENT_INDENT', '    '))
 
     # process templates
     results = re.findall('\[([a-zA-Z:_-]+)\]', text)

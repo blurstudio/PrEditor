@@ -699,7 +699,8 @@ class IdeEditor(Window):
                     if settings.OS_TYPE != 'Windows' and not filename.startswith('/'):
                         filename = '/' + filename
 
-                    self.load(filename)
+                    # ignore the registry when drag/dropping
+                    self.load(filename, useRegistry=False)
 
         # drop a tool
         else:
@@ -834,7 +835,7 @@ class IdeEditor(Window):
             return False
         osystem.console(filename)
 
-    def load(self, filename, lineno=0):
+    def load(self, filename, lineno=0, useRegistry=True):
         filename = str(filename)
 
         if not QFileInfo(filename).isFile():
@@ -853,7 +854,7 @@ class IdeEditor(Window):
         mods = QApplication.instance().keyboardModifiers()
 
         # load the file based on the registry
-        if mods != Qt.AltModifier:
+        if useRegistry and mods != Qt.AltModifier:
             from blurdev import osystem
             from blurdev.ide import RegistryType
 
@@ -1129,6 +1130,12 @@ class IdeEditor(Window):
 
         self._templateCompleter.clear()
         self._templateCompleter.addItems(template.allTemplNames())
+
+    def registerTemplatePath(self, key, path):
+        from blurdev import template
+
+        template.registerPath(key, path)
+        self.refreshTemplateCompleter()
 
     def registry(self):
         return self._registry
@@ -1580,6 +1587,14 @@ class IdeEditor(Window):
         # grab the current config
         config = self.currentConfigSet()
 
+        # sync the indent settings
+        section = config.section('Common::Document')
+        if section:
+            if section.value('indentationsUseTabs'):
+                environ['BDEV_DOCUMENT_INDENT'] = '\t'
+            else:
+                environ['BDEV_DOCUMENT_INDENT'] = '    '
+
         # update based on the current author settings
         author = config.section('Common::Author')
         if author:
@@ -1591,6 +1606,12 @@ class IdeEditor(Window):
 
         # set the environment
         os.environ = environ
+
+    def unregisterTemplatePath(self, key):
+        from blurdev import template
+
+        template.unregisterPath(key)
+        self.refreshTemplateCompleter()
 
     def updateTitle(self):
         import blurdev

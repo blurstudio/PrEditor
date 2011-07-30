@@ -23,7 +23,7 @@ class SvnFileMenu(IdeFileMenu):
         from blurdev.ide.addons import svn
 
         # define the SVN commands before the explore action
-        before = self.findChild(QAction, 'uiExploreACT')
+        before = self.ide().findChild(QAction, 'uiExploreACT')
 
         url = svnops.findUrl(self.filepath())
 

@@ -96,8 +96,12 @@ class ConsoleEdit(QTextEdit):
 
         # overload the sys logger (if we are not on a high debugging level)
         from blurdev import debug
+        import os
 
-        if debug.debugLevel() != debug.DebugLevel.High:
+        if (
+            os.path.basename(sys.executable) == 'pythonw.exe'
+            or debug.debugLevel() != debug.DebugLevel.High
+        ):
             import sys
 
             sys.stdout = self
