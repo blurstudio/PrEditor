@@ -8,74 +8,78 @@
 # 	\date		06/11/10
 #
 
-__DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
-
-# track the install path
+import sys
+import re
 import os
+import types
 
+from PyQt4.QtGui import QWizard, QApplication, QMessageBox
+import blur.Stone
+
+from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
+from blurdev.tools import ToolsEnvironment
+from blurdev.cores.core import Core
+from blurdev.tools.tool import Tool
+import settings
+import osystem
+
+
+__DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 application = None  # create a managed QApplication
 core = None  # create a managed Core instance
 
 
-def activeEnvironment():
-    from blurdev.tools import ToolsEnvironment
+def pythonw_print_bugfix():
+    """Python <=2.4 has a bug where pythonw will silently crash if more than
+    4096 bytes are written to sys.stdout.  This avoids that problem by
+    redirecting all output to devnull when in Python 2.4 and when using
+    pythonw.exe.
+    
+    """
+    if os.path.basename(sys.executable) == 'pythonw.exe':
+        if sys.version_info[:2] <= (2, 4):
+            sys.stdout = open(os.devnull, 'w')
+            sys.stderr = open(os.devnull, 'w')
 
+
+def activeEnvironment():
     return ToolsEnvironment.activeEnvironment()
 
 
 def bindMethod(object, name, method):
     """ Properly binds a new python method to an existing C++ object as a dirty alternative to sub-classing when not possible """
-    import types
-
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
 def findDevelopmentEnvironment():
-    from blurdev.tools import ToolsEnvironment
-
     return ToolsEnvironment.findDevelopmentEnvironment()
 
 
 def findTool(name, environment=''):
     init()
-
-    from tools import ToolsEnvironment
-
     if not environment:
         env = ToolsEnvironment.activeEnvironment()
     else:
         env = ToolsEnvironment.findEnvironment(environment)
-
     if env:
         return env.index().findTool(name)
-
-    from tools.tool import Tool
-
     return Tool()
 
 
 def runtime(filepath):
-    import os.path
-
     return os.path.join(installPath, 'runtimes', filepath)
 
 
 def init():
-    global core, prefs, application, debug, osystem, settings
+    pythonw_print_bugfix()
     # initialize the settings
-    import settings
-
     settings.init()
-
     # create the core and application
+    global core
+    global application
     if not core:
-        # create the core instance
-        from blurdev.cores import Core
-        import prefs, debug, osystem, settings
-
         # create the core
         core = Core()
-
         # initialize the application
         application = core.init()
 
@@ -95,33 +99,22 @@ def launch(ctor, modal=False, coreName='external'):
         \return		<bool>	success (when exec_ keyword is set) || <ctor> instance (when exec_ keyword is not set)
     """
     init()
-
     # create the app if necessary
     app = None
-    from PyQt4.QtGui import QWizard
-    from blurdev.cores.core import Core
-
-    # setAppUserModelID(coreName)
-
     if application:
         application.setStyle('Plastique')
-
         if core.objectName() == 'blurdev':
             core.setObjectName(coreName)
-
     # always run wizards modally
     iswiz = False
     try:
         iswiz = issubclass(ctor, QWizard)
     except:
         pass
-
     if iswiz:
         modal = True
-
     # create the output instance from the class
     widget = ctor(None)
-
     # check to see if the tool is running modally and return the result
     if modal:
         return widget.exec_()
@@ -139,47 +132,35 @@ def quickReload(modulename):
         \remarks	searches through the loaded sys modules and looks up matching module names based on the imported module
         \param		modulename 	<str>
     """
-    import sys, re
-
     expr = re.compile(str(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
-
     # reload longer chains first
     keys = sys.modules.keys()
     keys.sort()
     keys.reverse()
-
     for key in keys:
         module = sys.modules[key]
-        if expr.match(key) and module != None:
+        if expr.match(key) and module is None:
             print 'reloading', key
             reload(module)
 
 
 def packageForPath(path):
-    import os.path
-
     path = str(path)
     splt = os.path.normpath(path).split(os.path.sep)
     index = 1
-
     filename = os.path.join(path, '__init__.py')
     package = []
     while os.path.exists(filename):
         package.append(splt[-index])
         filename = os.path.join(os.path.sep.join(splt[:-index]), '__init__.py')
         index += 1
-
     package.reverse()
     return '.'.join(package)
 
 
 def prefPath(relpath, coreName=''):
-    # use the core
     if not coreName and core:
         coreName = core.objectName()
-
-    import osystem, os.path
-
     basepath = os.path.join(
         osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
     )
@@ -187,14 +168,10 @@ def prefPath(relpath, coreName=''):
 
 
 def registerScriptPath(filename):
-    from tools import ToolsEnvironment
-
     ToolsEnvironment.registerScriptPath(filename)
 
 
 def relativePath(path, additional):
-    import os.path
-
     return os.path.join(os.path.split(str(path))[0], additional)
 
 
@@ -202,8 +179,6 @@ def resetWindowPos():
     """
         Reset any top level widgets(windows) to 0,0 use this to find windows that are offscreen.
     """
-    from PyQt4.QtGui import QApplication
-
     for widget in QApplication.instance().topLevelWidgets():
         if widget.isVisible():
             geo = widget.geometry()
@@ -222,25 +197,17 @@ def resourcePath(relpath):
 
 def runTool(toolId, macro=""):
     init()
-
     # special case scenario - treegrunt
     if toolId == 'Treegrunt':
         core.showTreegrunt()
-
     # otherwise, run the tool like normal
     else:
-        from PyQt4.QtGui import QApplication
-        from tools import ToolsEnvironment
-
         # load the tool
         tool = ToolsEnvironment.activeEnvironment().index().findTool(toolId)
         if not tool.isNull():
             tool.exec_(macro)
-
         # let the user know the tool could not be found
         elif QApplication.instance():
-            from PyQt4.QtGui import QMessageBox
-
             QMessageBox.critical(
                 None,
                 'Tool Not Found',
@@ -250,8 +217,6 @@ def runTool(toolId, macro=""):
 
 
 def setActiveEnvironment(env):
-    from blurdev.tools import ToolsEnvironment
-
     return ToolsEnvironment.findEnvironment(env).setActive()
 
 
@@ -275,13 +240,10 @@ def setAppUserModelID(id, prefix='Blur'):
 
 
 def startProgress(title='Progress', parent=None):
-    from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
-
     return MultiProgressDialog.start(title)
 
 
 # track the install path
 installPath = os.path.split(__file__)[0]
-
 # initialize the core
 init()
