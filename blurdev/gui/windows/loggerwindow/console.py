@@ -125,6 +125,13 @@ class ConsoleEdit(QTextEdit):
         return self._completer
 
     def emailError(self, emails, error):
+        """
+            \Remarks	Generates and sends a email of the traceback, and usefull information provided by the class if available.
+                        
+                        If the erroring class provides the folowing method, what ever text it returns will be included in the email under Additional Information
+                        |	def errorLog(self):
+                        |		return '[Additional text to include in email]'
+        """
         from blurdev import debug
 
         # do not email when debugging
@@ -188,8 +195,23 @@ class ConsoleEdit(QTextEdit):
         )
         message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
+        # append extra stuff
+        import blurdev, sys
 
-        import blurdev
+        tb = sys.last_traceback
+        if tb:
+            frame = tb.tb_frame
+            if frame:
+                module = frame.f_locals.get('self')
+                if module:
+                    if hasattr(module, 'errorLog'):
+                        message.append('<h3>Additional Information</h3>')
+                        message.append('<hr>')
+                        message.append(
+                            '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
+                        )
+                        message.append(module.errorLog().replace('\n', '<br>'))
+                        message.append('</code></pre></div>')
 
         blurdev.core.sendEmail(
             'thePipe@blur.com',

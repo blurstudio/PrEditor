@@ -139,6 +139,21 @@ class DocumentEditor(QsciScintilla):
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
+    def documentClose(self):
+        print 'Document editor close'
+        from ideeditor import IdeEditor
+
+        window = self.window()
+        if isinstance(window, IdeEditor):
+            window.documentClose(self.parent())
+
+    def documentCloseAllExcept(self):
+        from ideeditor import IdeEditor
+
+        window = self.window()
+        if isinstance(window, IdeEditor):
+            window.documentCloseAllExcept(self.parent())
+
     def exploreDocument(self):
         import os
         from blurdev import osystem

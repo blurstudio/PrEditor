@@ -148,7 +148,8 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
         self.setupIcons()
 
-        blurdev.setAppUserModelID('BlurIDE')
+        if blurdev.core.objectName() == 'ide':
+            blurdev.setAppUserModelID('BlurIDE')
 
         # create the project tree delegate
         self.uiProjectTREE.setItemDelegate(IdeProjectDelegate(self.uiProjectTREE))
@@ -181,9 +182,12 @@ class IdeEditor(Window):
         self.uiNewACT.triggered.connect(self.documentNew)
         self.uiNewFromWizardACT.triggered.connect(self.documentFromWizard)
         self.uiOpenACT.triggered.connect(self.documentOpen)
-        self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
-        self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
+        # Right Click menu for a editor needs to pass in the widget to close, lambda allows for passing None on the signal
+        self.uiCloseACT.triggered.connect(lambda x: self.documentClose())
+        self.uiCloseAllExceptACT.triggered.connect(
+            lambda x: self.documentCloseAllExcept()
+        )
         self.uiSaveACT.triggered.connect(self.documentSave)
         self.uiSaveAsACT.triggered.connect(self.documentSaveAs)
         self.uiSaveAllACT.triggered.connect(self.documentSaveAll)
@@ -291,6 +295,8 @@ class IdeEditor(Window):
             action.deleteLater()
 
         # add new actions
+        # Note MCH 08/04/11: This menu should not have any keyboard shortcuts because most functionality requires duplicating the action for the window.
+        # If some of the keyboard shortcuts are missing then they all should be. Keyboard shortcuts will be handled by the actions in IdeEditor
         menu = window.systemMenu()
         # these actions need to have a new triggered call
         self.duplicateAction(menu, self.uiExploreACT, widget.exploreDocument)
@@ -300,9 +306,11 @@ class IdeEditor(Window):
             menu, self.uiCopyFilenameACT, widget.copyFilenameToClipboard
         )
         menu.addSeparator()
-        menu.addAction(self.uiCloseACT)
-        menu.addAction(self.uiCloseAllACT)
-        menu.addAction(self.uiCloseAllExceptACT)
+        self.duplicateAction(menu, self.uiCloseACT, widget.documentClose)
+        self.duplicateAction(menu, self.uiCloseAllACT, self.documentCloseAll)
+        self.duplicateAction(
+            menu, self.uiCloseAllExceptACT, widget.documentCloseAllExcept
+        )
 
         return window
 
@@ -438,8 +446,9 @@ class IdeEditor(Window):
     def documents(self):
         return [subwindow.widget() for subwindow in self.uiWindowsAREA.subWindowList()]
 
-    def documentClose(self):
-        window = self.uiWindowsAREA.activeSubWindow()
+    def documentClose(self, window=None):
+        if not window:
+            window = self.uiWindowsAREA.activeSubWindow()
         if window and window.widget().checkForSave():
             self._closing = True
             window.close()
@@ -454,12 +463,11 @@ class IdeEditor(Window):
                 window.close()
                 self._closing = False
 
-    def documentCloseAllExcept(self):
+    def documentCloseAllExcept(self, current=None):
+        if not current:
+            current = self.uiWindowsAREA.activeSubWindow()
         for window in self.uiWindowsAREA.subWindowList():
-            if (
-                window != self.uiWindowsAREA.activeSubWindow()
-                and window.widget().checkForSave()
-            ):
+            if window != current and window.widget().checkForSave():
                 self._closing = True
                 window.close()
                 self._closing = False
@@ -1439,6 +1447,9 @@ class IdeEditor(Window):
         self.uiExecuteDDL.addItems(['Run', 'Standalone', 'Debug'])
 
         self.uiCommandDDL.setMinimumWidth(100)
+        policy = self.uiCommandDDL.sizePolicy()
+        policy.setHorizontalPolicy(policy.Maximum)
+        self.uiCommandDDL.setSizePolicy(policy)
 
         self.uiProjectTBAR.addWidget(self.uiCommandDDL)
         self.uiProjectTBAR.addWidget(self.uiExecuteDDL)
@@ -1539,6 +1550,8 @@ class IdeEditor(Window):
                 cmds = project.commandList()
                 for key in sorted(cmds.keys(), key=lambda i: cmds[i][0]):
                     self.uiCommandDDL.addItem(key)
+
+            self.uiCommandDDL.updateGeometry()
 
             self.currentProjectChanged.emit(project)
             self.syncEnvironment()

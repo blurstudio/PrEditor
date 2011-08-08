@@ -522,7 +522,7 @@ class IdeProject(IdeProjectItem):
 
         fileTypes = ['.xml', '.ui', '.txt', '.ini']
         if language:
-            fileTypes += language.filetypes()
+            fileTypes += language.fileTypes()
 
         # support legacy libraries & structures
         if tool.isLegacy():

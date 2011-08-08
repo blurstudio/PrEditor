@@ -2,6 +2,12 @@
 # 	\namespace	blurtreewidgetwidget
 #
 # 	\remarks	A tree widget with common blur functionality built in
+# 				Features:
+# 					- Holding Ctrl when expanding or contracting a item will cascade to all children.
+# 					- Single call to add most setup information to a preffrences file(column width, visibility)
+# 					- Integrated item gradiation
+# 					- Integrated cell borders
+# 					- Lockable columns on all 4 sides
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
