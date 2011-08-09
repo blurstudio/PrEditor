@@ -12,6 +12,7 @@
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent
 from PyQt4.QtGui import QApplication
 from blurdev.tools import ToolsEnvironment
+import time
 
 
 class Core(QObject):
@@ -86,6 +87,7 @@ class Core(QObject):
         self._linkedSignals = {}
         self._defaultPalette = -1
         self._itemQueue = []
+        self._maxDelayPerCycle = 0.1
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -326,6 +328,9 @@ class Core(QObject):
 
         return LoggerWindow.instance(parent)
 
+    def maxDelayPerCycle(self):
+        return self._maxDelayPerCycle
+
     def newScript(self):
         """
             \remarks	creates a new script window for editing
@@ -372,11 +377,34 @@ class Core(QObject):
             \remarks	Call the current queue item and post the next queue event if it exists
         """
         if self._itemQueue:
-            item = self._itemQueue.pop(0)
-            item[0](*item[1], **item[2])
+            if self._maxDelayPerCycle == -1:
+                self._runQueueItem()
+            else:
+                t = time.time()
+                t2 = t
+                while self._itemQueue and (t2 - t) < self._maxDelayPerCycle:
+                    t2 = time.time()
+                    self._runQueueItem()
             if self._itemQueue:
                 # if there are still items in the queue process the next item
                 self.postQueueEvent()
+
+    def _runQueueItem(self):
+        """
+            \Remarks	Process the top item on the queue, catch the error generated if the underlying c/c++ object has been deleted, and alow the queue to continue processing.
+        """
+        try:
+            item = self._itemQueue.pop(0)
+            item[0](*item[1], **item[2])
+        except RuntimeError, check:
+            if str(check) != 'underlying C/C++ object has been deleted':
+                if self._itemQueue:
+                    self.postQueueEvent()
+                raise
+        except Exception, value:
+            if self._itemQueue:
+                self.postQueueEvent()
+            raise
 
     def protectModule(self, moduleName):
         """
@@ -709,6 +737,16 @@ class Core(QObject):
 
     def setHwnd(self, hwnd):
         self._hwnd = hwnd
+
+    def setMaxDelayPerCycle(self, seconds):
+        """
+            \Remarks	Run delayed will process as many items as it can within this time frame every event loop. 
+                        Seconds is a float value for seconds. If seconds is -1 it will only process 1 item per event loop.
+                        This value does not limit the cycle, it just prevents a new queue item from being called if the total
+                        time exceeds this value. If your queue items will take almost the full time, you may want to set this value to -1.
+            \Param		seconds	<float>
+        """
+        self._maxDelayPerCycle = seconds
 
     def sendEmail(self, sender, targets, subject, message, attachments=None):
         from email import Encoders
