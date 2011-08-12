@@ -12,7 +12,7 @@
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent
 from PyQt4.QtGui import QApplication
 from blurdev.tools import ToolsEnvironment
-import time
+import time, os
 
 
 class Core(QObject):
@@ -167,8 +167,17 @@ class Core(QObject):
             
             \return		<bool> success
         """
-        print '[blurdev.cores.core.Core.createToolMacro] virtual method not defined'
-        return False
+        # print '[blurdev.cores.core.Core.createToolMacro] virtual method not defined'
+        import blurdev
+
+        blurdev.osystem.createShortcut(
+            tool.displayName(),
+            tool.sourcefile(),
+            icon=tool.icon(),
+            description=tool.toolTip(),
+        )
+
+        return True
 
     def defaultPalette(self):
         if self._defaultPalette == -1:
@@ -327,6 +336,12 @@ class Core(QObject):
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
+
+    def macroName(self):
+        """
+            \Remarks	Returns the name to display for the create macro action in treegrunt
+        """
+        return 'Create Desktop Shortcut...'
 
     def maxDelayPerCycle(self):
         return self._maxDelayPerCycle

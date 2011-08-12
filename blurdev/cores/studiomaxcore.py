@@ -184,6 +184,12 @@ class StudiomaxCore(Core):
         # init the base class
         return Core.init(self)
 
+    def macroName(self):
+        """
+            \Remarks	Returns the name to display for the create macro action in treegrunt
+        """
+        return 'Create Macro...'
+
     def registerPaths(self):
         from blurdev.tools import ToolsEnvironment
 

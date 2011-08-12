@@ -36,6 +36,12 @@ class MotionBuilderCore(Core):
 
         return window
 
+    def macroName(self):
+        """
+            \Remarks	Returns the name to display for the create macro action in treegrunt
+        """
+        return 'Create Macro...'
+
     def toolTypes(self):
         """
             \remarks	Virtual method to determine what types of tools that the trax system should be looking at

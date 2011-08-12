@@ -98,6 +98,93 @@ def console(filename):
     return True
 
 
+def createShortcut(
+    title, args, startin=None, target=None, icon=None, path=None, description=''
+):
+    """
+        \Remarks	Creates a shortcut. 
+        
+                    Windows: If icon is provided it looks for a .ico file with the same name as the provided icon. 
+                    If it can't find a .ico file it will attempt to create one using ImageMagick(http://www.imagemagick.org/). 
+                    ImageMagick should be installed to the 32bit program files (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
+                    32Bit Windows: C:\Program Files\ImageMagick)
+        \param		title	<str>
+        \param		args	<str>
+        \param		startin		<str>||<None>
+        \param		target		<str>||<None>
+        \param		icon	<str>||<None>
+        \param		path	<str>||<None>
+        \param		description	<str>||<None>
+    """
+    if settings.OS_TYPE == 'Windows':
+        import blurdev.scripts
+
+        if not path:
+            from distutils.dir_util import mkpath
+
+            path = blurdev.scripts.winshell.desktop(1)
+            if not os.path.exists(path):
+                mkpath(path)
+        if not target:
+            import sys
+
+            target = sys.executable
+        if not startin:
+            startin = os.path.split(args)[0]
+        if icon:
+            pathName, ext = os.path.splitext(icon)
+            if not ext == '.ico':
+                icon = pathName + '.ico'
+            # calculate the path to copy the icon to
+            outPath = r'%s\blur\icons' % os.getenv('appdata')
+            if not os.path.exists(outPath):
+                os.makedirs(outPath)
+            outIcon = os.path.abspath('%s\%s.ico' % (outPath, title))
+            if os.path.exists(icon):
+                import shutil
+
+                shutil.copyfile(icon, outIcon)
+                if os.path.exists(outIcon):
+                    icon = outIcon
+                else:
+                    icon = None
+            else:
+                if ext == '.png':
+                    import platform
+
+                    if platform.architecture()[0] == '64bit':
+                        progF = 'ProgramFiles(x86)'
+                    else:
+                        progF = 'programfiles'
+                    converter = r'%s\ImageMagick\convert.exe' % os.getenv(progF)
+                    if os.path.exists(converter):
+                        icon = outIcon
+                        cmd = '"%s" "%s.png" "%s"' % (converter, pathName, icon)
+                        out = subprocess.Popen(cmd)
+                        out.wait()
+                        if not os.path.exists(icon):
+                            icon = None
+
+        shortcut = os.path.join(path, '%s.lnk' % title)
+        if icon:
+            blurdev.scripts.winshell.CreateShortcut(
+                shortcut,
+                target,
+                Arguments=args,
+                StartIn=startin,
+                Icon=(icon, 0),
+                Description=description,
+            )
+        else:
+            blurdev.scripts.winshell.CreateShortcut(
+                shortcut,
+                target,
+                Arguments=args,
+                StartIn=startin,
+                Description=description,
+            )
+
+
 def explore(filename):
     """
         \remarks	launches the filename given the current platform

@@ -68,6 +68,12 @@ class SoftimageCore(Core):
         # init the base class
         return Core.init(self)
 
+    def macroName(self):
+        """
+            \Remarks	Returns the name to display for the create macro action in treegrunt
+        """
+        return 'Create Macro...'
+
     def toolTypes(self):
         """
             \remarks	Overloads the toolTypes method from the Core class to show tool types that are related to
