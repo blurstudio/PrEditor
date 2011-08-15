@@ -21,7 +21,7 @@ class PreviewScene(QGraphicsScene):
     canvasSizeChanged = pyqtSignal(QSize)
     interactionModeChanged = pyqtSignal(int)
     layersChanged = pyqtSignal()
-    layerRemoved = pyqtSignal('Py_Object')
+    layerRemoved = pyqtSignal(object)
 
     def __init__(self, view):
         # initialize the super class
