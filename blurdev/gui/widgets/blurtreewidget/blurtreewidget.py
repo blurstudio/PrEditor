@@ -181,9 +181,7 @@ class BlurTreeWidget(LockableTreeWidget):
             view = self
         header = view.header()
         header.setContextMenuPolicy(Qt.CustomContextMenu)
-        header.customContextMenuRequested.connect(
-            self.showHeaderMenu, type=Qt.UniqueConnection
-        )
+        header.customContextMenuRequested.connect(self.showHeaderMenu)
 
     def delegate(self):
         return self._delegate
