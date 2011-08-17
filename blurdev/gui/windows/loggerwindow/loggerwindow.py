@@ -70,6 +70,8 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self._workbox.execAll)
         self.uiRunSelectedACT.triggered.connect(self._workbox.execSelected)
 
+        self.uiIndentationsTabsACT.toggled.connect(self._workbox.setIndentationsUseTabs)
+
         from PyQt4.QtGui import QIcon
 
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
@@ -144,6 +146,7 @@ class LoggerWindow(Window):
             'WorkboxText', unicode(self._workbox.text()).replace('\r', '')
         )
         pref.recordProperty('SplitterSize', self._splitter.sizes())
+        pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
 
         pref.save()
 
@@ -159,6 +162,8 @@ class LoggerWindow(Window):
         else:
             self._splitter.moveSplitter(self._splitter.getRange(1)[1], 1)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
+        self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
+        self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
     def setNoDebug(self):
         from blurdev import debug

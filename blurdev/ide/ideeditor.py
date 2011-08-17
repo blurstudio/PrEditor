@@ -51,7 +51,10 @@ from blurdev import osystem, settings
 
 class IdeEditor(Window):
     documentTitleChanged = pyqtSignal()
-    currentProjectChanged = pyqtSignal(IdeProject)
+    # currentProjectChanged should be IdeProject or None.
+    # Blur's Qt now is more strict on types being passed through signals.
+    # this can be changed back to IdeProject, if None can no longer be passed in. Probubly a empty IdeProject in its place.
+    currentProjectChanged = pyqtSignal(object)
     currentDocumentChanged = pyqtSignal()
     settingsRecorded = pyqtSignal()
 
@@ -148,8 +151,7 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
         self.setupIcons()
 
-        if blurdev.core.objectName() == 'ide':
-            blurdev.setAppUserModelID('BlurIDE')
+        blurdev.setAppUserModelID('BlurIDE')
 
         # create the project tree delegate
         self.uiProjectTREE.setItemDelegate(IdeProjectDelegate(self.uiProjectTREE))
@@ -182,12 +184,9 @@ class IdeEditor(Window):
         self.uiNewACT.triggered.connect(self.documentNew)
         self.uiNewFromWizardACT.triggered.connect(self.documentFromWizard)
         self.uiOpenACT.triggered.connect(self.documentOpen)
+        self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
-        # Right Click menu for a editor needs to pass in the widget to close, lambda allows for passing None on the signal
-        self.uiCloseACT.triggered.connect(lambda x: self.documentClose())
-        self.uiCloseAllExceptACT.triggered.connect(
-            lambda x: self.documentCloseAllExcept()
-        )
+        self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
         self.uiSaveACT.triggered.connect(self.documentSave)
         self.uiSaveAsACT.triggered.connect(self.documentSaveAs)
         self.uiSaveAllACT.triggered.connect(self.documentSaveAll)
@@ -199,6 +198,14 @@ class IdeEditor(Window):
         self.uiOpenFavoritesACT.triggered.connect(self.projectFavorites)
         self.uiEditProjectACT.triggered.connect(self.projectEdit)
         self.uiCloseProjectACT.triggered.connect(self.projectClose)
+
+        # connect document menu
+        self.uiLineWrapACT.triggered.connect(self.toggleLineWrap)
+        self.uiShowCaretLineACT.triggered.connect(self.updateDocumentSettings)
+        self.uiShowIndentationsACT.triggered.connect(self.updateDocumentSettings)
+        self.uiShowLineNumbersACT.triggered.connect(self.updateDocumentSettings)
+        self.uiShowWhitespacesACT.triggered.connect(self.updateDocumentSettings)
+        self.uiShowEndlinesACT.triggered.connect(self.updateDocumentSettings)
 
         # connect edit menu
         self.uiUndoACT.triggered.connect(self.documentUndo)
@@ -256,11 +263,8 @@ class IdeEditor(Window):
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
 
         # connect browser menu actions
-        self.uiCopyFilenameACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
         self.uiCopyFilenameACT.triggered.connect(self.copyFilenameToClipboard)
-        self.uiExploreACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
         self.uiExploreACT.triggered.connect(self.documentExploreItem)
-        self.uiConsoleACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
         self.uiConsoleACT.triggered.connect(self.launchConsole)
 
         self.uiNoDebugACT.triggered.connect(self.setNoDebug)
@@ -284,9 +288,10 @@ class IdeEditor(Window):
         # sync the environment again after all the addons have been loaded
         self.syncEnvironment()
 
-    def addSubWindow(self, widget):
-        window = self.uiWindowsAREA.addSubWindow(widget)
-        window.setWindowTitle(widget.windowTitle())
+    def addSubWindow(self, editor):
+        window = self.uiWindowsAREA.addSubWindow(editor)
+        window.setWindowTitle(editor.windowTitle())
+        window.installEventFilter(editor)
 
         # strip out all pre-existing actions
         actions = window.findChildren(QAction)
@@ -295,22 +300,19 @@ class IdeEditor(Window):
             action.deleteLater()
 
         # add new actions
-        # Note MCH 08/04/11: This menu should not have any keyboard shortcuts because most functionality requires duplicating the action for the window.
-        # If some of the keyboard shortcuts are missing then they all should be. Keyboard shortcuts will be handled by the actions in IdeEditor
         menu = window.systemMenu()
+
         # these actions need to have a new triggered call
-        self.duplicateAction(menu, self.uiExploreACT, widget.exploreDocument)
-        self.duplicateAction(menu, self.uiConsoleACT, widget.launchConsole)
+        self.duplicateAction(menu, self.uiExploreACT, editor.exploreDocument)
+        self.duplicateAction(menu, self.uiConsoleACT, editor.launchConsole)
         menu.addSeparator()
         self.duplicateAction(
-            menu, self.uiCopyFilenameACT, widget.copyFilenameToClipboard
+            menu, self.uiCopyFilenameACT, editor.copyFilenameToClipboard
         )
         menu.addSeparator()
-        self.duplicateAction(menu, self.uiCloseACT, widget.documentClose)
-        self.duplicateAction(menu, self.uiCloseAllACT, self.documentCloseAll)
-        self.duplicateAction(
-            menu, self.uiCloseAllExceptACT, widget.documentCloseAllExcept
-        )
+        menu.addAction(self.uiCloseACT)
+        menu.addAction(self.uiCloseAllACT)
+        menu.addAction(self.uiCloseAllExceptACT)
 
         return window
 
@@ -426,6 +428,7 @@ class IdeEditor(Window):
         for window in self.uiWindowsAREA.subWindowList():
             if not window.widget().checkForSave():
                 closedown = False
+                break
 
         if closedown:
             self.recordSettings()
@@ -446,31 +449,21 @@ class IdeEditor(Window):
     def documents(self):
         return [subwindow.widget() for subwindow in self.uiWindowsAREA.subWindowList()]
 
-    def documentClose(self, window=None):
-        if not window:
-            window = self.uiWindowsAREA.activeSubWindow()
-        if window and window.widget().checkForSave():
-            self._closing = True
-            window.close()
-            self._closing = False
-            return True
+    def documentClose(self):
+        window = self.uiWindowsAREA.activeSubWindow()
+        if window:
+            return window.close()
         return False
 
     def documentCloseAll(self):
         for window in self.uiWindowsAREA.subWindowList():
-            if window.widget().checkForSave():
-                self._closing = True
-                window.close()
-                self._closing = False
+            if not window.close():
+                break
 
-    def documentCloseAllExcept(self, current=None):
-        if not current:
-            current = self.uiWindowsAREA.activeSubWindow()
+    def documentCloseAllExcept(self):
         for window in self.uiWindowsAREA.subWindowList():
-            if window != current and window.widget().checkForSave():
-                self._closing = True
-                window.close()
-                self._closing = False
+            if not window.close():
+                break
 
     def documentCut(self):
         doc = self.currentDocument()
@@ -607,12 +600,18 @@ class IdeEditor(Window):
         if doc:
             doc.paste()
 
-    def documentNew(self):
+    def documentNew(self, trigger=True, filename='', lineno=''):
         from documenteditor import DocumentEditor
 
-        editor = DocumentEditor(self)
+        # create the editor
+        editor = DocumentEditor(self, filename, lineno)
+        editor.fontsChanged.connect(self.updateDocumentFonts)
+
+        # create the window
         window = self.addSubWindow(editor)
         window.show()
+
+        return window
 
     def documentOpen(self):
         from blurdev.ide import lang
@@ -741,9 +740,6 @@ class IdeEditor(Window):
         # edit the globals config settings
         self._globalConfigSet.setCustomData('ide', self)
         if self._globalConfigSet.edit(self):
-            # update the environment
-            self.syncEnvironment()
-
             # update the project's common settings
             proj = self.currentProject()
             if proj:
@@ -757,6 +753,10 @@ class IdeEditor(Window):
                 if answer == QMessageBox.Yes:
                     proj.configSet().copyFrom(self.globalConfigSet())
                     proj.save()
+
+            # update the environment & settings
+            self.syncEnvironment()
+            self.updateSettings()
 
     def emitDocumentTitleChanged(self):
         if not self.signalsBlocked():
@@ -815,10 +815,6 @@ class IdeEditor(Window):
 
             return False
 
-        elif not self._closing and event.type() == event.Close:
-            if not object.widget().checkForSave():
-                event.ignore()
-                return True
         return False
 
     def initialize(self):
@@ -890,11 +886,7 @@ class IdeEditor(Window):
                 return True
 
         # otherwise, load it standard
-        from documenteditor import DocumentEditor
-
-        window = self.addSubWindow(DocumentEditor(self, filename, lineno))
-        window.setWindowTitle(os.path.basename(filename))
-        window.show()
+        window = self.documentNew(filename=filename, lineno=lineno)
 
         # stagger the windows when in window mode
         if not self.uiWindowsAREA.viewMode() & self.uiWindowsAREA.TabbedView:
@@ -949,6 +941,8 @@ class IdeEditor(Window):
         if new_proj:
             self.setCurrentProject(IdeProject.fromXml(new_proj.filename()))
 
+        self.updateSettings()
+
     def projectEdit(self):
         proj = self.currentProject()
         if not proj:
@@ -964,6 +958,8 @@ class IdeEditor(Window):
         new_proj = configSet.customData('saved_project')
         if new_proj:
             self.setCurrentProject(IdeProject.fromXml(new_proj.filename()))
+
+        self.updateSettings()
 
     def projectFavorites(self):
         from ideprojectfavoritesdialog import IdeProjectFavoritesDialog
@@ -1378,6 +1374,10 @@ class IdeEditor(Window):
             QIcon(blurdev.resourcePath('img/ide/windowed.png'))
         )
 
+        self.uiCopyFilenameACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        self.uiExploreACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
+        self.uiConsoleACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
+
         self.uiTreegruntACT.setIcon(
             QIcon(
                 blurdev.relativePath(
@@ -1450,6 +1450,7 @@ class IdeEditor(Window):
         policy = self.uiCommandDDL.sizePolicy()
         policy.setHorizontalPolicy(policy.Maximum)
         self.uiCommandDDL.setSizePolicy(policy)
+        self.uiCommandDDL.setMaxVisibleItems(20)
 
         self.uiProjectTBAR.addWidget(self.uiCommandDDL)
         self.uiProjectTBAR.addWidget(self.uiExecuteDDL)
@@ -1620,11 +1621,52 @@ class IdeEditor(Window):
         # set the environment
         os.environ = environ
 
+    def toggleLineWrap(self):
+        doc = self.currentDocument()
+        if not doc:
+            return
+        if doc.wrapMode():
+            doc.setWrapMode(doc.WrapNone)
+        else:
+            doc.setWrapMode(doc.WrapWord)
+
     def unregisterTemplatePath(self, key):
         from blurdev import template
 
         template.unregisterPath(key)
         self.refreshTemplateCompleter()
+
+    def updateDocumentSettings(self):
+        configSet = self.currentConfigSet()
+        if not configSet:
+            return
+
+        section = configSet.section('Common::Document')
+        if not section:
+            return
+
+        section.setValue('showWhitespaces', self.uiShowWhitespacesACT.isChecked())
+        section.setValue('showEol', self.uiShowEndlinesACT.isChecked())
+        section.setValue('showIndentations', self.uiShowIndentationsACT.isChecked())
+        section.setValue('showLineNumbers', self.uiShowLineNumbersACT.isChecked())
+        section.setValue('caretLineVisible', self.uiShowCaretLineACT.isChecked())
+
+        configSet.save()
+        self.updateSettings()
+
+    def updateDocumentFonts(self, font, marginFont):
+        configSet = self.globalConfigSet()
+        if not configSet:
+            return
+
+        section = configSet.section('Editor::Scheme')
+        if not section:
+            return
+
+        section.setValue('document_font', font.toString())
+        section.setValue('document_marginFont', marginFont.toString())
+
+        configSet.save()
 
     def updateTitle(self):
         import blurdev
@@ -1708,6 +1750,15 @@ class IdeEditor(Window):
                 and blurdev.core.objectName() == 'ide'
             ):
                 blurdev.application.setPalette(palette)
+
+        # update the ui
+        configSet = self.currentConfigSet()
+        section = configSet.section('Common::Document')
+        self.uiShowCaretLineACT.setChecked(section.value('caretLineVisible'))
+        self.uiShowIndentationsACT.setChecked(section.value('showIndentations'))
+        self.uiShowLineNumbersACT.setChecked(section.value('showLineNumbers'))
+        self.uiShowWhitespacesACT.setChecked(section.value('showWhitespaces'))
+        self.uiShowEndlinesACT.setChecked(section.value('showEol'))
 
         # update the documents
         for doc in self.documents():

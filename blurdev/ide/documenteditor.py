@@ -8,9 +8,11 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.QtCore import pyqtProperty, Qt
+import os.path
+
+from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal
 from PyQt4.Qsci import QsciScintilla
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication, QFont, QFileDialog
 
 from blurdev.enum import enum
 from blurdev.ide import lang
@@ -19,6 +21,10 @@ from blurdev.ide import lang
 class DocumentEditor(QsciScintilla):
     SearchDirection = enum('First', 'Forward', 'Backward')
 
+    fontsChanged = pyqtSignal(
+        QFont, QFont
+    )  # emits the font size change (font size, margin font size)
+
     def __init__(self, parent, filename='', lineno=0):
         QsciScintilla.__init__(self, parent)
 
@@ -26,11 +32,10 @@ class DocumentEditor(QsciScintilla):
         self._filename = ''
         self._language = ''
         self._lastSearch = ''
+        self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
 
         # intialize settings
-        from PyQt4.QtCore import Qt
-
         self.initSettings()
 
         # set one time properties
@@ -139,20 +144,11 @@ class DocumentEditor(QsciScintilla):
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
-    def documentClose(self):
-        print 'Document editor close'
-        from ideeditor import IdeEditor
-
-        window = self.window()
-        if isinstance(window, IdeEditor):
-            window.documentClose(self.parent())
-
-    def documentCloseAllExcept(self):
-        from ideeditor import IdeEditor
-
-        window = self.window()
-        if isinstance(window, IdeEditor):
-            window.documentCloseAllExcept(self.parent())
+    def eventFilter(self, object, event):
+        if event.type() == event.Close and not self.checkForSave():
+            event.ignore()
+            return True
+        return False
 
     def exploreDocument(self):
         import os
@@ -220,8 +216,6 @@ class DocumentEditor(QsciScintilla):
         return self.marginWidth(self.SymbolMargin)
 
     def load(self, filename):
-        import os.path
-
         filename = str(filename)
         if filename and os.path.exists(filename):
             self.setText(open(filename).read())
@@ -294,6 +288,7 @@ class DocumentEditor(QsciScintilla):
         # set the document settings
         section = configSet.section('Common::Document')
 
+        # set visibility settings
         self.setAutoIndent(section.value('autoIndent'))
         self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
         self.setTabIndents(section.value('tabIndents'))
@@ -301,12 +296,69 @@ class DocumentEditor(QsciScintilla):
         self.setCaretLineVisible(section.value('caretLineVisible'))
         self.setShowWhitespaces(section.value('showWhitespaces'))
         self.setMarginLineNumbers(0, section.value('showLineNumbers'))
+        self.setIndentationGuides(section.value('showIndentations'))
+        self.setEolVisibility(section.value('showEol'))
 
-        # set the autocompletion source
+        if section.value('showLimitColumn'):
+            self.setEdgeMode(self.EdgeLine)
+            self.setEdgeColumn(section.value('limitColumn'))
+        else:
+            self.setEdgeMode(self.EdgeNone)
+
+        # set endline settings
+        eolmode = section.value('eolMode')
+
+        # try to determine the end line mode based on the file itself
+        if eolmode == 'Auto-Detect':
+            text = self.text()
+
+            # guess from the file, otherwise, use the base system
+            if text:
+                winCount = text.count('\r\n')  # windows style endline
+                linCount = text.count('\n')  # unix style endline
+                macCount = text.count('\r')  # mac style endline
+
+                # use windows syntax
+                if winCount and winCount == linCount and winCount == macCount:
+                    eolmode = self.EolWindows
+                elif macCount > linCount:
+                    eolmode = self.EolMac
+                else:
+                    eolmode = self.EolUnix
+            else:
+                eolmode = None
+
+        # force to windows mode
+        elif eolmode == 'Windows':
+            eolmode = self.EolWindows
+
+        # force to unix mode
+        elif eolmode == 'Unix':
+            eolmode = self.EolUnix
+
+        # force to mac mode
+        elif eolmode == 'Mac':
+            eolmode = self.EolMac
+
+        # use default system mode
+        else:
+            eolmode = None
+
+        if eolmode != None:
+            # set new eols to being the inputed type
+            self.setEolMode(eolmode)
+
+        # convert the current eols if necessary
+        if section.value('convertEol'):
+            self.convertEols(self.eolMode())
+
+        # set autocompletion settings
         if section.value('autoComplete'):
             self.setAutoCompletionSource(QsciScintilla.AcsAll)
         else:
             self.setAutoCompletionSource(QsciScintilla.AcsNone)
+
+        self.setAutoCompletionThreshold(section.value('autoCompleteThreshold'))
 
         # set the scheme settings
         scheme = configSet.section('Editor::Scheme')
@@ -355,6 +407,23 @@ class DocumentEditor(QsciScintilla):
                         lexer.setColor(clr, value)
                         lexer.setPaper(default_bg)
 
+            # set default coloring styles
+            lexer.setColor(
+                scheme.value('document_color_indentGuide'), self.STYLE_INDENTGUIDE
+            )
+            lexer.setColor(
+                scheme.value('document_color_invalidBrace'), self.STYLE_BRACEBAD
+            )
+            lexer.setColor(
+                scheme.value('document_color_braceHighlight'), self.STYLE_BRACELIGHT
+            )
+            lexer.setColor(
+                scheme.value('document_color_controlCharacter'), self.STYLE_CONTROLCHAR
+            )
+            lexer.setColor(
+                scheme.value('document_color_lineNumber'), self.STYLE_LINENUMBER
+            )
+
         # set the coloring for a document
         else:
             self.setColor(default_fg)
@@ -362,8 +431,8 @@ class DocumentEditor(QsciScintilla):
 
         # set editor level colors
         self.setFoldMarginColors(
-            scheme.value('document_color_background'),
-            scheme.value('document_color_background').darker(120),
+            scheme.value('document_color_foldMarginText'),
+            scheme.value('document_color_foldMargin'),
         )
         self.setCaretLineBackgroundColor(scheme.value('document_color_currentLine'))
         self.setCaretForegroundColor(scheme.value('document_color_cursor'))
@@ -371,6 +440,17 @@ class DocumentEditor(QsciScintilla):
         self.setSelectionBackgroundColor(scheme.value('document_color_highlight'))
         self.setMarginsBackgroundColor(scheme.value('document_color_margins'))
         self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
+        self.setEdgeColor(scheme.value('document_color_limitColumn'))
+
+        self.setUnmatchedBraceForegroundColor(
+            scheme.value('document_color_invalidBrace')
+        )
+        self.setMarkerBackgroundColor(scheme.value('document_color_markerBackground'))
+        self.setMarkerForegroundColor(scheme.value('document_color_markerForeground'))
+        self.setMatchedBraceBackgroundColor(
+            scheme.value('document_color_braceBackground')
+        )
+        self.setMatchedBraceForegroundColor(scheme.value('document_color_braceText'))
 
         palette = self.palette()
         palette.setColor(palette.Base, scheme.value('document_color_background'))
@@ -395,6 +475,13 @@ class DocumentEditor(QsciScintilla):
             self.markerAdd(line, marker)
         else:
             self.markerDelete(line)
+
+    def marginsFont(self):
+        return self._marginsFont
+
+    def redo(self):
+        super(DocumentEditor, self).redo()
+        self.refreshTitle()
 
     def replace(self, text, all=False):
         # replace the current text with the inputed text
@@ -424,19 +511,8 @@ class DocumentEditor(QsciScintilla):
         return count
 
     def refreshTitle(self):
-        if self.filename():
-            import os.path
-
-            title = os.path.basename(str(self.filename()))
-        else:
-            title = 'New Document'
-
-        if self.isModified():
-            title += '*'
-
-        self.setWindowTitle(title)
         parent = self.parent()
-        if parent.inherits('QMdiSubWindow'):
+        if parent and parent.inherits('QMdiSubWindow'):
             parent.setWindowTitle(self.windowTitle())
 
     def save(self):
@@ -444,19 +520,15 @@ class DocumentEditor(QsciScintilla):
 
     def saveAs(self, filename=''):
         if not filename:
-            from PyQt4.QtGui import QFileDialog
-
             filename = QFileDialog.getSaveFileName(
                 self.window(), 'Save File as...', self.filename()
             )
 
         if filename:
             # save the file to disk
-            from PyQt4.QtCore import QFile, QByteArray
-
             f = QFile(filename)
             f.open(QFile.WriteOnly)
-            f.write(self.text().replace('\r', '').toUtf8())  # scintilla puts both in
+            self.write(f)
             f.close()
 
             # update the file
@@ -484,6 +556,10 @@ class DocumentEditor(QsciScintilla):
 
     def setLineMarginWidth(self, width):
         self.setMarginWidth(self.SymbolMargin, width)
+
+    def setMarginsFont(self, font):
+        super(DocumentEditor, self).setMarginsFont(font)
+        self._marginsFont = font
 
     def setShowFolding(self, state):
         if state:
@@ -570,9 +646,11 @@ class DocumentEditor(QsciScintilla):
 
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
 
-    def updateFilename(self, filename):
-        import os.path
+    def undo(self):
+        super(DocumentEditor, self).undo()
+        self.refreshTitle()
 
+    def updateFilename(self, filename):
         filename = str(filename)
         extension = os.path.splitext(filename)[1]
 
@@ -601,6 +679,45 @@ class DocumentEditor(QsciScintilla):
 
         for line in range(lineFrom, lineTo + 1):
             self.unindent(line)
+
+    def windowTitle(self):
+        if self._filename:
+            title = os.path.basename(self._filename)
+        else:
+            title = 'New Document'
+
+        if self.isModified():
+            title += '*'
+
+        return title
+
+    def wheelEvent(self, event):
+        if event.modifiers() == Qt.ControlModifier:
+            font = self.font()
+            marginsFont = self.marginsFont()
+            lexer = self.lexer()
+            if lexer:
+                font = lexer.font(0)
+
+            if event.delta() > 0:
+                font.setPointSize(font.pointSize() + 1)
+                marginsFont.setPointSize(marginsFont.pointSize() + 1)
+            else:
+                if font.pointSize() - 1 > 0:
+                    font.setPointSize(font.pointSize() - 1)
+                if marginsFont.pointSize() - 1 > 0:
+                    marginsFont.setPointSize(marginsFont.pointSize() - 1)
+
+            self.setMarginsFont(marginsFont)
+            if lexer:
+                lexer.setFont(font)
+            else:
+                self.setFont(font)
+
+            self.fontsChanged.emit(font, marginsFont)
+            event.accept()
+        else:
+            super(DocumentEditor, self).wheelEvent(event)
 
     # expose properties for the designer
     pyLanguage = pyqtProperty("QString", language, setLanguage)

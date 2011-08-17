@@ -29,6 +29,9 @@ class DocumentConfig(ConfigSectionWidget):
 
         # record section values
         section.setValue('autoIndent', self.uiAutoIndentCHK.isChecked())
+        section.setValue(
+            'autoCompleteThreshold', self.uiAutoCompleteThresholdSPN.value()
+        )
         section.setValue('autoComplete', self.uiAutoCompleteCHK.isChecked())
         section.setValue(
             'indentationsUseTabs', self.uiIndentationsUseTabsCHK.isChecked()
@@ -38,6 +41,12 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('caretLineVisible', self.uiCaretLineVisibleCHK.isChecked())
         section.setValue('showWhitespaces', self.uiShowWhitespacesCHK.isChecked())
         section.setValue('showLineNumbers', self.uiShowLineNumbersCHK.isChecked())
+        section.setValue('showIndentations', self.uiShowIndentationsCHK.isChecked())
+        section.setValue('showLimitColumn', self.uiShowLimitColumnCHK.isChecked())
+        section.setValue('limitColumn', self.uiLimitColumnSPN.value())
+        section.setValue('showEol', self.uiShowEndlinesCHK.isChecked())
+        section.setValue('eolMode', self.uiEndlineModeDDL.currentText())
+        section.setValue('convertEol', self.uiEndlineConvertCHK.isChecked())
 
     def refreshUi(self):
         """
@@ -47,6 +56,7 @@ class DocumentConfig(ConfigSectionWidget):
 
         # restore section values
         self.uiAutoIndentCHK.setChecked(section.value('autoIndent'))
+        self.uiAutoCompleteThresholdSPN.setValue(section.value('autoCompleteThreshold'))
         self.uiAutoCompleteCHK.setChecked(section.value('autoComplete'))
         self.uiIndentationsUseTabsCHK.setChecked(section.value('indentationsUseTabs'))
         self.uiTabIndentsCHK.setChecked(section.value('tabIndents'))
@@ -54,6 +64,14 @@ class DocumentConfig(ConfigSectionWidget):
         self.uiCaretLineVisibleCHK.setChecked(section.value('caretLineVisible'))
         self.uiShowWhitespacesCHK.setChecked(section.value('showWhitespaces'))
         self.uiShowLineNumbersCHK.setChecked(section.value('showLineNumbers'))
+        self.uiShowIndentationsCHK.setChecked(section.value('showIndentations'))
+        self.uiShowEndlinesCHK.setChecked(section.value('showEol'))
+        self.uiShowLimitColumnCHK.setChecked(section.value('showLimitColumn'))
+        self.uiLimitColumnSPN.setValue(section.value('limitColumn'))
+        self.uiEndlineConvertCHK.setChecked(section.value('convertEol'))
+        self.uiEndlineModeDDL.setCurrentIndex(
+            self.uiEndlineModeDDL.findText(section.value('eolMode'))
+        )
 
 
 def registerSections(configSet):
@@ -70,12 +88,19 @@ def registerSections(configSet):
     params = {
         'autoIndent': True,
         'autoComplete': True,
+        'autoCompleteThreshold': 3,
         'indentationsUseTabs': False,
         'tabIndents': True,
         'tabWidth': 4,
         'caretLineVisible': False,
         'showWhitespaces': False,
         'showLineNumbers': True,
+        'showIndentations': False,
+        'showEol': False,
+        'eolMode': 'Auto-Detect',
+        'convertEol': False,
+        'showLimitColumn': False,
+        'limitColumn': 100,
     }
 
     # register the section to the configset

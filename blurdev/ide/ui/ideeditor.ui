@@ -64,9 +64,6 @@
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
               <column>
                <property name="text">
                 <string notr="true">1</string>
@@ -89,9 +86,6 @@
             </property>
             <item row="0" column="0">
              <widget class="QTreeWidget" name="uiOpenTREE">
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
@@ -123,9 +117,6 @@
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
              </widget>
             </item>
            </layout>
@@ -145,7 +136,7 @@
      <x>0</x>
      <y>0</y>
      <width>951</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiToolsMENU">
@@ -177,7 +168,7 @@
     <addaction name="uiExitACT"/>
     <addaction name="separator"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="uiEditMENU">
     <property name="title">
      <string>Edit</string>
     </property>
@@ -277,10 +268,23 @@
     <addaction name="uiDebugMidACT"/>
     <addaction name="uiDebugHighACT"/>
    </widget>
+   <widget class="QMenu" name="uiDocumentMENU">
+    <property name="title">
+     <string>&amp;Document</string>
+    </property>
+    <addaction name="uiLineWrapACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiShowCaretLineACT"/>
+    <addaction name="uiShowEndlinesACT"/>
+    <addaction name="uiShowIndentationsACT"/>
+    <addaction name="uiShowLineNumbersACT"/>
+    <addaction name="uiShowWhitespacesACT"/>
+   </widget>
    <addaction name="uiFileMENU"/>
-   <addaction name="menuEdit"/>
+   <addaction name="uiEditMENU"/>
    <addaction name="uiSearchMENU"/>
    <addaction name="uiProjectMENU"/>
+   <addaction name="uiDocumentMENU"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="uiRunMENU"/>
    <addaction name="uiViewMENU"/>
@@ -733,6 +737,54 @@
    </property>
    <property name="toolTip">
     <string>Show folder location in Shell.</string>
+   </property>
+  </action>
+  <action name="uiLineWrapACT">
+   <property name="text">
+    <string>Toggle Line Wrap</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+W</string>
+   </property>
+  </action>
+  <action name="uiShowWhitespacesACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Whitespaces</string>
+   </property>
+  </action>
+  <action name="uiShowLineNumbersACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Line Numbers</string>
+   </property>
+  </action>
+  <action name="uiShowCaretLineACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Caret Line</string>
+   </property>
+  </action>
+  <action name="uiShowIndentationsACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Indentations</string>
+   </property>
+  </action>
+  <action name="uiShowEndlinesACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Endlines</string>
    </property>
   </action>
  </widget>

@@ -8,7 +8,7 @@
 # 	\date		05/24/11
 #
 
-from PyQt4.QtGui import QMessageBox as msg
+from PyQt4.QtGui import QFileDialog, QMessageBox as msg
 
 from blurdev.gui import Dialog
 from blurdev.ide.addons.svn import svnops

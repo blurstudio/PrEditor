@@ -522,6 +522,8 @@
     <addaction name="separator"/>
     <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiIndentationsTabsACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -700,6 +702,14 @@
    </property>
    <property name="shortcut">
     <string>Shift+Return</string>
+   </property>
+  </action>
+  <action name="uiIndentationsTabsACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Indentations use tabs</string>
    </property>
   </action>
  </widget>

@@ -24,12 +24,12 @@ EXTENSION_MAP = {
 
 def expandvars(text, cache=None):
     """
-        \remarks	recursively expands the text variables, vs.
+        \Remarks	recursively expands the text variables, vs.
                     the os.path.expandvars method which only
                     works at one level
         \param		text		<str>
         \param		cache		<dict> { <str>: <str>, .. }		protects against recursive calls
-        \return		<str>
+        \Return		<str>
     """
     # make sure we have data
     if not text:
@@ -76,9 +76,9 @@ def expandvars(text, cache=None):
 
 def console(filename):
     """
-        \remarks	starts a console window at the given path
+        \Remarks	starts a console window at the given path
         \param		filename	<str>
-        \return		<bool> success
+        \Return		<bool> success
     """
     # pull the filpath from the inputed filename
     fpath = str(filename)
@@ -120,11 +120,9 @@ def createShortcut(
         import blurdev.scripts
 
         if not path:
-            from distutils.dir_util import mkpath
-
             path = blurdev.scripts.winshell.desktop(1)
             if not os.path.exists(path):
-                mkpath(path)
+                os.makedirs(path)
         if not target:
             import sys
 
@@ -187,9 +185,9 @@ def createShortcut(
 
 def explore(filename):
     """
-        \remarks	launches the filename given the current platform
+        \Remarks	launches the filename given the current platform
         \param		filename	<str>
-        \return		<bool> success
+        \Return		<bool> success
     """
     # pull the filpath from the inputed filename
     fpath = str(filename)

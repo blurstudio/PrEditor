@@ -144,9 +144,10 @@ def find(name, reload=False, coreName=''):
 
         # look for a default preference file
         filename = pref.path(coreName) + '%s.pref' % key
+        success = False
         if os.path.exists(filename):
-            pref.load(filename)
-        else:
+            success = pref.load(filename)
+        if not success:
             # create default information
             root = pref.addNode('preferences')
             root.setAttribute('name', name)
