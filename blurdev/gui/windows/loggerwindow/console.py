@@ -99,7 +99,7 @@ class ConsoleEdit(QTextEdit):
         import os, sys
 
         if (
-            os.path.basename(sys.executable) == 'pythonw.exe'
+            os.path.basename(sys.executable) != 'python.exe'
             or debug.debugLevel() != debug.DebugLevel.High
         ):
             import sys
