@@ -229,6 +229,7 @@ class IdeEditor(Window):
         self.uiReplaceACT.triggered.connect(self.documentReplace)
         self.uiReplaceAllACT.triggered.connect(self.documentReplaceAll)
         self.uiGotoACT.triggered.connect(self.documentGoTo)
+        self.uiGotoDefinitionACT.triggered.connect(self.documentGoToDefinition)
         self.uiAddRemoveMarkerACT.triggered.connect(self.documentMarkerToggle)
         self.uiNextMarkerACT.triggered.connect(self.documentMarkerNext)
         self.uiClearMarkersACT.triggered.connect(self.documentMarkerClear)
@@ -542,6 +543,11 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.goToLine()
+
+    def documentGoToDefinition(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.goToDefinition()
 
     def documentChooseTemplate(self):
         self._templateCompleter.move(QCursor.pos())
@@ -1395,6 +1401,9 @@ class IdeEditor(Window):
             QIcon(blurdev.resourcePath('img/ide/find_replace.png'))
         )
         self.uiGotoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
+        self.uiGotoDefinitionACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/goto_def.png'))
+        )
 
         self.uiSdkBrowserACT.setIcon(QIcon(blurdev.resourcePath('img/ide/sdk.png')))
         self.uiHelpAssistantACT.setIcon(QIcon(blurdev.resourcePath('img/ide/qt.png')))
@@ -1430,6 +1439,7 @@ class IdeEditor(Window):
         self.uiMainTBAR.addAction(self.uiFindAndReplaceACT)
         self.uiMainTBAR.addAction(self.uiFindInFilesACT)
         self.uiMainTBAR.addAction(self.uiGotoACT)
+        self.uiMainTBAR.addAction(self.uiGotoDefinitionACT)
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiTreegruntACT)
         self.uiMainTBAR.addAction(self.uiDesignerACT)

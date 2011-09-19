@@ -86,6 +86,12 @@ class LoggerWindow(Window):
         self.refreshDebugLevels()
         self.restorePrefs()
         self.overrideKeyboardShortcuts()
+        import sys, platform
+
+        self.setWindowTitle(
+            'Command Logger - %s %s'
+            % ('%i.%i.%i' % sys.version_info[:3], platform.architecture()[0])
+        )
 
     def console(self):
         return self._console

@@ -171,9 +171,25 @@ class FindFilesDialog(Dialog):
         if path:
             self.uiBasePathTXT.setText(path)
 
+    def recordOpenState(self, item=None, key=''):
+        output = []
+        if not item:
+            for i in range(self.uiResultsTREE.topLevelItemCount()):
+                output += self.recordOpenState(self.uiResultsTREE.topLevelItem(i))
+        else:
+            text = str(item.text(0))
+            if item.isExpanded():
+                output.append(key + text)
+            key += text + '::'
+            for c in range(item.childCount()):
+                output += self.recordOpenState(item.child(c), key)
+        return output
+
     def refreshResults(self):
         self.uiResultsTREE.blockSignals(True)
         self.uiResultsTREE.setUpdatesEnabled(False)
+
+        openState = self.recordOpenState()
 
         self.uiResultsTREE.clear()
         results = self._searchThread.results()
@@ -200,8 +216,23 @@ class FindFilesDialog(Dialog):
 
             self.uiResultsTREE.addTopLevelItem(item)
 
+        self.restoreOpenState(openState)
+
         self.uiResultsTREE.setUpdatesEnabled(True)
         self.uiResultsTREE.blockSignals(False)
+
+    def restoreOpenState(self, openState, item=None, key=''):
+        if not item:
+            for i in range(self.uiResultsTREE.topLevelItemCount()):
+                self.restoreOpenState(openState, self.uiResultsTREE.topLevelItem(i))
+        else:
+            text = str(item.text(0))
+            itemkey = key + text
+            if itemkey in openState:
+                item.setExpanded(True)
+            key += text + '::'
+            for c in range(item.childCount()):
+                self.restoreOpenState(openState, item.child(c), key)
 
     def toggleSearch(self):
         if self.uiSearchBTN.text() == 'Start Search':

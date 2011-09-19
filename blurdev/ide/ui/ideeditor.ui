@@ -64,6 +64,9 @@
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
               <column>
                <property name="text">
                 <string notr="true">1</string>
@@ -86,6 +89,9 @@
             </property>
             <item row="0" column="0">
              <widget class="QTreeWidget" name="uiOpenTREE">
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
@@ -117,6 +123,9 @@
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
              </widget>
             </item>
            </layout>
@@ -136,7 +145,7 @@
      <x>0</x>
      <y>0</y>
      <width>951</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiToolsMENU">
@@ -210,6 +219,7 @@
     <addaction name="uiFindInFilesACT"/>
     <addaction name="separator"/>
     <addaction name="uiGotoACT"/>
+    <addaction name="uiGotoDefinitionACT"/>
     <addaction name="uiMethodBrowserACT"/>
     <addaction name="uiMarkersMENU"/>
    </widget>
@@ -785,6 +795,17 @@
    </property>
    <property name="text">
     <string>Show Endlines</string>
+   </property>
+  </action>
+  <action name="uiGotoDefinitionACT">
+   <property name="text">
+    <string>Goto Definition...</string>
+   </property>
+   <property name="toolTip">
+    <string>Goto the definition of the text if it exists in the current document.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+G</string>
    </property>
   </action>
  </widget>

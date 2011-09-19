@@ -12,7 +12,7 @@ import os.path
 
 from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal
 from PyQt4.Qsci import QsciScintilla
-from PyQt4.QtGui import QApplication, QFont, QFileDialog
+from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog
 
 from blurdev.enum import enum
 from blurdev.ide import lang
@@ -185,8 +185,6 @@ class DocumentEditor(QsciScintilla):
             window.uiFindInFilesACT.triggered.emit()
 
     def goToLine(self, line=None):
-        from PyQt4.QtGui import QInputDialog
-
         if type(line) != int:
             line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')
         else:
@@ -195,6 +193,27 @@ class DocumentEditor(QsciScintilla):
         if accepted:
             # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog go to the correct line.
             self.setCursorPosition(line - 1, 0)
+
+    def goToDefinition(self, text=None):
+        if not text:
+            text = self.selectedText()
+            if not text:
+                text, accepted = QInputDialog.getText(self, 'def Name', 'Name:')
+            else:
+                accepted = True
+        else:
+            accepted = True
+        if accepted:
+            descriptors = lang.byName(self.language()).descriptors()
+            docText = self.text()
+            for descriptor in descriptors:
+                result = descriptor.search(docText)
+                while result:
+                    name = unicode(result.group('name'))
+                    if name.startswith(text):
+                        self.findNext(name, 0)
+                        return
+                    result = descriptor.search(docText, result.end())
 
     def language(self):
         return self._language
@@ -588,6 +607,9 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Go to Line...')
         act.triggered.connect(self.goToLine)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
+        act = menu.addAction('Go to Definition')
+        act.triggered.connect(self.goToDefinition)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
 
         menu.addSeparator()
 

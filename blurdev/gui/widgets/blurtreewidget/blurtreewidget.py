@@ -80,6 +80,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self._hideableColumns = []
         self._showColumnControls = False
         self._saveColumnWidths = False
+        self._saveColumnOrder = False
         self._columnsMenu = None
         self._delegate = None
         self._showAllColumnsText = 'Show all columns'
@@ -160,6 +161,14 @@ class BlurTreeWidget(LockableTreeWidget):
             self.buildColumnIndex()
         return self._columnIndex
 
+    def columnOrder(self):
+        order = {}
+        header = self.header()
+        headerItem = self.headerItem()
+        for column in range(self.columnCount()):
+            order.update({str(headerItem.text(column)): header.visualIndex(column)})
+        return order
+
     def columnVisibility(self):
         visibility = {}
         headerItem = self.headerItem()
@@ -200,11 +209,8 @@ class BlurTreeWidget(LockableTreeWidget):
             \remarks	Expands all the tree items based on the inputed parent item
             \param		state	<bool>	Expand or contract items
         """
-        # block the signals so the other slots won't be called
-        # self.blockSignals( True )
         for index in range(self.topLevelItemCount()):
             self._itemExpandAll(self.topLevelItem(index), state)
-        # self.blockSignals( False )
 
     def hideableColumns(self):
         count = self.columnCount()
@@ -229,6 +235,26 @@ class BlurTreeWidget(LockableTreeWidget):
 
     def isGridDelegateEnabled(self):
         return type(self.itemDelegate()) == GridDelegate
+
+    def itemCount(self):
+        """
+            \Remarks	Shows the total number of QTreeWidgetItem's in this tree, it is recursive and will include all children of items.
+            \Return		<int>
+        """
+        total = self.topLevelItemCount()
+        for index in range(total):
+            total += self.itemCountForItem(self.topLevelItem(index))
+        return total
+
+    def itemCountForItem(self, item):
+        """
+            \Remarks	Recursive function for itemCount
+            \Return		<int>
+        """
+        total = item.childCount()
+        for index in range(total):
+            total += self.itemCountForItem(item.child(index))
+        return total
 
     def itemIsCollapsed(self, item):
         """
@@ -276,6 +302,16 @@ class BlurTreeWidget(LockableTreeWidget):
             if identifier:
                 names.append(identifier)
             pref.recordProperty('-'.join(names), self.columnWidths())
+        if self._saveColumnOrder:
+            names = ['ColumnOrder']
+            if identifier:
+                names.append(identifier)
+            pref.recordProperty('-'.join(names), self.columnOrder())
+
+    def resetColumnOrder(self):
+        header = self.header()
+        for column in range(self.columnCount()):
+            header.moveSection(header.visualIndex(column), column)
 
     def resizeColumnsToContents(self):
         """
@@ -308,6 +344,17 @@ class BlurTreeWidget(LockableTreeWidget):
             return
         for column in range(self.columnCount()):
             self.setColumnWidth(column, self.columnWidth(column) * resizePercent)
+
+    def restoreColumnOrder(self, order):
+        header = self.header()
+        headerItem = self.headerItem()
+        for name, index in order.items():
+            for column in range(self.columnCount()):
+                if headerItem.text(column) == name:
+                    header.moveSection(header.visualIndex(column), index)
+                    break
+            else:
+                print 'Failed to find item', name, index
 
     def restoreColumnVisibility(self, visibility):
         headerItem = self.headerItem()
@@ -353,6 +400,11 @@ class BlurTreeWidget(LockableTreeWidget):
             if identifier:
                 names.append(identifier)
             self.restoreColumnWidths(pref.restoreProperty('-'.join(names), {}))
+        if self._saveColumnOrder:
+            names = ['ColumnOrder']
+            if identifier:
+                names.append(identifier)
+            self.restoreColumnOrder(pref.restoreProperty('-'.join(names), {}))
 
     def setColumnCount(self, columns):
         """
@@ -360,6 +412,9 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         self._indexBuilt = False
         QTreeWidget.setColumnCount(self, columns)
+
+    def saveColumnOrder(self):
+        return self._saveColumnOrder
 
     def saveColumnWidths(self):
         return self._saveColumnWidths
@@ -431,6 +486,9 @@ class BlurTreeWidget(LockableTreeWidget):
             self.connectHeaderMenu(view)
         return view
 
+    def setSaveColumnOrder(self, state):
+        self._saveColumnOrder = state
+
     def setSaveColumnWidths(self, state):
         self._saveColumnWidths = state
 
@@ -492,6 +550,10 @@ class BlurTreeWidget(LockableTreeWidget):
             action.triggered.connect(self.resizeColumnsToContents)
             action = menu.addAction('Resize to fit window')
             action.triggered.connect(self.resizeColumnsToWindow)
+            if self.header().isMovable():
+                menu.addSeparator()
+                action = menu.addAction('Reset column order')
+                action.triggered.connect(self.resetColumnOrder)
 
         if self.lockedViews():
             menu.addSeparator()
@@ -560,6 +622,7 @@ class BlurTreeWidget(LockableTreeWidget):
         'QByteArray', hideableColumnsArray, setHideableColumnsArray
     )
     pySaveColumnWidths = pyqtProperty('bool', saveColumnWidths, setSaveColumnWidths)
+    pySaveVisualIndex = pyqtProperty('bool', saveColumnOrder, setSaveColumnOrder)
 
     pyEnableGradiated = pyqtProperty('bool', isGradiated, setGradiated)
     pyEnableGridDelegate = pyqtProperty(

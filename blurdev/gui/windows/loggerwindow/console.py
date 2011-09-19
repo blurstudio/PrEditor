@@ -210,7 +210,10 @@ class ConsoleEdit(QTextEdit):
                         message.append(
                             '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
                         )
-                        message.append(module.errorLog().replace('\n', '<br>'))
+                        try:
+                            message.append(module.errorLog().replace('\n', '<br>'))
+                        except:
+                            message.append('module.errorLog() generated a error.')
                         message.append('</code></pre></div>')
 
         blurdev.core.sendEmail(
