@@ -8,9 +8,27 @@
 # 	\date		12/06/10
 #
 
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem
-from PyQt4.QtCore import QSize
+from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QHeaderView
+from PyQt4.QtCore import QSize, Qt
 import blurdev
+
+
+class LockableTreeHeaderView(QHeaderView):
+    def __init__(self, orientation, parent=None, delegate=None):
+        super(LockableTreeHeaderView, self).__init__(orientation, parent)
+        self.delegate = delegate
+
+    def mousePressEvent(self, event):
+        self.delegate.mousePressEvent(event)
+        # super(LockableTreeHeaderView, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.delegate.mouseMoveEvent(event)
+        # super(LockableTreeHeaderView, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.delegate.mouseReleaseEvent(event)
+        # super(LockableTreeHeaderView, self).mouseReleaseEvent(event)
 
 
 class LockableTreeWidget(QTreeWidget):
@@ -20,6 +38,7 @@ class LockableTreeWidget(QTreeWidget):
         # create lockable options
         self._lockedViews = {}
         self._metric = None
+        self._enableAutoHeight = True
         # initialize the tree options
         self.setHorizontalScrollMode(QTreeWidget.ScrollPerPixel)
         self.setVerticalScrollMode(QTreeWidget.ScrollPerPixel)
@@ -29,7 +48,6 @@ class LockableTreeWidget(QTreeWidget):
 
     def _createLockedView(self, alignment, span):
         from PyQt4.QtGui import QTreeView
-        from PyQt4.QtCore import Qt
 
         # create the view
         view = QTreeView(self)
@@ -65,6 +83,18 @@ class LockableTreeWidget(QTreeWidget):
             self.itemCollapsed.connect(self.updateItemCollapsed)
             view.expanded.connect(self.updateRootItemExpansion)
             view.collapsed.connect(self.updateRootItemCollapsed)
+            # connect header sort options
+            oldHeader = view.header()
+            view.setHeader(
+                LockableTreeHeaderView(
+                    oldHeader.orientation(), oldHeader.parent(), delegate=self.header()
+                )
+            )
+            view.header().setMovable(False)
+            # 			view.header().sortIndicatorChanged.connect(self.sortByColumn)
+            self.header().sortIndicatorChanged.connect(self.updateSortView)
+            view.setSortingEnabled(self.isSortingEnabled())
+            self.header().sectionMoved.connect(self.updateColumnOrders)
 
         # create horizontal alignment options
         elif alignment in (Qt.AlignTop, Qt.AlignBottom):
@@ -94,11 +124,14 @@ class LockableTreeWidget(QTreeWidget):
 
         return view
 
+    def autoHeight(self):
+        return self._enableAutoHeight
+
     def bindTreeWidgetItem(self, item):
         """
             \Remarks	Overrides the setHidden and setExpanded methods for QTreeWidgetItems recursively. Should be replaced with a subclass of QTreeWidget that can update the model without this method as it may introduce memory leaks.
         """
-        blurdev.bindMethod(item, 'setHidden', self.setHidden)
+        blurdev.bindMethod(item, 'setHidden', self.setHiddenForItem)
         blurdev.bindMethod(item, 'setExpanded', self.setExpandedForItem)
         for index in range(item.childCount()):
             self.bindTreeWidgetItem(item.child(index))
@@ -119,6 +152,13 @@ class LockableTreeWidget(QTreeWidget):
     def customContextMenuRequestedForView(self, point):
         self.customContextMenuRequested.emit(point)
 
+    def enableAutoHeight(self, state):
+        """
+            \Remarks	Controls if updateSizeHintForItem(recursive=True) is called when a item is expaned. Disable for quicker expansion.
+            \param		state	<bool>
+        """
+        self._enableAutoHeight = state
+
     def initFontMetric(self, font):
         from PyQt4.QtGui import QFontMetrics
 
@@ -135,8 +175,6 @@ class LockableTreeWidget(QTreeWidget):
         self.updateLockedGeometry()
 
     def resetVScrollBar(self):
-        from PyQt4.QtCore import Qt
-
         for align in self._lockedViews:
             v, span = self._lockedViews[align]
 
@@ -155,8 +193,6 @@ class LockableTreeWidget(QTreeWidget):
                 bar.blockSignals(False)
 
     def resetHScrollBar(self):
-        from PyQt4.QtCore import Qt
-
         for align, options in self._lockedViews.items():
             v, span = options
 
@@ -184,7 +220,7 @@ class LockableTreeWidget(QTreeWidget):
             else:
                 tree.updateItemCollapsed(item)
 
-    def setHidden(item, hidden):
+    def setHiddenForItem(item, hidden):
         item.treeWidget().setItemHidden(item, hidden)
         # QTreeWidgetItem.setHidden( item )
 
@@ -212,7 +248,6 @@ class LockableTreeWidget(QTreeWidget):
 
         # create compound locks
         if changed:
-            from PyQt4.QtCore import Qt
 
             self.setLocked(
                 Qt.AlignLeft | Qt.AlignTop,
@@ -247,6 +282,11 @@ class LockableTreeWidget(QTreeWidget):
         QTreeWidget.setItemHidden(self, item, hide)
         # self.blockSignals( False )
 
+    def setPalette(self, palette):
+        super(LockableTreeWidget, self).setPalette(palette)
+        for view, span in self._lockedViews.values():
+            view.setPalette(palette)
+
     def setRowHidden(self, row, parent, hide):
         for view, span in self._lockedViews.values():
             view.setRowHidden(row, parent, hide)
@@ -254,9 +294,29 @@ class LockableTreeWidget(QTreeWidget):
         QTreeWidget.setRowHidden(self, row, parent, hide)
         # self.blockSignals( False )
 
-    def updateItemExpansion(self, item):
-        from PyQt4.QtCore import Qt
+    def setSortingEnabled(self, state):
+        super(LockableTreeWidget, self).setSortingEnabled(state)
+        for align in self._lockedViews:
+            view, span = self._lockedViews[align]
+            view.setSortingEnabled(state)
 
+    def updateColumnOrders(self):
+        for align, options in self._lockedViews.items():
+            view, span = options
+            # update the left item
+            if align == int(Qt.AlignLeft):
+                for col in range(span):
+                    header = self.header()
+                    header.moveSection(header.visualIndex(col), col)
+            # update the right item
+            elif align == int(Qt.AlignRight):
+                for col in range(
+                    self.columnCount() - 1, self.columnCount() - span - 1, -1
+                ):
+                    header = self.header()
+                    header.moveSection(header.visualIndex(col), col)
+
+    def updateItemExpansion(self, item):
         index = self.indexFromItem(item, 0)
         # for view, span in self._lockedViews.values():
         # view.blockSignals( True )
@@ -265,14 +325,16 @@ class LockableTreeWidget(QTreeWidget):
         for align in self._lockedViews:
             view, span = self._lockedViews[align]
             view.setExpanded(index, True)
-
-    # 			if align == Qt.AlignLeft:
-    # 				colRange = range( span )
-    # 			elif align == Qt.AlignRight:
-    # 				count = self.columnCount()
-    # 				colRange = range( count - span, count )
-    # 			for column in colRange:
-    # 				self.updateSizeHintForItem( item, column, True )
+            if self._enableAutoHeight:
+                if align == Qt.AlignLeft:
+                    colRange = range(span)
+                elif align == Qt.AlignRight:
+                    count = self.columnCount()
+                    colRange = range(count - span, count)
+                else:
+                    colRange = range(0)
+                for column in colRange:
+                    blurdev.core.runDelayed(self.updateSizeHintForItem, item, column, 2)
 
     def updateItemCollapsed(self, item):
         index = self.indexFromItem(item, 0)
@@ -291,7 +353,6 @@ class LockableTreeWidget(QTreeWidget):
 
     def updateSectionWidth(self, index, oldSize, newSize):
         # update locked views
-        from PyQt4.QtCore import Qt
 
         for v, span in self._lockedViews.values():
             v.setColumnWidth(index, newSize)
@@ -299,8 +360,6 @@ class LockableTreeWidget(QTreeWidget):
         self.updateLockedGeometry()
 
     def updateSizeHints(self):
-        from PyQt4.QtCore import Qt
-
         for index in range(self.topLevelItemCount()):
             item = self.topLevelItem(index)
             for align in self._lockedViews:
@@ -315,13 +374,28 @@ class LockableTreeWidget(QTreeWidget):
                 for column in colRange:
                     self.updateSizeHintForItem(item, column, recursive=True)
 
-    def updateSizeHintForItem(self, item, column, recursive=False):
+    def updateSizeHintForItem(self, item, column, recursive=0):
+        """
+            \Remarks	Updates the size hint of a QTreeWidgetItem's column, optionaly recursively.
+                        recursive is reduced for each child, so you can specify the number of recursions.
+                        If recursive is -1 then it will not expire
+            \param		item		<QTreeWidgetItem>
+            \param		column		<int>
+            \param		recursive	<int>				Number of recursions
+        """
         if recursive:
             for index in range(item.childCount()):
-                self.updateSizeHintForItem(item.child(index), column, recursive)
+                self.updateSizeHintForItem(item.child(index), column, recursive - 1)
         hint = self.itemSizeHint(item, column)
         if hint.isValid():
             item.setSizeHint(column, hint)
+
+    def updateSortView(self, column, order):
+        for align in self._lockedViews:
+            view, span = self._lockedViews[align]
+            view.blockSignals(True)
+            view.sortByColumn(column, order)
+            view.blockSignals(False)
 
     def itemSizeHint(self, item, column):
         # hint = item.sizeHint( column )
@@ -335,13 +409,11 @@ class LockableTreeWidget(QTreeWidget):
         parent = item.parent()
         while parent:
             parent = parent.parent()
-            width += 22
+            width += self.indentation()
         hint.setWidth(width)
         return hint
 
     def updateLockedGeometry(self):
-        from PyQt4.QtCore import Qt
-
         if not hasattr(self, '_lockedViews'):
             self._lockedViews = {}
         for align, options in self._lockedViews.items():

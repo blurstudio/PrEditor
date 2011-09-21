@@ -92,35 +92,6 @@ class BlurTreeWidget(LockableTreeWidget):
         # create connections
         self.destroyed.connect(self.aboutToBeDestroyed)
 
-    def _itemExpandAll(self, item, state, filter=None, column=0):
-        """
-            \remarks	Recursively goes down the tree hierarchy expanding/collapsing all the tree items.  This method is called in the expandAll, itemExpanded, and itemCollapsed methods
-                        and should not be called directly.
-            \param		item	<QTreeWidgetItem>
-            \param		state	<bool>	Expand or collapse state
-            \param		filter	<str>	Only expand items with text in column matching this will be set to state
-            \param		column	<int>	The column filter is applied to
-        """
-        result = False
-        for c in range(item.childCount()):
-            if self._itemExpandAll(item.child(c), state, filter):
-                result = True
-        if not result:
-            if filter:
-                if item.text(column) == filter:
-                    item.setExpanded(state)
-                    self._itemExpandAll(item, state)
-                    return True
-                else:
-                    item.setExpanded(not state)
-                    return False
-            else:
-                item.setExpanded(state)
-                return False
-        else:
-            item.setExpanded(state)
-            return True
-
     def aboutToBeDestroyed(self):
         """ Prevent crashes due to "delete loops" """
         self._delegate = None
@@ -210,7 +181,7 @@ class BlurTreeWidget(LockableTreeWidget):
             \param		state	<bool>	Expand or contract items
         """
         for index in range(self.topLevelItemCount()):
-            self._itemExpandAll(self.topLevelItem(index), state)
+            self.itemExpandAllChildren(self.topLevelItem(index), state)
 
     def hideableColumns(self):
         count = self.columnCount()
@@ -264,7 +235,7 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
-            self._itemExpandAll(item, False)
+            self.itemExpandAllChildren(item, False)
             # self.blockSignals( False )
 
     def itemIsExpanded(self, item):
@@ -275,8 +246,48 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
-            self._itemExpandAll(item, True)
+            self.itemExpandAllChildren(item, True)
             # self.blockSignals( False )
+
+    def itemExpandAllChildren(self, item, state, filter=None, column=0):
+        """
+            \remarks	Recursively goes down the tree hierarchy expanding/collapsing all the tree items.  This method is called in the expandAll, itemExpanded, and itemCollapsed methods.
+            \param		item	<QTreeWidgetItem>
+            \param		state	<bool>	Expand or collapse state
+            \param		filter	<str>	Only expand items with text in column matching this will be set to state
+            \param		column	<int>	The column filter is applied to
+        """
+        result = False
+        for c in range(item.childCount()):
+            if self.itemExpandAllChildren(item.child(c), state, filter):
+                result = True
+        if not result:
+            if filter:
+                if item.text(column) == filter:
+                    item.setExpanded(state)
+                    self.itemExpandAllChildren(item, state)
+                    return True
+                else:
+                    item.setExpanded(not state)
+                    return False
+            else:
+                item.setExpanded(state)
+                return False
+        else:
+            item.setExpanded(state)
+            return True
+
+    def prefName(self, name, identifier=''):
+        """
+            \Remarks	Appends the identifier to the pref name allowing you to save more than one BlurTreeWidget preffrences in a single file.
+            \param		name		<str>
+            \param		identifier	<str>
+            \Return		<str>		"name-identifier" || 'name'
+        """
+        names = [name]
+        if identifier:
+            names.append(identifier)
+        return '-'.join(names)
 
     def recordOpenState(self, item=None, key=''):
         output = []
@@ -293,15 +304,22 @@ class BlurTreeWidget(LockableTreeWidget):
         return output
 
     def recordPrefs(self, pref, identifier=''):
-        names = ['ColumnVis']
-        if identifier:
-            names.append(identifier)
-        pref.recordProperty('-'.join(names), self.columnVisibility())
+        pref.recordProperty(
+            self.prefName('ColumnVis', identifier), self.columnVisibility()
+        )
         if self._saveColumnWidths:
-            names = ['ColumnWidths']
-            if identifier:
-                names.append(identifier)
-            pref.recordProperty('-'.join(names), self.columnWidths())
+            pref.recordProperty(
+                self.prefName('ColumnWidths', identifier), self.columnWidths()
+            )
+        if self._saveColumnOrder:
+            pref.recordProperty(
+                self.prefName('ColumnOrder', identifier), self.columnOrder()
+            )
+        pref.recordProperty(self.prefName('SortColumn', identifier), self.sortColumn())
+        pref.recordProperty(
+            self.prefName('SortColumnOrder', identifier),
+            int(self.header().sortIndicatorOrder()),
+        )
         if self._saveColumnOrder:
             names = ['ColumnOrder']
             if identifier:
@@ -391,15 +409,24 @@ class BlurTreeWidget(LockableTreeWidget):
                 self.restoreOpenState(openState, item.child(c), key)
 
     def restorePrefs(self, pref, identifier=''):
-        names = ['ColumnVis']
-        if identifier:
-            names.append(identifier)
-        self.restoreColumnVisibility(pref.restoreProperty('-'.join(names), {}))
+        self.restoreColumnVisibility(
+            pref.restoreProperty(self.prefName('ColumnVis', identifier), {})
+        )
         if self._saveColumnWidths:
-            names = ['ColumnWidths']
-            if identifier:
-                names.append(identifier)
-            self.restoreColumnWidths(pref.restoreProperty('-'.join(names), {}))
+            self.restoreColumnWidths(
+                pref.restoreProperty(self.prefName('ColumnWidths', identifier), {})
+            )
+        if self._saveColumnOrder:
+            self.restoreColumnOrder(
+                pref.restoreProperty(self.prefName('ColumnOrder', identifier), {})
+            )
+        self.sortByColumn(
+            pref.restoreProperty(self.prefName('SortColumn', identifier), 0),
+            pref.restoreProperty(
+                self.prefName('SortColumnOrder', identifier), Qt.DescendingOrder
+            ),
+        )
+
         if self._saveColumnOrder:
             names = ['ColumnOrder']
             if identifier:
@@ -566,7 +593,8 @@ class BlurTreeWidget(LockableTreeWidget):
         cursorPos = QCursor.pos()
         if self._delegate and hasattr(self._delegate, 'headerMenu'):
             result = self._delegate.headerMenu(menu)
-        if result:
+        # only show the menu if delegate allows it and if there are any actions to show.
+        if result and menu.actions():
             menu.popup(cursorPos)
 
     def treeWidth(self):
