@@ -164,11 +164,12 @@ def createShortcut(
                             icon = None
 
         shortcut = os.path.join(path, '%s.lnk' % title)
+        print shortcut, '---', target, '---', args, '---', startin, '---', icon, '---', description
         if icon:
             blurdev.scripts.winshell.CreateShortcut(
                 shortcut,
                 target,
-                Arguments=args,
+                Arguments='"%s"' % args,
                 StartIn=startin,
                 Icon=(icon, 0),
                 Description=description,
