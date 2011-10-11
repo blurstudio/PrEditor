@@ -237,7 +237,10 @@ class DocumentEditor(QsciScintilla):
     def load(self, filename):
         filename = str(filename)
         if filename and os.path.exists(filename):
-            self.setText(open(filename).read())
+            f = QFile(filename)
+            f.open(QFile.ReadOnly)
+            self.read(f)
+            f.close()
             self.updateFilename(filename)
             return True
         return False
@@ -328,48 +331,48 @@ class DocumentEditor(QsciScintilla):
         eolmode = section.value('eolMode')
 
         # try to determine the end line mode based on the file itself
-        if eolmode == 'Auto-Detect':
-            text = self.text()
-
-            # guess from the file, otherwise, use the base system
-            if text:
-                winCount = text.count('\r\n')  # windows style endline
-                linCount = text.count('\n')  # unix style endline
-                macCount = text.count('\r')  # mac style endline
-
-                # use windows syntax
-                if winCount and winCount == linCount and winCount == macCount:
-                    eolmode = self.EolWindows
-                elif macCount > linCount:
-                    eolmode = self.EolMac
-                else:
-                    eolmode = self.EolUnix
-            else:
-                eolmode = None
-
-        # force to windows mode
-        elif eolmode == 'Windows':
-            eolmode = self.EolWindows
-
-        # force to unix mode
-        elif eolmode == 'Unix':
-            eolmode = self.EolUnix
-
-        # force to mac mode
-        elif eolmode == 'Mac':
-            eolmode = self.EolMac
-
-        # use default system mode
-        else:
-            eolmode = None
-
-        if eolmode != None:
-            # set new eols to being the inputed type
-            self.setEolMode(eolmode)
-
-        # convert the current eols if necessary
-        if section.value('convertEol'):
-            self.convertEols(self.eolMode())
+        # 		if ( eolmode == 'Auto-Detect' ):
+        # 			text        = self.text()
+        #
+        # 			# guess from the file, otherwise, use the base system
+        # 			if ( text ):
+        # 				winCount    = text.count('\r\n')    # windows style endline
+        # 				linCount    = text.count('\n')      # unix style endline
+        # 				macCount    = text.count('\r')      # mac style endline
+        #
+        # 				# use windows syntax
+        # 				if ( winCount and winCount == linCount and winCount == macCount ):
+        # 					eolmode = self.EolWindows
+        # 				elif ( macCount > linCount ):
+        # 					eolmode = self.EolMac
+        # 				else:
+        # 					eolmode = self.EolUnix
+        # 			else:
+        # 				eolmode = None
+        #
+        # 		# force to windows mode
+        # 		elif ( eolmode == 'Windows' ):
+        # 			eolmode = self.EolWindows
+        #
+        # 		# force to unix mode
+        # 		elif ( eolmode == 'Unix' ):
+        # 			eolmode = self.EolUnix
+        #
+        # 		# force to mac mode
+        # 		elif ( eolmode == 'Mac' ):
+        # 			eolmode = self.EolMac
+        #
+        # 		# use default system mode
+        # 		else:
+        # 			eolmode = None
+        #
+        # 		if ( eolmode != None ):
+        # 			# set new eols to being the inputed type
+        # 			self.setEolMode(eolmode)
+        #
+        # 		# convert the current eols if necessary
+        # 		if (section.value('convertEol')):
+        # 			self.convertEols(self.eolMode())
 
         # set autocompletion settings
         if section.value('autoComplete'):
