@@ -249,21 +249,28 @@ class BlurTreeWidget(LockableTreeWidget):
             self.itemExpandAllChildren(item, True)
             # self.blockSignals( False )
 
-    def itemExpandAllChildren(self, item, state, filter=None, column=0):
+    def itemExpandAllChildren(self, item, state, filter=None, column=0, contains=False):
         """
-            \remarks	Recursively goes down the tree hierarchy expanding/collapsing all the tree items.  This method is called in the expandAll, itemExpanded, and itemCollapsed methods.
+            \Remarks	Recursively goes down the tree hierarchy expanding/collapsing all the tree items.  This method is called in the expandAll, itemExpanded, and itemCollapsed methods.
             \param		item	<QTreeWidgetItem>
             \param		state	<bool>	Expand or collapse state
             \param		filter	<str>	Only expand items with text in column matching this will be set to state
             \param		column	<int>	The column filter is applied to
+            \param		contains	<bool>	If True check if filter is contained in the column text, not that the column text matches the filter.
+            \Return		<bool>	Was this item or its children expanded.
         """
         result = False
         for c in range(item.childCount()):
-            if self.itemExpandAllChildren(item.child(c), state, filter):
+            if self.itemExpandAllChildren(
+                item.child(c), state, filter, column, contains
+            ):
                 result = True
         if not result:
             if filter:
-                if item.text(column) == filter:
+                text = item.text(column)
+                if (not contains and text == filter) or (
+                    contains and filter in unicode(text)
+                ):
                     item.setExpanded(state)
                     self.itemExpandAllChildren(item, state)
                     return True
