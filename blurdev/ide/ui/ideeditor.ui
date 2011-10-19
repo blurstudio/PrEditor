@@ -170,6 +170,7 @@
     <addaction name="uiCloseAllACT"/>
     <addaction name="uiCloseAllExceptACT"/>
     <addaction name="separator"/>
+    <addaction name="uiReloadFileACT"/>
     <addaction name="uiSaveACT"/>
     <addaction name="uiSaveAsACT"/>
     <addaction name="uiSaveAllACT"/>
@@ -806,6 +807,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+G</string>
+   </property>
+  </action>
+  <action name="uiReloadFileACT">
+   <property name="text">
+    <string>Reload File</string>
    </property>
   </action>
  </widget>

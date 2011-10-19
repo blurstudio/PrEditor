@@ -184,6 +184,7 @@ class IdeEditor(Window):
         self.uiNewACT.triggered.connect(self.documentNew)
         self.uiNewFromWizardACT.triggered.connect(self.documentFromWizard)
         self.uiOpenACT.triggered.connect(self.documentOpen)
+        self.uiReloadFileACT.triggered.connect(self.documentReload)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
         self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
@@ -311,6 +312,7 @@ class IdeEditor(Window):
             menu, self.uiCopyFilenameACT, editor.copyFilenameToClipboard
         )
         menu.addSeparator()
+        self.duplicateAction(menu, self.uiReloadFileACT, editor.reloadFile)
         menu.addAction(self.uiCloseACT)
         menu.addAction(self.uiCloseAllACT)
         menu.addAction(self.uiCloseAllExceptACT)
@@ -512,6 +514,12 @@ class IdeEditor(Window):
 
         doc.findPrev(self.searchText(), self.searchFlags())
         return True
+
+    def documentReload(self):
+        doc = self.currentDocument()
+        if not doc:
+            return False
+        doc.reloadFile()
 
     def documentReplace(self):
         doc = self.currentDocument()
@@ -1338,6 +1346,7 @@ class IdeEditor(Window):
             QIcon(blurdev.resourcePath('img/ide/newwizard.png'))
         )
         self.uiOpenACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
+        self.uiReloadFileACT.setIcon(QIcon(blurdev.resourcePath('img/ide/refresh.png')))
         self.uiCloseACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
         self.uiSaveACT.setIcon(QIcon(blurdev.resourcePath('img/ide/save.png')))
         self.uiSaveAsACT.setIcon(QIcon(blurdev.resourcePath('img/ide/saveas.png')))

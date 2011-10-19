@@ -505,6 +505,21 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).redo()
         self.refreshTitle()
 
+    def reloadFile(self):
+        from PyQt4.QtGui import QMessageBox
+
+        result = QMessageBox.question(
+            self.window(),
+            'Reload File...',
+            'Are you sure you want to reload %s? You will lose all changes'
+            % os.path.basename(self.filename()),
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+        )
+        if result == QMessageBox.Yes:
+            self.load(self.filename())
+        elif result == QMessageBox.Cancel:
+            return False
+
     def replace(self, text, all=False):
         # replace the current text with the inputed text
         searchtext = self.selectedText()
