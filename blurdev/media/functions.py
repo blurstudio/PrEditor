@@ -9,7 +9,7 @@
 # 	\date		01/11/11
 #
 
-import os
+import os, blurdev.osystem
 
 
 _movieFileTypes = {
@@ -27,12 +27,16 @@ _imageFileTypes = {
 
 
 def extractVideoFrame(filename, outputpath):
+    """
+        \Remarks	This uses ffmpeg to extract a frame as a image.
+                    This requires that ffmpeg is installed by copying the ffmpeg folder into the 32bit program files folder
+    """
     options = {}
     options['source'] = filename
-    # FIXME: Trax isn't required for ffmpeg; it should be installed separately.
-    options['ffmpeg'] = 'C:/blur/trax/resource/ffmpeg.exe'
+    options['ffmpeg'] = blurdev.osystem.programFilesPath(r'ffmpeg\bin\ffmpeg.exe')
     options['output'] = outputpath
-    cmd = '%(ffmpeg)s -i %(source)s -t 1 -f image2 %(output)s' % options
+    cmd = '"%(ffmpeg)s" -i %(source)s -t 1 -f image2 %(output)s' % options
+    print cmd
     os.system(cmd)
     return True
 

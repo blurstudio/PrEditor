@@ -208,6 +208,21 @@ def explore(filename):
         subprocess.Popen(cmd % {'filepath': fpath}, shell=True)
 
 
+def programFilesPath(path=''):
+    """
+        \Remarks	Returns the path to 32bit program files on windows.
+        \param		path	<str>	This string is appended to the path
+        \Return		<str>
+    """
+    import platform
+
+    if platform.architecture()[0] == '64bit':
+        progF = 'ProgramFiles(x86)'
+    else:
+        progF = 'programfiles'
+    return r'%s\%s' % (os.getenv(progF), path)
+
+
 def shell(command, basepath='', persistent=False):
     """
         \remarks	runs the inputed shell command in its own window. If persistent keep the shell open after the command is run. Returns success
