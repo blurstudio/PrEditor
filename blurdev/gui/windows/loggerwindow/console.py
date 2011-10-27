@@ -102,8 +102,6 @@ class ConsoleEdit(QTextEdit):
             os.path.basename(sys.executable) != 'python.exe'
             or debug.debugLevel() != debug.DebugLevel.High
         ):
-            import sys
-
             sys.stdout = self
             sys.stderr = ErrorLog(self)
 
@@ -170,6 +168,7 @@ class ConsoleEdit(QTextEdit):
             % QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
         )
         message.append('<li><b>python: </b>%s</li>' % sys.version)
+        message.append('<li><b>executable: </b>%s</li>' % sys.executable)
 
         # notify where the error came from
         from PyQt4.QtGui import QApplication
