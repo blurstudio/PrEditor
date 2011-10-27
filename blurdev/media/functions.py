@@ -9,8 +9,7 @@
 # 	\date		01/11/11
 #
 
-import os, blurdev.osystem
-
+import os, blurdev.osystem, blurdev.settings, subprocess
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -78,3 +77,17 @@ def fileTypes():
             for key, value in _imageFileTypes.items() + _movieFileTypes.items()
         ]
     )
+
+
+def openQuicktime(filename):
+    if blurdev.settings.OS_TYPE == 'Windows':
+        import _winreg
+
+        # look up quicktime's path using the registry and the com id
+        areg = _winreg.ConnectRegistry(None, _winreg.HKEY_CLASSES_ROOT)
+        akey = _winreg.OpenKey(areg, r'QuickTimePlayerLib.QuickTimePlayerApp\CLSID')
+        clsid = _winreg.QueryValueEx(akey, '')[0]
+        envKey = _winreg.OpenKey(areg, r'Wow6432Node\CLSID\%s\LocalServer32' % clsid)
+        path = _winreg.QueryValueEx(envKey, '')[0]
+        cmd = '%s "%s"' % (path, os.path.normpath(filename))
+        subprocess.Popen(cmd)
