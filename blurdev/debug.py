@@ -128,36 +128,32 @@ def debugObject(object, msg, level=2):
 
         \return		<void>
     """
+    debugMsg(debugObjectString(object, msg), level)
+
+
+def debugObjectString(object, msg):
     import inspect
 
     # debug a module
     if inspect.ismodule(object):
-        debugMsg('[%s module] :: %s' % (object.__name__, msg), level)
+        return '[%s module] :: %s' % (object.__name__, msg)
 
     # debug a class
     elif inspect.isclass(object):
-        debugMsg(
-            '[%s.%s class] :: %s' % (object.__module__, object.__name__, msg), level
-        )
+        return '[%s.%s class] :: %s' % (object.__module__, object.__name__, msg)
 
     # debug an instance method
     elif inspect.ismethod(object):
-        debugMsg(
-            '[%s.%s.%s method] :: %s'
-            % (
-                object.im_class.__module__,
-                object.im_class.__name__,
-                object.__name__,
-                msg,
-            ),
-            level,
+        return '[%s.%s.%s method] :: %s' % (
+            object.im_class.__module__,
+            object.im_class.__name__,
+            object.__name__,
+            msg,
         )
 
     # debug a function
     elif inspect.isfunction(object):
-        debugMsg(
-            '[%s.%s function] :: %s' % (object.__module__, object.__name__, msg), level
-        )
+        return '[%s.%s function] :: %s' % (object.__module__, object.__name__, msg)
 
 
 def debugStubMethod(object, msg, level=2):

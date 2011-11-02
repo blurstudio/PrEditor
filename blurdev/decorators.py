@@ -40,17 +40,23 @@ class abstractmethod(object):
         return self._basemethod
 
 
-class pendingdeprecation(abstractmethod):
-    def __call__(self, *args, **kwds):
+def pendingdeprecation(function):
+    def newFunction(*args, **kwargs):
         if debug.isDebugLevel(debug.DebugLevel.High):
             raise PendingDeprecationWarning(
-                'The %s method will be removed in the future.' % self._basemethod
+                debug.debugObjectString(
+                    function, 'This method will be removed in the future.'
+                )
             )
         else:
             debug.debugObject(
-                self._basemethod,
-                'This method will be removed in the future.',
+                function,
+                'This method will be removed in the future',
                 debug.DebugLevel.Low,
             )
+        return function(*args, **kwargs)
 
-        return self._basemethod(self._basemethod, *args, **kwds)
+    newFunction.__name__ = function.__name__
+    newFunction.__doc__ = function.__doc__
+    newFunction.__dict__ = function.__dict__
+    return newFunction
