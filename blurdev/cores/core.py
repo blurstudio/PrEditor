@@ -846,6 +846,11 @@ class Core(QObject):
 
         ToolsToolBarDialog.instance(parent).show()
 
+    def showLovebar(self, parent=None):
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        ToolsLoveBarDialog.instance(parent).show()
+
     def showTreegrunt(self):
         self.treegrunt().show()
 

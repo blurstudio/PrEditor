@@ -10,6 +10,7 @@
 
 from PyQt4.QtGui import QAction
 from PyQt4.QtGui import QToolBar
+from blurdev.gui import Dialog
 
 
 class ToolbarAction(QAction):
@@ -149,9 +150,6 @@ class ToolsToolBar(QToolBar):
         actionsxml = xml.addNode('toolbar')
         for action in self.actions():
             action.toXml(actionsxml)
-
-
-from blurdev.gui import Dialog
 
 
 class ToolsToolBarDialog(Dialog):
