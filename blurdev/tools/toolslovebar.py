@@ -42,7 +42,6 @@ class LovebarAction(QAction):
         self.setToolTip(tool.toolTip())
 
     def exec_(self):
-        print self._toolID
         blurdev.runTool(self._toolID)
 
     def remove(self):
