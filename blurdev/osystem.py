@@ -162,6 +162,8 @@ def createShortcut(
                         out.wait()
                         if not os.path.exists(icon):
                             icon = None
+                    else:
+                        icon = None
 
         shortcut = os.path.join(path, '%s.lnk' % title)
         print shortcut, '---', target, '---', args, '---', startin, '---', icon, '---', description

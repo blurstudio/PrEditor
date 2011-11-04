@@ -41,6 +41,10 @@ class abstractmethod(object):
 
 
 def pendingdeprecation(function):
+    """
+        \Remarks	This decorator is used to warn that a api call will be depricated at a future date.
+    """
+
     def newFunction(*args, **kwargs):
         if debug.isDebugLevel(debug.DebugLevel.High):
             raise PendingDeprecationWarning(
