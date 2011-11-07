@@ -106,9 +106,6 @@ def imageSequenceForRepr(fileName):
     return [fileName]
 
 
-s
-
-
 def isMovie(filename):
     ext = os.path.splitext(str(filename))[0]
     return ext in _movieFileTypes
