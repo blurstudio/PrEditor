@@ -290,6 +290,16 @@ class XMLElement:
             return out
         return fail
 
+    def attributeDict(self):
+        """
+            \Remarks	Returns a dictionary of attributes
+            \Return		<dict>
+        """
+        out = {}
+        for item in self.attributes.values():
+            out.update({item.name: item.value})
+        return out
+
     def childAt(self, index):
         """
         #-------------------------------------------------------------------------------------------------------------
@@ -484,6 +494,9 @@ class XMLElement:
 
             out = '_'.join(re.findall('[a-zA-Z0-9]*', self.attribute('name'))).lower()
         return out
+
+    def name(self):
+        return self.nodeName
 
     def parent(self):
         if self.parentNode and isinstance(self.parentNode, xml.dom.minidom.Element):

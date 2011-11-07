@@ -9,7 +9,7 @@
 # 	\date		01/11/11
 #
 
-import os, blurdev.osystem, blurdev.settings, subprocess
+import os, blurdev.osystem, blurdev.settings, subprocess, glob, re
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -38,6 +38,75 @@ def extractVideoFrame(filename, outputpath):
     print cmd
     os.system(cmd)
     return True
+
+
+def imageSequenceFromFileName(fileName):
+    """
+        \Remarks	Gets a list of files that belong to the same image sequence as the passed in file.
+        \Note		This only works if the last number in filename is part of the image sequence.
+                    "c:\temp\test_[frame]_v01.jpg" A file signature like this would not work.
+                    It will ignore numbers inside the extension. Example("C:\temp\test_[frame].png1")
+        \Return		<list>
+    """
+    file = os.path.splitext(os.path.basename(fileName))[0]
+    return glob.glob(fileName.replace(re.findall('([0-9]+)', file[::-1])[0][::-1], '*'))
+
+
+def imageSequenceRepr(files):
+    """
+        \Remarks	Takes a list of files and creates a string that represents the sequence
+        \Return		<str>
+    """
+    if len(files) > 1:
+        regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
+        match = regex.match(files[0])
+        if match:
+            info = {}
+            for file in files:
+                frame = regex.match(file)
+                if frame:
+                    frame = frame.group('frame')
+                    info.update({int(frame): frame})
+            if info:
+                keys = sorted(info.keys())
+                low = info[keys[0]]
+                high = info[keys[-1]]
+                if low != high:
+                    return '%s[%s:%s]%s' % (
+                        match.group('pre'),
+                        low,
+                        high,
+                        match.group('post'),
+                    )
+    if files:
+        return files[0]
+    return ''
+
+
+def imageSequenceForRepr(fileName):
+    """
+        \Remarks	Returns the list of file names for a imageSequenceRepr. Only existing files are returned.
+        \Return		<list>
+    """
+    fileName = unicode(fileName)
+    filter = re.compile(
+        r'(?P<pre>^.+?)\[(?P<start>\d+):(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)'
+    )
+    match = re.match(filter, fileName)
+    if match:
+        start = int(match.group('start'))
+        end = int(match.group('end'))
+        files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
+        regex = re.compile(r'^.+?(?P<frame>\d+)\D*\.[A-Za-z0-9]+?$')
+        return [
+            file
+            for file in files
+            if start <= int(regex.match(file).group('frame')) <= end
+        ]
+    return [fileName]
+
+
+s
 
 
 def isMovie(filename):
