@@ -167,12 +167,12 @@ class IdeEditor(Window):
             header.setResizeMode(header.ResizeToContents)
 
         # create connections
-        self.uiProjectTREE.itemDoubleClicked.connect(self.editItem)
+        self.uiProjectTREE.itemActivated.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
         self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
 
         self.uiOpenTREE.itemClicked.connect(self.editItem)
-        self.uiExplorerTREE.doubleClicked.connect(self.editItem)
+        self.uiExplorerTREE.activated.connect(self.editItem)
         self.uiExplorerTREE.customContextMenuRequested.connect(self.showExplorerMenu)
 
         self.uiWindowsAREA.subWindowActivated.connect(self.emitCurrentDocumentChanged)
