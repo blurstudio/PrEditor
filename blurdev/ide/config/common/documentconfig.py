@@ -47,6 +47,7 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('showEol', self.uiShowEndlinesCHK.isChecked())
         section.setValue('eolMode', self.uiEndlineModeDDL.currentText())
         section.setValue('convertEol', self.uiEndlineConvertCHK.isChecked())
+        section.setValue('openFileMonitor', self.uiOpenFileMonitorCHK.isChecked())
 
     def refreshUi(self):
         """
@@ -72,6 +73,7 @@ class DocumentConfig(ConfigSectionWidget):
         self.uiEndlineModeDDL.setCurrentIndex(
             self.uiEndlineModeDDL.findText(section.value('eolMode'))
         )
+        self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
 
 
 def registerSections(configSet):
@@ -101,6 +103,7 @@ def registerSections(configSet):
         'convertEol': False,
         'showLimitColumn': False,
         'limitColumn': 100,
+        'openFileMonitor': True,
     }
 
     # register the section to the configset

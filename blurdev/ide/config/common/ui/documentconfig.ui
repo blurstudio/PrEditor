@@ -101,7 +101,23 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="1">
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_4">
+       <property name="title">
+        <string>File Monitoring</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="uiOpenFileMonitorCHK">
+          <property name="text">
+           <string>Monitor open files for changes</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="verticalSpacer_2">
           <property name="orientation">
            <enum>Qt::Vertical</enum>

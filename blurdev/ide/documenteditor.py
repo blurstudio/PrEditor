@@ -16,6 +16,7 @@ from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog
 
 from blurdev.enum import enum
 from blurdev.ide import lang
+from ideeditor import IdeEditor
 
 
 class DocumentEditor(QsciScintilla):
@@ -32,8 +33,10 @@ class DocumentEditor(QsciScintilla):
         self._filename = ''
         self._language = ''
         self._lastSearch = ''
+        self._fileMonitoringActive = False
         self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
+        self._saving = False
 
         # intialize settings
         self.initSettings()
@@ -73,6 +76,11 @@ class DocumentEditor(QsciScintilla):
             elif result == QMessageBox.Cancel:
                 return False
         return True
+
+    def closeEvent(self, event):
+        # unsubcribe the file from the open file monitor
+        self.enableFileWatching(False)
+        super(DocumentEditor, self).closeEvent(event)
 
     def commentAdd(self):
         from PyQt4.QtGui import QMessageBox as msg
@@ -144,6 +152,27 @@ class DocumentEditor(QsciScintilla):
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
+    def enableFileWatching(self, state):
+        """
+            \Remarks	Enables/Disables open file change monitoring. If enabled, A dialog will pop up when ever the open file is changed externally.
+                        If file monitoring is disabled in the IDE settings it will be ignored
+            \Return		<bool>
+        """
+        # if file monitoring is enabled and we have a file name then set up the file monitoring
+        window = self.window()
+        self._fileMonitoringActive = False
+        if isinstance(window, IdeEditor):
+            fm = window.openFileMonitor()
+            if fm:
+                if state:
+                    print 'watching filename: %s' % self._filename
+                    fm.addPath(self._filename)
+                    self._fileMonitoringActive = True
+                else:
+                    print 'Unscribing from the file monitor'
+                    fm.removePath(self._filename)
+        return self._fileMonitoringActive
+
     def eventFilter(self, object, event):
         if event.type() == event.Close and not self.checkForSave():
             event.ignore()
@@ -178,8 +207,6 @@ class DocumentEditor(QsciScintilla):
             os.startfile(str(self.filename()))
 
     def findInFiles(self, state=False):
-        from ideeditor import IdeEditor
-
         window = self.window()
         if isinstance(window, IdeEditor):
             window.uiFindInFilesACT.triggered.emit()
@@ -242,6 +269,7 @@ class DocumentEditor(QsciScintilla):
             self.read(f)
             f.close()
             self.updateFilename(filename)
+            self.enableFileWatching(True)
             return True
         return False
 
@@ -302,7 +330,6 @@ class DocumentEditor(QsciScintilla):
 
     def initSettings(self):
         # grab the document settings config set
-        from blurdev.ide.ideeditor import IdeEditor
         from PyQt4.QtGui import QFont, QFontMetrics, QColor
 
         configSet = IdeEditor.documentConfigSet()
@@ -506,19 +533,51 @@ class DocumentEditor(QsciScintilla):
         self.refreshTitle()
 
     def reloadFile(self):
+        return self.reloadDialog(
+            'Are you sure you want to reload %s? You will lose all changes'
+            % os.path.basename(self.filename())
+        )
+
+    def reloadChange(self):
+        """
+            \Remarks	Callback for file monitoring. If a file was modified or deleted this method is called when Open File Monitoring is enabled.
+                        Returns if the file was updated or left open
+            \Return		<bool>
+        """
+        if self._saving:
+            # If we are saving no need to reload the file
+            self._saving = False
+            return False
+        if not os.path.isfile(self.filename()):
+            # the file was deleted, ask the user if they still want to keep the file in the editor.
+            from PyQt4.QtGui import QMessageBox
+
+            result = QMessageBox.question(
+                self.window(),
+                'File Removed...',
+                'File: %s has been deleted.\nKeep file in editor?' % self.filename(),
+                QMessageBox.Yes,
+                QMessageBox.No,
+            )
+            if result == QMessageBox.No:
+                self.parent().close()
+                return False
+            # TODO: The file no longer exists, and the document should be marked as changed.
+            self.enableFileWatching(False)
+            return True
+        return self.reloadDialog(
+            'File: %s has been changed.\nReload from disk?' % self.filename()
+        )
+
+    def reloadDialog(self, message, title='Reload File...'):
         from PyQt4.QtGui import QMessageBox
 
         result = QMessageBox.question(
-            self.window(),
-            'Reload File...',
-            'Are you sure you want to reload %s? You will lose all changes'
-            % os.path.basename(self.filename()),
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            self.window(), title, message, QMessageBox.Yes | QMessageBox.No
         )
         if result == QMessageBox.Yes:
-            self.load(self.filename())
-        elif result == QMessageBox.Cancel:
-            return False
+            return self.load(self.filename())
+        return False
 
     def replace(self, text, all=False):
         # replace the current text with the inputed text
@@ -556,12 +615,16 @@ class DocumentEditor(QsciScintilla):
         return self.saveAs(self.filename())
 
     def saveAs(self, filename=''):
+        newFile = False
         if not filename:
+            newFile = True
             filename = QFileDialog.getSaveFileName(
                 self.window(), 'Save File as...', self.filename()
             )
 
         if filename:
+            if self._fileMonitoringActive:
+                self._saving = True
             # save the file to disk
             f = QFile(filename)
             f.open(QFile.WriteOnly)
@@ -570,6 +633,9 @@ class DocumentEditor(QsciScintilla):
 
             # update the file
             self.updateFilename(filename)
+            if newFile:
+                print 'Starting to enable file watching'
+                self.enableFileWatching(True)
             return True
         return False
 

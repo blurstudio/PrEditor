@@ -22,6 +22,7 @@ from PyQt4.QtCore import (
     QUrl,
     QVariant,
     Qt,
+    QFileSystemWatcher,
 )
 
 from PyQt4.QtGui import (
@@ -1023,6 +1024,24 @@ class IdeEditor(Window):
                 None, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
             )
 
+    def openFileChanged(self, filename):
+        # TODO: Open file changed message boxes should only pop up when BlurIDE regains primary focus, not as soon as the file is changed.
+        # We should probubly create a messageing class that handles these messages.
+        # make sure the file is not already loaded
+        for window in self.uiWindowsAREA.subWindowList():
+            if window.widget().filename() == filename:
+                window.setFocus()
+                window.widget().reloadChange()
+                print 'Reloading file because it changed: %s' % filename
+                return True
+
+    def openFileMonitor(self):
+        """
+            \Remarks	Returns the file system monitor so documents can connect to it, or none
+            \Return 	<QFileSystemWatcher>||<None>
+        """
+        return self._openFileMonitor
+
     def projectRefreshItem(self):
         item = self.uiProjectTREE.currentItem()
         if not item:
@@ -1778,6 +1797,15 @@ class IdeEditor(Window):
         self.uiShowLineNumbersACT.setChecked(section.value('showLineNumbers'))
         self.uiShowWhitespacesACT.setChecked(section.value('showWhitespaces'))
         self.uiShowEndlinesACT.setChecked(section.value('showEol'))
+
+        # enable open file monitoring
+        if section.value('openFileMonitor'):
+            print 'Creating a openFileMonitor'
+            self._openFileMonitor = QFileSystemWatcher(self)
+            self._openFileMonitor.fileChanged.connect(self.openFileChanged)
+        else:
+            print 'No open file monitor'
+            self._openFileMonitor = None
 
         # update the documents
         for doc in self.documents():
