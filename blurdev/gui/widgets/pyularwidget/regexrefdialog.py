@@ -35,13 +35,29 @@ html = '''<table>
     <tr>
         <td><b><code>\z</code></b></td><td>End of string</td><td><b><code>\b</code></b></td><td>Any word boundary character</td><td><b><code>a{3,6}</code></b></td><td>Between 3 and 6 of a</td>
     </tr>
+</table>'''
+
+flagsHtml = '''<table>
+    <tr>
+        <td><b>I </b></td><td><b>Ignore Case </b></td><td>Perform case-insensitive matching; expressions like [A-Z] will match lowercase letters, too. This is not affected by the current locale.</td>
+    </tr>
+    <tr>
+        <td><b>L </b></td><td><b>Locale</b></td><td>Make \w, \W, \b, \B, \s and \S dependent on the current locale.</td>
+    </tr>
+    <tr>
+        <td><b>M </b></td><td><b>Multiline</b></td><td>When specified, the pattern character '^' matches at the beginning of the string and at the beginning of each line (immediately following each newline); and the pattern character '$' matches at the end of the string and at the end of each line (immediately preceding each newline). By default, '^' matches only at the beginning of the string, and '$' only at the end of the string and immediately before the newline (if any) at the end of the string.</td>
+    </tr>
+    <tr>
+        <td><b>S </b></td><td><b>DOTALL</b></td><td>Make the '.' special character match any character at all, including a newline; without this flag, '.' will match anything except a newline.</td>
+    </tr>
+    <tr>
+        <td><b>U </b></td><td><b>UNICODE</b></td><td>Make \w, \W, \b, \B, \d, \D, \s and \S dependent on the Unicode character properties database.</td>
+    </tr>
+    <tr>
+        <td><b>X </b></td><td><b>VERBOSE</b></td><td>This flag allows you to write regular expressions that look nicer. Whitespace within the pattern is ignored, except when in a character class or preceded by an unescaped backslash, and, when a line contains a '#' neither in a character class or preceded by an unescaped backslash, all characters from the leftmost such '#' through the end of the line are ignored.</td>
+    </tr>
 </table>
-<hr>
-options:
-        <code>i</code>: case insensitive, 
-        <code>m</code>: make dot match newlines, 
-        <code>x</code>: ignore whitespace in regex, 
-        <code>o</code>: perform #{...} substitutions only once'''
+'''
 
 
 class RegexRefDialog(Dialog):
