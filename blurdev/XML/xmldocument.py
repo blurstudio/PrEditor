@@ -20,14 +20,11 @@ class XMLDocument(XMLElement):
     def __init__(self, object=None):
         if not object:
             object = xml.dom.minidom.Document()
-
         XMLElement.__init__(self, object)
-
         self.__file__ = ''
 
     def findElementById(self, childId):
         split = child.split('::')
-
         outTemplate = None
         if split:
             outTemplate = self.root().findChildById(split[0])
@@ -54,12 +51,9 @@ class XMLDocument(XMLElement):
         success = False
         fileName = unicode(fileName)
         if os.path.exists(fileName):
-
             try:
                 newObject = xml.dom.minidom.parse(fileName)
-
             except:
-
                 return False
 
             if newObject:
@@ -100,7 +94,6 @@ class XMLDocument(XMLElement):
         #
         #	\param		fileName		<string>
         #	\param		pretty			<boolean>		Pretty will format spaces and line breaks. Default: True
-
         #	\param		showDialog		<boolean>		If a error occurs while saving, show dialog boxes explaining the problem. Default: False
         #
         #	\return
@@ -109,21 +102,14 @@ class XMLDocument(XMLElement):
         """
         if os.path.exists(os.path.split(fileName)[0]):
             self.__file__ = fileName
-
             try:
                 if pretty:
-
                     text = self.formatXml(self.toxml()).encode('utf-8')
                 else:
-
                     text = unicode(self.toxml()).encode('utf-8')
-
             except:
-
                 print 'Encoding error while saving XML'
-
                 if showDialog:
-
                     from PyQt4.QtGui import QMessageBox
 
                     QMessageBox.critical(
@@ -131,16 +117,12 @@ class XMLDocument(XMLElement):
                         'Encoding Error',
                         'Unable to save xml data, please check for unsupported characters.',
                     )
-
                 return False
-
             f = open(fileName, 'w')
             f.write(text)
             f.close()
             return True
-
         if showDialog:
-
             from PyQt4.QtGui import QMessageBox
 
             QMessageBox.warning(
@@ -153,9 +135,11 @@ class XMLDocument(XMLElement):
     def toxml(self):
         return self._object.toxml()
 
+    def toprettyxml(self, *args, **kw):
+        return self._object.toprettyxml(*args, **kw)
+
     @staticmethod
     def formatXml(xmltext, indented=4):
-
         from PyQt4.QtCore import QString
         from PyQt4.QtXml import QDomDocument
 
