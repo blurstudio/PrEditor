@@ -324,11 +324,15 @@ class ConsoleEdit(QTextEdit):
     def lastError(self):
         import traceback, sys
 
-        return ''.join(
-            traceback.format_exception(
-                sys.last_type, sys.last_value, sys.last_traceback
+        try:
+            return ''.join(
+                traceback.format_exception(
+                    sys.last_type, sys.last_value, sys.last_traceback
+                )
             )
-        )
+        except AttributeError:
+            # last_traceback, last_type and last_value do not always exist
+            return ''
 
     def keyPressEvent(self, event):
         """ overload the key press event to handle custom events """

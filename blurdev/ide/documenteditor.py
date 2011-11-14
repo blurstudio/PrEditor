@@ -165,11 +165,9 @@ class DocumentEditor(QsciScintilla):
             fm = window.openFileMonitor()
             if fm:
                 if state:
-                    print 'watching filename: %s' % self._filename
                     fm.addPath(self._filename)
                     self._fileMonitoringActive = True
                 else:
-                    print 'Unscribing from the file monitor'
                     fm.removePath(self._filename)
         return self._fileMonitoringActive
 
@@ -634,7 +632,6 @@ class DocumentEditor(QsciScintilla):
             # update the file
             self.updateFilename(filename)
             if newFile:
-                print 'Starting to enable file watching'
                 self.enableFileWatching(True)
             return True
         return False

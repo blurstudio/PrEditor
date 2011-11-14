@@ -83,7 +83,7 @@ class ToolsLoveBar(QToolBar):
 
     def favoriteTools(self):
         index = blurdev.activeEnvironment().index()
-        return index.favoriteTools()
+        return sorted(index.favoriteTools(), key=lambda i: i.displayName())
 
     def runAction(self, action):
         """ Runs the tool or script action associated with the input action. """

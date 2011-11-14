@@ -1032,7 +1032,6 @@ class IdeEditor(Window):
             if window.widget().filename() == filename:
                 window.setFocus()
                 window.widget().reloadChange()
-                print 'Reloading file because it changed: %s' % filename
                 return True
 
     def openFileMonitor(self):
@@ -1800,11 +1799,9 @@ class IdeEditor(Window):
 
         # enable open file monitoring
         if section.value('openFileMonitor'):
-            print 'Creating a openFileMonitor'
             self._openFileMonitor = QFileSystemWatcher(self)
             self._openFileMonitor.fileChanged.connect(self.openFileChanged)
         else:
-            print 'No open file monitor'
             self._openFileMonitor = None
 
         # update the documents
