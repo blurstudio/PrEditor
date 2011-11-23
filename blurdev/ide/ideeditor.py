@@ -703,23 +703,19 @@ class IdeEditor(Window):
             from blurdev import settings
 
             urls = event.mimeData().urls()
-            filenames = []
             for url in urls:
                 text = str(url.toString())
-                if text.startswith('file:///'):
-                    filename = text.replace('file:///', '')
+                if text.startswith('file://'):
+                    # striping off only 2 slashes preserves linux functionality
+                    filename = text.replace('file://', '')
 
-                    # if we're in linux, make sure to start with a '/'
-                    if not (settings.OS_TYPE == 'Windows' or filename.startswith('/')):
-                        filename = '/' + filename
-
-                    filenames.append(filename)
-
-                    # if we're in linux, make sure to start with a '/'
-                    from blurdev import settings
-
-                    if settings.OS_TYPE != 'Windows' and not filename.startswith('/'):
-                        filename = '/' + filename
+                    if settings.OS_TYPE == 'Windows':
+                        if filename.startswith('/'):
+                            # only drive letters have 3 slashes so we need to remove the starting slash
+                            filename = filename.strip('/')
+                        else:
+                            # Network shares only have 2 slashes so this must be a network share, add the two foward slashes.
+                            filename = '//' + filename
 
                     # ignore the registry when drag/dropping
                     self.load(filename, useRegistry=False)
