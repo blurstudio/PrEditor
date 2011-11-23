@@ -169,7 +169,6 @@ class BlurTreeWidget(LockableTreeWidget):
     def enableGridDelegate(self, enable):
         if enable:
             self.setItemDelegate(GridDelegate(self))
-            # self.itemDelegate().setDelegate( self )
             if self._enableGradiated:
                 self.setGradiated(True)
         else:
@@ -182,6 +181,19 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         for index in range(self.topLevelItemCount()):
             self.itemExpandAllChildren(self.topLevelItem(index), state)
+
+    def expandParentOfItem(self, item, state=True, recursive=True):
+        """
+            \Remarks	Expand the parents of this item recursively, to ensure its visible.
+            \param		item		<object>
+            \param		state		<bool>		Expansion state, defaults to True
+            \param		recursive	<bool>		Should this be recusive
+        """
+        parent = item.parent()
+        if parent:
+            parent.setExpanded(state)
+            if recursive:
+                self.expandParentOfItem(parent, state, recursive)
 
     def hideableColumns(self):
         count = self.columnCount()
