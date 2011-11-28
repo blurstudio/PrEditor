@@ -39,28 +39,29 @@ def abstractmethod(function):
     return newFunction
 
 
-def pendingdeprecation(function):
-    """
-        \Remarks	This decorator is used to warn that a api call will be depricated at a future date.
-    """
+def pendingdeprecation(args):
+    msg = 'This method is depricated and will be removed in the future.'
+    if isinstance(args, str):
+        msg = '%s %s' % (msg, args)
 
-    def newFunction(*args, **kwargs):
-        if debug.isDebugLevel(debug.DebugLevel.High):
-            raise PendingDeprecationWarning(
-                debug.debugObjectString(
-                    function,
-                    'This method is depricated and will be removed in the future.',
-                )
-            )
-        else:
-            debug.debugObject(
-                function,
-                'This method is depricated and will be removed in the future',
-                debug.DebugLevel.Low,
-            )
-        return function(*args, **kwargs)
+    def deco(function):
+        """
+            \Remarks	This decorator is used to warn that a api call will be depricated at a future date.
+        """
 
-    newFunction.__name__ = function.__name__
-    newFunction.__doc__ = function.__doc__
-    newFunction.__dict__ = function.__dict__
-    return newFunction
+        def newFunction(*args, **kwargs):
+            if debug.isDebugLevel(debug.DebugLevel.High):
+                raise PendingDeprecationWarning(debug.debugObjectString(function, msg))
+            else:
+                debug.debugObject(function, msg, debug.DebugLevel.Low)
+            return function(*args, **kwargs)
+
+        newFunction.__name__ = function.__name__
+        newFunction.__doc__ = function.__doc__
+        newFunction.__dict__ = function.__dict__
+        return newFunction
+
+    if not isinstance(args, str):
+        return deco(args)
+
+    return deco
