@@ -115,10 +115,19 @@ class StudiomaxCore(Core):
         f.close()
 
         # convert icon files to max standard ...
+        from PyQt4.QtCore import Qt, QSize
         from PyQt4.QtGui import QImage
 
         root = QImage(tool.icon())
-        icon24 = root.scaled(24, 24)
+        outSize = QSize(24, 24)
+        difWidth = root.size().width() - outSize.width()
+        difHeight = root.size().height() - outSize.height()
+        if difWidth < 0 or difHeight < 0:
+            icon24 = root.copy(
+                difWidth / 2, difHeight / 2, outSize.width(), outSize.height()
+            )
+        else:
+            icon24 = root.scaled(outSize, Qt.KeepAspectRatio)
 
         # ... for 24x24 pixels (image & alpha icons)
         basename = mxs.pathConfig.resolvePathSymbols(
