@@ -100,7 +100,7 @@ class SoftimageCore(Core):
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
-            'displayName': 'BlurTG_' + tool.displayName(),
+            'displayName': 'BlurTG_' + tool.displayName().replace(' ', '_'),
             'macro': macro,
             'tooltip': tool.displayName(),
             'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
