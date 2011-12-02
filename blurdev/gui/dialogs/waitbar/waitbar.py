@@ -8,7 +8,6 @@
 #   \date       12/01/11
 #
 
-import trax
 import blurdev
 from PyQt4.QtGui import QMovie, QLabel, QDialog, QHBoxLayout
 
