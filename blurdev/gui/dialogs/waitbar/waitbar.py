@@ -8,6 +8,7 @@
 #   \date       12/01/11
 #
 
+import trax
 import blurdev
 from PyQt4.QtGui import QMovie, QLabel, QDialog, QHBoxLayout
 
@@ -17,15 +18,15 @@ class WaitBar(QDialog):
         super(self.__class__, self).__init__(parent)
         self.setWindowTitle(windowTitle)
         self.uiBarLBL = QLabel(self)
+        self.uiBarMOV = QMovie(blurdev.resourcePath('img/bar.gif'))
+        self.uiBarLBL.setMovie(self.uiBarMOV)
+        self.uiBarMOV.start()
         self.uiMainLYT = QHBoxLayout(self)
         self.setLayout(self.uiMainLYT)
         self.uiMainLYT.addWidget(self.uiBarLBL)
-        self.uiBarMOV = QMovie(blurdev.resourcePath('img/bar.gif'))
-        self.uiBarMOV.start()
-        self.uiBarLBL.setMovie(self.uiBarMOV)
 
-    def __show__(self):
-        super(self.__class__, self).__show__()
+    def show(self):
+        super(self.__class__, self).show()
         self.makeSizeFixed()
 
     def makeSizeFixed(self):
@@ -35,4 +36,4 @@ class WaitBar(QDialog):
         self.setMinimumWidth(width)
         self.setMinimumHeight(height)
         self.setMaximumWidth(width)
-        self.setMinumumHeight(height)
+        self.setMaximumHeight(height)
