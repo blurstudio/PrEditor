@@ -301,7 +301,15 @@ class Core(QObject):
 
         # create a new application
         elif not app:
-            output = QApplication([])
+            app = QApplication([])
+
+        # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
+        import platform
+
+        if platform.architecture()[0] == '64bit':
+            app.addLibraryPath("c:/windows/system32/blur64/")
+        else:
+            app.addLibraryPath("c:/blur/common/")
 
         # restore the core settings
         self.restoreSettings()
@@ -310,7 +318,7 @@ class Core(QObject):
 
         self.restoreToolbar()
 
-        return output
+        return app
 
     def isMfcApp(self):
         return self._mfcApp
