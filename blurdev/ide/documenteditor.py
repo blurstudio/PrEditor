@@ -286,11 +286,7 @@ class DocumentEditor(QsciScintilla):
         result = self.findFirst(text, re, cs, wo, wrap, forward)
 
         if not result:
-            from PyQt4.QtGui import QMessageBox
-
-            QMessageBox.critical(
-                None, 'No Text Found', 'Search string "%s" was not found.' % text
-            )
+            self.findTextNotFound(text)
 
         return result
 
@@ -310,13 +306,28 @@ class DocumentEditor(QsciScintilla):
             result = QsciScintilla.findNext(self)
 
         if not result:
-            from PyQt4.QtGui import QMessageBox
+            self.findTextNotFound(text)
 
+        return result
+
+    def findTextNotFound(self, text):
+        from PyQt4.QtGui import QMessageBox
+
+        try:
+            line = int(text)
+            result = QMessageBox.critical(
+                None,
+                'No Text Found',
+                'Search string "%s" was not found. \nIt looks like a line number, would you like to goto line %i?'
+                % (text, line),
+                buttons=(QMessageBox.Yes | QMessageBox.No),
+            )
+            if result == QMessageBox.Yes:
+                self.goToLine(line)
+        except:
             QMessageBox.critical(
                 None, 'No Text Found', 'Search string "%s" was not found.' % text
             )
-
-        return result
 
     def keyPressEvent(self, event):
         from PyQt4.QtCore import Qt
