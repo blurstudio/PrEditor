@@ -288,6 +288,27 @@ def setAppUserModelID(id, prefix='Blur'):
     return False
 
 
+def signalInspector(item, prefix='----'):
+    """
+        \Remarks	Connects to all signals of the provided item, and prints the name of each signal. 
+                    When that signal is activated it will print the prefix, the name of the signal, 
+                    and any arguments passed. These connections will persist for the life of the object.
+        \param		item	<QObject>	Listen for signals from this object.
+        \param		prefix	<str>		The prefix it displays when a signal is emited. Defaults to '----'	
+    """
+
+    def create(attr):
+        def handler(*args, **kwargs):
+            print prefix, 'Signal:', attr, 'ARGS:', args, kwargs
+
+        return handler
+
+    for attr in dir(item):
+        if type(getattr(item, attr)).__name__ == 'pyqtBoundSignal':
+            print attr
+            getattr(item, attr).connect(create(attr))
+
+
 def startProgress(title='Progress', parent=None):
     from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
 
