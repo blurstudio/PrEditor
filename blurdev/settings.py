@@ -95,17 +95,17 @@ def init():
 
         (options, args) = parser.parse_args(sys.argv)
         if options.preference_root:
-            os.environ['BDEV_PATH_PREFS'] = options.preference_root
+            registerVariable('BDEV_PATH_PREFS', options.preference_root)
         if options.trax_root:
-            os.environ['BDEV_PATH_TRAX'] = options.trax_root
+            registerVariable('BDEV_PATH_TRAX', options.trax_root)
         if options.zip_exec:
-            os.environ['BDEV_APP_ZIP'] = options.zip_exc
+            registerVariable('BDEV_APP_ZIP', options.zip_exc)
         if options.debug:
-            os.environ['BDEV_DEBUG_LEVEL'] = options.debug
+            registerVariable('BDEV_DEBUG_LEVEL', options.debug)
         if options.environment:
-            os.environ['TRAX_ENVIRONMENT'] = options.environment
+            registerVariable('TRAX_ENVIRONMENT', options.environment)
         if options.filename:
-            os.environ['BDEV_FILE_START'] = options.filename
+            registerVariable('BDEV_FILE_START', options.filename)
 
         # set options
         for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
@@ -114,7 +114,9 @@ def init():
 
             option, help = addtl.split('=')
             if option in options.__dict__ and options.__dict__[option] != None:
-                os.environ['BDEV_OPT_%s' % option.upper()] = options.__dict__[option]
+                registerVariable(
+                    'BDEV_OPT_%s' % option.upper(), options.__dict__[option]
+                )
 
     # register default paths
     for key in os.environ.keys():
@@ -136,6 +138,9 @@ def normalizePath(path):
 
 
 def registerVariable(key, value):
+    """
+        \Remarks	Add the key value pair to both the current os.environ, and the startup_environ
+    """
     os.environ[key] = value
     startup_environ[key] = value
 
