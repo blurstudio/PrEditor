@@ -96,6 +96,10 @@ class SchemeConfig(ConfigSectionWidget):
 
         section.setValue('document_marginFont', font.toString())
 
+        section.setValue(
+            'document_EnableFontResize', self.uiEnableFontResizeCHK.isChecked()
+        )
+
         # record document colors
         for i in range(self.uiPageColorTREE.topLevelItemCount()):
             item = self.uiPageColorTREE.topLevelItem(i)
@@ -123,6 +127,10 @@ class SchemeConfig(ConfigSectionWidget):
         font.fromString(section.value('document_marginFont'))
         self.uiPageMarginFontDDL.setCurrentFont(QFont(font.family()))
         self.uiPageMarginFontSizeSPN.setValue(font.pointSize())
+
+        self.uiEnableFontResizeCHK.setChecked(
+            section.value('document_EnableFontResize')
+        )
 
         # include override options
         self.uiApplicationColorGRP.setChecked(
@@ -184,6 +192,7 @@ def registerSections(configSet):
         'document_override_colors': False,
         'document_font': dfont.toString(),
         'document_marginFont': mfont.toString(),
+        'document_EnableFontResize': True,
         'document_color_currentLine': QColor('white'),
         'document_color_cursor': QColor('black'),
         'document_color_background': QColor('white'),

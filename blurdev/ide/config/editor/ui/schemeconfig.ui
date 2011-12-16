@@ -85,6 +85,12 @@
             <attribute name="headerStretchLastSection">
              <bool>true</bool>
             </attribute>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerStretchLastSection">
+             <bool>true</bool>
+            </attribute>
             <column>
              <property name="text">
               <string>Color</string>
@@ -158,6 +164,19 @@
           <item row="1" column="2">
            <widget class="QSpinBox" name="uiPageMarginFontSizeSPN"/>
           </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="uiEnableFontResizeCHK">
+            <property name="toolTip">
+             <string>If enabled you can change the font size of a document by holding Ctrl and scrolling with the mouse wheel.</string>
+            </property>
+            <property name="text">
+             <string>Enable Font Resize (Ctrl + Middle Mouse Scroll)</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -187,6 +206,12 @@
             <property name="rootIsDecorated">
              <bool>false</bool>
             </property>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerStretchLastSection">
+             <bool>true</bool>
+            </attribute>
             <attribute name="headerVisible">
              <bool>false</bool>
             </attribute>

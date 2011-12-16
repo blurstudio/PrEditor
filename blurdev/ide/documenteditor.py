@@ -445,6 +445,7 @@ class DocumentEditor(QsciScintilla):
         self.setFont(font)
         self.setMarginsFont(mfont)
         self.setMarginWidth(0, QFontMetrics(mfont).width('0000000') + 5)
+        self._enableFontResizing = scheme.value('document_EnableFontResize')
 
         # check to see if the user is using a custom color scheme
         if not scheme.value('document_override_colors'):
@@ -834,7 +835,7 @@ class DocumentEditor(QsciScintilla):
         return title
 
     def wheelEvent(self, event):
-        if event.modifiers() == Qt.ControlModifier:
+        if self._enableFontResizing and event.modifiers() == Qt.ControlModifier:
             font = self.font()
             marginsFont = self.marginsFont()
             lexer = self.lexer()
