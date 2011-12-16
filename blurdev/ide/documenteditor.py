@@ -82,6 +82,16 @@ class DocumentEditor(QsciScintilla):
         if parent and parent.inherits('QMdiSubWindow'):
             parent.close()
 
+    def closeAllExcept(self):
+        window = self.window()
+        parent = self.parent()
+        if (
+            (isinstance(window, IdeEditor))
+            and parent
+            and parent.inherits('QMdiSubWindow')
+        ):
+            window.documentCloseAllExcept(self.parent())
+
     def closeEvent(self, event):
         # unsubcribe the file from the open file monitor
         self.enableFileWatching(False)

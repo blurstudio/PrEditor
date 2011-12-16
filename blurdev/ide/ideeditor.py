@@ -318,11 +318,7 @@ class IdeEditor(Window):
         self.duplicateAction(menu, self.uiReloadFileACT, editor.reloadFile)
         self.duplicateAction(menu, self.uiCloseACT, editor.closeEditor)
         menu.addAction(self.uiCloseAllACT)
-        self.duplicateAction(
-            menu,
-            self.uiCloseAllExceptACT,
-            lambda x: self.documentCloseAllExcept(window),
-        )
+        self.duplicateAction(menu, self.uiCloseAllExceptACT, editor.closeAllExcept)
 
         return window
 
