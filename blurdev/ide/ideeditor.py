@@ -188,7 +188,9 @@ class IdeEditor(Window):
         self.uiReloadFileACT.triggered.connect(self.documentReload)
         self.uiCloseACT.triggered.connect(self.documentClose)
         self.uiCloseAllACT.triggered.connect(self.documentCloseAll)
-        self.uiCloseAllExceptACT.triggered.connect(self.documentCloseAllExcept)
+        self.uiCloseAllExceptACT.triggered.connect(
+            lambda x: self.documentCloseAllExcept()
+        )
         self.uiSaveACT.triggered.connect(self.documentSave)
         self.uiSaveAsACT.triggered.connect(self.documentSaveAs)
         self.uiSaveAllACT.triggered.connect(self.documentSaveAll)
@@ -314,9 +316,13 @@ class IdeEditor(Window):
         )
         menu.addSeparator()
         self.duplicateAction(menu, self.uiReloadFileACT, editor.reloadFile)
-        menu.addAction(self.uiCloseACT)
+        self.duplicateAction(menu, self.uiCloseACT, editor.closeEditor)
         menu.addAction(self.uiCloseAllACT)
-        menu.addAction(self.uiCloseAllExceptACT)
+        self.duplicateAction(
+            menu,
+            self.uiCloseAllExceptACT,
+            lambda x: self.documentCloseAllExcept(window),
+        )
 
         return window
 
@@ -464,10 +470,17 @@ class IdeEditor(Window):
             if not window.close():
                 break
 
-    def documentCloseAllExcept(self):
+    def documentCloseAllExcept(self, current=None):
+        """
+            \Remarks	Closes all open subWindows except the current window or the passed in window. If no window is passed in it will take the current window.
+            \param		current		<PyQt4.QtGui.QMdiSubWindow> || None
+        """
+        if not current:
+            current = self.uiWindowsAREA.activeSubWindow()
         for window in self.uiWindowsAREA.subWindowList():
-            if not window.close():
-                break
+            if window != current:
+                if not window.close():
+                    break
 
     def documentCut(self):
         doc = self.currentDocument()

@@ -77,6 +77,11 @@ class DocumentEditor(QsciScintilla):
                 return False
         return True
 
+    def closeEditor(self):
+        parent = self.parent()
+        if parent and parent.inherits('QMdiSubWindow'):
+            parent.close()
+
     def closeEvent(self, event):
         # unsubcribe the file from the open file monitor
         self.enableFileWatching(False)
@@ -637,6 +642,19 @@ class DocumentEditor(QsciScintilla):
             # save the file to disk
             f = QFile(filename)
             f.open(QFile.WriteOnly)
+            # make sure the file is writeable
+            if f.error() != QFile.NoError:
+                self._saving = False
+                from PyQt4.QtGui import QMessageBox
+
+                QMessageBox.question(
+                    self.window(),
+                    'Error saving file...',
+                    'There was a error saving the file. Error Code: %i' % f.error(),
+                    QMessageBox.Ok,
+                )
+                f.close()
+                return False
             self.write(f)
             f.close()
 
