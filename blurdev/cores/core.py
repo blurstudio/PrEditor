@@ -99,6 +99,15 @@ class Core(QObject):
             return QApplication.instance().activeWindow()
         return None
 
+    def addLibraryPaths(self, app):
+        # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
+        import platform
+
+        if platform.architecture()[0] == '64bit':
+            app.addLibraryPath("c:/windows/system32/blur64/")
+        else:
+            app.addLibraryPath("c:/blur/common/")
+
     def createDefaultPalette(self):
         import blurdev
         from PyQt4.QtGui import QWidget
@@ -298,18 +307,12 @@ class Core(QObject):
             app.aboutToQuit.connect(self.recordToolbar)
 
             app.installEventFilter(self)
+            self.addLibraryPaths(app)
 
         # create a new application
         elif not app:
-            app = QApplication([])
-
-        # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
-        import platform
-
-        if platform.architecture()[0] == '64bit':
-            app.addLibraryPath("c:/windows/system32/blur64/")
-        else:
-            app.addLibraryPath("c:/blur/common/")
+            output = QApplication([])
+            self.addLibraryPaths(output)
 
         # restore the core settings
         self.restoreSettings()
@@ -318,7 +321,7 @@ class Core(QObject):
 
         self.restoreToolbar()
 
-        return app
+        return output
 
     def isMfcApp(self):
         return self._mfcApp
