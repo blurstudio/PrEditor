@@ -195,6 +195,25 @@ class BlurTreeWidget(LockableTreeWidget):
             if recursive:
                 self.expandParentOfItem(parent, state, recursive)
 
+    def expandToDepth(self, depth, item=None):
+        """
+            \Remarks	Recursively expands children until depth reaches zero. If a item is provided it will only use the children
+                        of that item. If no item is passed in it will start with the top level items of this widget.
+            \param		depth	<int>						How many levels deep to expand
+            \param		item	<QTreeWidgetItem>||None		Item to start with.
+        """
+        if depth < 0:
+            return
+        childDepth = depth - 1
+        if item:
+            item.setExpanded(True)
+            for c in range(item.childCount()):
+                child = item.child(c)
+                self.expandToDepth(childDepth, child)
+        else:
+            for index in range(self.topLevelItemCount()):
+                self.expandToDepth(childDepth, self.topLevelItem(index))
+
     def hideableColumns(self):
         count = self.columnCount()
         if len(self._hideableColumns) > count:

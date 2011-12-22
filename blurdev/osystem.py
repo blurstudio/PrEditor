@@ -193,7 +193,7 @@ def explore(filename):
         \Return		<bool> success
     """
     # pull the filpath from the inputed filename
-    fpath = str(filename)
+    fpath = os.path.normpath(unicode(filename))
     if not os.path.isdir(fpath):
         fpath = os.path.split(fpath)[0]
 
