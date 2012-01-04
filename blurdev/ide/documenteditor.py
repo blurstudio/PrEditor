@@ -16,7 +16,9 @@ from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog
 
 from blurdev.enum import enum
 from blurdev.ide import lang
+from blurdev.debug import debugMsg
 from ideeditor import IdeEditor
+import time
 
 
 class DocumentEditor(QsciScintilla):
@@ -37,6 +39,7 @@ class DocumentEditor(QsciScintilla):
         self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
         self._saving = False
+        self._saveTimer = 0.0
 
         # intialize settings
         self.initSettings()
@@ -569,11 +572,15 @@ class DocumentEditor(QsciScintilla):
                         Returns if the file was updated or left open
             \Return		<bool>
         """
-        if self._saving:
+        debugMsg('Reload Change called: %f' % self._saveTimer)
+        # 		if self._saving:
+        if time.time() - self._saveTimer < 0.25:
             # If we are saving no need to reload the file
-            self._saving = False
+            # 			self._saving = False
+            debugMsg('self._saving is True, setting to false: %r')
             return False
         if not os.path.isfile(self.filename()):
+            debugMsg('The file was deleted: %r' % self._saving)
             # the file was deleted, ask the user if they still want to keep the file in the editor.
             from PyQt4.QtGui import QMessageBox
 
@@ -585,11 +592,20 @@ class DocumentEditor(QsciScintilla):
                 QMessageBox.No,
             )
             if result == QMessageBox.No:
+                debugMsg(
+                    'The file was deleted, removing document from editor: %r'
+                    % self._saving
+                )
                 self.parent().close()
                 return False
             # TODO: The file no longer exists, and the document should be marked as changed.
+            debugMsg(
+                'The file was deleted, But the user left it in the editor: %r'
+                % self._saving
+            )
             self.enableFileWatching(False)
             return True
+        debugMsg('Defaulting to reload message: %r' % self._saving)
         return self.reloadDialog(
             'File: %s has been changed.\nReload from disk?' % self.filename()
         )
@@ -637,9 +653,15 @@ class DocumentEditor(QsciScintilla):
             parent.setWindowTitle(self.windowTitle())
 
     def save(self):
+        debugMsg(
+            '------------------------------ Save Called ------------------------------ '
+        )
         return self.saveAs(self.filename())
 
     def saveAs(self, filename=''):
+        debugMsg(
+            '------------------------------ Save As Called ------------------------------ '
+        )
         newFile = False
         if not filename:
             newFile = True
@@ -648,14 +670,17 @@ class DocumentEditor(QsciScintilla):
             )
 
         if filename:
-            if self._fileMonitoringActive:
-                self._saving = True
+            self._saveTimer = time.time()
+            # 			if self._fileMonitoringActive:
+            # 				self._saving = True
+            # 				debugMsg('File Monitoring active, seting self._saving = %r' % self._saving)
             # save the file to disk
             f = QFile(filename)
             f.open(QFile.WriteOnly)
             # make sure the file is writeable
             if f.error() != QFile.NoError:
-                self._saving = False
+                # 				self._saving = False
+                debugMsg('An error occured while saving = %r' % self._saving)
                 from PyQt4.QtGui import QMessageBox
 
                 QMessageBox.question(
