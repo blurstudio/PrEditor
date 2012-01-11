@@ -577,7 +577,7 @@ class DocumentEditor(QsciScintilla):
         if time.time() - self._saveTimer < 0.25:
             # If we are saving no need to reload the file
             # 			self._saving = False
-            debugMsg('self._saving is True, setting to false: %r')
+            debugMsg('timer has not expired')
             return False
         if not os.path.isfile(self.filename()):
             debugMsg('The file was deleted: %r' % self._saving)

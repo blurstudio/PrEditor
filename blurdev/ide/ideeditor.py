@@ -120,12 +120,6 @@ class IdeEditor(Window):
         self._searchReplaceDialog = FindReplaceDialog(self)
         self._searchReplaceDialog.setAttribute(Qt.WA_DeleteOnClose, False)
 
-        # create a method browser dialog
-        from blurdev.ide.idemethodbrowserdialog import IdeMethodBrowserDialog
-
-        self._methodBrowserDialog = IdeMethodBrowserDialog(self)
-        self._methodBrowserDialog.setAttribute(Qt.WA_DeleteOnClose, False)
-
         # create a template completer
         from blurdev import template
 
@@ -157,6 +151,12 @@ class IdeEditor(Window):
         # create the project tree delegate
         self.uiProjectTREE.setItemDelegate(IdeProjectDelegate(self.uiProjectTREE))
 
+        # create a method browser Widget
+        from blurdev.ide.idemethodbrowserwidget import IdeMethodBrowserWidget
+
+        self._methodBrowser = IdeMethodBrowserWidget(self)
+        self.uiBrowserTAB.addTab(self._methodBrowser, 'Outliner')
+
         # make tree's resize to contents so they have a horizontal scroll bar
         for header in (
             self.uiProjectTREE.header(),
@@ -171,6 +171,7 @@ class IdeEditor(Window):
         self.uiProjectTREE.itemActivated.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
         self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
+        self.uiBrowserTAB.currentChanged.connect(self._methodBrowser.refresh)
 
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.activated.connect(self.editItem)
@@ -237,7 +238,6 @@ class IdeEditor(Window):
         self.uiAddRemoveMarkerACT.triggered.connect(self.documentMarkerToggle)
         self.uiNextMarkerACT.triggered.connect(self.documentMarkerNext)
         self.uiClearMarkersACT.triggered.connect(self.documentMarkerClear)
-        self.uiMethodBrowserACT.triggered.connect(self.showMethodBrowser)
 
         # connect run menu
         self.uiRunScriptACT.triggered.connect(self.documentExec)
@@ -1525,9 +1525,6 @@ class IdeEditor(Window):
     def showMenu(self, projectMode=True):
         menu = self._fileMenuClass(self, self.currentFilePath(), projectMode)
         menu.popup(QCursor.pos())
-
-    def showMethodBrowser(self):
-        self._methodBrowserDialog.show()
 
     def showProjectMenu(self):
         self.showMenu(True)

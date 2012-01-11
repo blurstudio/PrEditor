@@ -221,7 +221,6 @@
     <addaction name="separator"/>
     <addaction name="uiGotoACT"/>
     <addaction name="uiGotoDefinitionACT"/>
-    <addaction name="uiMethodBrowserACT"/>
     <addaction name="uiMarkersMENU"/>
    </widget>
    <widget class="QMenu" name="uiViewMENU">
@@ -705,14 +704,6 @@
   <action name="uiDefaultEnvACT">
    <property name="text">
     <string>Default</string>
-   </property>
-  </action>
-  <action name="uiMethodBrowserACT">
-   <property name="text">
-    <string>Method Browser</string>
-   </property>
-   <property name="shortcut">
-    <string>F10</string>
    </property>
   </action>
   <action name="uiRunSelectedACT">

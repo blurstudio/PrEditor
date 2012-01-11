@@ -1,5 +1,5 @@
 ##
-# 	\namespace	blurdev.ide.idemethodbrowserdialog
+# 	\namespace	blurdev.ide.idemethodbrowserwidget
 #
 # 	\remarks
 #
@@ -9,7 +9,7 @@
 #
 
 from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QTreeWidgetItem, QPalette, QIcon
+from PyQt4.QtGui import QTreeWidgetItem, QPalette, QIcon, QWidget, QVBoxLayout
 
 import blurdev
 import os.path
@@ -17,9 +17,9 @@ import os.path
 from blurdev.gui import Dialog
 
 
-class IdeMethodBrowserDialog(Dialog):
+class IdeMethodBrowserWidget(QWidget):
     def __init__(self, ide):
-        Dialog.__init__(self, ide)
+        QWidget.__init__(self, ide)
 
         # load the ui
         import blurdev
@@ -29,6 +29,7 @@ class IdeMethodBrowserDialog(Dialog):
         self._document = None
         self._resultcache = []
         self._levelstack = []
+        self._ide = ide
 
         # set the icons
         from PyQt4.QtGui import QIcon
@@ -137,7 +138,7 @@ class IdeMethodBrowserDialog(Dialog):
         self._resultcache = []
         self._levelstack = []
 
-        self._document = self.parent().currentDocument()
+        self._document = self._ide.currentDocument()
 
         # parse out the results for the document
         if self._document:
@@ -151,7 +152,7 @@ class IdeMethodBrowserDialog(Dialog):
                 if descriptors:
                     levelstack = []
                     try:
-                        text = str(self.parent().currentDocument().text())
+                        text = str(self._ide.currentDocument().text())
                     except:
                         self.cacheResult('Error converting text to string')
                         text = ''
@@ -174,12 +175,13 @@ class IdeMethodBrowserDialog(Dialog):
 
         self.updateSorting()
         self.filterItems(self.uiSearchTXT.text())
+        self.uiMethodTREE.expandAll()
 
         self.uiMethodTREE.setUpdatesEnabled(True)
         self.uiMethodTREE.blockSignals(False)
 
     def show(self):
-        Dialog.show(self)
+        QWidget.show(self)
         self.refresh()
 
     def updateSorting(self):
@@ -189,3 +191,14 @@ class IdeMethodBrowserDialog(Dialog):
             self.uiMethodTREE.sortByColumn(0, Qt.AscendingOrder)
         else:
             self.uiMethodTREE.sortByColumn(1, Qt.AscendingOrder)
+
+    @staticmethod
+    def dialog(ide=None):
+        dialog = Dialog(ide)
+        widget = IdeMethodBrowserWidget(ide)
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(widget)
+        dialog.setLayout(layout)
+        dialog.show()
+        return dialog
