@@ -9,7 +9,7 @@
 # 	\date		01/11/11
 #
 
-import os, blurdev.osystem, blurdev.settings, subprocess, glob, re
+import os, blurdev.osystem, blurdev.settings, blurdev.debug, subprocess, glob, re, platform
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -38,6 +38,30 @@ def extractVideoFrame(filename, outputpath):
     print cmd
     os.system(cmd)
     return True
+
+
+def imageMagic(source, destination, exe='convert', flags=''):
+    """
+        \Remarks	Crafts then runs specified command on ImageMagick executables and waits until it finishes. This assumes Image Magic is 
+                    installed into 32bit program files. It returns True if the requested exicutable exists path exists.
+        \param		source		<str>
+        \param		destination	<str>
+        \param		exe			<str>
+        \param		flags		<str>
+        \sa			http://www.imagemagick.org/script/index.php
+        \Return		<bool>
+    """
+    if platform.architecture()[0] == '64bit':
+        progF = 'ProgramFiles(x86)'
+    else:
+        progF = 'programfiles'
+    converter = r'%s\ImageMagick\%s.exe' % (os.getenv(progF), exe)
+    if os.path.exists(converter):
+        cmd = '"%s" %s "%s" "%s"' % (converter, flags, source, destination)
+        out = subprocess.Popen(cmd)
+        out.wait()
+        return True
+    return False
 
 
 def imageSequenceFromFileName(fileName):
@@ -157,3 +181,46 @@ def openQuicktime(filename):
         path = _winreg.QueryValueEx(envKey, '')[0]
         cmd = '%s "%s"' % (path, os.path.normpath(filename))
         subprocess.Popen(cmd)
+
+
+def resizeImage(source, newSize=None, maxSize=None, filter=None):
+    """
+        \Remarks	Uses PIL to resize the provided image. newSize and maxSize expect a 2 position tuple(width, height). If newSize is provided, 
+                    maxSize is ignored. filter expects a string or Pil.Image filter(BILINEAR, BICUBIC, ANTIALIAS, NEAREST), it will default to BICUBIC.
+        \param		source		<str>||<unicode>||<PIL.Image>
+        \param		newSize		<tuple>||None
+        \param		maxSize		<tuple>||None
+        \param		filter		<str>||<unicode>||<Pil.Image.BILINEAR>||<Pil.Image.BICUBIC>||<Pil.Image.ANTIALIAS>||<Pil.Image.NEAREST>
+        \Return		<Pil.Image>||<int>		If successfull returns the resized Pil.Image. If it failed it will return a tuple containing error id, and a error message.
+    """
+    try:
+        from PIL import Image
+    except ImportError:
+        return -1, 'Unable to import PIL'
+    if filter == None:
+        filter = Image.BICUBIC
+    elif isinstance(filter, (str, unicode)):
+        try:
+            filter = getattr(Image, filter)
+        except AttributeError:
+            return -2, 'Invalid resize filter specified.'
+    if isinstance(source, (str, unicode)):
+        try:
+            source = Image.open(source)
+        except IOError:
+            return -3, 'Unable to open the specified image'
+    if newSize:
+        return source.resize(newSize, filter)
+    if maxSize:
+        width, height = source.size
+        if not width or not height:
+            return -4, 'The selected image has a invalid width or height.'
+        if width > maxSize[0] or height > maxSize[1]:
+            if width > height:
+                height = int(round((float(maxSize[0]) / width) * height))
+                width = maxSize[0]
+            else:
+                width = int(round((float(maxSize[1]) / height) * width))
+                height = maxSize[1]
+            return source.resize((width, height), filter)
+    return source
