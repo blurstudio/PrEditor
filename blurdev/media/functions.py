@@ -40,7 +40,15 @@ def extractVideoFrame(filename, outputpath):
     return True
 
 
-def imageMagic(source, destination, exe='convert', flags=''):
+def get32bitProgramFiles():
+    if platform.architecture()[0] == '64bit':
+        progF = 'ProgramFiles(x86)'
+    else:
+        progF = 'programfiles'
+    return os.getenv(progF)
+
+
+def imageMagick(source, destination, exe='convert', flags=''):
     """
         \Remarks	Crafts then runs specified command on ImageMagick executables and waits until it finishes. This assumes Image Magic is 
                     installed into 32bit program files. It returns True if the requested exicutable exists path exists.
@@ -51,11 +59,7 @@ def imageMagic(source, destination, exe='convert', flags=''):
         \sa			http://www.imagemagick.org/script/index.php
         \Return		<bool>
     """
-    if platform.architecture()[0] == '64bit':
-        progF = 'ProgramFiles(x86)'
-    else:
-        progF = 'programfiles'
-    converter = r'%s\ImageMagick\%s.exe' % (os.getenv(progF), exe)
+    converter = r'%s\ImageMagick\%s.exe' % (get32bitProgramFiles(), exe)
     if os.path.exists(converter):
         cmd = '"%s" %s "%s" "%s"' % (converter, flags, source, destination)
         out = subprocess.Popen(cmd)
@@ -224,3 +228,26 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
                 height = maxSize[1]
             return source.resize((width, height), filter)
     return source
+
+
+def setAppIdForIcon(source, new=None):
+    """
+        \Remarks	Uses Win7AppID.exe to add the System.AppUserModel.ID property to windows 7 shortcuts allowing for pinning python applications 
+                    to taskbars. You need to download the executible from http://code.google.com/p/win7appid/ and place it in 
+                    C:\Program Files (x86)\Common Files\Win7AppID\Win7AppId.exe or equivalent for 32bit apps on your system.
+        \param		source	<str>			The icon file to query or modify
+        \param		new		<str>||None		If None, returns the current appId for source. If a string is provided it will change the appId for source.
+        \return		<list>||<int>			Returns -1 if it can not find the file, other wise returns the output of the application as a list.
+    """
+    appId = r'%s\Common Files\Win7AppId\Win7AppId.exe' % get32bitProgramFiles()
+    if os.path.exists(appId):
+        cmd = '"%s" "%s"' % (appId, source)
+        if new:
+            cmd += ' %s' % new
+        print cmd
+        out = subprocess.Popen(
+            cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        out.wait()
+        return out.stdout.readlines()
+    return -1

@@ -184,6 +184,9 @@ def createShortcut(
                 StartIn=startin,
                 Description=description,
             )
+        import blurdev.media
+
+        blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
 
 
 def explore(filename):
