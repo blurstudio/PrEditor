@@ -13,6 +13,7 @@ from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.ideregistry import RegistryType
 
 STATUS_ORDER = {
+    'ignored': 5,
     'unversioned': 4,
     'normal': 3,
     'added': 2,
@@ -151,3 +152,4 @@ OVERLAYS['normal'] = resource('img/filesystem_normal.png')
 OVERLAYS['added'] = resource('img/filesystem_add.png')
 OVERLAYS['conflicted'] = resource('img/filesystem_conflict.png')
 OVERLAYS['unversioned'] = resource('img/filesystem_unversioned.png')
+OVERLAYS['ignored'] = resource('img/filesystem_ignored.png')
