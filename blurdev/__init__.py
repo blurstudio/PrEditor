@@ -11,7 +11,7 @@
 __DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 
 # track the install path
-import os, sys
+import os, sys, types
 
 application = None  # create a managed QApplication
 core = None  # create a managed Core instance
@@ -25,8 +25,6 @@ def activeEnvironment():
 
 def bindMethod(object, name, method):
     """ Properly binds a new python method to an existing C++ object as a dirty alternative to sub-classing when not possible """
-    import types
-
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
@@ -313,6 +311,36 @@ def startProgress(title='Progress', parent=None):
     from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
 
     return MultiProgressDialog.start(title)
+
+
+def synthesize(object, name, value):
+    """
+        \Remarks	Convenience method to create getters and setters for a instance. Should be called
+                    from within __init__. Creates [name], set[Name], _[name] on object.
+        \param		object	<instance>	An instance of the class to add the methods to
+        \param		name	<str>		The base name to build the function names, and storage variable
+        \param		value	<object>	The inital state of the created variables
+    """
+    storageName = '_%s' % name
+    setterName = 'set%s%s' % (name[0].capitalize(), name[1:])
+    if hasattr(object, name):
+        raise KeyError('The provided name already exists')
+    # add the storeage variable to the object
+    setattr(object, storageName, value)
+    # define the getter
+    def customGetter(self):
+        return getattr(self, storageName)
+
+    # define the Setter
+    def customSetter(self, state):
+        setattr(self, storageName, state)
+
+    # add the getter to the object, if it does not exist
+    if not hasattr(object, name):
+        setattr(object, name, types.MethodType(customGetter, object))
+    # add the setter to the object, if it does not exist
+    if not hasattr(object, setterName):
+        setattr(object, setterName, types.MethodType(customSetter, object))
 
 
 # track the install path
