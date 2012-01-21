@@ -293,20 +293,21 @@ class Core(QObject):
         app = QApplication.instance()
         output = None
 
-        if app and self.isMfcApp():
-            from PyQt4.QtCore import Qt
+        if app:
+            if self.isMfcApp():
+                from PyQt4.QtCore import Qt
 
-            # disable all UI effects as this is quite slow in MFC applications
-            app.setEffectEnabled(Qt.UI_AnimateMenu, False)
-            app.setEffectEnabled(Qt.UI_FadeMenu, False)
-            app.setEffectEnabled(Qt.UI_AnimateCombo, False)
-            app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
-            app.setEffectEnabled(Qt.UI_FadeTooltip, False)
-            app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
+                # disable all UI effects as this is quite slow in MFC applications
+                app.setEffectEnabled(Qt.UI_AnimateMenu, False)
+                app.setEffectEnabled(Qt.UI_FadeMenu, False)
+                app.setEffectEnabled(Qt.UI_AnimateCombo, False)
+                app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
+                app.setEffectEnabled(Qt.UI_FadeTooltip, False)
+                app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
 
-            app.aboutToQuit.connect(self.recordToolbar)
+                app.aboutToQuit.connect(self.recordToolbar)
 
-            app.installEventFilter(self)
+                app.installEventFilter(self)
             self.addLibraryPaths(app)
 
         # create a new application
