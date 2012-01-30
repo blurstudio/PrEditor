@@ -97,6 +97,7 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
+        self.restorePrefs()
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
         import sys, platform
@@ -192,6 +193,10 @@ class LoggerWindow(Window):
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
+        self.restoreToolbars()
+
+    def restoreToolbars(self):
+        pref = prefs.find('blurdev\LoggerWindow')
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
@@ -224,7 +229,7 @@ class LoggerWindow(Window):
 
     def show(self):
         super(LoggerWindow, self).show()
-        self.restorePrefs()
+        self.restoreToolbars()
 
     def showSdk(self):
         import blurdev
