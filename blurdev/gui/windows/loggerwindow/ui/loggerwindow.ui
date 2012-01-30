@@ -524,6 +524,7 @@
     <addaction name="uiClearLogACT"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
+    <addaction name="uiWordWrapACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -544,7 +545,36 @@
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="uiNewScriptACT"/>
+   <addaction name="uiOpenScriptACT"/>
+   <addaction name="uiRunScriptACT"/>
+   <addaction name="separator"/>
+   <addaction name="uiNoDebugACT"/>
+   <addaction name="uiDebugLowACT"/>
+   <addaction name="uiDebugMidACT"/>
+   <addaction name="uiDebugHighACT"/>
+   <addaction name="separator"/>
+   <addaction name="uiRunSelectedACT"/>
+   <addaction name="uiRunAllACT"/>
+   <addaction name="separator"/>
+   <addaction name="uiClearLogACT"/>
+  </widget>
   <action name="uiSaveLogACT">
    <property name="text">
     <string>&amp;Save Log...</string>
@@ -617,6 +647,9 @@
   <action name="uiClearLogACT">
    <property name="text">
     <string>&amp;Clear Log</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="uiNewScriptACT">
@@ -710,6 +743,17 @@
    </property>
    <property name="text">
     <string>Indentations use tabs</string>
+   </property>
+  </action>
+  <action name="uiWordWrapACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Console Word Wrap</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable word wrap in the python output console</string>
    </property>
   </action>
  </widget>

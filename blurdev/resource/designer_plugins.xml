@@ -8,6 +8,6 @@
 	<plugin module="blurdev.gui.widgets.previewwidget"			class="PreviewWidget"/>
 	<plugin module="blurdev.gui.widgets.blurtreewidget"			class="BlurTreeWidget"/>
 	<plugin module="blurdev.gui.widgets.multiplechoicebutton"	class="MultipleChoiceButton"/>
-	<plugin module="blurdev.gui.widgets.blurdock"				class="BDockWidget"/>
-	<plugin module="blurdev.gui.widgets.blurdock"				class="BDockContainer"/>
+	<plugin module="blurdev.gui.windows.loggerwindow"			class="WorkboxWidget"/>
+	<plugin module="blurdev.gui.windows.loggerwindow"			class="ConsoleEdit"/>
 </plugins>

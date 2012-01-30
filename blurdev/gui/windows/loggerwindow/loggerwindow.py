@@ -71,16 +71,25 @@ class LoggerWindow(Window):
         self.uiRunSelectedACT.triggered.connect(self._workbox.execSelected)
 
         self.uiIndentationsTabsACT.toggled.connect(self._workbox.setIndentationsUseTabs)
+        self.uiWordWrapACT.toggled.connect(self.setWordWrap)
+        self.uiResetPathsACT.triggered.connect(self.resetPaths)
+        self.uiSdkBrowserACT.triggered.connect(self.showSdk)
+        self.uiClearLogACT.triggered.connect(self.clearLog)
 
         from PyQt4.QtGui import QIcon
 
+        self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
+        self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
+        self.uiRunScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
         self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
         self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
-        self.uiResetPathsACT.triggered.connect(self.resetPaths)
-
-        self.uiSdkBrowserACT.triggered.connect(self.showSdk)
+        self.uiRunSelectedACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/runselected.png'))
+        )
+        self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/ide/runall.png')))
+        self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clearlog.png')))
 
         # refresh the ui
         self.refreshDebugLevels()
@@ -95,6 +104,9 @@ class LoggerWindow(Window):
 
     def console(self):
         return self._console
+
+    def clearLog(self):
+        self._console.clear()
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -153,6 +165,7 @@ class LoggerWindow(Window):
         )
         pref.recordProperty('SplitterSize', self._splitter.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
+        pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
 
         pref.save()
 
@@ -170,6 +183,8 @@ class LoggerWindow(Window):
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+        self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
+        self.setWordWrap(self.uiWordWrapACT.isChecked())
 
     def setNoDebug(self):
         from blurdev import debug
@@ -190,6 +205,12 @@ class LoggerWindow(Window):
         from blurdev import debug
 
         debug.setDebugLevel(debug.DebugLevel.High)
+
+    def setWordWrap(self, state):
+        if state:
+            self._console.setLineWrapMode(self._console.WidgetWidth)
+        else:
+            self._console.setLineWrapMode(self._console.NoWrap)
 
     def showSdk(self):
         import blurdev
