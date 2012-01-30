@@ -75,6 +75,7 @@ class LoggerWindow(Window):
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
         self.uiClearLogACT.triggered.connect(self.clearLog)
+        self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
 
         from PyQt4.QtGui import QIcon
 
@@ -90,6 +91,9 @@ class LoggerWindow(Window):
         )
         self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/ide/runall.png')))
         self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clearlog.png')))
+        self.uiSaveConsoleSettingsACT.setIcon(
+            QIcon(blurdev.resourcePath('img/savesettings.png'))
+        )
 
         # refresh the ui
         self.refreshDebugLevels()

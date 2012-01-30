@@ -513,6 +513,8 @@
     <addaction name="uiOpenScriptACT"/>
     <addaction name="separator"/>
     <addaction name="uiRunScriptACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiSaveConsoleSettingsACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -754,6 +756,14 @@
    </property>
    <property name="toolTip">
     <string>Enable word wrap in the python output console</string>
+   </property>
+  </action>
+  <action name="uiSaveConsoleSettingsACT">
+   <property name="text">
+    <string>Save Console Settings</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>
