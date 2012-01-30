@@ -547,9 +547,9 @@
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="uiConsoleTOOLBAR">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Console Toolbar</string>
    </property>
    <property name="iconSize">
     <size>

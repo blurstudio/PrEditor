@@ -10,6 +10,19 @@
 
 import xml.dom.minidom
 
+from PyQt4.QtCore import (
+    QRect,
+    QRectF,
+    QPoint,
+    QPointF,
+    QSize,
+    QDate,
+    QDateTime,
+    QString,
+    QByteArray,
+)
+from PyQt4.QtGui import QColor, QFont
+
 
 class XMLElement:
     """ Ease of use wrapper class for <xml.dom.minidom.Element> """
@@ -68,18 +81,6 @@ class XMLElement:
             self._object.removeChild(child)
 
     def recordValue(self, value):
-        # Qt properties
-        from PyQt4.QtCore import (
-            QRect,
-            QRectF,
-            QPoint,
-            QPointF,
-            QSize,
-            QDate,
-            QDateTime,
-            QString,
-        )  # , QByteArray
-        from PyQt4.QtGui import QColor, QFont
 
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
@@ -140,9 +141,9 @@ class XMLElement:
             self.setColor('color', value)
 
         # Record a QByteArray (Experimental)
-        # 		elif ( valtype == QByteArray ):
-        # 			self.setAttribute( 'type', 'QByteArray' )
-        # 			self.setAttribute( 'value', value.toPercentEncoding() )
+        elif valtype == QByteArray:
+            self.setAttribute('type', 'QByteArray')
+            self.setAttribute('value', value.toPercentEncoding())
 
         # Record a basic property
         else:
@@ -153,16 +154,6 @@ class XMLElement:
             self.setAttribute('type', typ)
 
     def restoreValue(self, fail=None):
-        from PyQt4.QtCore import (
-            QRect,
-            QRectF,
-            QPoint,
-            QPointF,
-            QSize,
-            QDate,
-            QDateTime,
-        )  # , QByteArray
-        from PyQt4.QtGui import QColor, QFont
 
         valtype = self.attribute('type')
         value = None
@@ -225,8 +216,8 @@ class XMLElement:
             value = int(self.attribute('value'))
 
         # Restore a QByteArray (Experimental)
-        # 		elif ( valtype == 'QByteArray' ):
-        # 			value = QByteArray.fromPercentEncoding( self.attribute( 'value', '' ) )
+        elif valtype == 'QByteArray':
+            value = QByteArray.fromPercentEncoding(self.attribute('value', ''))
 
         # Restore a basic value
         else:

@@ -97,7 +97,6 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
-        self.restorePrefs()
         self.overrideKeyboardShortcuts()
         import sys, platform
 
@@ -115,6 +114,7 @@ class LoggerWindow(Window):
     def closeEvent(self, event):
         self.recordPrefs()
         Window.closeEvent(self, event)
+        self.uiConsoleTOOLBAR.hide()
 
     def gotoError(self):
         text = self._console.textCursor().selectedText()
@@ -170,6 +170,7 @@ class LoggerWindow(Window):
         pref.recordProperty('SplitterSize', self._splitter.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
+        pref.recordProperty('toolbarStates', self.saveState())
 
         pref.save()
 
@@ -189,6 +190,10 @@ class LoggerWindow(Window):
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
+        self.uiConsoleTOOLBAR.show()
+        state = pref.restoreProperty('toolbarStates', None)
+        if state:
+            self.restoreState(state)
 
     def setNoDebug(self):
         from blurdev import debug
@@ -215,6 +220,10 @@ class LoggerWindow(Window):
             self._console.setLineWrapMode(self._console.WidgetWidth)
         else:
             self._console.setLineWrapMode(self._console.NoWrap)
+
+    def show(self):
+        super(LoggerWindow, self).show()
+        self.restorePrefs()
 
     def showSdk(self):
         import blurdev
