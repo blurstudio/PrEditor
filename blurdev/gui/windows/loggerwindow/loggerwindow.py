@@ -98,6 +98,7 @@ class LoggerWindow(Window):
         # refresh the ui
         self.refreshDebugLevels()
         self.overrideKeyboardShortcuts()
+        self.uiConsoleTOOLBAR.show()
         import sys, platform
 
         self.setWindowTitle(
@@ -114,7 +115,8 @@ class LoggerWindow(Window):
     def closeEvent(self, event):
         self.recordPrefs()
         Window.closeEvent(self, event)
-        self.uiConsoleTOOLBAR.hide()
+        if self.uiConsoleTOOLBAR.isFloating():
+            self.uiConsoleTOOLBAR.hide()
 
     def gotoError(self):
         text = self._console.textCursor().selectedText()
@@ -190,7 +192,6 @@ class LoggerWindow(Window):
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
-        self.uiConsoleTOOLBAR.show()
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
