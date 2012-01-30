@@ -540,6 +540,8 @@
     </property>
     <addaction name="uiRunSelectedACT"/>
     <addaction name="uiRunAllACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiClearBeforeRunningACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="uiDebugMENU"/>
@@ -764,6 +766,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="uiClearBeforeRunningACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Clear before running workbox code</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear console log before running workbox code.</string>
    </property>
   </action>
  </widget>

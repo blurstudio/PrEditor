@@ -10,7 +10,7 @@
 
 from blurdev.gui import Window
 from blurdev import prefs
-from PyQt4.QtGui import QSplitter, QKeySequence
+from PyQt4.QtGui import QSplitter, QKeySequence, QIcon
 from PyQt4.QtCore import Qt
 
 
@@ -67,8 +67,8 @@ class LoggerWindow(Window):
         self.uiDebugMidACT.triggered.connect(self.setMidDebug)
         self.uiDebugHighACT.triggered.connect(self.setHighDebug)
 
-        self.uiRunAllACT.triggered.connect(self._workbox.execAll)
-        self.uiRunSelectedACT.triggered.connect(self._workbox.execSelected)
+        self.uiRunAllACT.triggered.connect(self.execAll)
+        self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
         self.uiIndentationsTabsACT.toggled.connect(self._workbox.setIndentationsUseTabs)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
@@ -76,8 +76,7 @@ class LoggerWindow(Window):
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
-
-        from PyQt4.QtGui import QIcon
+        self.uiClearBeforeRunningACT.toggled.connect(self.setClearBeforeRunning)
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
@@ -86,10 +85,6 @@ class LoggerWindow(Window):
         self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
         self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
-        self.uiRunSelectedACT.setIcon(
-            QIcon(blurdev.resourcePath('img/ide/runselected.png'))
-        )
-        self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/ide/runall.png')))
         self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clearlog.png')))
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(blurdev.resourcePath('img/savesettings.png'))
@@ -118,6 +113,22 @@ class LoggerWindow(Window):
         Window.closeEvent(self, event)
         if self.uiConsoleTOOLBAR.isFloating():
             self.uiConsoleTOOLBAR.hide()
+
+    def execAll(self):
+        """
+            \remarks	Clears the console before executing all workbox code
+        """
+        if self.uiClearBeforeRunningACT.isChecked():
+            self.clearLog()
+        self._workbox.execAll()
+
+    def execSelected(self):
+        """
+            \remarks	Clears the console before executing selected workbox code
+        """
+        if self.uiClearBeforeRunningACT.isChecked():
+            self.clearLog()
+        self._workbox.execSelected()
 
     def gotoError(self):
         text = self._console.textCursor().selectedText()
@@ -173,6 +184,9 @@ class LoggerWindow(Window):
         pref.recordProperty('SplitterSize', self._splitter.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
+        pref.recordProperty(
+            'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
+        )
         pref.recordProperty('toolbarStates', self.saveState())
 
         pref.save()
@@ -193,6 +207,10 @@ class LoggerWindow(Window):
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
+        self.uiClearBeforeRunningACT.setChecked(
+            pref.restoreProperty('clearBeforeRunning', False)
+        )
+        self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
         self.restoreToolbars()
 
     def restoreToolbars(self):
@@ -200,6 +218,22 @@ class LoggerWindow(Window):
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
+
+    def setClearBeforeRunning(self, state):
+        import blurdev
+
+        if state:
+            self.uiRunSelectedACT.setIcon(
+                QIcon(blurdev.resourcePath('img/ide/runselectedclear.png'))
+            )
+            self.uiRunAllACT.setIcon(
+                QIcon(blurdev.resourcePath('img/ide/runallclear.png'))
+            )
+        else:
+            self.uiRunSelectedACT.setIcon(
+                QIcon(blurdev.resourcePath('img/ide/runselected.png'))
+            )
+            self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/ide/runall.png')))
 
     def setNoDebug(self):
         from blurdev import debug
