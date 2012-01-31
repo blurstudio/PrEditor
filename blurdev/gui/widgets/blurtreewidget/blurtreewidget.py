@@ -564,10 +564,12 @@ class BlurTreeWidget(LockableTreeWidget):
         self._userCanHideColumns = state
 
     def showAllColumns(self):
+        hideableColumns = self.hideableColumns()
         for column in range(self.columnCount()):
-            self.showColumn(column)
-            if self.columnWidth(column) == 0:
-                self.resizeColumnToContents(column)
+            if hideableColumns[column]:
+                self.showColumn(column)
+                if self.columnWidth(column) == 0:
+                    self.resizeColumnToContents(column)
 
     def showAllColumnsMenu(self):
         self.showAllColumns()
