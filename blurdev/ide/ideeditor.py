@@ -1426,6 +1426,8 @@ class IdeEditor(Window):
         self.uiShowLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
 
         self.uiFindACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
+        self.uiFindNextACT.setIcon(QIcon(blurdev.resourcePath('img/ide/findnext.png')))
+        self.uiFindPrevACT.setIcon(QIcon(blurdev.resourcePath('img/ide/findprev.png')))
         self.uiFindInFilesACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/folder_find.png'))
         )
@@ -1467,7 +1469,9 @@ class IdeEditor(Window):
         self.uiMainTBAR.addAction(self.uiCommentAddACT)
         self.uiMainTBAR.addAction(self.uiCommentRemoveACT)
         self.uiMainTBAR.addSeparator()
+        self.uiMainTBAR.addAction(self.uiFindPrevACT)
         self.uiMainTBAR.addAction(self.uiFindACT)
+        self.uiMainTBAR.addAction(self.uiFindNextACT)
         self.uiMainTBAR.addAction(self.uiFindAndReplaceACT)
         self.uiMainTBAR.addAction(self.uiFindInFilesACT)
         self.uiMainTBAR.addAction(self.uiGotoACT)
