@@ -130,6 +130,8 @@ class ConsoleEdit(QTextEdit):
                         |	def errorLog(self):
                         |		return '[Additional text to include in email]'
         """
+        if not error:
+            return
         from blurdev import debug
 
         # do not email when debugging
