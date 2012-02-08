@@ -10,4 +10,5 @@
 	<plugin module="blurdev.gui.widgets.multiplechoicebutton"	class="MultipleChoiceButton"/>
 	<plugin module="blurdev.gui.windows.loggerwindow"			class="WorkboxWidget"/>
 	<plugin module="blurdev.gui.windows.loggerwindow"			class="ConsoleEdit"/>
+	<plugin module="blurdev.gui.widgets.enumwidget"				class="EnumWidget"/>
 </plugins>
