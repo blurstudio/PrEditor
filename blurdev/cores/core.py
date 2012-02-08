@@ -244,7 +244,6 @@ class Core(QObject):
         return False
 
     def eventFilter(self, object, event):
-        from PyQt4.QtCore import QEvent
 
         # Events that enable client keystrokes
         if event.type() in (QEvent.FocusOut, QEvent.HoverLeave, QEvent.Leave):
