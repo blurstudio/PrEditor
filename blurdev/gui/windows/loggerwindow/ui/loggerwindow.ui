@@ -653,7 +653,7 @@
     <string>&amp;Clear Log</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+W</string>
+    <string>Alt+Backspace</string>
    </property>
   </action>
   <action name="uiNewScriptACT">
@@ -725,7 +725,7 @@
     <string>Run All...</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Backspace</string>
+    <string>Ctrl+Return</string>
    </property>
   </action>
   <action name="uiClearWorkspaceACT">
