@@ -725,7 +725,7 @@
     <string>Run All...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Return</string>
+    <string>Alt+Backspace</string>
    </property>
   </action>
   <action name="uiClearWorkspaceACT">
