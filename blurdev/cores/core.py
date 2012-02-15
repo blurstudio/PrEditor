@@ -108,6 +108,14 @@ class Core(QObject):
         else:
             app.addLibraryPath("c:/blur/common/")
 
+    def allowErrorMessage(self):
+        """
+            \Remarks	Override this function to disable showing the 'An error has occurred in your Python script.  Would you like to see the log?'
+                        messageBox if a error occurs and the LoggerWindow is not open.
+            \Return		<bool>
+        """
+        return True
+
     def createDefaultPalette(self):
         import blurdev
         from PyQt4.QtGui import QWidget

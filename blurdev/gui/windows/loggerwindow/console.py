@@ -464,17 +464,19 @@ class ConsoleEdit(QTextEdit):
 
         inst = LoggerWindow.instance()
         if not inst.isVisible():
-            from PyQt4.QtGui import QMessageBox
             import blurdev
 
-            result = QMessageBox.question(
-                blurdev.core.rootWindow(),
-                'Error Occurred',
-                'An error has occurred in your Python script.  Would you like to see the log?',
-                QMessageBox.Yes | QMessageBox.No,
-            )
-            if result == QMessageBox.Yes:
-                inst.show()
+            if blurdev.core.allowErrorMessage():
+                from PyQt4.QtGui import QMessageBox
+
+                result = QMessageBox.question(
+                    blurdev.core.rootWindow(),
+                    'Error Occurred',
+                    'An error has occurred in your Python script.  Would you like to see the log?',
+                    QMessageBox.Yes | QMessageBox.No,
+                )
+                if result == QMessageBox.Yes:
+                    inst.show()
 
     def write(self, msg, error=False):
         """ write the message to the logger """

@@ -75,6 +75,18 @@ class StudiomaxCore(Core):
         self.linkSignals('sceneMergeFinished', 'sceneInvalidated')
         self.linkSignals('sceneReset', 'sceneInvalidated')
 
+    def allowErrorMessage(self):
+        """
+            \Remarks	Override this function to disable showing the 'An error has occurred in your Python script.  Would you like to see the log?'
+                        messageBox if a error occurs and the LoggerWindow is not open.
+            \Return		<bool>
+        """
+        if Py3dsMax.mxs.MAXSCRIPTHOST == 1:
+            # This is set in startup/blurStartupMaxLib.ms
+            # It should signify that max was started with assburner
+            return False
+        return True
+
     def connectStudiomaxSignal(self, maxSignal, blurdevSignal, args=''):
         from Py3dsMax import mxs
 
