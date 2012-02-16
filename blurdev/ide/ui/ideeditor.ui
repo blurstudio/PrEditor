@@ -235,6 +235,7 @@
     <addaction name="separator"/>
     <addaction name="uiDisplayTileACT"/>
     <addaction name="uiDisplayCascadeACT"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">

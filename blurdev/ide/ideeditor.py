@@ -140,8 +140,14 @@ class IdeEditor(Window):
 
         blurdev.bindMethod(self.uiProjectTREE, 'mimeData', self.projectMimeData)
 
-        # setup settings, files and icons
         self.setupToolbars()
+
+        # add the toolbar menu
+        self.uiToolbarMENU = self.uiViewMENU.addMenu(self.createPopupMenu())
+        self.uiToolbarMENU.setText('Toolbars')
+        self.uiToolbarMENU.setToolTip('Control visibility of the toolbars')
+
+        # setup settings, files and icons
         self.restoreSettings()
         self.refreshRecentFiles()
         self.setupIcons()
@@ -1411,6 +1417,7 @@ class IdeEditor(Window):
         self.uiDisplayWindowsACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/windowed.png'))
         )
+        self.uiToolbarMENU.setIcon(QIcon(blurdev.resourcePath('img/ide/toolbar.png')))
 
         self.uiCopyFilenameACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
         self.uiExploreACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
