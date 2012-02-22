@@ -10,6 +10,7 @@
 #
 
 from PyQt4.QtGui import QLabel, QComboBox, QLineEdit, QTextEdit
+from PyQt4.QtCore import Qt
 
 
 class HintHelper(QLabel):
@@ -40,6 +41,7 @@ class HintHelper(QLabel):
         palette.setColor(palette.Text, color)
         self.setPalette(palette)
         parent.installEventFilter(self)
+        self.setAlignment(Qt.AlignTop)
         self.move(6, 4)
 
     def enabled(self):
