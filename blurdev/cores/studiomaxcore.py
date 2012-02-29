@@ -262,15 +262,13 @@ class StudiomaxCore(Core):
             if os.path.exists(filename):
                 import Py3dsMax
 
-                try:
-                    # in max 2012 this would generate a error when processing specific return character of \n which is the linux end line convention.
-                    # see http://redmine.blur.com/issues/6446 for more details.
-                    Py3dsMax.runMaxscript(filename)
-                except:
-                    print 'Except', filename
-                    Py3dsMax.mxs.filein(filename)
-
-                return True
+                # try:
+                # in max 2012 this would generate a error when processing specific return character of \n which is the linux end line convention.
+                # see http://redmine.blur.com/issues/6446 for more details.
+                # 	Py3dsMax.runMaxscript(filename)
+                # except:
+                # 	print 'Except', filename
+                return Py3dsMax.mxs.filein(filename)
             return False
 
         return Core.runScript(self, filename, scope, argv, toolType)
