@@ -183,6 +183,11 @@ class StudiomaxCore(Core):
         """
         return 'Create Macro...'
 
+    def recordSettings(self):
+        pref = self.recordCoreSettings()
+        pref.recordProperty('supportLegacy', self._supportLegacy)
+        pref.save()
+
     def registerPaths(self):
         from blurdev.tools import ToolsEnvironment
 

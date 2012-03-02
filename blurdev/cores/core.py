@@ -467,6 +467,13 @@ class Core(QObject):
         env.registerPath(env.relativePath('code/python/lib'))
 
     def recordSettings(self):
+        r"""
+            \remarks	Subclasses can reimplement this to add data before it is saved
+        """
+        pref = self.recordCoreSettings()
+        pref.save()
+
+    def recordCoreSettings(self):
         from blurdev import prefs
 
         pref = prefs.find('blurdev/core', coreName=self.objectName())
@@ -483,7 +490,7 @@ class Core(QObject):
 
         pref.recordProperty('debugLevel', debug.debugLevel())
 
-        pref.save()
+        return pref
 
     def recordToolbar(self):
         from blurdev import prefs
