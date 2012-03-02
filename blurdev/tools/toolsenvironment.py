@@ -29,6 +29,7 @@ class ToolsEnvironment(QObject):
         self._index = None
         self._sourcefile = ''
         self._emailOnError = []
+        self._legacyName = ''
 
     def clearPathSymbols(self):
         """
@@ -112,6 +113,9 @@ class ToolsEnvironment(QObject):
     def isOffline(self):
         return self._offline
 
+    def legacyName(self):
+        return self._legacyName
+
     def path(self):
         return self._path
 
@@ -122,6 +126,8 @@ class ToolsEnvironment(QObject):
         envxml.setAttribute('default', self._default)
         envxml.setAttribute('development', self._development)
         envxml.setAttribute('offline', self._offline)
+        if self._legacyName != self.objectName():
+            envxml.setAttribute('legacyName', self._legacyName)
 
         if self._custom:
             envxml.setAttribute('custom', True)
@@ -187,6 +193,9 @@ class ToolsEnvironment(QObject):
     def setEmailOnError(self, emails):
         self._emailOnError = [entry for entry in emails if str(entry) != '']
 
+    def setLegacyName(self, name):
+        self._legacyName = name
+
     def setPath(self, path):
         self._path = path
 
@@ -220,7 +229,13 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def createNewEnvironment(
-        name, path, default=False, development=False, offline=True, environmentFile=''
+        name,
+        path,
+        default=False,
+        development=False,
+        offline=True,
+        environmentFile='',
+        legacyName=None,
     ):
         output = ToolsEnvironment()
 
@@ -234,6 +249,9 @@ class ToolsEnvironment(QObject):
         output.setOffline(offline)
         output.setSourceFile(environmentFile)
         output.setCustom(True)
+        if legacyName == None:
+            legacyName = name
+        output.setLegacyName(legacyName)
 
         ToolsEnvironment.environments.append(output)
         return output
@@ -276,13 +294,15 @@ class ToolsEnvironment(QObject):
         """
         output = ToolsEnvironment()
 
-        output.setObjectName(xml.attribute('name'))
+        name = xml.attribute('name')
+        output.setObjectName(name)
         output.setPath(xml.attribute('loc'))
         output.setDefault(xml.attribute('default') == 'True')
         output.setDevelopment(xml.attribute('development') == 'True')
         output.setOffline(xml.attribute('offline') == 'True')
         output.setEmailOnError(xml.attribute('emailOnError').split(';'))
         output.setCustom(xml.attribute('custom') == 'True')
+        output.setLegacyName(xml.attribute('legacyName', name))
 
         return output
 

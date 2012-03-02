@@ -46,34 +46,6 @@ class StudiomaxCore(Core):
     def connectAppSignals(self):
         # moved to blur3d
         return
-        self.connectStudiomaxSignal('systemPreNew', 'sceneNewRequested')
-        self.connectStudiomaxSignal('systemPostNew', 'sceneNewFinished')
-        self.connectStudiomaxSignal('filePreOpen', 'sceneOpenRequested', '""')
-        self.connectStudiomaxSignal('filePostOpen', 'sceneOpenFinished', '""')
-        self.connectStudiomaxSignal('filePreMerge', 'sceneMergeRequested')
-        self.connectStudiomaxSignal('filePostMerge', 'sceneMergeFinished')
-        self.connectStudiomaxSignal(
-            'filePreSave',
-            'sceneSaveRequested',
-            '(if (ms_args != undefined) then (ms_args as string) else "")',
-        )
-        self.connectStudiomaxSignal(
-            'filePostSave',
-            'sceneSaveFinished',
-            '(if (ms_args != undefined) then (ms_args as string) else "")',
-        )
-        self.connectStudiomaxSignal('systemPostReset', 'sceneReset')
-        self.connectStudiomaxSignal('layerCreated', 'layerCreated')
-        self.connectStudiomaxSignal('layerDeleted', 'layerDeleted')
-        self.connectStudiomaxSignal('postSystemStartup', 'startupFinished')
-        self.connectStudiomaxSignal('preSystemShutdown', 'shutdownStarted')
-        self.connectStudiomaxSignal('selectionSetChanged', 'selectionChanged')
-
-        # create a signal linking between 2 signals
-        self.linkSignals('sceneNewFinished', 'sceneInvalidated')
-        self.linkSignals('sceneOpenFinished', 'sceneInvalidated')
-        self.linkSignals('sceneMergeFinished', 'sceneInvalidated')
-        self.linkSignals('sceneReset', 'sceneInvalidated')
 
     def allowErrorMessage(self):
         """
@@ -217,9 +189,7 @@ class StudiomaxCore(Core):
         env = ToolsEnvironment.activeEnvironment()
 
         # update the old blur maxscript library system
-        envname = str(env.objectName()).lower()
-        if envname != 'local':
-            envname = 'network'
+        envname = env.legacyName()
 
         # update the old library system
         if self.supportLegacy():
