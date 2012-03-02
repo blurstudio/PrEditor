@@ -12,8 +12,7 @@ from PyQt4.QtGui import QTextEdit
 from PyQt4.QtCore import QEvent, Qt
 from blurdev.ide.documenteditor import DocumentEditor
 from PyQt4.QtGui import QApplication
-
-import blurdev
+import blurdev, re
 
 
 class WorkboxWidget(DocumentEditor):
@@ -26,6 +25,7 @@ class WorkboxWidget(DocumentEditor):
         import blurdev
 
         self._software = blurdev.core.objectName()
+        self.regex = re.compile('\s+$')
         # define the user interface data
 
     #! 		finish initializing the class
@@ -69,6 +69,9 @@ class WorkboxWidget(DocumentEditor):
                 self.execSelected()
             else:
                 DocumentEditor.keyPressEvent(self, event)
+
+    def selectedText(self):
+        return self.regex.split(super(WorkboxWidget, self).selectedText())[0]
 
     def setConsole(self, console):
         self._console = console

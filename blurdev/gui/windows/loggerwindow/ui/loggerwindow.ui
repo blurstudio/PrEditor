@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>485</width>
+    <width>533</width>
     <height>367</height>
    </rect>
   </property>
@@ -488,7 +488,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>485</width>
+     <width>533</width>
      <height>21</height>
     </rect>
    </property>
@@ -573,6 +573,8 @@
    <addaction name="uiDebugLowACT"/>
    <addaction name="uiDebugMidACT"/>
    <addaction name="uiDebugHighACT"/>
+   <addaction name="separator"/>
+   <addaction name="uiResetPathsACT"/>
    <addaction name="separator"/>
    <addaction name="uiRunSelectedACT"/>
    <addaction name="uiRunAllACT"/>
@@ -702,6 +704,9 @@
   <action name="uiResetPathsACT">
    <property name="text">
     <string>Reset Paths</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear the import paths</string>
    </property>
   </action>
   <action name="uiSdkBrowserACT">

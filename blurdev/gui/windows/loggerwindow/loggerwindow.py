@@ -85,6 +85,7 @@ class LoggerWindow(Window):
         self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
         self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
         self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
+        self.uiResetPathsACT.setIcon(QIcon(blurdev.resourcePath('img/reset.png')))
         self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clearlog.png')))
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(blurdev.resourcePath('img/savesettings.png'))
