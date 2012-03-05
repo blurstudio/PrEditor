@@ -533,6 +533,7 @@ class Core(QObject):
             debug.setDebugLevel(level)
 
         self.blockSignals(False)
+        return pref
 
     def restoreToolbar(self):
         from blurdev import prefs
@@ -857,6 +858,7 @@ class Core(QObject):
 
         # record the settings
         self.recordToolbar()
+        self.recordSettings()
 
         if QApplication.instance():
             QApplication.instance().closeAllWindows()

@@ -188,6 +188,10 @@ class StudiomaxCore(Core):
         pref.recordProperty('supportLegacy', self._supportLegacy)
         pref.save()
 
+    def restoreSettings(self):
+        pref = super(StudiomaxCore, self).restoreSettings()
+        self.setSupportLegacy(pref.restoreProperty('supportLegacy', False))
+
     def registerPaths(self):
         from blurdev.tools import ToolsEnvironment
 
