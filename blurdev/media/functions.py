@@ -9,7 +9,16 @@
 # 	\date		01/11/11
 #
 
-import os, blurdev.osystem, blurdev.settings, blurdev.debug, subprocess, glob, re, platform
+import os
+import subprocess
+import glob
+import re
+import platform
+
+import blurdev.osystem
+import blurdev.settings
+import blurdev.debug
+
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -36,8 +45,10 @@ def extractVideoFrame(filename, outputpath):
     options['output'] = outputpath
     cmd = '"%(ffmpeg)s" -i "%(source)s" -t 1 -f image2 "%(output)s"' % options
     print cmd
-    os.system(cmd)
-    return True
+    out = subprocess.Popen(cmd)
+    out.wait()
+    # 	os.system(cmd)
+    return os.path.exists(outputpath)
 
 
 def get32bitProgramFiles():
