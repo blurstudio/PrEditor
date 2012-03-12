@@ -76,8 +76,22 @@ def imageSequenceFromFileName(fileName):
                     It will ignore numbers inside the extension. Example("C:\temp\test_[frame].png1")
         \Return		<list>
     """
-    file = os.path.splitext(os.path.basename(fileName))[0]
-    return glob.glob(fileName.replace(re.findall('([0-9]+)', file[::-1])[0][::-1], '*'))
+    regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
+    fileName = os.path.normpath(fileName)
+    match = regex.match(fileName)
+    output = []
+    if match:
+        files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
+        regex = re.compile(
+            r'%s(\d+)%s'
+            % (match.group('pre').replace('\\', '\\\\'), match.group('post'))
+        )
+        for file in files:
+            if regex.match(file):
+                output.append(file)
+    else:
+        output = [fileName]
+    return output
 
 
 def imageSequenceRepr(files):
@@ -125,12 +139,16 @@ def imageSequenceForRepr(fileName):
         start = int(match.group('start'))
         end = int(match.group('end'))
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
-        regex = re.compile(r'^.+?(?P<frame>\d+)\D*\.[A-Za-z0-9]+?$')
-        return [
-            file
-            for file in files
-            if start <= int(regex.match(file).group('frame')) <= end
-        ]
+        regex = re.compile(
+            r'%s(?P<frame>\d+)%s'
+            % (match.group('pre').replace('\\', '\\\\'), match.group('post'))
+        )
+        out = []
+        for file in files:
+            match = regex.match(file)
+            if match and start <= int(match.group('frame')) <= end:
+                out.append(file)
+        return out
     return [fileName]
 
 
