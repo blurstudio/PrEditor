@@ -28,6 +28,28 @@ def bindMethod(object, name, method):
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
+def ensureWindowIsVisible(widget):
+    r"""
+        \remarks	Checks the widets geometry against all of the systems screens. If it does not intersect it will reposition it to 
+                    the top left corner of the highest numbered desktop. Returns if it had to move the widget
+        \return		<bool>
+    """
+    from PyQt4.QtGui import QApplication
+
+    desktop = QApplication.desktop()
+    geo = widget.geometry()
+    for screen in range(desktop.screenCount()):
+        monGeo = desktop.screenGeometry(screen)
+        if monGeo.intersects(geo):
+            break
+    else:
+        print 'Resetting %s position, it is offscreen.' % widget.objectName()
+        geo.moveTo(monGeo.x() + 7, monGeo.y() + 30)
+        widget.setGeometry(geo)
+        return True
+    return False
+
+
 def findDevelopmentEnvironment():
     from blurdev.tools import ToolsEnvironment
 
