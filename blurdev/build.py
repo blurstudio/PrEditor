@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser.add_option('-v', '--version', dest='version', default='Python24')
     parser.add_option('-i', '--install', dest='install', default='0')
     parser.add_option('-o', '--offline', dest='offline', default='0')
+    parser.add_option('-n', '--nsiLibs', dest='nsiLibs', default=r'..\..\..\nsis')
 
     (options, args) = parser.parse_args()
     dictionary = options.__dict__
@@ -46,6 +47,7 @@ if __name__ == '__main__':
     f.write('!define INSTALL_VERSION "v%i.%02i"\n' % (version.major(), version.minor()))
     f.write('!define PYTHON_VERSION "%s"\n' % dictionary['version'])
     f.write('!define OFFLINE %s\n' % dictionary['offline'])
+    f.write("!define NSI_LIBS '%s'\n" % dictionary['nsiLibs'])
 
     if dictionary['offline'] == '1':
         f.write(
