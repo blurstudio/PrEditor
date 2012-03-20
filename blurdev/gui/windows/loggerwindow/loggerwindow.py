@@ -12,6 +12,7 @@ from blurdev.gui import Window
 from blurdev import prefs
 from PyQt4.QtGui import QSplitter, QKeySequence, QIcon
 from PyQt4.QtCore import Qt
+import blurdev
 
 
 class LoggerWindow(Window):
@@ -43,8 +44,6 @@ class LoggerWindow(Window):
         self._workbox.setLanguage('Python')
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
-        import blurdev
-
         self._software = blurdev.core.objectName()
 
         # create the layout
@@ -171,8 +170,6 @@ class LoggerWindow(Window):
             act.blockSignals(False)
 
     def resetPaths(self):
-        import blurdev
-
         blurdev.activeEnvironment().resetPaths()
 
     def recordPrefs(self):
@@ -197,6 +194,7 @@ class LoggerWindow(Window):
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
             self.setGeometry(rect)
+            blurdev.ensureWindowIsVisible(self)
         self._workbox.setText(pref.restoreProperty('WorkboxText', ''))
         sizes = pref.restoreProperty('SplitterSize', None)
         if sizes:
@@ -221,8 +219,6 @@ class LoggerWindow(Window):
             self.restoreState(state)
 
     def setClearBeforeRunning(self, state):
-        import blurdev
-
         if state:
             self.uiRunSelectedACT.setIcon(
                 QIcon(blurdev.resourcePath('img/ide/runselectedclear.png'))
@@ -267,8 +263,6 @@ class LoggerWindow(Window):
         self.restoreToolbars()
 
     def showSdk(self):
-        import blurdev
-
         blurdev.core.sdkBrowser().show()
 
     def shutdown(self):
@@ -287,8 +281,6 @@ class LoggerWindow(Window):
         # create the instance for the logger
         if not LoggerWindow._instance:
             # determine default parenting
-            import blurdev
-
             if not (parent or blurdev.core.isMfcApp()):
                 parent = blurdev.core.rootWindow()
 
