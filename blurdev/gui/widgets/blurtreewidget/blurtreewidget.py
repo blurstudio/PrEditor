@@ -44,6 +44,15 @@
 # |		action = menu.addAction( 'Added by view class' )
 # |		return True
 # |
+# |	def mimeData(self, items):
+# |		from PyQt4.QtCore import QMimeData
+# |		data = QMimeData()
+# |		text = []
+# |		for item in items:
+# |			text.append(unicode(item.text(0)))
+# |		data.setText(';'.join(text))
+# |		return data
+# |
 # |	def recordPrefs( self ):
 # |		from trax.gui import prefs
 # |		pref = prefs.find( 'Test_Widget_View' )
@@ -314,6 +323,18 @@ class BlurTreeWidget(LockableTreeWidget):
         else:
             item.setExpanded(state)
             return True
+
+    def mimeData(self, items):
+        """
+            \remarks	Overloaded. If you add this function to the delegate you can override the mimeData for drag events.
+            \param		items		<list>
+            \return		<QMimeData>
+        """
+        if self._delegate and hasattr(self._delegate, 'mimeData'):
+            data = self._delegate.mimeData(items)
+        else:
+            data = super(BlurTreeWidget, self).mimeData(items)
+        return data
 
     def prefName(self, name, identifier=''):
         """
