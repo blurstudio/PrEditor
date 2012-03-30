@@ -515,6 +515,7 @@
     <addaction name="uiRunScriptACT"/>
     <addaction name="separator"/>
     <addaction name="uiSaveConsoleSettingsACT"/>
+    <addaction name="uiCloseLoggerACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -782,6 +783,17 @@
    </property>
    <property name="toolTip">
     <string>Clear console log before running workbox code.</string>
+   </property>
+  </action>
+  <action name="uiCloseLoggerACT">
+   <property name="text">
+    <string>Close</string>
+   </property>
+   <property name="toolTip">
+    <string>Close the</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>

@@ -56,6 +56,8 @@ class LoggerWindow(Window):
         # create the connections
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
 
+        self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
+
         self.uiNewScriptACT.triggered.connect(blurdev.core.newScript)
         self.uiOpenScriptACT.triggered.connect(blurdev.core.openScript)
         self.uiRunScriptACT.triggered.connect(blurdev.core.runScript)
@@ -89,6 +91,7 @@ class LoggerWindow(Window):
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(blurdev.resourcePath('img/savesettings.png'))
         )
+        self.uiCloseLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
 
         # refresh the ui
         self.refreshDebugLevels()
@@ -113,6 +116,9 @@ class LoggerWindow(Window):
         Window.closeEvent(self, event)
         if self.uiConsoleTOOLBAR.isFloating():
             self.uiConsoleTOOLBAR.hide()
+
+    def closeLogger(self):
+        self.close()
 
     def execAll(self):
         """
