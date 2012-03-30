@@ -26,19 +26,18 @@ class LoggerWindow(Window):
         blurdev.gui.loadUi(__file__, self)
 
         # create the splitter layout
-        self._splitter = QSplitter(self)
-        self._splitter.setOrientation(Qt.Vertical)
+        self.uiSplitterSPLIT = QSplitter(self)
 
         # create the console widget
         from console import ConsoleEdit
 
-        self._console = ConsoleEdit(self._splitter)
+        self._console = ConsoleEdit(self.uiSplitterSPLIT)
         self._console.setMinimumHeight(1)
 
         # create the workbox
         from workboxwidget import WorkboxWidget
 
-        self._workbox = WorkboxWidget(self._splitter)
+        self._workbox = WorkboxWidget(self.uiSplitterSPLIT)
         self._workbox.setConsole(self._console)
         self._workbox.setMinimumHeight(1)
         self._workbox.setLanguage('Python')
@@ -50,7 +49,7 @@ class LoggerWindow(Window):
         from PyQt4.QtGui import QVBoxLayout
 
         layout = QVBoxLayout()
-        layout.addWidget(self._splitter)
+        layout.addWidget(self.uiSplitterSPLIT)
         self.centralWidget().setLayout(layout)
 
         # create the connections
@@ -77,7 +76,8 @@ class LoggerWindow(Window):
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
-        self.uiClearBeforeRunningACT.toggled.connect(self.setClearBeforeRunning)
+        self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
+        self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
@@ -104,6 +104,12 @@ class LoggerWindow(Window):
             'Command Logger - %s %s'
             % ('%i.%i.%i' % sys.version_info[:3], platform.architecture()[0])
         )
+
+    def adjustWorkboxOrientation(self, state):
+        if state:
+            self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
+        else:
+            self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
 
     def console(self):
         return self._console
@@ -185,7 +191,8 @@ class LoggerWindow(Window):
         pref.recordProperty(
             'WorkboxText', unicode(self._workbox.text()).replace('\r', '')
         )
-        pref.recordProperty('SplitterSize', self._splitter.sizes())
+        pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
+        pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
         pref.recordProperty(
@@ -202,11 +209,13 @@ class LoggerWindow(Window):
             self.setGeometry(rect)
             blurdev.ensureWindowIsVisible(self)
         self._workbox.setText(pref.restoreProperty('WorkboxText', ''))
+        self.uiEditorVerticalACT.setChecked(
+            pref.restoreProperty('SplitterVertical', False)
+        )
+        self.adjustWorkboxOrientation(self.uiEditorVerticalACT.isChecked())
         sizes = pref.restoreProperty('SplitterSize', None)
         if sizes:
-            self._splitter.setSizes(sizes)
-        else:
-            self._splitter.moveSplitter(self._splitter.getRange(1)[1], 1)
+            self.uiSplitterSPLIT.setSizes(sizes)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
         self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
