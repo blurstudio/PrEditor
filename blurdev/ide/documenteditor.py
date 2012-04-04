@@ -262,10 +262,10 @@ class DocumentEditor(QsciScintilla):
         return self._language
 
     def languageChosen(self, action):
-        if action.text() == 'Plain Text':
-            self.setLanguage('')
-        else:
-            self.setLanguage(action.text())
+        window = self.window()
+        self._fileMonitoringActive = False
+        if isinstance(window, IdeEditor):
+            window.uiLanguageDDL.setCurrentLanguage(action.text())
 
     def launchConsole(self):
         if not self._filename:
@@ -702,6 +702,8 @@ class DocumentEditor(QsciScintilla):
         return False
 
     def setLanguage(self, language):
+        if language == 'Plain Text':
+            language = ''
         # grab the language from the lang module if it is a string
         if type(language) != lang.Language:
             language = str(language)
@@ -789,11 +791,16 @@ class DocumentEditor(QsciScintilla):
         menu.addSeparator()
 
         submenu = menu.addMenu('View as...')
-        submenu.addAction('Plain Text')
+        l = self.language()
+        act = submenu.addAction('Plain Text')
+        if l == "":
+            act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
         submenu.addSeparator()
 
         for language in lang.languages():
-            submenu.addAction(language)
+            act = submenu.addAction(language)
+            if language == l:
+                act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
 
         submenu.triggered.connect(self.languageChosen)
 

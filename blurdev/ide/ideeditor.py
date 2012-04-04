@@ -46,6 +46,7 @@ from PyQt4.QtGui import (
 from blurdev.gui import Window
 from blurdev.gui.dialogs.configdialog import ConfigSet
 from blurdev.ide.ideproject import IdeProject, IdeProjectDelegate
+from blurdev.ide.languagecombobox import LanguageComboBox
 
 from blurdev import osystem, settings
 
@@ -1509,6 +1510,15 @@ class IdeEditor(Window):
         self.uiProjectTBAR.addWidget(self.uiExecuteDDL)
         self.uiProjectTBAR.addAction(self.uiRunSelectedACT)
 
+        # create the Document toolbar
+        self.uiLanguageTBAR = QToolBar(self)
+        self.uiLanguageTBAR.setWindowTitle('Language')
+        self.uiLanguageDDL = LanguageComboBox(self.uiLanguageTBAR)
+        self.uiLanguageDDL.currentLanguageChanged.connect(self.setCurrentLanguage)
+        self.uiLanguageTBAR.addWidget(self.uiLanguageDDL)
+
+        self.addToolBar(Qt.TopToolBarArea, self.uiLanguageTBAR)
+
     def show(self):
         Window.show(self)
 
@@ -1561,6 +1571,12 @@ class IdeEditor(Window):
 
     def showSearchFilesDialog(self):
         self.searchFileDialog().show()
+
+    def setCurrentLanguage(self, language):
+        document = self.currentDocument()
+        if not document:
+            return
+        document.setLanguage(language)
 
     def setCurrentProject(self, project, silent=True):
         # check to see if we should prompt the user before changing projects
@@ -1741,6 +1757,7 @@ class IdeEditor(Window):
                     version.toString(),
                 )
             )
+            self.uiLanguageDDL.setCurrentLanguage(document.language())
         else:
             self.setWindowTitle(
                 '%s | %s - %s'
@@ -1750,6 +1767,7 @@ class IdeEditor(Window):
                     version.toString(),
                 )
             )
+            self.uiLanguageDDL.setCurrentLanguage('')
 
     def updateSettings(self):
         # update the application settings
