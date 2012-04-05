@@ -136,11 +136,6 @@ class IdeEditor(Window):
         for i in range(1, 4):
             self.uiExplorerTREE.setColumnHidden(i, True)
 
-        # bind the mimeData method
-        import blurdev
-
-        blurdev.bindMethod(self.uiProjectTREE, 'mimeData', self.projectMimeData)
-
         self.setupToolbars()
 
         # add the toolbar menu
@@ -157,6 +152,9 @@ class IdeEditor(Window):
 
         # create the project tree delegate
         self.uiProjectTREE.setItemDelegate(IdeProjectDelegate(self.uiProjectTREE))
+        # Set the projectTREE's delegate so we can provide mimeData
+        self.uiProjectTREE.setIdentifier('projectTree')
+        self.uiProjectTREE.setDelegate(self)
 
         # create a method browser Widget
         from blurdev.ide.idemethodbrowserwidget import IdeMethodBrowserWidget
@@ -940,17 +938,6 @@ class IdeEditor(Window):
         dlg.setBasePath(filepath)
         dlg.show()
 
-    def projectMimeData(self, items):
-        data = QMimeData()
-        urls = []
-        for item in items:
-            fpath = item.filePath()
-            if fpath:
-                urls.append(QUrl('file:///' + fpath))
-
-        data.setUrls(urls)
-        return data
-
     def projectNew(self):
         from ideprojectdialog import IdeProjectDialog
         from ideproject import IdeProject
@@ -1013,6 +1000,18 @@ class IdeEditor(Window):
             # load the project
             self.setCurrentProject(proj)
             self.uiBrowserTAB.setCurrentIndex(0)
+
+    def projectTreeMimeData(self, items):
+        print 'Handling MimeData'
+        data = QMimeData()
+        urls = []
+        for item in items:
+            fpath = item.filePath()
+            if fpath:
+                urls.append(QUrl('file:///' + fpath))
+
+        data.setUrls(urls)
+        return data
 
     def documentOpenItem(self):
         import os.path

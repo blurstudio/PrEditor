@@ -43,6 +43,7 @@ class GridDelegate(QItemDelegate):
         self._showBottomBorder = True
         self._showTree = True
         self._delegate = None
+        self._identifier = ''
         self.destroyed.connect(self.aboutToBeDestroyed)
 
     def aboutToBeDestroyed(self):
@@ -71,8 +72,9 @@ class GridDelegate(QItemDelegate):
             \return		<QWidget> editor
         """
         self.clearEditor()
-        if self._delegate and hasattr(self._delegate, 'createEditor'):
-            self._editor = self._delegate.createEditor(parent, option, index)
+        name = self.identifierName('createEditor')
+        if self._delegate and hasattr(self._delegate, name):
+            self._editor = getattr(self._delegate, name)(parent, option, index)
             if not self._editor:
                 return None
         else:
@@ -140,6 +142,20 @@ class GridDelegate(QItemDelegate):
             )
         painter.drawLines(lines)
 
+    def identifier(self):
+        return self._identifier
+
+    def identifierName(self, name):
+        """
+            \Remarks	Returns the name. If self._identifier is set it will return place the identifier before name and capitalize the first 
+                        letter of name.
+            \param		name		<str>
+            \Return		<str>		"identifierName" || 'name'
+        """
+        if self._identifier:
+            name = self._identifier + name[0].upper() + name[1:]
+        return name
+
     def isGradiated(self):
         return self._gradiated
 
@@ -176,8 +192,9 @@ class GridDelegate(QItemDelegate):
         self._delegate = delegate
 
     def setEditorData(self, editor, index):
-        if self._delegate and hasattr(self._delegate, 'setEditorData'):
-            self._delegate.setEditorData(editor, index)
+        name = self.identifierName('setEditorData')
+        if self._delegate and hasattr(self._delegate, name):
+            getattr(self._delegate, name)(editor, index)
         else:
             QItemDelegate.setEditorData(self, editor, index)
 
@@ -188,6 +205,9 @@ class GridDelegate(QItemDelegate):
         """ sets the pen color for this delegate """
 
         self._pen.setColor(QColor(color))
+
+    def setIdentifier(self, identifier):
+        self._identifier = identifier
 
     def setPen(self, pen):
         """ sets the current grid delegate pen """
@@ -201,8 +221,9 @@ class GridDelegate(QItemDelegate):
         self._gradientStartColor = clr
 
     def setModelData(self, editor, model, index):
-        if self._delegate and hasattr(self._delegate, 'setModelData'):
-            self._delegate.setModelData(editor, model, index)
+        name = self.identifierName('setModelData')
+        if self._delegate and hasattr(self._delegate, name):
+            getattr(self._delegate, name)(editor, model, index)
         else:
             QItemDelegate.setModelData(self, editor, model, index)
 

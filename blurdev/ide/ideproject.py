@@ -235,15 +235,46 @@ class IdeProjectItem(QTreeWidgetItem):
             output = output.parent()
         return output
 
+    def recordOpenState(self, item=None, key=''):
+        output = []
+        if not item:
+            for i in range(self.topLevelItemCount()):
+                output += self.recordOpenState(self.topLevelItem(i))
+        else:
+            text = str(item.text(0))
+            if item.isExpanded():
+                output.append(key + text)
+            key += text + '::'
+            for c in range(item.childCount()):
+                output += self.recordOpenState(item.child(c), key)
+        return output
+
     def refresh(self):
         # refreshing only happens on non-groups
         if not self.isGroup():
-            # remove the children
+            # store the children
+            openState = self.recordOpenState(self)
+            # remove the children's expanded state
             self.takeChildren()
             self._loaded = False
 
             # load the items
             self.load()
+            # restore the children's expanded state
+            self.restoreOpenState(openState, self)
+
+    def restoreOpenState(self, openState, item=None, key=''):
+        if not item:
+            for i in range(self.topLevelItemCount()):
+                self.restoreOpenState(openState, self.topLevelItem(i))
+        else:
+            text = str(item.text(0))
+            itemkey = key + text
+            if itemkey in openState:
+                item.setExpanded(True)
+            key += text + '::'
+            for c in range(item.childCount()):
+                self.restoreOpenState(openState, item.child(c), key)
 
     def setGroup(self, state):
         self._group = state

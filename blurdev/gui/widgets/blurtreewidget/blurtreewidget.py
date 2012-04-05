@@ -26,6 +26,11 @@
 # |
 # |		# create connections
 # |		self.uiTREE.setDelegate( self )
+# |		# If you have more than one tree widget you can handle the prefrence saving and use diffrnent delegate methods
+# |		self.uiTREE.setIdentifier("uniqueName"
+# |		# If you set a identifier you will need to change the names of these methods to start with the identifier and
+# |		# capitalize the first leter of the name. This does not affect restorePrefs and recordPrefs.
+# |		# Example: closeEvent will become uniqueNameCloseEvent
 # |
 # |		# Restore user prefs
 # |		self.restorePrefs()
@@ -95,6 +100,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self._showAllColumnsText = 'Show all columns'
         self._columnIndex = []
         self._indexBuilt = False
+        self._identifier = ''
         # grid Delegate properties
         self._enableGradiated = False
 
@@ -241,6 +247,20 @@ class BlurTreeWidget(LockableTreeWidget):
             textItems.append(str(item))
         return QByteArray(','.join(textItems))
 
+    def identifier(self):
+        return self._identifier
+
+    def identifierName(self, name):
+        """
+            \Remarks	Returns the name. If self._identifier is set it will return place the identifier before name and capitalize the first 
+                        letter of name.
+            \param		name		<str>
+            \Return		<str>		"identifierName" || 'name'
+        """
+        if self._identifier:
+            name = self._identifier + name[0].upper() + name[1:]
+        return name
+
     def isGradiated(self):
         return self._enableGradiated
 
@@ -330,22 +350,22 @@ class BlurTreeWidget(LockableTreeWidget):
             \param		items		<list>
             \return		<QMimeData>
         """
-        if self._delegate and hasattr(self._delegate, 'mimeData'):
-            data = self._delegate.mimeData(items)
+        name = self.identifierName('mimeData')
+        if self._delegate and hasattr(self._delegate, name):
+            data = getattr(self._delegate, name)(items)
         else:
             data = super(BlurTreeWidget, self).mimeData(items)
         return data
 
-    def prefName(self, name, identifier=''):
+    def prefName(self, name):
         """
-            \Remarks	Appends the identifier to the pref name allowing you to save more than one BlurTreeWidget preffrences in a single file.
+            \Remarks	Appends self._identifier to the pref name allowing you to save more than one BlurTreeWidget preffrences in a single file.
             \param		name		<str>
-            \param		identifier	<str>
             \Return		<str>		"name-identifier" || 'name'
         """
         names = [name]
-        if identifier:
-            names.append(identifier)
+        if self._identifier:
+            names.append(self._identifier)
         return '-'.join(names)
 
     def recordOpenState(self, item=None, key=''):
@@ -362,28 +382,16 @@ class BlurTreeWidget(LockableTreeWidget):
                 output += self.recordOpenState(item.child(c), key)
         return output
 
-    def recordPrefs(self, pref, identifier=''):
-        pref.recordProperty(
-            self.prefName('ColumnVis', identifier), self.columnVisibility()
-        )
+    def recordPrefs(self, pref):
+        pref.recordProperty(self.prefName('ColumnVis'), self.columnVisibility())
         if self._saveColumnWidths:
-            pref.recordProperty(
-                self.prefName('ColumnWidths', identifier), self.columnWidths()
-            )
+            pref.recordProperty(self.prefName('ColumnWidths'), self.columnWidths())
         if self._saveColumnOrder:
-            pref.recordProperty(
-                self.prefName('ColumnOrder', identifier), self.columnOrder()
-            )
-        pref.recordProperty(self.prefName('SortColumn', identifier), self.sortColumn())
+            pref.recordProperty(self.prefName('ColumnOrder'), self.columnOrder())
+        pref.recordProperty(self.prefName('SortColumn'), self.sortColumn())
         pref.recordProperty(
-            self.prefName('SortColumnOrder', identifier),
-            int(self.header().sortIndicatorOrder()),
+            self.prefName('SortColumnOrder'), int(self.header().sortIndicatorOrder())
         )
-        if self._saveColumnOrder:
-            names = ['ColumnOrder']
-            if identifier:
-                names.append(identifier)
-            pref.recordProperty('-'.join(names), self.columnOrder())
 
     def resetColumnOrder(self):
         header = self.header()
@@ -467,30 +475,28 @@ class BlurTreeWidget(LockableTreeWidget):
             for c in range(item.childCount()):
                 self.restoreOpenState(openState, item.child(c), key)
 
-    def restorePrefs(self, pref, identifier=''):
+    def restorePrefs(self, pref):
         self.restoreColumnVisibility(
-            pref.restoreProperty(self.prefName('ColumnVis', identifier), {})
+            pref.restoreProperty(self.prefName('ColumnVis'), {})
         )
         if self._saveColumnWidths:
             self.restoreColumnWidths(
-                pref.restoreProperty(self.prefName('ColumnWidths', identifier), {})
+                pref.restoreProperty(self.prefName('ColumnWidths'), {})
             )
         if self._saveColumnOrder:
             self.restoreColumnOrder(
-                pref.restoreProperty(self.prefName('ColumnOrder', identifier), {})
+                pref.restoreProperty(self.prefName('ColumnOrder'), {})
             )
         self.sortByColumn(
-            pref.restoreProperty(self.prefName('SortColumn', identifier), 0),
-            pref.restoreProperty(
-                self.prefName('SortColumnOrder', identifier), Qt.DescendingOrder
-            ),
+            pref.restoreProperty(self.prefName('SortColumn'), 0),
+            pref.restoreProperty(self.prefName('SortColumnOrder'), Qt.DescendingOrder),
         )
 
-        if self._saveColumnOrder:
-            names = ['ColumnOrder']
-            if identifier:
-                names.append(identifier)
-            self.restoreColumnOrder(pref.restoreProperty('-'.join(names), {}))
+    def saveColumnOrder(self):
+        return self._saveColumnOrder
+
+    def saveColumnWidths(self):
+        return self._saveColumnWidths
 
     def setColumnCount(self, columns):
         """
@@ -498,12 +504,6 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         self._indexBuilt = False
         QTreeWidget.setColumnCount(self, columns)
-
-    def saveColumnOrder(self):
-        return self._saveColumnOrder
-
-    def saveColumnWidths(self):
-        return self._saveColumnWidths
 
     def setDelegate(self, delegate):
         self._delegate = delegate
@@ -565,6 +565,11 @@ class BlurTreeWidget(LockableTreeWidget):
                 break
         if not failed:
             self._hideableColumns = output
+
+    def setIdentifier(self, identifier):
+        self._identifier = identifier
+        if self.isGridDelegateEnabled():
+            self.itemDelegate().setIdentifier(identifier)
 
     def setLocked(self, alignment, state, span=1):
         view = LockableTreeWidget.setLocked(self, alignment, state, span)
@@ -652,8 +657,9 @@ class BlurTreeWidget(LockableTreeWidget):
         # call delegate so user can add custom menu items if they wish
         result = True
         cursorPos = QCursor.pos()
-        if self._delegate and hasattr(self._delegate, 'headerMenu'):
-            result = self._delegate.headerMenu(menu)
+        name = self.identifierName('headerMenu')
+        if self._delegate and hasattr(self._delegate, name):
+            result = getattr(self._delegate, name)(menu)
         # only show the menu if delegate allows it and if there are any actions to show.
         if result and menu.actions():
             menu.popup(cursorPos)

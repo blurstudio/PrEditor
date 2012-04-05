@@ -51,15 +51,21 @@
              <number>0</number>
             </property>
             <item row="0" column="0">
-             <widget class="QTreeWidget" name="uiProjectTREE">
+             <widget class="BlurTreeWidget" name="uiProjectTREE">
               <property name="contextMenuPolicy">
                <enum>Qt::CustomContextMenu</enum>
+              </property>
+              <property name="acceptDrops">
+               <bool>false</bool>
               </property>
               <property name="dragEnabled">
                <bool>true</bool>
               </property>
               <property name="dragDropMode">
                <enum>QAbstractItemView::DragOnly</enum>
+              </property>
+              <property name="verticalScrollMode">
+               <enum>QAbstractItemView::ScrollPerItem</enum>
               </property>
               <attribute name="headerVisible">
                <bool>false</bool>
@@ -807,6 +813,13 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BlurTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>blurdev.gui.widgets.blurtreewidget</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
