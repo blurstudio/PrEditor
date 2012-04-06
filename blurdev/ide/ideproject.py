@@ -158,7 +158,15 @@ class IdeProjectItem(QTreeWidgetItem):
         from PyQt4.QtCore import QFileInfo, QDir
 
         path = str(self.filePath())
-        for d in os.listdir(str(self.filePath())):
+        # Check for a invalid path and notify the user by updating the text of the folder.
+        try:
+            dirs = os.listdir(path)
+        except WindowsError:
+            text = unicode(self.text(0))
+            if not text.endswith('(Invalid Path)'):
+                self.setText(0, '%s (Invalid Path)' % text)
+            dirs = []
+        for d in dirs:
             # ignore directories in the exclude group
             if d in exclude:
                 continue

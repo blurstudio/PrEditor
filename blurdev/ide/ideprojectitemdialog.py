@@ -45,6 +45,7 @@ class IdeProjectItemDialog(Dialog):
 
         self.uiNameTXT.setText(projectItem.text(0))
         self.uiGroupCHK.setChecked(projectItem.isGroup())
+        self.uiFilePATH.setNotResolvePath(projectItem.isGroup())
         self.uiFileTypesTXT.setText(';'.join(projectItem.fileTypes()))
         self.uiExcludeTXT.setText(';'.join(projectItem.exclude()))
         self.uiFilePATH.setFilePath(projectItem._filePath)

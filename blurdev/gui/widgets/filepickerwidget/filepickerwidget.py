@@ -142,6 +142,12 @@ class FilePickerWidget(QWidget):
     def setPickFolder(self, state):
         self._pickFolder = state
 
+    @pyqtSlot(bool)
+    def setNotResolvePath(self, state):
+        """ Set resolvePath to the oposite of state. """
+        self.setResolvePath(not state)
+
+    @pyqtSlot(bool)
     def setResolvePath(self, state):
         self._resolvePath = state
         self.resolve()
