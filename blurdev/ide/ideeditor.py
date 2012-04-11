@@ -1100,6 +1100,7 @@ class IdeEditor(Window):
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
+        pref.recordProperty('windowStateSave', self.saveState())
 
         pref.recordProperty('MidiViewMode', self.uiWindowsAREA.viewMode())
         pref.recordProperty(
@@ -1242,6 +1243,9 @@ class IdeEditor(Window):
             from blurdev import debug
 
             debug.debugObject(self.restoreSettings, 'error restoring window state')
+        states = pref.restoreProperty('windowStateSave')
+        if states:
+            self.restoreState(states)
 
         # restore tabbed prefrence
         if (
