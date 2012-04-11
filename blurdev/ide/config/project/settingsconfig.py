@@ -26,6 +26,17 @@ class SettingsConfig(ConfigSectionWidget):
         blurdev.gui.loadUi(__file__, self)
 
         # set up icons for commands
+        self.uiAddArgumentBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/add.png')))
+        self.uiRemoveArgumentBTN.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/remove.png'))
+        )
+        self.uiMoveArgumentUpBTN.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/arrow_up.png'))
+        )
+        self.uiMoveArgumentDownBTN.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/arrow_down.png'))
+        )
+
         self.uiAddCommandBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/add.png')))
         self.uiRemoveBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/remove.png')))
         self.uiMoveUpBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/arrow_up.png')))
@@ -56,12 +67,28 @@ class SettingsConfig(ConfigSectionWidget):
         self._project = project
         self.uiProjectTREE.clear()
         self.uiProjectTREE.addTopLevelItem(self._project)
+        self._currentArgumentName = None
         self._currentCommandName = None
+        self.refreshArgumentList()
         self.refreshCommandList()
 
         # create connections
         self.uiProjectNameTXT.textChanged.connect(self.updateProjectName)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showMenu)
+
+    def addProjectArgument(self):
+        from PyQt4.QtGui import QInputDialog
+
+        name = QInputDialog.getText(
+            self,
+            'Name of argument',
+            'What do you want to call this argument?',
+            text='New Argument',
+        )
+        if name[1]:
+            argList = self._project.argumentList()
+            argList.update({unicode(name[0]): (len(argList), '')})
+            self.refreshArgumentList()
 
     def addProjectCommand(self):
         from PyQt4.QtGui import QInputDialog
@@ -108,6 +135,23 @@ class SettingsConfig(ConfigSectionWidget):
         if item:
             IdeProjectItemDialog.edit(item)
 
+    def editProjectArgument(self):
+        item = self.uiArgumentTREE.currentItem()
+        if item:
+            name = unicode(item.text(0))
+            argList = self._project.argumentList()
+            if name in argList:
+                self.uiArgumentNameTXT.setText(name)
+                self.uiArgumentCmdTXT.setText(argList[name][1])
+                self._currentArgumentName = name
+                self.uiArgumentUpdateBTN.setEnabled(True)
+            else:
+                self._currentArgumentName = None
+        else:
+            self.uiArgumentCmdTXT.setText('')
+            self.uiArgumentNameTXT.setText('')
+            self.uiArgumentUpdateBTN.setEnabled(False)
+
     def editProjectCommand(self):
         item = self.uiCommandTREE.currentItem()
         if item:
@@ -131,6 +175,16 @@ class SettingsConfig(ConfigSectionWidget):
 
         return os.path.join(path, name + '.blurproj')
 
+    def moveProjectArgumentDown(self):
+        index = self.uiArgumentTREE.indexFromItem(
+            self.uiArgumentTREE.currentItem()
+        ).row()
+        index += 1
+        if index < self.uiArgumentTREE.topLevelItemCount():
+            item = self.uiArgumentTREE.takeTopLevelItem(index - 1)
+            self.uiArgumentTREE.insertTopLevelItem(index, item)
+            self.uiArgumentTREE.setCurrentItem(item)
+
     def moveProjectCommandDown(self):
         index = self.uiCommandTREE.indexFromItem(self.uiCommandTREE.currentItem()).row()
         index += 1
@@ -138,6 +192,16 @@ class SettingsConfig(ConfigSectionWidget):
             item = self.uiCommandTREE.takeTopLevelItem(index - 1)
             self.uiCommandTREE.insertTopLevelItem(index, item)
             self.uiCommandTREE.setCurrentItem(item)
+
+    def moveProjectArgumentUp(self):
+        index = self.uiArgumentTREE.insertTopLevelItem(
+            self.uiArgumentTREE.currentItem()
+        ).row()
+        index -= 1
+        if index >= 0:
+            item = self.uiArgumentTREE.takeTopLevelItem(index + 1)
+            self.uiArgumentTREE.insertTopLevelItem(index, item)
+            self.uiArgumentTREE.setCurrentItem(item)
 
     def moveProjectCommandUp(self):
         index = self.uiCommandTREE.indexFromItem(self.uiCommandTREE.currentItem()).row()
@@ -179,6 +243,13 @@ class SettingsConfig(ConfigSectionWidget):
 
             self._project.setFilename(filename)
 
+        # get the changes to the argumentList
+        argList = {}
+        for index in range(self.uiArgumentTREE.topLevelItemCount()):
+            item = self.uiArgumentTREE.topLevelItem(index)
+            argList.update({unicode(item.text(0)): [index, unicode(item.text(1))]})
+        self._project.setArgumentList(argList)
+
         # get the changes to the commandList
         cmdList = {}
         for index in range(self.uiCommandTREE.topLevelItemCount()):
@@ -192,6 +263,13 @@ class SettingsConfig(ConfigSectionWidget):
         # save the project settings
         self._project.setConfigSet(self.configSet())
         self._project.save()
+
+    def refreshArgumentList(self):
+        self.uiArgumentTREE.clear()
+        argList = self._project.argumentList()
+        for key in sorted(argList.keys(), key=lambda i: argList[i][0]):
+            item = QTreeWidgetItem([key, argList[key][1]])
+            self.uiArgumentTREE.addTopLevelItem(item)
 
     def refreshCommandList(self):
         self.uiCommandTREE.clear()
@@ -207,10 +285,30 @@ class SettingsConfig(ConfigSectionWidget):
         if item.parent():
             item.parent().takeChild(item.parent().indexOfChild(item))
 
+    def removeProjectArgument(self):
+        self.uiArgumentTREE.takeTopLevelItem(
+            self.uiArgumentTREE.indexFromItem(self.uiArgumentTREE.currentItem()).row()
+        )
+
     def removeProjectCommand(self):
         self.uiCommandTREE.takeTopLevelItem(
             self.uiCommandTREE.indexFromItem(self.uiCommandTREE.currentItem()).row()
         )
+
+    def saveProjectArgument(self):
+        key = self._currentArgumentName
+        argList = self._project.argumentList()
+        if key and key in argList:
+            data = argList.pop(key)
+            argList.update(
+                {
+                    unicode(self.uiArgumentNameTXT.text()): [
+                        data[0],
+                        unicode(self.uiArgumentCmdTXT.text()),
+                    ]
+                }
+            )
+        self.refreshArgumentList()
 
     def saveProjectCommand(self):
         key = self._currentCommandName

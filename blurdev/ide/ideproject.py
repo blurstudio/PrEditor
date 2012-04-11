@@ -419,6 +419,7 @@ class IdeProject(IdeProjectItem):
         self._syspaths = []
         self._origEnv = None
         self._origSys = None
+        self._argumentList = {}
         self._commandList = {}
 
     def activateSystem(self):
@@ -434,6 +435,9 @@ class IdeProject(IdeProjectItem):
 
         # update the sys.paths variable with this environments paths
         sys.path = self._syspaths + sys.path
+
+    def argumentList(self):
+        return self._argumentList
 
     def commandList(self):
         return self._commandList
@@ -502,12 +506,16 @@ class IdeProject(IdeProjectItem):
                 syspath.setAttribute('path', path)
 
             command = root.addNode('commands')
+            command.recordProperty('argumentList', self._argumentList)
             command.recordProperty('commandList', self._commandList)
             self.toXml(root)
 
             doc.save(filename)
             return True
         return False
+
+    def setArgumentList(self, argumentList):
+        self._argumentList = argumentList
 
     def setCommandList(self, commandList):
         self._commandList = commandList
@@ -652,6 +660,9 @@ class IdeProject(IdeProjectItem):
                 # load the command list
                 commands = root.findChild('commands')
                 if commands:
+                    args = commands.restoreProperty('argumentList', {})
+                    if args:
+                        output.setArgumentList(args)
                     cmds = commands.restoreProperty('commandList', {})
                     if cmds:
                         output.setCommandList(cmds)

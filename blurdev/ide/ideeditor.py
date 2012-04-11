@@ -1078,6 +1078,9 @@ class IdeEditor(Window):
             filename = proj.filename()
 
         pref.recordProperty('currproj', filename)
+        pref.recordProperty(
+            'selectedArgumentIndex', self.uiCommandArgsDDL.currentText()
+        )
         pref.recordProperty('selectedCommandIndex', self.uiCommandDDL.currentText())
         pref.recordProperty('selectedRunLevel', self.uiExecuteDDL.currentText())
         pref.recordProperty(
@@ -1203,6 +1206,11 @@ class IdeEditor(Window):
             IdeProject.fromXml(pref.restoreProperty('currproj')), silent=True
         )
 
+        # restore the arguments index
+        text = pref.restoreProperty('selectedArgumentIndex', None)
+        if text:
+            self.uiCommandArgsDDL.setCurrentIndex(self.uiCommandArgsDDL.findText(text))
+
         # restore the command index
         text = pref.restoreProperty('selectedCommandIndex', None)
         if text:
@@ -1297,6 +1305,12 @@ class IdeEditor(Window):
             if not selected in commandList:
                 return False
             command = commandList[selected][1]
+            if self.uiCommandArgsACT.isVisible():
+                argumentList = project.argumentList()
+                key = str(self.uiCommandArgsDDL.currentText())
+                if key != 'No Args' and key in argumentList:
+                    arguments = argumentList[key][1]
+                    command += arguments
             text = self.uiExecuteDDL.currentText()
             if not command:
                 return False
@@ -1497,15 +1511,18 @@ class IdeEditor(Window):
         # create the widgets
         self.uiCommandDDL = QComboBox(self.uiProjectTBAR)
         self.uiExecuteDDL = QComboBox(self.uiProjectTBAR)
+        self.uiCommandArgsDDL = QComboBox(self.uiProjectTBAR)
         self.uiExecuteDDL.addItems(['Run', 'Standalone', 'Debug'])
 
         self.uiCommandDDL.setMinimumWidth(100)
         policy = self.uiCommandDDL.sizePolicy()
         policy.setHorizontalPolicy(policy.Maximum)
         self.uiCommandDDL.setSizePolicy(policy)
+        self.uiCommandArgsDDL.setSizePolicy(policy)
         self.uiCommandDDL.setMaxVisibleItems(20)
 
         self.uiProjectTBAR.addWidget(self.uiCommandDDL)
+        self.uiCommandArgsACT = self.uiProjectTBAR.addWidget(self.uiCommandArgsDDL)
         self.uiProjectTBAR.addWidget(self.uiExecuteDDL)
         self.uiProjectTBAR.addAction(self.uiRunSelectedACT)
 
@@ -1609,6 +1626,20 @@ class IdeEditor(Window):
             self.uiProjectTREE.addTopLevelItem(project)
             self.uiProjectTREE.blockSignals(False)
             self.uiProjectTREE.setUpdatesEnabled(True)
+
+            # update the list of runable arguments
+            self.uiCommandArgsDDL.clear()
+            if project:
+                self.uiCommandArgsDDL.addItem('No Args')
+                self.uiCommandArgsDDL.insertSeparator(1)
+                cmds = project.argumentList()
+                self.uiCommandArgsDDL.addItems(
+                    [key for key in sorted(cmds.keys(), key=lambda i: cmds[i][0])]
+                )
+                self.uiCommandArgsACT.setVisible(len(cmds))
+            else:
+                self.uiCommandArgsACT.setVisible(False)
+            self.uiCommandArgsDDL.updateGeometry()
 
             # update the list of runable commands
             self.uiCommandDDL.clear()
