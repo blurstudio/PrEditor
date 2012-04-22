@@ -21,8 +21,12 @@ class PythonLexer(QsciLexerPython):
 
         # set the indentation warning
         self.setIndentationWarning(self.Inconsistent)
-        # Set the highlight color for this lexer
-        self.setPaper(QColor(155, 255, 155), self.HighlightedIdentifier)
+
+    def defaultPaper(self, style):
+        if style == self.HighlightedIdentifier:
+            # Set the highlight color for this lexer
+            return QColor(155, 255, 155)
+        return super(PythonLexer, self).defaultPaper(style)
 
     def keywords(self, set):
         # Words to be highlighted

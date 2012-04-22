@@ -308,13 +308,14 @@ def setAppUserModelID(id, prefix='Blur'):
     return False
 
 
-def signalInspector(item, prefix='----'):
+def signalInspector(item, prefix='----', ignore=[]):
     """
         \Remarks	Connects to all signals of the provided item, and prints the name of each signal. 
                     When that signal is activated it will print the prefix, the name of the signal, 
                     and any arguments passed. These connections will persist for the life of the object.
         \param		item	<QObject>	Listen for signals from this object.
         \param		prefix	<str>		The prefix it displays when a signal is emited. Defaults to '----'	
+        \param		ignore	<list>		A list of strings. If the signal name is in this list it is ignored.
     """
 
     def create(attr):
@@ -324,7 +325,10 @@ def signalInspector(item, prefix='----'):
         return handler
 
     for attr in dir(item):
-        if type(getattr(item, attr)).__name__ == 'pyqtBoundSignal':
+        if (
+            type(getattr(item, attr)).__name__ == 'pyqtBoundSignal'
+            and not attr in ignore
+        ):
             print attr
             getattr(item, attr).connect(create(attr))
 

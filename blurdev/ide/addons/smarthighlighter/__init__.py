@@ -10,7 +10,6 @@
 #
 
 from blurdev.ide.ideaddon import IdeAddon
-from blurdev.ide.lexers.pythonlexer import PythonLexer
 import re
 
 
@@ -30,7 +29,8 @@ class SmartHighlighterAddon(IdeAddon):
             \remarks	Create the neccissary connections for this plugin and store the neccissary information so we can disconnect when the 
                         plugin is deactivated.
         """
-        if isinstance(editor.lexer(), PythonLexer):
+        lexer = editor.lexer()
+        if hasattr(lexer, 'highlightedKeywords'):
 
             def selectionChanged():
                 self.highlightView(editor)
@@ -50,32 +50,30 @@ class SmartHighlighterAddon(IdeAddon):
         ide.editorCreated.disconnect(self.connectToEditor)
         return True
 
-    def highlightView(self, view):
+    def highlightView(self, editor):
         # Get selection
-        selectedText = view.selectedText()
+        selectedText = editor.selectedText()
         # if text is selected make sure it is a word
-        if selectedText:
-            # Does the text contain a non allowed word?
-            if not self.isWord(selectedText):
-                return
-            else:
-                selection = view.getSelection()
-                # the character before and after the selection must not be a word.
-                text = view.text(selection[2])  # Character after
-                if selection[3] < len(text):
-                    if self.isWord(text[selection[3]]):
-                        return
-                text = view.text(selection[0])  # Character Before
-                if selection[1] and selection[1] != -1:
-                    if self.isWord(text[selection[1] - 1]):
-                        return
-        # Make the lexer highlight words
-        lexer = view.lexer()
-        try:
+        lexer = editor.lexer()
+        if selectedText != lexer.highlightedKeywords:
+            if selectedText:
+                # Does the text contain a non allowed word?
+                if not self.isWord(selectedText):
+                    return
+                else:
+                    selection = editor.getSelection()
+                    # the character before and after the selection must not be a word.
+                    text = editor.text(selection[2])  # Character after
+                    if selection[3] < len(text):
+                        if self.isWord(text[selection[3]]):
+                            return
+                    text = editor.text(selection[0])  # Character Before
+                    if selection[1] and selection[1] != -1:
+                        if self.isWord(text[selection[1] - 1]):
+                            return
+            # Make the lexer highlight words
             lexer.highlightedKeywords = selectedText
-            view.setLexer(lexer)
-        except AttributeError:
-            pass
+            editor.setLexer(lexer)
 
     def isWord(self, word):
         r"""

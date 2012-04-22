@@ -612,9 +612,6 @@
    <property name="text">
     <string>Next Marker</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Right</string>
-   </property>
   </action>
   <action name="uiClearMarkersACT">
    <property name="text">

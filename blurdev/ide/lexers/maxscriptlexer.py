@@ -23,6 +23,9 @@ filein open close flush include print
 
 
 class MaxscriptLexer(QsciLexerCustom):
+    # Items in this list will be highligheded using the color for self.SmartHighlight
+    highlightedKeywords = ''
+
     def __init__(self, parent=None):
         QsciLexerCustom.__init__(self, parent)
         self._styles = {
@@ -33,6 +36,7 @@ class MaxscriptLexer(QsciLexerCustom):
             4: 'Operator',
             5: 'Number',
             6: 'String',
+            7: 'SmartHighlight',
         }
 
         for key, value in self._styles.iteritems():
@@ -59,9 +63,19 @@ class MaxscriptLexer(QsciLexerCustom):
 
         return QsciLexerCustom.defaultColor(self, style)
 
+    def defaultPaper(self, style):
+        if style == self.SmartHighlight:
+            from PyQt4.QtGui import QColor
+
+            # Set the highlight color for this lexer
+            return QColor(155, 255, 155)
+        return super(MaxscriptLexer, self).defaultPaper(style)
+
     def keywords(self, style):
         if style == self.Keyword:
             return MS_KEYWORDS
+        if style == self.SmartHighlight:
+            return self.highlightedKeywords
         return QsciLexerCustom.keywords(self, style)
 
     def processChunk(self, chunk, lastState, keywords):
@@ -137,13 +151,16 @@ class MaxscriptLexer(QsciLexerCustom):
 
             # otherwise, we are processing a default set of text whose syntaxing is irrelavent from the previous one
             results = re.findall('([^A-Za-z0-9]*)([A-Za-z0-9]*)', chunk)
+            hlkwords = unicode(self.keywords(self.SmartHighlight)).split()
             for space, kwd in results:
                 if not (space or kwd):
                     break
 
                 self.setStyling(len(space), self.Default)
 
-                if kwd in keywords:
+                if kwd in hlkwords:
+                    self.setStyling(len(kwd), self.SmartHighlight)
+                elif kwd in keywords:
                     self.setStyling(len(kwd), self.Keyword)
                 else:
                     self.setStyling(len(kwd), self.Default)
