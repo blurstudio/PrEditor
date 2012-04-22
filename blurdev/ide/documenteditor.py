@@ -236,6 +236,7 @@ class DocumentEditor(QsciScintilla):
         if accepted:
             # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog go to the correct line.
             self.setCursorPosition(line - 1, 0)
+            self.ensureLineVisible(line)
 
     def goToDefinition(self, text=None):
         if not text:
@@ -382,7 +383,7 @@ class DocumentEditor(QsciScintilla):
             self.setEdgeMode(self.EdgeNone)
 
         # set endline settings
-        eolmode = section.value('eolMode')
+        # 		eolmode = section.value('eolMode' )
 
         # try to determine the end line mode based on the file itself
         # 		if ( eolmode == 'Auto-Detect' ):

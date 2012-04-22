@@ -59,6 +59,7 @@ class IdeEditor(Window):
     currentProjectChanged = pyqtSignal(object)
     currentDocumentChanged = pyqtSignal()
     settingsRecorded = pyqtSignal()
+    editorCreated = pyqtSignal(object)  # emitted when ever a subWindow is added
 
     _instance = None
 
@@ -325,6 +326,7 @@ class IdeEditor(Window):
         menu.addAction(self.uiCloseAllACT)
         self.duplicateAction(menu, self.uiCloseAllExceptACT, editor.closeAllExcept)
 
+        self.editorCreated.emit(editor)
         return window
 
     def checkOpen(self):
@@ -1472,6 +1474,7 @@ class IdeEditor(Window):
     def setupToolbars(self):
         # create the main toolbar
         self.uiMainTBAR = QToolBar(self)
+        self.uiMainTBAR.setObjectName('MainToolbar')
         self.uiMainTBAR.setWindowTitle('Main')
         self.uiMainTBAR.setIconSize(QSize(16, 16))
         self.addToolBar(Qt.TopToolBarArea, self.uiMainTBAR)
@@ -1508,6 +1511,7 @@ class IdeEditor(Window):
 
         # create the project toolbar
         self.uiProjectTBAR = QToolBar(self)
+        self.uiProjectTBAR.setObjectName('ProjectToolbar')
         self.uiProjectTBAR.setIconSize(QSize(16, 16))
         self.uiProjectTBAR.setWindowTitle('Project')
         self.addToolBar(Qt.TopToolBarArea, self.uiProjectTBAR)
@@ -1532,6 +1536,7 @@ class IdeEditor(Window):
 
         # create the Document toolbar
         self.uiLanguageTBAR = QToolBar(self)
+        self.uiLanguageTBAR.setObjectName('LanguageToolbar')
         self.uiLanguageTBAR.setWindowTitle('Language')
         self.uiLanguageDDL = LanguageComboBox(self.uiLanguageTBAR)
         self.uiLanguageDDL.currentLanguageChanged.connect(self.setCurrentLanguage)
