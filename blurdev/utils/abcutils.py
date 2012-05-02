@@ -7,16 +7,20 @@ os.environ["EXOCORTEX_LICENSE"] = "5053@mandarin004"
 import _ExocortexAlembicPython as alembic
 
 
-def copyarchive(src, dst):
-    archive = ABCArchive.fromfile(src)
-    archive.tofile(dst)
+def copyArchive(src, dst):
+    archive = ABCArchive.fromFile(src)
+    archive.toFile(dst)
     del archive
 
 
-def printarchive(src):
-    archive = ABCArchive.fromfile(src)
-    print archive.tostring()
+def printArchive(src):
+    archive = ABCArchive.fromFile(src)
+    print archive.toString()
     del archive
+
+
+def readArchive(src):
+    return ABCArchive.fromFile(src)
 
 
 class ABCArchive(object):
@@ -27,13 +31,13 @@ class ABCArchive(object):
         self.sampletimes = None
         self.objects = None
 
-    def tostring(self):
+    def toString(self):
         txt = []
         txt.append('ARCHIVE: %s' % self.filename)
         obj_names = sorted(self.objects.keys())
         for obj_name in obj_names:
             obj = self.objects[obj_name]
-            txt.append(obj.tostring())
+            txt.append(obj.toString())
         return '\n'.join(txt)
 
     @classmethod
@@ -49,7 +53,7 @@ class ABCArchive(object):
         return archive
 
     @classmethod
-    def fromfile(cls, filename):
+    def fromFile(cls, filename):
         iarchive = alembic.iArchive(filename)
         archive = ABCArchive()
         archive.filename = iarchive.getFileName()
@@ -62,7 +66,7 @@ class ABCArchive(object):
         iarchive = None
         return archive
 
-    def tofile(self, filename):
+    def toFile(self, filename):
         oarchive = alembic.oArchive(filename)
         errors = []
         try:
@@ -109,13 +113,13 @@ class ABCObject(object):
         self.nbstoredsamples = None
         self.properties = None
 
-    def tostring(self):
+    def toString(self):
         txt = []
         txt.append('    %s (%s)' % (self.id, self.type))
         propnames = sorted(self.properties.keys())
         for propname in propnames:
             prop = self.properties[propname]
-            txt.append(prop.tostring())
+            txt.append(prop.toString())
         return '\n'.join(txt)
 
     @classmethod
@@ -143,7 +147,7 @@ class ABCProperty(object):
         self.size = None
         self.values = None
 
-    def tostring(self):
+    def toString(self):
         txt = []
         txt.append('        %s (%s)' % (self.name, self.type))
         return '\n'.join(txt)
@@ -158,14 +162,3 @@ class ABCProperty(object):
         prop.size = iprop.getSize()
         prop.values = iprop.getValues()
         return prop
-
-
-def main():
-    fp = sys.argv[1]
-    archive = ABCArchive.fromfile(fp)
-    print '\n\n'
-    print archive.tostring()
-
-
-if __name__ == '__main__':
-    main()
