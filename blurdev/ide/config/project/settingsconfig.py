@@ -26,6 +26,9 @@ class SettingsConfig(ConfigSectionWidget):
         blurdev.gui.loadUi(__file__, self)
 
         # set up icons for commands
+        self.uiInsertArgumentSeparatorBTN.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/separator.png'))
+        )
         self.uiAddArgumentBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/add.png')))
         self.uiRemoveArgumentBTN.setIcon(
             QIcon(blurdev.resourcePath('img/ide/remove.png'))
@@ -37,6 +40,9 @@ class SettingsConfig(ConfigSectionWidget):
             QIcon(blurdev.resourcePath('img/ide/arrow_down.png'))
         )
 
+        self.uiInsertCommandSeparatorBTN.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/separator.png'))
+        )
         self.uiAddCommandBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/add.png')))
         self.uiRemoveBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/remove.png')))
         self.uiMoveUpBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/arrow_up.png')))
@@ -175,6 +181,24 @@ class SettingsConfig(ConfigSectionWidget):
 
         return os.path.join(path, name + '.blurproj')
 
+    def insertArgumentSeparator(self):
+        argList = self._project.argumentList()
+        sep = "!Separator!%i"
+        i = 0
+        while sep % i in argList:
+            i += 1
+        argList.update({sep % i: (len(argList), '')})
+        self.refreshArgumentList()
+
+    def insertCommandSeparator(self):
+        cmdList = self._project.commandList()
+        sep = "!Separator!%i"
+        i = 0
+        while sep % i in cmdList:
+            i += 1
+        cmdList.update({sep % i: (len(cmdList), '')})
+        self.refreshCommandList()
+
     def moveProjectArgumentDown(self):
         index = self.uiArgumentTREE.indexFromItem(
             self.uiArgumentTREE.currentItem()
@@ -194,7 +218,7 @@ class SettingsConfig(ConfigSectionWidget):
             self.uiCommandTREE.setCurrentItem(item)
 
     def moveProjectArgumentUp(self):
-        index = self.uiArgumentTREE.insertTopLevelItem(
+        index = self.uiArgumentTREE.indexFromItem(
             self.uiArgumentTREE.currentItem()
         ).row()
         index -= 1

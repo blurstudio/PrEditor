@@ -1642,9 +1642,14 @@ class IdeEditor(Window):
                 self.uiCommandArgsDDL.addItem('No Args')
                 self.uiCommandArgsDDL.insertSeparator(1)
                 cmds = project.argumentList()
-                self.uiCommandArgsDDL.addItems(
-                    [key for key in sorted(cmds.keys(), key=lambda i: cmds[i][0])]
-                )
+                offset = self.uiCommandArgsDDL.count()
+                for index, key in enumerate(
+                    sorted(cmds.keys(), key=lambda i: cmds[i][0])
+                ):
+                    if key.startswith("!Separator!"):
+                        self.uiCommandArgsDDL.insertSeparator(index + offset)
+                    else:
+                        self.uiCommandArgsDDL.addItem(key)
                 self.uiCommandArgsACT.setVisible(len(cmds))
             else:
                 self.uiCommandArgsACT.setVisible(False)
@@ -1654,8 +1659,13 @@ class IdeEditor(Window):
             self.uiCommandDDL.clear()
             if project:
                 cmds = project.commandList()
-                for key in sorted(cmds.keys(), key=lambda i: cmds[i][0]):
-                    self.uiCommandDDL.addItem(key)
+                for index, key in enumerate(
+                    sorted(cmds.keys(), key=lambda i: cmds[i][0])
+                ):
+                    if key.startswith("!Separator!"):
+                        self.uiCommandDDL.insertSeparator(index)
+                    else:
+                        self.uiCommandDDL.addItem(key)
 
             self.uiCommandDDL.updateGeometry()
 

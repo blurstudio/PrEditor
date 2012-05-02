@@ -93,6 +93,16 @@
        <item row="1" column="0" colspan="2">
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
+          <widget class="QToolButton" name="uiInsertCommandSeparatorBTN">
+           <property name="toolTip">
+            <string>Create a separator in the comands menu</string>
+           </property>
+           <property name="text">
+            <string>S</string>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QToolButton" name="uiAddCommandBTN">
            <property name="text">
             <string>+</string>
@@ -215,6 +225,16 @@
        </item>
        <item row="2" column="0" colspan="2">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QToolButton" name="uiInsertArgumentSeparatorBTN">
+           <property name="toolTip">
+            <string>Create a separator in the arguments menu</string>
+           </property>
+           <property name="text">
+            <string>S</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QToolButton" name="uiAddArgumentBTN">
            <property name="text">
@@ -365,7 +385,7 @@
    <slot>addProjectCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>41</x>
+     <x>66</x>
      <y>314</y>
     </hint>
     <hint type="destinationlabel">
@@ -445,7 +465,7 @@
    <slot>removeProjectCommand()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>64</x>
+     <x>89</x>
      <y>314</y>
     </hint>
     <hint type="destinationlabel">
@@ -477,7 +497,7 @@
    <slot>addProjectArgument()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>24</x>
+     <x>49</x>
      <y>302</y>
     </hint>
     <hint type="destinationlabel">
@@ -493,7 +513,7 @@
    <slot>removeProjectArgument()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>50</x>
+     <x>75</x>
      <y>311</y>
     </hint>
     <hint type="destinationlabel">
@@ -550,6 +570,38 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>uiInsertCommandSeparatorBTN</sender>
+   <signal>clicked()</signal>
+   <receiver>SettingsConfig</receiver>
+   <slot>insertCommandSeparator()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>29</x>
+     <y>302</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-8</x>
+     <y>311</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiInsertArgumentSeparatorBTN</sender>
+   <signal>clicked()</signal>
+   <receiver>SettingsConfig</receiver>
+   <slot>insertArgumentSeparator()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>32</x>
+     <y>302</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-133</x>
+     <y>278</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>addProjectCommand()</slot>
@@ -564,5 +616,7 @@
   <slot>moveProjectArgumentUp()</slot>
   <slot>moveProjectArgumentDown()</slot>
   <slot>saveProjectArgument()</slot>
+  <slot>insertCommandSeparator()</slot>
+  <slot>insertArgumentSeparator()</slot>
  </slots>
 </ui>
