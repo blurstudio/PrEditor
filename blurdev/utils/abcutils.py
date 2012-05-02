@@ -42,7 +42,7 @@ class ABCArchive(object):
         return '\n'.join(txt)
 
     def getIdentifiers(self):
-        return [obj.id for obj in self.objects]
+        return self.objects.keys()
 
     def getPolyMeshObjectNames(self):
         re_poly = re.compile(r"^(?P<name>[^/]+)Xfo$")
