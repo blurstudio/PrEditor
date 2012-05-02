@@ -1,3 +1,4 @@
+import re
 import sys
 import os
 from pprint import pprint
@@ -39,6 +40,18 @@ class ABCArchive(object):
             obj = self.objects[obj_name]
             txt.append(obj.toString())
         return '\n'.join(txt)
+
+    def getIdentifiers(self):
+        return [obj.id for obj in self.objects]
+
+    def getPolyMeshObjectNames(self):
+        re_poly = re.compile(r"^(?P<name>[^/]+)Xfo$")
+        poly_names = []
+        for id in self.getIdentifiers():
+            m = re_poly.match(id)
+            if m:
+                poly_names.append(m.group('name'))
+        return poly_names
 
     @classmethod
     def from_iArchive(cls, iarchive):
