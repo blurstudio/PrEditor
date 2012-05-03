@@ -62,7 +62,7 @@ class ABCArchive(object):
         archive.objects = {}
         for oid in iarchive.getIdentifiers():
             iobj = iarchive.getObject(oid)
-            archive.objects[oid] = ABCObject.from_iObject(iobj)
+            archive.objects[oid] = ABCObject.from_iObject(iobj, archive)
         return archive
 
     @classmethod
@@ -125,6 +125,7 @@ class ABCObject(object):
         self.sampletimes = None
         self.nbstoredsamples = None
         self.properties = None
+        self.abcarchive = None
 
     def toString(self):
         txt = []
@@ -136,8 +137,9 @@ class ABCObject(object):
         return '\n'.join(txt)
 
     @classmethod
-    def from_iObject(cls, iobj):
+    def from_iObject(cls, iobj, abcarchive=None):
         obj = cls()
+        obj.abcarchive = abcarchive
         obj.id = iobj.getIdentifier()
         obj.metadata = iobj.getMetaData()
         obj.type = iobj.getType()
@@ -146,7 +148,7 @@ class ABCObject(object):
         obj.properties = {}
         for pid in iobj.getPropertyNames():
             iprop = iobj.getProperty(pid)
-            obj.properties[pid] = ABCProperty.from_iProperty(iprop)
+            obj.properties[pid] = ABCProperty.from_iProperty(iprop, obj)
         return obj
 
 
@@ -159,6 +161,8 @@ class ABCProperty(object):
         self.nbstoredsamples = None
         self.size = None
         self.values = None
+        self.abcobject = None
+        self.abcarchive = None
 
     def toString(self):
         txt = []
@@ -166,8 +170,11 @@ class ABCProperty(object):
         return '\n'.join(txt)
 
     @classmethod
-    def from_iProperty(cls, iprop):
+    def from_iProperty(cls, iprop, abcobject=None):
         prop = cls()
+        prop.abcobject = abcobject
+        if abcobject is not None:
+            prop.abcarchive = abcobject.abcarchive
         prop.name = iprop.getName()
         prop.type = iprop.getType()
         prop.sampletimes = iprop.getSampleTimes()
