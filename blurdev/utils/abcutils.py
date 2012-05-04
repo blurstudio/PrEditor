@@ -67,7 +67,7 @@ class ABCArchive(object):
 
     @classmethod
     def fromFile(cls, filename):
-        iarchive = alembic.iArchive(filename)
+        iarchive = alembic.getIArchive(filename)
         archive = ABCArchive()
         archive.filename = iarchive.getFileName()
         archive.version = iarchive.getVersion()
@@ -80,7 +80,7 @@ class ABCArchive(object):
         return archive
 
     def toFile(self, filename):
-        oarchive = alembic.oArchive(filename)
+        oarchive = alembic.getOArchive(filename)
         errors = []
         try:
             if self.sampletimes:
