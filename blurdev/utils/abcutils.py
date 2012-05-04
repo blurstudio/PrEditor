@@ -181,7 +181,8 @@ class ABCProperty(object):
         prop.nbstoredsamples = iprop.getNbStoredSamples()
         try:
             prop.size = iprop.getSize()
+            prop.values = iprop.getValues()
         except alembic.error:
             pass
-        prop.values = iprop.getValues()
+
         return prop
