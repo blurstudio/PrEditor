@@ -12,7 +12,7 @@ import os.path
 
 from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal
 from PyQt4.Qsci import QsciScintilla
-from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog
+from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog, QMessageBox
 
 from blurdev.enum import enum
 from blurdev.ide import lang
@@ -66,8 +66,6 @@ class DocumentEditor(QsciScintilla):
 
     def checkForSave(self):
         if self.isModified():
-            from PyQt4.QtGui import QMessageBox
-
             result = QMessageBox.question(
                 self.window(),
                 'Save changes to...',
@@ -101,12 +99,10 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).closeEvent(event)
 
     def commentAdd(self):
-        from PyQt4.QtGui import QMessageBox as msg
-
         # collect the language
         language = lang.byName(self._language)
         if not language:
-            msg.critical(
+            QMessageBox.critical(
                 None,
                 'No Language Defined',
                 'There is no language defined for this editor.',
@@ -116,7 +112,7 @@ class DocumentEditor(QsciScintilla):
         # grab the line comment
         comment = language.lineComment()
         if not comment:
-            msg.critical(
+            QMessageBox.critical(
                 None,
                 'No Line Comment Defined',
                 'There is no line comment symbol defined for the %s language.'
@@ -133,12 +129,10 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def commentRemove(self):
-        from PyQt4.QtGui import QMessageBox
-
         # collect the language
         language = lang.byName(self._language)
         if not language:
-            msg.critical(
+            QMessageBox.critical(
                 None,
                 'No Language Defined',
                 'There is no language defined for this editor.',
@@ -148,7 +142,7 @@ class DocumentEditor(QsciScintilla):
         # collect the expression
         comment = language.lineComment()
         if not comment:
-            msg.critical(
+            QMessageBox.critical(
                 None,
                 'No Line Comment Defined',
                 'There is no line comment symbol defined for the "%s" language'
@@ -330,8 +324,6 @@ class DocumentEditor(QsciScintilla):
         return result
 
     def findTextNotFound(self, text):
-        from PyQt4.QtGui import QMessageBox
-
         try:
             line = int(text)
             result = QMessageBox.critical(
@@ -583,8 +575,6 @@ class DocumentEditor(QsciScintilla):
         if not os.path.isfile(self.filename()):
             debugMsg('The file was deleted: %r' % self._saving)
             # the file was deleted, ask the user if they still want to keep the file in the editor.
-            from PyQt4.QtGui import QMessageBox
-
             result = QMessageBox.question(
                 self.window(),
                 'File Removed...',
@@ -612,8 +602,6 @@ class DocumentEditor(QsciScintilla):
         )
 
     def reloadDialog(self, message, title='Reload File...'):
-        from PyQt4.QtGui import QMessageBox
-
         result = QMessageBox.question(
             self.window(), title, message, QMessageBox.Yes | QMessageBox.No
         )
@@ -682,8 +670,6 @@ class DocumentEditor(QsciScintilla):
             if f.error() != QFile.NoError:
                 # 				self._saving = False
                 debugMsg('An error occured while saving = %r' % self._saving)
-                from PyQt4.QtGui import QMessageBox
-
                 QMessageBox.question(
                     self.window(),
                     'Error saving file...',
