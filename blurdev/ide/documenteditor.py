@@ -162,7 +162,7 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def copyFilenameToClipboard(self):
-        QApplication.clipboard().setText(self._filename)
+        QApplication.clipboard().setText(os.path.abspath(self._filename))
 
     def enableFileWatching(self, state):
         """
