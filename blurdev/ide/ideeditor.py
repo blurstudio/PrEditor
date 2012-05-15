@@ -551,10 +551,15 @@ class IdeEditor(Window):
         if not doc:
             return False
 
-        count = doc.replace(self.replaceText(), all=True)
+        count = doc.replace(self.replaceText(), searchtext=self.searchText(), all=True)
 
         # show the results in the messagebox
-        QMessageBox.critical(self, 'Replace Results', '%i results replaced' % count)
+        QMessageBox.critical(
+            self,
+            'Replace Results',
+            'Replaced %i instances of "%s" with "%s".'
+            % (count, self.searchText(), self.replaceText()),
+        )
 
     def documentFromWizard(self):
         QDir.setCurrent(self.currentFilePath())
@@ -1004,7 +1009,6 @@ class IdeEditor(Window):
             self.uiBrowserTAB.setCurrentIndex(0)
 
     def projectTreeMimeData(self, items):
-        print 'Handling MimeData'
         data = QMimeData()
         urls = []
         for item in items:

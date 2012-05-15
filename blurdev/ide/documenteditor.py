@@ -609,9 +609,10 @@ class DocumentEditor(QsciScintilla):
             return self.load(self.filename())
         return False
 
-    def replace(self, text, all=False):
+    def replace(self, text, searchtext=None, all=False):
         # replace the current text with the inputed text
-        searchtext = self.selectedText()
+        if not searchtext:
+            searchtext = self.selectedText()
 
         # make sure something is selected
         if not searchtext:
@@ -631,7 +632,7 @@ class DocumentEditor(QsciScintilla):
             startpos = self.positionFromLineIndex(sel[0], sel[1])
             alltext.replace(startpos, len(searchtext), text)
 
-        self.setText(alltext)
+        self.setText(alltext)  # This system causes the undoStack to be cleared.
         self.setSelection(*sel)
 
         return count
