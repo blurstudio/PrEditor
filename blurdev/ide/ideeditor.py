@@ -1531,8 +1531,8 @@ class IdeEditor(Window):
         policy.setHorizontalPolicy(policy.Maximum)
         self.uiCommandDDL.setSizePolicy(policy)
         self.uiCommandArgsDDL.setSizePolicy(policy)
-        self.uiCommandDDL.setMaxVisibleItems(20)
-        self.uiCommandArgsDDL.setMaxVisibleItems(20)
+        self.uiCommandDDL.setMaxVisibleItems(40)
+        self.uiCommandArgsDDL.setMaxVisibleItems(40)
 
         self.uiProjectTBAR.addWidget(self.uiCommandDDL)
         self.uiCommandArgsACT = self.uiProjectTBAR.addWidget(self.uiCommandArgsDDL)

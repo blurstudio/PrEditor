@@ -45,6 +45,10 @@
 # |		editor.addItem( 'Something' )
 # |		return editor
 # |
+# |	def dropEvent(self, event):
+# |		print 'Drop Event', self.uiTREE.indexAt(event.pos()).column()
+# |		super(BlurTreeWidget, self.uiTREE).dropEvent(event)
+# |
 # |	def headerMenu( self, menu ):
 # |		action = menu.addAction( 'Added by view class' )
 # |		return True
@@ -180,6 +184,19 @@ class BlurTreeWidget(LockableTreeWidget):
 
     def delegate(self):
         return self._delegate
+
+    def dropEvent(self, event):
+        """
+            \remarks	Overloaded. If you add this function to the delegate you can override the dropEvent handling.
+            \param		items		<list>
+            \return		<QMimeData>
+        """
+        name = self.identifierName('dropEvent')
+        if self._delegate and hasattr(self._delegate, name):
+            data = getattr(self._delegate, name)(event)
+        else:
+            data = super(BlurTreeWidget, self).dropEvent(event)
+        return data
 
     def enableGridDelegate(self, enable):
         if enable:
