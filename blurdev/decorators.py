@@ -65,3 +65,41 @@ def pendingdeprecation(args):
         return deco(args)
 
     return deco
+
+
+def stopwatch(args):
+    r"""
+        \remarks	Generate a blurdev.debug.Stopwatch that tells how long it takes the decorated function to run.
+    """
+    msg = ''
+    level = debug.DebugLevel.Low
+    if isinstance(args, dict):
+        if 'text' in args:
+            msg = args['text']
+        if 'debugLevel' in args:
+            level = args['debugLevel']
+
+    def deco(function):
+        """
+            \Remarks	This decorator is used to warn that a api call will be depricated at a future date.
+        """
+        nMsg = '[%s] %s %s' % (
+            debug.DebugLevel.labelByValue(level),
+            function.__name__,
+            msg,
+        )
+
+        def newFunction(*args, **kwargs):
+            watch = debug.Stopwatch(nMsg, level)
+            output = function(*args, **kwargs)
+            watch.stop()
+            return output
+
+        newFunction.__name__ = function.__name__
+        newFunction.__doc__ = function.__doc__
+        newFunction.__dict__ = function.__dict__
+        return newFunction
+
+    if not isinstance(args, dict):
+        return deco(args)
+    return deco
