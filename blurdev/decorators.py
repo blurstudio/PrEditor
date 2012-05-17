@@ -70,6 +70,9 @@ def pendingdeprecation(args):
 def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
     r"""
         \remarks	Generate a blurdev.debug.Stopwatch that tells how long it takes the decorated function to run.
+                    You can access the Stopwatch object by calling __stopwatch__ on the function object.
+                    If you function is called slowFunction() inside the function you can call slowFunction.__stopwatch__
+                    If your function is part of a class, make sure to call self(self.slowFunction.__stopwatch__)
         \param		text	<str>||<function>	Message text, or no arguments
         \param		debugLevel	<blurdev.debug.DebugLevel>
     """
@@ -88,9 +91,9 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
             nMsg += ' %s' % msg
 
         def newFunction(*args, **kwargs):
-            watch = debug.Stopwatch(nMsg, debugLevel)
+            function.__stopwatch__ = debug.Stopwatch(nMsg, debugLevel)
             output = function(*args, **kwargs)
-            watch.stop()
+            function.__stopwatch__.stop()
             return output
 
         newFunction.__name__ = function.__name__
