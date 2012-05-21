@@ -219,7 +219,8 @@ class DocumentEditor(QsciScintilla):
     def findInFiles(self, state=False):
         window = self.window()
         if isinstance(window, IdeEditor):
-            window.uiFindInFilesACT.triggered.emit()
+            window.searchFileDialog().setSearchText(self.selectedText())
+            window.uiFindInFilesACT.triggered.emit(False)
 
     def goToLine(self, line=None):
         if type(line) != int:

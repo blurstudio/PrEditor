@@ -290,6 +290,9 @@ class FindFilesDialog(Dialog):
     def setSearchedCount(self, count):
         self.uiSearchedLBL.setText('in %i' % count)
 
+    def setSearchText(self, text):
+        self.uiSearchTXT.setText(text)
+
     def stopSearch(self):
         self._searchThread.terminate()
         self.searchFinished()
