@@ -125,9 +125,9 @@ class XMLElement:
             self.setAttribute('type', valtype.__name__)
             self.setPoint('point', value)
 
-        # record a font
+        # record a QFont
         elif valtype == QFont:
-            self.setAttribute('type', 'font')
+            self.setAttribute('type', 'QFont')
             self.setAttribute('value', value.toString())
 
         # Record a size
@@ -202,7 +202,7 @@ class XMLElement:
         elif valtype == 'QColor':
             value = self.findColor('color')
 
-        # restore a font
+        # restore a QFont
         elif valtype == 'QFont':
             value = QFont()
             value.fromString(self.attribute('value'))
@@ -450,8 +450,6 @@ class XMLElement:
             return QColor()
 
     def findFont(self, name, fail=None):
-        from PyQt4.QtGui import QFont
-
         element = self.findChild(name)
         if element:
             font = QFont()
