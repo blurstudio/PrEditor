@@ -506,7 +506,7 @@ class BlurTreeWidget(LockableTreeWidget):
             )
         self.sortByColumn(
             pref.restoreProperty(self.prefName('SortColumn'), 0),
-            pref.restoreProperty(self.prefName('SortColumnOrder'), Qt.DescendingOrder),
+            pref.restoreProperty(self.prefName('SortColumnOrder'), Qt.AscendingOrder),
         )
 
     def saveColumnOrder(self):
