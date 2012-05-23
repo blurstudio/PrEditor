@@ -9,7 +9,7 @@
 # 	\author		Blur Studio
 # 	\date		11/12/08
 #
-from PyQt4.QtGui import QSyntaxHighlighter
+from PyQt4.QtGui import QSyntaxHighlighter, QMenu, QCursor
 
 # import the enchant library
 enchant = None
@@ -33,6 +33,52 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
         # set the dictionary language
         self.setLanguage(language)
+
+    def currentWord(self):
+        tc = self.parent().textCursor()
+        tc.select(tc.WordUnderCursor)
+        return tc.selectedText()
+
+    def textCursorAt(self, pos):
+        return self.parent().cursorForPosition(self.parent().mapFromGlobal(pos))
+
+    def wordAt(self, pos):
+        tc = self.textCursorAt(pos)
+        tc.select(tc.WordUnderCursor)
+        return tc.selectedText()
+
+    def createMenuAction(self, menu, item, pos):
+        def update():
+            tc = self.textCursorAt(pos)
+            tc.select(tc.WordUnderCursor)
+            tc.insertText(item)
+
+        act = menu.addAction(item)
+        act.triggered.connect(update)
+
+    def spellCheckMenu(self, parent, pos=None):
+        if self.isValid() and self._active:
+            if pos:
+                word = self.wordAt(pos)
+            else:
+                word = self.currentWord()
+            items = self._dictionary.suggest(word)
+            if not self._dictionary.check(word):
+                menu = QMenu(word, parent)
+                if items:
+                    for item in items:
+                        self.createMenuAction(menu, item, pos)
+                else:
+                    menu.addAction('No Suguestions')
+                return menu
+        return None
+
+    def createStandardSpellCheckMenu(self, event):
+        menu = self.parent().createStandardContextMenu(event.globalPos())
+        sm = self.spellCheckMenu(menu, event.globalPos())
+        if sm:
+            menu.insertMenu(menu.actions()[0], sm)
+        return menu
 
     def isActive(self):
         """ checks to see if this highlighter is in console mode """
