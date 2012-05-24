@@ -84,7 +84,7 @@ class BlurTreeWidget(LockableTreeWidget):
     columnShown = pyqtSignal(int)
     columnsAllShown = pyqtSignal()
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         # initialize the super class
         LockableTreeWidget.__init__(self, parent)
 
@@ -689,6 +689,13 @@ class BlurTreeWidget(LockableTreeWidget):
         for column in range(self.columnCount()):
             treeWidth += self.columnWidth(column)
         return treeWidth
+
+    def topLevelItems(self):
+        r"""
+            \remarks	Returns a list of all top level items.
+            \return 	<list>
+        """
+        return [self.topLevelItem(index) for index in range(self.topLevelItemCount())]
 
     def updateColumnVisibility(self):
         if self._columnsMenu:
