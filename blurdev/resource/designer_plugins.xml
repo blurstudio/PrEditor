@@ -12,4 +12,5 @@
 	<plugin module="blurdev.gui.windows.loggerwindow"			class="ConsoleEdit"/>
 	<plugin module="blurdev.gui.widgets.enumwidget"				class="EnumWidget"/>
 	<plugin module="blurdev.gui.widgets.spellchecktextbrowser"	class="SpellCheckTextBrowser"/>
+	<plugin module="blurdev.gui.widgets.clearabledateedit"		class="ClearableDateEdit"/>
 </plugins>
