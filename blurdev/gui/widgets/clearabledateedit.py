@@ -16,6 +16,7 @@ from PyQt4.QtGui import (
     QStyle,
     QStyleOptionSpinBox,
     QIcon,
+    QPixmap,
     QLineEdit,
 )
 
@@ -25,7 +26,19 @@ class ClearableDateEdit(QDateEdit):
         super(ClearableDateEdit, self).__init__(parent)
         self.uiClearBTN = QToolButton(self)
         self.uiClearBTN.setText('No')
-        self.uiClearBTN.setIcon(QIcon(blurdev.resourcePath('img/cancel.png')))
+        icon = QIcon()
+        icon.addPixmap(
+            QPixmap(blurdev.resourcePath('img/calendar_disabled.png')),
+            QIcon.Normal,
+            QIcon.Off,
+        )
+        icon.addPixmap(
+            QPixmap(blurdev.resourcePath('img/calendar_enabled.png')),
+            QIcon.Normal,
+            QIcon.On,
+        )
+        self.uiClearBTN.setIcon(icon)
+
         self.uiClearBTN.resize(20, 20)
         self.uiClearBTN.setCheckable(True)
         self.uiClearBTN.setChecked(True)
