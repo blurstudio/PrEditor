@@ -96,6 +96,7 @@ class IdeEditor(Window):
         self._recentFileMenu = None
         self._loaded = False
         self._initfiles = []
+        self.documentMarkrerDict = {}
 
         from idefilemenu import IdeFileMenu
 
@@ -643,6 +644,8 @@ class IdeEditor(Window):
         editor = DocumentEditor(self, filename, lineno)
         editor.fontsChanged.connect(self.updateDocumentFonts)
 
+        editor.markerLoad(self.documentMarkrerDict.get(filename, []))
+
         # create the window
         window = self.addSubWindow(editor)
         window.show()
@@ -1105,6 +1108,8 @@ class IdeEditor(Window):
 
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
+
+        pref.recordProperty('documentMarkers', self.documentMarkrerDict)
         pref.recordProperty('windowState', self.windowState().__int__())
         pref.recordProperty('windowStateSave', self.saveState())
 
@@ -1242,6 +1247,9 @@ class IdeEditor(Window):
         geom = pref.restoreProperty('geom', QRect())
         if geom and not geom.isNull():
             self.setGeometry(geom)
+
+        # Save document markers
+        self.documentMarkrerDict = pref.restoreProperty('documentMarkers', {})
 
         try:
             self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))

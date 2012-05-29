@@ -162,7 +162,7 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def copyFilenameToClipboard(self):
-        QApplication.clipboard().setText(os.path.abspath(self._filename))
+        QApplication.clipboard().setText(self._filename)
 
     def enableFileWatching(self, state):
         """
@@ -538,6 +538,14 @@ class DocumentEditor(QsciScintilla):
 
         self.setCursorPosition(newline, index)
 
+    def markerLoad(self, input):
+        r"""
+            \remarks	Takes a list of line numbers and adds a marker to each of them in the file.
+        """
+        for line in input:
+            marker = self.markerDefine(self.Circle)
+            self.markerAdd(line, marker)
+
     def markerToggle(self):
         line, index = self.getCursorPosition()
         markers = self.markersAtLine(line)
@@ -546,6 +554,16 @@ class DocumentEditor(QsciScintilla):
             self.markerAdd(line, marker)
         else:
             self.markerDelete(line)
+        # update the dictionary that stores the document markers when the ide is closed.
+        window = self.window()
+        if isinstance(window, IdeEditor):
+            if self._filename in window.documentMarkrerDict:
+                if line in window.documentMarkrerDict[self._filename]:
+                    window.documentMarkrerDict[self._filename].remove(line)
+                else:
+                    window.documentMarkrerDict[self._filename].append(line)
+            else:
+                window.documentMarkrerDict[self._filename] = [line]
 
     def marginsFont(self):
         return self._marginsFont
@@ -823,7 +841,7 @@ class DocumentEditor(QsciScintilla):
             self.setLanguage(lang.byExtension(extension))
 
         # update the filename information
-        self._filename = filename
+        self._filename = os.path.abspath(filename)
         self.setModified(False)
 
         try:
