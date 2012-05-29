@@ -875,7 +875,7 @@ class IdeEditor(Window):
         osystem.console(filename)
 
     def load(self, filename, lineno=0, useRegistry=True):
-        filename = str(filename)
+        filename = os.path.abspath(str(filename))
 
         if not QFileInfo(filename).isFile():
             return False
