@@ -264,7 +264,7 @@ class ToolsIndex(QObject):
                 tools = root.findChild('tools')
                 if tools:
                     for xml in tools.children():
-                        Tool.fromIndex(self, xml)
+                        tool.Tool.fromIndex(self, xml)
 
     def loadFavorites(self):
         if not self._favoritesLoaded:
