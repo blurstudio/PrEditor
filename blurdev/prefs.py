@@ -8,10 +8,16 @@
 # 	\date		04/09/10
 #
 
+import getpass
+import os
+
+import blurdev
 from blurdev.XML import XMLDocument
 from blurdev import osystem
 
-# -------------------------------------------------------------------------------------------------------------
+
+# cache of all the preferences
+_cache = {}
 
 
 class Preference(XMLDocument):
@@ -32,7 +38,6 @@ class Preference(XMLDocument):
         """ loads the preferences from the file, using the current stored filename """
         if not filename:
             filename = self.filename()
-
         return XMLDocument.load(self, filename)
 
     def name(self):
@@ -42,32 +47,24 @@ class Preference(XMLDocument):
     def filename(self):
         """ return this documents filename, deriving the default filename from its name and standard preference location  """
         if not self._filename:
-            # import blurdev, os.path
             key = self.name().lower().replace(' ', '-')
             self._filename = (
                 self.path(coreName=self._coreName, shared=self._shared)
                 + '%s.pref' % key
             )
-
         return self._filename
 
-    def path(self, coreName='', shared=False):
+    def path(self, coreName=''):
         """ return the path to the application's prefrences folder """
-        import blurdev, os
-
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
-
         if shared:
-            import getpass
-
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
                 'username': getpass.getuser()
             }
         else:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
-
         return os.path.join(path, 'app_%s\\' % coreName)
 
     def recordProperty(self, key, value):
@@ -80,7 +77,6 @@ class Preference(XMLDocument):
             # ignore built-ints
             if key.startswith('__'):
                 continue
-
             self.recordProperty(key, value)
 
     def restoreModule(self, module):
@@ -89,7 +85,6 @@ class Preference(XMLDocument):
             # ignore built-ins
             if key.startswith('__'):
                 continue
-
             module.__dict__[key] = self.restoreProperty(key, value)
 
     def restoreProperty(self, key, default=None):
@@ -100,17 +95,10 @@ class Preference(XMLDocument):
         """ save the preference file """
         if not filename:
             filename = self.filename()
-
-        import os
-
         path = os.path.split(filename)[0]
-
         # try to create the path
         if not os.path.exists(path):
-            import os
-
             os.makedirs(path)
-
         XMLDocument.save(self, filename)
 
     def setCoreName(self, coreName):
@@ -135,12 +123,6 @@ class Preference(XMLDocument):
         return float(self.root().attribute('version', 1.0))
 
 
-# -------------------------------------------------------------------------------------------------------------
-
-# cache of all the preferences
-_cache = {}
-
-
 def clearCache():
     _cache.clear()
 
@@ -151,25 +133,19 @@ def find(name, reload=False, coreName='', shared=False):
                     If a pref already exists within the cache, then the cached pref is returned,
                     otherwise, it is loaded from the blurdev preference location
 
-        \param		name		<str>	the name of the preference to retrieve
-        \param		reload		<bool>	reloads the cached item
+        \param		name	<str>	the name of the preference to retrieve
+        \param		reload	<bool>	reloads the cached item
         \param		coreName	<str>	specify a specific core name to save with.
         \param		shared		<bool>	save to the network path not localy. Defaults to False
 
         \return		<blurdev.prefs.Preference>
     """
-    import blurdev
-
     key = str(name).replace(' ', '-').lower()
-
     if reload or not key in _cache:
-        import os.path
-
         # create a new preference record
         pref = Preference()
         pref.setShared(shared)
         pref.setCoreName(coreName)
-
         # look for a default preference file
         filename = pref.path(coreName, shared) + '%s.pref' % key
         success = False
@@ -181,8 +157,6 @@ def find(name, reload=False, coreName='', shared=False):
             root.setAttribute('name', name)
             root.setAttribute('version', 1.0)
             root.setAttribute('ui', '')
-
         pref.setName(key)
         _cache[key] = pref
-
     return _cache[key]

@@ -8,6 +8,14 @@
 # 	\date		03/21/11
 #
 
+import random
+import os
+import shutil
+
+from PyQt4.QtCore import QProcess
+
+from blurdev import debug
+
 
 def packageFiles(files, outputfile):
     """
@@ -18,25 +26,17 @@ def packageFiles(files, outputfile):
     """
     if not files:
         return False
-
-    import random, os, shutil
-
     temppath = 'c:/temp/archive%i' % int(random.random() * 1000000)
-
     # create the temp path
     if not os.path.exists(temppath):
         os.makedirs(temppath)
-
     # copy the files to the temp path
     for filename in files:
         shutil.copyfile(filename, '%s/%s' % (temppath, os.path.basename(filename)))
-
     # call the package path function
     success = packagePath(temppath, outputfile)
-
     # remove the temp path
     shutil.rmtree(temppath)
-
     return success
 
 
@@ -47,26 +47,19 @@ def packagePath(path, outputfile):
         \param		outputfile	<str>
         \return		<bool> success
     """
-    from blurdev import debug
-    import os
-    from PyQt4.QtCore import QProcess
-
     zipexe = os.get('BDEV_APP_ZIP')
     if not zipexe:
         return False
-
     # create the zip command
     zipcmd = r'%s -j %s %s\*' % (
         os.path.normpath(zipexe),
         os.path.normpath(outputfile),
         os.path.normpath(path),
     )
-
     # determine based on debugging level if we should let this process with or without a try/catch
     if debug.isDebugLevel(debug.DebugLevel.Mid):
         debug.debugObject(packagePath, 'Running zip command: %s' % (zipcmd))
         failure = QProcess.execute(zipcmd)
-
     else:
         try:
             failure = QProcess.execute(zipcmd)
@@ -77,5 +70,4 @@ def packagePath(path, outputfile):
                 % (len(files), path, _ZIP_EXE),
             )
             failure = 1
-
     return not failure

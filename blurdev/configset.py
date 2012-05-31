@@ -8,13 +8,18 @@
 # 	\date		04/20/10
 #
 
+import os
+import glob
+import sys
+
 from PyQt4.QtCore import QObject
+
+from blurdev.gui.dialogs.configdialog import ConfigDialog
 
 
 class ConfigSetItem(QObject):
     def __init__(self, configSet):
         QObject.__init__(self, configSet)
-
         self._configClass = None
         self._groupName = 'Default'
         self._icon = ''
@@ -38,23 +43,17 @@ class ConfigSetItem(QObject):
         self._icon = icon
 
 
-# ---------------------------------------------------------------
-
-
 class ConfigSet(QObject):
     def __init__(self, parent=None):
         QObject.__init__(self, parent)
 
     def configGroups(self):
         output = []
-
         for child in self.findChildren(ConfigSetItem):
             grpName = str(child.groupName())
             if not grpName in output:
                 output.append(grpName)
-
         output.sort()
-
         return output
 
     def configGroupItems(self, groupName):
@@ -67,7 +66,6 @@ class ConfigSet(QObject):
         return output
 
     def edit(self, parent=None):
-        from blurdev.gui.dialogs.configdialog import ConfigDialog
 
         return ConfigDialog.edit(self, parent)
 
@@ -79,8 +77,6 @@ class ConfigSet(QObject):
 
     def loadFrom(self, filename, package):
         # load the config plugins
-        import os.path, glob, sys
-
         filenames = glob.glob(os.path.split(filename)[0] + '/*.py')
         for f in filenames:
             modname = os.path.basename(f).split('.')[0]
@@ -91,7 +87,6 @@ class ConfigSet(QObject):
                 except:
                     print 'could not import %s' % configmodule
                     continue
-
                 mod = sys.modules.get(configmodule)
                 if mod:
                     mod.registerConfig(self)
@@ -102,8 +97,6 @@ class ConfigSet(QObject):
         item.setGroupName(group)
         item.setConfigClass(configClass)
         item.setIcon(icon)
-
         # load the last settings
         configClass.reset()
-
         return item

@@ -12,7 +12,8 @@ import re
 from sys import maxint
 
 
-class enum:
+class enum(object):
+
     INDICES = xrange(maxint)  # indices constant to use for looping
 
     def __call__(self, key):
@@ -30,6 +31,7 @@ class enum:
             raise AttributeError, key
 
     def __init__(self, *args, **kwds):
+        super(enum, self).__init__()
         self._keys = list(args) + kwds.keys()
         self._compound = kwds.keys()
         self._descr = {}
@@ -37,7 +39,6 @@ class enum:
         for i in range(len(args)):
             self.__dict__[args[i]] = key
             key *= 2
-
         for kwd, value in kwds.items():
             self.__dict__[kwd] = value
 
@@ -47,20 +48,17 @@ class enum:
     def description(self, value):
         return self._descr.get(value, '')
 
-    def matches(self, a, b):
+    @classmethod
+    def matches(cls, a, b):
         return a & b != 0
 
     def hasKey(self, key):
         return key in self._keys
 
     def labels(self):
-        import re
-
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 
     def labelByValue(self, value):
-        import re
-
         return ' '.join(re.findall('[A-Z]+[^A-Z]*', self.keyByValue(value)))
 
     def isValid(self, value):
@@ -115,21 +113,16 @@ class enum:
         for key in self._keys:
             if not key in self._compound and value & self.value(key):
                 parts.append(key)
-
         if parts:
             return ' '.join(parts)
         return default
 
     def fromString(self, labels):
         parts = str(labels).split(' ')
-
         value = 0
         for part in parts:
             value |= self.value(part)
-
         return value
 
     def setDescription(self, value, descr):
         self._descr[value] = descr
-
-    matches = classmethod(matches)
