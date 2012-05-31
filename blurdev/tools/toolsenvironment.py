@@ -8,7 +8,17 @@
 # 	\date		06/11/10
 #
 
+import sys
+import os
+
 from PyQt4.QtCore import QObject, pyqtSignal
+
+from blurdev import debug
+import blurdev
+from toolsindex import ToolsIndex
+from blurdev import settings
+from blurdev.XML import XMLDocument
+
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
@@ -19,6 +29,15 @@ class ToolsEnvironment(QObject):
 
     def __init__(self):
         QObject.__init__(self)
+        self._path = ''
+        self._development = False
+        self._default = False
+        self._active = False
+        self._offline = False
+        self._custom = False
+        self._index = None
+        self._sourcefile = ''
+        self._emailOnError = []
 
         self._path = ''
         self._development = False
@@ -37,30 +56,19 @@ class ToolsEnvironment(QObject):
         """
         if self.isEmpty():
             return False
-
         path = self.normalizePath(self.path())
-
-        import sys
-
         oldpaths = sys.path
         newpaths = [
             spath for spath in sys.path if not path in spath.lower() and spath != '.'
         ]
         sys.path = newpaths
-
-        from blurdev import debug
-
         debug.debugObject(
             self.clearPathSymbols,
             '%s were removed from sys.path'
             % list(set(oldpaths).difference(set(newpaths))),
             debug.DebugLevel.Mid,
         )
-
         newmodules = {}
-
-        import blurdev
-
         symbols = blurdev.core.protectedModules()
         for key, value in sys.modules.items():
             if not key in symbols:
@@ -77,7 +85,6 @@ class ToolsEnvironment(QObject):
                         debug.DebugLevel.Mid,
                     )
                     sys.modules.pop(key)
-
         return True
 
     def emailOnError(self):
@@ -89,10 +96,7 @@ class ToolsEnvironment(QObject):
             \return		<blurdev.tools.index.Index>
         """
         if not self._index:
-            from toolsindex import ToolsIndex
-
             self._index = ToolsIndex(self)
-
         return self._index
 
     def isActive(self):
@@ -126,14 +130,12 @@ class ToolsEnvironment(QObject):
         envxml.setAttribute('default', self._default)
         envxml.setAttribute('development', self._development)
         envxml.setAttribute('offline', self._offline)
-        if self._legacyName != self.objectName():
-            envxml.setAttribute('legacyName', self._legacyName)
-
         if self._custom:
             envxml.setAttribute('custom', True)
-
         if self._emailOnError:
             envxml.setAttribute(':'.join(self._emailOnError))
+        if self._legacyName != self.objectName():
+            envxml.setAttribute('legacyName', self._legacyName)
 
     def relativePath(self, path):
         """
@@ -141,14 +143,10 @@ class ToolsEnvironment(QObject):
             \return		<str>
         """
         if not self.isEmpty():
-            import os.path
-
             return os.path.abspath(os.path.join(str(self.path()), str(path)))
         return ''
 
     def resetPaths(self):
-        import blurdev
-
         blurdev.core.aboutToClearPaths.emit()
         self.clearPathSymbols()
         self.registerPath(self.path())
@@ -164,17 +162,12 @@ class ToolsEnvironment(QObject):
             old = self.activeEnvironment()
             old.clearPathSymbols()
             old._active = False
-
             # register this environment as active and update the path symbols
             self._active = True
             self.registerPath(self.path())
-
             # emit the environment activateion change signal
             if not silent:
-                import blurdev
-
                 blurdev.core.emitEnvironmentActivated()
-
             return True
         return False
 
@@ -238,7 +231,6 @@ class ToolsEnvironment(QObject):
         legacyName=None,
     ):
         output = ToolsEnvironment()
-
         if not environmentFile:
             environmentFile = USER_ENVIRONMENT_FILE
 
@@ -314,8 +306,6 @@ class ToolsEnvironment(QObject):
             \param		path		<str> || <QString>
             \return		<str>
         """
-        from blurdev import settings
-
         return settings.normalizePath(path)
 
     @staticmethod
@@ -326,12 +316,9 @@ class ToolsEnvironment(QObject):
             \param		included		<bool> 	marks whether or not this is an included file
             \return		<bool> success
         """
-        from blurdev.XML import XMLDocument
-
         doc = XMLDocument()
         if doc.load(filename):
             root = doc.root()
-
             for child in root.children():
                 # include another config file
                 if child.nodeName == 'include':
@@ -342,11 +329,9 @@ class ToolsEnvironment(QObject):
                     env = ToolsEnvironment.fromXml(child)
                     env.setSourceFile(filename)
                     ToolsEnvironment.environments.append(env)
-
             # initialize the default environment
             if not included:
                 ToolsEnvironment.defaultEnvironment().setActive(silent=True)
-
             return True
         return False
 
@@ -354,23 +339,15 @@ class ToolsEnvironment(QObject):
     def recordConfig(filename=''):
         if not filename:
             filename = USER_ENVIRONMENT_FILE
-
         if not filename:
             return False
-
-        from blurdev.XML import XMLDocument
-
         doc = XMLDocument()
         root = doc.addNode('tools_environments')
         root.setAttribute('version', 1.0)
-
-        import os.path
-
         filename = os.path.normcase(filename)
         for env in ToolsEnvironment.environments:
             if os.path.normcase(env.sourceFile()) == filename:
                 env.recordXml(root)
-
         return doc.save(filename)
 
     @staticmethod
@@ -381,20 +358,14 @@ class ToolsEnvironment(QObject):
             \param		path		<str>
             \return		<bool> success
         """
-        from blurdev import settings
-
         settings.registerPath(path)
 
     @staticmethod
     def registerScriptPath(filename):
-        import os.path
-
         # push the local path to the front of the list
         path = os.path.split(filename)[0]
-
         # if it is a package, then register the parent path, otherwise register the folder itself
         if os.path.exists(path + '/__init__.py'):
             path = os.path.abspath(path + '/..')
-
         # if the path does not exist, then register it
         ToolsEnvironment.registerPath(path)

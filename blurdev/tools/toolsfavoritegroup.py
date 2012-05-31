@@ -10,6 +10,8 @@
 
 from PyQt4.QtCore import QObject
 
+from toolsindex import ToolsIndex
+
 
 class ToolsFavoriteGroup(QObject):
     def __init__(self, parent, name):
@@ -34,8 +36,6 @@ class ToolsFavoriteGroup(QObject):
         tool.setFavoriteGroup(self)
 
     def index(self):
-        from toolsindex import ToolsIndex
-
         output = self.parent()
         while output and not isinstance(output, ToolsIndex):
             output = output.parent()
@@ -49,7 +49,6 @@ class ToolsFavoriteGroup(QObject):
                 tool.setFavoriteGroup(None)
                 if unlinkTools:
                     tool.setFavorite(False)
-
         # remove the group
         self.setParent(None)
         self.deleteLater()
@@ -57,11 +56,9 @@ class ToolsFavoriteGroup(QObject):
     def toXml(self, parent):
         xml = parent.addNode('group')
         xml.setAttribute('name', self.objectName())
-
         # record the child groups
         for grp in self.childGroups():
             grp.toXml(xml)
-
         # record the tools
         for tool in self.linkedTools():
             child = xml.addNode('tool')
@@ -73,12 +70,10 @@ class ToolsFavoriteGroup(QObject):
     @staticmethod
     def fromXml(index, parent, xml):
         output = ToolsFavoriteGroup(parent, xml.attribute('name'))
-
         # load the children
         for child in xml.children():
             if child.nodeName == 'group':
                 ToolsFavoriteGroup.fromXml(index, output, child)
             else:
                 output.linkTool(index.findTool(child.attribute('id')))
-
         return output

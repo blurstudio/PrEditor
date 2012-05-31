@@ -10,6 +10,9 @@
 
 from PyQt4.QtCore import QObject
 
+from toolsindex import ToolsIndex
+from tool import Tool
+
 
 class ToolsCategory(QObject):
     def __init__(self, parent):
@@ -34,8 +37,6 @@ class ToolsCategory(QObject):
             \remarks	returns the index from which this category is instantiated
             \return		<blurdev.tools.ToolIndex>
         """
-        from toolsindex import ToolsIndex
-
         output = self.parent()
         while output and not isinstance(output, ToolsIndex):
             output = output.parent()
@@ -44,16 +45,15 @@ class ToolsCategory(QObject):
     def subcategories(self):
         """
             \remarks	returns a list of the sub-categories for this category
-            \return		<list> [ <ToolsCategory>, .. ]
+            \return		<list> [<ToolsCategory>, ..]
         """
         return [child for child in self.children() if isinstance(child, ToolsCategory)]
 
     def tools(self, toolType=None):
         """
             \remarks	returns a list of the tools for this category
-            \return		<list> [ <blurdev.tools.Tool>, .. ]
+            \return		<list> [<blurdev.tools.Tool>, ..]
         """
-        from tool import Tool
 
         return [child for child in self.children() if isinstance(child, Tool)]
 
@@ -71,15 +71,11 @@ class ToolsCategory(QObject):
     @staticmethod
     def fromIndex(index, parent, xml):
         output = ToolsCategory(parent)
-
         # load the information
         output.setObjectName(xml.attribute('name'))
-
         # cache the category
         index.cacheCategory(output)
-
         # load the child categories
         for child in xml.children():
             ToolsCategory.fromIndex(index, output, child)
-
         return output
