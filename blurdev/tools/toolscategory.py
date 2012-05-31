@@ -10,8 +10,9 @@
 
 from PyQt4.QtCore import QObject
 
-from toolsindex import ToolsIndex
-from tool import Tool
+import toolsindex
+import tool
+import toolscategory
 
 
 class ToolsCategory(QObject):
@@ -38,7 +39,7 @@ class ToolsCategory(QObject):
             \return		<blurdev.tools.ToolIndex>
         """
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, toolsindex.ToolsIndex):
             output = output.parent()
         return output
 
@@ -55,7 +56,7 @@ class ToolsCategory(QObject):
             \return		<list> [<blurdev.tools.Tool>, ..]
         """
 
-        return [child for child in self.children() if isinstance(child, Tool)]
+        return [child for child in self.children() if isinstance(child, tool.Tool)]
 
     def toolType(self):
         """

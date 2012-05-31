@@ -10,7 +10,7 @@
 
 from PyQt4.QtCore import QObject
 
-from toolsindex import ToolsIndex
+import toolsindex
 
 
 class ToolsFavoriteGroup(QObject):
@@ -37,7 +37,7 @@ class ToolsFavoriteGroup(QObject):
 
     def index(self):
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, toolsindex.ToolsIndex):
             output = output.parent()
         return output
 

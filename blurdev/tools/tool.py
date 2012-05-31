@@ -15,8 +15,9 @@ from PyQt4.QtCore import QObject, Qt, QCoreApplication
 import blurdev
 from blurdev import debug
 from blurdev.enum import enum
-from toolheader import ToolHeader
-from toolsindex import ToolsIndex
+
+import toolheader
+import toolsindex
 
 
 # 					1			2			4			8		  16			32				64					128				256
@@ -75,7 +76,7 @@ class Tool(QObject):
     def header(self):
         if not self._header:
 
-            self._header = ToolHeader(self)
+            self._header = toolheader.ToolHeader(self)
         return self._header
 
     def icon(self):
@@ -100,7 +101,7 @@ class Tool(QObject):
             \return		<blurdev.tools.ToolIndex>
         """
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, toolsindex.ToolsIndex):
             output = output.parent()
         return output
 

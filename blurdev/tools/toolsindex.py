@@ -15,12 +15,12 @@ import os
 from PyQt4.QtCore import QObject
 
 import blurdev
-from toolscategory import ToolsCategory
-from tool import Tool
-from toolsfavoritegroup import ToolsFavoriteGroup
-from toolscategory import ToolsCategory
 from blurdev.XML import XMLDocument
 from blurdev import prefs
+
+import toolscategory
+import tool
+import toolsfavoritegroup
 
 
 class ToolsIndex(QObject):
@@ -55,15 +55,15 @@ class ToolsIndex(QObject):
         self._categoryCache.clear()
         self._toolCache.clear()
         # remove all the children
-        for child in self.findChildren(ToolsFavoriteGroup):
+        for child in self.findChildren(toolsfavoritegroup.ToolsFavoriteGroup):
             child.setParent(None)
             child.deleteLater()
 
-        for child in self.findChildren(Tool):
+        for child in self.findChildren(tool.Tool):
             child.setParent(None)
             child.deleteLater()
 
-        for child in self.findChildren(ToolsCategory):
+        for child in self.findChildren(toolscategory.ToolsCategory):
             child.setParent(None)
             child.deleteLater()
 
@@ -222,7 +222,7 @@ class ToolsIndex(QObject):
         self.loadFavorites()
         return [
             child
-            for child in self.findChildren(ToolsFavoriteGroup)
+            for child in self.findChildren(toolsfavoritegroup.ToolsFavoriteGroup)
             if child.parent() == self
         ]
 
@@ -259,7 +259,7 @@ class ToolsIndex(QObject):
                 categories = root.findChild('categories')
                 if categories:
                     for xml in categories.children():
-                        ToolsCategory.fromIndex(self, self, xml)
+                        toolscategory.ToolsCategory.fromIndex(self, self, xml)
                 # load tools
                 tools = root.findChild('tools')
                 if tools:
@@ -276,7 +276,7 @@ class ToolsIndex(QObject):
             children = pref.root().children()
             for child in children:
                 if child.nodeName == 'group':
-                    ToolsFavoriteGroup.fromXml(self, self, child)
+                    toolsfavoritegroup.ToolsFavoriteGroup.fromXml(self, self, child)
                 else:
                     self.findTool(child.attribute('id')).setFavorite(True)
 
@@ -294,7 +294,7 @@ class ToolsIndex(QObject):
             \return		<blurdev.tools.Tool>
         """
         self.load()
-        return self._toolCache.get(str(name), Tool())
+        return self._toolCache.get(str(name), tool.Tool())
 
     def findToolsByCategory(self, name):
         """

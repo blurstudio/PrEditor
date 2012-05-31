@@ -15,9 +15,10 @@ from PyQt4.QtCore import QObject, pyqtSignal
 
 from blurdev import debug
 import blurdev
-from toolsindex import ToolsIndex
 from blurdev import settings
 from blurdev.XML import XMLDocument
+
+import toolsindex
 
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
@@ -96,7 +97,7 @@ class ToolsEnvironment(QObject):
             \return		<blurdev.tools.index.Index>
         """
         if not self._index:
-            self._index = ToolsIndex(self)
+            self._index = toolsindex.ToolsIndex(self)
         return self._index
 
     def isActive(self):
