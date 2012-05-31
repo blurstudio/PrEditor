@@ -22,6 +22,11 @@ class Preference(XMLDocument):
         XMLDocument.__init__(self)
         self._filename = ''
         self._name = ''
+        self._shared = False
+        self._coreName = ''
+
+    def coreName(self):
+        return self._coreName
 
     def load(self, filename=''):
         """ loads the preferences from the file, using the current stored filename """
@@ -39,11 +44,14 @@ class Preference(XMLDocument):
         if not self._filename:
             # import blurdev, os.path
             key = self.name().lower().replace(' ', '-')
-            self._filename = self.path() + '%s.pref' % key
+            self._filename = (
+                self.path(coreName=self._coreName, shared=self._shared)
+                + '%s.pref' % key
+            )
 
         return self._filename
 
-    def path(self, coreName=''):
+    def path(self, coreName='', shared=False):
         """ return the path to the application's prefrences folder """
         import blurdev, os
 
@@ -51,9 +59,16 @@ class Preference(XMLDocument):
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
 
-        return os.path.join(
-            osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
-        )
+        if shared:
+            import getpass
+
+            path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
+                'username': getpass.getuser()
+            }
+        else:
+            path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
+
+        return os.path.join(path, 'app_%s\\' % coreName)
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """
@@ -98,13 +113,22 @@ class Preference(XMLDocument):
 
         XMLDocument.save(self, filename)
 
+    def setCoreName(self, coreName):
+        self._coreName = coreName
+
     def setName(self, name):
         """ sets the name of this Preference """
         self._name = name
 
+    def setShared(self, shared):
+        self._shared = shared
+
     def setVersion(self, version):
         """ sets the version number of this preferene """
         self.root().setAttribute('version', version)
+
+    def shared(self, shared):
+        return self._shared
 
     def version(self):
         """ returns the current version of this preference """
@@ -121,14 +145,16 @@ def clearCache():
     _cache.clear()
 
 
-def find(name, reload=False, coreName=''):
+def find(name, reload=False, coreName='', shared=False):
     """
         \remarks	Finds a preference for the with the inputed name
                     If a pref already exists within the cache, then the cached pref is returned,
                     otherwise, it is loaded from the blurdev preference location
 
-        \param		name	<str>	the name of the preference to retrieve
-        \param		reload	<bool>	reloads the cached item
+        \param		name		<str>	the name of the preference to retrieve
+        \param		reload		<bool>	reloads the cached item
+        \param		coreName	<str>	specify a specific core name to save with.
+        \param		shared		<bool>	save to the network path not localy. Defaults to False
 
         \return		<blurdev.prefs.Preference>
     """
@@ -141,9 +167,11 @@ def find(name, reload=False, coreName=''):
 
         # create a new preference record
         pref = Preference()
+        pref.setShared(shared)
+        pref.setCoreName(coreName)
 
         # look for a default preference file
-        filename = pref.path(coreName) + '%s.pref' % key
+        filename = pref.path(coreName, shared) + '%s.pref' % key
         success = False
         if os.path.exists(filename):
             success = pref.load(filename)
