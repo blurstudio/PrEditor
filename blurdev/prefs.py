@@ -8,7 +8,6 @@
 # 	\date		04/09/10
 #
 
-import getpass
 import os
 
 import blurdev
@@ -61,7 +60,7 @@ class Preference(XMLDocument):
             coreName = blurdev.core.objectName()
         if shared:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
-                'username': getpass.getuser()
+                'username': osystem.username()
             }
         else:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
