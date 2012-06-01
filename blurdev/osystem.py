@@ -399,3 +399,20 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
 
 def tempfile(filepath):
     return os.path.join(os.environ.get('BDEV_PATH_TEMP', ''), filepath)
+
+
+def username():
+    r"""
+        \remarks	This function checks the environment variables LOGNAME, USER, LNAME and USERNAME, in order, 
+                    and returns the value of the first one which is set to a non-empty string. If none are set, 
+                    the login name from the password database is returned on systems which support the pwd 
+                    module, otherwise, returns a empty string.
+        \return		<str>
+    """
+    import getpass
+
+    try:
+        return getpass.getuser()
+    except getpass.GetPassWarning:
+        pass
+    return ''
