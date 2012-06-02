@@ -117,7 +117,9 @@ class IdeWizardPreviewPage(QWizardPage):
     def formatFile(self, input, output):
         from blurdev import template
 
-        return template.formatFile(input, output, self._options)
+        template.formatFile(input, output, self._options)
+        # Call formatFile twice so that it can properly format the aditional text added in self._options.
+        return template.formatFile(output, output, self._options)
 
     def formatText(self, text):
         from blurdev import template
