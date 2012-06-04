@@ -8,17 +8,9 @@
 # 	\date		06/11/10
 #
 
-import os
+from PyQt4.QtCore import QObject
 
-from PyQt4.QtCore import QObject, Qt, QCoreApplication
-
-import blurdev
-from blurdev import debug
 from blurdev.enum import enum
-
-import toolheader
-import toolsindex
-
 
 # 					1			2			4			8		  16			32				64					128				256
 ToolType = enum(
@@ -38,6 +30,7 @@ ToolType = enum(
 class Tool(QObject):
     def __init__(self):
         QObject.__init__(self)
+
         self._displayName = ''
         self._path = ''
         self._sourcefile = ''
@@ -60,23 +53,31 @@ class Tool(QObject):
             \remarks	runs this tool with the inputed macro command
             \param		macro	<str>
         """
-        if QCoreApplication.instance().keyboardModifiers() == Qt.ControlModifier or debug.isDebugLevel(
+        from PyQt4.QtCore import Qt
+        from PyQt4.QtGui import QApplication
+        import blurdev
+
+        from blurdev import debug
+
+        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier or debug.isDebugLevel(
             debug.DebugLevel.Mid
         ):
             blurdev.activeEnvironment().resetPaths()
+
         # run standalone
         if self.toolType() & ToolType.LegacyExternal:
             blurdev.core.runStandalone(self.sourcefile())
         else:
-            blurdev.core.runScript(self.sourcefile())
+            blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
     def favoriteGroup(self):
         return self._favoriteGroup
 
     def header(self):
         if not self._header:
+            from toolheader import ToolHeader
 
-            self._header = toolheader.ToolHeader(self)
+            self._header = ToolHeader(self)
         return self._header
 
     def icon(self):
@@ -100,8 +101,10 @@ class Tool(QObject):
             \remarks	returns the index from which this category is instantiated
             \return		<blurdev.tools.ToolIndex>
         """
+        from toolsindex import ToolsIndex
+
         output = self.parent()
-        while output and not isinstance(output, toolsindex.ToolsIndex):
+        while output and not isinstance(output, ToolsIndex):
             output = output.parent()
         return output
 
@@ -112,6 +115,8 @@ class Tool(QObject):
         return self.relativePath('%s.blurproj' % self.displayName())
 
     def relativePath(self, relpath):
+        import os.path
+
         output = os.path.join(self.path(), relpath)
         return output
 
@@ -177,8 +182,11 @@ class Tool(QObject):
         """
         output = Tool()
         output.setObjectName(xml.attribute('name'))
+
         # load modern tools
         loc = xml.attribute('loc')
+        import os.path
+
         if loc:
             output.setPath(os.path.split(index.environment().relativePath(loc))[0])
 
@@ -208,6 +216,8 @@ class Tool(QObject):
             category.addTool(output)
         else:
             output.setParent(index)
+
         # cache the tool in the index
         index.cacheTool(output)
+
         return output

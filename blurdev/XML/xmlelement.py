@@ -8,7 +8,6 @@
 # 	\date		04/09/10
 #
 
-import re
 import xml.dom.minidom
 
 from PyQt4.QtCore import (
@@ -25,7 +24,7 @@ from PyQt4.QtCore import (
 from PyQt4.QtGui import QColor, QFont
 
 
-class XMLElement(object):
+class XMLElement:
     """ Ease of use wrapper class for <xml.dom.minidom.Element> """
 
     def __eq__(self, other):
@@ -41,8 +40,7 @@ class XMLElement(object):
 
     def __init__(self, object, filename=''):
         """ initialize the class with an <xml.dom.minidom.Element> instance """
-        super(XMLElement, self).__init__()
-        if object is None:
+        if object == None:
             object = xml.dom.minidom.Element(None)
         self._object = object
         self.__file__ = filename
@@ -72,7 +70,9 @@ class XMLElement(object):
             y = method(child.attribute('y', 0))
             w = method(child.attribute('width', 0))
             h = method(child.attribute('height', 0))
+
             rect = cls(x, y, w, h)
+
         return rect
 
     def clear(self):
@@ -85,11 +85,13 @@ class XMLElement(object):
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
             value = unicode(value).encode('utf-8')
+
         valtype = type(value)
 
         # Record a list of properties
         if valtype in (list, tuple):
             self.setAttribute('type', 'list')
+
             for val in value:
                 entry = self.addNode('entry')
                 entry.recordValue(val)
@@ -97,6 +99,7 @@ class XMLElement(object):
         # Record a dictionary of properties
         elif valtype == dict:
             self.setAttribute('type', 'dict')
+
             for key, val in value.items():
                 entry = self.addNode('entry')
                 entry.setAttribute('key', key)
@@ -255,6 +258,7 @@ class XMLElement(object):
     def addChild(self, child, clone=True, deep=True):
         if isinstance(child, XMLElement):
             child = child._object
+
         if clone:
             self._object.appendChild(child.cloneNode(deep))
         else:
@@ -392,6 +396,8 @@ class XMLElement(object):
         return None
 
     def findChildById(self, key):
+        import re
+
         key = '_'.join(re.findall('[a-zA-Z0-9]*', key)).lower()
         for child in self.children():
             if (
@@ -428,6 +434,8 @@ class XMLElement(object):
         return []
 
     def findColor(self, name, fail=None):
+        from PyQt4.QtGui import QColor
+
         element = self.findChild(name)
         if element:
             return QColor(
@@ -459,14 +467,20 @@ class XMLElement(object):
         return fail
 
     def findRect(self, name):
+        from PyQt4.QtCore import QRect
+
         return self._findRect(name, QRect, int)
 
     def findRectF(self, name):
+        from PyQt4.QtCore import QRectF
+
         return self._findRect(name, QRectF, float)
 
     def getId(self):
         out = self.attribute('id')
         if not out:
+            import re
+
             out = '_'.join(re.findall('[a-zA-Z0-9]*', self.attribute('name'))).lower()
         return out
 
@@ -482,6 +496,7 @@ class XMLElement(object):
         element = self.findChild(name)
         if element:
             element.remove()
+
         element = self.addNode(name)
         element.recordValue(value)
 
@@ -590,6 +605,7 @@ class XMLElement(object):
                 name = temp.nodeName
             out.insert(0, name)
             temp = temp.parent()
+
         return '::'.join(out)
 
     def value(self):

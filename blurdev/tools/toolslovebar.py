@@ -9,24 +9,31 @@
 #
 
 
+# ------------------------------------------------------------------------------------------------------------------------
+
+
 import os
 import webbrowser
+
+import blurdev
+from blurdev.gui import Dialog
 
 from PyQt4.QtGui import QIcon, QAction, QToolBar, QMenu, QCursor, QHBoxLayout
 from PyQt4.QtCore import QSize, Qt, QRect
 
-import blurdev
-from blurdev.gui import Dialog
-from blurdev import prefs
+
+# ------------------------------------------------------------------------------------------------------------------------
 
 
 class LovebarAction(QAction):
     def __init__(self, parent, tool):
         QAction.__init__(self, parent)
+
         self._tool = tool
         self._toolWikiName = tool.displayName().replace(' ', '_')
         self._toolDsiplayName = tool.displayName()
         self._toolID = tool.objectName()
+
         iconPath = tool.icon()
         if not os.path.exists(iconPath):
             iconPath = blurdev.resourcePath('img/blank.png')
@@ -41,7 +48,6 @@ class LovebarAction(QAction):
         self.parent().removeAction(self)
 
     def documentation(self):
-        # TODO: (brendan 11/15/11) blurdev should not use trax.api
         import trax.api
 
         webbrowser.open(
@@ -57,12 +63,14 @@ class LovebarAction(QAction):
 class ToolsLoveBar(QToolBar):
     def __init__(self, parent, title):
         QToolBar.__init__(self, parent)
+
         self._actions = []
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
         self.setObjectName(title)
         self.setToolTip('Drag & Drop Scripts and Tools')
         self.setIconSize(QSize(22, 22))
+
         # Create connections.
         self.actionTriggered.connect(self.runAction)
         self.populate()
@@ -107,6 +115,7 @@ class ToolsLoveBar(QToolBar):
     def dragEnterEvent(self, event):
         """ Filter drag events for specific items, treegrunt tools or script files. """
         data = event.mimeData()
+
         # Accept tool item drag/drop events.
         if str(data.text()).startswith('Tool'):
             event.acceptProposedAction()
@@ -115,6 +124,7 @@ class ToolsLoveBar(QToolBar):
         """ Handle the drop event for this item. """
         data = event.mimeData()
         text = str(data.text())
+
         # Add a tool item.
         if text.startswith('Tool'):
             toolID = text.strip('Tool::')
@@ -131,25 +141,34 @@ class ToolsLoveBar(QToolBar):
 
     def mousePressEvent(self, event):
         """ Overload the mouse press event to handle custom context menus clicked on toolbuttons. """
+
         # On a right click, show the menu.
         if event.button() == Qt.RightButton:
             widget = self.childAt(event.x(), event.y())
+
             # Show menus for the toolbars.
             menu = QMenu(self)
             if widget and isinstance(widget.defaultAction(), LovebarAction):
                 self.setContextMenuPolicy(Qt.CustomContextMenu)
+
                 action = widget.defaultAction()
+
                 act = menu.addAction('Documentation')
                 act.setIcon(QIcon(blurdev.resourcePath('img/doc.png')))
                 act.triggered.connect(action.documentation)
+
                 act = menu.addAction('Explore')
                 act.setIcon(QIcon(blurdev.resourcePath('img/explore.png')))
                 act.triggered.connect(action.explore)
+
                 menu.addSeparator()
+
                 act = menu.addAction('Remove')
                 act.setIcon(QIcon(blurdev.resourcePath('img/trash.png')))
                 act.triggered.connect(action.remove)
+
                 menu.addSeparator()
+
                 event.accept()
 
             act = menu.addAction('Refesh')
@@ -167,10 +186,13 @@ class ToolsLoveBarDialog(Dialog):
     def __init__(self, parent, title):
         Dialog.__init__(self, parent)
         self.setWindowTitle(title)
+
         # Load the UI.
         # blurdev.gui.loadUi( __file__, self )
+
         # Load Treegrunt's palette.
         # self.setPalette(blurdev.gui.dialogs.treegruntdialog.TreegruntDialog._instance.palette())
+
         # Setting up the dialog.
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -180,6 +202,7 @@ class ToolsLoveBarDialog(Dialog):
         self.setLayout(layout)
         self.setFixedHeight(36)
         self.setWindowFlags(Qt.Tool)
+
         # restoring settings.
         self.restoreSettings()
 
@@ -195,9 +218,13 @@ class ToolsLoveBarDialog(Dialog):
         """
             \remarks	records settings to be used for another session
         """
+        from blurdev import prefs
+
         pref = prefs.find('tools/Lovebar')
+
         # Record the geometry.
         pref.recordProperty('geom', self.geometry())
+
         # Save the settings.
         pref.save()
 
@@ -205,7 +232,10 @@ class ToolsLoveBarDialog(Dialog):
         """
             \remarks    restores settings that were saved by a previous session
         """
+        from blurdev import prefs
+
         pref = prefs.find('tools/Lovebar')
+
         # reload the geometry
         geom = pref.restoreProperty('geom', QRect())
         if geom and not geom.isNull():
@@ -215,6 +245,11 @@ class ToolsLoveBarDialog(Dialog):
     def instance(parent=None):
         if not ToolsLoveBarDialog._instance:
             inst = ToolsLoveBarDialog(parent, 'Lovebar')
+
+            from PyQt4.QtCore import Qt
+
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
+
             ToolsLoveBarDialog._instance = inst
+
         return ToolsLoveBarDialog._instance

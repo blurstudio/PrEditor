@@ -8,13 +8,15 @@
 # 	\date		04/16/09
 #
 
-import glob
-import re
-import os
-
-
 _major = 1  # User defined major version
 _minor = 10  # User defined minor version
+
+# -------------------------------------------------------------------------------------------------------------
+
+import glob
+import re
+import os.path
+
 # Load build version from file
 _currentBuild = 0
 filename = os.path.split(__file__)[0] + '/build.txt'
@@ -22,6 +24,8 @@ if os.path.exists(filename):
     f = open(filename, 'r')
     _currentBuild = int(f.read())
     f.close()
+
+# -------------------------------------------------------------------------------------------------------------
 
 
 def major():

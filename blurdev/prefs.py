@@ -9,8 +9,8 @@
 #
 
 import os
+import getpass
 
-import blurdev
 from blurdev.XML import XMLDocument
 from blurdev import osystem
 
@@ -55,12 +55,14 @@ class Preference(XMLDocument):
 
     def path(self, coreName='', shared=False):
         """ return the path to the application's prefrences folder """
+        import blurdev
+
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
         if shared:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
-                'username': osystem.username()
+                'username': getpass.getuser()
             }
         else:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
@@ -139,6 +141,8 @@ def find(name, reload=False, coreName='', shared=False):
 
         \return		<blurdev.prefs.Preference>
     """
+    import blurdev
+
     key = str(name).replace(' ', '-').lower()
     if reload or not key in _cache:
         # create a new preference record

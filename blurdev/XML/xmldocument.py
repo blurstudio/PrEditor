@@ -11,10 +11,6 @@
 import os
 import xml.dom.minidom
 
-from PyQt4.QtCore import QString
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtGui import QMessageBox
-
 from xmlelement import XMLElement
 
 
@@ -33,6 +29,7 @@ class XMLDocument(XMLElement):
         if split:
             outTemplate = self.root().findChildById(split[0])
             index = 1
+
             while index < len(split) and outTemplate:
                 outTemplate = outTemplate.findChildById(split[index])
                 index += 1
@@ -58,6 +55,7 @@ class XMLDocument(XMLElement):
                 newObject = xml.dom.minidom.parse(fileName)
             except:
                 return False
+
             if newObject:
                 self.__file__ = fileName
                 self._object = newObject
@@ -112,6 +110,8 @@ class XMLDocument(XMLElement):
             except:
                 print 'Encoding error while saving XML'
                 if showDialog:
+                    from PyQt4.QtGui import QMessageBox
+
                     QMessageBox.critical(
                         None,
                         'Encoding Error',
@@ -123,6 +123,8 @@ class XMLDocument(XMLElement):
             f.close()
             return True
         if showDialog:
+            from PyQt4.QtGui import QMessageBox
+
             QMessageBox.warning(
                 None,
                 'Unable to Save',
@@ -138,6 +140,9 @@ class XMLDocument(XMLElement):
 
     @staticmethod
     def formatXml(xmltext, indented=4):
+        from PyQt4.QtCore import QString
+        from PyQt4.QtXml import QDomDocument
+
         doc = QDomDocument()
         doc.setContent(QString(xmltext))
         return unicode(doc.toString(indented))
