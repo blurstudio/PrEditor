@@ -44,6 +44,8 @@ class XMLElement:
             object = xml.dom.minidom.Element(None)
         self._object = object
         self.__file__ = filename
+        # Used to allow saving empty attributes.
+        self.allowEmptyAttrs = False
 
     def _document(self):
         """ recursese up the hierarchy to find the parent who is a <xml.dom.minidom.Document> class """
@@ -525,7 +527,7 @@ class XMLElement:
         #				<boolean> success
         #-------------------------------------------------------------------------------------------------------------
         """
-        if val != '' and self._object:
+        if self._object and (val != '' or self.allowEmptyAttrs):
             self._object.setAttribute(attr, unicode(val).encode('utf-8'))
             return True
         return False

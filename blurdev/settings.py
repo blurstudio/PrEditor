@@ -55,6 +55,7 @@ def init():
         from optparse import OptionParser
 
         parser = OptionParser()
+        parser.disable_interspersed_args()
 
         # add additional options from the environment
         for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
@@ -121,6 +122,12 @@ def init():
     # register default paths
     for key in os.environ.keys():
         if key.startswith('BDEV_INCLUDE_'):
+            if key == 'BDEV_INCLUDE_TRAX':
+                path = os.environ[key]
+                # check if trax is installed, if not then register the offline trax classes
+                if not os.path.isfile(r'%s\trax\__init__.py' % path):
+                    registerPath(r'%s\traxoffline' % os.path.split(__file__)[0])
+                    continue
             registerPath(os.environ[key])
 
 

@@ -11,7 +11,7 @@
 if __name__ == '__main__':
     import sys
 
-    print(sys.version)
+    print (sys.version)
     from blur.build import *
     import sys, os
 
@@ -53,6 +53,24 @@ if __name__ == '__main__':
         f.write(
             '!define OUTPUT_FILENAME "bin\offline\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}-offline.exe"\n'
         )
+        # When Building a offline build of blurdev, update the dummy records that are used to ensure trax gui dummy widgets work.
+        import trax
+
+        if trax.isValid:
+            print '**************************************************'
+            print '*             Exporting trax data                *'
+            print '**************************************************'
+            import blurdev.traxoffline.trax
+
+            blurdev.traxoffline.trax.api.data.createRoleList(
+                r'%s\traxoffline\trax\api\data\source\roles.xml' % path
+            )
+            blurdev.traxoffline.trax.api.data.createApprovalType(
+                r'%s\traxoffline\trax\api\data\source\approvalTypes.xml' % path
+            )
+            blurdev.traxoffline.trax.api.data.createDepartmentList(
+                r'%s\traxoffline\trax\api\data\source\departments.xml' % path
+            )
     else:
         f.write(
             '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
