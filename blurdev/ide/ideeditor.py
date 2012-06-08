@@ -230,6 +230,7 @@ class IdeEditor(Window):
         self.uiInsertTemplateACT.triggered.connect(self.documentChooseTemplate)
         self.uiCommentAddACT.triggered.connect(self.documentCommentAdd)
         self.uiCommentRemoveACT.triggered.connect(self.documentCommentRemove)
+        self.uiCommentToggleACT.triggered.connect(self.documentCommentToggle)
         self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
 
         # connect search menu
@@ -500,6 +501,11 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.commentRemove()
+
+    def documentCommentToggle(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.commentToggle()
 
     def documentCopy(self):
         doc = self.currentDocument()
@@ -1423,6 +1429,9 @@ class IdeEditor(Window):
         self.uiCommentRemoveACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/comment_remove.png'))
         )
+        self.uiCommentToggleACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png'))
+        )
         self.uiPasteACT.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
         self.uiConfigurationACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/preferences.png'))
@@ -1508,6 +1517,7 @@ class IdeEditor(Window):
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiCommentAddACT)
         self.uiMainTBAR.addAction(self.uiCommentRemoveACT)
+        self.uiMainTBAR.addAction(self.uiCommentToggleACT)
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiFindPrevACT)
         self.uiMainTBAR.addAction(self.uiFindACT)

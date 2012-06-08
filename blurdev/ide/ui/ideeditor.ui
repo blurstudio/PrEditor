@@ -200,6 +200,7 @@
     <addaction name="separator"/>
     <addaction name="uiCommentAddACT"/>
     <addaction name="uiCommentRemoveACT"/>
+    <addaction name="uiCommentToggleACT"/>
     <addaction name="separator"/>
     <addaction name="uiInsertTemplateACT"/>
     <addaction name="separator"/>
@@ -810,6 +811,14 @@
   <action name="uiReloadFileACT">
    <property name="text">
     <string>Reload File</string>
+   </property>
+  </action>
+  <action name="uiCommentToggleACT">
+   <property name="text">
+    <string>Comment Toggle</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+3</string>
    </property>
   </action>
  </widget>

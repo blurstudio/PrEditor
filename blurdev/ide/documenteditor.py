@@ -98,7 +98,7 @@ class DocumentEditor(QsciScintilla):
         self.enableFileWatching(False)
         super(DocumentEditor, self).closeEvent(event)
 
-    def commentAdd(self):
+    def commentCheck(self):
         # collect the language
         language = lang.byName(self._language)
         if not language:
@@ -115,9 +115,15 @@ class DocumentEditor(QsciScintilla):
             QMessageBox.critical(
                 None,
                 'No Line Comment Defined',
-                'There is no line comment symbol defined for the %s language.'
+                'There is no line comment symbol defined for the "%s" language.'
                 % (self._language),
             )
+            return False
+        return comment, True
+
+    def commentAdd(self):
+        comment, result = self.commentCheck()
+        if not result:
             return False
 
         # lookup the selected text positions
@@ -126,28 +132,13 @@ class DocumentEditor(QsciScintilla):
         for lineno in range(startline, endline + 1):
             self.setCursorPosition(lineno, 0)
             self.insert(comment)
+        # restore the currently selected text
+        self.setSelection(startline, startcol + 1, endline, endcol + 1)
         return True
 
     def commentRemove(self):
-        # collect the language
-        language = lang.byName(self._language)
-        if not language:
-            QMessageBox.critical(
-                None,
-                'No Language Defined',
-                'There is no language defined for this editor.',
-            )
-            return False
-
-        # collect the expression
-        comment = language.lineComment()
-        if not comment:
-            QMessageBox.critical(
-                None,
-                'No Line Comment Defined',
-                'There is no line comment symbol defined for the "%s" language'
-                % (self._language),
-            )
+        comment, result = self.commentCheck()
+        if not result:
             return False
 
         # lookup the selected text positions
@@ -158,7 +149,40 @@ class DocumentEditor(QsciScintilla):
             self.setSelection(line, 0, line, commentlen)
             if self.selectedText() == comment:
                 self.removeSelectedText()
+                if line == startline:
+                    startcol -= 1
+                if line == endline:
+                    endcol -= 1
+        # restore the currently selected text
+        self.setSelection(startline, startcol, endline, endcol)
+        return True
 
+    def commentToggle(self):
+        comment, result = self.commentCheck()
+        if not result:
+            return False
+
+        # lookup the selected text positions
+        startline, startcol, endline, endcol = self.getSelection()
+        commentlen = len(comment)
+
+        for line in range(startline, endline + 1):
+            self.setSelection(line, 0, line, commentlen)
+            if self.selectedText() == comment:
+                self.removeSelectedText()
+                if line == startline:
+                    startcol -= 1
+                elif line == endline:
+                    endcol -= 1
+            else:
+                self.setCursorPosition(line, 0)
+                self.insert(comment)
+                if line == startline:
+                    startcol += 1
+                elif line == endline:
+                    endcol += 1
+        # restore the currently selected text
+        self.setSelection(startline, startcol, endline, endcol)
         return True
 
     def copyFilenameToClipboard(self):
@@ -794,6 +818,9 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Comment Remove')
         act.triggered.connect(self.commentRemove)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_remove.png')))
+        act = menu.addAction('Comment Toggle')
+        act.triggered.connect(self.commentToggle)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')))
 
         menu.addSeparator()
 
