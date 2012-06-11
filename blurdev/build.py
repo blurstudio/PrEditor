@@ -14,6 +14,7 @@ if __name__ == '__main__':
     print (sys.version)
     from blur.build import *
     import sys, os
+    from blurdev import template
 
     product = sys.argv[1]
 
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     parser.add_option('-i', '--install', dest='install', default='0')
     parser.add_option('-o', '--offline', dest='offline', default='0')
     parser.add_option('-n', '--nsiLibs', dest='nsiLibs', default=r'..\..\..\nsis')
+    parser.add_option('-c', '--copy', dest='copyTo', default='')
 
     (options, args) = parser.parse_args()
     dictionary = options.__dict__
@@ -95,30 +97,41 @@ if __name__ == '__main__':
     build()
 
     # see if the user wants to run the installer
+    f = open(path + '/installers/svnrev.nsi', 'r')
+    lines = f.read()
+    f.close()
+
+    import re
+
+    results = re.search('!define MUI_SVNREV "(\d+)"', lines)
+
+    if results:
+
+        if dictionary['offline'] == '1':
+            outFile = '%s-install-v%i.%02i.%s-offline.exe' % (
+                product,
+                version.major(),
+                version.minor(),
+                results.groups()[0],
+            )
+            filename = path + '/installers/bin/offline/' + outFile
+        else:
+            outFile = '%s-install-v%i.%02i.%s.exe' % (
+                product,
+                version.major(),
+                version.minor(),
+                results.groups()[0],
+            )
+            filename = path + '/installers/bin/' + outFile
     if dictionary['install'] == '1':
-        f = open(path + '/installers/svnrev.nsi', 'r')
-        lines = f.read()
-        f.close()
+        import os
 
-        import re
+        os.startfile(filename)
+    paths = dictionary['copyTo']
+    if paths:
+        import shutil
 
-        results = re.search('!define MUI_SVNREV "(\d+)"', lines)
-
-        if results:
-
-            if dictionary['offline'] == '1':
-                filename = (
-                    path
-                    + '/installers/bin/offline/%s-install-v%i.%02i.%s-offline.exe'
-                    % (product, version.major(), version.minor(), results.groups()[0])
-                )
-            else:
-                filename = path + '/installers/bin/%s-install-v%i.%02i.%s.exe' % (
-                    product,
-                    version.major(),
-                    version.minor(),
-                    results.groups()[0],
-                )
-            import os
-
-            os.startfile(filename)
+        for output in paths.split('|'):
+            copyTo = template.formatText(output, {'filename': outFile})
+            print '*** Copying file to "%s"' % copyTo
+            shutil.copyfile(filename, copyTo)
