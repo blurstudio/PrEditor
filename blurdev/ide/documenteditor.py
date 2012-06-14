@@ -131,11 +131,16 @@ class DocumentEditor(QsciScintilla):
         # lookup the selected text positions
         startline, startcol, endline, endcol = self.getSelection()
 
-        for lineno in range(startline, endline + 1):
-            self.setCursorPosition(lineno, 0)
-            self.insert(comment)
-        # restore the currently selected text
-        self.setSelection(startline, startcol + 1, endline, endcol + 1)
+        for line in range(startline, endline + 1):
+            # do not comment the last line if it contains no selection
+            if line != endline or endcol:
+                self.setCursorPosition(line, 0)
+                self.insert(comment)
+        # restore the currently selected text and compensate for the new characters
+        if endcol:
+            # only adjust the end column value if it contained a selection in the first place.
+            endcol += 1
+        self.setSelection(startline, startcol + 1, endline, endcol)
         return True
 
     def commentRemove(self):
@@ -148,13 +153,15 @@ class DocumentEditor(QsciScintilla):
         commentlen = len(comment)
 
         for line in range(startline, endline + 1):
-            self.setSelection(line, 0, line, commentlen)
-            if self.selectedText() == comment:
-                self.removeSelectedText()
-                if line == startline:
-                    startcol -= 1
-                if line == endline:
-                    endcol -= 1
+            # do not un-comment the last line if it contains no selection
+            if line != endline or endcol:
+                self.setSelection(line, 0, line, commentlen)
+                if self.selectedText() == comment:
+                    self.removeSelectedText()
+                    if line == startline:
+                        startcol -= 1
+                    if line == endline:
+                        endcol -= 1
         # restore the currently selected text
         self.setSelection(startline, startcol, endline, endcol)
         return True
@@ -169,20 +176,22 @@ class DocumentEditor(QsciScintilla):
         commentlen = len(comment)
 
         for line in range(startline, endline + 1):
-            self.setSelection(line, 0, line, commentlen)
-            if self.selectedText() == comment:
-                self.removeSelectedText()
-                if line == startline:
-                    startcol -= 1
-                elif line == endline:
-                    endcol -= 1
-            else:
-                self.setCursorPosition(line, 0)
-                self.insert(comment)
-                if line == startline:
-                    startcol += 1
-                elif line == endline:
-                    endcol += 1
+            # do not toggle comments on the last line if it contains no selection
+            if line != endline or endcol:
+                self.setSelection(line, 0, line, commentlen)
+                if self.selectedText() == comment:
+                    self.removeSelectedText()
+                    if line == startline:
+                        startcol -= 1
+                    elif line == endline:
+                        endcol -= 1
+                else:
+                    self.setCursorPosition(line, 0)
+                    self.insert(comment)
+                    if line == startline:
+                        startcol += 1
+                    elif line == endline:
+                        endcol += 1
         # restore the currently selected text
         self.setSelection(startline, startcol, endline, endcol)
         return True
