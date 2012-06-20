@@ -46,70 +46,95 @@ A profiler decorator.
 Author: Giampaolo Rodola' <g.rodola [AT] gmail [DOT] com>
 License: MIT
 """
-import cProfile
-import tempfile
-import pstats
+try:
+    import cProfile
+    import tempfile
+    import pstats
 
+    def profile(
+        sort='cumulative',
+        lines=50,
+        strip_dirs=False,
+        fileName=r'c:\temp\profile.profile',
+    ):
+        """A decorator which profiles a callable. This uses cProfile which is not in Python2.4.
+        Example usage:
 
-def profile(
-    sort='cumulative', lines=50, strip_dirs=False, fileName=r'c:\temp\profile.profile'
-):
-    """A decorator which profiles a callable. This uses cProfile which is not in Python2.4.
-    Example usage:
+        >>> @profile
+            def factorial(n):
+                n = abs(int(n))
+                if n < 1:
+                        n = 1
+                x = 1
+                for i in range(1, n + 1):
+                        x = i * x
+                return x
+        ...
+        >>> factorial(5)
+        Thu Jul 15 20:58:21 2010    c:\temp\profile.profile
 
-    >>> @profile
-        def factorial(n):
-            n = abs(int(n))
-            if n < 1:
-                    n = 1
-            x = 1
-            for i in range(1, n + 1):
-                    x = i * x
-            return x
-    ...
-    >>> factorial(5)
-    Thu Jul 15 20:58:21 2010    c:\temp\profile.profile
+                 4 function calls in 0.000 CPU seconds
 
-             4 function calls in 0.000 CPU seconds
+           Ordered by: internal time, call count
 
-       Ordered by: internal time, call count
+            ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+                1    0.000    0.000    0.000    0.000 profiler.py:120(factorial)
+                1    0.000    0.000    0.000    0.000 {range}
+                1    0.000    0.000    0.000    0.000 {abs}
 
-        ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-            1    0.000    0.000    0.000    0.000 profiler.py:120(factorial)
-            1    0.000    0.000    0.000    0.000 {range}
-            1    0.000    0.000    0.000    0.000 {abs}
+        120
+        >>>
+        """
 
-    120
-    >>>
-    """
+        def outer(fun):
+            def inner(*args, **kwargs):
+                prof = cProfile.Profile()
+                ret = prof.runcall(fun, *args, **kwargs)
 
-    def outer(fun):
-        def inner(*args, **kwargs):
-            prof = cProfile.Profile()
-            ret = prof.runcall(fun, *args, **kwargs)
+                prof.dump_stats(fileName)
+                stats = pstats.Stats(fileName)
+                if strip_dirs:
+                    stats.strip_dirs()
+                if isinstance(sort, (tuple, list)):
+                    stats.sort_stats(*sort)
+                else:
+                    stats.sort_stats(sort)
+                stats.print_stats(lines)
+                return ret
 
-            prof.dump_stats(fileName)
-            stats = pstats.Stats(fileName)
-            if strip_dirs:
-                stats.strip_dirs()
-            if isinstance(sort, (tuple, list)):
-                stats.sort_stats(*sort)
-            else:
-                stats.sort_stats(sort)
-            stats.print_stats(lines)
-            return ret
+            return inner
 
-        return inner
+        # in case this is defined as "@profile" instead of "@profile()"
+        if hasattr(sort, '__call__'):
+            fun = sort
+            sort = 'cumulative'
+            outer = outer(fun)
+        return outer
 
-    # in case this is defined as "@profile" instead of "@profile()"
-    if hasattr(sort, '__call__'):
-        fun = sort
-        sort = 'cumulative'
-        outer = outer(fun)
-    return outer
+    ## end of http://code.activestate.com/recipes/577817/ }}}
+except ImportError:
 
+    def profile(
+        sort='cumulative',
+        lines=50,
+        strip_dirs=False,
+        fileName=r'c:\temp\profile.profile',
+    ):
+        def outer(fun):
+            def inner(*args, **kwargs):
+                debug.debugMsg(
+                    'cProfile is unavailable in this version of python. Use Python 2.5 or later.'
+                )
+                return fun(*args, **kwargs)
 
-## end of http://code.activestate.com/recipes/577817/ }}}
+            return inner
+
+        # in case this is defined as "@profile" instead of "@profile()"
+        if hasattr(sort, '__call__'):
+            fun = sort
+            sort = 'cumulative'
+            outer = outer(fun)
+        return outer
 
 
 def pendingdeprecation(args):
