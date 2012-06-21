@@ -199,6 +199,27 @@ class DocumentEditor(QsciScintilla):
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
+    def detectEndLine(self, text):
+        newlineN = text.indexOf('\n')
+        newlineR = text.indexOf('\r')
+        if newlineN != -1 and newlineR != -1:
+            if newlineN == newlineR + 1:
+                # CR LF Windows
+                return self.EolWindows
+            elif newlineR == newlineN + 1:
+                # LF CR ACorn and RISC unsuported
+                return self.eolMode()
+        if newlineN != -1 and newlineR != -1:
+            if newlineN < newlineR:
+                # First return is a LF
+                return self.EolUnix
+            else:
+                # first return is a CR
+                return self.EolMac
+        if newlineN != -1:
+            return self.EolUnix
+        return self.EolMac
+
     def enableFileWatching(self, state):
         """
             \Remarks	Enables/Disables open file change monitoring. If enabled, A dialog will pop up when ever the open file is changed externally.
@@ -317,6 +338,7 @@ class DocumentEditor(QsciScintilla):
             f.close()
             self.updateFilename(filename)
             self.enableFileWatching(True)
+            self.setEolMode(self.detectEndLine(self.text()))
             return True
         return False
 
@@ -409,53 +431,6 @@ class DocumentEditor(QsciScintilla):
             self.setEdgeColumn(section.value('limitColumn'))
         else:
             self.setEdgeMode(self.EdgeNone)
-
-        # set endline settings
-        # 		eolmode = section.value('eolMode' )
-
-        # try to determine the end line mode based on the file itself
-        # 		if ( eolmode == 'Auto-Detect' ):
-        # 			text        = self.text()
-        #
-        # 			# guess from the file, otherwise, use the base system
-        # 			if ( text ):
-        # 				winCount    = text.count('\r\n')    # windows style endline
-        # 				linCount    = text.count('\n')      # unix style endline
-        # 				macCount    = text.count('\r')      # mac style endline
-        #
-        # 				# use windows syntax
-        # 				if ( winCount and winCount == linCount and winCount == macCount ):
-        # 					eolmode = self.EolWindows
-        # 				elif ( macCount > linCount ):
-        # 					eolmode = self.EolMac
-        # 				else:
-        # 					eolmode = self.EolUnix
-        # 			else:
-        # 				eolmode = None
-        #
-        # 		# force to windows mode
-        # 		elif ( eolmode == 'Windows' ):
-        # 			eolmode = self.EolWindows
-        #
-        # 		# force to unix mode
-        # 		elif ( eolmode == 'Unix' ):
-        # 			eolmode = self.EolUnix
-        #
-        # 		# force to mac mode
-        # 		elif ( eolmode == 'Mac' ):
-        # 			eolmode = self.EolMac
-        #
-        # 		# use default system mode
-        # 		else:
-        # 			eolmode = None
-        #
-        # 		if ( eolmode != None ):
-        # 			# set new eols to being the inputed type
-        # 			self.setEolMode(eolmode)
-        #
-        # 		# convert the current eols if necessary
-        # 		if (section.value('convertEol')):
-        # 			self.convertEols(self.eolMode())
 
         # set autocompletion settings
         if section.value('autoComplete'):
@@ -602,6 +577,25 @@ class DocumentEditor(QsciScintilla):
 
     def marginsFont(self):
         return self._marginsFont
+
+    def paste(self):
+        text = QApplication.clipboard().text()
+        if not unicode(text).find('\n') and not unicode(text).find('\r'):
+            return super(DocumentEditor, self).paste()
+
+        def repForMode(mode):
+            if mode == self.EolWindows:
+                return '\r\n'
+            elif mode == self.EolUnix:
+                return '\n'
+            else:
+                return '\r'
+
+        text = text.replace(
+            repForMode(self.detectEndLine(text)), repForMode(self.eolMode())
+        )
+        QApplication.clipboard().setText(text)
+        return super(DocumentEditor, self).paste()
 
     def redo(self):
         super(DocumentEditor, self).redo()
