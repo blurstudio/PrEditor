@@ -26,15 +26,6 @@ class WorkboxWidget(DocumentEditor):
 
         self._software = blurdev.core.objectName()
         self.regex = re.compile('\s+$')
-        # define the user interface data
-
-    #! 		finish initializing the class
-
-    # create custom properties
-    #! 		self._customProperty = ''
-
-    # create connections
-    #! 		self.uiNameTXT.textChanged.connect( self.setCustomProperty )
 
     def console(self):
         return self._console

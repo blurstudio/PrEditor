@@ -31,16 +31,15 @@ class LoggerWindow(Window):
         # create the console widget
         from console import ConsoleEdit
 
-        self._console = ConsoleEdit(self.uiSplitterSPLIT)
-        self._console.setMinimumHeight(1)
+        self.uiConsoleTXT = ConsoleEdit(self.uiSplitterSPLIT)
+        self.uiConsoleTXT.setMinimumHeight(1)
 
         # create the workbox
         from workboxwidget import WorkboxWidget
 
-        self._workbox = WorkboxWidget(self.uiSplitterSPLIT)
-        self._workbox.setConsole(self._console)
-        self._workbox.setMinimumHeight(1)
-        self._workbox.setLanguage('Python')
+        self.uiWorkboxWGT = WorkboxWidget(self.uiSplitterSPLIT)
+        self.uiWorkboxWGT.setConsole(self.uiConsoleTXT)
+        self.uiWorkboxWGT.setMinimumHeight(1)
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()
@@ -70,7 +69,9 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
-        self.uiIndentationsTabsACT.toggled.connect(self._workbox.setIndentationsUseTabs)
+        self.uiIndentationsTabsACT.toggled.connect(
+            self.uiWorkboxWGT.setIndentationsUseTabs
+        )
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
@@ -112,10 +113,10 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
 
     def console(self):
-        return self._console
+        return self.uiConsoleTXT
 
     def clearLog(self):
-        self._console.clear()
+        self.uiConsoleTXT.clear()
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -132,7 +133,7 @@ class LoggerWindow(Window):
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self._workbox.execAll()
+        self.uiWorkboxWGT.execAll()
 
     def execSelected(self):
         """
@@ -140,10 +141,10 @@ class LoggerWindow(Window):
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self._workbox.execSelected()
+        self.uiWorkboxWGT.execSelected()
 
     def gotoError(self):
-        text = self._console.textCursor().selectedText()
+        text = self.uiConsoleTXT.textCursor().selectedText()
         import re
 
         results = re.match('[ \t]*File "([^"]+)", line (\d+)', unicode(text))
@@ -189,7 +190,7 @@ class LoggerWindow(Window):
         pref.recordProperty('loggergeom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
         pref.recordProperty(
-            'WorkboxText', unicode(self._workbox.text()).replace('\r', '')
+            'WorkboxText', unicode(self.uiWorkboxWGT.text()).replace('\r', '')
         )
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
         pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
@@ -208,7 +209,7 @@ class LoggerWindow(Window):
         if rect and not rect.isNull():
             self.setGeometry(rect)
             blurdev.ensureWindowIsVisible(self)
-        self._workbox.setText(pref.restoreProperty('WorkboxText', ''))
+        self.uiWorkboxWGT.setText(pref.restoreProperty('WorkboxText', ''))
         self.uiEditorVerticalACT.setChecked(
             pref.restoreProperty('SplitterVertical', False)
         )
@@ -218,7 +219,7 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setSizes(sizes)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
-        self._workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+        self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(
@@ -269,13 +270,15 @@ class LoggerWindow(Window):
 
     def setWordWrap(self, state):
         if state:
-            self._console.setLineWrapMode(self._console.WidgetWidth)
+            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.WidgetWidth)
         else:
-            self._console.setLineWrapMode(self._console.NoWrap)
+            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
 
-    def show(self):
-        super(LoggerWindow, self).show()
+    def showEvent(self, event):
+        super(LoggerWindow, self).showEvent(event)
         self.restoreToolbars()
+        self.uiWorkboxWGT.setLanguage('Python')
+        self.uiWorkboxWGT.setShowSmartHighlighting(True)
 
     def showSdk(self):
         blurdev.core.sdkBrowser().show()

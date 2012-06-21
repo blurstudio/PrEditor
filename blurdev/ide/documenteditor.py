@@ -18,7 +18,7 @@ from blurdev.enum import enum
 from blurdev.ide import lang
 from blurdev.debug import debugMsg, DebugLevel
 from ideeditor import IdeEditor
-import time
+import time, re
 
 
 class DocumentEditor(QsciScintilla):
@@ -29,6 +29,7 @@ class DocumentEditor(QsciScintilla):
     )  # emits the font size change (font size, margin font size)
 
     def __init__(self, parent, filename='', lineno=0):
+        self._showSmartHighlighting = True
         QsciScintilla.__init__(self, parent)
 
         # create custom properties
@@ -42,6 +43,7 @@ class DocumentEditor(QsciScintilla):
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
         # this is caused because multiple signals are emitted and processed.
         self._dialogShown = False
+        self.setSmartHighlightingRegEx()
 
         # intialize settings
         self.initSettings()
@@ -580,7 +582,7 @@ class DocumentEditor(QsciScintilla):
 
     def paste(self):
         text = QApplication.clipboard().text()
-        if not unicode(text).find('\n') and not unicode(text).find('\r'):
+        if text.indexOf('\n') == -1 and text.indexOf('\r') == -1:
             return super(DocumentEditor, self).paste()
 
         def repForMode(mode):
@@ -758,6 +760,9 @@ class DocumentEditor(QsciScintilla):
             lexer = None
             self._language = ''
 
+        # connect the lexer if possible
+        self.setShowSmartHighlighting(self._showSmartHighlighting)
+
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
@@ -769,6 +774,17 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).setMarginsFont(font)
         self._marginsFont = font
 
+    def setSmartHighlightingRegEx(
+        self, exp='[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
+    ):
+        r"""
+            \remarks	Set the regular expression used to control if a selection is considered valid for
+                        smart highlighting.
+            \param		exp		<str>	Defaul:'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
+        """
+        self._smartHighlightingRegEx = exp
+        self.selectionValidator = re.compile(exp)
+
     def setShowFolding(self, state):
         if state:
             self.setFolding(self.BoxedTreeFoldStyle)
@@ -778,11 +794,35 @@ class DocumentEditor(QsciScintilla):
     def setShowLineNumbers(self, state):
         self.setMarginLineNumbers(self.SymbolMargin, state)
 
+    def setShowSmartHighlighting(self, state):
+        self._showSmartHighlighting = state
+        # Disconnect existing connections
+        try:
+            self.selectionChanged.disconnect(self.updateHighlighter)
+        except:
+            pass
+        # connect to signal if enabling and possible
+        if hasattr(self.lexer(), 'highlightedKeywords'):
+            if state:
+                self.selectionChanged.connect(self.updateHighlighter)
+            else:
+                lexer = self.lexer()
+                lexer.highlightedKeywords = ''
+                # 				self.setLexer(lexer)
+                # 				folds = self.contractedFolds()
+                self.recolor()
+
+    # 				self.setContractedFolds(folds)
+
     def setShowWhitespaces(self, state):
         if state:
             self.setWhitespaceVisibility(QsciScintilla.WsVisible)
         else:
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
+
+    def showEvent(self, event):
+        super(DocumentEditor, self).showEvent(event)
+        self.setShowSmartHighlighting(True)
 
     def showMenu(self):
         import blurdev
@@ -856,8 +896,14 @@ class DocumentEditor(QsciScintilla):
     def showLineNumbers(self):
         return self.marginLineNumbers(self.SymbolMargin)
 
+    def showSmartHighlighting(self):
+        return self._showSmartHighlighting
+
     def showWhitespaces(self):
         return self.whitespaceVisibility() == QsciScintilla.WsVisible
+
+    def smartHighlightingRegEx(self):
+        return self._smartHighlightingRegEx
 
     def toggleFolding(self):
         from PyQt4.QtGui import QApplication
@@ -887,6 +933,37 @@ class DocumentEditor(QsciScintilla):
             pass
 
         self.refreshTitle()
+
+    def updateHighlighter(self):
+        # Get selection
+        selectedText = self.selectedText()
+        # if text is selected make sure it is a word
+        lexer = self.lexer()
+        if selectedText != lexer.highlightedKeywords:
+            if selectedText:
+                # Does the text contain a non allowed word?
+                if not self.selectionValidator.findall(selectedText) == []:
+                    return
+                else:
+                    selection = self.getSelection()
+                    # the character before and after the selection must not be a word.
+                    text = self.text(selection[2])  # Character after
+                    if selection[3] < len(text):
+                        if self.selectionValidator.findall(text[selection[3]]) == []:
+                            return
+                    text = self.text(selection[0])  # Character Before
+                    if selection[1] and selection[1] != -1:
+                        if (
+                            self.selectionValidator.findall(text[selection[1] - 1])
+                            == []
+                        ):
+                            return
+            # Make the lexer highlight words
+            lexer.highlightedKeywords = selectedText
+            # 			folds = self.contractedFolds()
+            self.setLexer(lexer)
+
+    # 			self.setContractedFolds(folds)
 
     def unindentSelection(self):
         lineFrom = 0
@@ -943,6 +1020,12 @@ class DocumentEditor(QsciScintilla):
     pyLineMarginWidth = pyqtProperty("int", lineMarginWidth, setLineMarginWidth)
     pyShowLineNumbers = pyqtProperty("bool", showLineNumbers, setShowLineNumbers)
     pyShowFolding = pyqtProperty("bool", showFolding, setShowFolding)
+    pyShowSmartHighlighting = pyqtProperty(
+        "bool", showSmartHighlighting, setShowSmartHighlighting
+    )
+    pySmartHighlightingRegEx = pyqtProperty(
+        "QString", smartHighlightingRegEx, setSmartHighlightingRegEx
+    )
 
     pyAutoCompletionCaseSensitivity = pyqtProperty(
         "bool",
