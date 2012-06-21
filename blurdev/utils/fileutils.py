@@ -4,6 +4,8 @@ import os
 import sys
 import shutil
 import fnmatch
+import shutil
+import threading
 
 
 def listfiles(path):
@@ -23,3 +25,34 @@ def rglob(treeroot, pattern):
         goodfiles = fnmatch.filter(files, pattern)
         results.extend([os.path.join(root, f) for f in goodfiles])
     return results
+
+
+def makedirs(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+
+def threadedCopy(filepaths):
+    """
+    filepaths is a list of (from_path, to_path) pairs.
+        
+    Ex.
+    
+    [('C:/src/path.txt', 'C:/destination/path.txt'),
+     ('C:/src/path1.txt', 'C:/destination/path1.txt'),
+     ('C:/src/path2.txt', 'C:/destination/path2.txt')
+    ]
+        
+    """
+    CopyThread(filepaths).start()
+
+
+class CopyThread(threading.Thread):
+    def __init__(self, filepaths):
+        super(CopyThread, self).__init__()
+        self.filepaths = filepaths
+
+    def run(self):
+        for paths in self.filepaths:
+            src, dst = paths
+            shutil.copyfile(src, dst)
