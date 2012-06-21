@@ -213,6 +213,7 @@ class IdeEditor(Window):
 
         # connect document menu
         self.uiLineWrapACT.triggered.connect(self.toggleLineWrap)
+        self.uiSmartHighlightingACT.triggered.connect(self.updateDocumentSettings)
         self.uiShowCaretLineACT.triggered.connect(self.updateDocumentSettings)
         self.uiShowIndentationsACT.triggered.connect(self.updateDocumentSettings)
         self.uiShowLineNumbersACT.triggered.connect(self.updateDocumentSettings)
@@ -1788,6 +1789,7 @@ class IdeEditor(Window):
         section.setValue('showIndentations', self.uiShowIndentationsACT.isChecked())
         section.setValue('showLineNumbers', self.uiShowLineNumbersACT.isChecked())
         section.setValue('caretLineVisible', self.uiShowCaretLineACT.isChecked())
+        section.setValue('smartHighlighting', self.uiSmartHighlightingACT.isChecked())
 
         configSet.save()
         self.updateSettings()
@@ -1894,6 +1896,7 @@ class IdeEditor(Window):
         # update the ui
         configSet = self.currentConfigSet()
         section = configSet.section('Common::Document')
+        self.uiSmartHighlightingACT.setChecked(section.value('smartHighlighting'))
         self.uiShowCaretLineACT.setChecked(section.value('caretLineVisible'))
         self.uiShowIndentationsACT.setChecked(section.value('showIndentations'))
         self.uiShowLineNumbersACT.setChecked(section.value('showLineNumbers'))

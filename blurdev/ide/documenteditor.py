@@ -427,6 +427,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(0, section.value('showLineNumbers'))
         self.setIndentationGuides(section.value('showIndentations'))
         self.setEolVisibility(section.value('showEol'))
+        self.setShowSmartHighlighting(section.value('smartHighlighting'))
 
         if section.value('showLimitColumn'):
             self.setEdgeMode(self.EdgeLine)
@@ -807,22 +808,13 @@ class DocumentEditor(QsciScintilla):
                 self.selectionChanged.connect(self.updateHighlighter)
             else:
                 lexer = self.lexer()
-                lexer.highlightedKeywords = ''
-                # 				self.setLexer(lexer)
-                # 				folds = self.contractedFolds()
-                self.recolor()
-
-    # 				self.setContractedFolds(folds)
+                self.setHighlightedKeywords(self.lexer(), '')
 
     def setShowWhitespaces(self, state):
         if state:
             self.setWhitespaceVisibility(QsciScintilla.WsVisible)
         else:
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
-
-    def showEvent(self, event):
-        super(DocumentEditor, self).showEvent(event)
-        self.setShowSmartHighlighting(True)
 
     def showMenu(self):
         import blurdev
@@ -959,11 +951,20 @@ class DocumentEditor(QsciScintilla):
                         ):
                             return
             # Make the lexer highlight words
-            lexer.highlightedKeywords = selectedText
-            # 			folds = self.contractedFolds()
-            self.setLexer(lexer)
+            self.setHighlightedKeywords(lexer, selectedText)
 
-    # 			self.setContractedFolds(folds)
+    def setHighlightedKeywords(self, lexer, keywords):
+        """
+            :remarks	Updates the lexers highlighted keywords
+            :param		lexer		<QSciLexer>	Update this lexer and set as the lexer on the document.
+            :param		keywords	<str>	keywords to highlight
+        """
+
+        lexer.highlightedKeywords = keywords
+        # 		folds = self.contractedFolds()
+        self.setLexer(lexer)
+
+    # 		self.setContractedFolds(folds)
 
     def unindentSelection(self):
         lineFrom = 0

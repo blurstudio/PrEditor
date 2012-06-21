@@ -297,6 +297,7 @@
     <addaction name="uiShowIndentationsACT"/>
     <addaction name="uiShowLineNumbersACT"/>
     <addaction name="uiShowWhitespacesACT"/>
+    <addaction name="uiSmartHighlightingACT"/>
    </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="uiEditMENU"/>
@@ -819,6 +820,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+3</string>
+   </property>
+  </action>
+  <action name="uiSmartHighlightingACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Smart Highlighting</string>
    </property>
   </action>
  </widget>

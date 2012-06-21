@@ -48,6 +48,7 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('eolMode', self.uiEndlineModeDDL.currentText())
         section.setValue('convertEol', self.uiEndlineConvertCHK.isChecked())
         section.setValue('openFileMonitor', self.uiOpenFileMonitorCHK.isChecked())
+        section.setValue('smartHighlighting', self.uiSmartHighlightingCHK.isChecked())
 
     def refreshUi(self):
         """
@@ -74,6 +75,7 @@ class DocumentConfig(ConfigSectionWidget):
             self.uiEndlineModeDDL.findText(section.value('eolMode'))
         )
         self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
+        self.uiSmartHighlightingCHK.setChecked(section.value('smartHighlighting'))
 
 
 def registerSections(configSet):
@@ -104,6 +106,7 @@ def registerSections(configSet):
         'showLimitColumn': False,
         'limitColumn': 100,
         'openFileMonitor': True,
+        'smartHighlighting': True,
     }
 
     # register the section to the configset
