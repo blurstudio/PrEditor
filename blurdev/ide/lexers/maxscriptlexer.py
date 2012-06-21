@@ -50,7 +50,7 @@ class MaxscriptLexer(QsciLexerCustom):
         from PyQt4.QtCore import Qt
 
         if style in (self.Comment, self.CommentLine):
-            return QColor(50, 180, 50)
+            return QColor(40, 160, 40)
 
         elif style in (self.Keyword, self.Operator):
             return QColor(Qt.blue)
@@ -70,6 +70,12 @@ class MaxscriptLexer(QsciLexerCustom):
             # Set the highlight color for this lexer
             return QColor(155, 255, 155)
         return super(MaxscriptLexer, self).defaultPaper(style)
+
+    def font(self, style):
+        font = super(MaxscriptLexer, self).font(style)
+        if style in (self.Comment, self.CommentLine):
+            font.setFamily('Arial Bold')
+        return font
 
     def keywords(self, style):
         if style == self.Keyword:
