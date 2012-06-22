@@ -9,10 +9,11 @@
 #
 
 from PyQt4.QtGui import QDialog
+from PyQt4.QtCore import Qt
 
 
 class Dialog(QDialog):
-    def __init__(self, parent=None, flags=0):
+    def __init__(self, parent=None, flags=Qt.WindowMinMaxButtonsHint):
         import blurdev
 
         # if there is no root, create
@@ -36,15 +37,12 @@ class Dialog(QDialog):
             self.setPalette(palette)
 
         # set the delete attribute to clean up the window once it is closed
-        from PyQt4.QtCore import Qt
-
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         # set this property to true to properly handle tracking events to control keyboard overrides
         self.setMouseTracking(True)
 
     def closeEvent(self, event):
-        from PyQt4.QtCore import Qt
 
         # ensure this object gets deleted
         wwidget = None
@@ -65,7 +63,6 @@ class Dialog(QDialog):
         # do not use the DeleteOnClose attribute when executing a dialog as often times a user will be accessing
         # information from the dialog instance after it closes.  This function properly transfers ownership of the
         # dialog instance back to Python anyway
-        from PyQt4.QtCore import Qt
 
         self.setAttribute(Qt.WA_DeleteOnClose, False)
 
