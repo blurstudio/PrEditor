@@ -92,6 +92,7 @@ class IdeEditor(Window):
         self._searchReplaceDialog = None
         self._searchFileDialog = None
         self._recentFiles = []
+        self._lastSavedFilename = ''
         self._recentFileMax = 10
         self._recentFileMenu = None
         self._loaded = False
@@ -664,8 +665,11 @@ class IdeEditor(Window):
     def documentOpen(self):
         from blurdev.ide import lang
 
+        lastsave = self._lastSavedFilename
+        if lastsave:
+            lastsave = os.path.split(lastsave)[0]
         filename = QFileDialog.getOpenFileName(
-            self, 'Open file...', '', lang.filetypes()
+            self, 'Open file...', lastsave, lang.filetypes()
         )
         if filename:
             self.load(filename)
@@ -683,13 +687,15 @@ class IdeEditor(Window):
     def documentSave(self):
         doc = self.currentDocument()
         if doc:
-            doc.save()
+            if doc.save():
+                self._lastSavedFilename = doc.filename()
 
     def documentSaveAs(self):
         doc = self.currentDocument()
         if doc:
             if doc.saveAs():
                 self.recordRecentFile(doc.filename())
+                self._lastSavedFilename = doc.filename()
 
     def documentSaveAll(self):
         for window in self.uiWindowsAREA.subWindowList():
@@ -892,6 +898,14 @@ class IdeEditor(Window):
         if not filename:
             return False
         osystem.console(filename)
+
+    def lastSavedFilename(self):
+        """
+            :remarks	Returns the filename of the last save. This is used to provide the default directory for
+                        file open and save dialogs.
+            :return		<str>
+        """
+        return self._lastSavedFilename
 
     def load(self, filename, lineno=0, useRegistry=True):
         filename = os.path.abspath(str(filename))

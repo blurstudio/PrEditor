@@ -715,8 +715,14 @@ class DocumentEditor(QsciScintilla):
         newFile = False
         if not filename:
             newFile = True
+            filename = self.filename()
+            if not filename:
+                window = self.window()
+                if isinstance(window, IdeEditor):
+                    if window.lastSavedFilename():
+                        filename = os.path.split(window.lastSavedFilename())[0]
             filename = QFileDialog.getSaveFileName(
-                self.window(), 'Save File as...', self.filename()
+                self.window(), 'Save File as...', filename
             )
 
         if filename:
