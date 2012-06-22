@@ -202,6 +202,9 @@
     <addaction name="uiCommentRemoveACT"/>
     <addaction name="uiCommentToggleACT"/>
     <addaction name="separator"/>
+    <addaction name="uiToLowercaseACT"/>
+    <addaction name="uiToUppercaseACT"/>
+    <addaction name="separator"/>
     <addaction name="uiInsertTemplateACT"/>
     <addaction name="separator"/>
     <addaction name="uiConfigurationACT"/>
@@ -828,6 +831,22 @@
    </property>
    <property name="text">
     <string>Smart Highlighting</string>
+   </property>
+  </action>
+  <action name="uiToUppercaseACT">
+   <property name="text">
+    <string>To Uppercase</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+U</string>
+   </property>
+  </action>
+  <action name="uiToLowercaseACT">
+   <property name="text">
+    <string>To Lowercase</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>

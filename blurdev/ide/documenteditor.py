@@ -866,6 +866,15 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
+        act = menu.addAction('To Lowercase')
+        act.triggered.connect(self.toLower)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/lowercase.png')))
+        act = menu.addAction('To Uppercase')
+        act.triggered.connect(self.toUpper)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/uppercase.png')))
+
+        menu.addSeparator()
+
         submenu = menu.addMenu('View as...')
         l = self.language()
         act = submenu.addAction('Plain Text')
@@ -897,11 +906,32 @@ class DocumentEditor(QsciScintilla):
     def smartHighlightingRegEx(self):
         return self._smartHighlightingRegEx
 
+    def toLower(self):
+        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+        # TODO: Replace this with self.replaceSelectedText() once the new build of QSci is made.
+        # self.replaceSelectedText(self.selectedText().toLower())
+        text = self.selectedText().toLower()
+        self.removeSelectedText()
+        self.insert(text)
+        self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
+
+    def test(self):
+        self.replaceSelectedText(self.selectedText().toLower())
+
     def toggleFolding(self):
         from PyQt4.QtGui import QApplication
         from PyQt4.QtCore import Qt
 
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
+
+    def toUpper(self):
+        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+        # TODO: Replace this with self.replaceSelectedText() once the new build of QSci is made.
+        # self.replaceSelectedText(self.selectedText().toUpper())
+        text = self.selectedText().toUpper()
+        self.removeSelectedText()
+        self.insert(text)
+        self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
 
     def undo(self):
         super(DocumentEditor, self).undo()

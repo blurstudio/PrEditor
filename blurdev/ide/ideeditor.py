@@ -232,6 +232,8 @@ class IdeEditor(Window):
         self.uiCommentAddACT.triggered.connect(self.documentCommentAdd)
         self.uiCommentRemoveACT.triggered.connect(self.documentCommentRemove)
         self.uiCommentToggleACT.triggered.connect(self.documentCommentToggle)
+        self.uiToLowercaseACT.triggered.connect(self.documentToLowercase)
+        self.uiToUppercaseACT.triggered.connect(self.documentToUppercase)
         self._templateCompleter.itemClicked.connect(self.documentInsertTemplate)
 
         # connect search menu
@@ -702,6 +704,16 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.selectToMatchingBrace()
+
+    def documentToLowercase(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.toLower()
+
+    def documentToUppercase(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.toUpper()
 
     def documentUndo(self):
         doc = self.currentDocument()
@@ -1433,6 +1445,12 @@ class IdeEditor(Window):
         self.uiCommentToggleACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/comment_toggle.png'))
         )
+        self.uiToLowercaseACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/lowercase.png'))
+        )
+        self.uiToUppercaseACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/uppercase.png'))
+        )
         self.uiPasteACT.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
         self.uiConfigurationACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/preferences.png'))
@@ -1519,6 +1537,9 @@ class IdeEditor(Window):
         self.uiMainTBAR.addAction(self.uiCommentAddACT)
         self.uiMainTBAR.addAction(self.uiCommentRemoveACT)
         self.uiMainTBAR.addAction(self.uiCommentToggleACT)
+        self.uiMainTBAR.addSeparator()
+        self.uiMainTBAR.addAction(self.uiToLowercaseACT)
+        self.uiMainTBAR.addAction(self.uiToUppercaseACT)
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiFindPrevACT)
         self.uiMainTBAR.addAction(self.uiFindACT)
