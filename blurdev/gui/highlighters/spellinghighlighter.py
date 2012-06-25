@@ -62,15 +62,21 @@ class SpellingHighlighter(QSyntaxHighlighter):
                 word = self.wordAt(pos)
             else:
                 word = self.currentWord()
-            items = self._dictionary.suggest(word)
-            if not self._dictionary.check(word):
-                menu = QMenu(word, parent)
-                if items:
-                    for item in items:
-                        self.createMenuAction(menu, item, pos)
-                else:
-                    menu.addAction('No Suguestions')
-                return menu
+            try:
+                # Spell checker will error if a blank string is passed in.
+                if word and not self._dictionary.check(word):
+                    menu = QMenu(word, parent)
+                    items = self._dictionary.suggest(word)
+                    if items:
+                        for item in items:
+                            self.createMenuAction(menu, item, pos)
+                    else:
+                        menu.addAction('No Suguestions')
+                    return menu
+            except Exception, e:
+                # provide information about what word caused the error.
+                e.args = e.args + ('Enchant check error on word:"%s"' % word,)
+                raise e
         return None
 
     def createStandardSpellCheckMenu(self, event):
