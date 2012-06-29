@@ -1,6 +1,8 @@
 import sys
 import struct
 
+from blurdev.enum import enum
+
 
 def readFXD(filename):
     return FXDFile.read(filename)
