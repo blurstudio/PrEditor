@@ -65,7 +65,11 @@ class FXDFile(object):
         adaptive = bool(ord(f.read(sizeof_bool)))
 
         (outputvars,) = struct.unpack(fmt_int, f.read(sizeof_int))
-        outvars = [vars.toString(v) for v in vars.values() if int(str(outputvars)) & v]
+        outvars = [
+            vars.toString(v)
+            for v in self.ChannelTypes.values()
+            if int(str(outputvars)) & v
+        ]
 
         f.close()
 
