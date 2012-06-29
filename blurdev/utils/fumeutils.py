@@ -66,8 +66,8 @@ class FXDFile(object):
 
         (outputvars,) = struct.unpack(fmt_int, f.read(sizeof_int))
         outvars = [
-            vars.toString(v)
-            for v in self.ChannelTypes.values()
+            cls.ChannelTypes.toString(v)
+            for v in cls.ChannelTypes.values()
             if int(str(outputvars)) & v
         ]
 
