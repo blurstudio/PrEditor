@@ -160,7 +160,7 @@ class ConsoleEdit(QTextEdit):
         # Build the message
         message = ['<ul>']
 
-        import sys
+        import blurdev, sys
         from PyQt4.QtCore import QDateTime
 
         message.append('<li><b>user: </b>%s</li>' % username)
@@ -187,6 +187,10 @@ class ConsoleEdit(QTextEdit):
                 % (window.objectName(), window.__class__.__name__)
             )
 
+        coreMsg = blurdev.core.errorCoreText()
+        if coreMsg:
+            message.append('<li><b>blurdev.core Message:</b> %s</li>' % coreMsg)
+
         message.append('</ul>')
         message.append('<br>')
         message.append('<h3>Traceback Printout</h3>')
@@ -197,8 +201,6 @@ class ConsoleEdit(QTextEdit):
         message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
         # append extra stuff
-        import blurdev, sys
-
         tb = sys.last_traceback
         if tb:
             frame = tb.tb_frame

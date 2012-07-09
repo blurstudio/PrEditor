@@ -273,6 +273,7 @@ class XMLElement:
         #				Gets the attribute value of the element by the given attribute id
         #
         #	\param		attr			<string>
+        #	\param		fail			<string>
         #
         #	\return
         #				<string>

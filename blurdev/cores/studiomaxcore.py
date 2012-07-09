@@ -10,6 +10,7 @@
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
+from Py3dsMax import mxs
 from blurdev.cores.core import Core
 
 # -------------------------------------------------------------------------------------------------------------
@@ -53,15 +54,13 @@ class StudiomaxCore(Core):
                         messageBox if a error occurs and the LoggerWindow is not open.
             \Return		<bool>
         """
-        if Py3dsMax.mxs.MAXSCRIPTHOST == 1:
+        if mxs.MAXSCRIPTHOST == 1:
             # This is set in startup/blurStartupMaxLib.ms
             # It should signify that max was started with assburner
             return False
         return True
 
     def connectStudiomaxSignal(self, maxSignal, blurdevSignal, args=''):
-        from Py3dsMax import mxs
-
         # store the maxscript methods needed
         _n = mxs.pyhelper.namify
         callbacks = mxs.callbacks
@@ -89,8 +88,6 @@ class StudiomaxCore(Core):
         }
 
         # create the macroscript
-        from Py3dsMax import mxs
-
         filename = mxs.pathConfig.resolvePathSymbols(
             '$usermacros/Blur_%s_Macro.mcr' % options['id']
         )
@@ -136,8 +133,6 @@ class StudiomaxCore(Core):
         """
             \remarks	[overloaded] disables keystrokes in maxscript
         """
-        from Py3dsMax import mxs
-
         mxs.enableAccelerators = False
 
         return Core.disableKeystrokes(self)
@@ -146,16 +141,20 @@ class StudiomaxCore(Core):
         """
             \remarks	[overloaded] disables keystrokes in maxscript - max will always try to turn them on
         """
-        from Py3dsMax import mxs
-
         mxs.enableAccelerators = False
 
         return Core.enableKeystrokes(self)
 
+    def errorCoreText(self):
+        """
+            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+                        If a empty string is returned this line will not be shown in the error email.
+            :returns	<str>
+        """
+        return '<i>Open File:</i> %s' % mxs.maxFilePath + mxs.maxFileName
+
     def init(self):
         # connect the plugin to 3dsmax
-        import Py3dsMax
-
         hInstance = Py3dsMax.GetPluginInstance()
         hwnd = Py3dsMax.GetWindowHandle()
 
@@ -202,8 +201,6 @@ class StudiomaxCore(Core):
 
         # update the old library system
         if self.supportLegacy():
-            from Py3dsMax import mxs
-
             blurlib = mxs._blurLibrary
             if blurlib:
                 blurlib.setCodePath(envname)
@@ -239,15 +236,13 @@ class StudiomaxCore(Core):
 
         if os.path.splitext(filename)[1] in ('.ms', '.mcr'):
             if os.path.exists(filename):
-                import Py3dsMax
-
                 # try:
                 # in max 2012 this would generate a error when processing specific return character of \n which is the linux end line convention.
                 # see http://redmine.blur.com/issues/6446 for more details.
                 # 	Py3dsMax.runMaxscript(filename)
                 # except:
                 # 	print 'Except', filename
-                return Py3dsMax.mxs.filein(filename)
+                return mxs.filein(filename)
             return False
 
         return Core.runScript(self, filename, scope, argv, toolType)

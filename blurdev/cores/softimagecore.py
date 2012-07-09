@@ -8,8 +8,8 @@
 # 	\date		04/12/10
 #
 
-# to be in a 3dsmax session, we need to be able to import the Py3dsMax package
-import PySoftimage
+# to be in a Softimage session, we need to be able to import the PySoftimage package
+from PySoftimage import xsi
 from blurdev.cores.core import Core
 
 # -------------------------------------------------------------------------------------------------------------
@@ -43,6 +43,14 @@ class SoftimageCore(Core):
         Core.__init__(self)
         self.setObjectName('softimage')
 
+    def errorCoreText(self):
+        """
+            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+                        If a empty string is returned this line will not be shown in the error email.
+            :returns	<str>
+        """
+        return '<i>Open File:</i> %s' % xsi.ActiveProject.ActiveScene.FileName.Value
+
     def isKeystrokesEnabled(self):
         from PyQt4.QtGui import QApplication, QCursor
 
@@ -56,8 +64,6 @@ class SoftimageCore(Core):
 
     def init(self):
         # connect the plugin to 3dsmax
-        from PySoftimage import xsi
-
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())
 
         self.protectModule('PySoftimage')
@@ -107,7 +113,6 @@ class SoftimageCore(Core):
         }
 
         # create the macroscript
-        from PySoftimage import xsi
 
         import os
 

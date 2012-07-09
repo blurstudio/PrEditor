@@ -244,6 +244,14 @@ class Core(QObject):
         # enable the client keystrokes
         self._keysEnabled = True
 
+    def errorCoreText(self):
+        """
+            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+                        If a empty string is returned this line will not be shown in the error email.
+            :returns	<str>
+        """
+        return ''
+
     def event(self, event):
         if event.type() == self.qProcessID:
             # process the next item in the queue
