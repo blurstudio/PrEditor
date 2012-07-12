@@ -9,6 +9,7 @@
 #
 
 from PyQt4.QtCore import QObject
+import glob, os
 
 
 class ToolsIndex(QObject):
@@ -108,9 +109,18 @@ class ToolsIndex(QObject):
         legacy = root.addNode('legacy')
 
         # go through all the different language tool folders
-        import glob
-
-        for path in glob.glob(self.environment().relativePath('code/*/tools/*/')):
+        # --------------------------------------------------------------------------------
+        # MCH 07/11/12: This is necessary for backwards compatibility until we switch over to the flat hierarchy
+        if os.path.isdir(
+            self.environment().relativePath('code/python/tools/External_Tools')
+        ):
+            # This is for the old tools system and is very blur specific
+            relPath = 'code/*/tools/*/'
+        else:
+            # --------------------------------------------------------------------------------
+            # This is for the new tools system
+            relPath = 'code/*/tools/'
+        for path in glob.glob(self.environment().relativePath(relPath)):
             self.rebuildPath(path, categories, tools)
 
         # go through the legacy folders
@@ -136,15 +146,14 @@ class ToolsIndex(QObject):
             \param		legacy				<bool>
             \param		parentCategoryId	<str>
         """
-        import glob
-        import os.path
-
         foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
 
         if parentCategoryId:
             categoryId = parentCategoryId + '::' + foldername
         else:
             categoryId = foldername
+
+        categoryId = '::'.join([split.strip('_') for split in categoryId.split('::')])
 
         # create a category
         categoryIndex = parent.findChildById(categoryId)
@@ -159,6 +168,15 @@ class ToolsIndex(QObject):
 
             from blurdev.XML import XMLDocument
 
+            def setValueForNode(cat, category='category', name='name', value=''):
+                """ Returns the requested node if it exists, or creates and sets it if it does not. """
+                for child in cat.children():
+                    if child.attribute(name) == value:
+                        return child
+                cat = cat.addNode(category)
+                cat.setAttribute(name, value)
+                return cat
+
             for toolPath in paths:
                 toolId = os.path.normpath(toolPath).split(os.path.sep)[-2]
                 toolIndex = tools.addNode('tool')
@@ -172,6 +190,26 @@ class ToolsIndex(QObject):
                 doc = XMLDocument()
                 if doc.load(toolPath) and doc.root():
                     toolIndex.addChild(doc.root())
+                    child = doc.root().findChild('category')
+                    if child:
+                        categoryId = '::'.join(
+                            [split.strip('_') for split in child.value().split('::')]
+                        )
+                        # build the category data
+                        splits = categoryId.split("::")
+                        cat = parent
+                        while splits:
+                            cat = setValueForNode(cat, 'category', 'name', splits[0])
+                            count = len(splits)
+                            if count > 2:
+                                splits = [
+                                    '::'.join((splits[0], splits[1].strip('_')))
+                                ] + splits[2:]
+                            elif count > 1:
+                                splits = ['::'.join((splits[0], splits[1].strip('_')))]
+                            else:
+                                splits = []
+                    toolIndex.setAttribute('category', categoryId)
                 else:
                     print 'Error loading tool: ', toolPath
 
