@@ -45,8 +45,11 @@ class Tool(QObject):
         self._header = None
 
     def displayName(self):
-        output = str(self.objectName()).split('::')[-1]
-        return output.replace('_', ' ').strip()
+        if self._displayName:
+            return self._displayName
+        else:
+            output = str(self.objectName()).split('::')[-1]
+            return output.replace('_', ' ').strip()
 
     def exec_(self, macro=''):
         """
@@ -119,6 +122,9 @@ class Tool(QObject):
 
         output = os.path.join(self.path(), relpath)
         return output
+
+    def setDisplayName(self, name):
+        self._displayName = name
 
     def setFavorite(self, state=True):
         self._favorite = state
@@ -199,6 +205,9 @@ class Tool(QObject):
                 output.setWikiPage(data.findProperty('wiki'))
                 output.setToolType(
                     ToolType.fromString(data.attribute('type', 'AllTools'))
+                )
+                output.setDisplayName(
+                    data.findProperty('displayName', output.objectName())
                 )
         else:
             output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))
