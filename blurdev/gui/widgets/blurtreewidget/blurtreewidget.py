@@ -400,6 +400,16 @@ class BlurTreeWidget(LockableTreeWidget):
         return output
 
     def recordPrefs(self, pref):
+        """
+            :remarks	Record tree settings for the provided prefrences. You can control what prefrences get saved by enableing 
+                        the various options. If you want to save the prefrences of more than one BlurTreeWidget in the same preffrences
+                        file you must set a identifier for each tree.
+            
+            :param		pref	<blurdev.prefs.Preference>	The pref file to restore from.
+            :sa			<BlurTreeWidget.saveColumnWidths>	Save column widths
+            :sa			<BlurTreeWidget.saveColumnOrder>	Sace column order
+            :sa			<BlurTreeWidget.setIdentifier>	Set a specific identifier for each tree.
+        """
         pref.recordProperty(self.prefName('ColumnVis'), self.columnVisibility())
         if self._saveColumnWidths:
             pref.recordProperty(self.prefName('ColumnWidths'), self.columnWidths())
@@ -493,6 +503,10 @@ class BlurTreeWidget(LockableTreeWidget):
                 self.restoreOpenState(openState, item.child(c), key)
 
     def restorePrefs(self, pref):
+        """
+            :remarks	Restore settings if they exist in the provided prefs file.
+            :param		pref	<blurdev.prefs.Preference>	The pref file to restore from.
+        """
         self.restoreColumnVisibility(
             pref.restoreProperty(self.prefName('ColumnVis'), {})
         )
