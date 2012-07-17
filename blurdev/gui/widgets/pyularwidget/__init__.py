@@ -8,4 +8,4 @@
 # 	\date		07/09/10
 #
 
-from pyularwidget import PyularWidget
+from pyularwidget import PyularWidget, PyularDialog

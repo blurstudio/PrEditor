@@ -10,8 +10,23 @@
 
 import PyQt4.uic, os.path, re, sys, blurdev
 
-from PyQt4.QtGui import QWidget, QIcon
+from PyQt4.QtGui import QWidget, QIcon, QVBoxLayout
 from regexrefdialog import RegexRefDialog
+
+
+class PyularDialog(blurdev.gui.Dialog):
+    def __init__(self, parent=None):
+        if not parent:
+            parent = blurdev.core.activeWindow()
+        super(PyularDialog, self).__init__(parent)
+        self.setWindowTitle('Pyular')
+        # create the widget
+        widget = PyularWidget(self)
+        # create the layout
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(widget)
+        self.setLayout(layout)
 
 
 class PyularWidget(QWidget):
@@ -56,9 +71,10 @@ class PyularWidget(QWidget):
             regex = re.compile(pattern, flags=self.flags)
             if typeIndex == 0:
                 results = regex.findall(text)[0]
-                out = []
+                out = ['<ul>']
                 for result in results:
-                    out.append('&bull; %s' % result)
+                    out.append('<li>%s</li>' % result)
+                out.append('</ul>')
                 self.uiResultsTXT.setText('<br>'.join(out))
                 return
             elif typeIndex == 1:
