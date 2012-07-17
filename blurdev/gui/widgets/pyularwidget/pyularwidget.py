@@ -49,6 +49,19 @@ class PyularWidget(QWidget):
         self.uiSearchTypeDDL.clear()
         self.uiSearchTypeDDL.addItems(self.searchTypes)
 
+    def errorLog(self):
+        """
+            :remarks	If a exception is called from this class, the email generated will contain this information
+        """
+        msg = []
+        msg.append('Pyular')
+        msg.append('Expression: %s' % self.uiExpressionTXT.text())
+        msg.append('Flags: %s' % self.uiFlagsTXT.text())
+        msg.append('Search Type: %s' % self.uiSearchTypeDDL.currentText())
+        msg.append('Replace Text: %s' % self.uiReplaceTXT.text())
+        msg.append('Test String: %s' % self.uiStringTXT.toPlainText())
+        return '\n'.join(msg)
+
     def parseFlags(self):
         """
             \Remarks	Parses the regular expression options
@@ -67,9 +80,10 @@ class PyularWidget(QWidget):
         text = unicode(self.uiStringTXT.toPlainText())
         typeIndex = self.uiSearchTypeDDL.currentIndex()
         try:
-            self.uiErrorLBL.setText(' ')
+            self.uiErrorLBL.setVisible(False)
+            self.uiSplitNotesLBL.setVisible(False)
             regex = re.compile(pattern, flags=self.flags)
-            if typeIndex == 0:
+            if typeIndex == 0:  # Find All
                 results = regex.findall(text)[0]
                 out = ['<ul>']
                 for result in results:
@@ -77,20 +91,27 @@ class PyularWidget(QWidget):
                 out.append('</ul>')
                 self.uiResultsTXT.setText('<br>'.join(out))
                 return
-            elif typeIndex == 1:
+            elif typeIndex == 1:  # Match
                 return self.processMatchObject(regex.match(text))
-            elif typeIndex == 2:
+            elif typeIndex == 2:  # Search
                 return self.processMatchObject(regex.search(text))
-            elif typeIndex == 3:
+            elif typeIndex == 3:  # Split
                 results = regex.split(text)
-            # sub
-            else:
+                for index, result in enumerate(results):
+                    if result == None:
+                        results[index] = '[None]'
+                        self.uiSplitNotesLBL.setVisible(True)
+                    if result == '':
+                        results[index] = "['']"
+                        self.uiSplitNotesLBL.setVisible(True)
+            else:  # Sub
                 replace = unicode(self.uiReplaceTXT.text())
                 results = regex.sub(replace, text)
                 self.uiResultsTXT.setText(results)
                 return
         except Exception, e:
             results = []
+            self.uiErrorLBL.setVisible(True)
             self.uiErrorLBL.setText(str(e))
         self.uiResultsTXT.setText('\n'.join(results))
 

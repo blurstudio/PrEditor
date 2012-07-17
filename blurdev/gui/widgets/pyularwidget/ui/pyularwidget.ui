@@ -13,8 +13,26 @@
   <property name="windowTitle">
    <string>Pyular</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="2" column="0">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Your regular expression:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="uiHelpBTN">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QLabel" name="label_2">
@@ -90,63 +108,7 @@
      </item>
     </layout>
    </item>
-   <item row="4" column="0">
-    <widget class="QSplitter" name="splitter">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <widget class="QWidget" name="verticalLayoutWidget">
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Your test string:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QTextEdit" name="uiStringTXT"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="uiErrorLBL">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-     <widget class="QGroupBox" name="groupBox">
-      <property name="title">
-       <string>Match result:</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QTextEdit" name="uiResultsTXT"/>
-       </item>
-      </layout>
-     </widget>
-    </widget>
-   </item>
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Your regular expression:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="uiHelpBTN">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="3" column="0">
+   <item>
     <widget class="QWidget" name="uiReplaceWGT" native="true">
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <property name="margin">
@@ -165,6 +127,63 @@
      </layout>
     </widget>
    </item>
+   <item>
+    <widget class="QSplitter" name="splitter">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label_4">
+         <property name="text">
+          <string>Your test string:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="uiStringTXT"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="uiErrorLBL">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(170, 0, 0);
+color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Something</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Match result:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="uiResultsTXT"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="uiSplitNotesLBL">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgb(170, 0, 0);
+color: rgb(255, 255, 255);</string>
+         </property>
+         <property name="text">
+          <string>Note: [None] = NoneType, [''] = empty string</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -174,7 +193,6 @@
   <tabstop>uiSearchTypeDDL</tabstop>
   <tabstop>uiReplaceTXT</tabstop>
   <tabstop>uiStringTXT</tabstop>
-  <tabstop>uiResultsTXT</tabstop>
  </tabstops>
  <resources/>
  <connections>
