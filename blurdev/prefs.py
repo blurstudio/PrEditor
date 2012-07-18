@@ -1,11 +1,11 @@
 ##
-# 	\namespace	blurdev.prefs
+# 	:namespace	blurdev.prefs
 #
-# 	\remarks	Module for handling user interface preferences
+# 	:remarks	Module for handling user interface preferences
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		04/09/10
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		04/09/10
 #
 
 import os
@@ -128,22 +128,27 @@ def clearCache():
     _cache.clear()
 
 
-def find(name, reload=False, coreName='', shared=False):
+def find(name, reload=False, coreName='', shared=False, index=0):
     """
-        \remarks	Finds a preference for the with the inputed name
+        :remarks	Finds a preference for the with the inputed name
                     If a pref already exists within the cache, then the cached pref is returned,
                     otherwise, it is loaded from the blurdev preference location
 
-        \param		name	<str>	the name of the preference to retrieve
-        \param		reload	<bool>	reloads the cached item
-        \param		coreName	<str>	specify a specific core name to save with.
-        \param		shared		<bool>	save to the network path not localy. Defaults to False
+        :param		name		<str>	the name of the preference to retrieve
+        :param		reload		<bool>	reloads the cached item
+        :param		coreName	<str>	specify a specific core name to save with.
+        :param		shared		<bool>	save to the network path not localy. Defaults to False
+        :param		index		<int>	if > 0 append to the end of name. used to make multiple 
+                                        instances of the same prefs file. If zero it will not 
+                                        append anything for backwards compatibility. Defaults to 0
 
-        \return		<blurdev.prefs.Preference>
+        :return		<blurdev.prefs.Preference>
     """
     import blurdev
 
     key = str(name).replace(' ', '-').lower()
+    if index > 0:
+        key = '%s%s' % (key, index)
     if reload or not key in _cache:
         # create a new preference record
         pref = Preference()
