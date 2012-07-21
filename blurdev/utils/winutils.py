@@ -12,6 +12,8 @@ def bringWindowToFrontIfExists(window_name):
     win32gui.EnumWindows(_handleGet, handles)
     for handle in handles:
         try:
+            # 			win32gui.SendMessage(handle, win32con.WM_NULL, 101, 0)
+            win32gui.Restore(handle)
             win32gui.SetForegroundWindow(handle)
         except Exception, e:
             print str(e)  # Microsoft sucks
