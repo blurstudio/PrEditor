@@ -262,11 +262,11 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
 def spoolText(action, data, user=None):
     # replace removes the extra tabs required to make it look nice in source code
     source = """{
-        action => %(action)s,
+        action => '%(action)s',
         data =>
         {
             %(data)s
-        }
+        },
         %(extra)s
     }""".replace(
         '\n\t', '\n'
@@ -285,8 +285,8 @@ def spoolText(action, data, user=None):
         extra.append("info => { user => '%s' }" % user)
     return source % {
         'action': action,
-        'data': '\n\t\t'.join(dataInfo),
-        'extra': '\n\t'.join(extra),
+        'data': ',\n\t\t'.join(dataInfo),
+        'extra': ',\n\t'.join(extra),
     }
 
 

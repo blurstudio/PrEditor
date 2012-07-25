@@ -279,6 +279,8 @@ class LoggerWindow(Window):
         self.restoreToolbars()
         self.uiWorkboxWGT.setLanguage('Python')
         self.uiWorkboxWGT.setShowSmartHighlighting(True)
+        # calling setLanguage resets this value to False
+        self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
     def showSdk(self):
         blurdev.core.sdkBrowser().show()
