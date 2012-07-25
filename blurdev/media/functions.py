@@ -259,6 +259,37 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
     return source
 
 
+def spoolText(action, data, user=None):
+    # replace removes the extra tabs required to make it look nice in source code
+    source = """{
+        action => %(action)s,
+        data =>
+        {
+            %(data)s
+        }
+        %(extra)s
+    }""".replace(
+        '\n\t', '\n'
+    )
+
+    def createLink(key, value):
+        if isinstance(value, basestring):
+            value = "'%s'" % value
+        return '%s => %s' % (key, str(value))
+
+    dataInfo = []
+    for key in data:
+        dataInfo.append(createLink(key, data[key]))
+    extra = []
+    if user:
+        extra.append("info => { user => '%s' }" % user)
+    return source % {
+        'action': action,
+        'data': '\n\t\t'.join(dataInfo),
+        'extra': '\n\t'.join(extra),
+    }
+
+
 def setAppIdForIcon(source, new=None):
     """
         \Remarks	Uses Win7AppID.exe to add the System.AppUserModel.ID property to windows 7 shortcuts allowing for pinning python applications 
