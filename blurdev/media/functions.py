@@ -259,35 +259,29 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
     return source
 
 
-def spoolText(action, data, user=None):
-    # replace removes the extra tabs required to make it look nice in source code
-    source = """{
-        action => '%(action)s',
-        data =>
-        {
-            %(data)s
-        },
-        %(extra)s
-    }""".replace(
-        '\n\t', '\n'
-    )
+def spoolText(**kwargs):
+    """
+        :remarks	Build a spool string for .msg server parsing. Any passed in keyword arguments are converted to perl dictionary keys.
+                    Example:
+                         spoolText(action='symlink', data={'linkname':r'c:\test.txt', 'target':r'c:\test2.test'}, info={'user':'mikeh'}, additonal=5)
+        :param		**kwargs	<**kwargs>
+        :return		<str>
+    """
 
     def createLink(key, value):
         if isinstance(value, basestring):
             value = "'%s'" % value
+        if isinstance(value, dict):
+            data = []
+            for k, v in value.items():
+                data.append(createLink(k, v))
+            value = '\n\t{\n\t\t%s\n\t}' % ',\n\t\t'.join(data)
         return '%s => %s' % (key, str(value))
 
-    dataInfo = []
-    for key in data:
-        dataInfo.append(createLink(key, data[key]))
-    extra = []
-    if user:
-        extra.append("info => { user => '%s' }" % user)
-    return source % {
-        'action': action,
-        'data': ',\n\t\t'.join(dataInfo),
-        'extra': ',\n\t'.join(extra),
-    }
+    data = []
+    for key, value in kwargs.items():
+        data.append(createLink(key, value))
+    return '{\n\t%s\n}' % ',\n\t'.join(data)
 
 
 def setAppIdForIcon(source, new=None):
