@@ -35,6 +35,9 @@ html = '''<table>
     <tr>
         <td><b><code>\z</code></b></td><td>End of string</td><td><b><code>\b</code></b></td><td>Any word boundary character</td><td><b><code>a{3,6}</code></b></td><td>Between 3 and 6 of a</td>
     </tr>
+    <tr>
+        <td><b><code>(?P&lt;name&gt;...)</code></b></td><td>Group subpattern and capture into named group</td><td><b><code></code></b></td><td></td><td><b><code></code></b></td><td></td>
+    </tr>
 </table>'''
 
 flagsHtml = '''<table>
