@@ -714,7 +714,10 @@ class Core(QObject):
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)
-                    argv_bak = sys.argv
+                    try:
+                        argv_bak = sys.argv
+                    except AttributeError:
+                        argv_bak = None
 
                     # if the path does not exist, then register it
                     ToolsEnvironment.registerScriptPath(filename)
@@ -728,7 +731,8 @@ class Core(QObject):
 
                     # restore the system information
                     sys.path = path_bak
-                    sys.argv = argv_bak
+                    if argv_bak:
+                        sys.argv = argv_bak
 
                 return True
 
