@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-v', '--version', dest='version', default='Python24')
     parser.add_option('-i', '--install', dest='install', default='0')
+    parser.add_option('-s', '--silent', dest='silent', default='0')
     parser.add_option('-o', '--offline', dest='offline', default='0')
     parser.add_option('-n', '--nsiLibs', dest='nsiLibs', default=r'..\..\..\nsis')
     parser.add_option('-c', '--copy', dest='copyTo', default='')
@@ -126,7 +127,12 @@ if __name__ == '__main__':
     if dictionary['install'] == '1':
         import os
 
-        os.startfile(filename)
+        if dictionary['silent'] == '1':
+            # Silent install
+            print 'Silently installing: ', filename
+            os.system('%s /S' % filename)
+        else:
+            os.startfile(filename)
     paths = dictionary['copyTo']
     if paths:
         import shutil
