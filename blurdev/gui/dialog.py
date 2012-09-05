@@ -13,6 +13,20 @@ from PyQt4.QtCore import Qt
 
 
 class Dialog(QDialog):
+    _instance = None
+
+    @classmethod
+    def instance(cls, parent=None):
+        """
+            :remarks	If you only want to have one instance of a dialog, use this method instead of creating a new dialog.
+                        It will only create a new instance of the class if the class variable _instance is none.
+            :param		parent	<QWidget>||None		The parent widget
+            :return		<Dialog>
+        """
+        if not cls._instance:
+            cls._instance = cls(parent=parent)
+        return cls._instance
+
     def __init__(self, parent=None, flags=Qt.WindowMinMaxButtonsHint):
         import blurdev
 
