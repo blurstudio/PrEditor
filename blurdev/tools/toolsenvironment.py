@@ -191,7 +191,10 @@ class ToolsEnvironment(QObject):
         self._offline = state
 
     def setEmailOnError(self, emails):
-        self._emailOnError = [entry for entry in emails if str(entry) != '']
+        if not emails:
+            self._emailOnError = []
+        else:
+            self._emailOnError = [entry for entry in emails if str(entry) != '']
 
     def setLegacyName(self, name):
         self._legacyName = name
@@ -237,6 +240,19 @@ class ToolsEnvironment(QObject):
         environmentFile='',
         legacyName=None,
     ):
+        """
+            :remarks	Adds a new environment to the list of environments. It does not save this environment to user_environments.
+            :param		name			<str>	The name of the new environment
+            :param		path			<str>	The base path to the environment
+            :param		default			<bool>	This environment should be treated as default. There should only be one env with this set 
+                                                to true. This is ignored in user_environments.xml
+            :param		development		<bool>	
+            :param		offline			<bool>	
+            :param		environmentFile	<str>	The source file. Defaults to blurdev.tools.toolsenvironment.USER_ENVIRONMENT_FILE
+            :param		legacyName		<str>	The name of the legacy environment defined in c:\blur\config.ini
+            
+            :return		<ToolsEnvironment>
+        """
         output = ToolsEnvironment()
 
         if not environmentFile:
