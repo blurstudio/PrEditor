@@ -59,10 +59,10 @@ def GetINISetting(inFileName, inSection="", inKey=""):
     #-------------------------------------------------------------------------------------------------------------
     """
     if os.path.isfile(inFileName):
-        tParser = ConfigParser.ConfigParser()
+        tParser = ToolParserClass()
         tParser.read(inFileName)
-        inSection = str(inSection)
-        inKey = str(inKey)
+        inSection = unicode(inSection)
+        inKey = unicode(inKey)
         if inSection:
             if tParser.has_section(inSection):
                 if inKey:
@@ -95,10 +95,10 @@ def SetINISetting(inFileName, inSection, inKey, inValue):
     #				- Created: EKH 06/26/06
     #-------------------------------------------------------------------------------------------------------------
     """
-    tParser = ConfigParser.ConfigParser()
-    inSection = str(inSection)
-    inKey = str(inKey)
-    inValue = str(inValue)
+    tParser = ToolParserClass()
+    inSection = unicode(inSection)
+    inKey = unicode(inKey)
+    inValue = unicode(inValue)
 
     if os.path.isfile(inFileName):
         tParser.read(inFileName)
@@ -106,10 +106,7 @@ def SetINISetting(inFileName, inSection, inKey, inValue):
         tParser.add_section(inSection)
 
     tParser.set(inSection, inKey, inValue)
-    tFile = open(inFileName, 'w')
-    tParser.write(tFile)
-    tFile.close()
-    return True
+    return tParser.Save(inFileName)
 
 
 def DelINISetting(inFileName, inSection, inKey=""):
@@ -131,20 +128,17 @@ def DelINISetting(inFileName, inSection, inKey=""):
     #-------------------------------------------------------------------------------------------------------------
     """
     if os.path.isfile(inFileName):
-        tParser = ConfigParser.ConfigParser()
+        tParser = ToolParserClass()
         tParser.read(inFileName)
-        inSection = str(inSection)
-        inKey = str(inKey)
+        inSection = unicode(inSection)
+        inKey = unicode(inKey)
 
         if tParser.has_section(inSection):
             if inKey:
                 tParser.remove_option(inSection, inKey)
             else:
                 tParser.remove_section(inSection)
-            tFile = open(inFileName, 'w')
-            tParser.write(tFile)
-            tFile.close()
-            return True
+            return tParser.Save(inFileName)
     return False
 
 
@@ -337,8 +331,8 @@ class SectionClass:
 
         for tKey, tValue in self._properties.iteritems():
             # only save the value if its diffrent or not pressent in the default section
-            if self.GetProperty(tKey) != str(tValue):
-                parser.set(self._sectionName, tKey, str(tValue))
+            if self.GetProperty(tKey) != unicode(tValue):
+                parser.set(self._sectionName, tKey, unicode(tValue))
         return True
 
     def SetName(self, sectionName):
@@ -367,7 +361,7 @@ class SectionClass:
         #				True
         #-------------------------------------------------------------------------------------------------------------
         """
-        propName = str(propName).lower()
+        propName = unicode(propName).lower()
         self._properties[propName] = propValue
         return True
 
@@ -556,19 +550,15 @@ class ToolParserClass(ConfigParser.ConfigParser):
         """
         sects = ('GLOBALS', 'default')
         for section in sects:
-            print 'Default Section:', section, self._sections.keys()
             if section in self._sections:
-                print '	adding section:', section
                 fp.write("[%s]\n" % section)
                 for (key, value) in sorted(self._sections[section].items()):
                     if key != "__name__":
-                        print '		adding Property:', key, str(value).replace(
-                            '\n', '\n\t'
+                        fp.write(
+                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
                         )
-                        fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
                 fp.write("\n")
             elif section in environments:
-                print '	adding section:', section
                 if section == 'default':
                     fp.write("[DEFAULT]\n")
                 else:
@@ -577,17 +567,18 @@ class ToolParserClass(ConfigParser.ConfigParser):
                     environments[section].__dict__['_properties'].items()
                 ):
                     if key != "__name__":
-                        print '		adding Property:', key, str(value).replace(
-                            '\n', '\n\t'
+                        fp.write(
+                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
                         )
-                        fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
                 fp.write("\n")
         for section in sorted(self._sections):
             if not section in sects:
                 fp.write("[%s]\n" % section)
                 for (key, value) in sorted(self._sections[section].items()):
                     if key != "__name__":
-                        fp.write("%s = %s\n" % (key, str(value).replace('\n', '\n\t')))
+                        fp.write(
+                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
+                        )
                 fp.write("\n")
 
 
