@@ -44,6 +44,17 @@ class StudiomaxCore(Core):
         self.setObjectName('studiomax')
         self._supportLegacy = False
 
+    def configUpdated(self):
+        """
+            :remarks	Preform any core specific updating of config. Returns if any actions were taken.
+            :return		<bool>
+        """
+        if self._supportLegacy:
+            blurlib = mxs._blurLibrary
+            if blurlib:
+                blurlib.LoadConfigData()
+        return False
+
     def connectAppSignals(self):
         # moved to blur3d
         return

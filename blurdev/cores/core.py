@@ -133,6 +133,13 @@ class Core(QObject):
 
         return palette
 
+    def configUpdated(self):
+        """
+            :remarks	Preform any core specific updating of config. Returns if any actions were taken.
+            :return		<bool>
+        """
+        return False
+
     def connectAppSignals(self):
         """
             \remarks	[virtual] connect the signals emitted by the application we're in to the blurdev core system
