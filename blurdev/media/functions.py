@@ -41,7 +41,7 @@ def extractVideoFrame(filename, outputpath):
     """
     options = {}
     options['source'] = filename
-    options['ffmpeg'] = blurdev.osystem.programFilesPath(r'ffmpeg\bin\ffmpeg.exe')
+    options['ffmpeg'] = r'C:\Program Files\ffmpeg\bin\ffmpeg.exe'
     if not os.path.exists(options['ffmpeg']):
         options['ffmpeg'] = options['ffmpeg'].replace(' (x86)', '')
     options['output'] = outputpath
