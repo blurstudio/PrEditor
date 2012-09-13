@@ -215,15 +215,6 @@ class StudiomaxCore(Core):
             blurlib = mxs._blurLibrary
             if blurlib:
                 blurlib.setCodePath(envname)
-                # update the config.ini file so next time we start from the correct environment.
-                import blurdev.ini
-
-                if not envname:
-                    envname = env.objectName()
-                if envname:
-                    blurdev.ini.SetINISetting(
-                        blurdev.ini.configFile, 'GLOBALS', 'environment', envname
-                    )
 
         # register standard paths
         return Core.registerPaths(self)
