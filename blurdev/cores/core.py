@@ -480,16 +480,6 @@ class Core(QObject):
         env = ToolsEnvironment.activeEnvironment()
         env.registerPath(env.relativePath('maxscript/treegrunt/lib'))
         env.registerPath(env.relativePath('code/python/lib'))
-        # update the config.ini file so next time we start from the correct environment.
-        import blurdev.ini
-
-        envname = env.legacyName()
-        if not envname:
-            envname = env.objectName()
-        if envname:
-            blurdev.ini.SetINISetting(
-                blurdev.ini.configFile, 'GLOBALS', 'environment', envname
-            )
 
     def recordSettings(self):
         r"""
