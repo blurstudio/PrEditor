@@ -1,3 +1,7 @@
+"""Utilities and tools for reading fume caches.
+
+"""
+
 import sys
 import struct
 
@@ -5,14 +9,28 @@ from blurdev.enum import enum
 
 
 def readFXD(filename):
+    """
+    Convenience function for returning a :class:`FXDFile` object 
+    representing the given filename.
+    
+    """
     return FXDFile.read(filename)
 
 
 class FXDFile(object):
+    """
+    Reader for fxd fume caches.  Currently, it only supports reading the
+    fxd headers.
+    
+    Information about the header is stored in the "attributes" attribute
+    dictionary.
+    
+    """
 
     ChannelTypes = enum(
         "None", "Fuel", "Temp", "Smoke", "Fluid", "Velocity", "Voxel", "Color"
     )
+    """Enumerated type for the types of channels a fume cache may contain."""
 
     def __init__(self):
         super(FXDFile, self).__init__()
@@ -21,6 +39,11 @@ class FXDFile(object):
 
     @classmethod
     def read(cls, filename):
+        """
+        Reads the fume cache at the given filepath and returns a
+        :class:`FXDFile` instance representing that cache.
+        
+        """
         fxd = FXDFile()
         fxd.filename = filename
 

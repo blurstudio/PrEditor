@@ -1,3 +1,8 @@
+"""
+Utilities and tools for reading and writing alembic files.
+
+"""
+
 import re
 import sys
 import os
@@ -23,6 +28,21 @@ def printArchive(src):
 
 def readArchive(src):
     return ABCArchive.fromFile(src)
+
+
+def getIdentifiers(filepath):
+    iarchive = alembic.getIArchive(filename)
+    return iarchive.getIdentifiers()
+
+
+def getPolyMeshObjectNames(iarchive):
+    re_poly = re.compile(r"^/(?P<name>[^/]+)Xfo$")
+    poly_names = []
+    for id in iarchive.getIdentifiers():
+        m = re_poly.match(id)
+        if m:
+            poly_names.append(m.group('name'))
+    return poly_names
 
 
 class ABCArchive(object):
@@ -72,12 +92,14 @@ class ABCArchive(object):
 
     @classmethod
     def fromFile(cls, filename):
+        logging.debug("Reading file: %s" % filename)
         iarchive = alembic.getIArchive(filename)
         archive = ABCArchive()
         archive.filename = iarchive.getFileName()
         archive.version = iarchive.getVersion()
         archive.sampletimes = iarchive.getSampleTimes()
         archive.objects = {}
+        logging.debug("Reading iArchive objects...")
         for oid in iarchive.getIdentifiers():
             iobj = iarchive.getObject(oid)
             archive.objects[oid] = ABCObject.from_iObject(iobj)
@@ -149,6 +171,7 @@ class ABCObject(object):
 
     @classmethod
     def from_iObject(cls, iobj, abcarchive=None):
+        logging.debug("  Reading iObject: %s..." % iobj.getIdentifier())
         obj = cls()
         obj.abcarchive = abcarchive
         obj.id = iobj.getIdentifier()
@@ -195,22 +218,29 @@ class ABCProperty(object):
 
     @classmethod
     def from_iProperty(cls, iprop, abcobject=None, abcproperty=None):
+        logging.debug("    Reading iProperty: %s..." % iprop.getName())
         prop = cls()
         prop.abcobject = abcobject
         if abcobject is not None:
             prop.abcarchive = abcobject.abcarchive
+        logging.debug("      Reading Name and Type...")
         prop.name = iprop.getName()
         prop.type = iprop.getType()
+        logging.debug("      Reading SampleTimes...")
         prop.sampletimes = iprop.getSampleTimes()
+        logging.debug("      Reading NbStoredSamples...")
         prop.nbstoredsamples = iprop.getNbStoredSamples()
+        logging.debug("      Reading Size...")
         prop.size = iprop.getSize()
         prop.values = []
+        logging.debug("      Reading Values...")
         for i in range(prop.nbstoredsamples):
             vals = iprop.getValues(i)
             prop.values.append(vals)
 
         prop.compound = iprop.isCompound()
         if prop.compound:
+            logging.debug("      Reading SubProperties...")
             prop.properties = {}
             for sub_iprop_name in iprop.getPropertyNames():
                 sub_iprop = iprop.getProperty(sub_iprop_name)

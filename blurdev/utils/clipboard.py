@@ -10,6 +10,7 @@ else:
 
 
 def setText(text):
+    """Sets the current clipboard text."""
     if not WIN32:
         return
     text = unicode(text)
@@ -20,6 +21,7 @@ def setText(text):
 
 
 def text():
+    """Returns the current clipboard text."""
     if not WIN32:
         return ''
     win32clipboard.OpenClipboard()

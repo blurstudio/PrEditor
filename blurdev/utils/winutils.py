@@ -1,7 +1,15 @@
-import win32gui, win32api
+import win32api
+import win32gui
+import win32con
 
 
 def bringWindowToFrontIfExists(window_name):
+    """
+    Looks for a windows with the given *window_name*.  If any are found,
+    they are set as the foreground window.
+    
+    """
+
     def _handleGet(handle, args):
         windowtitle = win32gui.GetWindowText(handle)
         if windowtitle.startswith(window_name):
@@ -12,8 +20,12 @@ def bringWindowToFrontIfExists(window_name):
     win32gui.EnumWindows(_handleGet, handles)
     for handle in handles:
         try:
-            # 			win32gui.SendMessage(handle, win32con.WM_NULL, 101, 0)
-            win32gui.Restore(handle)
+            win32gui.SendMessage(handle, win32con.WM_NULL, 101, 0)
+            win32gui.SendMessage(
+                handle, win32con.WM_SHOWWINDOW, True, win32con.SW_PARENTOPENING
+            )
+            win32gui.ShowWindow(handle, win32con.SW_SHOWNORMAL)
+            win32gui.ShowWindow(handle, win32con.SW_RESTORE)
             win32gui.SetForegroundWindow(handle)
         except Exception, e:
             print str(e)  # Microsoft sucks

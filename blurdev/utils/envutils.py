@@ -11,15 +11,22 @@ except ImportError:
 
 
 def username():
+    """
+    Returns the environment username.
+    """
     return os.environ.get('USERNAME', None)
 
 
 def hostname():
+    """
+    Returns the environment computer (host) name.
+    """
     return os.environ.get('COMPUTERNAME', None)
 
 
 def currentUsernames():
-    """This gets a list of all usernames logged in across all windows sessions
+    """
+    This gets a list of all usernames logged in across all windows sessions
     on the current computer.
     """
     if not WIN32:
