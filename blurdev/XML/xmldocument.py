@@ -37,16 +37,9 @@ class XMLDocument(XMLElement):
 
     def load(self, fileName):
         """
-        #-------------------------------------------------------------------------------------------------------------
-        #	\remarks
-        #				Loads the given xml file by calling xml.dom.minidom.parse, setting this instances object to the
-        #				resulting value.
-        #
-        #	\param		fileName		<string>
-        #
-        #	\return
-        #				<boolean> success
-        #-------------------------------------------------------------------------------------------------------------
+        Loads the given xml file by calling xml.dom.minidom.parse, 
+        setting this instances object to the resulting value.
+
         """
         success = False
         fileName = unicode(fileName)
@@ -73,14 +66,8 @@ class XMLDocument(XMLElement):
         return success
 
     def root(self):
-        """
-        #-------------------------------------------------------------------------------------------------------------
-        #	\remarks
-        #				Returns the root xml node for this document
-        #
-        #	\return
-        #				<XML.XMLElement> || None
-        #-------------------------------------------------------------------------------------------------------------
+        """Returns the root xml node for this document.
+
         """
         if self._object and self._object.childNodes:
             return XMLElement(self._object.childNodes[0], self.__file__)
@@ -88,17 +75,17 @@ class XMLDocument(XMLElement):
 
     def save(self, fileName, pretty=True, showDialog=False):
         """
-        #-------------------------------------------------------------------------------------------------------------
-        #	\remarks
-        #				Saves the xml document to the given file, converting it to a pretty XML document if so desired
-        #
-        #	\param		fileName		<string>
-        #	\param		pretty			<boolean>		Pretty will format spaces and line breaks. Default: True
-        #	\param		showDialog		<boolean>		If a error occurs while saving, show dialog boxes explaining the problem. Default: False
-        #
-        #	\return
-        #				<boolean> success
-        #-------------------------------------------------------------------------------------------------------------
+        Saves the xml document to the given file, converting it to a 
+        pretty XML document if so desired.
+        
+        :param fileName: path to the save location
+        :param pretty: if set to True, will format spaces and line breaks.
+        :param showDialog: if set to True, if an error occurs while saving,
+                           a dialog will be displayed showing the errors.
+        :type fileName: str
+        :type pretty: bool
+        :type showDialog: bool
+
         """
         if os.path.exists(os.path.split(fileName)[0]):
             self.__file__ = fileName
