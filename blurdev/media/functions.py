@@ -1,14 +1,3 @@
-##
-# 	\namespace	python.apps.trax.api.media
-#
-# 	\remarks	The media package contains modules for managing external media
-# 				applications for trax usage.
-#
-# 	\author		eric@blur.com
-# 	\author		Blur Studio
-# 	\date		01/11/11
-#
-
 import os
 import subprocess
 import glob
@@ -36,8 +25,10 @@ _imageFileTypes = {
 
 def extractVideoFrame(filename, outputpath):
     """
-        \Remarks	This uses ffmpeg to extract a frame as a image.
-                    This requires that ffmpeg is installed by copying the ffmpeg folder into the 32bit program files folder
+    This uses ffmpeg to extract a frame as a image.  This requires that 
+    ffmpeg is installed by copying the ffmpeg folder into the 32bit 
+    program files folder.
+    
     """
     options = {}
     options['source'] = filename
@@ -46,10 +37,8 @@ def extractVideoFrame(filename, outputpath):
         options['ffmpeg'] = options['ffmpeg'].replace(' (x86)', '')
     options['output'] = outputpath
     cmd = '"%(ffmpeg)s" -i "%(source)s" -t 1 -f image2 "%(output)s"' % options
-    # 	print cmd
     out = subprocess.Popen(cmd)
     out.wait()
-    # 	os.system(cmd)
     return os.path.exists(outputpath)
 
 
@@ -63,14 +52,16 @@ def get32bitProgramFiles():
 
 def imageMagick(source, destination, exe='convert', flags=''):
     """
-        \Remarks	Crafts then runs specified command on ImageMagick executables and waits until it finishes. This assumes Image Magic is 
-                    installed into 32bit program files. It returns True if the requested exicutable exists path exists.
-        \param		source		<str>
-        \param		destination	<str>
-        \param		exe			<str>
-        \param		flags		<str>
-        \sa			http://www.imagemagick.org/script/index.php
-        \Return		<bool>
+    Crafts then runs specified command on ImageMagick executables and waits 
+    until it finishes. This assumes Image Magic is installed into 32bit 
+    program files. It returns True if the requested exicutable exists path 
+    exists.
+    
+    .. seealso:: 
+    
+       `ImageMagick <http://www.imagemagick.org/script/index.php>`_
+          ImageMagick documentation
+
     """
     converter = r'%s\ImageMagick\%s.exe' % (get32bitProgramFiles(), exe)
     if os.path.exists(converter):
@@ -82,12 +73,24 @@ def imageMagick(source, destination, exe='convert', flags=''):
 
 
 def imageSequenceFromFileName(fileName):
-    """
-        \Remarks	Gets a list of files that belong to the same image sequence as the passed in file.
-        \Note		This only works if the last number in filename is part of the image sequence.
-                    "c:\temp\test_[frame]_v01.jpg" A file signature like this would not work.
-                    It will ignore numbers inside the extension. Example("C:\temp\test_[frame].png1")
-        \Return		<list>
+    r"""
+    Gets a list of files that belong to the same image sequence as the 
+    passed in file.
+    
+    .. note:: 
+    
+       This only works if the last number in filename is part of the 
+       image sequence.  For example, a file signature like this would 
+       not work::
+       
+         C:\temp\test_1234_v01.jpg
+
+       It will ignore numbers inside the extension::
+       
+          C:\temp\test_1234.png1
+        
+    :rtype: list
+                    
     """
     regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
     fileName = os.path.normpath(fileName)
@@ -109,8 +112,8 @@ def imageSequenceFromFileName(fileName):
 
 def imageSequenceRepr(files):
     """
-        \Remarks	Takes a list of files and creates a string that represents the sequence
-        \Return		<str>
+    Takes a list of files and creates a string that represents the sequence.
+    
     """
     if len(files) > 1:
         regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
@@ -140,8 +143,11 @@ def imageSequenceRepr(files):
 
 def imageSequenceForRepr(fileName):
     """
-        \Remarks	Returns the list of file names for a imageSequenceRepr. Only existing files are returned.
-        \Return		<list>
+    Returns the list of file names for a imageSequenceRepr. Only existing 
+    files are returned.
+    
+    :rtype: list
+    
     """
     fileName = unicode(fileName)
     filter = re.compile(
@@ -220,13 +226,20 @@ def openQuicktime(filename):
 
 def resizeImage(source, newSize=None, maxSize=None, filter=None):
     """
-        \Remarks	Uses PIL to resize the provided image. newSize and maxSize expect a 2 position tuple(width, height). If newSize is provided, 
-                    maxSize is ignored. filter expects a string or Pil.Image filter(BILINEAR, BICUBIC, ANTIALIAS, NEAREST), it will default to BICUBIC.
-        \param		source		<str>||<unicode>||<PIL.Image>
-        \param		newSize		<tuple>||None
-        \param		maxSize		<tuple>||None
-        \param		filter		<str>||<unicode>||<Pil.Image.BILINEAR>||<Pil.Image.BICUBIC>||<Pil.Image.ANTIALIAS>||<Pil.Image.NEAREST>
-        \Return		<Pil.Image>||<int>		If successfull returns the resized Pil.Image. If it failed it will return a tuple containing error id, and a error message.
+    Uses PIL to resize the provided image.  *newSize* and *maxSize* expect 
+    a 2 position tuple(width, height). If *newSize* is provided, *maxSize* 
+    is ignored. *filter* expects a string or Pil.Image 
+    filter(BILINEAR, BICUBIC, ANTIALIAS, NEAREST), it will default to BICUBIC.
+    
+    :param source: the source image to resize, can be a filepath or 
+                   :class:`PIL.Image`
+    :param newSize: two-item (width, height) tuple
+    :param maxSize: two-item (width, height) tuple
+    :param filter: a :class:`PIL.Image` filter or the filter name as a string
+    :returns: A new, resized :class:`PIL.Image`.  If there is an error during
+              the resize, it will return the error id
+    :rtype: :class:`PIL.Image` or int
+
     """
     try:
         from PIL import Image
@@ -262,12 +275,12 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
 
 
 def spoolText(**kwargs):
-    """
-        :remarks	Build a spool string for .msg server parsing. Any passed in keyword arguments are converted to perl dictionary keys.
-                    Example:
-                         spoolText(action='symlink', data={'linkname':r'c:\test.txt', 'target':r'c:\test2.test'}, info={'user':'mikeh'}, additonal=5)
-        :param		**kwargs	<**kwargs>
-        :return		<str>
+    r"""
+    Build a spool string for .msg server parsing. Any passed in keyword 
+    arguments are converted to perl dictionary keys::
+    
+       spoolText(action='symlink', data={'linkname':r'c:\test.txt', 'target':r'c:\test2.test'}, info={'user':'mikeh'}, additonal=5)
+       
     """
 
     def createLink(key, value):
@@ -287,13 +300,22 @@ def spoolText(**kwargs):
 
 
 def setAppIdForIcon(source, new=None):
-    """
-        \Remarks	Uses Win7AppID.exe to add the System.AppUserModel.ID property to windows 7 shortcuts allowing for pinning python applications 
-                    to taskbars. You need to download the executible from http://code.google.com/p/win7appid/ and place it in 
-                    C:\Program Files (x86)\Common Files\Win7AppID\Win7AppId.exe or equivalent for 32bit apps on your system.
-        \param		source	<str>			The icon file to query or modify
-        \param		new		<str>||None		If None, returns the current appId for source. If a string is provided it will change the appId for source.
-        \return		<list>||<int>			Returns -1 if it can not find the file, other wise returns the output of the application as a list.
+    r"""
+    Uses Win7AppID.exe to add the System.AppUserModel.ID property to 
+    windows 7 shortcuts allowing for pinning python applications to taskbars. 
+    You need to download the executible from 
+    `here <http://code.google.com/p/win7appid/>`_ and place it in 
+    *C:\Program Files (x86)\Common Files\Win7AppID\Win7AppId.exe* or 
+    equivalent for 32bit apps on your system.
+    
+    :param source: The icon file to query or modify
+    :param new: If None, returns the current appId for source. If a string 
+                is provided it will change the appId for source.
+                
+    :returns: Returns -1 if it can not find the file; otherwise, returns 
+              the output of the application as a list.
+    :rtype: list or int
+    
     """
     appId = r'%s\Common Files\Win7AppId\Win7AppId.exe' % get32bitProgramFiles()
     if os.path.exists(appId):
