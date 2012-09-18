@@ -7,6 +7,25 @@
 # 	\author		Blur Studio
 # 	\date		08/06/08
 #
+"""
+Python based enumartion class, create and parse binary classes
+
+The enum module defines a single class -- :class:`enum` -- to act as an 
+enumerated type similar to the enumerated type present in other languages.
+
+A short example::
+
+    >>> Colors = enum("Red", "Yellow", "Blue")
+    >>> Color.Red
+    1
+    >>> Color.Yellow
+    2
+    >>> Color.Blue
+    4
+    >>> Color.labelByValue(Color.Blue)
+    'Blue'
+    
+"""
 
 import re
 from sys import maxint

@@ -1,12 +1,7 @@
-##
-# 	:namespace	blurdev.prefs
-#
-# 	:remarks	Module for handling user interface preferences
-#
-# 	:author		beta@blur.com
-# 	:author		Blur Studio
-# 	:date		04/09/10
-#
+"""
+Module for handling user interface preferences
+
+"""
 
 import os
 import getpass
@@ -20,8 +15,12 @@ _cache = {}
 
 
 class Preference(XMLDocument):
-    """ a preference document is a sub-class of the XMLDocument and is used for storing custom information
-        about blurdev components, most often tools or views """
+    """
+    A preference document is a sub-class of the XMLDocument and is used for 
+    storing custom information about blurdev components, most often tools 
+    or views.
+    
+    """
 
     def __init__(self):
         XMLDocument.__init__(self)
@@ -130,19 +129,24 @@ def clearCache():
 
 def find(name, reload=False, coreName='', shared=False, index=0):
     """
-        :remarks	Finds a preference for the with the inputed name
-                    If a pref already exists within the cache, then the cached pref is returned,
-                    otherwise, it is loaded from the blurdev preference location
+    Finds a preference for the with the inputed name.  If a pref already 
+    exists within the cache, then the cached pref is returned; otherwise, 
+    it is loaded from the blurdev preference location.
 
-        :param		name		<str>	the name of the preference to retrieve
-        :param		reload		<bool>	reloads the cached item
-        :param		coreName	<str>	specify a specific core name to save with.
-        :param		shared		<bool>	save to the network path not localy. Defaults to False
-        :param		index		<int>	if > 0 append to the end of name. used to make multiple 
-                                        instances of the same prefs file. If zero it will not 
-                                        append anything for backwards compatibility. Defaults to 0
+    :param name: the name of the preference to retrieve
+    :type name: str
+    :param reload: reloads the cached item
+    :type reload: bool
+    :param coreName: specify a specific core name to save with.
+    :type coreName: str
+    :param shared: save to the network path not localy. Defaults to False
+    :type shared: bool
+    :param index: if > 0 append to the end of name. used to make multiple 
+                  instances of the same prefs file. If zero it will not 
+                  append anything for backwards compatibility. Defaults to 0
+    :type index: int
+    :rtype: :class:`Preference`
 
-        :return		<blurdev.prefs.Preference>
     """
     import blurdev
 

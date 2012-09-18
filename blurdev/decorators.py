@@ -1,12 +1,8 @@
-##
-# 	\namespace	python.blurdev.decorators
-#
-# 	\remarks	Defines some deocrators that are commonly useful
-#
-# 	\author		eric@blur.com
-# 	\author		Blur Studio
-# 	\date		03/23/11
-#
+"""
+Defines some deocrators that are commonly useful
+
+
+"""
 
 from blurdev import debug
 
@@ -138,6 +134,14 @@ except ImportError:
 
 
 def pendingdeprecation(args):
+    """
+    Used to mark method or function as pending deprecation.  When the 
+    decorated object is called, it will generate a pending deprecation warning.
+
+    :param message: optional message text
+    :type message: str	
+    
+    """
     msg = 'This method is depricated and will be removed in the future.'
     if isinstance(args, str):
         msg = '%s %s' % (msg, args)
@@ -166,13 +170,19 @@ def pendingdeprecation(args):
 
 
 def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
-    r"""
-        \remarks	Generate a blurdev.debug.Stopwatch that tells how long it takes the decorated function to run.
-                    You can access the Stopwatch object by calling __stopwatch__ on the function object.
-                    If you function is called slowFunction() inside the function you can call slowFunction.__stopwatch__
-                    If your function is part of a class, make sure to call self(self.slowFunction.__stopwatch__)
-        \param		text	<str>||<function>	Message text, or no arguments
-        \param		debugLevel	<blurdev.debug.DebugLevel>
+    """
+    Generate a blurdev.debug.Stopwatch that tells how long it takes the 
+    decorated function to run.  You can access the Stopwatch object by calling 
+    __stopwatch__ on the function object.  If you function is called 
+    slowFunction() inside the function you can call slowFunction.__stopwatch__
+    If your function is part of a class, make sure to call 
+    self(self.slowFunction.__stopwatch__).
+
+    :param text: optional message text
+    :param debugLevel: the debug level the stopwatch will use to pring messages.
+    :type text: str
+    :type debugLevel: :data:`DebugLevel`
+    
     """
     msg = text
     if hasattr(text, '__call__'):

@@ -1,12 +1,33 @@
-##
-# 	:namespace	blurdev.debug
-#
-# 	:remarks	Handles the debugging system for the blurdev package
-#
-# 	:author		beta@blur.com
-# 	:author		Blur Studio
-# 	:date		04/09/10
-#
+"""
+.. warning::
+
+   The python standard library provides a very powerful and flexible logging
+   and debugging module -- 
+   `logging <http://docs.python.org/library/logging.html>`_.
+   
+   Only use this module if you are updating an existing tool or library that 
+   uses it or is part of a larger blur system that uses it.
+   
+   If you are creating a new tool or library, use the 
+   `logging <http://docs.python.org/library/logging.html>`_ module in the 
+   standard library instead.  
+   
+.. deprecated:: 2.0
+
+
+The blurdev debug module defines a handful of functions, as well as a single
+enumerated type, and a single class, to help with the creation and printing
+of logging messages.
+
+The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
+-- that is used to discriminate between the various types of logging messages.
+
+.. data:: DebugLevel
+
+   An :class:`enum` used to set different levels of debugging.  Current 
+   values are Low, Medium, and High
+   
+"""
 
 import os
 import datetime
@@ -17,15 +38,6 @@ _debugLogger = None
 _errorReport = []
 
 DebugLevel = enum('Low', 'Mid', 'High')
-
-# ---------------------------------------
-
-
-class DebugLogger:
-    pass
-
-
-# ---------------------------------------
 
 
 class Stopwatch:
@@ -94,23 +106,22 @@ class Stopwatch:
         self._records.append('\tlap: %s | %s' % (elapsed, message))
 
 
-# ---------------------------------------
-
-
 def clearErrorReport():
-    """
-        :remarks	clears the current report
-    """
+    """Clears the current report"""
     global _errorReport
     _errorReport = []
 
 
 def debugMsg(msg, level=2):
     """
-        :remarks	Prints out a debug message to the stdout if the inputed level is greater than or equal to the current debugging level
-        :param		msg		<str>						message to output
-        :param		level	<DebugLevel>				debug level
-        :return		<void>
+    Prints out a debug message to the stdout if the inputed level is 
+    greater than or equal to the current debugging level
+    
+    :param msg: message to output
+    :param level: debugLevel
+    :type msg: str
+    :type level: :data:`DebugLevel`
+    
     """
     if level <= debugLevel():
         print 'DEBUG (%s) : %s' % (DebugLevel.keyByValue(level), msg)
@@ -118,15 +129,15 @@ def debugMsg(msg, level=2):
 
 def debugObject(object, msg, level=2):
     """
-        :remarks	Usees the debugMsg function to output to the stdout a debug message including the reference of where the object calling the method is located
+    Uses :func:`debugMsg` to output to the stdout a debug message 
+    including the reference of where the object calling the method is located.
 
-        :sa			debugMsg
-
-        :param		object		<module> || <class> || <method> || <function>
-        :param		msg			<str>
-        :param		level		<DebugLevel>
-
-        :return		<void>
+    :param object: the object to include in the output message
+    :param msg: message to output
+    :param level: debugLevel
+    :type msg: str
+    :type level: :data:`DebugLevel`
+    
     """
     debugMsg(debugObjectString(object, msg), level)
 
@@ -158,27 +169,27 @@ def debugObjectString(object, msg):
 
 def debugStubMethod(object, msg, level=2):
     """
-        :remarks	Uses the debugObject function to display that a stub method has not been provided functionality
+    Uses :func:`debugObject` to display that a stub method has not 
+    been provided functionality.
 
-        :sa			debugObject
-
-        :param		object		<function> || <method>
-        :param		msg			<str>
-        :param		level		<DebugLevel>
-
-        :return		<void>
+    :param object: the object to include in the output message
+    :param msg: message to output
+    :param level: debugLevel
+    :type msg: str
+    :type level: :data:`DebugLevel`
+   
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
 
 
 def debugVirtualMethod(cls, object):
     """
-        :remarks	Uses the debugObject function to display that a virtual function has not been overloaded
+    Uses :func:`debugObject` to display that a virtual function has not 
+    been overloaded
 
-        :sa			debugObject
-
-        :param		cls			<class>						base class where the method is defined
-        :param		object		<function> || <method>
+    :param cls: the class object where the "virtual" method is defined
+    :param object: the "virtual" method include in the output message
+    
     """
     debugObject(
         object, 'Virtual method has not been overloaded from %s class' % cls.__name__
@@ -186,6 +197,7 @@ def debugVirtualMethod(cls, object):
 
 
 def debugLevel():
+    """Returns the current debugging level"""
     return _currentLevel
 
 
@@ -197,17 +209,23 @@ def emailList():
 
 def errorsReported():
     """
-        :remarks	returns whether or not the error report is empty
-        :return		<bool>
+    Returns whether or not the error report is empty
+
+    :rtype: bool
+    
     """
     return len(_errorReport) > 0
 
 
 def isDebugLevel(level):
     """
-        :remarks	Checks to see if the current debug level greater than or equal to the inputed level
-        :param		level		<DebugLevel> || <str> || <QString>
-        :return		<boolean> success
+    Checks to see if the current debug level greater than or equal to 
+    the inputed level
+
+    :param level: debugLevel
+    :type level: :data:`DebugLevel`
+    :rtype: bool
+    
     """
     from PyQt4.QtCore import Qt, QString
 
@@ -219,8 +237,10 @@ def isDebugLevel(level):
 
 def printCallingFunction(compact=False):
     """
-        :remarks	Prints and returns info about the calling function
-        :param		compact		<bool>	more compact printout. Defaults to False
+    Prints and returns info about the calling function
+
+    :param compact: If set to True, prints a more compact printout
+    
     """
     import inspect
 
@@ -258,8 +278,12 @@ def printCallingFunction(compact=False):
 
 def reportError(msg, debugLevel=1):
     """
-        :remarks	adds the inputed message to the debug report
-        :param		msg <str>
+    Adds the inputed message to the debug report
+
+    :param level: debugLevel
+    :type msg: str
+    :type level: :data:`DebugLevel`
+
     """
     if isDebugLevel(debugLevel):
         _errorReport.append(str(msg))
@@ -284,9 +308,11 @@ def showErrorReport(
 
 def setDebugLevel(level):
     """
-        :remarks	Sets the debug level for the blurdev system module
-        :param		level		<DebugLevel> || <str> || <QString>
-        :return		<bool> success
+    Sets the debug level for the blurdev system module
+
+    :param level: debugLevel
+    :type level: :data:`DebugLevel`
+
     """
     from PyQt4.QtCore import QString
 

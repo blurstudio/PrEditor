@@ -14,25 +14,44 @@ __DOCMODE__ = False  # this variable will be set when loading information for do
 import os, sys, types
 
 application = None  # create a managed QApplication
+"""
+The blurdev managed QApplication returned from :meth:`Core.init` as part
+of the :mod:`blurdev.cores` system.
+"""
+
 core = None  # create a managed Core instance
+"""
+The blurdev managed :class:`Core` object from the :mod:`blurdev.cores` module.
+"""
 
 
 def activeEnvironment():
+    """
+    Returns the current active Tools Environment as part of the 
+    :mod:`blurdev.tools` system.
+    
+    """
     from blurdev.tools import ToolsEnvironment
 
     return ToolsEnvironment.activeEnvironment()
 
 
 def bindMethod(object, name, method):
-    """ Properly binds a new python method to an existing C++ object as a dirty alternative to sub-classing when not possible """
+    """
+    Properly binds a new python method to an existing C++ object as a 
+    dirty alternative to sub-classing when not possible.
+    
+    """
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
 def ensureWindowIsVisible(widget):
-    r"""
-        \remarks	Checks the widets geometry against all of the systems screens. If it does not intersect it will reposition it to 
-                    the top left corner of the highest numbered desktop. Returns if it had to move the widget
-        \return		<bool>
+    """
+    Checks the widget's geometry against all of the system's screens. If it does 
+    not intersect it will reposition it to the top left corner of the highest 
+    numbered desktop.  Returns a boolean indicating if it had to move the 
+    widget.	
+    
     """
     from PyQt4.QtGui import QApplication
 
@@ -103,17 +122,21 @@ def init():
 
 def launch(ctor, modal=False, coreName='external'):
     """
-        \remarks	This method is used to create an instance of a widget (dialog/window) to be run inside
-                    the blurdev system.  Using this function call, blurdev will determine what the application is
-                    and how the window should be instantiated, this way if a tool is run as a standalone, a
-                    new application instance will be created, otherwise it will run on top of a currently
-                    running application.
+    This method is used to create an instance of a widget (dialog/window) to 
+    be run inside the blurdev system.  Using this function call, blurdev will 
+    determine what the application is and how the window should be 
+    instantiated, this way if a tool is run as a standalone, a new 
+    application instance will be created, otherwise it will run on top 
+    of a currently running application.
+    
+    :param ctor: callable object that will return a widget instance, usually
+                 a :class:`QWidget` or :class:`QDialog` or a function that
+                 returns an instance of one.
+    :param modal: If True, widget will be created as a modal widget (ie. blocks
+                  access to calling gui elements).
+    :param coreName: string to give to the core if the application is 
+                     going to be rooted under this widget
 
-        \param		ctor		QWidget || method 	(constructor for a widget, most commonly a Dialog/Window/Wizard>
-        \param		modal		<bool>	whether or not the system should run modally
-        \param		coreName	<str>	string to give to the core if the application is going to be rooted under this widget
-
-        \return		<bool>	success (when exec_ keyword is set) || <ctor> instance (when exec_ keyword is not set)
     """
     init()
 
@@ -157,8 +180,9 @@ def launch(ctor, modal=False, coreName='external'):
 
 def quickReload(modulename):
     """
-        \remarks	searches through the loaded sys modules and looks up matching module names based on the imported module
-        \param		modulename 	<str>
+    Searches through the loaded sys modules and looks up matching module names 
+    based on the imported module.
+    
     """
     import sys, re
 
@@ -208,7 +232,8 @@ def prefPath(relpath, coreName=''):
 
 
 def pythonw_print_bugfix():
-    """Python <=2.4 has a bug where pythonw will silently crash if more than
+    """
+    Python <=2.4 has a bug where pythonw will silently crash if more than
     4096 bytes are written to sys.stdout.  This avoids that problem by
     redirecting all output to devnull when in Python 2.4 and when using
     pythonw.exe.
@@ -291,12 +316,17 @@ def setActiveEnvironment(env):
 
 def setAppUserModelID(id, prefix='Blur'):
     """
-        \remarks	Specifies a Explicit App User Model ID that Windows 7 uses to controll grouping of windows on the taskbar.
-                    This must be set before any ui is displayed. The best place to call it is in the first widget to be displayed __init__ method.
-        \param		id	<str>	The id of the application. Should use full camel-case. http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how
-        \param		prefix	<str>	The prefix attached to the id. For a blur tool called fooBar, the associated appid should be Blur.FooBar
-                    
-                    To set the window's icon: widget.setWindowIcon(QIcon('img/icon.png'))
+    Specifies a Explicit App User Model ID that Windows 7 uses to control
+    grouping of windows on the taskbar.  This must be set before any ui 
+    is displayed. The best place to call it is in the first widget to 
+    be displayed __init__ method.
+    
+    :param id: the id of the application.  Should use full camel-case.
+               `http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how`_
+    :param prefix: The prefix attached to the id.  For a blur tool called
+                   fooBar, the associated appId should be *Blur.FooBar*.  
+                   Defaults to *Blur*.
+               
     """
     try:
         import blur.Stone
@@ -310,12 +340,17 @@ def setAppUserModelID(id, prefix='Blur'):
 
 def signalInspector(item, prefix='----', ignore=[]):
     """
-        \Remarks	Connects to all signals of the provided item, and prints the name of each signal. 
-                    When that signal is activated it will print the prefix, the name of the signal, 
-                    and any arguments passed. These connections will persist for the life of the object.
-        \param		item	<QObject>	Listen for signals from this object.
-        \param		prefix	<str>		The prefix it displays when a signal is emited. Defaults to '----'	
-        \param		ignore	<list>		A list of strings. If the signal name is in this list it is ignored.
+    Connects to all signals of the provided item, and prints the name of 
+    each signal.  When that signal is activated it will print the prefix, 
+    the name of the signal, and any arguments passed. These connections 
+    will persist for the life of the object.
+    
+    :param item: QObject to inspect signals on.
+    :type item: :class:`PyQt4.QtCore.QObject`
+    :param prefix: The prefix to display when a signal is emitted.
+    :param ignore: A list of signal names to ignore
+    :type ignore: list
+
     """
 
     def create(attr):
@@ -341,11 +376,15 @@ def startProgress(title='Progress', parent=None):
 
 def synthesize(object, name, value):
     """
-        \Remarks	Convenience method to create getters and setters for a instance. Should be called
-                    from within __init__. Creates [name], set[Name], _[name] on object.
-        \param		object	<instance>	An instance of the class to add the methods to
-        \param		name	<str>		The base name to build the function names, and storage variable
-        \param		value	<object>	The inital state of the created variables
+    Convenience method to create getters and setters for a instance. 
+    Should be called from within __init__. Creates [name], set[Name], 
+    _[name] on object.
+    
+    :param object: An instance of the class to add the methods to.
+    :param name: The base name to build the function names, and storage 
+                 variable.
+    :param value: The initial state of the created variable.
+    
     """
     storageName = '_%s' % name
     setterName = 'set%s%s' % (name[0].capitalize(), name[1:])
@@ -371,6 +410,7 @@ def synthesize(object, name, value):
 
 # track the install path
 installPath = os.path.split(__file__)[0]
+"""Stores the full filepath of the blurdev installation directory."""
 
 # initialize the core
 init()

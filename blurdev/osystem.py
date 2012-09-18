@@ -1,13 +1,19 @@
-##
-# 	\namespace	blurdev.osystem
-#
-# 	\remarks	This module provides additional methods that aren't easily found in existing
-# 				python or Qt modules for cross-platform usage
-#
-# 	\author		eric.hulser@blur.com
-# 	\author		Blur Studio
-# 	\date		04/20/11
-#
+"""
+This module provides additional methods that aren't easily found in existing
+python or Qt modules for cross-platform usage.
+
+The osystem module provides a number of functions to make dealing with
+paths and other platform-specific things in a more abstract platform-agnostic
+way.
+
+.. data:: EXTENSION_MAP
+
+   Dictionary of (extension: blurdev_enviroment_variable) pairs used by 
+   :func:`startfile` to execute scripts and other files.
+   This allows blurdev to associate filetypes with executable targets outside
+   of the normal windows file association mechanism.
+
+"""
 
 import os
 import re
@@ -24,12 +30,15 @@ EXTENSION_MAP = {
 
 def expandvars(text, cache=None):
     """
-        \Remarks	recursively expands the text variables, vs.
-                    the os.path.expandvars method which only
-                    works at one level
-        \param		text		<str>
-        \param		cache		<dict> { <str>: <str>, .. }		protects against recursive calls
-        \Return		<str>
+    Recursively expands the text variables, vs. the os.path.expandvars 
+    method which only works at one level.
+    
+    :param text: text string to expand
+    :type text: str
+    :param cache: used internally during recursion to prevent infinite loop
+    :type cache: dict
+    :rtype: str
+
     """
     # make sure we have data
     if not text:
@@ -75,10 +84,8 @@ def expandvars(text, cache=None):
 
 
 def console(filename):
-    """
-        \Remarks	starts a console window at the given path
-        \param		filename	<str>
-        \Return		<bool> success
+    """Starts a console window at the given path
+
     """
     # pull the filpath from the inputed filename
     fpath = str(filename)
@@ -101,20 +108,23 @@ def console(filename):
 def createShortcut(
     title, args, startin=None, target=None, icon=None, path=None, description=''
 ):
-    """
-        \Remarks	Creates a shortcut. 
+    """Creates a shortcut. 
         
-                    Windows: If icon is provided it looks for a .ico file with the same name as the provided icon. 
-                    If it can't find a .ico file it will attempt to create one using ImageMagick(http://www.imagemagick.org/). 
-                    ImageMagick should be installed to the 32bit program files (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
-                    32Bit Windows: C:\Program Files\ImageMagick)
-        \param		title	<str>
-        \param		args	<str>
-        \param		startin		<str>||<None>
-        \param		target		<str>||<None>
-        \param		icon	<str>||<None>
-        \param		path	<str>||<None>
-        \param		description	<str>||<None>
+    Windows: If icon is provided it looks for a .ico file with the same name 
+    as the provided icon.  If it can't find a .ico file it will attempt to 
+    create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick 
+    should be installed to the 32bit program files 
+    (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
+    32Bit Windows: C:\Program Files\ImageMagick)
+    
+    :param title: the title for the shortcut
+    :param args: argument string to pass to target command
+    :param startin: path where the shortcut should run target command
+    :param target: the target for the shortcut
+    :param icon: path to the icon the shortcut should use
+    :param path: path where the shortcut should be created
+    :param description: helpful description for the shortcut
+                    
     """
     if settings.OS_TYPE == 'Windows':
         import blurdev.scripts
@@ -190,10 +200,8 @@ def createShortcut(
 
 
 def explore(filename):
-    """
-        \Remarks	launches the filename given the current platform
-        \param		filename	<str>
-        \Return		<bool> success
+    """Launches the filename given the current platform
+
     """
     # pull the filpath from the inputed filename
     fpath = os.path.normpath(unicode(filename))
@@ -214,10 +222,10 @@ def explore(filename):
 
 
 def programFilesPath(path=''):
-    """
-        \Remarks	Returns the path to 32bit program files on windows.
-        \param		path	<str>	This string is appended to the path
-        \Return		<str>
+    """Returns the path to 32bit program files on windows.
+    
+    :param path: this string is appended to the path
+    
     """
     import platform
 
@@ -230,11 +238,10 @@ def programFilesPath(path=''):
 
 def shell(command, basepath='', persistent=False):
     """
-        \remarks	runs the inputed shell command in its own window. If persistent keep the shell open after the command is run. Returns success
-        
-        \param		command		<command to run>
-        \param		persistent	<bool>
-        \return		<bool>
+    Runs the given shell command in its own window.  The command will be run
+    from the current working directory, or from *basepath*, if given.  
+    If persistent is True, the shell will stay open after the command is run.
+>
     """
     if not basepath:
         basepath = os.curdir
@@ -285,12 +292,18 @@ def shell(command, basepath='', persistent=False):
 
 def startfile(filename, debugLevel=None, basePath='', cmd=None):
     """
-        \remarks	runs the filename in a shell with proper commands given, or passes the command to the shell. (CMD  in windows)
-                    the current platform
-        \param		filename	<str>
-        \param		debugLevel	<blurdev.debug.DebugLevel>
-        \param		basePath	<str>
-        \return		<bool> success
+    Runs the filename in a shell with proper commands given, or passes 
+    the command to the shell. (CMD in windows) the current platform
+    
+    :param filename: path to the file to execute
+    :type filename: str
+    :param debugLevel: debug level
+    :type debugLevel: :data:`blurdev.debug.DebugLevel`
+    :param basePath: working directory where the command should be called
+                     from.  If omitted, the current working directory is
+                     used.
+    :type basePath: str
+    
     """
     # determine the debug level
     import os
@@ -402,12 +415,13 @@ def tempfile(filepath):
 
 
 def username():
-    r"""
-        \remarks	This function checks the environment variables LOGNAME, USER, LNAME and USERNAME, in order, 
-                    and returns the value of the first one which is set to a non-empty string. If none are set, 
-                    the login name from the password database is returned on systems which support the pwd 
-                    module, otherwise, returns a empty string.
-        \return		<str>
+    """
+    This function checks the environment variables LOGNAME, USER, LNAME and 
+    USERNAME, in order, and returns the value of the first one which is set 
+    to a non-empty string. If none are set, the login name from the 
+    password database is returned on systems which support the pwd module; 
+    otherwise, returns an empty string.
+
     """
     import getpass
 
