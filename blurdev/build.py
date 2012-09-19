@@ -74,6 +74,25 @@ if __name__ == '__main__':
             blurdev.traxoffline.trax.api.data.createDepartmentList(
                 r'%s\traxoffline\trax\api\data\source\departments.xml' % path
             )
+        # Create a offline copy of settings.ini and update any paths that may not exist offline
+        print '**************************************************'
+        print '*            Updating settings.ini               *'
+        print '**************************************************'
+        srcPath = r'%s\resource\settings.ini' % path
+        destPath = r'%s\installers\resource\settings.ini' % path
+        import shutil
+
+        shutil.copyfile(srcPath, destPath)
+        import blurdev.ini
+
+        blurdev.ini.SetINISetting(
+            destPath,
+            'Windows',
+            'BDEV_PATH_PREFS_SHARED',
+            '$BDEV_PATH_PREFS',
+            useConfigParser=True,
+        )
+
     else:
         f.write(
             '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
