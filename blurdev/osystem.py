@@ -22,6 +22,7 @@ import subprocess
 from PyQt4.QtCore import QProcess
 
 from blurdev import settings
+from distutils.sysconfig import get_python_inc
 
 EXTENSION_MAP = {
     '.py': 'BDEV_CMD_PYTHON',
@@ -300,8 +301,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     :param debugLevel: debug level
     :type debugLevel: :data:`blurdev.debug.DebugLevel`
     :param basePath: working directory where the command should be called
-                     from.  If omitted, the current working directory is
-                     used.
+                     from.  If omitted, the current working directory is used.
     :type basePath: str
     
     """
@@ -345,8 +345,13 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
                     'cmd.exe', ['/k', '"%s"' % (cmd % options)], basePath
                 )
             else:
+                params = filename
+                # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
+                if ext == '.pyw':
+                    pp = os.path.split(get_python_inc())[0]
+                    params = r'%s\python.exe %s' % (pp, params)
                 success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', filename], basePath
+                    'cmd.exe', ['/k', params], basePath
                 )
 
         # run it for Linux systems
