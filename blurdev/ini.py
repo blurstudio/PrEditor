@@ -76,7 +76,7 @@ def GetINISetting(inFileName, inSection="", inKey=""):
     return ""
 
 
-def SetINISetting(inFileName, inSection, inKey, inValue):
+def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
     """
     #-------------------------------------------------------------------------------------------------------------
     #	Prototype:
@@ -84,18 +84,24 @@ def SetINISetting(inFileName, inSection, inKey, inValue):
     #
     #	Remarks:
     #				Sets the ini section setting of the inputed file with the give key/value pair.
+    #				By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
+    #				It will use ConfigParser.ConfigParser instead()
     #	Parameters:
     #				inFileName			<string>
     #				inSection			<variant>
     #				inKey				<variant>
     #				inValue				<variant>
+    #				useConfigParser		<bool>		Default False
     #	Returns:
     #				True
     #	History:
     #				- Created: EKH 06/26/06
     #-------------------------------------------------------------------------------------------------------------
     """
-    tParser = ToolParserClass()
+    if useConfigParser:
+        tParser = ConfigParser.ConfigParser()
+    else:
+        tParser = ToolParserClass()
     inSection = unicode(inSection)
     inKey = unicode(inKey)
     inValue = unicode(inValue)
@@ -106,6 +112,11 @@ def SetINISetting(inFileName, inSection, inKey, inValue):
         tParser.add_section(inSection)
 
     tParser.set(inSection, inKey, inValue)
+    if useConfigParser:
+        f = open(inFileName, 'w')
+        tParser.write(f)
+        f.close()
+        return True
     return tParser.Save(inFileName)
 
 
@@ -980,7 +991,7 @@ def ReloadAllModules():
     for module in sys.modules.itervalues():
         if (module != None) and module.__name__.find("blur") != -1:
             try:
-                if not module.__name__ in ["blur.globals", "blurGlobals"]:
+                if not module.__name__ in ["blurdev.ini"]:
                     reload(module)
                 # xsi.LogMessage( "Reloaded:  " + module.__name__ )
             except:
