@@ -608,8 +608,8 @@ def _normEnv(environmentID):
     #				<string>
     #-------------------------------------------------------------------------------------------------------------
     """
-    if environmentID.lower() == 'local':
-        return 'Development'
+    # 	if ( environmentID.lower() == 'local' ):
+    # 		return 'Development'
     if environmentID.lower() == 'network':
         return 'Production'
     if environmentID.lower() == 'offline':
@@ -920,8 +920,9 @@ def LoadConfigData():
         global blurConfigFile
         blurConfigFile = ToolParserClass()
         blurConfigFile.Load(configFile)
+        import blurdev
 
-        activeEnvironment = blurConfigFile.globals.environment
+        activeEnvironment = unicode(blurdev.activeEnvironment().objectName())
 
         for tSection in blurConfigFile.GetSections():
             if tSection.GetName().lower() != 'globals':

@@ -168,6 +168,10 @@ class ToolsEnvironment(QObject):
             # register this environment as active and update the path symbols
             self._active = True
             self.registerPath(self.path())
+            # set the legacy environment active
+            import blurdev.ini
+
+            blurdev.ini.SetActiveEnvironment(unicode(self.objectName()))
 
             # emit the environment activateion change signal
             if not silent:
@@ -361,6 +365,19 @@ class ToolsEnvironment(QObject):
 
             # initialize the default environment
             if not included:
+                import blurdev
+
+                pref = blurdev.prefs.find(
+                    'blurdev/core', coreName=blurdev.core.objectName()
+                )
+
+                envName = pref.restoreProperty('environment')
+                if envName:
+                    env = ToolsEnvironment.findEnvironment(envName)
+                    if not env.isEmpty():
+                        # restore the environment from settings instead of the default if possible.
+                        env.setActive(silent=True)
+                        return True
                 ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
             return True
