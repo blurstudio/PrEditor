@@ -24,9 +24,9 @@ from PyQt4.QtCore import QProcess
 from blurdev import settings
 from distutils.sysconfig import get_python_inc
 
-EXTENSION_MAP = {
-    '.py': 'BDEV_CMD_PYTHON',
-}
+# Get the active version of python, not a hard coded value.
+_pythonPath = r'%s\python.exe' % os.path.split(get_python_inc())[0]
+EXTENSION_MAP = {}
 
 
 def expandvars(text, cache=None):
@@ -331,6 +331,8 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     if cmd == None:
         if filename.startswith('http://'):
             cmd = expandvars(os.environ.get('BDEV_CMD_WEB', ''))
+        elif ext == ".py":
+            cmd = _pythonPath + ' "%(filepath)s"'
         else:
             cmd = expandvars(os.environ.get(EXTENSION_MAP.get(ext, ''), ''))
 
@@ -340,18 +342,23 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
         # run it in debug mode for windows
         if settings.OS_TYPE == 'Windows':
+            # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
+            if ext == '.pyw':
+                cmd = _pythonPath + ' "%(filepath)s"'
             if cmd:
-                success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', '"%s"' % (cmd % options)], basePath
-                )
+                if (cmd % options).split('"'):
+                    success, value = QProcess.startDetached(
+                        'cmd.exe',
+                        ['/k'] + [item.strip() for item in (cmd % options).split('"')],
+                        basePath,
+                    )
+                else:
+                    success, value = QProcess.startDetached(
+                        'cmd.exe', ['/k', '"%s"' % (cmd % options)], basePath
+                    )
             else:
-                params = filename
-                # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
-                if ext == '.pyw':
-                    pp = os.path.split(get_python_inc())[0]
-                    params = r'%s\python.exe %s' % (pp, params)
                 success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', params], basePath
+                    'cmd.exe', ['/k', filename], basePath
                 )
 
         # run it for Linux systems
