@@ -1,12 +1,12 @@
 ##
-# 	\namespace	blurdev.gui.widgets.progresswidget
+# 	:namespace	blurdev.gui.widgets.progresswidget
 #
-# 	\remarks	The ProgressWidget allows for progress bar and progress spinner widgets to display while loading
+# 	:remarks	The ProgressWidget allows for progress bar and progress spinner widgets to display while loading
 # 				a user interface
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/06/09
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/06/09
 #
 
 from PyQt4.QtCore import Qt

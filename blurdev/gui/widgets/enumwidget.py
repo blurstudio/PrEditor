@@ -1,13 +1,13 @@
 ##
-# 	\namespace	trax.gui.widgets.enumwidget
+# 	:namespace	trax.gui.widgets.enumwidget
 #
-# 	\remarks	The EnumWidget class is a simple expansion system for trax.api.enum class types, allowing dynamic creation
+# 	:remarks	The EnumWidget class is a simple expansion system for trax.api.enum class types, allowing dynamic creation
 # 				of checkboxes based on the options for a given enum, and supplying simple ways to calculate what the user settings
 # 				are
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		04/14/10
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		04/14/10
 #
 
 import re
@@ -26,11 +26,11 @@ class EnumWidget(QWidget):
 
     def __init__(self, parent, enumType=None, columnCount=1, value=0):
         """
-            \remarks	Creates a dynamic widget for dealing with enumerated value types
-            \param		parent			<QWidget>
-            \param		enumType		<trax.api.enum>
-            \param		columnCount		<int>				number of columns to split the values into
-            \param		value			<int>				current state of the widget
+            :remarks	Creates a dynamic widget for dealing with enumerated value types
+            :param		parent			<QWidget>
+            :param		enumType		<trax.api.enum>
+            :param		columnCount		<int>				number of columns to split the values into
+            :param		value			<int>				current state of the widget
         """
         QWidget.__init__(self, parent)
         # set the custom propreties

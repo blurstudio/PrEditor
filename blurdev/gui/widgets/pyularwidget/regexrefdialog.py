@@ -1,11 +1,11 @@
 ##
-#   \namespace  python.blurdev.gui.widgets.pyularwidget.regexrefdialog
+#   :namespace  python.blurdev.gui.widgets.pyularwidget.regexrefdialog
 #
-#   \remarks
+#   :remarks
 #
-#   \author     mikeh@blur.com
-#   \author     Blur Studio
-#   \date       11/11/11
+#   :author     mikeh@blur.com
+#   :author     Blur Studio
+#   :date       11/11/11
 #
 
 from blurdev.gui import Dialog

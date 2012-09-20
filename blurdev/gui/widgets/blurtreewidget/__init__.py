@@ -1,11 +1,11 @@
 ##
-# 	\namespace	trax.gui.widgets
+# 	:namespace	trax.gui.widgets
 #
-# 	\remarks
+# 	:remarks
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		12/07/08
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		12/07/08
 #
 
 from blurtreewidget import BlurTreeWidget

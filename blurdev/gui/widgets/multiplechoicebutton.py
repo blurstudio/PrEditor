@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgetsmultioptionwidget
+# 	:namespace	python.blurdev.gui.widgetsmultioptionwidget
 #
-# 	\remarks
+# 	:remarks
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		03/28/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		03/28/11
 #
 
 from PyQt4.QtCore import pyqtSignal, QLine, pyqtProperty, Qt, QRect, QSize

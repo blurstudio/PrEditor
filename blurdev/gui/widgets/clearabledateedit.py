@@ -1,11 +1,11 @@
 ##
-#   \namespace  blurdev.gui.widgets.clearabledateedit
+#   :namespace  blurdev.gui.widgets.clearabledateedit
 #
-#   \remarks
+#   :remarks
 #
-#   \author     mikeh@blur.com
-#   \author     Blur Studio
-#   \date       05/24/12
+#   :author     mikeh@blur.com
+#   :author     Blur Studio
+#   :date       05/24/12
 #
 
 import blurdev

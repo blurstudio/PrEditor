@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgets.lockabletreewidget
+# 	:namespace	python.blurdev.gui.widgets.lockabletreewidget
 #
-# 	\remarks
+# 	:remarks
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		12/06/10
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		12/06/10
 #
 
 from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QHeaderView
@@ -129,7 +129,7 @@ class LockableTreeWidget(QTreeWidget):
 
     def bindTreeWidgetItem(self, item):
         """
-            \Remarks	Overrides the setHidden and setExpanded methods for QTreeWidgetItems recursively. Should be replaced with a subclass of QTreeWidget that can update the model without this method as it may introduce memory leaks.
+            :remarks	Overrides the setHidden and setExpanded methods for QTreeWidgetItems recursively. Should be replaced with a subclass of QTreeWidget that can update the model without this method as it may introduce memory leaks.
         """
         blurdev.bindMethod(item, 'setHidden', self.setHiddenForItem)
         blurdev.bindMethod(item, 'setExpanded', self.setExpandedForItem)
@@ -154,8 +154,8 @@ class LockableTreeWidget(QTreeWidget):
 
     def enableAutoHeight(self, state):
         """
-            \Remarks	Controls if updateSizeHintForItem(recursive=True) is called when a item is expaned. Disable for quicker expansion.
-            \param		state	<bool>
+            :remarks	Controls if updateSizeHintForItem(recursive=True) is called when a item is expaned. Disable for quicker expansion.
+            :param		state	<bool>
         """
         self._enableAutoHeight = state
 
@@ -376,12 +376,12 @@ class LockableTreeWidget(QTreeWidget):
 
     def updateSizeHintForItem(self, item, column, recursive=0):
         """
-            \Remarks	Updates the size hint of a QTreeWidgetItem's column, optionaly recursively.
+            :remarks	Updates the size hint of a QTreeWidgetItem's column, optionaly recursively.
                         recursive is reduced for each child, so you can specify the number of recursions.
                         If recursive is -1 then it will not expire
-            \param		item		<QTreeWidgetItem>
-            \param		column		<int>
-            \param		recursive	<int>				Number of recursions
+            :param		item		<QTreeWidgetItem>
+            :param		column		<int>
+            :param		recursive	<int>				Number of recursions
         """
         if recursive:
             for index in range(item.childCount()):
@@ -591,7 +591,7 @@ class LockableTreeWidget(QTreeWidget):
 
     def viewClicked(self, index):
         """
-            \remark		convert the QTreeView.clicked to a QTreeView.itemClicked signal for transparent mapping
+            :remarks		convert the QTreeView.clicked to a QTreeView.itemClicked signal for transparent mapping
         """
         item = self.itemFromIndex(index)
         self.itemClicked.emit(item, index.column())

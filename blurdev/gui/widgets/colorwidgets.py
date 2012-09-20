@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgets.colorwidgets
+# 	:namespace	python.blurdev.gui.widgets.colorwidgets
 #
-# 	\remarks	Creates a generic color widget
+# 	:remarks	Creates a generic color widget
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/20/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/20/11
 #
 
 # used in painting, faster to do global import

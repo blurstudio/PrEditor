@@ -1,9 +1,9 @@
 ##
-# 	\namespace	blurdev.gui.widgets
+# 	:namespace	blurdev.gui.widgets
 #
-# 	\remarks	Contains classes for generic widget controls
+# 	:remarks	Contains classes for generic widget controls
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		07/09/10
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		07/09/10
 #

@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgetspreviewgraphicsview
+# 	:namespace	python.blurdev.gui.widgetspreviewgraphicsview
 #
-# 	\remarks	Creates a previewing system for media files
+# 	:remarks	Creates a previewing system for media files
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/21/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/21/11
 #
 
 from PyQt4.QtGui import QWidget

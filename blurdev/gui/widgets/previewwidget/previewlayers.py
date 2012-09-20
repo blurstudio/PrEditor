@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgets.previewwidget.previewlayer
+# 	:namespace	python.blurdev.gui.widgets.previewwidget.previewlayer
 #
-# 	\remarks	Defines the QGraphicsScene that will be used for the PreviewWidget system
+# 	:remarks	Defines the QGraphicsScene that will be used for the PreviewWidget system
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/21/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/21/11
 #
 
 from blurdev.enum import enum

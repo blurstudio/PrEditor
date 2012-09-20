@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgets.previewwidgettoolswidget
+# 	:namespace	python.blurdev.gui.widgets.previewwidgettoolswidget
 #
-# 	\remarks	Defines the tools side bar widget for the preivew widget utility
+# 	:remarks	Defines the tools side bar widget for the preivew widget utility
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/21/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/21/11
 #
 
 from PyQt4.QtGui import QWidget

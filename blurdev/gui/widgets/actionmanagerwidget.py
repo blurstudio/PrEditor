@@ -1,11 +1,11 @@
 ##
-#   \namespace  blurdev.gui.widgets.actionmanagerwidget
+#   :namespace  blurdev.gui.widgets.actionmanagerwidget
 #
-#   \remarks    Creates a widget for editing actions and hotkeys for any other widget
+#   :remarks    Creates a widget for editing actions and hotkeys for any other widget
 #
-#   \author     eric.hulser@drdstudios.com
-#   \author     Dr. D Studios
-#   \date       06/22/11
+#   :author     eric.hulser@drdstudios.com
+#   :author     Dr. D Studios
+#   :date       06/22/11
 #
 
 from PyQt4.QtCore import Qt, pyqtSignal, QSize

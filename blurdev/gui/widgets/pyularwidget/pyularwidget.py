@@ -1,11 +1,11 @@
 ##
-#   \namespace  python.blurdev.gui.widgets.pyularwidget
+#   :namespace  python.blurdev.gui.widgets.pyularwidget
 #
-#   \remarks    A Python regular expression editor based entirely on http://www.rubular.com/
+#   :remarks    A Python regular expression editor based entirely on http://www.rubular.com/
 #
-#   \author     mikeh@blur.com
-#   \author     Blur Studio
-#   \date       11/11/11
+#   :author     mikeh@blur.com
+#   :author     Blur Studio
+#   :date       11/11/11
 #
 
 import PyQt4.uic, os.path, re, sys, blurdev
@@ -64,7 +64,7 @@ class PyularWidget(QWidget):
 
     def parseFlags(self):
         """
-            \Remarks	Parses the regular expression options
+            :remarks	Parses the regular expression options
         """
         self.flags = 0
         out = set()

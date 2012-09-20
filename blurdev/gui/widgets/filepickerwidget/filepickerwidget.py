@@ -1,11 +1,11 @@
 ##
-# 	\namespace	trax.gui.widgets.filepickerwidget.filepickerwidget
+# 	:namespace	trax.gui.widgets.filepickerwidget.filepickerwidget
 #
-# 	\remarks	Defines the FilePickerWidget class
+# 	:remarks	Defines the FilePickerWidget class
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		10/06/10
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		10/06/10
 #
 
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty

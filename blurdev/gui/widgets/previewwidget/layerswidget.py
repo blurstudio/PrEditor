@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.widgets.previewwidgetlayerswidget
+# 	:namespace	python.blurdev.gui.widgets.previewwidgetlayerswidget
 #
-# 	\remarks	Manages layers for the PreviewWidget
+# 	:remarks	Manages layers for the PreviewWidget
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/24/11
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/24/11
 #
 
 from PyQt4.QtCore import Qt, QSize
@@ -27,7 +27,7 @@ class LayerDelegate(QItemDelegate):
 
     def clearEditor(self):
         """
-            \remarks	clears the reference to this editor
+            :remarks	clears the reference to this editor
         """
         try:
             self._editor.close()
@@ -39,11 +39,11 @@ class LayerDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """
-            \remarks	overloaded from QItemDelegate, creates a new editor for the inputed widget
-            \param		parent	<QWidget>
-            \param		option	<QStyleOptionViewItem>
-            \param		index	<QModelIndex>
-            \return		<QWidget> editor
+            :remarks	overloaded from QItemDelegate, creates a new editor for the inputed widget
+            :param		parent	<QWidget>
+            :param		option	<QStyleOptionViewItem>
+            :param		index	<QModelIndex>
+            :return		<QWidget> editor
         """
         from PyQt4.QtCore import Qt
         from PyQt4.QtGui import QLineEdit
@@ -72,8 +72,8 @@ class LayerDelegate(QItemDelegate):
 
     def editor(self):
         """
-            \remarks	returns the current editor for this delegate
-            \return		<QWidget> || None
+            :remarks	returns the current editor for this delegate
+            :return		<QWidget> || None
         """
         return self._editor
 
