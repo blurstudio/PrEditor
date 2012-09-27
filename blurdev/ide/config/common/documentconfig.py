@@ -93,7 +93,7 @@ def registerSections(configSet):
         'autoIndent': True,
         'autoComplete': True,
         'autoCompleteThreshold': 3,
-        'indentationsUseTabs': False,
+        'indentationsUseTabs': True,
         'tabIndents': True,
         'tabWidth': 4,
         'caretLineVisible': False,
