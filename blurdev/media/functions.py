@@ -36,15 +36,8 @@ def extractVideoFrame(filename, outputpath):
     if not os.path.exists(options['ffmpeg']):
         options['ffmpeg'] = options['ffmpeg'].replace(' (x86)', '')
     options['output'] = outputpath
-    cmd = '"%(ffmpeg)s" -i "%(source)s" -t 1 -f image2 "%(output)s"' % options
-    out = subprocess.Popen(
-        cmd,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        stdin=subprocess.PIPE,
-    )
-    out.wait()
+    cmd = '"%(ffmpeg)s" -i "%(source)s" -vframes 1 -f image2 "%(output)s"' % options
+    subprocess.call(cmd)
     return os.path.exists(outputpath)
 
 
