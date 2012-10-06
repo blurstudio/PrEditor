@@ -38,7 +38,7 @@ class WorkboxWidget(DocumentEditor):
 
         exec unicode(self.text()).replace(
             '\r', '\n'
-        ) in __main__.__dict__, __main__.__dict__
+        ).rstrip() in __main__.__dict__, __main__.__dict__
 
     def execSelected(self):
         text = unicode(self.selectedText()).replace('\r', '\n')
