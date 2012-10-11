@@ -895,6 +895,13 @@ class DocumentEditor(QsciScintilla):
 
         submenu.triggered.connect(self.languageChosen)
 
+        menu.addSeparator()
+
+        act = menu.addAction('Indent using tabs')
+        act.triggered.connect(self.setIndentationsUseTabs)
+        act.setCheckable(True)
+        act.setChecked(self.indentationsUseTabs())
+
         menu.popup(QCursor.pos())
 
     def showFolding(self):
