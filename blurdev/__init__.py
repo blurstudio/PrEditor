@@ -14,6 +14,7 @@ __DOCMODE__ = False  # this variable will be set when loading information for do
 import os, sys, types
 
 application = None  # create a managed QApplication
+_appHasExec = False
 """
 The blurdev managed QApplication returned from :meth:`Core.init` as part
 of the :mod:`blurdev.cores` system.
@@ -138,6 +139,8 @@ def launch(ctor, modal=False, coreName='external'):
                      going to be rooted under this widget
 
     """
+    global _appHasExec
+
     init()
 
     # create the app if necessary
@@ -171,9 +174,10 @@ def launch(ctor, modal=False, coreName='external'):
         return widget.exec_()
     else:
         widget.show()
-        # run the application if this item controls it
-        if application:
+        # run the application if this item controls it and it hasnt been run before
+        if application and not _appHasExec:
             application.setWindowIcon(widget.windowIcon())
+            _appHasExec = True
             application.exec_()
         return widget
 
