@@ -208,6 +208,11 @@ class IdeProjectItem(QTreeWidgetItem):
                 )
             )
 
+        # MCH 10/18/12 HACK: After updating to 4.8.3 the project tree would not update its vertical scroll bar the first time a item was expanded
+        # calling updateGeometries seems to fix the problem, but there should be a better way to handle this. I am assuming that its a problem
+        # with the sizes of the child items not being updated when the scrollbar is updated.
+        tree.updateGeometries()
+
     def loadXml(self, xml):
         self.setText(0, xml.attribute('name'))
         self.setGroup(xml.attribute('group') != 'False')
