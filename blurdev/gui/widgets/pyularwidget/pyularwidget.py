@@ -84,12 +84,14 @@ class PyularWidget(QWidget):
             self.uiSplitNotesLBL.setVisible(False)
             regex = re.compile(pattern, flags=self.flags)
             if typeIndex == 0:  # Find All
-                results = regex.findall(text)[0]
-                out = ['<ul>']
-                for result in results:
-                    out.append('<li>%s</li>' % result)
-                out.append('</ul>')
-                self.uiResultsTXT.setText('<br>'.join(out))
+                results = regex.findall(text)
+                out = []
+                if results:
+                    out.append('<ul>')
+                    for result in results:
+                        out.append('<li>%s</li>' % result)
+                    out.append('</ul>')
+                self.uiResultsTXT.setText('\n'.join(out))
                 return
             elif typeIndex == 1:  # Match
                 return self.processMatchObject(regex.match(text))
