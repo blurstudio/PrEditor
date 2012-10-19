@@ -21,12 +21,25 @@ class PyularDialog(blurdev.gui.Dialog):
         super(PyularDialog, self).__init__(parent)
         self.setWindowTitle('Pyular')
         # create the widget
-        widget = PyularWidget(self)
+        self.widget = PyularWidget(self)
         # create the layout
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(widget)
+        layout.addWidget(self.widget)
         self.setLayout(layout)
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide/pyular.png')))
+
+    def expression(self):
+        return self.widget.expression()
+
+    def flags(self):
+        return self.widget.flags()
+
+    def setExpression(self, expr):
+        self.widget.setExpression(expr)
+
+    def setFlags(self, flags):
+        self.widget.setFlags(flags)
 
 
 class PyularWidget(QWidget):
@@ -61,6 +74,12 @@ class PyularWidget(QWidget):
         msg.append('Replace Text: %s' % self.uiReplaceTXT.text())
         msg.append('Test String: %s' % self.uiStringTXT.toPlainText())
         return '\n'.join(msg)
+
+    def expression(self):
+        return self.uiExpressionTXT.text()
+
+    def flags(self):
+        return self.uiFlagsTXT.text()
 
     def parseFlags(self):
         """
@@ -117,8 +136,21 @@ class PyularWidget(QWidget):
             self.uiErrorLBL.setText(str(e))
         self.uiResultsTXT.setText('\n'.join(results))
 
+    def setExpression(self, expr):
+        self.uiExpressionTXT.setText(expr)
+
+    def setFlags(self, flags):
+        self.uiFlagsTXT.setText(flags)
+        self.parseFlags()
+
+    def setTestString(self, testStr):
+        self.uiStringTXT.setPlainText(testStr)
+
     def showRegexHelp(self):
         RegexRefDialog(self).show()
+
+    def testString(self):
+        return self.uiStringTXT.toPlainText()
 
     def typeChanged(self, index):
         self.uiReplaceWGT.setVisible(index == 4)

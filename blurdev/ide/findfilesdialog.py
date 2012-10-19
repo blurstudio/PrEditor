@@ -12,10 +12,11 @@ import os
 import re
 
 from blurdev.gui import Dialog
-from PyQt4.QtGui import QTreeWidgetItem
+from PyQt4.QtGui import QTreeWidgetItem, QIcon
 from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant
 
 from blurdev.ide import ideglobals
+from blurdev.gui.widgets.pyularwidget import PyularDialog
 
 
 class FindFilesThread(QThread):
@@ -31,6 +32,7 @@ class FindFilesThread(QThread):
         self._results = {}  # file, lines pairing
         self._resultsCount = 0
         self._searchedCount = 0
+        self._useRegex = False
 
     def clear(self):
         self._results.clear()
@@ -87,9 +89,17 @@ class FindFilesThread(QThread):
 
         self._searchedCount += 1
 
+        if self._useRegex:
+            regex = re.compile(self._searchText, flags=re.I)
+
         # search through the lines in the file
         for lineno, line in enumerate(lines):
-            if self._searchText in line:
+            found = False
+            if self._useRegex:
+                found = regex.findall(line) != []
+            elif self._searchText in line:
+                found = True
+            if found:
                 self._resultsCount += 1
                 if not filename in self._results:
                     self._results[filename] = [(lineno + 1, line.strip())]
@@ -105,6 +115,12 @@ class FindFilesThread(QThread):
     def setFileTypes(self, filetypes):
         self._filetypes = filetypes
         self._findall = '.*' in filetypes
+
+    def setUseRegex(self, state):
+        self._useRegex = state
+
+    def useRegex(self):
+        return self._useRegex
 
 
 class FindFilesDialog(Dialog):
@@ -138,8 +154,12 @@ class FindFilesDialog(Dialog):
         self.uiCloseBTN.clicked.connect(self.close)
         self.uiBasePathBTN.clicked.connect(self.pickFolder)
         self.uiResultsTREE.itemDoubleClicked.connect(self.loadFile)
+        self.uiPyularBTN.clicked.connect(self.showPyular)
 
         self._searchThread.finished.connect(self.searchFinished)
+
+        self.uiPyularBTN.setIcon(QIcon(blurdev.resourcePath('img/ide/pyular.png')))
+        self.uiPyularBTN.setVisible(self.uiRegexCHK.isChecked())
 
         self.refreshFeedbackLabel(0, 0, 0)
 
@@ -268,6 +288,7 @@ class FindFilesDialog(Dialog):
         self._searchThread.setSearchText(str(self.uiSearchTXT.text()))
         self._searchThread.setBasePath(basepath)
         self._searchThread.setFileTypes(str(self.uiFileTypesTXT.text()))
+        self._searchThread.setUseRegex(self.uiRegexCHK.isChecked())
 
         # start the search thrad
         self._refreshTimer.start()
@@ -275,6 +296,13 @@ class FindFilesDialog(Dialog):
 
     def setBasePath(self, path):
         self.uiBasePathTXT.setText(path)
+
+    def showPyular(self):
+        dlg = PyularDialog(self)
+        dlg.setExpression(self.uiSearchTXT.text())
+        dlg.setFlags('I')
+        dlg.exec_()
+        self.uiSearchTXT.setText(dlg.expression())
 
     def refreshFeedbackLabel(self, fileCount, resultCount, searchedCount):
         """ Updates the file count label """

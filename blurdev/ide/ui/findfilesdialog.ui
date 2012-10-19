@@ -20,10 +20,10 @@
    <string>File Search Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="uiBasePathLBL">
+   <item row="1" column="0">
+    <widget class="QLabel" name="uiFileTypesLBL">
      <property name="text">
-      <string>base path</string>
+      <string>filetypes</string>
      </property>
     </widget>
    </item>
@@ -44,10 +44,10 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="uiFileTypesLBL">
+   <item row="0" column="0">
+    <widget class="QLabel" name="uiBasePathLBL">
      <property name="text">
-      <string>filetypes</string>
+      <string>base path</string>
      </property>
     </widget>
    </item>
@@ -68,17 +68,22 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="uiSearchTXT"/>
-   </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="uiResultsLBL">
-     <property name="text">
-      <string>results</string>
+   <item row="3" column="1">
+    <widget class="QTreeWidget" name="uiResultsTREE">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
      </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
      </property>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string notr="true">1</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item row="4" column="0" colspan="2">
@@ -125,23 +130,49 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="1">
-    <widget class="QTreeWidget" name="uiResultsTREE">
-     <property name="alternatingRowColors">
-      <bool>true</bool>
+   <item row="3" column="0">
+    <widget class="QLabel" name="uiResultsLBL">
+     <property name="text">
+      <string>results</string>
      </property>
-     <property name="expandsOnDoubleClick">
-      <bool>false</bool>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
-     <attribute name="headerVisible">
-      <bool>false</bool>
-     </attribute>
-     <column>
-      <property name="text">
-       <string notr="true">1</string>
-      </property>
-     </column>
     </widget>
+   </item>
+   <item row="2" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="uiSearchTXT">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>20</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="uiPyularBTN">
+       <property name="toolTip">
+        <string>Pyular</string>
+       </property>
+       <property name="text">
+        <string>Pyular</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QCheckBox" name="uiRegexCHK">
+       <property name="toolTip">
+        <string>Case insensitive find all</string>
+       </property>
+       <property name="text">
+        <string>re</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -149,10 +180,26 @@
   <tabstop>uiBasePathTXT</tabstop>
   <tabstop>uiBasePathBTN</tabstop>
   <tabstop>uiFileTypesTXT</tabstop>
-  <tabstop>uiSearchTXT</tabstop>
   <tabstop>uiSearchBTN</tabstop>
   <tabstop>uiCloseBTN</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>uiRegexCHK</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>uiPyularBTN</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>623</x>
+     <y>71</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>590</x>
+     <y>74</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
