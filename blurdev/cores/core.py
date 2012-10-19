@@ -538,9 +538,7 @@ class Core(QObject):
         environPath = os.environ.get('BLURDEV_PATH')
         if environPath:
             if ToolsEnvironment.findEnvironment('TEMPORARY').isEmpty():
-                env = ToolsEnvironment.createNewEnvironment(
-                    'TEMPORARY', os.environ['BLURDEV_PATH']
-                )
+                env = ToolsEnvironment.createNewEnvironment('TEMPORARY', environPath)
                 env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
                 env.setActive()
         else:
