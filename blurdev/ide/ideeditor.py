@@ -1770,7 +1770,7 @@ class IdeEditor(Window):
         # update based on the current environment overrides
         section = globalconfig.section('Editor::Environment')
         for key, value in section.value('variables').items():
-            environ[key] = value
+            environ[key] = str(value)
 
         # grab the current config
         config = self.currentConfigSet()
@@ -1787,10 +1787,10 @@ class IdeEditor(Window):
         author = config.section('Common::Author')
         if author:
             # set the environment settings based on the author config
-            environ['BDEV_AUTHOR_EMAIL'] = author.value('email')
-            environ['BDEV_AUTHOR_COMPANY'] = author.value('company')
-            environ['BDEV_AUTHOR_NAME'] = author.value('name')
-            environ['BDEV_AUTHOR_INITIALS'] = author.value('initials')
+            environ['BDEV_AUTHOR_EMAIL'] = str(author.value('email'))
+            environ['BDEV_AUTHOR_COMPANY'] = str(author.value('company'))
+            environ['BDEV_AUTHOR_NAME'] = str(author.value('name'))
+            environ['BDEV_AUTHOR_INITIALS'] = str(author.value('initials'))
 
         # set the environment
         os.environ = environ
