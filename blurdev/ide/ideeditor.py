@@ -660,6 +660,11 @@ class IdeEditor(Window):
         window = self.addSubWindow(editor)
         window.show()
 
+        # update the last saved file
+        fp = self.currentFilePath()
+        if fp:
+            self._lastSavedFilename = fp
+
         return window
 
     def documentOpen(self):
