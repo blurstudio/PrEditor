@@ -330,7 +330,6 @@ def setAppUserModelID(id, prefix='Blur'):
     :param prefix: The prefix attached to the id.  For a blur tool called
                    fooBar, the associated appId should be *Blur.FooBar*.  
                    Defaults to *Blur*.
-               
     """
     try:
         import blur.Stone
