@@ -274,6 +274,12 @@ class ToolsEnvironment(QObject):
         output.setLegacyName(legacyName)
 
         ToolsEnvironment.environments.append(output)
+        import blurdev.ini
+
+        # update blurdev.ini
+        # TODO: this will register the TEMPORARY_TOOLS_ENV env with legacy tools, but
+        # not other new environments
+        blurdev.ini.LoadConfigData()
         return output
 
     @staticmethod

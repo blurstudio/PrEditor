@@ -26,10 +26,10 @@ for option in config.options(OS_TYPE):
         value = config.get(OS_TYPE, option)
         if value == 'None':
             value = ''
-        os.environ[option.upper()] = value
+        os.environ[option.upper()] = str(value)
 
 # store the blurdev path in the environment
-os.environ['BDEV_PATH'] = os.path.dirname(__file__)
+os.environ['BDEV_PATH'] = str(os.path.dirname(__file__))
 
 # setup defaults
 os.environ.setdefault('BDEV_PARAM_BLURQT', '1')
@@ -148,6 +148,7 @@ def registerVariable(key, value):
     """
         \Remarks	Add the key value pair to both the current os.environ, and the startup_environ
     """
+    value = str(value)
     os.environ[key] = value
     startup_environ[key] = value
 

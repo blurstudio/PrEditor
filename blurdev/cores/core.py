@@ -530,15 +530,17 @@ class Core(QObject):
         self.blockSignals(True)
 
         from blurdev import prefs
-        from blurdev.tools import ToolsEnvironment
+        from blurdev.tools import ToolsEnvironment, TEMPORARY_TOOLS_ENV
 
         pref = prefs.find('blurdev/core', coreName=self.objectName())
 
         # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
         environPath = os.environ.get('BLURDEV_PATH')
         if environPath:
-            if ToolsEnvironment.findEnvironment('TEMPORARY').isEmpty():
-                env = ToolsEnvironment.createNewEnvironment('TEMPORARY', environPath)
+            if ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV).isEmpty():
+                env = ToolsEnvironment.createNewEnvironment(
+                    TEMPORARY_TOOLS_ENV, environPath
+                )
                 env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
                 env.setActive()
         else:

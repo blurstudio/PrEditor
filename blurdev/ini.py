@@ -755,6 +755,7 @@ def LoadConfigData():
         blurConfigFile = ToolParserClass()
         blurConfigFile.Load(configFile)
         import blurdev
+        from blurdev.tools import ToolsEnvironment, TEMPORARY_TOOLS_ENV
 
         activeEnvironment = unicode(blurdev.activeEnvironment().objectName())
 
@@ -766,6 +767,20 @@ def LoadConfigData():
         for tKey, tValue in blurConfigFile.defaults().iteritems():
             tDefaultSection.SetProperty(tKey, tValue)
         environments['default'] = tDefaultSection
+
+        # set up the temporary environment if pressent
+        env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
+        if not env.isEmpty():
+            codeRootPath = os.path.abspath(
+                os.path.join(env.path(), 'maxscript', 'treegrunt')
+            )
+            if os.path.exists(codeRootPath):
+                tSection = SectionClass(TEMPORARY_TOOLS_ENV)
+                tSection.SetProperty('codeRoot', codeRootPath)
+                codeLibPath = os.path.abspath(os.path.join(codeRootPath, 'lib'))
+                if os.path.exists(codeLibPath):
+                    tSection.SetProperty('startupPath', codeLibPath)
+                environments[TEMPORARY_TOOLS_ENV] = tSection
         return True
     return False
 

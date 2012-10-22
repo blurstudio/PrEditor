@@ -338,6 +338,17 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
 
     options = {'filepath': filename, 'basepath': basePath}
 
+    # build the environment to pass along
+    import blurdev
+
+    env = os.environ.copy()
+    envPath = blurdev.activeEnvironment().path()
+    if envPath:
+        env['BLURDEV_PATH'] = str(envPath)
+        email = blurdev.activeEnvironment().emailOnError()
+        if email:
+            env['BLURDEV_ERROR_EMAIL'] = str(email[0])
+
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
         # run it in debug mode for windows
@@ -346,19 +357,12 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
             if ext == '.pyw':
                 cmd = _pythonPath + ' "%(filepath)s"'
             if cmd:
-                if (cmd % options).split('"'):
-                    success, value = QProcess.startDetached(
-                        'cmd.exe',
-                        ['/k'] + [item.strip() for item in (cmd % options).split('"')],
-                        basePath,
-                    )
-                else:
-                    success, value = QProcess.startDetached(
-                        'cmd.exe', ['/k', '"%s"' % (cmd % options)], basePath
-                    )
+                success = subprocess.Popen(
+                    'cmd.exe /k %s' % cmd % options, env=env, cwd=basePath
+                )
             else:
-                success, value = QProcess.startDetached(
-                    'cmd.exe', ['/k', filename], basePath
+                success = subprocess.Popen(
+                    'cmd.exe /k %s' % filename, env=env, cwd=basePath
                 )
 
         # run it for Linux systems
@@ -398,10 +402,11 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         # run the command in windows
         if settings.OS_TYPE == 'Windows':
             if cmd:
-                success = subprocess.Popen(cmd % options, shell=True)
+                success = subprocess.Popen(
+                    cmd % options, shell=True, cwd=basePath, env=env
+                )
             else:
-                success, value = QProcess.startDetached(filename, [], basePath)
-
+                success = subprocess.Popen(filename, cwd=basePath, env=env, shell=True)
             if not success:
                 try:
                     success = os.startfile(filename)
