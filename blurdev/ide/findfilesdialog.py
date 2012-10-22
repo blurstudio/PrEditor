@@ -187,7 +187,9 @@ class FindFilesDialog(Dialog):
     def pickFolder(self):
         from PyQt4.QtGui import QFileDialog
 
-        path = QFileDialog.getExistingDirectory(self)
+        path = QFileDialog.getExistingDirectory(
+            self, directory=self.uiBasePathTXT.text()
+        )
         if path:
             self.uiBasePathTXT.setText(path)
 
