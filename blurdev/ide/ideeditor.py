@@ -1694,10 +1694,16 @@ class IdeEditor(Window):
             self.uiProjectTREE.blockSignals(True)
             self.uiProjectTREE.setUpdatesEnabled(False)
 
+            # remember the current state of the ide so we can restore it if possible
+            openState = self.uiProjectTREE.recordOpenState()
+            currentCommand = self.uiCommandDDL.currentText()
+            currentArgument = self.uiCommandArgsDDL.currentText()
+
             IdeProject.setCurrentProject(project)
             self.uiProjectTREE.clear()
             self.uiProjectTREE.addTopLevelItem(project)
             self.uiProjectTREE.blockSignals(False)
+            self.uiProjectTREE.restoreOpenState(openState)
             self.uiProjectTREE.setUpdatesEnabled(True)
 
             # update the list of runable arguments
@@ -1717,6 +1723,9 @@ class IdeEditor(Window):
                 self.uiCommandArgsACT.setVisible(len(cmds))
             else:
                 self.uiCommandArgsACT.setVisible(False)
+            index = self.uiCommandArgsDDL.findText(currentArgument)
+            if index != -1:
+                self.uiCommandArgsDDL.setCurrentIndex(index)
             self.uiCommandArgsDDL.updateGeometry()
 
             # update the list of runable commands
@@ -1730,7 +1739,9 @@ class IdeEditor(Window):
                         self.uiCommandDDL.insertSeparator(index)
                     else:
                         self.uiCommandDDL.addItem(key)
-
+            index = self.uiCommandDDL.findText(currentCommand)
+            if index != -1:
+                self.uiCommandDDL.setCurrentIndex(index)
             self.uiCommandDDL.updateGeometry()
 
             self.currentProjectChanged.emit(project)
