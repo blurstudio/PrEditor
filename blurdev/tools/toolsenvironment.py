@@ -40,12 +40,19 @@ class ToolsEnvironment(QObject):
 
         path = self.normalizePath(self.path())
 
-        import sys
+        import sys, os
 
+        # do not remove python path variables
+        pythonpath = [split.lower() for split in os.environ['pythonpath'].split(';')]
         oldpaths = sys.path
         newpaths = [
-            spath for spath in sys.path if not path in spath.lower() and spath != '.'
+            spath
+            for spath in sys.path
+            if (not path in spath.lower() and spath != '.')
+            or spath.lower() in pythonpath
         ]
+        for p in set(oldpaths).difference(set(newpaths)):
+            print 'Removing path from sys', p
         sys.path = newpaths
 
         from blurdev import debug
