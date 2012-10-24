@@ -341,13 +341,14 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     # build the environment to pass along
     import blurdev
 
-    env = os.environ.copy()
-    envPath = blurdev.activeEnvironment().path()
-    if envPath:
-        env['BLURDEV_PATH'] = str(envPath)
-        email = blurdev.activeEnvironment().emailOnError()
-        if email:
-            env['BLURDEV_ERROR_EMAIL'] = str(email[0])
+    env = None
+    # 	env = os.environ.copy()
+    # 	envPath = blurdev.activeEnvironment().path()
+    # 	if envPath:
+    # 		env['BLURDEV_PATH'] = str(envPath)
+    # 		email = blurdev.activeEnvironment().emailOnError()
+    # 		if email:
+    # 			env['BLURDEV_ERROR_EMAIL'] = str(email[0])
 
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
