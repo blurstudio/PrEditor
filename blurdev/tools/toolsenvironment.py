@@ -44,7 +44,7 @@ class ToolsEnvironment(QObject):
 
         # do not remove python path variables
         pythonpath = [
-            split.lower() for split in os.environ.get('pythonpath').split(';')
+            split.lower() for split in os.environ.get('pythonpath', '').split(';')
         ]
         oldpaths = sys.path
         newpaths = [
