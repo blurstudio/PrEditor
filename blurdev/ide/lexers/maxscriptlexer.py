@@ -10,6 +10,7 @@
 
 import re
 from PyQt4.Qsci import QsciLexerCustom
+from PyQt4.QtCore import QString
 
 MS_KEYWORDS = """
 if then else not
@@ -86,12 +87,15 @@ class MaxscriptLexer(QsciLexerCustom):
 
     def processChunk(self, chunk, lastState, keywords):
         # process the length of the chunk
-        chunk = unicode(chunk)
+        isQString = isinstance(chunk, QString)
         length = len(chunk)
 
         # check to see if our last state was a block comment
         if lastState == self.Comment:
-            pos = chunk.find('*/')
+            if isQString:
+                pos = chunk.indexOf('*/')
+            else:
+                pos = chunk.find('*/')
             if pos != -1:
                 self.setStyling(pos + 2, self.Comment)
                 return self.processChunk(chunk[pos + 2 :], self.Default, keywords)
@@ -103,13 +107,22 @@ class MaxscriptLexer(QsciLexerCustom):
         elif lastState == self.String:
             # remove special case backslashes
             while r'\\' in chunk:
-                chunk = chunk.replace(r'\\', '||')
+                if isQString:
+                    chunk.replace(r'\\', '||')
+                else:
+                    chunk = chunk.replace(r'\\', '||')
 
             # remove special case strings
             while r'\"' in chunk:
-                chunk = chunk.replace(r'\"', r"\'")
+                if isQString:
+                    chunk.replace(r'\"', r"\'")
+                else:
+                    chunk = chunk.replace(r'\"', r"\'")
 
-            pos = chunk.find('"')
+            if isQString:
+                pos = chunk.indexOf('"')
+            else:
+                pos = chunk.find('"')
             if pos != -1:
                 self.setStyling(pos + 1, self.String)
                 return self.processChunk(chunk[pos + 1 :], self.Default, keywords)
@@ -119,9 +132,14 @@ class MaxscriptLexer(QsciLexerCustom):
 
         # otherwise, process a default chunk
         else:
-            blockpos = chunk.find('/*')
-            linepos = chunk.find('--')
-            strpos = chunk.find('"')
+            if isQString:
+                blockpos = chunk.indexOf('/*')
+                linepos = chunk.indexOf('--')
+                strpos = chunk.indexOf('"')
+            else:
+                blockpos = chunk.find('/*')
+                linepos = chunk.find('--')
+                strpos = chunk.find('"')
             order = [blockpos, linepos, strpos]
             order.sort()
 
