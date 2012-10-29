@@ -102,7 +102,7 @@ def runtime(filepath):
 
 def init():
     pythonw_print_bugfix()
-    global core, prefs, application, debug, osystem, settings, tools, enum
+    global core, prefs, application, debug, osystem, settings, tools, enum, XML
     # initialize the settings
     import settings
 
@@ -112,7 +112,7 @@ def init():
     if not core:
         # create the core instance
         from blurdev.cores import Core
-        import prefs, debug, osystem, settings, tools, enum
+        import prefs, debug, osystem, settings, tools, enum, XML
 
         # create the core
         core = Core()
