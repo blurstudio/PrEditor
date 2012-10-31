@@ -87,6 +87,8 @@ class MaxscriptLexer(QsciLexerCustom):
 
     def processChunk(self, chunk, lastState, keywords):
         # process the length of the chunk
+        if isinstance(chunk, bytearray):
+            chunk = unicode(QString(chunk))
         isQString = isinstance(chunk, QString)
         length = len(chunk)
 
@@ -174,6 +176,8 @@ class MaxscriptLexer(QsciLexerCustom):
                     return (newstate, newfolding + folding)
 
             # otherwise, we are processing a default set of text whose syntaxing is irrelavent from the previous one
+            # TODO: this needs to handle QStrings. However I do not thing QStrings are the problem, its more likely a bytearray problem.
+            # the conversion at the start of this function may have resolved it.
             results = re.findall('([^A-Za-z0-9]*)([A-Za-z0-9]*)', chunk)
             hlkwords = unicode(self.keywords(self.SmartHighlight)).split()
             for space, kwd in results:
