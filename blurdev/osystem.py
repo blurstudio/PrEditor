@@ -349,7 +349,6 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     # 		email = blurdev.activeEnvironment().emailOnError()
     # 		if email:
     # 			env['BLURDEV_ERROR_EMAIL'] = str(email[0])
-
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
         # run it in debug mode for windows
@@ -363,7 +362,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
                 )
             else:
                 success = subprocess.Popen(
-                    'cmd.exe /k %s' % filename, env=env, cwd=basePath
+                    'cmd.exe /k "%s"' % filename, env=env, cwd=basePath
                 )
 
         # run it for Linux systems
@@ -407,7 +406,9 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
                     cmd % options, shell=True, cwd=basePath, env=env
                 )
             else:
-                success = subprocess.Popen(filename, cwd=basePath, env=env, shell=True)
+                success = subprocess.Popen(
+                    '"%s"' % filename, cwd=basePath, env=env, shell=True
+                )
             if not success:
                 try:
                     success = os.startfile(filename)
