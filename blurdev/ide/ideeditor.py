@@ -663,7 +663,8 @@ class IdeEditor(Window):
         # update the last saved file
         fp = self.currentFilePath()
         if fp:
-            self._lastSavedFilename = fp
+            # add a junk directory that is automaticaly removed when the lastSavedFilename is used.
+            self._lastSavedFilename = os.path.join(fp, 'this_dir_is_removed_when_used')
 
         return window
 

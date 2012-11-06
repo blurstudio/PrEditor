@@ -111,7 +111,7 @@ class DocumentEditor(QsciScintilla):
                 'No Language Defined',
                 'There is no language defined for this editor.',
             )
-            return False
+            return '', False
 
         # grab the line comment
         comment = language.lineComment()
@@ -122,7 +122,7 @@ class DocumentEditor(QsciScintilla):
                 'There is no line comment symbol defined for the "%s" language.'
                 % (self._language),
             )
-            return False
+            return '', False
         return comment, True
 
     def commentAdd(self):

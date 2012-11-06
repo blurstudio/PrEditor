@@ -13,7 +13,7 @@ import re
 
 from blurdev.gui import Dialog
 from PyQt4.QtGui import QTreeWidgetItem, QIcon
-from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant
+from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant, QString
 
 from blurdev.ide import ideglobals
 from blurdev.gui.widgets.pyularwidget import PyularDialog
@@ -199,7 +199,9 @@ class FindFilesDialog(Dialog):
             for i in range(self.uiResultsTREE.topLevelItemCount()):
                 output += self.recordOpenState(self.uiResultsTREE.topLevelItem(i))
         else:
-            text = str(item.text(0))
+            text = item.text(0)
+            if not isinstance(key, QString):
+                key = QString(key)
             if item.isExpanded():
                 output.append(key + text)
             key += text + '::'
@@ -248,7 +250,9 @@ class FindFilesDialog(Dialog):
             for i in range(self.uiResultsTREE.topLevelItemCount()):
                 self.restoreOpenState(openState, self.uiResultsTREE.topLevelItem(i))
         else:
-            text = str(item.text(0))
+            text = item.text(0)
+            if not isinstance(key, QString):
+                key = QString(key)
             itemkey = key + text
             if itemkey in openState:
                 item.setExpanded(True)
