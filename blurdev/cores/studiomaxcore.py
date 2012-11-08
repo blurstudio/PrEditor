@@ -9,7 +9,7 @@
 #
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
-import Py3dsMax
+import Py3dsMax, os
 from Py3dsMax import mxs
 from blurdev.cores.core import Core
 
@@ -212,17 +212,26 @@ class StudiomaxCore(Core):
 
         # update the old library system
         if self.supportLegacy():
-            blurlib = mxs._blurLibrary
-            if blurlib:
-                blurlib.setCodePath(envname)
-                # update the config.ini file so next time we start from the correct environment.
+            if not envname:
+                envname = env.objectName()
+            if envname:
                 import blurdev.ini
 
-                if not envname:
-                    envname = env.objectName()
-                if envname:
+                # update the maxscript code only if we are actually changing code environments
+                if (
+                    blurdev.ini.GetINISetting(
+                        blurdev.ini.configFile, 'GLOBALS', 'environment'
+                    )
+                    != envname
+                ):
+                    print 'Switching maxscript environments from', blurdev.ini.GetINISetting(
+                        blurdev.ini.configFile, 'GLOBALS', 'environment'
+                    ), 'To', envname
                     blurdev.ini.SetINISetting(
                         blurdev.ini.configFile, 'GLOBALS', 'environment', envname
+                    )
+                    mxs.filein(
+                        os.path.join(blurdev.ini.GetCodePath(), 'Lib', 'blurStartup.ms')
                     )
 
         # register standard paths
@@ -252,8 +261,6 @@ class StudiomaxCore(Core):
         filename = str(filename)
 
         # run a maxscript file
-        import os.path
-
         if os.path.splitext(filename)[1] in ('.ms', '.mcr'):
             if os.path.exists(filename):
                 # try:
