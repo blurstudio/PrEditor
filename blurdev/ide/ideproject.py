@@ -296,7 +296,7 @@ class IdeProjectItem(QTreeWidgetItem):
         self._exclude = exclude
 
     def setFilePath(self, filePath):
-        self._filePath = filePath
+        self._filePath = os.path.abspath(filePath)
 
     def setFileSystem(self, state):
         self._fileSystem = state

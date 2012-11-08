@@ -256,6 +256,9 @@ class IdeEditor(Window):
         self.uiRunSelectedACT.triggered.connect(self.runSelected)
         self.uiCleanRunACT.triggered.connect(self.documentExecClean)
         self.uiCleanPathsACT.triggered.connect(self.cleanEnvironment)
+        self.uiSelectCommandACT.triggered.connect(self.uiCommandDDL.showPopup)
+        self.addAction(self.uiSelectCommandACT)
+        self.uiSelectArgumentsACT.triggered.connect(self.uiCommandArgsDDL.showPopup)
 
         # connect view menu
         self.uiDisplayWindowsACT.triggered.connect(self.displayWindows)

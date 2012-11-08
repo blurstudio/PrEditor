@@ -70,9 +70,6 @@
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
               <column>
                <property name="text">
                 <string notr="true">1</string>
@@ -95,9 +92,6 @@
             </property>
             <item row="0" column="0">
              <widget class="QTreeWidget" name="uiOpenTREE">
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
@@ -126,9 +120,6 @@
               <property name="contextMenuPolicy">
                <enum>Qt::CustomContextMenu</enum>
               </property>
-              <attribute name="headerVisible">
-               <bool>false</bool>
-              </attribute>
               <attribute name="headerVisible">
                <bool>false</bool>
               </attribute>
@@ -266,6 +257,9 @@
     <addaction name="uiRunScriptACT"/>
     <addaction name="uiCleanRunACT"/>
     <addaction name="uiRunSelectedACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiSelectCommandACT"/>
+    <addaction name="uiSelectArgumentsACT"/>
    </widget>
    <widget class="QMenu" name="uiProjectMENU">
     <property name="title">
@@ -710,7 +704,7 @@
     <string>Select to Matching Brace</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+B</string>
+    <string>Ctrl+M</string>
    </property>
   </action>
   <action name="uiDefaultEnvACT">
@@ -847,6 +841,22 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+L</string>
+   </property>
+  </action>
+  <action name="uiSelectCommandACT">
+   <property name="text">
+    <string>Select Command</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
+   </property>
+  </action>
+  <action name="uiSelectArgumentsACT">
+   <property name="text">
+    <string>Select Arguments</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+B</string>
    </property>
   </action>
  </widget>
