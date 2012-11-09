@@ -534,22 +534,6 @@ class Core(QObject):
 
         pref = prefs.find('blurdev/core', coreName=self.objectName())
 
-        # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
-        environPath = os.environ.get('BLURDEV_PATH')
-        if environPath:
-            env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
-            if env.isEmpty():
-                env = ToolsEnvironment.createNewEnvironment(
-                    TEMPORARY_TOOLS_ENV, environPath
-                )
-                env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
-            env.setActive()
-        else:
-            # restore the active environment
-            env = pref.restoreProperty('environment')
-            if env:
-                ToolsEnvironment.findEnvironment(env).setActive()
-
         # restore the active debug level
         level = pref.restoreProperty('debugLevel')
         if level != None:
