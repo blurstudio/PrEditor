@@ -394,30 +394,41 @@ class ToolsEnvironment(QObject):
                         env.setActive(silent=True)
                         return True
 
-                # set the environment once on startup
-                import os
-                from blurdev import prefs
-                from blurdev.tools import TEMPORARY_TOOLS_ENV
-
-                pref = prefs.find('blurdev/core', coreName=blurdev.core.objectName())
+                # 				# set the environment once on startup
+                # 				import os
+                # 				from blurdev import prefs
+                # 				from blurdev.tools import TEMPORARY_TOOLS_ENV
+                # 				pref = prefs.find('blurdev/core', coreName=blurdev.core.objectName())
+                #
+                # 				# If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
+                # 				environPath = os.environ.get('BLURDEV_PATH')
+                # 				if environPath:
+                # 					env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
+                # 					if env.isEmpty():
+                # 						env = ToolsEnvironment.createNewEnvironment(TEMPORARY_TOOLS_ENV, environPath)
+                # 						env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
+                # 					env.setActive()
+                # 				else:
+                # 					# restore the active environment
+                # 					env = pref.restoreProperty('environment')
+                # 					if (env):
+                # 						ToolsEnvironment.findEnvironment(env).setActive()
+                # 					else:
+                # 						ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
                 # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
+                import os
+
                 environPath = os.environ.get('BLURDEV_PATH')
+                found = False
                 if environPath:
+                    from blurdev.tools import TEMPORARY_TOOLS_ENV
+
                     env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
                     if env.isEmpty():
-                        env = ToolsEnvironment.createNewEnvironment(
-                            TEMPORARY_TOOLS_ENV, environPath
-                        )
-                        env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
-                    env.setActive()
-                else:
-                    # restore the active environment
-                    env = pref.restoreProperty('environment')
-                    if env:
-                        ToolsEnvironment.findEnvironment(env).setActive()
-                    else:
-                        ToolsEnvironment.defaultEnvironment().setActive(silent=True)
+                        found = True
+                if not found:
+                    ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
             return True
         return False
