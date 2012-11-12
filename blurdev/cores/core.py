@@ -305,6 +305,9 @@ class Core(QObject):
         self.protectModule(
             'blurdev'
         )  # do not want to affect this module during environment switching
+        # we should never remove main. If we do in specific cases it will prevent external tools from
+        # running if they use "if __name__ == '__main__':" as __name__ will return None
+        self.protectModule('__main__')
 
         # initialize the tools environments
         import blurdev

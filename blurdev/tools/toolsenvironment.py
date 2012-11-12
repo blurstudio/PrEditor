@@ -46,6 +46,15 @@ class ToolsEnvironment(QObject):
         pythonpath = [
             split.lower() for split in os.environ.get('pythonpath', '').split(';')
         ]
+        # do not remove paths for protected modules.
+        import blurdev
+
+        symbols = blurdev.core.protectedModules()
+        for name in symbols:
+            mod = sys.modules.get(name)
+            if mod:
+                pythonpath.append(self.normalizePath(os.path.split(mod.__file__)[0]))
+
         oldpaths = sys.path
         newpaths = [
             spath
@@ -68,9 +77,6 @@ class ToolsEnvironment(QObject):
 
         newmodules = {}
 
-        import blurdev
-
-        symbols = blurdev.core.protectedModules()
         for key, value in sys.modules.items():
             if not key in symbols:
                 found = False
