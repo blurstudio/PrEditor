@@ -53,7 +53,12 @@ class ToolsEnvironment(QObject):
         for name in symbols:
             mod = sys.modules.get(name)
             if mod:
-                pythonpath.append(self.normalizePath(os.path.split(mod.__file__)[0]))
+                try:
+                    pythonpath.append(
+                        self.normalizePath(os.path.split(mod.__file__)[0])
+                    )
+                except:
+                    pass
 
         oldpaths = sys.path
         newpaths = [
