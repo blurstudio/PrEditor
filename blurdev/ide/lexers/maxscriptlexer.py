@@ -12,6 +12,10 @@ import re
 from PyQt4.Qsci import QsciLexerCustom
 from PyQt4.QtCore import QString
 
+import sys
+
+py26orNewer = sys.hexversion >= 0x02060000
+
 MS_KEYWORDS = """
 if then else not
 do while for in with where
@@ -87,8 +91,9 @@ class MaxscriptLexer(QsciLexerCustom):
 
     def processChunk(self, chunk, lastState, keywords):
         # process the length of the chunk
-        if isinstance(chunk, bytearray):
-            chunk = unicode(QString(chunk))
+        if py26orNewer:
+            if isinstance(chunk, bytearray):
+                chunk = unicode(QString(chunk))
         isQString = isinstance(chunk, QString)
         length = len(chunk)
 
@@ -219,7 +224,7 @@ class MaxscriptLexer(QsciLexerCustom):
         CURRFOLDLEVEL = QsciScintilla.SC_FOLDLEVELBASE
 
         if end > start:
-            if sys.hexversion >= 0x02060000:
+            if py26orNewer:
                 # faster when styling big files, but needs python 2.6
                 source = bytearray(end - start)
                 editor.SendScintilla(editor.SCI_GETTEXTRANGE, start, end, source)
