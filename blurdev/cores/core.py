@@ -374,6 +374,11 @@ class Core(QObject):
 
         return LoggerWindow.instance(parent)
 
+    def lovebar(self, parent=None):
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        return ToolsLoveBarDialog.instance(parent)
+
     def macroName(self):
         """
             \Remarks	Returns the name to display for the create macro action in treegrunt
@@ -473,6 +478,11 @@ class Core(QObject):
             \return		<list> [ <str> ]
         """
         return self._protectedModules
+
+    def pyular(self, parent=None):
+        from blurdev.gui.widgets.pyularwidget import PyularDialog
+
+        return PyularDialog.instance(parent)
 
     def registerPaths(self):
         """
@@ -910,6 +920,11 @@ class Core(QObject):
         from blurdev.tools.toolslovebar import ToolsLoveBarDialog
 
         ToolsLoveBarDialog.instance(parent).show()
+
+    def showPyular(self, parent=None):
+        from blurdev.gui.widgets.pyularwidget import PyularDialog
+
+        PyularDialog.instance(parent).show()
 
     def showTreegrunt(self):
         self.treegrunt().show()
