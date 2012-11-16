@@ -150,6 +150,7 @@
      <string>Tools</string>
     </property>
     <addaction name="uiTreegruntACT"/>
+    <addaction name="uiPyularACT"/>
     <addaction name="separator"/>
     <addaction name="uiDesignerACT"/>
     <addaction name="separator"/>
@@ -857,6 +858,39 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+B</string>
+   </property>
+  </action>
+  <action name="uiPyularACT">
+   <property name="text">
+    <string>Pyular</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Ctrl+P will show the pyular widget without setting the expression or sample text.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Shift+P&lt;/span&gt; will set the pyular expression to the selected text.&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Ctrl+Alt+P&lt;/span&gt; will set the pyular sample text to the selected text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="uiPyularExpressionACT">
+   <property name="text">
+    <string>Pyular Expression</string>
+   </property>
+   <property name="toolTip">
+    <string>Keyboard shortcut for opening pyular and setting the expression</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
+   </property>
+  </action>
+  <action name="uiPyularTestStringACT">
+   <property name="text">
+    <string>Pyular Test String</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Keyboard shortcut for opening pyular and setting the testString.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+P</string>
    </property>
   </action>
  </widget>

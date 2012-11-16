@@ -269,6 +269,11 @@ class IdeEditor(Window):
         # connect tools menu
         self.uiDesignerACT.triggered.connect(self.showDesigner)
         self.uiTreegruntACT.triggered.connect(blurdev.core.showTreegrunt)
+        self.uiPyularACT.triggered.connect(self.showPyular)
+        self.uiPyularExpressionACT.triggered.connect(self.showPyular)
+        self.uiPyularTestStringACT.triggered.connect(self.showPyular)
+        self.addAction(self.uiPyularExpressionACT)
+        self.addAction(self.uiPyularTestStringACT)
         self.uiShowLoggerACT.triggered.connect(blurdev.core.showLogger)
 
         # connect advanced menu
@@ -1513,6 +1518,13 @@ class IdeEditor(Window):
                 )
             )
         )
+        self.uiPyularACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pyular.png')))
+        self.uiPyularExpressionACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/pyular.png'))
+        )
+        self.uiPyularTestStringACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/pyular.png'))
+        )
         self.uiShowLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/console.png')))
 
         self.uiFindACT.setIcon(QIcon(blurdev.resourcePath('img/ide/find.png')))
@@ -1573,6 +1585,7 @@ class IdeEditor(Window):
         self.uiMainTBAR.addAction(self.uiGotoDefinitionACT)
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiTreegruntACT)
+        self.uiMainTBAR.addAction(self.uiPyularACT)
         self.uiMainTBAR.addAction(self.uiDesignerACT)
         self.uiMainTBAR.addAction(self.uiShowLoggerACT)
 
@@ -1650,6 +1663,19 @@ class IdeEditor(Window):
         QProcess.startDetached(
             osystem.expandvars(os.environ['BDEV_APP_QDESIGNER']), [], ''
         )
+
+    def showPyular(self):
+        import blurdev
+
+        dlg = blurdev.core.pyular(self)
+        searchText = self.searchText()
+        print 'Show pyular', searchText, QApplication.keyboardModifiers().__int__()
+        if searchText:
+            if QApplication.keyboardModifiers() & Qt.AltModifier:
+                dlg.setTestString(searchText)
+            elif QApplication.keyboardModifiers() & Qt.ShiftModifier:
+                dlg.setExpression(searchText)
+        dlg.show()
 
     def showSdkBrowser(self):
         import blurdev
