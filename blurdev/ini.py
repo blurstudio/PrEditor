@@ -757,7 +757,7 @@ def LoadConfigData():
         import blurdev
         from blurdev.tools import ToolsEnvironment, TEMPORARY_TOOLS_ENV
 
-        activeEnvironment = unicode(blurdev.activeEnvironment().objectName())
+        activeEnvironment = unicode(blurdev.activeEnvironment().legacyName())
 
         for tSection in blurConfigFile.GetSections():
             if tSection.GetName().lower() != 'globals':
