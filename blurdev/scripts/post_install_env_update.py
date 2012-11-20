@@ -17,6 +17,17 @@ def updateEnvirons():
                 'startupPath',
                 os.path.abspath(os.path.join(codeRootPath, 'lib')),
             )
+    # because legacy switching is not enabled by default, update the maxscript environment if it is pointing to the old environments.
+    if blurdev.ini.GetINISetting(blurdev.ini.configFile, 'GLOBALS', 'environment') in (
+        'Beta',
+        'Gold',
+    ):
+        blurdev.ini.SetINISetting(
+            blurdev.ini.configFile,
+            'GLOBALS',
+            'environment',
+            unicode(blurdev.tools.ToolsEnvironment.defaultEnvironment().objectName()),
+        )
 
 
 if __name__ == '__main__':
