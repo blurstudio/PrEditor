@@ -122,7 +122,8 @@ class ConsoleEdit(QTextEdit):
         """ returns the completer instance that is associated with this editor """
         return self._completer
 
-    def emailError(self, emails, error):
+    @staticmethod
+    def emailError(emails, error, subject=None):
         """
             \Remarks	Generates and sends a email of the traceback, and usefull information provided by the class if available.
                         
@@ -155,7 +156,9 @@ class ConsoleEdit(QTextEdit):
             host = 'Unknown'
 
         # Build the brief & subject information
-        subject = '[Python Error] %s' % error.split('\n')[-2]
+        if not subject:
+            subject = error.split('\n')[-2]
+        subject = '[Python Error] %s' % subject
 
         # Build the message
         message = ['<ul>']
@@ -201,23 +204,24 @@ class ConsoleEdit(QTextEdit):
         message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
         # append extra stuff
-        tb = sys.last_traceback
-        if tb:
-            frame = tb.tb_frame
-            if frame:
-                module = frame.f_locals.get('self')
-                if module:
-                    if hasattr(module, 'errorLog'):
-                        message.append('<h3>Additional Information</h3>')
-                        message.append('<hr>')
-                        message.append(
-                            '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
-                        )
-                        try:
-                            message.append(module.errorLog().replace('\n', '<br>'))
-                        except:
-                            message.append('module.errorLog() generated a error.')
-                        message.append('</code></pre></div>')
+        if hasattr(sys, 'last_traceback'):
+            tb = sys.last_traceback
+            if tb:
+                frame = tb.tb_frame
+                if frame:
+                    module = frame.f_locals.get('self')
+                    if module:
+                        if hasattr(module, 'errorLog'):
+                            message.append('<h3>Additional Information</h3>')
+                            message.append('<hr>')
+                            message.append(
+                                '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
+                            )
+                            try:
+                                message.append(module.errorLog().replace('\n', '<br>'))
+                            except:
+                                message.append('module.errorLog() generated a error.')
+                            message.append('</code></pre></div>')
 
         blurdev.core.sendEmail(
             'thePipe@blur.com',
