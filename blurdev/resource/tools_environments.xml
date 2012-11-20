@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <tools_environments version="1.0">
 	<!-- load studio standard environments -->
-	<environment	name="Gold"		loc="\\blurdev/gold" default="True" emailOnError="errors@blur.com"	legacyName="Production"/>
-	<environment	name="Beta"		loc="\\blurdev/beta" 				emailOnError="errors@blur.com"/>
+	<environment	name="Production" loc="\\source\production" default="True" emailOnError="errors@blur.com"/>
 	
 	<!-- load local user environments -->
 	<include		loc="c:/blur/common/user_environments.xml"/>
