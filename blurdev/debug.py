@@ -124,6 +124,8 @@ def debugMsg(msg, level=2):
     
     """
     if level <= debugLevel():
+        if callable(msg):
+            msg = msg()
         print 'DEBUG (%s) : %s' % (DebugLevel.keyByValue(level), msg)
 
 
@@ -139,7 +141,7 @@ def debugObject(object, msg, level=2):
     :type level: :data:`DebugLevel`
     
     """
-    debugMsg(debugObjectString(object, msg), level)
+    debugMsg(lambda: debugObjectString(object, msg), level)
 
 
 def debugObjectString(object, msg):
