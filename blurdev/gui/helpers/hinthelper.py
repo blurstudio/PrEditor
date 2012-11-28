@@ -44,6 +44,8 @@ class HintHelper(QLabel):
         self.setAlignment(Qt.AlignTop)
         self.move(6, 4)
 
+        self.setCursor(Qt.IBeamCursor)
+
     def enabled(self):
         return self._enabled
 
