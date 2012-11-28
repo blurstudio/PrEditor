@@ -65,7 +65,7 @@ class Preference(XMLDocument):
             }
         else:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
-        return os.path.join(path, 'app_%s\\' % coreName)
+        return os.path.join(path, 'app_%s' % coreName)
 
     def recordProperty(self, key, value):
         """ connects to the root recordProperty method """
@@ -159,7 +159,7 @@ def find(name, reload=False, coreName='', shared=False, index=0):
         pref.setShared(shared)
         pref.setCoreName(coreName)
         # look for a default preference file
-        filename = pref.path(coreName, shared) + '%s.pref' % key
+        filename = os.path.join(pref.path(coreName, shared), '%s.pref' % key)
         success = False
         if os.path.exists(filename):
             success = pref.load(filename)
