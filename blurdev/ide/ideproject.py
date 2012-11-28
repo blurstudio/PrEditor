@@ -166,6 +166,8 @@ class IdeProjectItem(QTreeWidgetItem):
             if not text.endswith('(Invalid Path)'):
                 self.setText(0, '%s (Invalid Path)' % text)
             dirs = []
+        # if .* is provided add all files
+        allFiles = '.*' in fileTypes
         for d in dirs:
             # ignore directories in the exclude group
             if d in exclude:
@@ -173,9 +175,12 @@ class IdeProjectItem(QTreeWidgetItem):
             fpath = os.path.join(path, d)
             finfo = QFileInfo(fpath)
             if finfo.isFile():
-                ext = os.path.splitext(fpath)[1]
-                if ext in fileTypes:
+                if allFiles:
                     files.append(fpath)
+                else:
+                    ext = os.path.splitext(fpath)[1]
+                    if ext in fileTypes:
+                        files.append(fpath)
             else:
                 folders.append(fpath)
 
