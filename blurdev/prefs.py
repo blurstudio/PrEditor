@@ -46,9 +46,8 @@ class Preference(XMLDocument):
         """ return this documents filename, deriving the default filename from its name and standard preference location  """
         if not self._filename:
             key = self.name().lower().replace(' ', '-')
-            self._filename = (
-                self.path(coreName=self._coreName, shared=self._shared)
-                + '%s.pref' % key
+            self._filename = os.path.join(
+                self.path(coreName=self._coreName, shared=self._shared), '%s.pref' % key
             )
         return self._filename
 
