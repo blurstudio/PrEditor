@@ -11,7 +11,6 @@
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent
 from PyQt4.QtGui import QApplication
-from blurdev.tools import ToolsEnvironment
 import time, os
 
 
@@ -101,6 +100,10 @@ class Core(QObject):
 
     def addLibraryPaths(self, app):
         # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
+        import sys
+
+        if sys.platform != 'win32':
+            return
         import platform
 
         if platform.architecture()[0] == '64bit':
@@ -728,7 +731,7 @@ class Core(QObject):
 
             ext = os.path.splitext(filename)[1]
 
-            from blurdev.tools import ToolType
+            from blurdev.tools import ToolType, ToolsEnvironment
 
             # always run legacy external tools as standalone - they can cause QApplication conflicts
             if toolType == ToolType.LegacyExternal:
