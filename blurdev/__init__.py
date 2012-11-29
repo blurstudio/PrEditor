@@ -11,7 +11,7 @@
 __DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 
 # track the install path
-import os, sys, types
+import os, sys
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -43,6 +43,8 @@ def bindMethod(object, name, method):
     dirty alternative to sub-classing when not possible.
     
     """
+    import types
+
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
