@@ -22,10 +22,16 @@ import subprocess
 from PyQt4.QtCore import QProcess
 
 from blurdev import settings
-from distutils.sysconfig import get_python_inc
 
 # Get the active version of python, not a hard coded value.
-_pythonPath = r'%s\python.exe' % os.path.split(get_python_inc())[0]
+def pythonPath():
+    if settings.OS_TYPE != 'Windows':
+        return 'python'
+    from distutils.sysconfig import get_python_inc
+
+    return r'%s\python.exe' % os.path.split(get_python_inc())[0]
+
+
 EXTENSION_MAP = {}
 
 
@@ -332,7 +338,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         if filename.startswith('http://'):
             cmd = expandvars(os.environ.get('BDEV_CMD_WEB', ''))
         elif ext == ".py":
-            cmd = _pythonPath + ' "%(filepath)s"'
+            cmd = pythonPath() + ' "%(filepath)s"'
         else:
             cmd = expandvars(os.environ.get(EXTENSION_MAP.get(ext, ''), ''))
 
@@ -355,7 +361,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         if settings.OS_TYPE == 'Windows':
             # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
             if ext == '.pyw':
-                cmd = _pythonPath + ' "%(filepath)s"'
+                cmd = pythonPath() + ' "%(filepath)s"'
             if cmd:
                 success = subprocess.Popen(
                     'cmd.exe /k %s' % cmd % options, env=env, cwd=basePath
