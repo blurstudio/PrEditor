@@ -314,6 +314,7 @@ class Core(QObject):
 
         # initialize the tools environments
         import blurdev
+        from blurdev.tools import ToolsEnvironment
 
         ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
 
