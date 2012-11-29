@@ -26,7 +26,7 @@
 # 										GLOBAL DEFINITIONS
 # -------------------------------------------------------------------------------------------------------------
 
-import ConfigParser, sys, os, os.path, sys, shutil, getpass
+import ConfigParser, sys, os, os.path, getpass
 
 configFile = "c:/blur/config.ini"  # Default path information for Blur Studio
 environments = {}
