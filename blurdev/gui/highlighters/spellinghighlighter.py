@@ -106,7 +106,7 @@ class SpellingHighlighter(QSyntaxHighlighter):
             format.setFontUnderline(True)
 
             # create the regexp
-            expr = QRegExp(r'\S+')
+            expr = QRegExp(r'\S+\w')
             pos = expr.indexIn(text, 0)
 
             # highlight all the given matches to the expression in the text
