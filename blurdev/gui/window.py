@@ -54,6 +54,9 @@ class Window(QMainWindow):
         from PyQt4.QtCore import Qt
 
         self.setAttribute(Qt.WA_DeleteOnClose)
+        # If this value is set to False calling setGeometry on this window will not adjust the
+        # geometry to ensure the window is on a valid screen.
+        self.checkScreenGeo = True
 
     def closeEvent(self, event):
         from PyQt4.QtCore import Qt
@@ -72,3 +75,14 @@ class Window(QMainWindow):
             from winwidget import WinWidget
 
             WinWidget.uncache(wwidget)
+
+    def setGeometry(self, *args):
+        """
+        Sets the window's geometry, It will also check if the geometry is visible on any monitors. If it is not it will move the
+        window so it is visible. This can be disabled by setting self.checkScreenGeo to False
+        """
+        super(Window, self).setGeometry(*args)
+        if self.checkScreenGeo:
+            import blurdev
+
+            blurdev.ensureWindowIsVisible(self)

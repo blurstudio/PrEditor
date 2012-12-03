@@ -65,9 +65,15 @@ def ensureWindowIsVisible(widget):
         if monGeo.intersects(geo):
             break
     else:
-        print 'Resetting %s position, it is offscreen.' % widget.objectName()
+        # print 'Resetting %s position, it is offscreen.' % widget.objectName()
         geo.moveTo(monGeo.x() + 7, monGeo.y() + 30)
+        # setting the geometry may trigger a second check if setGeometry is overriden
+        disable = hasattr(widget, 'checkScreenGeo') and widget.checkScreenGeo
+        if disable:
+            widget.checkScreenGeo = False
         widget.setGeometry(geo)
+        if disable:
+            widget.checkScreenGeo = True
         return True
     return False
 

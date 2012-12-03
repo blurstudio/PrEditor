@@ -208,7 +208,6 @@ class LoggerWindow(Window):
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
             self.setGeometry(rect)
-            blurdev.ensureWindowIsVisible(self)
         self.uiWorkboxWGT.setText(pref.restoreProperty('WorkboxText', ''))
         self.uiEditorVerticalACT.setChecked(
             pref.restoreProperty('SplitterVertical', False)

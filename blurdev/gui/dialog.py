@@ -56,6 +56,10 @@ class Dialog(QDialog):
         # set this property to true to properly handle tracking events to control keyboard overrides
         self.setMouseTracking(True)
 
+        # If this value is set to False calling setGeometry on this dialog will not adjust the
+        # geometry to ensure the dialog is on a valid screen.
+        self.checkScreenGeo = True
+
     def closeEvent(self, event):
 
         # ensure this object gets deleted
@@ -82,3 +86,14 @@ class Dialog(QDialog):
 
         # execute the dialog
         return QDialog.exec_(self)
+
+    def setGeometry(self, *args):
+        """
+        Sets the dialog's geometry, It will also check if the geometry is visible on any monitors. If it is not it will move the
+        dialog so it is visible. This can be disabled by setting self.checkScreenGeo to False
+        """
+        super(Dialog, self).setGeometry(*args)
+        if self.checkScreenGeo:
+            import blurdev
+
+            blurdev.ensureWindowIsVisible(self)
