@@ -71,7 +71,8 @@ def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
     """
         :remarks	Sets the ini section setting of the inputed file with the give key/value pair.
                     By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
-                    It will use ConfigParser.ConfigParser instead()
+                    It will use ConfigParser.ConfigParser instead. You will not be able to write to the
+                    DEFAULT Section when using ConfigParser.ConfigParser.
         :param		inFileName			<string>
         :param		inSection			<variant>
         :param		inKey				<variant>
@@ -90,10 +91,14 @@ def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
 
     if os.path.isfile(inFileName):
         tParser.read(inFileName)
-    if not tParser.has_section(inSection):
-        tParser.add_section(inSection)
+    if not useConfigParser and inSection.lower() == 'default':
+        # special case to support updating the Default section
+        environments[inSection].__dict__['_properties'][inKey] = inValue
+    else:
+        if inSection.lower() != 'default' and not tParser.has_section(inSection):
+            tParser.add_section(inSection)
 
-    tParser.set(inSection, inKey, inValue)
+        tParser.set(inSection, inKey, inValue)
     if useConfigParser:
         f = open(inFileName, 'w')
         tParser.write(f)
