@@ -136,7 +136,6 @@ class IdeEditor(Window):
 
         # create the system model
         model = QFileSystemModel()
-        model.setRootPath('')
         self.uiExplorerTREE.setModel(model)
         for i in range(1, 4):
             self.uiExplorerTREE.setColumnHidden(i, True)
@@ -181,7 +180,7 @@ class IdeEditor(Window):
         self.uiProjectTREE.itemActivated.connect(self.editItem)
         self.uiProjectTREE.customContextMenuRequested.connect(self.showProjectMenu)
         self.uiProjectTREE.itemExpanded.connect(self.projectInitItem)
-        self.uiBrowserTAB.currentChanged.connect(self._methodBrowser.refresh)
+        self.uiBrowserTAB.currentChanged.connect(self.browserTabChanged)
 
         self.uiOpenTREE.itemClicked.connect(self.editItem)
         self.uiExplorerTREE.activated.connect(self.editItem)
@@ -344,6 +343,13 @@ class IdeEditor(Window):
 
         self.editorCreated.emit(editor)
         return window
+
+    def browserTabChanged(self, currentTab):
+        if currentTab == 2:
+            if unicode(self.uiExplorerTREE.model().rootPath()) == '.':
+                self.uiExplorerTREE.model().setRootPath('')
+        elif currentTab == 3:
+            self._methodBrowser.refresh()
 
     def checkOpen(self):
         # determine if there have been any changes
