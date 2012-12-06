@@ -97,6 +97,8 @@ class IdeEditor(Window):
         self._recentFileMenu = None
         self._loaded = False
         self._initfiles = []
+        self._initDocument = None
+        self._initExpandedFolders = []
         self.documentMarkrerDict = {}
 
         from idefilemenu import IdeFileMenu
@@ -894,7 +896,7 @@ class IdeEditor(Window):
     def initialize(self):
         """ initialize the settings once the application has loaded """
 
-        # restore initial files
+        # restore initial files in the same order
         for filename in self._initfiles:
             self.load(filename)
 
@@ -906,6 +908,12 @@ class IdeEditor(Window):
         # launch with a given filename
         if 'BDEV_FILE_START' in os.environ:
             self.load(osystem.expandvars(os.environ['BDEV_FILE_START']))
+        elif self._initDocument:
+            # make the correct document active
+            self.load(self._initDocument)
+
+        # restore the project open state
+        self.uiProjectTREE.restoreOpenState(self._initExpandedFolders)
 
     def launchConsole(self):
         filename = self.currentFilePath()
@@ -1165,6 +1173,11 @@ class IdeEditor(Window):
             'openFiles',
             [str(doc.filename()) for doc in self.documents() if doc.filename()],
         )
+        pref.recordProperty(
+            'currentDocument', unicode(self.currentDocument().filename())
+        )
+
+        pref.recordProperty('projectTreeState', self.uiProjectTREE.recordOpenState())
 
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
@@ -1286,8 +1299,6 @@ class IdeEditor(Window):
             self.uiExecuteDDL.setCurrentIndex(self.uiExecuteDDL.findText(text))
 
         # update project favorites
-        from ideproject import IdeProject
-
         IdeProject.Favorites = pref.restoreProperty('proj_favorites', [])
 
         # update ui items
@@ -1324,6 +1335,12 @@ class IdeEditor(Window):
 
         # record which files should load on open
         self._initfiles = pref.restoreProperty('openFiles', [])
+
+        # restore the current file
+        self._initDocument = pref.restoreProperty('currentDocument')
+
+        # restore the expanded state of the uiProjectTREE
+        self._initExpandedFolders = pref.restoreProperty('projectTreeState', [])
 
     def runCurrentScript(self):
         filename = self.currentFilePath()
