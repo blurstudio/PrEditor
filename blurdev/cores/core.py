@@ -11,6 +11,7 @@
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent
 from PyQt4.QtGui import QApplication
+from application import Application
 import time, os
 
 
@@ -341,7 +342,7 @@ class Core(QObject):
 
         # create a new application
         elif not app:
-            output = QApplication([])
+            output = Application([])
             self.addLibraryPaths(output)
 
         # restore the core settings
