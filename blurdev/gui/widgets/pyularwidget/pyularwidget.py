@@ -66,6 +66,8 @@ class PyularDialog(blurdev.gui.Dialog):
 class PyularWidget(QWidget):
     # if this list is changed, processResults must be updated to reflect the list
     searchTypes = ['Find All', 'Match', 'Search', 'Split', 'Sub']
+    emptyString = "['']"
+    bulletFormat = '<li>%s</li>'
 
     def __init__(self, parent=None):
         # initialize the super class
@@ -134,10 +136,15 @@ class PyularWidget(QWidget):
                             out.append('<li><b><i>Nested Group:</i></b></li>')
                             out.append('<ul>')
                             for item in result:
-                                out.append('<li>%s</li>' % item)
+                                if item == '':
+                                    item = self.emptyString
+                                    self.uiSplitNotesLBL.setVisible(True)
+                                out.append(self.bulletFormat % item)
                             out.append('</ul>')
                         else:
-                            out.append('<li>%s</li>' % result)
+                            if result == '':
+                                result = self.emptyString
+                            out.append(self.bulletFormat % result)
                     out.append('</ul>')
                 self.uiResultsTXT.setText('\n'.join(out))
                 return
@@ -152,7 +159,7 @@ class PyularWidget(QWidget):
                         results[index] = '[None]'
                         self.uiSplitNotesLBL.setVisible(True)
                     if result == '':
-                        results[index] = "['']"
+                        results[index] = self.emptyString
                         self.uiSplitNotesLBL.setVisible(True)
             else:  # Sub
                 replace = unicode(self.uiReplaceTXT.text())
