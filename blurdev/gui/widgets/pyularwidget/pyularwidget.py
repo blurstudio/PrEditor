@@ -129,7 +129,15 @@ class PyularWidget(QWidget):
                 if results:
                     out.append('<ul>')
                     for result in results:
-                        out.append('<li>%s</li>' % result)
+                        # re.findall can return a list of strings, or a list of tuples containing strings.
+                        if isinstance(result, tuple):
+                            out.append('<li><b><i>Nested Group:</i></b></li>')
+                            out.append('<ul>')
+                            for item in result:
+                                out.append('<li>%s</li>' % item)
+                            out.append('</ul>')
+                        else:
+                            out.append('<li>%s</li>' % result)
                     out.append('</ul>')
                 self.uiResultsTXT.setText('\n'.join(out))
                 return
