@@ -36,7 +36,14 @@ html = '''<table>
         <td><b><code>\z</code></b></td><td>End of string</td><td><b><code>\b</code></b></td><td>Any word boundary character</td><td><b><code>a{3,6}</code></b></td><td>Between 3 and 6 of a</td>
     </tr>
     <tr>
-        <td><b><code>(?P&lt;name&gt;...)</code></b></td><td>Group subpattern and capture into named group</td><td><b><code></code></b></td><td></td><td><b><code></code></b></td><td></td>
+        <td><b><code>(?P&lt;name&gt;...)</code></b></td><td>Group subpattern and capture into named group</td>
+        <td><b><code>(?P=name)</code></b></td><td>Matches whatever text was matched by the earlier group named name. See (?P&lt;name&gt;...).</td>
+        <td><b><code>(?=...)</code></b></td><td><i><u>Lookahead assertion:</i></u> Matches if ... matches next, but doesn't consume any of the string.</td>
+    </tr>
+    <tr>
+        <td><b><code>(?!...)</code></b></td><td><i><u>Negative Lookahead Assertion:</i></u> Matches if ... doesn't match next.</td>
+        <td><b><code>(?&gt;=...)</code></b></td><td width=27%><i><u>Positive Lookbehind Assertion:</i></u> Matches if the current position in the string is preceded by a match for ... that ends at the current position.</td>
+        <td><b><code>(?&gt;!...)</code></b></td><td width=27%><i><u>Negative Lookbehind Assertion:</i></u> Matches if the current position in the string is not preceded by a match for ...</td>
     </tr>
 </table>'''
 
