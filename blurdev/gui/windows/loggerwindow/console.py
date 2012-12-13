@@ -139,12 +139,11 @@ class ConsoleEdit(QTextEdit):
         if debug.debugLevel():
             return
 
-        # get current user
-        try:
-            import win32api
+        import blurdev, sys
 
-            username = win32api.GetUserName()
-        except:
+        # get current user
+        username = blurdev.osystem.username()
+        if not username:
             username = 'Anonymous'
 
         # get current host
@@ -163,7 +162,6 @@ class ConsoleEdit(QTextEdit):
         # Build the message
         message = ['<ul>']
 
-        import blurdev, sys
         from PyQt4.QtCore import QDateTime
 
         message.append('<li><b>user: </b>%s</li>' % username)
