@@ -25,6 +25,8 @@ class Dialog(QDialog):
         """
         if not cls._instance:
             cls._instance = cls(parent=parent)
+            # protect the memory
+            cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
         return cls._instance
 
     def __init__(self, parent=None, flags=Qt.WindowMinMaxButtonsHint):
@@ -97,3 +99,13 @@ class Dialog(QDialog):
             import blurdev
 
             blurdev.ensureWindowIsVisible(self)
+
+    def shutdown(self):
+        """
+        If this item is the class instance properly close it and remove it from memory so it can be recreated.
+        """
+        # allow the global instance to be cleared
+        if self == Dialog._instance:
+            Dialog._instance = None
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.close()

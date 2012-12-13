@@ -15,8 +15,6 @@ from regexrefdialog import RegexRefDialog
 
 
 class PyularDialog(blurdev.gui.Dialog):
-    _instance = None
-
     def __init__(self, parent=None):
         if not parent:
             parent = blurdev.core.activeWindow()
@@ -48,19 +46,6 @@ class PyularDialog(blurdev.gui.Dialog):
 
     def testString(self):
         return self.widget.testString()
-
-    @staticmethod
-    def instance(parent=None):
-        if not PyularDialog._instance:
-            inst = PyularDialog(parent)
-
-            from PyQt4.QtCore import Qt
-
-            inst.setAttribute(Qt.WA_DeleteOnClose, False)
-
-            PyularDialog._instance = inst
-
-        return PyularDialog._instance
 
 
 class PyularWidget(QWidget):

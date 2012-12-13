@@ -9,6 +9,7 @@
 #
 
 from PyQt4.QtGui import QMainWindow
+from PyQt4.QtCore import Qt
 
 
 class Window(QMainWindow):
@@ -24,6 +25,8 @@ class Window(QMainWindow):
         """
         if not cls._instance:
             cls._instance = cls(parent=parent)
+            # protect the memory
+            cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
@@ -51,16 +54,12 @@ class Window(QMainWindow):
             self.setPalette(palette)
 
         # set the delete attribute to clean up the window once it is closed
-        from PyQt4.QtCore import Qt
-
         self.setAttribute(Qt.WA_DeleteOnClose)
         # If this value is set to False calling setGeometry on this window will not adjust the
         # geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
 
     def closeEvent(self, event):
-        from PyQt4.QtCore import Qt
-
         # ensure this object gets deleted
         wwidget = None
         if self.testAttribute(Qt.WA_DeleteOnClose):
@@ -86,3 +85,13 @@ class Window(QMainWindow):
             import blurdev
 
             blurdev.ensureWindowIsVisible(self)
+
+    def shutdown(self):
+        """
+        If this item is the class instance properly close it and remove it from memory so it can be recreated.
+        """
+        # allow the global instance to be cleared
+        if self == Window._instance:
+            Window._instance = None
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.close()
