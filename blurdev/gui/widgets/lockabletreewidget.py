@@ -9,7 +9,7 @@
 #
 
 from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QHeaderView
-from PyQt4.QtCore import QSize, Qt
+from PyQt4.QtCore import QSize, Qt, QTimer
 import blurdev
 
 
@@ -334,7 +334,9 @@ class LockableTreeWidget(QTreeWidget):
                 else:
                     colRange = range(0)
                 for column in colRange:
-                    blurdev.core.runDelayed(self.updateSizeHintForItem, item, column, 2)
+                    QTimer.singleShot(
+                        0, lambda: self.updateSizeHintForItem(item, column, 2)
+                    )
 
     def updateItemCollapsed(self, item):
         index = self.indexFromItem(item, 0)
