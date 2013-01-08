@@ -45,6 +45,11 @@ html = '''<table>
         <td><b><code>(?&gt;=...)</code></b></td><td width=27%><i><u>Positive Lookbehind Assertion:</i></u> Matches if the current position in the string is preceded by a match for ... that ends at the current position.</td>
         <td><b><code>(?&gt;!...)</code></b></td><td width=27%><i><u>Negative Lookbehind Assertion:</i></u> Matches if the current position in the string is not preceded by a match for ...</td>
     </tr>
+    <tr>
+        <td><b><code>(?:...)</code></b></td><td>Groups Subpattern, but does not capture submatch</td>
+        <td><b><code></code></b></td><td width=27%><i><u></i></u></td>
+        <td><b><code></code></b></td><td width=27%><i><u></i></u></td>
+    </tr>
 </table>'''
 
 flagsHtml = '''<table>
