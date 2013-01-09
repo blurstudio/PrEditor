@@ -39,21 +39,28 @@
 # |		self.recordPrefs()
 # |		QWidget.closeEvent( self, event )
 # |
-# |	def createEditor( self, parent, option, index ):
+# |	def createEditor( self, parent, option, index, tree=None ):
 # |		from PyQt4.QtGui import QComboBox
 # |		editor = QComboBox( parent )
-# |		editor.addItem( 'Something' )
 # |		return editor
 # |
-# |	def dropEvent(self, event):
+# |	def setEditorData(self, editor, index, tree=None):
+# |		if isinstance(editor, QComboBox):
+# |			editor.addItems(['Something', 'Else'])
+# |
+# |	def setModelData(self, editor, model, index, tree=None):
+# |		if isinstance(editor, QComboBox):
+# |			model.setData(index, editor.currentText())
+# |
+# |	def dropEvent(self, event, tree=None):
 # |		print 'Drop Event', self.uiTREE.indexAt(event.pos()).column()
 # |		super(BlurTreeWidget, self.uiTREE).dropEvent(event)
 # |
-# |	def headerMenu( self, menu ):
+# |	def headerMenu( self, menu, tree=None ):
 # |		action = menu.addAction( 'Added by view class' )
 # |		return True
 # |
-# |	def mimeData(self, items):
+# |	def mimeData(self, items, tree=None):
 # |		from PyQt4.QtCore import QMimeData
 # |		data = QMimeData()
 # |		text = []
@@ -78,6 +85,7 @@ from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon, QAppl
 import blurdev
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 from blurdev.gui.delegates.griddelegate import GridDelegate
+from blurdev.decorators import pendingdeprecation
 
 
 class BlurTreeWidget(LockableTreeWidget):
@@ -193,7 +201,11 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         name = self.identifierName('dropEvent')
         if self._delegate and hasattr(self._delegate, name):
-            data = getattr(self._delegate, name)(event)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                data = funct(event, self)
+            else:
+                data = funct(event)
         else:
             data = super(BlurTreeWidget, self).dropEvent(event)
         return data
@@ -369,7 +381,11 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         name = self.identifierName('mimeData')
         if self._delegate and hasattr(self._delegate, name):
-            data = getattr(self._delegate, name)(items)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                data = funct(items, self)
+            else:
+                data = funct(items)
         else:
             data = super(BlurTreeWidget, self).mimeData(items)
         return data
@@ -383,6 +399,8 @@ class BlurTreeWidget(LockableTreeWidget):
         names = [name]
         if self._identifier:
             names.append(self._identifier)
+        elif self.objectName():
+            names.append(unicode(self.objectName()))
         return '-'.join(names)
 
     def recordOpenState(self, item=None, key=''):
@@ -597,6 +615,12 @@ class BlurTreeWidget(LockableTreeWidget):
         if not failed:
             self._hideableColumns = output
 
+    @pendingdeprecation(
+        "\n# Add a tree argument to the end of your delegate methods instead."
+        "# It will contain the BlurTreeWidget the method was called from. For example...\n"
+        "# def createEditor(self, parent, option, index, tree):"
+        "# If you are using recordPrefs with multiple trees make sure to set objectName"
+    )
     def setIdentifier(self, identifier):
         self._identifier = identifier
         if self.isGridDelegateEnabled():
@@ -690,7 +714,11 @@ class BlurTreeWidget(LockableTreeWidget):
         cursorPos = QCursor.pos()
         name = self.identifierName('headerMenu')
         if self._delegate and hasattr(self._delegate, name):
-            result = getattr(self._delegate, name)(menu)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                result = funct(menu, self)
+            else:
+                result = funct(menu)
         # only show the menu if delegate allows it and if there are any actions to show.
         if result and menu.actions():
             menu.popup(cursorPos)

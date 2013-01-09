@@ -74,7 +74,11 @@ class GridDelegate(QItemDelegate):
         self.clearEditor()
         name = self.identifierName('createEditor')
         if self._delegate and hasattr(self._delegate, name):
-            self._editor = getattr(self._delegate, name)(parent, option, index)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                self._editor = funct(parent, option, index, self.parent())
+            else:
+                self._editor = funct(parent, option, index)
             if not self._editor:
                 return None
         else:
@@ -194,7 +198,11 @@ class GridDelegate(QItemDelegate):
     def setEditorData(self, editor, index):
         name = self.identifierName('setEditorData')
         if self._delegate and hasattr(self._delegate, name):
-            getattr(self._delegate, name)(editor, index)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                funct(editor, index, self.parent())
+            else:
+                funct(editor, index)
         else:
             QItemDelegate.setEditorData(self, editor, index)
 
@@ -223,7 +231,11 @@ class GridDelegate(QItemDelegate):
     def setModelData(self, editor, model, index):
         name = self.identifierName('setModelData')
         if self._delegate and hasattr(self._delegate, name):
-            getattr(self._delegate, name)(editor, model, index)
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                funct(editor, model, index, self.parent())
+            else:
+                funct(editor, model, index)
         else:
             QItemDelegate.setModelData(self, editor, model, index)
 
