@@ -101,8 +101,7 @@ def imageSequenceFromFileName(fileName):
     if match:
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
         regex = re.compile(
-            r'%s(\d+)%s'
-            % (match.group('pre').replace('\\', '\\\\'), match.group('post'))
+            r'%s(\d+)%s' % (re.escape(match.group('pre')), match.group('post'))
         )
         for file in files:
             if regex.match(file):
