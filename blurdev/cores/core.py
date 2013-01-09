@@ -9,6 +9,8 @@
 # 	\date		06/11/10
 #
 
+import sys
+
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent
 from PyQt4.QtGui import QApplication
 from application import Application
@@ -498,6 +500,22 @@ class Core(QObject):
         env = ToolsEnvironment.activeEnvironment()
         env.registerPath(env.relativePath('maxscript/treegrunt/lib'))
         env.registerPath(env.relativePath('code/python/lib'))
+
+        # Canonical way to check 64-bitness of python interpreter
+        # http://docs.python.org/2/library/platform.html#platform.architecture
+        is_64bits = sys.maxsize > (2 ** 32)
+        # Add Python26 specific libraries
+        if sys.version_info[:2] == (2, 6):
+            path = 'code/python/lib_python26'
+            if is_64bits:
+                path = 'code/python/lib_python26_64'
+            env.registerPath(env.relativePath(path))
+        # Add Python27 specific libraries
+        elif sys.version_info[:2] == (2, 7):
+            path = 'code/python/lib_python27'
+            if is_64bits:
+                path = 'code/python/lib_python27_64'
+            env.registerPath(env.relativePath(path))
 
     def recordSettings(self):
         r"""
