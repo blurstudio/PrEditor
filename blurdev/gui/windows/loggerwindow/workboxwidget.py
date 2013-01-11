@@ -21,11 +21,15 @@ class WorkboxWidget(DocumentEditor):
         DocumentEditor.__init__(self, parent)
 
         self._console = console
+        self._searchFlags = 0
+        self._searchText = ''
+        self._searchDialog = None
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         import blurdev
 
         self._software = blurdev.core.objectName()
         self.regex = re.compile('\s+$')
+        self.initShortcuts()
 
     def console(self):
         return self._console
@@ -61,8 +65,66 @@ class WorkboxWidget(DocumentEditor):
             else:
                 DocumentEditor.keyPressEvent(self, event)
 
+    def initShortcuts(self):
+        """
+        Use this to set up shortcuts when the DocumentEditor is not being used in the IdeEditor.
+        """
+        from blurdev.ide.finddialog import FindDialog
+        from PyQt4.QtGui import QAction, QIcon
+
+        self.uiFindACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/find.png')), 'Find...', self
+        )
+        self.uiFindACT.setShortcut("Ctrl+F")
+        self.addAction(self.uiFindACT)
+        self.uiFindPrevACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/findprev.png')), 'Find Prev', self
+        )
+        self.uiFindPrevACT.setShortcut("Ctrl+F3")
+        self.addAction(self.uiFindPrevACT)
+        self.uiFindNextACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/findnext.png')), 'Find Next', self
+        )
+        self.uiFindNextACT.setShortcut("F3")
+        self.addAction(self.uiFindNextACT)
+
+        # create the search dialog and connect actions
+        self._searchDialog = FindDialog(self)
+        self._searchDialog.setAttribute(Qt.WA_DeleteOnClose, False)
+        self.uiFindACT.triggered.connect(
+            lambda: self._searchDialog.search(self.searchText())
+        )
+        self.uiFindPrevACT.triggered.connect(
+            lambda: self.findPrev(self.searchText(), self.searchFlags())
+        )
+        self.uiFindNextACT.triggered.connect(
+            lambda: self.findNext(self.searchText(), self.searchFlags())
+        )
+
+    def searchFlags(self):
+        return self._searchFlags
+
+    def searchText(self):
+        if not self._searchDialog:
+            return ''
+        # refresh the search text unless we are using regular expressions
+        if (
+            not self._searchDialog.isVisible()
+            and not self._searchFlags & self.SearchOptions.QRegExp
+        ):
+            text = self.selectedText()
+            if text:
+                self._searchText = text
+        return self._searchText
+
     def selectedText(self):
         return self.regex.split(super(WorkboxWidget, self).selectedText())[0]
 
     def setConsole(self, console):
         self._console = console
+
+    def setSearchFlags(self, flags):
+        self._searchFlags = flags
+
+    def setSearchText(self, text):
+        self._searchText = text
