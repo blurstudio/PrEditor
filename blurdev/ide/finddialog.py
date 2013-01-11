@@ -34,6 +34,7 @@ class FindDialog(Dialog):
         # update the signals
         self.uiCaseSensitiveCHK.clicked.connect(self.updateSearchTerms)
         self.uiFindWholeWordsCHK.clicked.connect(self.updateSearchTerms)
+        self.uiQRegExpCHK.clicked.connect(self.updateSearchTerms)
         self.uiSearchTXT.textChanged.connect(self.updateSearchTerms)
 
         self.uiFindNextBTN.clicked.connect(parent.uiFindNextACT.triggered.emit)
