@@ -23,6 +23,7 @@ import time, re
 
 class DocumentEditor(QsciScintilla):
     SearchDirection = enum('First', 'Forward', 'Backward')
+    SearchOptions = enum('Backward', 'CaseSensitive', 'WholeWords', 'QRegExp')
 
     fontsChanged = pyqtSignal(
         QFont, QFont
@@ -348,11 +349,9 @@ class DocumentEditor(QsciScintilla):
         return self._filename
 
     def findNext(self, text, flags):
-        from PyQt4.QtGui import QTextDocument
-
-        re = False
-        cs = (flags & QTextDocument.FindCaseSensitively) != 0
-        wo = (flags & QTextDocument.FindWholeWords) != 0
+        re = (flags & self.SearchOptions.QRegExp) != 0
+        cs = (flags & self.SearchOptions.CaseSensitive) != 0
+        wo = (flags & self.SearchOptions.WholeWords) != 0
         wrap = True
         forward = True
 
@@ -364,11 +363,9 @@ class DocumentEditor(QsciScintilla):
         return result
 
     def findPrev(self, text, flags):
-        from PyQt4.QtGui import QTextDocument
-
-        re = False
-        cs = (flags & QTextDocument.FindCaseSensitively) != 0
-        wo = (flags & QTextDocument.FindWholeWords) != 0
+        re = (flags & self.SearchOptions.QRegExp) != 0
+        cs = (flags & self.SearchOptions.CaseSensitive) != 0
+        wo = (flags & self.SearchOptions.WholeWords) != 0
         wrap = True
         forward = False
 

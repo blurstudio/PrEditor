@@ -9,6 +9,7 @@
 #
 
 from blurdev.gui import Dialog
+from blurdev.ide.documenteditor import DocumentEditor
 
 
 class FindDialog(Dialog):
@@ -19,13 +20,14 @@ class FindDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
-        from PyQt4.QtGui import QTextDocument
-
         self.uiCaseSensitiveCHK.setChecked(
-            parent.searchFlags() & QTextDocument.FindCaseSensitively
+            parent.searchFlags() & DocumentEditor.SearchOptions.CaseSensitive
         )
         self.uiFindWholeWordsCHK.setChecked(
-            parent.searchFlags() & QTextDocument.FindWholeWords
+            parent.searchFlags() & DocumentEditor.SearchOptions.WholeWords
+        )
+        self.uiQRegExpCHK.setChecked(
+            parent.searchFlags() & DocumentEditor.SearchOptions.QRegExp
         )
         self.uiSearchTXT.setText(parent.searchText())
 
@@ -66,12 +68,12 @@ class FindDialog(Dialog):
     def updateSearchTerms(self):
         parent = self.parent()
         options = 0
-        from PyQt4.QtGui import QTextDocument
-
         if self.uiCaseSensitiveCHK.isChecked():
-            options |= QTextDocument.FindCaseSensitively
+            options |= DocumentEditor.SearchOptions.CaseSensitive
         if self.uiFindWholeWordsCHK.isChecked():
-            options |= QTextDocument.FindWholeWords
+            options |= DocumentEditor.SearchOptions.WholeWords
+        if self.uiQRegExpCHK.isChecked():
+            options |= DocumentEditor.SearchOptions.QRegExp
 
         parent.setSearchFlags(options)
         parent.setSearchText(self.uiSearchTXT.toPlainText())

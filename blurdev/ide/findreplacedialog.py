@@ -19,8 +19,6 @@ class FindReplaceDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
-        from PyQt4.QtGui import QTextDocument
-
         self.uiSearchTXT.setText(parent.searchText())
 
         # update the signals

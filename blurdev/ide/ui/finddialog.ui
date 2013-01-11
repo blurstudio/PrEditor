@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>396</width>
+    <width>436</width>
     <height>170</height>
    </rect>
   </property>
@@ -14,10 +14,10 @@
    <string>Find</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" rowspan="3" colspan="3">
+   <item row="0" column="0" rowspan="3" colspan="4">
     <widget class="QTextEdit" name="uiSearchTXT"/>
    </item>
-   <item row="0" column="3">
+   <item row="0" column="4">
     <widget class="QPushButton" name="uiFindNextBTN">
      <property name="minimumSize">
       <size>
@@ -39,7 +39,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="3">
+   <item row="1" column="4">
     <widget class="QPushButton" name="uiFindPrevBTN">
      <property name="minimumSize">
       <size>
@@ -58,7 +58,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
+   <item row="2" column="4">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -85,7 +85,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
+   <item row="3" column="3">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -98,7 +98,7 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="3">
+   <item row="3" column="4">
     <widget class="QPushButton" name="uiCloseBTN">
      <property name="minimumSize">
       <size>
@@ -114,6 +114,16 @@
      </property>
      <property name="text">
       <string>Close</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QCheckBox" name="uiQRegExpCHK">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use Qt's QRegExp engine to find using regular expressions instead of a plain text find.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="text">
+      <string>QRegExp</string>
      </property>
     </widget>
    </item>
