@@ -1431,8 +1431,13 @@ class IdeEditor(Window):
             return ''
 
         # refresh the search text
-        if not (
-            self._searchDialog.isVisible() or self._searchReplaceDialog.isVisible()
+        from documenteditor import DocumentEditor
+
+        if (
+            not (
+                self._searchDialog.isVisible() or self._searchReplaceDialog.isVisible()
+            )
+            and not self._searchFlags & DocumentEditor.SearchOptions.QRegExp
         ):
             doc = self.currentDocument()
             if doc:
