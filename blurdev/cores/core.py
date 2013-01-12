@@ -503,7 +503,7 @@ class Core(QObject):
 
         # Canonical way to check 64-bitness of python interpreter
         # http://docs.python.org/2/library/platform.html#platform.architecture
-        is_64bits = sys.maxsize > (2 ** 32)
+        is_64bits = hasattr(sys, 'maxsize') and sys.maxsize > (2 ** 32)
         # Add Python26 specific libraries
         if sys.version_info[:2] == (2, 6):
             path = 'code/python/lib_python26'
