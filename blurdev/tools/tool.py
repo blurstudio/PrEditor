@@ -43,6 +43,10 @@ class Tool(QObject):
         self._favorite = False
         self._favoriteGroup = None
         self._header = None
+        self._disabled = False
+
+    def disabled(self):
+        return self._disabled
 
     def displayName(self):
         if self._displayName:
@@ -122,6 +126,9 @@ class Tool(QObject):
 
         output = os.path.join(self.path(), relpath)
         return output
+
+    def setDisabled(self, state):
+        self._disabled = state
 
     def setDisplayName(self, name):
         self._displayName = name
@@ -208,6 +215,9 @@ class Tool(QObject):
                 )
                 output.setDisplayName(
                     data.findProperty('displayName', output.objectName())
+                )
+                output.setDisabled(
+                    data.findProperty('disabled', 'false').lower() == 'true'
                 )
         else:
             output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))

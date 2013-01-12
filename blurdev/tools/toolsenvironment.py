@@ -16,6 +16,8 @@ USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 class ToolsEnvironment(QObject):
     # static members
     environments = []
+    # Should disabled tools be shown
+    showDisabledTools = False
 
     def __init__(self):
         QObject.__init__(self)
