@@ -268,6 +268,12 @@ class ToolsIndex(QObject):
             ):
                 self.rebuildPath(path, categoryIndex, tools, legacy, categoryId)
 
+    def reload(self):
+        """Reload the index without rebuilding it. This will allow users to refresh the index without restarting treegrunt."""
+        self.clear()
+        self.load()
+        self.loadFavorites()
+
     def favoriteGroups(self):
         """
             \remarks	returns the favorites items for this index
