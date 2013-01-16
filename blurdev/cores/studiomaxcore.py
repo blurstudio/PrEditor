@@ -103,7 +103,8 @@ class StudiomaxCore(Core):
 
         # create the macroscript
         filename = mxs.pathConfig.resolvePathSymbols(
-            '$usermacros/Blur_%s_Macro.mcr' % options['id']
+            '$usermacros/%s_%s_Macro.mcr'
+            % (os.environ.get('bdev_studio_name', ''), options['id'])
         )
         f = open(filename, 'w')
         f.write(STUDIOMAX_MACRO_TEMPLATE % options)

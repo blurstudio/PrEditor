@@ -19,7 +19,7 @@ import win32com.client
 from win32com.client import constants
 
 def XSILoadPlugin( in_reg ):
-    in_reg.Author = "beta@blur.com"
+    in_reg.Author = "%(author)s"
     in_reg.Name = "%(displayName)s"
     in_reg.Major = 1
     in_reg.Minor = 0
@@ -100,16 +100,19 @@ class SoftimageCore(Core):
             
             \return		<bool> success
         """
-        import win32com.client
+        import win32com.client, os
         from win32com.client import constants
 
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
-            'displayName': 'BlurTG_' + tool.displayName().replace(' ', '_'),
+            'displayName': os.environ.get('bdev_studio_name', '')
+            + 'TG_'
+            + tool.displayName().replace(' ', '_'),
             'macro': macro,
             'tooltip': tool.displayName(),
             'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
+            'author': os.environ.get('bdev_default_author_email'),
         }
 
         # create the macroscript
