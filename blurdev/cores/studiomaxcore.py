@@ -16,11 +16,11 @@ from blurdev.cores.core import Core
 # -------------------------------------------------------------------------------------------------------------
 
 STUDIOMAX_MACRO_TEMPLATE = """
-macroscript Blur_%(id)s_Macro
-category: "Blur Tools"
+macroscript %(studioName)s_%(id)s_Macro
+category: "%(studioName)s Tools"
 toolTip: "%(tooltip)s"
 buttonText: "%(displayName)s"
-icon:#( "Blur_%(id)s_Macro", 1 )
+icon:#( "%(studioName)s_%(id)s_Macro", 1 )
 (
     local blurdev 	= python.import "blurdev"
     blurdev.runTool "%(tool)s" macro:"%(macro)s"
@@ -89,6 +89,8 @@ class StudiomaxCore(Core):
             
             \return		<bool> success
         """
+        import blurdev
+
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
@@ -96,6 +98,7 @@ class StudiomaxCore(Core):
             'macro': macro,
             'tooltip': tool.displayName(),
             'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
+            'studioName': os.environ.get('bdev_studio_name', ''),
         }
 
         # create the macroscript
@@ -123,7 +126,8 @@ class StudiomaxCore(Core):
 
         # ... for 24x24 pixels (image & alpha icons)
         basename = mxs.pathConfig.resolvePathSymbols(
-            '$usericons/Blur_%s_Macro' % options['id']
+            '$usericons/%s_%s_Macro'
+            % (os.environ.get('bdev_studio_name', ''), options['id'])
         )
         icon24.save(basename + '_24i.bmp')
         icon24.alphaChannel().save(basename + '_24a.bmp')
