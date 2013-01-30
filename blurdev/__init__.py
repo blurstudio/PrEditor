@@ -129,7 +129,7 @@ def init():
         application = core.init()
 
 
-def launch(ctor, modal=False, coreName='external', instance=False):
+def launch(ctor, modal=False, coreName='external', instance=False, kwargs=None):
     """
     This method is used to create an instance of a widget (dialog/window) to 
     be run inside the blurdev system.  Using this function call, blurdev will 
@@ -148,6 +148,8 @@ def launch(ctor, modal=False, coreName='external', instance=False):
     :param instance: If subclassed from blurdev.gui.Window or Dialog
                      it will show the existing instance instead of
                      creating a new instance. Ignored if modal == True.
+    :param kwargs: A dict of keyword arguments to pass to the widget initialization
+    
     """
     global _appHasExec
 
@@ -181,7 +183,9 @@ def launch(ctor, modal=False, coreName='external', instance=False):
         widget = ctor.instance()
     else:
         # create the output instance from the class
-        widget = ctor(None)
+        if kwargs is None:
+            kwargs = {}
+        widget = ctor(None, **kwargs)
 
     # check to see if the tool is running modally and return the result
     if modal:
