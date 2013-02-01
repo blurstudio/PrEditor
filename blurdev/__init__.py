@@ -129,7 +129,9 @@ def init():
         application = core.init()
 
 
-def launch(ctor, modal=False, coreName='external', instance=False, kwargs=None):
+def launch(
+    ctor, modal=False, coreName='external', instance=False, args=None, kwargs=None
+):
     """
     This method is used to create an instance of a widget (dialog/window) to 
     be run inside the blurdev system.  Using this function call, blurdev will 
@@ -160,8 +162,6 @@ def launch(ctor, modal=False, coreName='external', instance=False, kwargs=None):
     from PyQt4.QtGui import QWizard
     from blurdev.cores.core import Core
 
-    # setAppUserModelID(coreName)
-
     if application:
         application.setStyle('Plastique')
 
@@ -172,7 +172,7 @@ def launch(ctor, modal=False, coreName='external', instance=False, kwargs=None):
     iswiz = False
     try:
         iswiz = issubclass(ctor, QWizard)
-    except:
+    except Exception:
         pass
 
     if iswiz:
@@ -183,9 +183,17 @@ def launch(ctor, modal=False, coreName='external', instance=False, kwargs=None):
         widget = ctor.instance()
     else:
         # create the output instance from the class
-        if kwargs is None:
-            kwargs = {}
-        widget = ctor(None, **kwargs)
+        # If args or kwargs are defined, use those.  NOTE that if you pass any
+        # args or kwargs, you will also have to supply the parent, which
+        # blurdev.launch previously had always set to None.
+        if args or kwargs:
+            if args is None:
+                args = []
+            if kwargs is None:
+                kwargs = {}
+            widget = ctor(*args, **kwargs)
+        else:
+            widget = ctor(None)
 
     # check to see if the tool is running modally and return the result
     if modal:
