@@ -57,7 +57,7 @@ class DocumentEditor(QsciScintilla):
 
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
-        self.textChanged.connect(self.refreshTitle)
+        self.SCN_MODIFIED.connect(self.refreshTitle)
 
         # load the file
         if filename:
@@ -131,6 +131,7 @@ class DocumentEditor(QsciScintilla):
         if not result:
             return False
 
+        self.beginUndoAction()
         # lookup the selected text positions
         startline, startcol, endline, endcol = self.getSelection()
 
@@ -144,6 +145,7 @@ class DocumentEditor(QsciScintilla):
             # only adjust the end column value if it contained a selection in the first place.
             endcol += 1
         self.setSelection(startline, startcol + 1, endline, endcol)
+        self.endUndoAction()
         return True
 
     def commentRemove(self):
@@ -152,6 +154,7 @@ class DocumentEditor(QsciScintilla):
             return False
 
         # lookup the selected text positions
+        self.beginUndoAction()
         startline, startcol, endline, endcol = self.getSelection()
         commentlen = len(comment)
 
@@ -167,6 +170,7 @@ class DocumentEditor(QsciScintilla):
                         endcol -= 1
         # restore the currently selected text
         self.setSelection(startline, startcol, endline, endcol)
+        self.endUndoAction()
         return True
 
     def commentToggle(self):
@@ -174,6 +178,7 @@ class DocumentEditor(QsciScintilla):
         if not result:
             return False
 
+        self.beginUndoAction()
         # lookup the selected text positions
         startline, startcol, endline, endcol = self.getSelection()
         commentlen = len(comment)
@@ -197,6 +202,7 @@ class DocumentEditor(QsciScintilla):
                         endcol += 1
         # restore the currently selected text
         self.setSelection(startline, startcol, endline, endcol)
+        self.endUndoAction()
         return True
 
     def copyFilenameToClipboard(self):
@@ -673,22 +679,22 @@ class DocumentEditor(QsciScintilla):
         if not searchtext:
             return 0
 
+        self.beginUndoAction()
         sel = self.getSelection()
-        alltext = self.text()
 
         # replace all of the instances of the text
         if all:
-            count = alltext.count(searchtext)
-            alltext.replace(searchtext, text, Qt.CaseSensitive)
+            count = self.text().count(searchtext, Qt.CaseInsensitive)
+            while self.findFirst(searchtext, False, False, False, True, True):
+                super(DocumentEditor, self).replace(text)
 
         # replace a single instance of the text
         else:
             count = 1
-            startpos = self.positionFromLineIndex(sel[0], sel[1])
-            alltext.replace(startpos, len(searchtext), text)
+            super(DocumentEditor, self).replace(text)
 
-        self.setText(alltext)  # This system causes the undoStack to be cleared.
         self.setSelection(*sel)
+        self.endUndoAction()
 
         return count
 
@@ -827,11 +833,14 @@ class DocumentEditor(QsciScintilla):
 
         act = menu.addAction('Find in Files...')
         act.triggered.connect(self.findInFiles)
+        # act.setShortcut('Ctrl+Alt+F')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/folder_find.png')))
-        act = menu.addAction('Go to Line...')
+        act = menu.addAction('Goto')
+        # act.setShortcut('Ctrl+G')
         act.triggered.connect(self.goToLine)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
         act = menu.addAction('Go to Definition')
+        # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
 
@@ -845,35 +854,43 @@ class DocumentEditor(QsciScintilla):
 
         act = menu.addAction('Cut')
         act.triggered.connect(self.cut)
+        act.setShortcut('Ctrl+X')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
 
         act = menu.addAction('Copy')
         act.triggered.connect(self.copy)
+        act.setShortcut('Ctrl+C')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
+        act.setShortcut('Ctrl+V')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Comment Add')
         act.triggered.connect(self.commentAdd)
+        act.setShortcut("Alt+3")
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_add.png')))
         act = menu.addAction('Comment Remove')
         act.triggered.connect(self.commentRemove)
+        act.setShortcut("Alt+#")
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_remove.png')))
         act = menu.addAction('Comment Toggle')
         act.triggered.connect(self.commentToggle)
+        act.setShortcut("Ctrl+Alt+3")
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('To Lowercase')
         act.triggered.connect(self.toLower)
+        # act.setShortcut('Ctrl+L')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/lowercase.png')))
         act = menu.addAction('To Uppercase')
         act.triggered.connect(self.toUpper)
+        # act.setShortcut('Ctrl+U')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/uppercase.png')))
 
         menu.addSeparator()
@@ -917,16 +934,13 @@ class DocumentEditor(QsciScintilla):
         return self._smartHighlightingRegEx
 
     def toLower(self):
+        self.beginUndoAction()
         lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        # TODO: Replace this with self.replaceSelectedText() once the new build of QSci is made.
-        # self.replaceSelectedText(self.selectedText().toLower())
         text = self.selectedText().toLower()
         self.removeSelectedText()
         self.insert(text)
         self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
-
-    def test(self):
-        self.replaceSelectedText(self.selectedText().toLower())
+        self.endUndoAction()
 
     def toggleFolding(self):
         from PyQt4.QtGui import QApplication
@@ -935,13 +949,13 @@ class DocumentEditor(QsciScintilla):
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
 
     def toUpper(self):
+        self.beginUndoAction()
         lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        # TODO: Replace this with self.replaceSelectedText() once the new build of QSci is made.
-        # self.replaceSelectedText(self.selectedText().toUpper())
         text = self.selectedText().toUpper()
         self.removeSelectedText()
         self.insert(text)
         self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
+        self.endUndoAction()
 
     def undo(self):
         super(DocumentEditor, self).undo()

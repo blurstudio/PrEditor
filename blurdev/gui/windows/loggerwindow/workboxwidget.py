@@ -88,6 +88,28 @@ class WorkboxWidget(DocumentEditor):
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
 
+        self.uiCommentAddACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_add.png')), 'Comment Add', self
+        )
+        self.uiCommentAddACT.setShortcut("Alt+3")
+        self.addAction(self.uiCommentAddACT)
+
+        self.uiCommentRemoveACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_remove.png')),
+            'Comment Remove',
+            self,
+        )
+        self.uiCommentRemoveACT.setShortcut("Alt+#")
+        self.addAction(self.uiCommentRemoveACT)
+
+        self.uiCommentToggleACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')),
+            'Comment Toggle',
+            self,
+        )
+        self.uiCommentToggleACT.setShortcut("Ctrl+Alt+3")
+        self.addAction(self.uiCommentToggleACT)
+
         # create the search dialog and connect actions
         self._searchDialog = FindDialog(self)
         self._searchDialog.setAttribute(Qt.WA_DeleteOnClose, False)
@@ -100,6 +122,9 @@ class WorkboxWidget(DocumentEditor):
         self.uiFindNextACT.triggered.connect(
             lambda: self.findNext(self.searchText(), self.searchFlags())
         )
+        self.uiCommentAddACT.triggered.connect(self.commentAdd)
+        self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
+        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
 
     def searchFlags(self):
         return self._searchFlags
