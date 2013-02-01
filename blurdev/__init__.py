@@ -197,7 +197,7 @@ def launch(
 
     # check to see if the tool is running modally and return the result
     if modal:
-        return widget.exec_()
+        widget.exec_()
     else:
         widget.show()
         widget.raise_()
@@ -206,7 +206,7 @@ def launch(
             application.setWindowIcon(widget.windowIcon())
             _appHasExec = True
             application.exec_()
-        return widget
+    return widget
 
 
 def quickReload(modulename):
