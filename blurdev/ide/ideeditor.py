@@ -1717,7 +1717,9 @@ class IdeEditor(Window):
         self._searchReplaceDialog.search(self.searchText())
 
     def showSearchFilesDialog(self):
-        self.searchFileDialog().show()
+        dlg = self.searchFileDialog()
+        dlg.setSearchText(self.searchText())
+        dlg.show()
 
     def setCurrentLanguage(self, language):
         document = self.currentDocument()
