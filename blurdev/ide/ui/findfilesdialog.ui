@@ -112,6 +112,20 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="uiCopyFilenamesBTN">
+       <property name="text">
+        <string>Copy Filenames</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="uiCopyResultsBTN">
+       <property name="text">
+        <string>Copy Results</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="uiSearchBTN">
        <property name="text">
         <string>Start Search</string>

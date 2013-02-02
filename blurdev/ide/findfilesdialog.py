@@ -12,7 +12,7 @@ import os
 import re
 
 from blurdev.gui import Dialog
-from PyQt4.QtGui import QTreeWidgetItem, QIcon
+from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication
 from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant, QString
 
 from blurdev.ide import ideglobals
@@ -143,11 +143,15 @@ class FindFilesDialog(Dialog):
         self._refreshTimer = QTimer(self)
         self._refreshTimer.setInterval(5000)
         self._refreshTimer.timeout.connect(self.refreshResults)
+        self._allResultsText = ''
+        self._resultsFileText = ''
 
         # initialize the ui from the prefs
         self.uiSearchTXT.setText(ideglobals.FILE_SEARCH_TEXT)
         self.uiBasePathTXT.setText(ideglobals.FILE_SEARCH_PATH)
         self.uiFileTypesTXT.setText(ideglobals.FILE_SEARCH_TYPES)
+        self.uiCopyFilenamesBTN.setVisible(False)
+        self.uiCopyResultsBTN.setVisible(False)
 
         # create the connections
         self.uiSearchBTN.clicked.connect(self.toggleSearch)
@@ -155,6 +159,8 @@ class FindFilesDialog(Dialog):
         self.uiBasePathBTN.clicked.connect(self.pickFolder)
         self.uiResultsTREE.itemDoubleClicked.connect(self.loadFile)
         self.uiPyularBTN.clicked.connect(self.showPyular)
+        self.uiCopyFilenamesBTN.clicked.connect(self.copyFilenames)
+        self.uiCopyResultsBTN.clicked.connect(self.copyResults)
 
         self._searchThread.finished.connect(self.searchFinished)
 
@@ -173,6 +179,12 @@ class FindFilesDialog(Dialog):
         ideglobals.FILE_SEARCH_TEXT = str(self.uiSearchTXT.text())
         ideglobals.FILE_SEARCH_TYPES = str(self.uiFileTypesTXT.text())
         ideglobals.FILE_SEARCH_PATH = str(self.uiBasePathTXT.text())
+
+    def copyFilenames(self):
+        QApplication.clipboard().setText(self._resultsFileText)
+
+    def copyResults(self):
+        QApplication.clipboard().setText(self._allResultsText)
 
     def loadFile(self, item):
         if item.parent():
@@ -224,16 +236,22 @@ class FindFilesDialog(Dialog):
             self._searchThread.searchedCount(),
         )
 
+        self._allResultsText = ''
+        self._resultsFileText = ''
+
         filenames = results.keys()
         filenames.sort()
         for filename in filenames:
             lines = results[filename]
 
+            self._allResultsText += '%s\n' % filename
+            self._resultsFileText += '%s\n' % filename
             item = QTreeWidgetItem(['from "%s"' % filename])
             item.setData(0, Qt.UserRole, QVariant(filename))
             item.setData(1, Qt.UserRole, QVariant(0))
 
             for lineno, line in lines:
+                self._allResultsText += '\t%06i: %s\n' % (lineno, line)
                 lineitem = QTreeWidgetItem(['%06i: %s' % (lineno, line)])
                 lineitem.setData(0, Qt.UserRole, QVariant(lineno))
                 item.addChild(lineitem)
@@ -244,6 +262,9 @@ class FindFilesDialog(Dialog):
 
         self.uiResultsTREE.setUpdatesEnabled(True)
         self.uiResultsTREE.blockSignals(False)
+        # remove the trailing new line character
+        self._allResultsText.rstrip('\n')
+        self._resultsFileText.rstrip('\n')
 
     def restoreOpenState(self, openState, item=None, key=''):
         if not item:
@@ -316,6 +337,8 @@ class FindFilesDialog(Dialog):
             'Found %i times in %s files out of %s files searched.'
             % (resultCount, fileCount, searchedCount)
         )
+        self.uiCopyFilenamesBTN.setVisible(fileCount)
+        self.uiCopyResultsBTN.setVisible(fileCount)
 
     def setResultsCount(self, count):
         """ Updates the results count label """
