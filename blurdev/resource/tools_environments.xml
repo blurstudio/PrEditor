@@ -5,4 +5,5 @@
 	
 	<!-- load local user environments -->
 	<include		loc="c:/blur/common/user_environments.xml"/>
+	<include loc="G:/_virtual_project/00_Information/studio_environments.xml"/>
 </tools_environments>
