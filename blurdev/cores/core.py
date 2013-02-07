@@ -856,6 +856,14 @@ class Core(QObject):
         self._maxDelayPerCycle = seconds
 
     def sendEmail(self, sender, targets, subject, message, attachments=None):
+        """
+            :remarks	Sends a email.
+            :param		sender		<string>	The source email address.
+            :param		targets		<string>||<list>||<tuple>	The email address(s) to send the email to.
+            :param		subject		<string>	The subject of the email.
+            :param		message		<string>	The body of the message. Treated as html
+            :param		attachments	<list>		File paths for files to be attached.
+        """
         from email import Encoders
         from email.MIMEText import MIMEText
         from email.MIMEMultipart import MIMEMultipart
