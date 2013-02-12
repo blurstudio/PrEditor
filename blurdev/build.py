@@ -92,6 +92,22 @@ if __name__ == '__main__':
             '$BDEV_PATH_PREFS',
             useConfigParser=True,
         )
+        # remove non blur specific includes in tools_environments.xml
+        print '**************************************************'
+        print '*          Updating tools environments           *'
+        print '**************************************************'
+        doc = blurdev.XML.XMLDocument()
+        envXML = os.path.join(path, 'resource', 'tools_environments.xml')
+        print 'path', envXML
+        doc.load(envXML)
+        root = doc.root()
+        for child in root.children():
+            if child.name().lower() == 'include':
+                aPath = os.path.abspath(child.attribute('loc'))
+                if aPath.startswith(r'\\source'):
+                    print 'Removing network path', child.name(), aPath
+                    child.remove()
+        doc.save(envXML)
 
     else:
         f.write(
