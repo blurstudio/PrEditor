@@ -130,7 +130,13 @@ def init():
 
 
 def launch(
-    ctor, modal=False, coreName='external', instance=False, args=None, kwargs=None
+    ctor,
+    modal=False,
+    coreName='external',
+    instance=False,
+    args=None,
+    kwargs=None,
+    splash=None,
 ):
     """
     This method is used to create an instance of a widget (dialog/window) to 
@@ -182,6 +188,10 @@ def launch(
         # use the instance method if requested
         widget = ctor.instance()
     else:
+        # show a splash screen if provided
+        if splash:
+            print 'Found splash'
+            splash.show()
         # create the output instance from the class
         # If args or kwargs are defined, use those.  NOTE that if you pass any
         # args or kwargs, you will also have to supply the parent, which
@@ -194,6 +204,8 @@ def launch(
             widget = ctor(*args, **kwargs)
         else:
             widget = ctor(None)
+        if splash:
+            splash.finish(widget)
 
     # check to see if the tool is running modally and return the result
     if modal:
