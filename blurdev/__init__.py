@@ -190,7 +190,6 @@ def launch(
     else:
         # show a splash screen if provided
         if splash:
-            print 'Found splash'
             splash.show()
         # create the output instance from the class
         # If args or kwargs are defined, use those.  NOTE that if you pass any

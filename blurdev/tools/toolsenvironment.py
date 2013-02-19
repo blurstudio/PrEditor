@@ -69,8 +69,6 @@ class ToolsEnvironment(QObject):
             if (not path in spath.lower() and spath != '.')
             or spath.lower() in pythonpath
         ]
-        for p in set(oldpaths).difference(set(newpaths)):
-            print 'Removing path from sys', p
         sys.path = newpaths
 
         from blurdev import debug
