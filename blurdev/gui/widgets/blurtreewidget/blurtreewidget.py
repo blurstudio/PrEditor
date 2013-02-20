@@ -44,6 +44,16 @@
 # |		editor = QComboBox( parent )
 # |		return editor
 # |
+# |	def drawBranches(self, painter, rect, index, tree):
+# |		c = self.uiTREE.itemFromIndex( index).backgroundColor(0)
+# |		c.setAlpha(128)
+# |		painter.fillRect(rect, c)
+# |		super(BlurTreeWidget, tree).drawBranches(painter, rect, index)
+# |
+# |	def drawRow(self, painter, option, index, tree):
+# |		painter.fillRect(option.rect, self.uiTREE.itemFromIndex( index).backgroundColor(1))
+# |		super(BlurTreeWidget, tree).drawRow(painter, option, index)
+# |
 # |	def setEditorData(self, editor, index, tree=None):
 # |		if isinstance(editor, QComboBox):
 # |			editor.addItems(['Something', 'Else'])
@@ -192,6 +202,44 @@ class BlurTreeWidget(LockableTreeWidget):
 
     def delegate(self):
         return self._delegate
+
+    def drawBranches(self, painter, rect, index):
+        """
+            :remarks	Overloaded. If you add this function to the delegate you can override drawBranches.
+                        Draws the branches in the tree view on the same row as the model item index, using 
+                        the painter given. The branches are drawn in the rectangle specified by rect.
+            :param		painter		<QPainter>
+            :param		rect		<QRect>
+            :param		index		<QModelIndex>
+        """
+        name = self.identifierName('drawBranches')
+        if self._delegate and hasattr(self._delegate, name):
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                funct(painter, rect, index, self)
+            else:
+                funct(painter, rect, index)
+        else:
+            super(BlurTreeWidget, self).drawBranches(painter, rect, index)
+
+    def drawRow(self, painter, option, index):
+        """
+            :remarks	Overloaded. If you add this function to the delegate you can override drawRow.
+                        Draws the row in the tree view that contains the model item index, using the 
+                        painter given. The option control how the item is displayed.
+            :param		painter		<QPainter>
+            :param		rect		<QStyleOptionViewItem>
+            :param		index		<QModelIndex>
+        """
+        name = self.identifierName('drawRow')
+        if self._delegate and hasattr(self._delegate, name):
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                funct(painter, option, index, self)
+            else:
+                funct(painter, option, index)
+        else:
+            super(BlurTreeWidget, self).drawRow(painter, option, index)
 
     def dropEvent(self, event):
         """
