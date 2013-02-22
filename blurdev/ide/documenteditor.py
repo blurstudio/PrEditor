@@ -57,7 +57,6 @@ class DocumentEditor(QsciScintilla):
 
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
-        self.SCN_MODIFIED.connect(self.refreshTitle)
 
         # load the file
         if filename:
@@ -247,6 +246,9 @@ class DocumentEditor(QsciScintilla):
                 else:
                     fm.removePath(self._filename)
         return self._fileMonitoringActive
+
+    def enableTitleUpdate(self):
+        self.SCN_MODIFIED.connect(self.refreshTitle)
 
     def eventFilter(self, object, event):
         if event.type() == event.Close and not self.checkForSave():

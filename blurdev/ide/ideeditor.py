@@ -669,6 +669,7 @@ class IdeEditor(Window):
         # create the editor
         editor = DocumentEditor(self, filename, lineno)
         editor.fontsChanged.connect(self.updateDocumentFonts)
+        editor.enableTitleUpdate()
 
         editor.markerLoad(self.documentMarkrerDict.get(filename, []))
 
