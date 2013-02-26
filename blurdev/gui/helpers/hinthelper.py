@@ -23,11 +23,14 @@ class HintHelper(QLabel):
                 parent.setEditable(True)
                 parent.setInsertPolicy(QComboBox.NoInsert)
             # connect to the line edit method
-            parent.lineEdit().textChanged.connect(self.toggleVisibility)
+            lineEdit = parent.lineEdit()
+            lineEdit.textChanged.connect(self.toggleVisibility)
+            self.setAlignment(lineEdit.alignment())
 
         # connect to a lineedit
         elif isinstance(parent, (QLineEdit, QTextEdit)):
             parent.textChanged.connect(self.toggleVisibility)
+            self.setAlignment(Qt.AlignTop)
 
         # update the information
         self.setText(hint)
@@ -41,21 +44,30 @@ class HintHelper(QLabel):
         palette.setColor(palette.Text, color)
         self.setPalette(palette)
         parent.installEventFilter(self)
-        self.setAlignment(Qt.AlignTop)
         self.move(6, 4)
 
         self.setCursor(Qt.IBeamCursor)
+        self.raise_()
 
     def enabled(self):
         return self._enabled
 
     def eventFilter(self, object, event):
         if event.type() == event.Resize:
-            self.resize(event.size().width() - 6, event.size().height() - 4)
+            self.resizeHintHelper()
         return False
 
     def hint(self):
         return self.text()
+
+    def resizeHintHelper(self):
+        parent = self.parent()
+        if isinstance(parent, QComboBox):
+            geo = parent.lineEdit().geometry()
+            self.setGeometry(geo.x() + 6, geo.y(), geo.width() - 6, geo.height())
+        else:
+            geo = parent.geometry()
+            self.resize(geo.width() - 6, geo.height() - 4)
 
     def setEnabled(self, state):
         self._enabled = state
@@ -84,3 +96,4 @@ class HintHelper(QLabel):
         elif isinstance(parent, QTextEdit):
             state = parent.toPlainText() == ''
         QLabel.setVisible(self, state)
+        self.resizeHintHelper()
