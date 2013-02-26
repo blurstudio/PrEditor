@@ -10,6 +10,7 @@
 # 	\date		11/12/08
 #
 from PyQt4.QtGui import QSyntaxHighlighter, QMenu, QCursor
+from PyQt4.QtCore import QString
 
 # import the enchant library
 enchant = None
@@ -107,6 +108,9 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
             # create the regexp
             expr = QRegExp(r'\S+\w')
+            # pyenchant has no concept of QStrings so convert to unicode to prevent encoding errors.
+            if isinstance(text, QString):
+                text = unicode(text)
             pos = expr.indexIn(text, 0)
 
             # highlight all the given matches to the expression in the text
