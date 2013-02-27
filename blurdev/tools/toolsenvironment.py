@@ -197,7 +197,9 @@ class ToolsEnvironment(QObject):
             if not silent:
                 import blurdev
 
-                blurdev.core.emitEnvironmentActivated()
+                # core can be defined as None at this point in if this was called during blurdev.core init.
+                if blurdev.core:
+                    blurdev.core.emitEnvironmentActivated()
 
             return True
         return False
