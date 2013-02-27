@@ -618,6 +618,18 @@ class IdeEditor(Window):
         if doc:
             options = {}
 
+            # Look for any environment variables starting with "bdev_templ_".
+            # the remainder of the variable key will be used as the template key.
+            # bdev_templ_log_file_loc = c:\temp\test.log
+            # "open(r'[log_file_loc]', 'w')" becomes "open(r'c:\temp\test.log', 'w')"
+            import os
+
+            for key in os.environ:
+                key = key.lower()
+                repl = key.replace('bdev_templ_', '')
+                if repl != key:
+                    options[repl] = os.environ[key]
+
             fname = doc.filename()
             options['selection'] = doc.selectedText()
             options['filename'] = fname
