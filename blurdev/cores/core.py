@@ -201,7 +201,6 @@ class Core(QObject):
             
             \return		<bool> success
         """
-        # print '[blurdev.cores.core.Core.createToolMacro] virtual method not defined'
         import blurdev
 
         blurdev.osystem.createShortcut(
@@ -384,8 +383,6 @@ class Core(QObject):
         """
         env = ToolsEnvironment.activeEnvironment()
 
-        print 'ENV-TIMEOUT', str(env.objectName())
-
         threshold_time = env.timeoutThreshold()
 
         from blurdev import prefs
@@ -393,13 +390,10 @@ class Core(QObject):
         pref = prefs.find('blurdev/core', coreName=self.objectName())
         last_timestamp = pref.restoreProperty('environment_set_timestamp', None)
 
-        print 'TO_TIMESTAMPS', last_timestamp, threshold_time
-
         if not last_timestamp:
             return
 
         if last_timestamp < threshold_time:
-            print 'TIMEOUT - SETTING PROD'
             ToolsEnvironment.defaultEnvironment().setActive()
             pref.recordProperty(
                 'environment_set_timestamp', QDateTime.currentDateTime()
@@ -418,17 +412,14 @@ class Core(QObject):
 
         env = override_dict['environment']
         timestamp = override_dict['timestamp']
-        print 'ENV-OV', str(ToolsEnvironment.activeEnvironment().objectName())
         from blurdev import prefs
 
         pref = prefs.find('blurdev/core', coreName=self.objectName())
         last_timestamp = pref.restoreProperty(
             'last_environment_override_timestamp', None
         )
-        print 'OVTIMESTAMPS', timestamp, last_timestamp
         if last_timestamp and last_timestamp >= timestamp:
             return
-        print 'OVERRIDE - SETTING %s' % env
         ToolsEnvironment.findEnvironment(env).setActive()
         pref.recordProperty(
             'last_environment_override_timestamp', QDateTime.currentDateTime()
@@ -724,7 +715,6 @@ class Core(QObject):
             # restore the active environment
             env = pref.restoreProperty('environment')
             if env:
-                print 'Setting ENV', env, pref.filename()
                 ToolsEnvironment.findEnvironment(env).setActive()
 
         # restore the active debug level
@@ -1070,7 +1060,6 @@ class Core(QObject):
             prefs.clearCache()
 
             # make sure we have the proper settings restored based on the new application
-            print "OBJNAME", objectName
             self.restoreSettings()
 
     def shutdown(self):
