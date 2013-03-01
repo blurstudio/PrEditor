@@ -8,6 +8,7 @@
 # 	\date		06/11/10
 #
 
+import os
 import re
 import datetime
 from PyQt4.QtCore import QObject, pyqtSignal, QDateTime
@@ -321,6 +322,35 @@ class ToolsEnvironment(QObject):
         )
 
     @staticmethod
+    def syncINI():
+        import blurdev.ini
+
+        for env in ToolsEnvironment.environments:
+            name = env.objectName()
+            legacy = env.legacyName()
+            envPath = env.path()
+            email = env.emailOnError()
+            if not legacy:
+                legacy = name
+            # update the config.ini file so next time we start from the correct environment.
+            codeRootPath = os.path.abspath(
+                os.path.join(envPath, 'maxscript', 'treegrunt')
+            )
+            if os.path.exists(codeRootPath):
+                blurdev.ini.SetINISetting(
+                    blurdev.ini.configFile, legacy, 'codeRoot', codeRootPath
+                )
+                blurdev.ini.SetINISetting(
+                    blurdev.ini.configFile,
+                    legacy,
+                    'startupPath',
+                    os.path.abspath(
+                        os.path.join(envPath, 'maxscript', 'treegrunt', 'lib')
+                    ),
+                )
+                blurdev.ini.LoadConfigData()
+
+    @staticmethod
     def activeEnvironment():
         """
             \remarks	looks up the active environment for the system
@@ -519,7 +549,9 @@ class ToolsEnvironment(QObject):
                 if not found:
                     ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
+            ToolsEnvironment.syncINI()
             return True
+        ToolsEnvironment.syncINI()
         return False
 
     @staticmethod
