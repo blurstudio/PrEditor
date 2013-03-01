@@ -92,6 +92,13 @@ if __name__ == '__main__':
             '$BDEV_PATH_PREFS',
             useConfigParser=True,
         )
+        blurdev.ini.SetINISetting(
+            destPath,
+            'Windows',
+            'bdev_environment_override_filepath',
+            '',
+            useConfigParser=True,
+        )
         # remove non blur specific includes in tools_environments.xml
         print '**************************************************'
         print '*          Updating tools environments           *'

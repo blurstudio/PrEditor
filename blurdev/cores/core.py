@@ -21,8 +21,6 @@ from blurdev.tools.toolsenvironment import ToolsEnvironment
 
 class Core(QObject):
 
-    environment_override_filepath = r'\\source\source\dev\share_all\studio_override.xml'
-
     # ----------------------------------------------------------------
     # blurdev signals
     environmentActivated = pyqtSignal()
@@ -95,6 +93,7 @@ class Core(QObject):
         self._defaultPalette = -1
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
+        self.environment_override_filepath = None
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -336,6 +335,10 @@ class Core(QObject):
         from blurdev.tools import ToolsEnvironment
 
         ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
+
+        self.environment_override_filepath = os.environ.get(
+            'bdev_environment_override_filepath', ''
+        )
 
         # initialize the application
         app = QApplication.instance()
@@ -641,6 +644,29 @@ class Core(QObject):
             ToolsToolBarDialog._instance.toXml(pref.root())
 
         pref.save()
+
+    def createEnvironmentOverride(self, env=None, timestamp=None):
+        if env is None:
+            env = ToolsEnvironment.defaultEnvironment().objectName()
+        if timestamp is None:
+            timestamp = QDateTime.currentDateTime()
+
+        fp = self.environment_override_filepath
+        if not fp:
+            return
+
+        from blurdev import XML
+
+        doc = XML.XMLDocument()
+        root = doc.addNode('environment_overrides')
+        root.setAttribute('version', 1.0)
+        el = root.addNode('environment_override')
+        el.setAttribute('environment', unicode(env))
+        el.setAttribute('timestamp', unicode(timestamp.toString('yyyy-MM-dd hh:mm:ss')))
+        try:
+            doc.save(fp)
+        except Exception:
+            pass
 
     def getEnvironmentOverride(self):
         from blurdev import XML
