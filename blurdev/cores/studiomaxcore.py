@@ -42,17 +42,16 @@ class StudiomaxCore(Core):
     def __init__(self):
         Core.__init__(self)
         self.setObjectName('studiomax')
-        self._supportLegacy = False
+        self._supportLegacy = True
 
     def configUpdated(self):
         """
             :remarks	Preform any core specific updating of config. Returns if any actions were taken.
             :return		<bool>
         """
-        if self._supportLegacy:
-            blurlib = mxs._blurLibrary
-            if blurlib:
-                blurlib.LoadConfigData()
+        blurlib = mxs._blurLibrary
+        if blurlib:
+            blurlib.LoadConfigData()
         return False
 
     def connectAppSignals(self):
@@ -200,7 +199,7 @@ class StudiomaxCore(Core):
 
     def recordSettings(self):
         pref = self.recordCoreSettings()
-        pref.recordProperty('supportLegacy', self._supportLegacy)
+        pref.recordProperty('supportLegacy', True)
         pref.save()
 
     def restoreSettings(self):
@@ -280,10 +279,10 @@ class StudiomaxCore(Core):
         return Core.runScript(self, filename, scope, argv, toolType)
 
     def setSupportLegacy(self, state):
-        self._supportLegacy = state
+        pass
 
     def supportLegacy(self):
-        return self._supportLegacy
+        return True
 
     def toolTypes(self):
         """
