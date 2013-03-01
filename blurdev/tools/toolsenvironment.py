@@ -8,7 +8,9 @@
 # 	\date		06/11/10
 #
 
-from PyQt4.QtCore import QObject, pyqtSignal
+import re
+import datetime
+from PyQt4.QtCore import QObject, pyqtSignal, QDateTime
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
@@ -32,6 +34,8 @@ class ToolsEnvironment(QObject):
         self._sourcefile = ''
         self._emailOnError = []
         self._legacyName = ''
+        self._timeout = ''
+        self._autoupdate = False
 
     def clearPathSymbols(self):
         """
@@ -139,6 +143,68 @@ class ToolsEnvironment(QObject):
     def path(self):
         return self._path
 
+    def autoUpdate(self):
+        return self._autoupdate
+
+    def timeout(self):
+        return self._timeout
+
+    def timeoutTimedelta(self):
+        if not self._timeout:
+            return None
+        try:
+            type_map = {
+                'd': 'days',
+                'm': 'minutes',
+                'h': 'hours',
+                's': 'seconds',
+                'w': 'weeks',
+            }
+            d = {}
+            print 'TIMEOUT', self._timeout
+            for arg in self._timeout.split(':'):
+                m = re.match(r'(?P<num>\d+)(?P<type>[dmhsw])', arg, re.I)
+                print arg, m
+                if not m:
+                    continue
+                gd = m.groupdict()
+                d[type_map[gd['type'].lower()]] = int(gd['num'])
+            return datetime.timedelta(**d)
+
+        except Exception:
+            return None
+
+    def timeoutThreshold(self):
+        if not self._timeout:
+            return None
+        now = QDateTime.currentDateTime()
+        try:
+            print 'TIMEOUT', self._timeout
+            for arg in self._timeout.split(':'):
+                m = re.match(r'(?P<num>\d+)(?P<type>[dmhsw])', arg, re.I)
+                print arg, m
+                if not m:
+                    continue
+                gd = m.groupdict()
+                num = int(gd['num'])
+                type_ = gd['type'].lower()
+                if type_ == 'w':
+                    now = now.addDays(-num * 7)
+                elif type_ == 'd':
+                    now = now.addDays(-num)
+                elif type_ == 'h':
+                    now = now.addSecs(-num * 3600)
+                elif type_ == 'm':
+                    now = now.addSecs(-num * 60)
+                elif type_ == 's':
+                    now = now.addSecs(-num)
+
+            return now
+
+        except Exception:
+            raise
+            return None
+
     def recordXml(self, xml):
         envxml = xml.addNode('environment')
         envxml.setAttribute('name', self.objectName())
@@ -146,6 +212,9 @@ class ToolsEnvironment(QObject):
         envxml.setAttribute('default', self._default)
         envxml.setAttribute('development', self._development)
         envxml.setAttribute('offline', self._offline)
+        envxml.setAttribute('autoupdate', self._autoupdate)
+        envxml.setAttribute('timeout', self._timeout)
+
         if self._legacyName != self.objectName():
             envxml.setAttribute('legacyName', self._legacyName)
 
@@ -227,6 +296,12 @@ class ToolsEnvironment(QObject):
 
     def setPath(self, path):
         self._path = path
+
+    def setTimeout(self, timeout):
+        self._timeout = timeout
+
+    def setAutoUpdate(self, autoupdate):
+        self._autoupdate = autoupdate
 
     def setSourceFile(self, filename):
         self._sourcefile = filename
@@ -351,7 +426,8 @@ class ToolsEnvironment(QObject):
         output.setEmailOnError(xml.attribute('emailOnError').split(';'))
         output.setCustom(xml.attribute('custom') == 'True')
         output.setLegacyName(xml.attribute('legacyName', name))
-
+        output.setTimeout(xml.attribute('timeout', ''))
+        output.setAutoUpdate(xml.attribute('autoupdate') == 'True')
         return output
 
     @staticmethod

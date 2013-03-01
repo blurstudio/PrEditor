@@ -10,14 +10,19 @@
 #
 
 import sys
+import time
+import os
 
-from PyQt4.QtCore import QObject, pyqtSignal, QEvent
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime
 from PyQt4.QtGui import QApplication
 from application import Application
-import time, os
+from blurdev.tools.toolsenvironment import ToolsEnvironment
 
 
 class Core(QObject):
+
+    environment_override_filepath = r'\\source\source\dev\share_all\studio_override.xml'
+
     # ----------------------------------------------------------------
     # blurdev signals
     environmentActivated = pyqtSignal()
@@ -249,6 +254,17 @@ class Core(QObject):
         if not self.signalsBlocked():
             self.environmentActivated.emit()
 
+            # This records the last time a user deliberately changed the
+            # environment.  If the environment has a timeout, it will use
+            # this timestamp to enforce the timeout.
+            from blurdev import prefs
+
+            pref = prefs.find('blurdev/core', coreName=self.objectName())
+            pref.recordProperty(
+                'environment_set_timestamp', QDateTime.currentDateTime()
+            )
+            pref.save()
+
     def emitDebugLevelChanged(self):
         if not self.signalsBlocked():
             self.debugLevelChanged.emit()
@@ -355,6 +371,66 @@ class Core(QObject):
         self.restoreToolbar()
 
         return output
+
+    def applyEnvironmentTimeouts(self):
+        """
+        Checks the current environment to see if has a timeout and if it has
+        exceeded that timeout.  If so, it will reset the environment to the
+        default environment.
+        
+        """
+        env = ToolsEnvironment.activeEnvironment()
+
+        print 'ENV-TIMEOUT', str(env.objectName())
+
+        threshold_time = env.timeoutThreshold()
+
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        last_timestamp = pref.restoreProperty('environment_set_timestamp', None)
+
+        print 'TO_TIMESTAMPS', last_timestamp, threshold_time
+
+        if not last_timestamp:
+            return
+
+        if last_timestamp < threshold_time:
+            print 'TIMEOUT - SETTING PROD'
+            ToolsEnvironment.defaultEnvironment().setActive()
+            pref.recordProperty(
+                'environment_set_timestamp', QDateTime.currentDateTime()
+            )
+            pref.save()
+
+    def applyStudioOverrides(self):
+        """
+        Checks a studio environment override file.  If there 
+        
+        """
+        # Checks for the studio environment override file
+        override_dict = self.getEnvironmentOverride()
+        if not override_dict:
+            return
+
+        env = override_dict['environment']
+        timestamp = override_dict['timestamp']
+        print 'ENV-OV', str(ToolsEnvironment.activeEnvironment().objectName())
+        from blurdev import prefs
+
+        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        last_timestamp = pref.restoreProperty(
+            'last_environment_override_timestamp', None
+        )
+        print 'OVTIMESTAMPS', timestamp, last_timestamp
+        if last_timestamp and last_timestamp >= timestamp:
+            return
+        print 'OVERRIDE - SETTING %s' % env
+        ToolsEnvironment.findEnvironment(env).setActive()
+        pref.recordProperty(
+            'last_environment_override_timestamp', QDateTime.currentDateTime()
+        )
+        pref.save()
 
     def isMfcApp(self):
         return self._mfcApp
@@ -566,6 +642,40 @@ class Core(QObject):
 
         pref.save()
 
+    def getEnvironmentOverride(self):
+        from blurdev import XML
+
+        doc = XML.XMLDocument()
+        if not os.path.exists(self.environment_override_filepath):
+            return None
+        if not doc.load(self.environment_override_filepath):
+            return None
+
+        root = doc.root()
+        if not root:
+            return None
+
+        element = root.findChild('environment_override')
+        if not element:
+            return None
+
+        attrs = element.attributeDict()
+        if not attrs:
+            return None
+
+        if not attrs.get('environment'):
+            return None
+
+        try:
+            timestamp = attrs.get('timestamp')
+            if not timestamp:
+                return None
+            attrs['timestamp'] = QDateTime.fromString(timestamp, 'yyyy-MM-dd hh:mm:ss')
+        except Exception:
+            return None
+
+        return attrs
+
     def restoreSettings(self):
         self.blockSignals(True)
 
@@ -588,6 +698,7 @@ class Core(QObject):
             # restore the active environment
             env = pref.restoreProperty('environment')
             if env:
+                print 'Setting ENV', env, pref.filename()
                 ToolsEnvironment.findEnvironment(env).setActive()
 
         # restore the active debug level
@@ -598,6 +709,10 @@ class Core(QObject):
             debug.setDebugLevel(level)
 
         self.blockSignals(False)
+
+        self.applyEnvironmentTimeouts()
+        self.applyStudioOverrides()
+
         return pref
 
     def restoreToolbar(self):
@@ -929,6 +1044,7 @@ class Core(QObject):
             prefs.clearCache()
 
             # make sure we have the proper settings restored based on the new application
+            print "OBJNAME", objectName
             self.restoreSettings()
 
     def shutdown(self):
