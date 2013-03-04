@@ -1340,7 +1340,7 @@ class IdeEditor(Window):
 
         # restore tabbed prefrence
         if (
-            pref.restoreProperty('MidiViewMode', self.uiWindowsAREA.SubWindowView)
+            pref.restoreProperty('MidiViewMode', self.uiWindowsAREA.TabbedView)
             == self.uiWindowsAREA.TabbedView
         ):
             self.displayTabs()
