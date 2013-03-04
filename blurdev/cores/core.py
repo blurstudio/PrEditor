@@ -93,7 +93,9 @@ class Core(QObject):
         self._defaultPalette = -1
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
-        self.environment_override_filepath = None
+        self.environment_override_filepath = os.environ.get(
+            'bdev_environment_override_filepath', ''
+        )
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -335,12 +337,10 @@ class Core(QObject):
 
         ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
 
-        # Gets the override filepath, it is defined this way, instead of
-        # being defined in the class definition, so that we can change this
-        # path, or remove it entirely for offline installs.
-        self.environment_override_filepath = os.environ.get(
-            'bdev_environment_override_filepath', ''
-        )
+        # 		# Gets the override filepath, it is defined this way, instead of
+        # 		# being defined in the class definition, so that we can change this
+        # 		# path, or remove it entirely for offline installs.
+        # 		self.environment_override_filepath = os.environ.get('bdev_environment_override_filepath', '')
 
         # initialize the application
         app = QApplication.instance()
@@ -666,6 +666,9 @@ class Core(QObject):
         from blurdev import XML
 
         doc = XML.XMLDocument()
+        self.environment_override_filepath = os.environ.get(
+            'bdev_environment_override_filepath', ''
+        )
         try:
             if not self.environment_override_filepath:
                 return None
