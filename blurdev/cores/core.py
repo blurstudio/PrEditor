@@ -335,6 +335,9 @@ class Core(QObject):
 
         ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
 
+        # Gets the override filepath, it is defined this way, instead of
+        # being defined in the class definition, so that we can change this
+        # path, or remove it entirely for offline installs.
         self.environment_override_filepath = os.environ.get(
             'bdev_environment_override_filepath', ''
         )
@@ -663,35 +666,43 @@ class Core(QObject):
         from blurdev import XML
 
         doc = XML.XMLDocument()
-        if not os.path.exists(self.environment_override_filepath):
-            return None
-        if not doc.load(self.environment_override_filepath):
-            return None
-
-        root = doc.root()
-        if not root:
-            return None
-
-        element = root.findChild('environment_override')
-        if not element:
-            return None
-
-        attrs = element.attributeDict()
-        if not attrs:
-            return None
-
-        if not attrs.get('environment'):
-            return None
-
         try:
-            timestamp = attrs.get('timestamp')
-            if not timestamp:
+            if not self.environment_override_filepath:
                 return None
-            attrs['timestamp'] = QDateTime.fromString(timestamp, 'yyyy-MM-dd hh:mm:ss')
+            if not os.path.exists(self.environment_override_filepath):
+                return None
+            if not doc.load(self.environment_override_filepath):
+                return None
+
+            root = doc.root()
+            if not root:
+                return None
+
+            element = root.findChild('environment_override')
+            if not element:
+                return None
+
+            attrs = element.attributeDict()
+            if not attrs:
+                return None
+
+            if not attrs.get('environment'):
+                return None
+
+            try:
+                timestamp = attrs.get('timestamp')
+                if not timestamp:
+                    return None
+                attrs['timestamp'] = QDateTime.fromString(
+                    timestamp, 'yyyy-MM-dd hh:mm:ss'
+                )
+            except Exception:
+                return None
+
+            return attrs
+
         except Exception:
             return None
-
-        return attrs
 
     def restoreSettings(self):
         self.blockSignals(True)
