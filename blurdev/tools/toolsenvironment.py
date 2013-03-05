@@ -258,6 +258,11 @@ class ToolsEnvironment(QObject):
             # register this environment as active and update the path symbols
             self._active = True
             self.registerPath(self.path())
+
+            # Make sure the environment definition is synced with the
+            # environment definition in the config.ini
+            ToolsEnvironment.syncINIEnvironment(self)
+
             # set the legacy environment active
             import blurdev.ini
 
@@ -322,7 +327,40 @@ class ToolsEnvironment(QObject):
         )
 
     @staticmethod
+    def syncINIEnvironment(env):
+        """
+        Syncs a single environment definition with the legacy config.ini file.
+        
+        """
+        import blurdev.ini
+
+        name = env.objectName()
+        legacy = env.legacyName()
+        envPath = env.path()
+        email = env.emailOnError()
+        if not legacy:
+            legacy = name
+        # update the config.ini file so next time we start from the correct environment.
+        codeRootPath = os.path.abspath(os.path.join(envPath, 'maxscript', 'treegrunt'))
+        if os.path.exists(codeRootPath):
+            blurdev.ini.SetINISetting(
+                blurdev.ini.configFile, legacy, 'codeRoot', codeRootPath
+            )
+            blurdev.ini.SetINISetting(
+                blurdev.ini.configFile,
+                legacy,
+                'startupPath',
+                os.path.abspath(os.path.join(envPath, 'maxscript', 'treegrunt', 'lib')),
+            )
+            blurdev.ini.LoadConfigData()
+
+    @staticmethod
     def syncINI():
+        """
+        Syncs all environments from the environment definition xml files to the
+        legacy config.ini file.
+                
+        """
         import blurdev.ini
 
         for env in ToolsEnvironment.environments:
@@ -549,9 +587,9 @@ class ToolsEnvironment(QObject):
                 if not found:
                     ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
-            ToolsEnvironment.syncINI()
+            # 			ToolsEnvironment.syncINI()
             return True
-        ToolsEnvironment.syncINI()
+        # 		ToolsEnvironment.syncINI()
         return False
 
     @staticmethod
