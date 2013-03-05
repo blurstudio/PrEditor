@@ -421,7 +421,9 @@ class ToolParserClass(ConfigParser.ConfigParser):
             for tSection in self._sectionClasses:
                 tSection.Save(self)
 
-            self.write(open(fileName, 'w'))
+            f = open(fileName, 'w')
+            self.write(f)
+            f.close()
             return True
         return False
 
