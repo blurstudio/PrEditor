@@ -259,10 +259,6 @@ class ToolsEnvironment(QObject):
             self._active = True
             self.registerPath(self.path())
 
-            # Make sure the environment definition is synced with the
-            # environment definition in the config.ini
-            ToolsEnvironment.syncINIEnvironment(self)
-
             # set the legacy environment active
             import blurdev.ini
 
@@ -586,10 +582,8 @@ class ToolsEnvironment(QObject):
                         found = True
                 if not found:
                     ToolsEnvironment.defaultEnvironment().setActive(silent=True)
-
-            # 			ToolsEnvironment.syncINI()
             return True
-        # 		ToolsEnvironment.syncINI()
+
         return False
 
     @staticmethod
