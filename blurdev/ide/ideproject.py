@@ -185,8 +185,8 @@ class IdeProjectItem(QTreeWidgetItem):
                 folders.append(fpath)
 
         # sort the data alphabetically
-        folders.sort()
-        files.sort()
+        folders.sort(key=str.lower)
+        files.sort(key=str.lower)
 
         # load the icon provider
         from PyQt4.QtGui import QFileIconProvider
