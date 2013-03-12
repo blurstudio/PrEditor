@@ -53,33 +53,18 @@ try:
         strip_dirs=False,
         fileName=r'c:\temp\profile.profile',
     ):
-        """A decorator which profiles a callable. This uses cProfile which is not in Python2.4.
-        Example usage:
-
-        >>> @profile
-            def factorial(n):
-                n = abs(int(n))
-                if n < 1:
-                        n = 1
-                x = 1
-                for i in range(1, n + 1):
-                        x = i * x
-                return x
-        ...
-        >>> factorial(5)
-        Thu Jul 15 20:58:21 2010    c:\temp\profile.profile
-
-                 4 function calls in 0.000 CPU seconds
-
-           Ordered by: internal time, call count
-
-            ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-                1    0.000    0.000    0.000    0.000 profiler.py:120(factorial)
-                1    0.000    0.000    0.000    0.000 {range}
-                1    0.000    0.000    0.000    0.000 {abs}
-
-        120
-        >>>
+        """
+        A decorator which profiles a callable using cProfile
+            
+        :param sort: sort by this column. defaults to cumulative.
+        :param lines: limit output to this number of lines. Defaults to 50.
+        :param strip_dirs: If False the full path to files will be shown. Defaults to False.
+        :param fileName: The name of the temporary file used to store the output for sorting.
+        
+        :type sort: str
+        :type lines: int
+        :type strip_dirs: bool
+        :type fileName: str
         """
 
         def outer(fun):
@@ -116,6 +101,20 @@ except ImportError:
         strip_dirs=False,
         fileName=r'c:\temp\profile.profile',
     ):
+        """
+        A decorator which profiles a callable using profile. This is only used if cProfile is not available.
+            
+        :param sort: sort by this column. defaults to cumulative.
+        :param lines: limit output to this number of lines. Defaults to 50.
+        :param strip_dirs: If False the full path to files will be shown. Defaults to False.
+        :param fileName: The name of the temporary file used to store the output for sorting.
+        
+        :type sort: str
+        :type lines: int
+        :type strip_dirs: bool
+        :type fileName: str
+        """
+
         def outer(fun):
             def inner(*args, **kwargs):
                 debug.debugMsg(
