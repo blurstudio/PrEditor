@@ -237,11 +237,14 @@ class ToolsEnvironment(QObject):
         return ''
 
     def resetPaths(self):
-        import blurdev
+        import blurdev, os.path
 
         blurdev.core.aboutToClearPaths.emit()
         self.clearPathSymbols()
         self.registerPath(self.path())
+        self.registerPath(
+            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'tools')
+        )
         blurdev.core.emitEnvironmentActivated()
 
     def setActive(self, silent=False):
@@ -258,6 +261,14 @@ class ToolsEnvironment(QObject):
             # register this environment as active and update the path symbols
             self._active = True
             self.registerPath(self.path())
+            # make tools importable
+            import blurdev, os
+
+            self.registerPath(
+                os.path.join(
+                    blurdev.activeEnvironment().path(), 'code', 'python', 'tools'
+                )
+            )
 
             # set the legacy environment active
             import blurdev.ini
