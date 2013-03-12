@@ -82,6 +82,10 @@ class DocumentEditor(QsciScintilla):
                 return False
         return True
 
+    def closeEvent(self, event):
+        self.disableTitleUpdate()
+        super(DocumentEditor, self).closeEvent(event)
+
     def closeEditor(self):
         parent = self.parent()
         if parent and parent.inherits('QMdiSubWindow'):
@@ -246,6 +250,9 @@ class DocumentEditor(QsciScintilla):
                 else:
                     fm.removePath(self._filename)
         return self._fileMonitoringActive
+
+    def disableTitleUpdate(self):
+        self.SCN_MODIFIED.disconnect(self.refreshTitle)
 
     def enableTitleUpdate(self):
         self.SCN_MODIFIED.connect(self.refreshTitle)
