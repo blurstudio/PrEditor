@@ -10,6 +10,10 @@
 
 import xml.dom.minidom
 
+# Load the monkey patched version to fix a known bug http://bugs.python.org/issue5752
+import blurdev.XML.minidom
+from xml.sax.saxutils import escape, unescape
+
 from PyQt4.QtCore import (
     QRect,
     QRectF,
@@ -31,8 +35,8 @@ class XMLElement:
     the :class:`xml.dom.minidom.Element` type provided in the standard library.
     The constructor allows it be initialized with a 
     :class:`xml.dom.minidom.Element` instance.
-   
-   """
+    
+    """
 
     def __eq__(self, other):
         """ checks to see if the wrapper <xml.dom.minidom.Element> instance is the same """
@@ -93,7 +97,7 @@ class XMLElement:
 
         # Convert Qt basics to python basics where possible
         if type(value) == QString:
-            value = unicode(value).encode('utf-8')
+            value = unicode(value)
 
         valtype = type(value)
 
@@ -273,6 +277,9 @@ class XMLElement:
         """Gets the attribute value of the element by the given attribute id
         """
         out = unicode(self._object.getAttribute(attr))
+        d = self._document()
+        if d and hasattr(d, 'escapeDict'):
+            out = unescape(out, d.escapeDict)
         if out:
             return out
         return fail
@@ -472,7 +479,11 @@ class XMLElement:
 
         """
         if self._object and (val != '' or self.allowEmptyAttrs):
-            self._object.setAttribute(attr, unicode(val).encode('utf-8'))
+            d = self._document()
+            val = unicode(val)
+            if d and hasattr(d, 'escapeDict'):
+                val = escape(val, d.escapeDict)
+            self._object.setAttribute(attr, val)
             return True
         return False
 
@@ -527,11 +538,11 @@ class XMLElement:
             # find existing text node & update
             for child in self._object.childNodes:
                 if isinstance(child, xml.dom.minidom.Text):
-                    child.data = unicode(val).encode('utf-8')
+                    child.data = unicode(val)
                     return True
 
             # create new text node
-            text = self._document().createTextNode(unicode(val).encode('utf-8'))
+            text = self._document().createTextNode(unicode(val))
             self._object.appendChild(text)
             return True
         return False

@@ -12,6 +12,7 @@ import os
 import xml.dom.minidom
 
 from xmlelement import XMLElement
+from PyQt4.QtCore import QString
 
 
 class XMLDocument(XMLElement):
@@ -22,6 +23,7 @@ class XMLDocument(XMLElement):
             object = xml.dom.minidom.Document()
         XMLElement.__init__(self, object)
         self.__file__ = ''
+        self.escapeDict = {'"': '&quot;', '\r': '&#xD;', '\n': '&#xA;', '\t': '&#x9;'}
 
     def findElementById(self, childId):
         split = child.split('::')
@@ -46,10 +48,13 @@ class XMLDocument(XMLElement):
         if os.path.exists(fileName):
             try:
                 newObject = xml.dom.minidom.parse(fileName)
-            except:
+            except Exception, e:
+                print 'Unable to parse filename!!!!', fileName
+                print e
                 return False
 
             if newObject:
+                self.removeWitespaceNodes(newObject)
                 self.__file__ = fileName
                 self._object = newObject
                 success = True
@@ -57,13 +62,36 @@ class XMLDocument(XMLElement):
 
     def parse(self, xmlString):
         success = False
-        xmlString = unicode(xmlString).encode('utf-8')
+        if isinstance(xmlString, QString):
+            xmlString = unicode(xmlString)
+        else:
+            xmlString = xmlString.encode('utf-8')
         if xmlString:
             tempObject = xml.dom.minidom.parseString(xmlString)
             if tempObject:
                 self._object = tempObject
                 success = True
         return success
+
+    @staticmethod
+    def removeWitespaceNodes(node):
+        """
+        Removes any nodes that are simply whitespace. Because we are saving to disk using toprettyxml the
+        new lines get read into the xml leading to files getting alot of empty whitespace.
+        """
+        wsNodes = []
+        hasElement = False
+        for n in node.childNodes:
+            if isinstance(n, xml.dom.minidom.Text) and not n.wholeText.replace(
+                '\n', ''
+            ).replace('\t', '').replace(' ', ''):
+                wsNodes.append(n)
+            if isinstance(n, xml.dom.minidom.Element):
+                hasElement = True
+                XMLDocument.removeWitespaceNodes(n)
+        if hasElement and wsNodes:
+            for n in wsNodes:
+                node.removeChild(n)
 
     def root(self):
         """Returns the root xml node for this document.
@@ -91,9 +119,9 @@ class XMLDocument(XMLElement):
             self.__file__ = fileName
             try:
                 if pretty:
-                    text = self.formatXml(self.toxml()).encode('utf-8')
+                    text = self.formatXml(self.toxml())
                 else:
-                    text = unicode(self.toxml()).encode('utf-8')
+                    text = self.toxml(encoding=None)
             except:
                 print 'Encoding error while saving XML'
                 if showDialog:
@@ -119,15 +147,17 @@ class XMLDocument(XMLElement):
             )
         return False
 
-    def toxml(self):
-        return self._object.toxml()
+    def toxml(self, encoding='utf-8'):
+        if encoding == 'utf-8':
+            return unicode(self._object.toxml('utf-8'), 'utf-8')
+        else:
+            return self._object.toxml('utf-8')
 
     def toprettyxml(self, *args, **kw):
         return self._object.toprettyxml(*args, **kw)
 
     @staticmethod
     def formatXml(xmltext, indented=4):
-        from PyQt4.QtCore import QString
         from PyQt4.QtXml import QDomDocument
 
         doc = QDomDocument()

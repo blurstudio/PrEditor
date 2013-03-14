@@ -189,9 +189,7 @@ class LoggerWindow(Window):
         pref = prefs.find('blurdev\LoggerWindow')
         pref.recordProperty('loggergeom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
-        pref.recordProperty(
-            'WorkboxText', unicode(self.uiWorkboxWGT.text()).replace('\r', '')
-        )
+        pref.recordProperty('WorkboxText', self.uiWorkboxWGT.text())
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
         pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
