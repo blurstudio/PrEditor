@@ -73,6 +73,7 @@ class ToolsLoveBar(QToolBar):
 
         # Create connections.
         self.actionTriggered.connect(self.runAction)
+        blurdev.core.environmentActivated.connect(self.refresh)
         self.populate()
 
     def populate(self):
