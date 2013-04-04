@@ -215,7 +215,7 @@ class StudiomaxCore(Core):
         envname = env.legacyName()
 
         # update the old library system
-        if self.supportLegacy():
+        if self.supportLegacy() and not env.isTemporary():
             if not envname:
                 envname = env.objectName()
             if envname:

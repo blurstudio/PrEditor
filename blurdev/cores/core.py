@@ -724,6 +724,7 @@ class Core(QObject):
                     TEMPORARY_TOOLS_ENV, environPath
                 )
                 env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
+                env.setTemporary(True)
             env.setActive()
         else:
             # restore the active environment

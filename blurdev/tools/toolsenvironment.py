@@ -31,6 +31,7 @@ class ToolsEnvironment(QObject):
         self._active = False
         self._offline = False
         self._custom = False
+        self._temporary = False
         self._index = None
         self._sourcefile = ''
         self._emailOnError = []
@@ -137,6 +138,9 @@ class ToolsEnvironment(QObject):
 
     def isOffline(self):
         return self._offline
+
+    def isTemporary(self):
+        return self._temporary
 
     def legacyName(self):
         return self._legacyName
@@ -318,6 +322,9 @@ class ToolsEnvironment(QObject):
 
     def setSourceFile(self, filename):
         self._sourcefile = filename
+
+    def setTemporary(self, state):
+        self._temporary = state
 
     def sourceFile(self):
         return self._sourcefile
