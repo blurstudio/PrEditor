@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # determine what python folder to install to
     parser = OptionParser()
-    parser.add_option('-v', '--version', dest='version', default='Python24')
+    parser.add_option('-v', '--version', dest='version', default='Python27')
     parser.add_option('-i', '--install', dest='install', default='0')
     parser.add_option('-s', '--silent', dest='silent', default='0')
     parser.add_option('-o', '--offline', dest='offline', default='0')
