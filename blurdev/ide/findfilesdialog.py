@@ -54,7 +54,7 @@ class FindFilesThread(QThread):
     def run(self):
         # create expressions
         exprs = [
-            re.compile(str(os.path.splitext(ftype)[0]).replace('*', '[^\.]*'))
+            re.compile(unicode(os.path.splitext(ftype)[0]).replace('*', '[^\.]*'))
             for ftype in self._filetypes.split(';')
         ]
         filetypes = [os.path.splitext(ftype)[1] for ftype in self._filetypes.split(';')]
@@ -107,7 +107,7 @@ class FindFilesThread(QThread):
                     self._results[filename].append((lineno + 1, line.strip()))
 
     def setSearchText(self, text):
-        self._searchText = str(text)
+        self._searchText = unicode(text)
 
     def setBasePath(self, basepath):
         self._basepath = basepath
@@ -176,9 +176,9 @@ class FindFilesDialog(Dialog):
         Dialog.closeEvent(self, event)
 
         # set the properties in the prefs module
-        ideglobals.FILE_SEARCH_TEXT = str(self.uiSearchTXT.text())
-        ideglobals.FILE_SEARCH_TYPES = str(self.uiFileTypesTXT.text())
-        ideglobals.FILE_SEARCH_PATH = str(self.uiBasePathTXT.text())
+        ideglobals.FILE_SEARCH_TEXT = unicode(self.uiSearchTXT.text())
+        ideglobals.FILE_SEARCH_TYPES = unicode(self.uiFileTypesTXT.text())
+        ideglobals.FILE_SEARCH_PATH = unicode(self.uiBasePathTXT.text())
 
     def copyFilenames(self):
         QApplication.clipboard().setText(self._resultsFileText)
@@ -188,10 +188,10 @@ class FindFilesDialog(Dialog):
 
     def loadFile(self, item):
         if item.parent():
-            filename = str(item.parent().data(0, Qt.UserRole).toString())
+            filename = unicode(item.parent().data(0, Qt.UserRole).toString())
             lineno = item.data(0, Qt.UserRole).toInt()[0]
         else:
-            filename = str(item.data(0, Qt.UserRole).toString())
+            filename = unicode(item.data(0, Qt.UserRole).toString())
             lineno = 0
 
         self.fileDoubleClicked.emit(filename, lineno)
@@ -294,7 +294,7 @@ class FindFilesDialog(Dialog):
 
     def search(self):
         # verify the basepath exists
-        basepath = str(self.uiBasePathTXT.text())
+        basepath = unicode(self.uiBasePathTXT.text())
         if not os.path.exists(basepath):
             from PyQt4.QtGui import QMessageBox
 
@@ -312,9 +312,9 @@ class FindFilesDialog(Dialog):
         self.refreshFeedbackLabel(0, 0, 0)
 
         # set the search options
-        self._searchThread.setSearchText(str(self.uiSearchTXT.text()))
+        self._searchThread.setSearchText(unicode(self.uiSearchTXT.text()))
         self._searchThread.setBasePath(basepath)
-        self._searchThread.setFileTypes(str(self.uiFileTypesTXT.text()))
+        self._searchThread.setFileTypes(unicode(self.uiFileTypesTXT.text()))
         self._searchThread.setUseRegex(self.uiRegexCHK.isChecked())
 
         # start the search thrad
