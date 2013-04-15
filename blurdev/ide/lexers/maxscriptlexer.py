@@ -183,15 +183,14 @@ class MaxscriptLexer(QsciLexerCustom):
             # otherwise, we are processing a default set of text whose syntaxing is irrelavent from the previous one
             # TODO: this needs to handle QStrings. However I do not thing QStrings are the problem, its more likely a bytearray problem.
             # the conversion at the start of this function may have resolved it.
-            results = re.findall('([^A-Za-z0-9]*)([A-Za-z0-9]*)', chunk)
-            hlkwords = unicode(self.keywords(self.SmartHighlight)).split()
+            results = self.chunkRegex.findall(chunk)
             for space, kwd in results:
                 if not (space or kwd):
                     break
 
                 self.setStyling(len(space), self.Default)
 
-                if kwd in hlkwords:
+                if kwd.lower() in self.hlkwords:
                     self.setStyling(len(kwd), self.SmartHighlight)
                 elif kwd in keywords:
                     self.setStyling(len(kwd), self.Keyword)
@@ -233,6 +232,7 @@ class MaxscriptLexer(QsciLexerCustom):
 
         if not source:
             return
+        self.parent().blockSignals(True)
 
         # the line index will also need to implement folding
         index = editor.SendScintilla(editor.SCI_LINEFROMPOSITION, start)
@@ -245,9 +245,14 @@ class MaxscriptLexer(QsciLexerCustom):
 
         self.startStyling(start, 0x1F)
 
+        # cache objects used by processChunk that do not need updated every time it is called
+        self.hlkwords = set(unicode(self.keywords(self.SmartHighlight)).lower().split())
+        self.chunkRegex = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
+        kwrds = set(MS_KEYWORDS.split())
+
         # scintilla always asks to style whole lines
         for line in source.splitlines(True):
-            lastState, folding = self.processChunk(line, lastState, MS_KEYWORDS.split())
+            lastState, folding = self.processChunk(line, lastState, kwrds)
 
             # open folding levels
             if folding > 0:
@@ -259,3 +264,4 @@ class MaxscriptLexer(QsciLexerCustom):
 
             # folding implementation goes here
             index += 1
+        self.parent().blockSignals(False)
