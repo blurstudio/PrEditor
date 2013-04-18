@@ -182,6 +182,15 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
     :type text: str
     :type debugLevel: :data:`DebugLevel`
     
+    Example:
+        from blurdev.decorators import stopwatch
+        @stopwatch
+        def something():
+            something.__stopwatch__.newLap('a lap')
+            import time
+            time.sleep(1)
+            something.__stopwatch__.newLap('B lap')
+            time.sleep(1)
     """
     msg = text
     if hasattr(text, '__call__'):
