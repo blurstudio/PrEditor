@@ -35,7 +35,7 @@
      <item>
       <widget class="QToolButton" name="uiBasePathBTN">
        <property name="focusPolicy">
-        <enum>Qt::ClickFocus</enum>
+        <enum>Qt::StrongFocus</enum>
        </property>
        <property name="text">
         <string>...</string>
@@ -189,11 +189,25 @@
     </layout>
    </item>
   </layout>
+  <action name="uiShowOutputACT">
+   <property name="text">
+    <string>showOutput</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
  </widget>
  <tabstops>
   <tabstop>uiBasePathTXT</tabstop>
   <tabstop>uiBasePathBTN</tabstop>
   <tabstop>uiFileTypesTXT</tabstop>
+  <tabstop>uiSearchTXT</tabstop>
+  <tabstop>uiPyularBTN</tabstop>
+  <tabstop>uiRegexCHK</tabstop>
+  <tabstop>uiResultsTREE</tabstop>
+  <tabstop>uiCopyFilenamesBTN</tabstop>
+  <tabstop>uiCopyResultsBTN</tabstop>
   <tabstop>uiSearchBTN</tabstop>
   <tabstop>uiCloseBTN</tabstop>
  </tabstops>
@@ -215,5 +229,24 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>uiShowOutputACT</sender>
+   <signal>triggered()</signal>
+   <receiver>FileSearchDialog</receiver>
+   <slot>showOutput()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>324</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>showOutput()</slot>
+ </slots>
 </ui>

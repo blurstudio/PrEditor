@@ -12,7 +12,7 @@ import os
 import re
 
 from blurdev.gui import Dialog
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication
+from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication, QVBoxLayout, QTextEdit
 from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant, QString
 
 from blurdev.ide import ideglobals
@@ -30,13 +30,24 @@ class FindFilesThread(QThread):
         self._searchText = ''
         self._findall = False
         self._results = {}  # file, lines pairing
+        self._errors = []
         self._resultsCount = 0
         self._searchedCount = 0
         self._useRegex = False
+        self._exit = False
+        self._output = []
 
     def clear(self):
         self._results.clear()
+        self._errors = []
+        self._output = []
         self._resultsCount = 0
+
+    def errors(self):
+        return self._errors
+
+    def output(self):
+        return self._output
 
     def searchedCount(self):
         return self._searchedCount
@@ -63,19 +74,43 @@ class FindFilesThread(QThread):
         self._searchedCount = 0
 
         # look up the files in a separate thread
-        for (path, dirs, files) in os.walk(self._basepath):
-            for file in files:
-                filename = os.path.join(path, file)
+        try:
+            for (path, dirs, files) in os.walk(self._basepath):
+                self._output.append('Checking Directory: %s' % path)
+                for file in files:
+                    try:
+                        self._output.append('	Checking File: %s' % file)
+                        if self._exit:
+                            self._exit = False
+                            self._output.append(
+                                "!!!!!!!!!!!!!!!!!!!! Exiting !!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                            )
+                            return
+                        filename = os.path.join(path, file)
 
-                # make sure we have the proper file type
-                if not (self._findall or os.path.splitext(filename)[1] in filetypes):
-                    continue
+                        # make sure we have the proper file type
+                        if not (
+                            self._findall or os.path.splitext(filename)[1] in filetypes
+                        ):
+                            continue
 
-                # make sure the filename matches the expression
-                for expr in exprs:
-                    if expr.match(filename):
-                        self.searchFile(filename)
-                        break
+                        # make sure the filename matches the expression
+                        for expr in exprs:
+                            if expr.match(filename):
+                                self.searchFile(filename)
+                                break
+                    except Exception, e:
+                        self._errors.append({"exception": e, "file": file})
+                        self._output.append(
+                            "	------ Error Reading file: %s Exception: %s"
+                            % (filename, repr(e))
+                        )
+        except Exception, e:
+            self._errors.append({"exception": e})
+            self._output.append("------ Error looping over dirs: %s" % repr(e))
+
+    def stop(self):
+        self._exit = True
 
     def searchFile(self, filename):
         # look for the text within the lines
@@ -95,16 +130,34 @@ class FindFilesThread(QThread):
         # search through the lines in the file
         for lineno, line in enumerate(lines):
             found = False
-            if self._useRegex:
-                found = regex.findall(line) != []
-            elif self._searchText in line:
-                found = True
-            if found:
-                self._resultsCount += 1
-                if not filename in self._results:
-                    self._results[filename] = [(lineno + 1, line.strip())]
-                else:
-                    self._results[filename].append((lineno + 1, line.strip()))
+            try:
+                if self._useRegex:
+                    found = regex.findall(line) != []
+                elif self._searchText in line:
+                    found = True
+                if found:
+                    self._resultsCount += 1
+                    self._output.append(
+                        "		Result! Line Number: %i File: %s Line: %s"
+                        % (lineno, filename, line.strip())
+                    )
+                    if not filename in self._results:
+                        self._results[filename] = [(lineno + 1, line.strip())]
+                    else:
+                        self._results[filename].append((lineno + 1, line.strip()))
+            except Exception, e:
+                self._errors.append(
+                    {
+                        "exception": e,
+                        "filename": filename,
+                        "lineno": lineno,
+                        "line": line,
+                    }
+                )
+                self._output.append(
+                    "	------ Error reading line: %i File: %s Exception: %s"
+                    % (lineno, filename, repr(e))
+                )
 
     def setSearchText(self, text):
         self._searchText = unicode(text)
@@ -123,13 +176,27 @@ class FindFilesThread(QThread):
         return self._useRegex
 
 
+class FindFilesOutputDialog(Dialog):
+    def __init__(self, parent=None, lines=[]):
+        super(FindFilesOutputDialog, self).__init__(parent)
+        self.setWindowTitle('Search output')
+        self.uiDocumentWGT = QTextEdit(self)
+        self.setLayout(QVBoxLayout(self))
+        self.layout().addWidget(self.uiDocumentWGT)
+        self.setLines(lines)
+
+    def setLines(self, lines):
+        self.uiDocumentWGT.clear()
+        self.uiDocumentWGT.setText('\n'.join(lines))
+
+
 class FindFilesDialog(Dialog):
     _instance = None
 
     fileDoubleClicked = pyqtSignal(str, int)
 
     def __init__(self, parent=None):
-        Dialog.__init__(self, parent)
+        super(FindFilesDialog, self).__init__(parent)
 
         # load the ui
         import blurdev
@@ -161,6 +228,7 @@ class FindFilesDialog(Dialog):
         self.uiPyularBTN.clicked.connect(self.showPyular)
         self.uiCopyFilenamesBTN.clicked.connect(self.copyFilenames)
         self.uiCopyResultsBTN.clicked.connect(self.copyResults)
+        self.addAction(self.uiShowOutputACT)
 
         self._searchThread.finished.connect(self.searchFinished)
 
@@ -171,7 +239,7 @@ class FindFilesDialog(Dialog):
 
     def closeEvent(self, event):
         # make sure to kill the thread before closing
-        self._searchThread.terminate()
+        self._searchThread.stop()
 
         Dialog.closeEvent(self, event)
 
@@ -321,6 +389,11 @@ class FindFilesDialog(Dialog):
         self._refreshTimer.start()
         self._searchThread.start()
 
+    def showOutput(self):
+        if self.uiSearchBTN.text() != 'Stop Search':
+            dlg = FindFilesOutputDialog(self, self._searchThread.output())
+            dlg.show()
+
     def setBasePath(self, path):
         self.uiBasePathTXT.setText(path)
 
@@ -351,7 +424,7 @@ class FindFilesDialog(Dialog):
         self.uiSearchTXT.setText(text)
 
     def stopSearch(self):
-        self._searchThread.terminate()
+        self._searchThread.stop()
         self.searchFinished()
 
     # define static methods
