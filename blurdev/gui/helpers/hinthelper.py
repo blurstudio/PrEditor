@@ -23,9 +23,10 @@ class HintHelper(QLabel):
                 parent.setEditable(True)
                 parent.setInsertPolicy(QComboBox.NoInsert)
             # connect to the line edit method
-            lineEdit = parent.lineEdit()
-            lineEdit.textChanged.connect(self.toggleVisibility)
-            self.setAlignment(lineEdit.alignment())
+            if parent.isEditable():
+                lineEdit = parent.lineEdit()
+                lineEdit.textChanged.connect(self.toggleVisibility)
+                self.setAlignment(lineEdit.alignment())
 
         # connect to a lineedit
         elif isinstance(parent, (QLineEdit, QTextEdit)):
@@ -62,7 +63,7 @@ class HintHelper(QLabel):
 
     def resizeHintHelper(self):
         parent = self.parent()
-        if isinstance(parent, QComboBox):
+        if isinstance(parent, QComboBox) and parent.isEditable():
             geo = parent.lineEdit().geometry()
             self.setGeometry(geo.x() + 6, geo.y(), geo.width() - 6, geo.height())
         else:
@@ -87,7 +88,7 @@ class HintHelper(QLabel):
         parent = self.parent()
         state = parent.isVisible()
         # check a combobox
-        if isinstance(parent, QComboBox):
+        if (isinstance(parent, QComboBox)) and parent.isEditable():
             state = parent.lineEdit().text() == ''
         # check a lineedit
         elif isinstance(parent, QLineEdit):
