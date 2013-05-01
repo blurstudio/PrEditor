@@ -694,7 +694,12 @@ class DocumentEditor(QsciScintilla):
         # replace all of the instances of the text
         if all:
             count = self.text().count(searchtext, Qt.CaseInsensitive)
+            found = 0
             while self.findFirst(searchtext, False, False, False, True, True):
+                if found == count:
+                    # replaced all items, exit so we don't get a infinite loop
+                    break
+                found += 1
                 super(DocumentEditor, self).replace(text)
 
         # replace a single instance of the text
