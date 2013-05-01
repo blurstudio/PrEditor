@@ -14,6 +14,9 @@ Note: The 64bit version may have a few caveats that may affect you.
 To install the dll on a system call "regsvr32 dsofile.dll" from cmd.exe 
 in the folder of the dll's I renamed the 64bit dll to dsofile64.dll
 
+Max documentation for editing dso properties:
+    http://docs.autodesk.com/3DSMAX/16/ENU/MAXScript-Help/index.html?url=files/GUID-A8663B8E-7E30-474E-B3DB-E21585F125B1.htm,topicNumber=d30e705809
+
 """
 
 from win32com.client import Dispatch as _Dispatch
@@ -56,13 +59,15 @@ class DSOFile(object):
     def __del__(self):
         # the dso must be closed if open, or it will lock the custom properties of the file
         self.dso.close()
-        super(DSOFile, self).__del__()
 
     def addCustomProperty(self, key, value):
         """Adds a custom property with the given key, value pair.
-
         """
         return self.dso.CustomProperties.Add(key, value)
+
+    def clear(self):
+        for item in self.dso.CustomProperties:
+            item.remove()
 
     def close(self):
         self.dso.close()
@@ -79,7 +84,6 @@ class DSOFile(object):
         If the key is not found it returns None.
         
         :rtype: :class:`DSOCustProperty`
-
         """
         for item in self.dso.CustomProperties:
             if item.Name == key:
@@ -96,12 +100,21 @@ class DSOFile(object):
         """
         :return: Returns True if the provided file supports dso.
         :rtype: bool
-        
         """
+        if self.dso.IsOleFile:
+            # The file is already open
+            return True
         self.dso.Open(filename)
         if self.dso.IsOleFile:
             return True
         self.close()
+        return False
+
+    def removeCustomProperty(self, key):
+        prop = self.customProperty(key)
+        if prop:
+            prop._property.remove()
+            return True
         return False
 
     def save(self):
