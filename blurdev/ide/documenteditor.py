@@ -713,9 +713,12 @@ class DocumentEditor(QsciScintilla):
         return count
 
     def refreshTitle(self):
-        parent = self.parent()
-        if parent and parent.inherits('QMdiSubWindow'):
-            parent.setWindowTitle(self.windowTitle())
+        try:
+            parent = self.parent()
+            if parent and parent.inherits('QMdiSubWindow'):
+                parent.setWindowTitle(self.windowTitle())
+        except RuntimeError:
+            pass
 
     def save(self):
         debugMsg(
