@@ -58,6 +58,7 @@ class LoggerWindow(Window):
 
         self.uiNewScriptACT.triggered.connect(blurdev.core.newScript)
         self.uiOpenScriptACT.triggered.connect(blurdev.core.openScript)
+        self.uiOpenIdeACT.triggered.connect(blurdev.core.showIdeEditor)
         self.uiRunScriptACT.triggered.connect(blurdev.core.runScript)
         self.uiGotoErrorACT.triggered.connect(self.gotoError)
 
@@ -82,6 +83,7 @@ class LoggerWindow(Window):
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
+        self.uiOpenIdeACT.setIcon(QIcon(blurdev.resourcePath('img/ide.png')))
         self.uiRunScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
         self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))

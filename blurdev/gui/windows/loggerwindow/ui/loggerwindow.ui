@@ -511,6 +511,7 @@
     </property>
     <addaction name="uiNewScriptACT"/>
     <addaction name="uiOpenScriptACT"/>
+    <addaction name="uiOpenIdeACT"/>
     <addaction name="separator"/>
     <addaction name="uiRunScriptACT"/>
     <addaction name="separator"/>
@@ -569,6 +570,7 @@
    </attribute>
    <addaction name="uiNewScriptACT"/>
    <addaction name="uiOpenScriptACT"/>
+   <addaction name="uiOpenIdeACT"/>
    <addaction name="uiRunScriptACT"/>
    <addaction name="separator"/>
    <addaction name="uiNoDebugACT"/>
@@ -662,7 +664,7 @@
   </action>
   <action name="uiNewScriptACT">
    <property name="text">
-    <string>&amp;New Script</string>
+    <string>&amp;New Script...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -806,6 +808,11 @@
    </property>
    <property name="toolTip">
     <string>Editor Vertical</string>
+   </property>
+  </action>
+  <action name="uiOpenIdeACT">
+   <property name="text">
+    <string>Open IDE</string>
    </property>
   </action>
  </widget>
