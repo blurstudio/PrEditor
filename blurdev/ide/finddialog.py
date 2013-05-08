@@ -29,7 +29,7 @@ class FindDialog(Dialog):
         self.uiQRegExpCHK.setChecked(
             parent.searchFlags() & DocumentEditor.SearchOptions.QRegExp
         )
-        self.uiSearchTXT.setText(parent.searchText())
+        self.uiSearchTXT.setPlainText(parent.searchText())
 
         # update the signals
         self.uiCaseSensitiveCHK.clicked.connect(self.updateSearchTerms)
@@ -62,7 +62,7 @@ class FindDialog(Dialog):
         self.show()
 
         # set the search text
-        self.uiSearchTXT.setText(text)
+        self.uiSearchTXT.setPlainText(text)
         self.uiSearchTXT.setFocus()
         self.uiSearchTXT.selectAll()
 

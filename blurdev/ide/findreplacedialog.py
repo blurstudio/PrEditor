@@ -19,7 +19,7 @@ class FindReplaceDialog(Dialog):
 
         blurdev.gui.loadUi(__file__, self)
 
-        self.uiSearchTXT.setText(parent.searchText())
+        self.uiSearchTXT.setPlainText(parent.searchText())
 
         # update the signals
         self.uiSearchTXT.textChanged.connect(self.updateSearchTerms)
@@ -56,7 +56,7 @@ class FindReplaceDialog(Dialog):
         self.show()
 
         # set the search text
-        self.uiSearchTXT.setText(text)
+        self.uiSearchTXT.setPlainText(text)
         self.uiSearchTXT.setFocus()
         self.uiSearchTXT.selectAll()
 

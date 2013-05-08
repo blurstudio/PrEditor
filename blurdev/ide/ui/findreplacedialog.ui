@@ -14,13 +14,6 @@
    <string>Find &amp; Replace</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QTextEdit" name="uiSearchTXT">
-     <property name="tabChangesFocus">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="1" rowspan="3">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
@@ -134,12 +127,11 @@
      </item>
     </layout>
    </item>
+   <item row="0" column="0">
+    <widget class="QPlainTextEdit" name="uiSearchTXT"/>
+   </item>
    <item row="1" column="0">
-    <widget class="QTextEdit" name="uiReplaceTXT">
-     <property name="tabChangesFocus">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="QPlainTextEdit" name="uiReplaceTXT"/>
    </item>
   </layout>
  </widget>
