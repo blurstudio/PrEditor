@@ -9,7 +9,7 @@
 # 	\date		12/18/08
 #
 
-from PyQt4.QtGui import QLabel, QComboBox, QLineEdit, QTextEdit
+from PyQt4.QtGui import QLabel, QComboBox, QLineEdit, QTextEdit, QPlainTextEdit
 from PyQt4.QtCore import Qt
 
 
@@ -29,7 +29,7 @@ class HintHelper(QLabel):
                 self.setAlignment(lineEdit.alignment())
 
         # connect to a lineedit
-        elif isinstance(parent, (QLineEdit, QTextEdit)):
+        elif isinstance(parent, (QLineEdit, QTextEdit, QPlainTextEdit)):
             parent.textChanged.connect(self.toggleVisibility)
             self.setAlignment(Qt.AlignTop)
 
@@ -94,7 +94,7 @@ class HintHelper(QLabel):
         elif isinstance(parent, QLineEdit):
             state = parent.text() == ''
         # check a textedit
-        elif isinstance(parent, QTextEdit):
+        elif isinstance(parent, (QTextEdit, QPlainTextEdit)):
             state = parent.toPlainText() == ''
         QLabel.setVisible(self, state)
         self.resizeHintHelper()
