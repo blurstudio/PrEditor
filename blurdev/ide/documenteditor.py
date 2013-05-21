@@ -41,6 +41,8 @@ class DocumentEditor(QsciScintilla):
         self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
         self._saveTimer = 0.0
+        # used to store the right click location
+        self._clickPos = None
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
         # this is caused because multiple signals are emitted and processed.
         self._dialogShown = False
@@ -210,6 +212,29 @@ class DocumentEditor(QsciScintilla):
 
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
+
+    def copyLineReference(self):
+        from PyQt4.QtGui import QCursor
+
+        sel = self.getSelection()
+        # Note: getSelection is 0 based like all good code
+        if sel[0] == -1 and self._clickPos:
+            lines = (self.lineAt(self.mapFromGlobal(self._clickPos)) + 1, -1)
+        else:
+            end = sel[2]
+            if sel[3] == 0:
+                # if nothing is selected on the last line, exclude it
+                end -= 1
+            lines = (sel[0] + 1, end + 1)
+        args = {'filename': self.filename(), 'plural': ''}
+        if lines[1] == -1 or lines[0] == lines[1]:
+            args['line'] = lines[0]
+        else:
+            args['line'] = '{}-{}'.format(*lines)
+            args['plural'] = 's'
+        QApplication.clipboard().setText(
+            '{filename}: Line{plural} {line}'.format(**args)
+        )
 
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
@@ -847,6 +872,7 @@ class DocumentEditor(QsciScintilla):
         from PyQt4.QtGui import QMenu, QCursor, QIcon
 
         menu = QMenu(self)
+        self._clickPos = QCursor.pos()
 
         act = menu.addAction('Find in Files...')
         act.triggered.connect(self.findInFiles)
@@ -883,6 +909,12 @@ class DocumentEditor(QsciScintilla):
         act.triggered.connect(self.paste)
         act.setShortcut('Ctrl+V')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
+
+        menu.addSeparator()
+
+        act = menu.addAction('Copy Line Reference')
+        act.triggered.connect(self.copyLineReference)
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
         menu.addSeparator()
 
@@ -933,7 +965,7 @@ class DocumentEditor(QsciScintilla):
         act.setCheckable(True)
         act.setChecked(self.indentationsUseTabs())
 
-        menu.popup(QCursor.pos())
+        menu.popup(self._clickPos)
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
