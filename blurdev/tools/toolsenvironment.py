@@ -306,7 +306,9 @@ class ToolsEnvironment(QObject):
         if not emails:
             self._emailOnError = []
         else:
-            self._emailOnError = [entry for entry in emails if str(entry) != '']
+            self._emailOnError = [
+                entry for entry in emails if str(entry) != '' and entry != None
+            ]
 
     def setLegacyName(self, name):
         self._legacyName = name
