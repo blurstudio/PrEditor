@@ -88,8 +88,8 @@ class HintHelper(QLabel):
         parent = self.parent()
         state = parent.isVisible()
         # check a combobox
-        if (isinstance(parent, QComboBox)) and parent.isEditable():
-            state = parent.lineEdit().text() == ''
+        if isinstance(parent, QComboBox):
+            state = parent.isEditable() and parent.lineEdit().text() == ''
         # check a lineedit
         elif isinstance(parent, QLineEdit):
             state = parent.text() == ''
