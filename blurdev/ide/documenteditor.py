@@ -321,6 +321,17 @@ class DocumentEditor(QsciScintilla):
             window.searchFileDialog().setSearchText(self.selectedText())
             window.uiFindInFilesACT.triggered.emit(False)
 
+    def findInFilesPath(self):
+        path = self._filename
+        if os.path.isfile(path):
+            path = os.path.split(path)[0]
+
+        window = self.window()
+        if isinstance(window, IdeEditor):
+            if os.path.exists(path):
+                window.searchFileDialog().setBasePath(path)
+            window.uiFindInFilesACT.triggered.emit(False)
+
     def goToLine(self, line=None):
         if type(line) != int:
             line, accepted = QInputDialog.getInt(self, 'Line Number', 'Line:')

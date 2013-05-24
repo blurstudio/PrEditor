@@ -331,6 +331,7 @@ class IdeEditor(Window):
         # these actions need to have a new triggered call
         self.duplicateAction(menu, self.uiExploreACT, editor.exploreDocument)
         self.duplicateAction(menu, self.uiConsoleACT, editor.launchConsole)
+        self.duplicateAction(menu, self.uiFindInFilesACT, editor.findInFilesPath)
         menu.addSeparator()
         self.duplicateAction(
             menu, self.uiCopyFilenameACT, editor.copyFilenameToClipboard
