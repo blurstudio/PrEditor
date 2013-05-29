@@ -23,6 +23,69 @@ _imageFileTypes = {
 }
 
 
+class ColumnLine(list):
+    """ Used in conjunction with blurdev.media.columnize for complex column/page generation"""
+
+    def __init__(self, contents, parent=[], blank=False, tags=None):
+        super(ColumnLine, self).__init__(contents)
+        self.parent = parent
+        self.blank = blank
+        if tags == None:
+            tags = [''] * len(self)
+        self.tags = tags
+
+
+def columnize(data, columns=2, maxLen=60, blank=[]):
+    """
+    Given a list of ColumnLine's generate pages of columns.
+    :param data: List of ColumnLine's
+    :param columns: The number of columns to group by
+    :param maxLen: The maximum number of rows per page
+    :param blank: These blank lines are inserted to make sure all items are returned in the zip process
+    
+    :returns List of tuples of the source lines
+    """
+    index = 0
+    pages = []
+    while index < len(data):
+        columnData = []
+        rowCount = min(maxLen * columns, len(data) - index + 1)
+        # add titles and remove blank lines
+        for i in range(columns):
+            newIndex = index + (rowCount / columns) * (i + 1)
+            isReset = False
+            if newIndex >= len(data):
+                newIndex = len(data) - 1
+                isReset = True
+            if data[newIndex].blank:
+                data.pop(newIndex)
+                isReset = True
+                # ensure we have a valid newIndex
+                if newIndex >= len(data):
+                    newIndex = len(data)
+            if not isReset and data[newIndex].parent:
+                data.insert(newIndex, data[newIndex].parent)
+        rowCount = min(maxLen * columns, len(data) - index + 1)
+        if rowCount > 4:
+            # build data to be ziped
+            for i in range(columns):
+                newIndex = index + (rowCount / columns)
+                if newIndex >= len(data):
+                    newIndex = len(data)
+                columnData.append(data[index:newIndex])
+                index = newIndex
+            rows = len(max(*columnData))
+            for i in range(len(columnData)):
+                while len(columnData[i]) < rows:
+                    columnData[i].append(blank)
+            page = zip(*columnData)
+        else:
+            page = zip(data[index:], (blank * rowCount))
+            index = index + rowCount
+        pages.append(page)
+    return pages
+
+
 def extractVideoFrame(filename, outputpath):
     """
     This uses ffmpeg to extract a frame as a image.  This requires that 
