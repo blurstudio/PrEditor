@@ -13,6 +13,9 @@ from PyQt4.QtGui import QTextEdit
 
 import re
 import __main__
+import os
+import sys
+import traceback
 
 emailformat = """
 <html>
@@ -96,7 +99,6 @@ class ConsoleEdit(QTextEdit):
 
         # overload the sys logger (if we are not on a high debugging level)
         from blurdev import debug
-        import os, sys
 
         if (
             os.path.basename(sys.executable) != 'python.exe'
@@ -139,7 +141,7 @@ class ConsoleEdit(QTextEdit):
         if debug.debugLevel():
             return
 
-        import blurdev, sys
+        import blurdev
 
         # get current user
         username = blurdev.osystem.username()
@@ -191,6 +193,15 @@ class ConsoleEdit(QTextEdit):
         coreMsg = blurdev.core.errorCoreText()
         if coreMsg:
             message.append('<li><b>blurdev.core Message:</b> %s</li>' % coreMsg)
+
+        # Load in any aditional error info from the environment variables
+        prefix = 'BDEV_EMAILINFO_'
+        for key in sorted(os.environ):
+            if key.startswith(prefix):
+                message.append(
+                    '<li><b>%s:</b> %s</li>'
+                    % (key[len(prefix) :].replace('_', ' ').lower(), os.environ[key])
+                )
 
         message.append('</ul>')
         message.append('<br>')
@@ -328,8 +339,6 @@ class ConsoleEdit(QTextEdit):
         self.insertPlainText(newText)
 
     def lastError(self):
-        import traceback, sys
-
         try:
             return ''.join(
                 traceback.format_exception(
