@@ -58,18 +58,6 @@ class StudiomaxCore(Core):
         # moved to blur3d
         return
 
-    def allowErrorMessage(self):
-        """
-            \Remarks	Override this function to disable showing the 'An error has occurred in your Python script.  Would you like to see the log?'
-                        messageBox if a error occurs and the LoggerWindow is not open.
-            \Return		<bool>
-        """
-        if mxs.MAXSCRIPTHOST == 1 or mxs.GetQuietMode():
-            # This is set in startup/blurStartupMaxLib.ms
-            # It should signify that max was started with assburner
-            return False
-        return True
-
     def connectStudiomaxSignal(self, maxSignal, blurdevSignal, args=''):
         # store the maxscript methods needed
         _n = mxs.pyhelper.namify
@@ -196,6 +184,18 @@ class StudiomaxCore(Core):
             \Remarks	Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Macro...'
+
+    def quietMode(self):
+        """
+            \Remarks	Use this to decide if you should provide user input. 
+            \Return		<bool>
+        """
+        if mxs.MAXSCRIPTHOST == 1 or mxs.GetQuietMode():
+            # This is set in startup/blurStartupMaxLib.ms
+            # It should signify that max was started with assburner
+            # GetQuietMode returns true if max was started to render frames.
+            return True
+        return False
 
     def recordSettings(self):
         pref = self.recordCoreSettings()

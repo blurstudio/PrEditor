@@ -479,7 +479,7 @@ class ConsoleEdit(QTextEdit):
         if not inst.isVisible():
             import blurdev
 
-            if blurdev.core.allowErrorMessage():
+            if not blurdev.core.quietMode():
                 from PyQt4.QtGui import QMessageBox
 
                 result = QMessageBox.question(
