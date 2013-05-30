@@ -64,7 +64,7 @@ class StudiomaxCore(Core):
                         messageBox if a error occurs and the LoggerWindow is not open.
             \Return		<bool>
         """
-        if mxs.MAXSCRIPTHOST == 1:
+        if mxs.MAXSCRIPTHOST == 1 or mxs.GetQuietMode():
             # This is set in startup/blurStartupMaxLib.ms
             # It should signify that max was started with assburner
             return False
