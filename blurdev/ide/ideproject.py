@@ -169,6 +169,11 @@ class IdeProjectItem(QTreeWidgetItem):
         # if .* is provided add all files
         allFiles = '.*' in fileTypes
         for d in dirs:
+            try:
+                # Max likes to create dump files with non unicode names. Do not show them or a warning about them.
+                unicode(d)
+            except UnicodeDecodeError:
+                continue
             # ignore directories in the exclude group
             if d in exclude:
                 continue
