@@ -32,4 +32,7 @@ class PythonLexer(QsciLexerPython):
         # Words to be highlighted
         if set == 2 and self.highlightedKeywords:
             return self.highlightedKeywords
-        return super(PythonLexer, self).keywords(set)
+        ret = super(PythonLexer, self).keywords(set)
+        if set == 1:
+            ret += ' True False'
+        return ret
