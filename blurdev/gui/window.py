@@ -58,6 +58,17 @@ class Window(QMainWindow):
         # If this value is set to False calling setGeometry on this window will not adjust the
         # geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
+        # attempt to set the dialog icon
+        import os
+        import sys
+        from PyQt4.QtGui import QIcon
+
+        path = blurdev.relativePath(
+            os.path.abspath(sys.modules[self.__class__.__module__].__file__),
+            'img/icon.png',
+        )
+        if os.path.exists(path):
+            self.setWindowIcon(QIcon(path))
 
     def closeEvent(self, event):
         # ensure this object gets deleted
