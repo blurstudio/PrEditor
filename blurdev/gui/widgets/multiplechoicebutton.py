@@ -231,7 +231,7 @@ class MultipleChoiceButton(QAbstractButton):
 
     def setCurrentValue(self, value):
         if self._enum:
-            return self._enum.labelByValue(value)
+            return self.setCurrentChoice(self._enum.labelByValue(value))
         return False
 
     def setEnum(self, enum):
