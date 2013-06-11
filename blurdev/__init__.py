@@ -191,18 +191,38 @@ def launch(
         # show a splash screen if provided
         if splash:
             splash.show()
-        # create the output instance from the class
-        # If args or kwargs are defined, use those.  NOTE that if you pass any
-        # args or kwargs, you will also have to supply the parent, which
-        # blurdev.launch previously had always set to None.
-        if args or kwargs:
-            if args is None:
-                args = []
+        # Handle any url arguments that were passed in using the environment.
+        urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
+        oldkwargs = kwargs
+        if urlArgs:
+            import cPickle
+
+            urlArgs = cPickle.loads(urlArgs)
             if kwargs is None:
-                kwargs = {}
-            widget = ctor(*args, **kwargs)
-        else:
-            widget = ctor(None)
+                kwargs = urlArgs
+            else:
+                kwargs.update(urlArgs)
+
+        def launchWidget(ctor, args, kwargs):
+            # create the output instance from the class
+            # If args or kwargs are defined, use those.  NOTE that if you pass any
+            # args or kwargs, you will also have to supply the parent, which
+            # blurdev.launch previously had always set to None.
+            if args or kwargs:
+                if args is None:
+                    args = []
+                if kwargs is None:
+                    kwargs = {}
+                widget = ctor(*args, **kwargs)
+            else:
+                widget = ctor(None)
+            return widget
+
+        try:
+            widget = launchWidget(ctor, args, urlArgs)
+        except TypeError:
+            # If url arguments are passed in that the tool doesn't accept, remove them.
+            widget = launchWidget(ctor, args, oldkwargs)
         if splash:
             splash.finish(widget)
 
