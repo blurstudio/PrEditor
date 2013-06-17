@@ -8,6 +8,8 @@
 # 	\date		06/11/10
 #
 
+import os
+
 from PyQt4.QtCore import QObject
 
 from blurdev.enum import enum
@@ -88,7 +90,16 @@ class Tool(QObject):
         return self._header
 
     def icon(self):
-        return self.relativePath(self._icon)
+        path = self.relativePath(self._icon)
+        if not (path and os.path.isfile(path)):
+            # Return default icon if none was set or exists
+            path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'resource',
+                'img',
+                'blank.png',
+            )
+        return path
 
     def isFavorite(self):
         return self._favorite
