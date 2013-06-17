@@ -72,6 +72,7 @@ class SchemeConfig(ConfigSectionWidget):
         font = QFont(self.uiApplicationFontDDL)
         font.setPointSize(self.uiApplicationFontSizeSPN.value())
         section.setValue('application_font', font.toString())
+        section.setValue('application_tree_indent', self.uiTreeIndentSPN.value())
 
         # record application colors
         for i in range(self.uiApplicationColorTREE.topLevelItemCount()):
@@ -116,6 +117,7 @@ class SchemeConfig(ConfigSectionWidget):
         font.fromString(section.value('application_font'))
         self.uiApplicationFontDDL.setCurrentFont(font)
         self.uiApplicationFontSizeSPN.setValue(font.pointSize())
+        self.uiTreeIndentSPN.setValue(section.value('application_tree_indent'))
 
         # restore document settings
         font = QFont()
@@ -188,6 +190,7 @@ def registerSections(configSet):
         'application_color_text': apalette.color(apalette.Text),
         'application_color_highlight': apalette.color(apalette.Highlight),
         'application_color_highlightedText': apalette.color(apalette.HighlightedText),
+        'application_tree_indent': 20,
         # document scheme settings
         'document_override_colors': False,
         'document_font': dfont.toString(),

@@ -80,6 +80,12 @@ class IdeEditor(Window):
 
         self._registry = IdeRegistry()
 
+        # create a method browser Widget
+        from blurdev.ide.idemethodbrowserwidget import IdeMethodBrowserWidget
+
+        self.uiMethodBrowserWGT = IdeMethodBrowserWidget(self)
+        self.uiBrowserTAB.addTab(self.uiMethodBrowserWGT, 'Outliner')
+
         # synchronize the environment variables based on the currently loaded config settings
         self.syncEnvironment()
         self.updateSettings()
@@ -159,12 +165,6 @@ class IdeEditor(Window):
         # Set the projectTREE's delegate so we can provide mimeData
         self.uiProjectTREE.setIdentifier('projectTree')
         self.uiProjectTREE.setDelegate(self)
-
-        # create a method browser Widget
-        from blurdev.ide.idemethodbrowserwidget import IdeMethodBrowserWidget
-
-        self._methodBrowser = IdeMethodBrowserWidget(self)
-        self.uiBrowserTAB.addTab(self._methodBrowser, 'Outliner')
 
         # make tree's resize to contents so they have a horizontal scroll bar
         for header in (
@@ -350,7 +350,7 @@ class IdeEditor(Window):
             if unicode(self.uiExplorerTREE.model().rootPath()) == '.':
                 self.uiExplorerTREE.model().setRootPath('')
         elif currentTab == 3:
-            self._methodBrowser.refresh()
+            self.uiMethodBrowserWGT.refresh()
 
     def checkOpen(self):
         # determine if there have been any changes
@@ -1979,6 +1979,16 @@ class IdeEditor(Window):
         font = QFont()
         font.fromString(section.value('application_font'))
         QApplication.setFont(font)
+
+        # update tree indentations
+        indent = section.value('application_tree_indent')
+        for tree in (
+            self.uiProjectTREE,
+            self.uiOpenTREE,
+            self.uiExplorerTREE,
+            self.uiMethodBrowserWGT.uiMethodTREE,
+        ):
+            tree.setIndentation(indent)
 
         # update the colors
         if section.value('application_override_colors'):

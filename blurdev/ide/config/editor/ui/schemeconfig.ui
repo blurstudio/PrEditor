@@ -30,13 +30,6 @@
           <string>Fonts</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_5">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>Application font</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QFontComboBox" name="uiApplicationFontDDL">
             <property name="sizePolicy">
@@ -47,8 +40,29 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Application font</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="2">
            <widget class="QSpinBox" name="uiApplicationFontSizeSPN"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Tree indent</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1" colspan="2">
+           <widget class="QSpinBox" name="uiTreeIndentSPN">
+            <property name="value">
+             <number>20</number>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>
@@ -79,12 +93,6 @@
             <property name="rootIsDecorated">
              <bool>false</bool>
             </property>
-            <attribute name="headerVisible">
-             <bool>false</bool>
-            </attribute>
-            <attribute name="headerStretchLastSection">
-             <bool>true</bool>
-            </attribute>
             <attribute name="headerVisible">
              <bool>false</bool>
             </attribute>
@@ -206,12 +214,6 @@
             <property name="rootIsDecorated">
              <bool>false</bool>
             </property>
-            <attribute name="headerVisible">
-             <bool>false</bool>
-            </attribute>
-            <attribute name="headerStretchLastSection">
-             <bool>true</bool>
-            </attribute>
             <attribute name="headerVisible">
              <bool>false</bool>
             </attribute>
