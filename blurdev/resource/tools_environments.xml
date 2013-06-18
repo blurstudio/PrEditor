@@ -1,7 +1,7 @@
 <?xml version='1.0'?>
 <tools_environments version="1.0" name="Builtin">
     <!-- load studio standard environments -->
-    <environment default="True" emailOnError="errors@blur.com" loc="\\source\production" name="Production"/>
+    <environment default="True" emailOnError="errors@blur.com" loc="\\source\production" name="Production" keychain="\\source\production\keychain.xml"/>
     <!-- load local user environments -->
     <include loc="c:/blur/common/user_environments.xml"/>
     <include loc="//source/source/dev/share_all/studio_environments.xml"/>

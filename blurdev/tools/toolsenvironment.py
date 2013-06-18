@@ -38,6 +38,7 @@ class ToolsEnvironment(QObject):
         self._legacyName = ''
         self._timeout = ''
         self._autoupdate = False
+        self._keychain = ''
 
     def clearPathSymbols(self):
         """
@@ -142,6 +143,9 @@ class ToolsEnvironment(QObject):
     def isTemporary(self):
         return self._temporary
 
+    def keychain(self):
+        return self._keychain
+
     def legacyName(self):
         return self._legacyName
 
@@ -219,6 +223,7 @@ class ToolsEnvironment(QObject):
         envxml.setAttribute('offline', self._offline)
         envxml.setAttribute('autoupdate', self._autoupdate)
         envxml.setAttribute('timeout', self._timeout)
+        envxml.setAttribute('keychain', self._keychain)
 
         if self._legacyName != self.objectName():
             envxml.setAttribute('legacyName', self._legacyName)
@@ -309,6 +314,9 @@ class ToolsEnvironment(QObject):
             self._emailOnError = [
                 entry for entry in emails if str(entry) != '' and entry != None
             ]
+
+    def setKeychain(self, keychain):
+        self._keychain = keychain
 
     def setLegacyName(self, name):
         self._legacyName = name
@@ -512,6 +520,7 @@ class ToolsEnvironment(QObject):
         output.setLegacyName(xml.attribute('legacyName', name))
         output.setTimeout(xml.attribute('timeout', ''))
         output.setAutoUpdate(xml.attribute('autoupdate') == 'True')
+        output.setKeychain(xml.attribute('keychain', ''))
         return output
 
     @staticmethod
