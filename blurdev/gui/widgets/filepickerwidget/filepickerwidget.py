@@ -9,7 +9,24 @@
 #
 
 from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty
-from PyQt4.QtGui import QWidget
+from PyQt4.QtGui import QWidget, QLineEdit, QToolButton, QHBoxLayout
+
+
+class LineEdit(QLineEdit):
+    def dragEnterEvent(self, event):
+        if not self.isReadOnly():
+            event.acceptProposedAction()
+        else:
+            super(LineEdit, self).dragEnterEvent(event)
+
+    def dropEvent(self, event):
+        mimeData = event.mimeData()
+        if not self.isReadOnly() and mimeData.hasUrls():
+            urlList = mimeData.urls()
+            if urlList:
+                fname = urlList[0].toLocalFile()
+                self.setText(fname)
+        event.acceptProposedAction()
 
 
 class FilePickerWidget(QWidget):
@@ -21,9 +38,14 @@ class FilePickerWidget(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
-        import blurdev.gui
-
-        blurdev.gui.loadUi(__file__, self)
+        self.uiFilenameTXT = LineEdit(self)
+        self.uiPickFileBTN = QToolButton(self)
+        self.uiPickFileBTN.setText('...')
+        layout = QHBoxLayout(self)
+        layout.addWidget(self.uiFilenameTXT)
+        layout.addWidget(self.uiPickFileBTN)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
 
         self._caption = "Pick file..."
         self._filters = "All Files (*.*)"
@@ -35,7 +57,6 @@ class FilePickerWidget(QWidget):
         self.uiFilenameTXT.textChanged.connect(self.emitFilenameChanged)
 
         self.uiFilenameTXT.editingFinished.connect(self.emitFilenameEdited)
-        self.uiFilenameTXT.editingFinished.connect(self.resolve)
         self.uiPickFileBTN.clicked.connect(self.pickPath)
 
         self.resolve()
@@ -44,15 +65,12 @@ class FilePickerWidget(QWidget):
         return self._caption
 
     def emitFilenameChanged(self):
-
+        self.resolve()
         if not self.signalsBlocked():
-
             self.filenameChanged.emit(self.uiFilenameTXT.text())
 
     def emitFilenameEdited(self):
-
         if not self.signalsBlocked():
-
             self.filenameEdited.emit(self.uiFilenameTXT.text())
 
     def filePath(self):
@@ -71,7 +89,6 @@ class FilePickerWidget(QWidget):
         return self._pickFolder
 
     def pickPath(self):
-
         from PyQt4.QtGui import QFileDialog
 
         if self._pickFolder:
@@ -86,15 +103,12 @@ class FilePickerWidget(QWidget):
             filepath = QFileDialog.getSaveFileName(
                 self, self._caption, self.uiFilenameTXT.text(), self._filters
             )
-
         if filepath:
             self.uiFilenameTXT.setText(filepath)
-
             if not self.signalsBlocked():
                 self.filenamePicked.emit(filepath)
 
     def resolve(self):
-
         if self.resolvePath():
             from PyQt4.QtGui import QPalette, QColor
 
