@@ -10,7 +10,7 @@
 
 from PyQt4.QtGui import QTextEdit, QDropEvent
 from PyQt4.QtCore import QString, Qt, QMimeData
-from xml.sax.saxutils import escape
+import cgi
 
 
 class DragDropTestWidget(QTextEdit):
@@ -21,10 +21,12 @@ class DragDropTestWidget(QTextEdit):
         html = []
         if isinstance(event, QDropEvent):
             html.append(
-                '<h1>Drop Event</h1><small><b>source:</b></small> %s' % event.source()
+                '<h1>Drop Event</h1><small><b>source:</b></small> %s'
+                % cgi.escape(unicode(event.source()))
             )
             html.append(
-                '<small><b>proposed action:</b></small> %s' % event.proposedAction()
+                '<small><b>proposed action:</b></small> %s'
+                % cgi.escape(unicode(event.proposedAction()))
             )
             possibleActions = event.possibleActions().__int__()
             html.append('<small><b>possible actions:</b></small> %i' % possibleActions)
@@ -40,7 +42,7 @@ class DragDropTestWidget(QTextEdit):
                 if possibleActions & key and key <= possibleActions:
                     html.append(
                         '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s</b></small> %i'
-                        % (actions[key], key)
+                        % (cgi.escape(actions[key]), key)
                     )
             data = event.mimeData()
         elif isinstance(event, QMimeData):
@@ -48,19 +50,19 @@ class DragDropTestWidget(QTextEdit):
             data = event
         # Mime Data
         html.append(
-            '<hr><h1>Mime Data</h1><small><b>has color:</b></small> %s'
+            '<hr><h1>Mime Data</h1><small><b>has color:</b></small> %r'
             % data.hasColor()
         )
-        html.append('<small><b>has html:</b></small> %s' % data.hasHtml())
-        html.append('<small><b>has image:</b></small> %s' % data.hasImage())
-        html.append('<small><b>has text:</b></small> %s' % data.hasText())
-        html.append('<small><b>has urls:</b></small> %s' % data.hasUrls())
+        html.append('<small><b>has html:</b></small> %r' % data.hasHtml())
+        html.append('<small><b>has image:</b></small> %r' % data.hasImage())
+        html.append('<small><b>has text:</b></small> %r' % data.hasText())
+        html.append('<small><b>has urls:</b></small> %r' % data.hasUrls())
         html.append('<br>')
-        html.append('<small><b>text:</b></small> %s' % unicode(data.text()))
-        html.append('<small><b>html:</b></small> %s' % escape(unicode(data.html())))
+        html.append('<small><b>text:</b></small> %s' % cgi.escape(unicode(data.text())))
+        html.append('<small><b>html:</b></small> %s' % cgi.escape(unicode(data.html())))
         html.append(
             '<small><b>urls:</b></small><br> %s'
-            % '<br>'.join([unicode(url.toString()) for url in data.urls()])
+            % '<br>'.join([cgi.escape(unicode(url.toString())) for url in data.urls()])
         )
         html.append('<small><b>Additional Formats:</b></small>')
         excludeFormats = set(
@@ -77,12 +79,12 @@ class DragDropTestWidget(QTextEdit):
                 try:
                     html.append(
                         '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small>%s'
-                        % (f, data.data(f))
+                        % (cgi.escape(f), cgi.escape(data.data(f)))
                     )
                 except UnicodeDecodeError:
                     html.append(
                         '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small><b>UnicodeDecodeError</b>'
-                        % f
+                        % cgi.escape(f)
                     )
 
         self.setText('<br>'.join(html))

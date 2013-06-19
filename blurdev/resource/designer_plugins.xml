@@ -13,4 +13,5 @@
 	<plugin module="blurdev.gui.widgets.enumwidget"				class="EnumWidget"/>
 	<plugin module="blurdev.gui.widgets.spellchecktextbrowser"	class="SpellCheckTextBrowser"/>
 	<plugin module="blurdev.gui.widgets.clearabledateedit"		class="ClearableDateEdit"/>
+	<plugin module="blurdev.gui.widgets.dragdroptestwidget"		class="DragDropTestWidget"/>
 </plugins>
