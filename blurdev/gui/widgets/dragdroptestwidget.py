@@ -74,10 +74,16 @@ class DragDropTestWidget(QTextEdit):
         )
         for f in data.formats():
             if not f in excludeFormats:
-                html.append(
-                    '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small>%s'
-                    % (f, data.data(f))
-                )
+                try:
+                    html.append(
+                        '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small>%s'
+                        % (f, data.data(f))
+                    )
+                except UnicodeDecodeError:
+                    html.append(
+                        '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small><b>UnicodeDecodeError</b>'
+                        % f
+                    )
 
         self.setText('<br>'.join(html))
 
