@@ -768,8 +768,7 @@ class IdeEditor(Window):
             event.acceptProposedAction()
 
         # allow drag & drop events for tools
-        source = event.source()
-        if source and source.inherits('QTreeWidget'):
+        if unicode(event.mimeData().text()).startswith('Tool::'):
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event):
@@ -778,8 +777,7 @@ class IdeEditor(Window):
             event.acceptProposedAction()
 
         # allow drag & drop events for tools
-        source = event.source()
-        if source and source.inherits('QTreeWidget'):
+        if unicode(event.mimeData().text()).startswith('Tool::'):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
@@ -807,17 +805,13 @@ class IdeEditor(Window):
 
         # drop a tool
         else:
-            source = event.source()
-            item = source.currentItem()
+            text = unicode(event.mimeData().text())
+            if text.startswith('Tool::'):
+                import blurdev
 
-            tool = None
-            try:
-                tool = item.tool()
-            except:
-                pass
-
-            if tool:
-                self.setCurrentProject(IdeProject.fromTool(tool))
+                tool = blurdev.findTool(text.replace('Tool::', '', 1))
+                if tool:
+                    self.setCurrentProject(IdeProject.fromTool(tool))
 
     def duplicateAction(self, menu, source, trigger=None):
         """
