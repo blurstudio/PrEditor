@@ -63,12 +63,15 @@ class Window(QMainWindow):
         import sys
         from PyQt4.QtGui import QIcon
 
-        path = blurdev.relativePath(
-            os.path.abspath(sys.modules[self.__class__.__module__].__file__),
-            'img/icon.png',
-        )
-        if os.path.exists(path):
-            self.setWindowIcon(QIcon(path))
+        try:
+            path = blurdev.relativePath(
+                os.path.abspath(sys.modules[self.__class__.__module__].__file__),
+                'img/icon.png',
+            )
+            if os.path.exists(path):
+                self.setWindowIcon(QIcon(path))
+        except AttributeError:
+            pass
 
     def closeEvent(self, event):
         # ensure this object gets deleted
