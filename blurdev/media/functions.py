@@ -174,10 +174,11 @@ def imageSequenceFromFileName(fileName):
     return output
 
 
-def imageSequenceRepr(files):
+def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
     """
     Takes a list of files and creates a string that represents the sequence.
-    
+    :param files: A list of files in the image sequence
+    :param format: Used to format the output. Uses str.format() command and requires the keys [pre, firstNum, lastNum, post]
     """
     if len(files) > 1:
         regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
@@ -194,15 +195,26 @@ def imageSequenceRepr(files):
                 low = info[keys[0]]
                 high = info[keys[-1]]
                 if low != high:
-                    return '%s[%s:%s]%s' % (
-                        match.group('pre'),
-                        low,
-                        high,
-                        match.group('post'),
+                    return strFormat.format(
+                        pre=match.group('pre'),
+                        firstNum=low,
+                        lastNum=high,
+                        post=match.group('post'),
                     )
     if files:
         return files[0]
     return ''
+
+
+def imageSequenceReprFromFileName(fileName, strFormat=None):
+    """
+    Given a filename in a image sequence, return a representation of the image sequence on disk. 
+    """
+    if strFormat:
+        return imageSequenceRepr(
+            imageSequenceFromFileName(fileName), strFormat=strFormat
+        )
+    return imageSequenceRepr(imageSequenceFromFileName(fileName))
 
 
 def imageSequenceForRepr(fileName):
