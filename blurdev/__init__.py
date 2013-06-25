@@ -12,6 +12,7 @@ __DOCMODE__ = False  # this variable will be set when loading information for do
 
 # track the install path
 import os, sys
+import copy
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -193,7 +194,7 @@ def launch(
             splash.show()
         # Handle any url arguments that were passed in using the environment.
         urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
-        oldkwargs = kwargs
+        oldkwargs = copy.copy(kwargs)
         if urlArgs:
             import cPickle
 
@@ -219,7 +220,7 @@ def launch(
             return widget
 
         try:
-            widget = launchWidget(ctor, args, urlArgs)
+            widget = launchWidget(ctor, args, kwargs)
         except TypeError:
             # If url arguments are passed in that the tool doesn't accept, remove them.
             widget = launchWidget(ctor, args, oldkwargs)
