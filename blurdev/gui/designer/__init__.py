@@ -63,12 +63,19 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
     
     def domXml( self ):
         xml = []
-        xml.append( '<widget class="%(class)s" name="%(class)s"/>' )
+        %(xmlContainer)s
         return '\\n'.join( xml )
 
 import blurdev.gui.designer
 blurdev.gui.designer.register( '%(class)sPlugin', %(class)sPlugin )
 """
+# Provides basic container support. A widget like the AccordianWidget will require implementing a custom QDesignerContainerExtension.
+# http://qt-project.org/doc/qt-4.8/qdesignercontainerextension.html
+xmlContainerDef = """xml.append('<widget class="%(containerClass)s">')
+        xml.append('	<widget class="%(class)s" name="%(class)s"/>')
+        xml.append('</widget>')"""
+# Used for non-container widgets.
+xmlRegularDef = """xml.append( '<widget class="%(class)s" name="%(class)s"/>' )"""
 
 import glob, os, sys
 
@@ -129,14 +136,19 @@ def loadPlugins( filename, importPath = '' ):
             
             # create a standard plugin
             else:
-                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )) )
+                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )), child.attribute('containerClass', 'QWidget'))
 
 def register( name, plugin ):
     import blurdev.gui.designer
     blurdev.gui.designer.__dict__[ name ] = plugin
 
-def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False ):
-    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container }
+def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False, containerClass = '' ):
+    if container:
+        xmlCont = xmlContainerDef
+    else:
+        xmlCont = xmlRegularDef
+    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container, 'containerClass': containerClass }
+    options.update({'xmlContainer': xmlCont % options})
     filename = os.path.split( __file__ )[0] + '/%splugin.py' % str( cls ).lower()
     f = open( filename, 'w' )
     f.write( plugindef % options )
