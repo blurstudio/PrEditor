@@ -522,7 +522,7 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
-    <addaction name="uiHintingEnabledACT"/>
+    <addaction name="uiAutoCompleteEnabledACT"/>
     <addaction name="separator"/>
     <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
@@ -686,7 +686,7 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="uiHintingEnabledACT">
+  <action name="uiAutoCompleteEnabledACT">
    <property name="checkable">
     <bool>true</bool>
    </property>

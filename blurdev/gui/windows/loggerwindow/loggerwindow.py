@@ -70,6 +70,9 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
+        self.uiAutoCompleteEnabledACT.toggled.connect(
+            self.uiConsoleTXT.completer().setEnabled
+        )
         self.uiIndentationsTabsACT.toggled.connect(
             self.uiWorkboxWGT.setIndentationsUseTabs
         )
@@ -195,6 +198,7 @@ class LoggerWindow(Window):
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
         pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
+        pref.recordProperty('hintingEnabled', self.uiAutoCompleteEnabledACT.isChecked())
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
         pref.recordProperty(
             'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
@@ -219,6 +223,12 @@ class LoggerWindow(Window):
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
         self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+        self.uiAutoCompleteEnabledACT.setChecked(
+            pref.restoreProperty('hintingEnabled', True)
+        )
+        self.uiConsoleTXT.completer().setEnabled(
+            self.uiAutoCompleteEnabledACT.isChecked()
+        )
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(

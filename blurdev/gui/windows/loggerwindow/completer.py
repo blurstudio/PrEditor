@@ -28,6 +28,7 @@ class PythonCompleter(QCompleter):
         self.setModel(QStringListModel())
 
         self._currentText = ''
+        self._enabled = True
 
         # update this completer
         self.setWidget(widget)
@@ -40,39 +41,43 @@ class PythonCompleter(QCompleter):
         return self._currentText
 
     def currentObject(self, scope=None, docMode=False):
-        word = self.textUnderCursor()
-        # determine if we are in docMode or not
-        if word.endswith('(') and not docMode:
-            return None
+        if self._enabled:
+            word = self.textUnderCursor()
+            # determine if we are in docMode or not
+            if word.endswith('(') and not docMode:
+                return None
 
-        word = word.rstrip('(')
-        split = unicode(word).split('.')
+            word = word.rstrip('(')
+            split = unicode(word).split('.')
 
-        # make sure there is more than 1 item for this symbol
-        if len(split) > 1 or docMode:
-            if not docMode:
-                symbol = '.'.join(split[:-1])
-                prefix = split[-1]
-            else:
-                symbol = word
-                prefix = ''
+            # make sure there is more than 1 item for this symbol
+            if len(split) > 1 or docMode:
+                if not docMode:
+                    symbol = '.'.join(split[:-1])
+                    prefix = split[-1]
+                else:
+                    symbol = word
+                    prefix = ''
 
-            # try to evaluate the object to pull out the keys
-            keys = []
-            object = None
-            try:
-                object = eval(symbol, scope)
-            except:
-                pass
+                # try to evaluate the object to pull out the keys
+                keys = []
+                object = None
+                try:
+                    object = eval(symbol, scope)
+                except:
+                    pass
 
-            if not object:
-                import sys
+                if not object:
+                    import sys
 
-                if symbol in sys.modules:
-                    object = sys.modules[symbol]
+                    if symbol in sys.modules:
+                        object = sys.modules[symbol]
 
-            return (object, prefix)
+                return (object, prefix)
         return (None, '')
+
+    def enabled(self):
+        return self._enabled
 
     def hideDocumentation(self):
         QToolTip.hideText()
@@ -111,6 +116,9 @@ class PythonCompleter(QCompleter):
 
     def setCurrentText(self, text):
         self._currentText = text
+
+    def setEnabled(self, state):
+        self._enabled = state
 
     def textUnderCursor(self, useParens=False):
         """ pulls out the text underneath the cursor of this items widget """
