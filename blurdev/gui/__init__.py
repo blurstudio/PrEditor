@@ -47,10 +47,8 @@ def compPixmap(imageData):
         if len(data) > 1:
             rect.moveTo(data[1][0], data[1][1])
             if len(data[1]) > 2:
-                print rect
                 rect.setWidth(data[1][2])
                 rect.setHeight(data[1][3])
-                print '-', rect
         painter.drawPixmap(rect, overlay, oRect)
     painter.end()
     return map
