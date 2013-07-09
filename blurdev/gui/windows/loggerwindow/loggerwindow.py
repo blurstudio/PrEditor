@@ -70,9 +70,7 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
-        self.uiAutoCompleteEnabledACT.toggled.connect(
-            self.uiConsoleTXT.completer().setEnabled
-        )
+        self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
         self.uiIndentationsTabsACT.toggled.connect(
             self.uiWorkboxWGT.setIndentationsUseTabs
         )
@@ -242,6 +240,13 @@ class LoggerWindow(Window):
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
+
+    def setAutoCompleteEnabled(self, state):
+        self.uiConsoleTXT.completer().setEnabled(state)
+        if state:
+            self.uiWorkboxWGT.setAutoCompletionSource(self.uiWorkboxWGT.AcsAll)
+        else:
+            self.uiWorkboxWGT.setAutoCompletionSource(self.uiWorkboxWGT.AcsNone)
 
     def setClearBeforeRunning(self, state):
         if state:
