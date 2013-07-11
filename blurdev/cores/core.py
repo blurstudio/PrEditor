@@ -742,6 +742,8 @@ class Core(QObject):
 
         self.applyEnvironmentTimeouts()
         self.applyStudioOverrides()
+        # Ensure the core has its paths registered
+        self.registerPaths()
 
         return pref
 
