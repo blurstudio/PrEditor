@@ -52,6 +52,7 @@ try:
         lines=50,
         strip_dirs=False,
         fileName=r'c:\temp\profile.profile',
+        acceptArgs=True,
     ):
         """
         A decorator which profiles a callable using cProfile
@@ -60,17 +61,23 @@ try:
         :param lines: limit output to this number of lines. Defaults to 50.
         :param strip_dirs: If False the full path to files will be shown. Defaults to False.
         :param fileName: The name of the temporary file used to store the output for sorting.
+        :param acceptArgs: Does the decorated function take args or kwargs? Mainly
+                        used to fix issues with PyQt signals.
         
         :type sort: str
         :type lines: int
         :type strip_dirs: bool
         :type fileName: str
+        :type acceptArgs: bool
         """
 
         def outer(fun):
             def inner(*args, **kwargs):
                 prof = cProfile.Profile()
-                ret = prof.runcall(fun, *args, **kwargs)
+                if acceptArgs:
+                    ret = prof.runcall(fun, *args, **kwargs)
+                else:
+                    ret = prof.runcall(fun, args[0])
 
                 prof.dump_stats(fileName)
                 stats = pstats.Stats(fileName)
@@ -100,6 +107,7 @@ except ImportError:
         lines=50,
         strip_dirs=False,
         fileName=r'c:\temp\profile.profile',
+        acceptArgs=True,
     ):
         """
         A decorator which profiles a callable using profile. This is only used if cProfile is not available.
@@ -108,11 +116,14 @@ except ImportError:
         :param lines: limit output to this number of lines. Defaults to 50.
         :param strip_dirs: If False the full path to files will be shown. Defaults to False.
         :param fileName: The name of the temporary file used to store the output for sorting.
+        :param acceptArgs: Does the decorated function take args or kwargs? Mainly
+                        used to fix issues with PyQt signals.
         
         :type sort: str
         :type lines: int
         :type strip_dirs: bool
         :type fileName: str
+        :type acceptArgs: bool
         """
 
         def outer(fun):
@@ -120,7 +131,10 @@ except ImportError:
                 debug.debugMsg(
                     'cProfile is unavailable in this version of python. Use Python 2.5 or later.'
                 )
-                return fun(*args, **kwargs)
+                if acceptArgs:
+                    return fun(*args, **kwargs)
+                else:
+                    return fun(args[0])
 
             return inner
 
@@ -168,7 +182,7 @@ def pendingdeprecation(args):
     return deco
 
 
-def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
+def stopwatch(text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True):
     """
     Generate a blurdev.debug.Stopwatch that tells how long it takes the 
     decorated function to run.  You can access the Stopwatch object by calling 
@@ -179,8 +193,11 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
 
     :param text: optional message text
     :param debugLevel: the debug level the stopwatch will use to pring messages.
+    :param acceptArgs: Does the decorated function take args or kwargs? Mainly
+                        used to fix issues with PyQt signals.
     :type text: str
     :type debugLevel: :data:`DebugLevel`
+    :type acceptArgs: bool
     
     Example:
         from blurdev.decorators import stopwatch
@@ -208,7 +225,10 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low):
 
         def newFunction(*args, **kwargs):
             function.__stopwatch__ = debug.Stopwatch(nMsg, debugLevel)
-            output = function(*args, **kwargs)
+            if acceptArgs:
+                output = function(*args, **kwargs)
+            else:
+                output = function(args[0])
             function.__stopwatch__.stop()
             return output
 
