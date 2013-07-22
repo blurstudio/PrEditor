@@ -163,7 +163,6 @@ class IdeEditor(Window):
         # create the project tree delegate
         self.uiProjectTREE.setItemDelegate(IdeProjectDelegate(self.uiProjectTREE))
         # Set the projectTREE's delegate so we can provide mimeData
-        self.uiProjectTREE.setIdentifier('projectTree')
         self.uiProjectTREE.setDelegate(self)
 
         # make tree's resize to contents so they have a horizontal scroll bar
@@ -1005,6 +1004,17 @@ class IdeEditor(Window):
 
         IdeAddon.init(self)
 
+    def mimeData(self, items, tree=None):
+        data = QMimeData()
+        urls = []
+        for item in items:
+            fpath = item.filePath()
+            if fpath:
+                urls.append(QUrl('file:///' + fpath))
+
+        data.setUrls(urls)
+        return data
+
     def projectFindInFiles(self):
         import os.path
 
@@ -1079,17 +1089,6 @@ class IdeEditor(Window):
             # load the project
             self.setCurrentProject(proj)
             self.uiBrowserTAB.setCurrentIndex(0)
-
-    def projectTreeMimeData(self, items):
-        data = QMimeData()
-        urls = []
-        for item in items:
-            fpath = item.filePath()
-            if fpath:
-                urls.append(QUrl('file:///' + fpath))
-
-        data.setUrls(urls)
-        return data
 
     def documentOpenItem(self):
         import os.path
