@@ -62,20 +62,18 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
         return "%(module)s"
     
     def domXml( self ):
+        # Allow the class to specify its own xml. This is useful for containers that
+        # subclass from other subclassed containers.
+        from %(module)s import %(class)s
+        if hasattr(%(class)s, '_qDesignerDomXML'):
+            return %(class)s._qDesignerDomXML()
         xml = []
-        %(xmlContainer)s
+        xml.append( '<widget class="%(class)s" name="%(class)s"/>' )
         return '\\n'.join( xml )
 
 import blurdev.gui.designer
 blurdev.gui.designer.register( '%(class)sPlugin', %(class)sPlugin )
 """
-# Provides basic container support. A widget like the AccordianWidget will require implementing a custom QDesignerContainerExtension.
-# http://qt-project.org/doc/qt-4.8/qdesignercontainerextension.html
-xmlContainerDef = """xml.append('<widget class="%(containerClass)s">')
-        %(inside)s
-        xml.append('</widget>')"""
-# Used for non-container widgets and to fill in inside xmlContainerDef.
-xmlRegularDef = """xml.append('<widget class="%(class)s" name="%(class)s"/>')"""
 
 import glob, os, sys
 
@@ -136,21 +134,14 @@ def loadPlugins( filename, importPath = '' ):
             
             # create a standard plugin
             else:
-                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )), child.attribute('containerClass', 'QWidget'))
+                createPlugin( child.attribute( "module" ), child.attribute( "class" ), child.attribute( "icon" ), child.attribute( "group", 'Blur Widgets' ), eval(child.attribute( 'container', 'False' )) )
 
 def register( name, plugin ):
     import blurdev.gui.designer
     blurdev.gui.designer.__dict__[ name ] = plugin
 
-def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False, containerClass = '' ):
-    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container, 'containerClass': containerClass }
-    if container:
-        xmlCont = xmlRegularDef % options
-        for container in containerClass.split(','):
-            xmlCont = xmlContainerDef % {'containerClass': container, 'inside': xmlCont}
-    else:
-        xmlCont = xmlRegularDef
-    options.update({'xmlContainer': xmlCont % options})
+def createPlugin( module, cls, icon = '', group = 'Blur Widgets', container = False ):
+    options = { 'module': module, 'class': cls, 'icon': icon, 'group': group, 'container': container }
     filename = os.path.split( __file__ )[0] + '/%splugin.py' % str( cls ).lower()
     f = open( filename, 'w' )
     f.write( plugindef % options )
