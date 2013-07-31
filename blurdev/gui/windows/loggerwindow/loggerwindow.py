@@ -99,6 +99,9 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
+        self.uiWorkboxWGT.setLanguage('Python')
+        self.uiWorkboxWGT.setShowSmartHighlighting(True)
+        # calling setLanguage resets this value to False
         self.restorePrefs()
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
@@ -202,7 +205,14 @@ class LoggerWindow(Window):
             'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
         )
         pref.recordProperty('toolbarStates', self.saveState())
-
+        pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
+        lexer = self.uiWorkboxWGT.lexer()
+        if lexer:
+            font = lexer.font(0)
+        else:
+            font = self.uiWorkboxWGT.font()
+        pref.recordProperty('workboxFont', font)
+        pref.recordProperty('workboxMarginFont', self.uiWorkboxWGT.marginsFont())
         pref.save()
 
     def restorePrefs(self):
@@ -233,6 +243,19 @@ class LoggerWindow(Window):
             pref.restoreProperty('clearBeforeRunning', False)
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
+        font = pref.restoreProperty('consoleFont', None)
+        if font:
+            self.uiConsoleTXT.setFont(font)
+        font = pref.restoreProperty('workboxFont', None)
+        if font:
+            lexer = self.uiWorkboxWGT.lexer()
+            if lexer:
+                font = lexer.setFont(font, 0)
+            else:
+                font = self.uiWorkboxWGT.setFont(font)
+        font = pref.restoreProperty('workboxMarginFont', None)
+        if font:
+            self.uiWorkboxWGT.setMarginsFont(font)
         self.restoreToolbars()
 
     def restoreToolbars(self):
@@ -291,9 +314,6 @@ class LoggerWindow(Window):
     def showEvent(self, event):
         super(LoggerWindow, self).showEvent(event)
         self.restoreToolbars()
-        self.uiWorkboxWGT.setLanguage('Python')
-        self.uiWorkboxWGT.setShowSmartHighlighting(True)
-        # calling setLanguage resets this value to False
         self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
     def showSdk(self):
