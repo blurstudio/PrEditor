@@ -58,11 +58,14 @@ class Preference(XMLDocument):
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
+        path = ''
         if shared:
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
                 'username': getpass.getuser()
             }
-        else:
+        # if not shared or the path does not exist use the non shared path. This is for user accounts who do not
+        # get network shared preference locations.
+        if not path or not os.path.exists(path):
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
         return os.path.join(path, 'app_%s' % coreName)
 
