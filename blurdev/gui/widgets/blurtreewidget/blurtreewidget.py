@@ -91,7 +91,15 @@
 # |		self.uiTREE.restorePrefs( pref )
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
-from PyQt4.QtGui import QItemDelegate, QTreeWidget, QCursor, QMenu, QIcon, QApplication
+from PyQt4.QtGui import (
+    QItemDelegate,
+    QTreeWidget,
+    QCursor,
+    QMenu,
+    QIcon,
+    QApplication,
+    QTreeWidgetItemIterator,
+)
 import blurdev
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 from blurdev.gui.delegates.griddelegate import GridDelegate
@@ -349,9 +357,9 @@ class BlurTreeWidget(LockableTreeWidget):
             :Remarks	Shows the total number of QTreeWidgetItem's in this tree, it is recursive and will include all children of items.
             :Return		<int>
         """
-        total = self.topLevelItemCount()
-        for index in range(total):
-            total += self.itemCountForItem(self.topLevelItem(index))
+        total = 0
+        for item in self.itemIterator():
+            total += 1
         return total
 
     def itemCountForItem(self, item):
@@ -385,6 +393,19 @@ class BlurTreeWidget(LockableTreeWidget):
             # self.blockSignals( True )
             self.itemExpandAllChildren(item, True)
             # self.blockSignals( False )
+
+    def itemIterator(self):
+        """ Returns a generator that iterates over the items in a QTreeWidget.
+            This utilizes the QTreeWidgetItemIterator, and so items will be 
+            traversed using the pre-order traversal order that it uses, thus
+            the parent node will be visited BEFORE the child node.
+            
+            For more info: http://qt-project.org/doc/qt-4.8/qtreewidgetitemiterator.html
+        """
+        it = QTreeWidgetItemIterator(self)
+        while it.value():
+            yield it.value()
+            it += 1
 
     def itemExpandAllChildren(self, item, state, filter=None, column=0, contains=False):
         """
