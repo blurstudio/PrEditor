@@ -442,3 +442,7 @@ installPath = os.path.split(__file__)[0]
 
 # initialize the core
 init()
+# add the blurdev version info to the error email
+import version
+
+os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = version.toString()
