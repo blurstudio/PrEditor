@@ -125,13 +125,17 @@ class ConsoleEdit(QTextEdit):
         return self._completer
 
     @staticmethod
-    def emailError(emails, error, subject=None):
+    def emailError(emails, error, subject=None, information=None):
         """
-            \Remarks	Generates and sends a email of the traceback, and usefull information provided by the class if available.
-                        
-                        If the erroring class provides the folowing method, what ever text it returns will be included in the email under Additional Information
-                        |	def errorLog(self):
-                        |		return '[Additional text to include in email]'
+        Generates and sends a email of the traceback, and usefull information provided by the class if available.
+        
+            If the erroring class provides the folowing method, what ever text it returns will be included in the email under Additional Information
+            |	def errorLog(self):
+            |		return '[Additional text to include in email]'
+        :param emails: A string of the emails to send to
+        :param error: The error message to pass along
+        :param subject: If not provided the second to last line of the error is used
+        :param information: if provided this string is included under the Information header of the provided email
         """
         if not error:
             return
@@ -212,6 +216,18 @@ class ConsoleEdit(QTextEdit):
         )
         message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
+        # append any passed in body text
+        if information != None:
+            message.append('<h3>Information</h3>')
+            message.append('<hr>')
+            message.append(
+                '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
+            )
+            try:
+                message.append(unicode(information).replace('\n', '<br>'))
+            except:
+                message.append('module.errorLog() generated a error.')
+            message.append('</code></pre></div>')
         # append extra stuff
         if hasattr(sys, 'last_traceback'):
             tb = sys.last_traceback
