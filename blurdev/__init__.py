@@ -315,6 +315,12 @@ def registerScriptPath(filename):
 
 
 def relativePath(path, additional):
+    """
+    Replaces the last element in the path with the passed in additional path.
+    :param path: Source path. Generally a file name.
+    :param additional: Additional folder/file path appended to the path.
+    :return str: The modified path
+    """
     import os.path
 
     return os.path.join(os.path.split(str(path))[0], additional)
@@ -339,6 +345,11 @@ def resetWindowPos():
 
 
 def resourcePath(relpath):
+    """
+    Returns the full path to the file inside the blurdev\resource folder
+    :param relpath: The additional path added to the blurdev\resource folder path.
+    :return str: The modified path
+    """
     return relativePath(__file__, 'resource/%s' % relpath)
 
 
