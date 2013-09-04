@@ -13,7 +13,7 @@ import sys
 import time
 import os
 
-from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt
 from PyQt4.QtGui import QApplication
 from application import Application
 from blurdev.tools.toolsenvironment import ToolsEnvironment
@@ -340,8 +340,6 @@ class Core(QObject):
 
         if app:
             if self.isMfcApp():
-                from PyQt4.QtCore import Qt
-
                 # disable all UI effects as this is quite slow in MFC applications
                 app.setEffectEnabled(Qt.UI_AnimateMenu, False)
                 app.setEffectEnabled(Qt.UI_FadeMenu, False)
@@ -1109,7 +1107,12 @@ class Core(QObject):
         PyularDialog.instance(parent).show()
 
     def showTreegrunt(self):
-        self.treegrunt().show()
+        treegrunt = self.treegrunt()
+        treegrunt.show()
+        treegrunt.raise_()
+        treegrunt.setWindowState(
+            treegrunt.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
+        )
 
     def showLogger(self):
         """
