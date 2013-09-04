@@ -166,6 +166,7 @@ def launch(
 
     # create the app if necessary
     app = None
+    from PyQt4.QtCore import Qt
     from PyQt4.QtGui import QWizard
     from blurdev.cores.core import Core
 
@@ -232,7 +233,11 @@ def launch(
         widget.exec_()
     else:
         widget.show()
-        widget.raise_()
+        if instance:
+            widget.raise_()
+            widget.setWindowState(
+                widget.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
+            )
         # run the application if this item controls it and it hasnt been run before
         if application and not _appHasExec:
             application.setWindowIcon(widget.windowIcon())
@@ -356,30 +361,24 @@ def resourcePath(relpath):
 def runTool(toolId, macro=""):
     init()
 
-    # special case scenario - treegrunt
-    if toolId == 'Treegrunt':
-        core.showTreegrunt()
+    from PyQt4.QtGui import QApplication
+    from tools import ToolsEnvironment
 
-    # otherwise, run the tool like normal
-    else:
-        from PyQt4.QtGui import QApplication
-        from tools import ToolsEnvironment
+    # load the tool
+    tool = ToolsEnvironment.activeEnvironment().index().findTool(toolId)
+    if not tool.isNull():
+        tool.exec_(macro)
 
-        # load the tool
-        tool = ToolsEnvironment.activeEnvironment().index().findTool(toolId)
-        if not tool.isNull():
-            tool.exec_(macro)
+    # let the user know the tool could not be found
+    elif QApplication.instance():
+        from PyQt4.QtGui import QMessageBox
 
-        # let the user know the tool could not be found
-        elif QApplication.instance():
-            from PyQt4.QtGui import QMessageBox
-
-            QMessageBox.critical(
-                None,
-                'Tool Not Found',
-                '%s is not a tool in %s environment.'
-                % (toolId, ToolsEnvironment.activeEnvironment().objectName()),
-            )
+        QMessageBox.critical(
+            None,
+            'Tool Not Found',
+            '%s is not a tool in %s environment.'
+            % (toolId, ToolsEnvironment.activeEnvironment().objectName()),
+        )
 
 
 def setActiveEnvironment(env):
