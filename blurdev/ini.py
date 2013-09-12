@@ -394,8 +394,18 @@ class ToolParserClass(ConfigParser.ConfigParser):
             fileName = self.GetFileName()
 
         if fileName and os.path.exists(fileName):
-            self.read(fileName)
+            try:
+                self.read(fileName)
+            except ConfigParser.MissingSectionHeaderError:
+                if fileName == configFile:
+                    # If the file is corrupted load the backup
+                    path = os.environ.get('bdev_config_ini_backup')
+                    if os.path.exists(path):
+                        import shutil
 
+                        shutil.copy2(path, fileName)
+                        self.Load(fileName)
+                        return
             self._sectionClasses = []
             for tSectionName in self.sections():
                 tSection = SectionClass(sectionName=tSectionName)
