@@ -1080,16 +1080,27 @@ class DocumentEditor(QsciScintilla):
 
     # 		self.setContractedFolds(folds)
 
-    def unindentSelection(self):
-        lineFrom = 0
-        indexFrom = 0
-        lineTo = 0
-        indexTo = 0
+    def indentSelection(self, all=False):
+        if all:
+            lineFrom = 0
+            lineTo = self.lines()
+        else:
+            lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
+        self.beginUndoAction()
+        for line in range(lineFrom, lineTo + 1):
+            self.indent(line)
+        self.endUndoAction()
 
-        lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
-
+    def unindentSelection(self, all=False):
+        if all:
+            lineFrom = 0
+            lineTo = self.lines()
+        else:
+            lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
+        self.beginUndoAction()
         for line in range(lineFrom, lineTo + 1):
             self.unindent(line)
+        self.endUndoAction()
 
     def windowTitle(self):
         if self._filename:
