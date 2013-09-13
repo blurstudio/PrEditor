@@ -9,6 +9,8 @@
 #
 
 import blurdev
+import os
+import subprocess
 from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.idefilemenu import IdeFileMenu
 from PyQt4.QtGui import QIcon, QAction
@@ -53,7 +55,11 @@ class EditInVimAddon(IdeAddon):
 
     def editInVim(self):
         if self.path:
-            blurdev.osystem.explore(self.path)
+            cmd = os.environ.get(
+                'bdev_plugin_edit_in_vim_cmd',
+                r'"C:\Program Files (x86)\Vim\vim74\gvim.exe" "{filename}"',
+            )
+            subprocess.call(cmd.format(filename=self.path))
 
 
 # register the addon to the system
