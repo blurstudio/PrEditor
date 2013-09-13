@@ -70,6 +70,32 @@ class DocumentEditor(QsciScintilla):
         if lineno:
             self.setCursorPosition(lineno, 0)
 
+    def autoFormat(self):
+        try:
+            import autopep8
+        except ImportError:
+            QMessageBox.warning(
+                self.window(),
+                'autopep8 missing',
+                'The autopep8 library is missing. To use this feature you must install it. https://pypi.python.org/pypi/autopep8/ ',
+                QMessageBox.Ok,
+            )
+            return
+        options = autopep8.parse_args([''])[0]
+        options.max_line_length = self.edgeColumn()
+        fixed = autopep8.fix_string(self.text(), options=options)
+        self.beginUndoAction()
+        startline, startcol, endline, endcol = self.getSelection()
+        self.selectAll()
+        self.removeSelectedText()
+        self.insert(fixed)
+        if self.indentationsUseTabs():
+            # fix tab indentations
+            self.indentSelection(True)
+            self.unindentSelection(True)
+        self.setSelection(startline, startcol + 1, endline, endcol)
+        self.endUndoAction()
+
     def checkForSave(self):
         if self.isModified():
             result = QMessageBox.question(
@@ -956,6 +982,7 @@ class DocumentEditor(QsciScintilla):
         menu.addSeparator()
 
         submenu = menu.addMenu('View as...')
+        submenu.setIcon(QIcon(blurdev.resourcePath('img/ide/view_as.png')))
         l = self.language()
         act = submenu.addAction('Plain Text')
         if l == "":
@@ -975,6 +1002,12 @@ class DocumentEditor(QsciScintilla):
         act.triggered.connect(self.setIndentationsUseTabs)
         act.setCheckable(True)
         act.setChecked(self.indentationsUseTabs())
+
+        if self.language() == 'Python':
+            menu.addSeparator()
+            act = menu.addAction('Autoformat (PEP 8)')
+            act.triggered.connect(self.autoFormat)
+            act.setIcon(QIcon(blurdev.resourcePath('img/ide/python.png')))
 
         menu.popup(self._clickPos)
 
