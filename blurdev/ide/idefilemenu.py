@@ -17,6 +17,11 @@ import blurdev
 
 
 class IdeFileMenu(QMenu):
+    # additionalItems is a list of functions that are called when adding menu items to the IdeFileMenu.
+    # It passes along the file menu after the menu has been created.
+    # def additionalStuff(self, menu):
+    additionalItems = []
+
     def __init__(self, ide, filepath, projectMode=False):
         # initialize the menu
         super(IdeFileMenu, self).__init__(ide)
@@ -47,7 +52,8 @@ class IdeFileMenu(QMenu):
         # add the new action from the ide
         self.addAction(ide.uiNewACT)
 
-        self.addSeparator()
+        sep = self.addSeparator()
+        sep.setObjectName('uiExploreSEP')
 
         # create the explore action
         self.addAction(ide.uiExploreACT)
@@ -69,7 +75,8 @@ class IdeFileMenu(QMenu):
             act.triggered.connect(ide.projectRefreshItem)
             act.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
 
-        self.addSeparator()
+        sep = self.addSeparator()
+        sep.setObjectName('uiEditSEP')
 
         if isfile:
             # create the open action
@@ -94,10 +101,12 @@ class IdeFileMenu(QMenu):
             act.setObjectName('uiRunDebugACT')
             act.triggered.connect(ide.runCurrentStandaloneDebug)
 
-        self.addSeparator()
+        sep = self.addSeparator()
+        sep.setObjectName('uiCopyFilenameSEP')
         self.addAction(ide.uiCopyFilenameACT)
         if projectMode:
-            self.addSeparator()
+            sep = self.addSeparator()
+            sep.setObjectName('uiRemoveSEP')
 
             # create the remove action
             act = self.addAction('Delete')
@@ -107,6 +116,10 @@ class IdeFileMenu(QMenu):
 
             # add the edit project action
             self.addAction(ide.uiEditProjectACT)
+
+        # Add any aditional menu items that may have been added.
+        for funct in self.additionalItems:
+            funct(self)
 
     def removeFilepath(self):
         from PyQt4.QtGui import QMessageBox as msg
