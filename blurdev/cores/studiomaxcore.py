@@ -12,6 +12,8 @@
 import Py3dsMax, os
 from Py3dsMax import mxs
 from blurdev.cores.core import Core
+from PyQt4.QtGui import QApplication, QFileDialog, QImage
+from PyQt4.QtCore import Qt, QSize
 
 # -------------------------------------------------------------------------------------------------------------
 
@@ -98,9 +100,6 @@ class StudiomaxCore(Core):
         f.close()
 
         # convert icon files to max standard ...
-        from PyQt4.QtCore import Qt, QSize
-        from PyQt4.QtGui import QImage
-
         root = QImage(tool.icon())
         outSize = QSize(24, 24)
         difWidth = root.size().width() - outSize.width()
@@ -163,7 +162,6 @@ class StudiomaxCore(Core):
 
         # create a max plugin connection
         if not self.connectPlugin(hInstance, hwnd):
-            from PyQt4.QtGui import QApplication
 
             # initialize the look for the application instance
             app = QApplication.instance()
@@ -211,6 +209,8 @@ class StudiomaxCore(Core):
 
         env = ToolsEnvironment.activeEnvironment()
 
+        shiftPressed = QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
+
         # update the old blur maxscript library system
         envname = env.legacyName()
 
@@ -223,7 +223,8 @@ class StudiomaxCore(Core):
 
                 # update the maxscript code only if we are actually changing code environments
                 if (
-                    blurdev.ini.GetINISetting(
+                    shiftPressed
+                    or blurdev.ini.GetINISetting(
                         blurdev.ini.configFile, 'GLOBALS', 'environment'
                     )
                     != envname
@@ -247,7 +248,6 @@ class StudiomaxCore(Core):
         """
 
         if not filename:
-            from PyQt4.QtGui import QApplication, QFileDialog
 
             # make sure there is a QApplication running
             if QApplication.instance():
