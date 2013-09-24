@@ -209,7 +209,10 @@ class StudiomaxCore(Core):
 
         env = ToolsEnvironment.activeEnvironment()
 
-        shiftPressed = QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
+        if QApplication.instance():
+            shiftPressed = (
+                QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
+            )
 
         # update the old blur maxscript library system
         envname = env.legacyName()
