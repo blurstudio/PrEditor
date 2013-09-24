@@ -79,6 +79,35 @@ class Tool(QObject):
         else:
             blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
+        # Log what tool was used and when.
+        try:
+            # uses the environment variable "bdev_use_log_class" to import a module similar to the following
+            # import datetime
+            # def logEvent(info):
+            # 	info.setdefault('created', datetime.datetime.today())
+            # 	f = open(r'c:\temp\log.txt', 'w')
+            # 	f.write(repr(info))
+            # 	f.close()
+            # 	return info
+            useLogClass = os.environ.get('bdev_use_log_class')
+            import importlib
+
+            useLog = importlib.import_module(useLogClass)
+            info = {'name': self.objectName()}
+            info['miscInfo'] = macro
+            useLog.logEvent(info)
+        except Exception, e:
+            if debug.debugLevel() >= debug.DebugLevel.High:
+                raise
+            else:
+                # If redmine commits fail, allow code to continue.
+                console = blurdev.core.logger().console()
+                error = ''.join(console.lastError())
+                emails = (
+                    blurdev.tools.ToolsEnvironment.activeEnvironment().emailOnError()
+                )
+                console.emailError(emails, error)
+
     def favoriteGroup(self):
         return self._favoriteGroup
 
