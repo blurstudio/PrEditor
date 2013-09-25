@@ -134,7 +134,8 @@ class Language(object):
         parser.add_section('GLOBALS')
         parser.set('GLOBALS', 'name', self.name())
         parser.set('GLOBALS', 'filetypes', ';'.join(self.fileTypes()))
-        parser.set('GLOBALS', 'linecomment', self.lineComment())
+        # quotes are to preserve spaces which ConfigParser strips out
+        parser.set('GLOBALS', 'linecomment', '"{}"'.format(self.lineComment()))
 
         parser.add_section('LEXER')
         parser.set('LEXER', 'class', self.lexerClassName())
@@ -193,7 +194,7 @@ class Language(object):
 
         # try to load the line comment information
         try:
-            plugin._lineComment = parser.get('GLOBALS', 'linecomment')
+            plugin._lineComment = parser.get('GLOBALS', 'linecomment').strip('"')
         except:
             pass
 
