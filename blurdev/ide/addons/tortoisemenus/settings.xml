@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Tortoise>
+	<Menu name="Tortoise SVN" icon="{relative}\img\tortoiseSVN.png" parent="uiExploreACT">
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:log /path:&quot;{filename}&quot;" icon="{relative}\img\tortoiseSVNLog.png" name="Show Log"/>
+		<Action command="TortoiseProc.exe /command:blame /path:&quot;{filename}&quot;" icon="{relative}\img\tortoiseSVNblame.png" name="Blame"/>
+	</Menu>
+</Tortoise>
