@@ -37,18 +37,27 @@ class TortoiseMenusAddon(IdeAddon):
         if self.path:
             subprocess.Popen(cmd.format(filename=self.path))
 
-    def createAction(self, menu, node):
-        act = menu.addAction(node.attribute('name'))
+    def createAction(self, menu, node, before=None):
+        act = QAction(node.attribute('name'), menu)
         self.setIconPath(act, node)
         act.triggered.connect(lambda: self.callback(node.attribute('command')))
+        if before:
+            menu.insertAction(before, act)
+        else:
+            menu.addAction(act)
+        return act
 
-    def createMenu(self, menu, node):
-        subMenu = QMenu(node.attribute('name'), menu)
-        self.setIconPath(subMenu.menuAction(), node)
+    def createMenu(self, menu, node, before=None):
+        if node.name() == 'Menu':
+            subMenu = QMenu(node.attribute('name'), menu)
+            self.setIconPath(subMenu.menuAction(), node)
+        else:
+            self.createAction(menu, node, before)
+            return None
         for child in node.children():
             nodeName = child.name()
             if nodeName == 'Menu':
-                self.createMenu(subMenu, child)
+                self.createMenu(subMenu, child, before)
             elif nodeName == 'Separator':
                 subMenu.addSeparator()
             elif nodeName == 'Action':
@@ -64,11 +73,12 @@ class TortoiseMenusAddon(IdeAddon):
             self.path = menu.filepath()
             parent = menu.parent().findChild(QAction, 'uiExploreACT')
             for subMenu in doc.root().children():
-                tortoiseMenu = self.createMenu(menu, subMenu)
-                if parent:
-                    menu.insertMenu(parent, tortoiseMenu)
-                else:
-                    menu.addMenu(tortoiseMenu)
+                tortoiseMenu = self.createMenu(menu, subMenu, parent)
+                if tortoiseMenu:
+                    if parent:
+                        menu.insertMenu(parent, tortoiseMenu)
+                    else:
+                        menu.addMenu(tortoiseMenu)
             if parent:
                 menu.insertSeparator(parent)
             else:
