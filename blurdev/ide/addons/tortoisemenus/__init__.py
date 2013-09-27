@@ -35,7 +35,7 @@ class TortoiseMenusAddon(IdeAddon):
 
     def callback(self, cmd):
         if self.path:
-            subprocess.call(cmd.format(filename=self.path))
+            subprocess.Popen(cmd.format(filename=self.path))
 
     def createAction(self, menu, node):
         act = menu.addAction(node.attribute('name'))

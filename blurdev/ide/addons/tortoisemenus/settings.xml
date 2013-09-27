@@ -1,8 +1,37 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Tortoise>
 	<Menu name="Tortoise SVN" icon="{relative}\img\tortoiseSVN.png" parent="uiExploreACT">
+		<Action command="TortoiseProc.exe /command:commit /path:&quot;{filename}&quot;" icon="{relative}\img\menucommit-0.png" name="Commit"/>
+		<Action command="TortoiseProc.exe /command:update /path:&quot;{filename}&quot;" icon="{relative}\img\menuupdate-0.png" name="Update"/>
 		<Separator/>
-		<Action command="TortoiseProc.exe /command:log /path:&quot;{filename}&quot;" icon="{relative}\img\tortoiseSVNLog.png" name="Show Log"/>
-		<Action command="TortoiseProc.exe /command:blame /path:&quot;{filename}&quot;" icon="{relative}\img\tortoiseSVNblame.png" name="Blame"/>
+		<Action command="TortoiseProc.exe /command:diff /path:&quot;{filename}&quot;" icon="{relative}\img\menucompare-0.png" name="Diff"/>
+		<Action command="TortoiseProc.exe /command:prevdiff /path:&quot;{filename}&quot;" icon="{relative}\img\menucompare-0.png" name="Diff with previous version"/>
+		<Action command="TortoiseProc.exe /command:log /path:&quot;{filename}&quot;" icon="{relative}\img\menulog-0.png" name="Show Log"/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:repobrowser /path:&quot;{filename}&quot;" icon="{relative}\img\menurepobrowse-0.png" name="Repo-Browser"/>
+		<Action command="TortoiseProc.exe /command:repostatus /path:&quot;{filename}&quot;" icon="{relative}\img\menushowchanged-0.png" name="Check for modifications"/>
+		<Action command="TortoiseProc.exe /command:revisiongraph /path:&quot;{filename}&quot;" icon="{relative}\img\menurevisiongraph-0.png" name="Revision Graph"/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:resolve /path:&quot;{filename}&quot;" icon="{relative}\img\menuresolve-0.png" name="Resolved..."/>
+		<Action command="TortoiseProc.exe /command:update /path:&quot;{filename}&quot; /rev" icon="{relative}\img\menuupdate-0.png" name="Update to Revision..."/>
+		<Action command="TortoiseProc.exe /command:rename /path:&quot;{filename}&quot;" icon="{relative}\img\menurename-0.png" name="Rename..."/>
+		<!--<Action command="TortoiseProc.exe /command:rename /path:&quot;{filename}&quot;" icon="{relative}\img\menudelete-0.png" name="Delete"/>-->
+		<Action command="TortoiseProc.exe /command:revert /path:&quot;{filename}&quot;" icon="{relative}\img\menurevert-0.png" name="Revert..."/>
+		<Action command="TortoiseProc.exe /command:cleanup /path:&quot;{filename}&quot;" icon="{relative}\img\menucleanup-0.png" name="Clean up"/>
+		<Action command="TortoiseProc.exe /command:lock /path:&quot;{filename}&quot;" icon="{relative}\img\menulock-0.png" name="Get lock..."/>
+		<Action command="TortoiseProc.exe /command:unlock /path:&quot;{filename}&quot;" icon="{relative}\img\menuunlock-0.png" name="Release lock"/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:copy /path:&quot;{filename}&quot;" icon="{relative}\img\menucopy-0.png" name="Branch/Tag..."/>
+		<Action command="TortoiseProc.exe /command:switch /path:&quot;{filename}&quot;" icon="{relative}\img\menuswitch-0.png" name="Switch..."/>
+		<Action command="TortoiseProc.exe /command:merge /path:&quot;{filename}&quot;" icon="{relative}\img\menumerge-0.png" name="Merge..."/>
+		<Action command="TortoiseProc.exe /command:export /path:&quot;{filename}&quot;" icon="{relative}\img\menuexport-0.png" name="Export..."/>
+		<Action command="TortoiseProc.exe /command:relocate /path:&quot;{filename}&quot;" icon="{relative}\img\menurelocate-0.png" name="Relocate..."/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:blame /path:&quot;{filename}&quot;" icon="{relative}\img\menublame-0.png" name="Blame"/>
+		<Action command="TortoiseProc.exe /command:add /path:&quot;{filename}&quot;" icon="{relative}\img\menuadd-0.png" name="Add"/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:properties /path:&quot;{filename}&quot;" icon="{relative}\img\menuproperties-0.png" name="Properties"/>
+		<Separator/>
+		<Action command="TortoiseProc.exe /command:settings" icon="{relative}\img\menuproperties-0.png" name="Settings"/>
 	</Menu>
 </Tortoise>
