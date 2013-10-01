@@ -216,7 +216,13 @@ class FindFilesDialog(Dialog):
         # initialize the ui from the prefs
         self.uiSearchTXT.setText(ideglobals.FILE_SEARCH_TEXT)
         self.uiBasePathTXT.setText(ideglobals.FILE_SEARCH_PATH)
-        self.uiFileTypesTXT.setText(ideglobals.FILE_SEARCH_TYPES)
+        ftypes = set(os.environ['bdev_find_in_files_exts'].split(','))
+        ftypes.add(ideglobals.FILE_SEARCH_TYPES)
+        self.uiFileTypesDDL.clear()
+        self.uiFileTypesDDL.addItems(sorted(ftypes))
+        self.uiFileTypesDDL.setCurrentIndex(
+            self.uiFileTypesDDL.findText(ideglobals.FILE_SEARCH_TYPES)
+        )
         self.uiCopyFilenamesBTN.setVisible(False)
         self.uiCopyResultsBTN.setVisible(False)
 
@@ -245,7 +251,7 @@ class FindFilesDialog(Dialog):
 
         # set the properties in the prefs module
         ideglobals.FILE_SEARCH_TEXT = unicode(self.uiSearchTXT.text())
-        ideglobals.FILE_SEARCH_TYPES = unicode(self.uiFileTypesTXT.text())
+        ideglobals.FILE_SEARCH_TYPES = unicode(self.uiFileTypesDDL.currentText())
         ideglobals.FILE_SEARCH_PATH = unicode(self.uiBasePathTXT.text())
 
     def copyFilenames(self):
@@ -382,7 +388,7 @@ class FindFilesDialog(Dialog):
         # set the search options
         self._searchThread.setSearchText(unicode(self.uiSearchTXT.text()))
         self._searchThread.setBasePath(basepath)
-        self._searchThread.setFileTypes(unicode(self.uiFileTypesTXT.text()))
+        self._searchThread.setFileTypes(unicode(self.uiFileTypesDDL.currentText()))
         self._searchThread.setUseRegex(self.uiRegexCHK.isChecked())
 
         # start the search thrad
