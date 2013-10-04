@@ -58,6 +58,9 @@ class Window(QMainWindow):
         # If this value is set to False calling setGeometry on this window will not adjust the
         # geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
+        # If this value is set to True the window will listen for blurdev.core.aboutToClearPaths and
+        # call shutdown on the window.
+        self.aboutToClearPathsEnabled = True
         # attempt to set the dialog icon
         import os
         import sys
@@ -88,6 +91,10 @@ class Window(QMainWindow):
             from winwidget import WinWidget
 
             WinWidget.uncache(wwidget)
+        if self.aboutToClearPathsEnabled:
+            import blurdev
+
+            blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
 
     def setGeometry(self, *args):
         """
@@ -99,6 +106,14 @@ class Window(QMainWindow):
             import blurdev
 
             blurdev.ensureWindowIsVisible(self)
+
+    def showEvent(self, event):
+        # listen for aboutToClearPaths signal if requested
+        if self.aboutToClearPathsEnabled:
+            import blurdev
+
+            blurdev.core.aboutToClearPaths.connect(self.shutdown)
+        super(Window, self).showEvent(event)
 
     def shutdown(self):
         """

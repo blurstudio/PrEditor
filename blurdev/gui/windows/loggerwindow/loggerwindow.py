@@ -20,6 +20,7 @@ class LoggerWindow(Window):
 
     def __init__(self, parent):
         Window.__init__(self, parent)
+        self.aboutToClearPathsEnabled = False
 
         import blurdev.gui
 

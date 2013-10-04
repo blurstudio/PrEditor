@@ -157,6 +157,7 @@ class ToolsToolBarDialog(Dialog):
 
     def __init__(self, parent, title):
         Dialog.__init__(self, parent)
+        self.aboutToClearPathsEnabled = False
         self.setWindowTitle(title)
 
         from PyQt4.QtGui import QHBoxLayout

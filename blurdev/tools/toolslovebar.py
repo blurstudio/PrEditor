@@ -186,6 +186,7 @@ class ToolsLoveBarDialog(Dialog):
 
     def __init__(self, parent, title):
         Dialog.__init__(self, parent)
+        self.aboutToClearPathsEnabled = False
         self.setWindowTitle(title)
 
         # Load the UI.
