@@ -16,8 +16,6 @@ import copy
 
 from PyQt4.QtGui import QMainWindow, QDialog, QVBoxLayout
 
-from blurdev.gui.dialog import Dialog
-
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -116,7 +114,7 @@ def runtime(filepath):
 
 def init():
     pythonw_print_bugfix()
-    global core, prefs, application, debug, osystem, settings, tools, enum, XML
+    global core, prefs, application, debug, osystem, settings, tools, enum, XML, gui
     # initialize the settings
     import settings
 
@@ -133,6 +131,7 @@ def init():
 
         # initialize the application
         application = core.init()
+        import gui
 
 
 def launch(
@@ -245,6 +244,8 @@ def launch(
         if wrapClass is not None:
             dlg = wrapClass(None)
         else:
+            from blurdev.gui.dialog import Dialog
+
             dlg = Dialog(None)
         layout = QVBoxLayout()
         layout.setMargin(0)
