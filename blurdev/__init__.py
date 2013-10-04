@@ -14,6 +14,11 @@ __DOCMODE__ = False  # this variable will be set when loading information for do
 import os, sys
 import copy
 
+from PyQt4.QtGui import QMainWindow, QDialog, QVBoxLayout
+
+from blurdev.gui.dialog import Dialog
+
+
 application = None  # create a managed QApplication
 _appHasExec = False
 """
@@ -138,6 +143,7 @@ def launch(
     args=None,
     kwargs=None,
     splash=None,
+    wrapClass=None,
 ):
     """
     This method is used to create an instance of a widget (dialog/window) to 
@@ -158,7 +164,10 @@ def launch(
                      it will show the existing instance instead of
                      creating a new instance. Ignored if modal == True.
     :param kwargs: A dict of keyword arguments to pass to the widget initialization
-    
+    :param wrapClass: launch() requires a dialog or window to work correctly.  If you pass in 
+                      a widget, it will automatically get wrapped in a Dialog, unless
+                      you specify a class using this argument, in which case it will
+                      be wrapped by that.
     """
     global _appHasExec
 
@@ -225,8 +234,25 @@ def launch(
         except TypeError:
             # If url arguments are passed in that the tool doesn't accept, remove them.
             widget = launchWidget(ctor, args, oldkwargs)
+
         if splash:
             splash.finish(widget)
+
+    # If the passed in ctor is not a Dialog or Window, wrap it in a dialog
+    # so that it displays correctly.  It will get garbage collected and close
+    # otherwise
+    if not isinstance(widget, (QMainWindow, QDialog)):
+        if wrapClass is not None:
+            dlg = wrapClass(None)
+        else:
+            dlg = Dialog(None)
+        layout = QVBoxLayout()
+        layout.setMargin(0)
+        dlg.setLayout(layout)
+        layout.addWidget(widget)
+        dlg.setWindowTitle(widget.windowTitle())
+        dlg.setWindowIcon(widget.windowIcon())
+        widget = dlg
 
     # check to see if the tool is running modally and return the result
     if modal:
