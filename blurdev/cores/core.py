@@ -1052,7 +1052,10 @@ class Core(QObject):
                 fp.close()
 
                 Encoders.encode_base64(txt)
-                txt.add_header('Content-Disposition', 'attachment; filename="%s"' % a)
+                txt.add_header(
+                    'Content-Disposition',
+                    'attachment; filename="%s"' % os.path.basename(a),
+                )
                 output.attach(txt)
 
         import smtplib
