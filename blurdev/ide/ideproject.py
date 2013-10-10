@@ -273,6 +273,19 @@ class IdeProjectItem(QTreeWidgetItem):
         return output
 
     def refresh(self):
+        # File items have nothing to refresh so refresh their parent
+        if self.dataType() == 'file':
+            parent = self.parent()
+            if parent:
+                path = self.filePath()
+                parent.refresh()
+                # restore selection of the current item
+                for index in range(parent.childCount()):
+                    child = parent.child(index)
+                    if child.filePath() == path:
+                        child.treeWidget().setCurrentItem(child)
+                        break
+                return
         # refreshing only happens on non-groups
         if not self.isGroup():
             # store the children
