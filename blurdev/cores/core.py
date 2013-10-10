@@ -14,7 +14,7 @@ import time
 import os
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QApplication, QSplashScreen
 from application import Application
 from blurdev.tools.toolsenvironment import ToolsEnvironment
 
@@ -767,11 +767,18 @@ class Core(QObject):
         window = None
         if QApplication.instance():
             window = QApplication.instance().activeWindow()
+            # Ignore QSplashScreen's, they should never be considered the root window.
+            if isinstance(window, QSplashScreen):
+                return None
 
             # grab the root window
             if window:
                 while window.parent():
-                    window = window.parent()
+                    parent = window.parent()
+                    if isinstance(parent, QSplashScreen):
+                        return window
+                    else:
+                        window = parent
 
         return window
 
