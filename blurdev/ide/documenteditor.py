@@ -59,6 +59,7 @@ class DocumentEditor(QsciScintilla):
 
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
+        self.selectionChanged.connect(self.updateSelectionInfo)
 
         # load the file
         if filename:
@@ -1099,6 +1100,18 @@ class DocumentEditor(QsciScintilla):
                             return
             # Make the lexer highlight words
             self.setHighlightedKeywords(lexer, selectedText)
+
+    def updateSelectionInfo(self):
+        window = self.window()
+        if window and hasattr(window, 'uiCursorInfoLBL'):
+            selection = self.getSelection()
+            if selection[0] == -1:
+                pos = self.getCursorPosition()
+                window.uiCursorInfoLBL.setText('Line: {} Pos: {}'.format(*pos))
+            else:
+                window.uiCursorInfoLBL.setText(
+                    'Line: {} Pos: {} To Line: {} Pos: {}'.format(*selection)
+                )
 
     def setHighlightedKeywords(self, lexer, keywords):
         """

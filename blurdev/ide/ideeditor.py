@@ -41,6 +41,7 @@ from PyQt4.QtGui import (
     QTreeWidgetItem,
     QToolBar,
     QToolButton,
+    QLabel,
 )
 
 from blurdev.gui import Window
@@ -302,6 +303,10 @@ class IdeEditor(Window):
         # connect the global config set
         configSet = self.globalConfigSet()
         configSet.settingsChanged.connect(self.updateSettings)
+
+        self.uiCursorInfoLBL = QLabel()
+        self.statusBar().addWidget(self.uiCursorInfoLBL)
+        self.statusBar().layout().insertStretch(0, 1)
 
         # refresh the ui
         self.updateTitle()
