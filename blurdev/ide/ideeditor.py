@@ -828,6 +828,7 @@ class IdeEditor(Window):
         act = menu.addAction(source.text())
         act.setIcon(source.icon())
         act.triggered.connect(trigger)
+        act.setObjectName(source.objectName())
         return act
 
     def editGlobalConfig(self):

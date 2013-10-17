@@ -20,8 +20,8 @@ class TortoiseMenusAddon(IdeAddon):
     def activate(self, ide):
         # create any additional activation code that you would
         # need for the ide editor
-        self.path = None
         IdeFileMenu.additionalItems.append(self.createTortoiseMenus)
+        ide.editorCreated.connect(self.editorCreated)
 
     def deactivate(self, ide):
         print 'deactivate Tortoise'
@@ -34,46 +34,50 @@ class TortoiseMenusAddon(IdeAddon):
         return True
 
     def callback(self, cmd):
-        if self.path:
-            subprocess.Popen(cmd.format(filename=self.path))
+        if cmd:
+            subprocess.Popen(cmd)
 
-    def createAction(self, menu, node, before=None):
+    def createAction(self, menu, node, path, before=None):
         act = QAction(node.attribute('name'), menu)
         self.setIconPath(act, node)
-        act.triggered.connect(lambda: self.callback(node.attribute('command')))
+        act.triggered.connect(
+            lambda: self.callback(node.attribute('command').format(filename=path))
+        )
         if before:
             menu.insertAction(before, act)
         else:
             menu.addAction(act)
         return act
 
-    def createMenu(self, menu, node, before=None):
+    def createMenu(self, menu, node, path, before=None):
         if node.name() == 'Menu':
             subMenu = QMenu(node.attribute('name'), menu)
             self.setIconPath(subMenu.menuAction(), node)
         else:
-            self.createAction(menu, node, before)
+            self.createAction(menu, node, path, before)
             return None
         for child in node.children():
             nodeName = child.name()
             if nodeName == 'Menu':
-                self.createMenu(subMenu, child, before)
+                self.createMenu(subMenu, child, path, before)
             elif nodeName == 'Separator':
                 subMenu.addSeparator()
             elif nodeName == 'Action':
-                self.createAction(subMenu, child)
+                self.createAction(subMenu, child, path)
         return subMenu
 
-    def createTortoiseMenus(self, menu):
+    def createTortoiseMenus(self, menu, path=None):
         doc = blurdev.XML.XMLDocument()
-        path = os.environ.get('BDEV_TORTOISEMENU_PATH', None)
-        if not path:
-            path = blurdev.relativePath(__file__, 'settings.xml')
-        if doc.load(path):
-            self.path = menu.filepath()
-            parent = menu.parent().findChild(QAction, 'uiExploreACT')
+        settings = os.environ.get('BDEV_TORTOISEMENU_PATH', None)
+        if not settings:
+            settings = blurdev.relativePath(__file__, 'settings.xml')
+        if doc.load(settings):
+            if path == None:
+                path = menu.filepath()
             for subMenu in doc.root().children():
-                tortoiseMenu = self.createMenu(menu, subMenu, parent)
+                parentName = subMenu.attribute('parent', 'uiExploreACT')
+                parent = menu.parent().findChild(QAction, parentName)
+                tortoiseMenu = self.createMenu(menu, subMenu, path, parent)
                 if tortoiseMenu:
                     if parent:
                         menu.insertMenu(parent, tortoiseMenu)
@@ -83,6 +87,13 @@ class TortoiseMenusAddon(IdeAddon):
                 menu.insertSeparator(parent)
             else:
                 menu.addSeparator()
+
+    def editorCreated(self, editor):
+        parent = editor.parent()
+        if parent and parent.inherits('QMdiSubWindow'):
+            menu = parent.systemMenu()
+            print 'Editor', editor.filename()
+            self.createTortoiseMenus(menu, editor.filename())
 
     def setIconPath(self, act, node):
         path = node.attribute('icon', None)
