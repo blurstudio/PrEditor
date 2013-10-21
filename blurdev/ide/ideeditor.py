@@ -340,6 +340,8 @@ class IdeEditor(Window):
         self.duplicateAction(
             menu, self.uiCopyFilenameACT, editor.copyFilenameToClipboard
         )
+        act = menu.addAction('Show In Project Tree')
+        act.triggered.connect(editor.selectProjectItem)
         menu.addSeparator()
         self.duplicateAction(menu, self.uiReloadFileACT, editor.reloadFile)
         self.duplicateAction(menu, self.uiCloseACT, editor.closeEditor)
@@ -1459,6 +1461,35 @@ class IdeEditor(Window):
                     self._searchText = text
 
         return self._searchText
+
+    def selectProjectItem(self, filename):
+        partial = {}
+        output = None
+        for item in self.uiProjectTREE.itemIterator():
+            fpath = item.filePath()
+            if fpath == filename:
+                output = item
+                break
+            findPath = filename.find(fpath)
+            if findPath != -1:
+                if not item.isExpanded():
+                    item.setExpanded(True)
+                    item.setExpanded(False)
+                flen = len(fpath)
+                if not flen in partial:
+                    partial[flen] = item
+        else:
+            if partial:
+                key = sorted(partial, reverse=True)[0]
+                print 'partial', partial[key], key
+                output = partial[key]
+        if output:
+            self.uiProjectTREE.clearSelection()
+            output.setSelected(True)
+            self.uiProjectTREE.scrollToItem(item, self.uiProjectTREE.PositionAtTop)
+        while output:
+            output.setExpanded(True)
+            output = output.parent()
 
     def setNoDebug(self):
         from blurdev import debug

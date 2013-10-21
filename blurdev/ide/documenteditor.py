@@ -834,6 +834,11 @@ class DocumentEditor(QsciScintilla):
             return True
         return False
 
+    def selectProjectItem(self):
+        window = self.window()
+        if window:
+            window.selectProjectItem(self.filename())
+
     def setLanguage(self, language):
         if language == 'Plain Text':
             language = ''
