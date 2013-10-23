@@ -89,6 +89,15 @@
 # |		from trax.gui import prefs
 # |		pref = prefs.find( 'Test_Widget_View' )
 # |		self.uiTREE.restorePrefs( pref )
+# |
+# |	def wheelEvent(self, event, tree=None):
+# |		if tree == self.uiPosesTREE:
+# |			if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
+# |				self.doStuff(event)
+# |				event.accept()
+# |				return
+# |			super(BlurTreeWidget, tree).wheelEvent(event)
+# |		event.ignore()
 
 from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
 from PyQt4.QtGui import (
@@ -841,6 +850,17 @@ class BlurTreeWidget(LockableTreeWidget):
                     return child
                 visibleIndex += 1
         return None
+
+    def wheelEvent(self, event):
+        name = self.identifierName('wheelEvent')
+        if self._delegate and hasattr(self._delegate, name):
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                funct(event, self)
+            else:
+                funct(event)
+        else:
+            super(BlurTreeWidget, self).wheelEvent(event)
 
     pyEnableColumnHideMenu = pyqtProperty(
         'bool', userCanHideColumns, setUserCanHideColumns
