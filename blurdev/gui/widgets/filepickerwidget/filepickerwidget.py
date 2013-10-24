@@ -1,5 +1,5 @@
 ##
-# 	:namespace	trax.gui.widgets.filepickerwidget.filepickerwidget
+#   :namespace  python.blurdev.gui.widgets.filepickerwidget.filepickerwidget
 #
 # 	:remarks	Defines the FilePickerWidget class
 #
