@@ -855,12 +855,14 @@ class BlurTreeWidget(LockableTreeWidget):
         name = self.identifierName('wheelEvent')
         if self._delegate and hasattr(self._delegate, name):
             funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                funct(event, self)
-            else:
-                funct(event)
-        else:
-            super(BlurTreeWidget, self).wheelEvent(event)
+            # All widgets have wheelEvent, only call it if its been overriden.
+            if hasattr(funct, 'func_code'):
+                if 'tree' in funct.func_code.co_varnames:
+                    funct(event, self)
+                else:
+                    funct(event)
+                return
+        super(BlurTreeWidget, self).wheelEvent(event)
 
     pyEnableColumnHideMenu = pyqtProperty(
         'bool', userCanHideColumns, setUserCanHideColumns
