@@ -20,6 +20,7 @@ from PyQt4.QtCore import (
     QPoint,
     QPointF,
     QSize,
+    QSizeF,
     QDate,
     QDateTime,
     QString,
@@ -75,6 +76,14 @@ class XMLElement:
             ]
         return []
 
+    def _findPoint(self, name, cls, method):
+        child = self.findChild(name)
+        if child:
+            x = method(child.attribute('x', 0))
+            y = method(child.attribute('y', 0))
+            return cls(x, y)
+        return cls()
+
     def _findRect(self, name, cls, method):
         rect = cls()
         child = self.findChild(name)
@@ -87,6 +96,14 @@ class XMLElement:
             rect = cls(x, y, w, h)
 
         return rect
+
+    def _findSize(self, name, cls, method):
+        child = self.findChild(name)
+        if child:
+            w = method(child.attribute('width', 0))
+            h = method(child.attribute('height', 0))
+            return cls(w, h)
+        return cls()
 
     def clear(self):
         children = list(self._object.childNodes)
@@ -144,8 +161,8 @@ class XMLElement:
             self.setAttribute('value', value.toString())
 
         # Record a size
-        elif valtype == QSize:
-            self.setAttribute('type', QSize)
+        elif valtype in (QSize, QSizeF):
+            self.setAttribute('type', valtype.__name__)
             self.setSize('size', value)
 
         # Record a qcolor
@@ -203,13 +220,17 @@ class XMLElement:
         elif valtype == 'QSize':
             value = self.findSize('size')
 
+        # Restore a QSizeF
+        elif valtype == 'QSizeF':
+            value = self.findSizeF('size')
+
         # Restore a QPoint
         elif valtype == 'QPoint':
             value = self.findPoint('point')
 
         # Restore a QPointF
         elif valtype == 'QPointF':
-            value = self.findPoint('point')
+            value = self.findPointF('point')
 
         # Restore a QColor
         elif valtype == 'QColor':
@@ -427,6 +448,12 @@ class XMLElement:
             return child.value()
         return fail
 
+    def findPoint(self, name):
+        return self._findPoint(name, QPoint, int)
+
+    def findPointF(self, name):
+        return self._findPoint(name, QPointF, float)
+
     def findRect(self, name):
         from PyQt4.QtCore import QRect
 
@@ -436,6 +463,12 @@ class XMLElement:
         from PyQt4.QtCore import QRectF
 
         return self._findRect(name, QRectF, float)
+
+    def findSize(self, name):
+        return self._findSize(name, QSize, int)
+
+    def findSizeF(self, name):
+        return self._findSize(name, QSizeF, float)
 
     def getId(self):
         out = self.attribute('id')
