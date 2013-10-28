@@ -34,5 +34,9 @@ class PythonLexer(QsciLexerPython):
             return self.highlightedKeywords
         ret = super(PythonLexer, self).keywords(set)
         if set == 1:
-            ret += ' True False'
+            ret += ' True False abs divmod input open staticmethod all enumerate int ord str any eval isinstance pow sum basestring execfile'
+            ret += ' issubclass print super bin file iter property tuple bool filter len range type bytearray float list raw_input unichr'
+            ret += ' callable format locals reduce unicode chr frozenset long reload vars classmethod getattr map repr xrange cmp globals max'
+            ret += ' reversed zip compile hasattr memoryview round complex hash min set apply delattr help next setattr buffer dict hex object'
+            ret += ' slice coerce dir id oct sorted intern __import__'
         return ret
