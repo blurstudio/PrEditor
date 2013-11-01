@@ -526,6 +526,7 @@
     <addaction name="separator"/>
     <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
+    <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
     <addaction name="uiWordWrapACT"/>
@@ -536,6 +537,7 @@
      <string>Help</string>
     </property>
     <addaction name="uiSdkBrowserACT"/>
+    <addaction name="uiDisableSDKShortcutACT"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
     <property name="title">
@@ -813,6 +815,22 @@
   <action name="uiOpenIdeACT">
    <property name="text">
     <string>Open IDE</string>
+   </property>
+  </action>
+  <action name="uiClearLogOnRefreshACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Clear Log on Environment Refresh</string>
+   </property>
+  </action>
+  <action name="uiDisableSDKShortcutACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Disable SDK shortcut</string>
    </property>
   </action>
  </widget>

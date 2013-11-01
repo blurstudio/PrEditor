@@ -82,6 +82,7 @@ class LoggerWindow(Window):
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
+        blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
@@ -175,6 +176,10 @@ class LoggerWindow(Window):
                 QKeySequence(Qt.Key_Enter + Qt.ControlModifier)
             )
 
+    def pathsAboutToBeCleared(self):
+        if self.uiClearLogOnRefreshACT.isChecked():
+            self.clearLog()
+
     def refreshDebugLevels(self):
         from blurdev.debug import DebugLevel, debugLevel
 
@@ -204,6 +209,12 @@ class LoggerWindow(Window):
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
         pref.recordProperty(
             'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
+        )
+        pref.recordProperty(
+            'clearBeforeEnvRefresh', self.uiClearLogOnRefreshACT.isChecked()
+        )
+        pref.recordProperty(
+            'disableSdkShortcut', self.uiDisableSDKShortcutACT.isChecked()
         )
         pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
@@ -242,6 +253,12 @@ class LoggerWindow(Window):
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(
             pref.restoreProperty('clearBeforeRunning', False)
+        )
+        self.uiClearLogOnRefreshACT.setChecked(
+            pref.restoreProperty('clearBeforeEnvRefresh', False)
+        )
+        self.uiDisableSDKShortcutACT.setChecked(
+            pref.restoreProperty('disableSdkShortcut', False)
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
         font = pref.restoreProperty('consoleFont', None)
@@ -318,7 +335,8 @@ class LoggerWindow(Window):
         self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
     def showSdk(self):
-        blurdev.core.sdkBrowser().show()
+        if not self.uiDisableSDKShortcutACT.isChecked():
+            blurdev.core.sdkBrowser().show()
 
     def shutdown(self):
         # close out of the ide system
