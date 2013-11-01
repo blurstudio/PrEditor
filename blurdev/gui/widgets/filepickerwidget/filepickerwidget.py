@@ -8,8 +8,15 @@
 # 	:date		10/06/10
 #
 
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty
-from PyQt4.QtGui import QWidget, QLineEdit, QToolButton, QHBoxLayout
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
+from PyQt4.QtGui import (
+    QWidget,
+    QLineEdit,
+    QToolButton,
+    QHBoxLayout,
+    QApplication,
+    QFileDialog,
+)
 
 
 class LineEdit(QLineEdit):
@@ -41,6 +48,9 @@ class FilePickerWidget(QWidget):
         self.uiFilenameTXT = LineEdit(self)
         self.uiPickFileBTN = QToolButton(self)
         self.uiPickFileBTN.setText('...')
+        self.uiPickFileBTN.setToolTip(
+            '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to current path.</p></body></html>'
+        )
         layout = QHBoxLayout(self)
         layout.addWidget(self.uiFilenameTXT)
         layout.addWidget(self.uiPickFileBTN)
@@ -89,24 +99,27 @@ class FilePickerWidget(QWidget):
         return self._pickFolder
 
     def pickPath(self):
-        from PyQt4.QtGui import QFileDialog
+        if QApplication.keyboardModifiers() == Qt.ControlModifier:
+            import blurdev
 
-        if self._pickFolder:
-            filepath = QFileDialog.getExistingDirectory(
-                self, self._caption, self.uiFilenameTXT.text()
-            )
-        elif self._openFile:
-            filepath = QFileDialog.getOpenFileName(
-                self, self._caption, self.uiFilenameTXT.text(), self._filters
-            )
+            blurdev.osystem.explore(self.uiFilenameTXT.text())
         else:
-            filepath = QFileDialog.getSaveFileName(
-                self, self._caption, self.uiFilenameTXT.text(), self._filters
-            )
-        if filepath:
-            self.uiFilenameTXT.setText(filepath)
-            if not self.signalsBlocked():
-                self.filenamePicked.emit(filepath)
+            if self._pickFolder:
+                filepath = QFileDialog.getExistingDirectory(
+                    self, self._caption, self.uiFilenameTXT.text()
+                )
+            elif self._openFile:
+                filepath = QFileDialog.getOpenFileName(
+                    self, self._caption, self.uiFilenameTXT.text(), self._filters
+                )
+            else:
+                filepath = QFileDialog.getSaveFileName(
+                    self, self._caption, self.uiFilenameTXT.text(), self._filters
+                )
+            if filepath:
+                self.uiFilenameTXT.setText(filepath)
+                if not self.signalsBlocked():
+                    self.filenamePicked.emit(filepath)
 
     def resolve(self):
         if self.resolvePath():
