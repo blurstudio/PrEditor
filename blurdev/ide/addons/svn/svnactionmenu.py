@@ -8,7 +8,7 @@
 # 	\date		05/17/11
 #
 
-import os.path
+import os
 
 from PyQt4.QtCore import pyqtSignal
 from PyQt4.QtGui import QMenu, QIcon, QApplication
@@ -29,8 +29,34 @@ class SvnActionMenu(QMenu):
 
         from blurdev.ide.addons import svn
 
-        self.setTitle('More SVN')
+        hasEnviron = not os.environ.get('BDEV_SVN_FILE_EXTRAS', None)
+
+        if hasEnviron:
+            self.setTitle('More pySVN')
+        else:
+            self.setTitle('pySVN')
         self.setIcon(QIcon(svn.resource('img/svn.png')))
+
+        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise add them to the SvnActionMenu
+        if hasEnviron:
+            if svnops.findUrl(self._filepath):
+                # create the update command
+                act = self.addAction('SVN Update')
+                act.setIcon(QIcon(svn.resource('img/update.png')))
+                act.triggered.connect(self.svnUpdate)
+
+                # create the commit command
+                act = self.addAction('SVN Commit')
+                act.setIcon(QIcon(svn.resource('img/commit.png')))
+                act.triggered.connect(self.svnCommit)
+
+            # create options to checkout for folders
+            elif not isfile:
+                act = self.addAction('SVN Checkout')
+                act.setIcon(QIcon(svn.resource('img/update.png')))
+                act.triggered.connect(self.svnCheckout)
+
+            self.addSeparator()
 
         if isfile:
             act = self.addAction('Compare with base...')
@@ -195,8 +221,14 @@ class SvnActionMenu(QMenu):
     def svnBrowse(self):
         svnops.browse(self._filepath)
 
+    def svnCheckout(self):
+        svnops.checkout(self._filepath)
+
     def svnCleanup(self):
         svnops.cleanup(self._filepath)
+
+    def svnCommit(self):
+        svnops.commit(self._filepath)
 
     def svnCompare(self):
         revision = 'HEAD'
@@ -223,3 +255,6 @@ class SvnActionMenu(QMenu):
 
     def svnRevert(self):
         svnops.revert(self._filepath)
+
+    def svnUpdate(self):
+        svnops.update(self._filepath)

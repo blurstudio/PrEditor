@@ -8,6 +8,7 @@
 # 	\date		05/17/11
 #
 
+import os
 from PyQt4.QtGui import QMenu
 
 from blurdev.ide.idefilemenu import IdeFileMenu
@@ -25,30 +26,30 @@ class SvnFileMenu(IdeFileMenu):
         # define the SVN commands before the explore action
         before = self.ide().findChild(QAction, 'uiExploreACT')
 
-        url = svnops.findUrl(self.filepath())
+        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise add them to the SvnActionMenu
+        if os.environ.get('BDEV_SVN_FILE_EXTRAS', None):
+            if svnops.findUrl(self.filepath()):
+                # create the update command
+                act = QAction(self)
+                act.setText('SVN Update')
+                act.setIcon(QIcon(svn.resource('img/update.png')))
+                act.triggered.connect(self.svnUpdate)
+                self.insertAction(before, act)
 
-        if url:
-            # create the update command
-            act = QAction(self)
-            act.setText('SVN Update')
-            act.setIcon(QIcon(svn.resource('img/update.png')))
-            act.triggered.connect(self.svnUpdate)
-            self.insertAction(before, act)
+                # create the commit command
+                act = QAction(self)
+                act.setText('SVN Commit')
+                act.setIcon(QIcon(svn.resource('img/commit.png')))
+                act.triggered.connect(self.svnCommit)
+                self.insertAction(before, act)
 
-            # create the commit command
-            act = QAction(self)
-            act.setText('SVN Commit')
-            act.setIcon(QIcon(svn.resource('img/commit.png')))
-            act.triggered.connect(self.svnCommit)
-            self.insertAction(before, act)
-
-        # create options to checkout for folders
-        elif not self.isfile():
-            act = QAction(self)
-            act.setText('SVN Checkout')
-            act.setIcon(QIcon(svn.resource('img/update.png')))
-            act.triggered.connect(self.svnCheckout)
-            self.insertAction(before, act)
+            # create options to checkout for folders
+            elif not self.isfile():
+                act = QAction(self)
+                act.setText('SVN Checkout')
+                act.setIcon(QIcon(svn.resource('img/update.png')))
+                act.triggered.connect(self.svnCheckout)
+                self.insertAction(before, act)
 
         from blurdev.ide.addons.svn.svnactionmenu import SvnActionMenu
 
