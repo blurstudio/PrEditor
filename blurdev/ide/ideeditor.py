@@ -1752,7 +1752,8 @@ class IdeEditor(Window):
     def showSdkBrowser(self):
         import blurdev
 
-        blurdev.core.sdkBrowser().show()
+        if not blurdev.core.logger().uiDisableSDKShortcutACT.isChecked():
+            blurdev.core.sdkBrowser().show()
 
     def showSearchDialog(self):
         self._searchDialog.search(self.searchText())
