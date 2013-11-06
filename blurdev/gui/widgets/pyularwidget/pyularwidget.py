@@ -49,8 +49,8 @@ class PyularDialog(blurdev.gui.Dialog):
 
 
 class PyularWidget(QWidget):
+    ReType = blurdev.enum.enum(FindAll=0, Match=1, Search=2, Split=3, Sub=4)
     # if this list is changed, processResults must be updated to reflect the list
-    searchTypes = ['Find All', 'Match', 'Search', 'Split', 'Sub']
     emptyString = "['']"
     bulletFormat = '<li>%s</li>'
 
@@ -68,7 +68,7 @@ class PyularWidget(QWidget):
         self.uiHelpBTN.setIcon(QIcon(blurdev.resourcePath('img/blurdev.png')))
         self.flags = 0
         self.uiSearchTypeDDL.clear()
-        self.uiSearchTypeDDL.addItems(self.searchTypes)
+        self.uiSearchTypeDDL.addItems(self.ReType.labels(byVal=True))
 
     def errorLog(self):
         """
@@ -106,11 +106,19 @@ class PyularWidget(QWidget):
         pattern = unicode(self.uiExpressionTXT.text())
         text = unicode(self.uiStringTXT.toPlainText())
         typeIndex = self.uiSearchTypeDDL.currentIndex()
+        # start to build the code string that will be populated later in the code.
+        code = 're.'
+        flags = []
+        for flag in self.uiFlagsTXT.text():
+            flags.append('re.{}'.format(flag))
+        flags = ' | '.join(flags)
+        if flags:
+            flags = ', flags={}'.format(flags)
         try:
             self.uiErrorLBL.setVisible(False)
             self.uiSplitNotesLBL.setVisible(False)
             regex = re.compile(pattern, flags=self.flags)
-            if typeIndex == 0:  # Find All
+            if typeIndex == self.ReType.FindAll:
                 results = regex.findall(text)
                 out = []
                 if results:
@@ -132,12 +140,24 @@ class PyularWidget(QWidget):
                             out.append(self.bulletFormat % result)
                     out.append('</ul>')
                 self.uiResultsTXT.setText('\n'.join(out))
+                code += "findall(r'{pattern}', r'{stri}'{flags})".format(
+                    pattern=pattern, stri=text, flags=flags
+                )
+                self.uiCodeTXT.setText(code)
                 return
-            elif typeIndex == 1:  # Match
+            elif typeIndex == self.ReType.Match:
+                code += "match(r'{pattern}', r'{stri}'{flags})".format(
+                    pattern=pattern, stri=text, flags=flags
+                )
+                self.uiCodeTXT.setText(code)
                 return self.processMatchObject(regex.match(text))
-            elif typeIndex == 2:  # Search
+            elif typeIndex == self.ReType.Search:
+                code += "search(r'{pattern}', r'{stri}'{flags})".format(
+                    pattern=pattern, stri=text, flags=flags
+                )
+                self.uiCodeTXT.setText(code)
                 return self.processMatchObject(regex.search(text))
-            elif typeIndex == 3:  # Split
+            elif typeIndex == self.ReType.Split:
                 results = regex.split(text)
                 for index, result in enumerate(results):
                     if result == None:
@@ -146,10 +166,18 @@ class PyularWidget(QWidget):
                     if result == '':
                         results[index] = self.emptyString
                         self.uiSplitNotesLBL.setVisible(True)
+                code += "split(r'{pattern}', r'{stri}', maxsplit=0{flags})".format(
+                    pattern=pattern, stri=text, flags=flags
+                )
+                self.uiCodeTXT.setText(code)
             else:  # Sub
                 replace = unicode(self.uiReplaceTXT.text())
                 results = regex.sub(replace, text)
                 self.uiResultsTXT.setText(results)
+                code += "sub(r'{pattern}', r'{repl}', r'{stri}', count=0{flags})".format(
+                    pattern=pattern, repl=replace, stri=text, flags=flags
+                )
+                self.uiCodeTXT.setText(code)
                 return
         except Exception, e:
             results = []
