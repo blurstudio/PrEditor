@@ -29,11 +29,17 @@ class PyularDialog(blurdev.gui.Dialog):
         self.setLayout(layout)
         self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide/pyular.png')))
 
+    def count(self):
+        return self.widget.count()
+
     def expression(self):
         return self.widget.expression()
 
     def flags(self):
         return self.widget.flags()
+
+    def setCount(self, count):
+        self.widget.setCount(count)
 
     def setExpression(self, expr):
         self.widget.setExpression(expr)
@@ -69,6 +75,9 @@ class PyularWidget(QWidget):
         self.flags = 0
         self.uiSearchTypeDDL.clear()
         self.uiSearchTypeDDL.addItems(self.ReType.labels(byVal=True))
+
+    def count(self):
+        return self.uiCountSPN.value()
 
     def errorLog(self):
         """
@@ -106,6 +115,7 @@ class PyularWidget(QWidget):
         pattern = unicode(self.uiExpressionTXT.text())
         text = unicode(self.uiStringTXT.toPlainText())
         typeIndex = self.uiSearchTypeDDL.currentIndex()
+        count = self.uiCountSPN.value()
         # start to build the code string that will be populated later in the code.
         code = 're.'
         flags = []
@@ -158,7 +168,7 @@ class PyularWidget(QWidget):
                 self.uiCodeTXT.setText(code)
                 return self.processMatchObject(regex.search(text))
             elif typeIndex == self.ReType.Split:
-                results = regex.split(text)
+                results = regex.split(text, maxsplit=count)
                 for index, result in enumerate(results):
                     if result == None:
                         results[index] = '[None]'
@@ -166,16 +176,20 @@ class PyularWidget(QWidget):
                     if result == '':
                         results[index] = self.emptyString
                         self.uiSplitNotesLBL.setVisible(True)
-                code += "split(r'{pattern}', r'{stri}', maxsplit=0{flags})".format(
-                    pattern=pattern, stri=text, flags=flags
+                if sys.version_info.major < 2 or sys.version_info.minor < 7:
+                    flags = ''
+                code += "split(r'{pattern}', r'{stri}', maxsplit={count}{flags})".format(
+                    pattern=pattern, stri=text, count=count, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
             else:  # Sub
                 replace = unicode(self.uiReplaceTXT.text())
-                results = regex.sub(replace, text)
+                results = regex.sub(replace, text, count=count)
                 self.uiResultsTXT.setText(results)
-                code += "sub(r'{pattern}', r'{repl}', r'{stri}', count=0{flags})".format(
-                    pattern=pattern, repl=replace, stri=text, flags=flags
+                if sys.version_info.major < 2 or sys.version_info.minor < 7:
+                    flags = ''
+                code += "sub(r'{pattern}', r'{repl}', r'{stri}', count={count}{flags})".format(
+                    pattern=pattern, repl=replace, count=count, stri=text, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
                 return
@@ -184,6 +198,9 @@ class PyularWidget(QWidget):
             self.uiErrorLBL.setVisible(True)
             self.uiErrorLBL.setText(str(e))
         self.uiResultsTXT.setText('\n'.join(results))
+
+    def setCount(self, count):
+        self.uiCountSPN.setValue(count)
 
     def setExpression(self, expr):
         self.uiExpressionTXT.setText(expr)
@@ -202,7 +219,14 @@ class PyularWidget(QWidget):
         return self.uiStringTXT.toPlainText()
 
     def typeChanged(self, index):
-        self.uiReplaceWGT.setVisible(index == 4)
+        self.uiReplaceWGT.setVisible(index == self.ReType.Sub)
+        self.uiCountSPN.setVisible(
+            index == self.ReType.Split or index == self.ReType.Sub
+        )
+        self.uiCountLBL.setVisible(self.uiCountSPN.isVisible())
+        self.uiCountSlashLBL.setVisible(self.uiCountSPN.isVisible())
+        d = {self.ReType.Split: 'maxsplit', self.ReType.Sub: 'count'}
+        self.uiCountLBL.setText(d.get(index, ''))
         self.processResults()
 
     def processMatchObject(self, results):
