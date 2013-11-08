@@ -72,9 +72,14 @@ class enum:
     def hasKey(self, key):
         return key in self._keys
 
-    def labels(self):
+    def labels(self, byVal=False):
         import re
 
+        if byVal:
+            return [
+                ' '.join(re.findall('[A-Z]+[^A-Z]*', key))
+                for key in sorted(self.keys(), key=lambda i: getattr(self, i))
+            ]
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 
     def labelByValue(self, value):
