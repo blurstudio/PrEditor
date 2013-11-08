@@ -296,6 +296,8 @@ class XMLElement:
 
     def attribute(self, attr, fail=''):
         """Gets the attribute value of the element by the given attribute id
+        :param attr: Name of the atribute you want to recover.
+        :param fail: If the atribute does not exist return this.
         """
         out = unicode(self._object.getAttribute(attr))
         d = self._document()
@@ -365,9 +367,10 @@ class XMLElement:
         return -1
 
     def findChild(self, childName, recursive=False, autoCreate=False):
-        """Finds the first instance of the child of this instance whose 
-        nodeName is the given child name.
-
+        """Finds the first instance of the child of this instance whose nodeName is the given child name.
+        :param childName: Name to search for.
+        :param recursive: Recursively search each child node for more child nodes. Default is False
+        :param autoCreate: Create the node if it is not found.
         """
         if self._object:
             childList = self._object.getElementsByTagName(childName)
@@ -397,9 +400,10 @@ class XMLElement:
         return None
 
     def findChildren(self, childName, recursive=False):
-        """Finds all the children of this instance whose nodeName is the 
-        given child name.
-
+        """Finds all the children of this instance whose nodeName is the given child name.
+        
+        :param childName: The name of the child nodes to look for.
+        :param recursive: Recursively search each child node for more child nodes. Default is False
         """
         if self._object:
             if recursive:
