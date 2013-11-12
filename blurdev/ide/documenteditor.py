@@ -263,6 +263,17 @@ class DocumentEditor(QsciScintilla):
             '{filename}: Line{plural} {line}'.format(**args)
         )
 
+    def copyLstrip(self):
+        """Copy's the selected text, but strips off any leading whitespace shared by the entire selection.
+        """
+        start, s, end, e = self.getSelection()
+        count = end - start + 1
+        self.setSelection(start, 0, end, e)
+        text = unicode(self.selectedText())
+        while len(re.findall(r'^\W', text, flags=re.M)) == count:
+            text = re.sub(r'^\W', '', unicode(text), flags=re.M)
+        QApplication.clipboard().setText(text)
+
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
         newlineR = text.indexOf('\r')
@@ -948,6 +959,11 @@ class DocumentEditor(QsciScintilla):
         act.setShortcut('Ctrl+C')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
+        act = menu.addAction('Copy lstrip')
+        act.triggered.connect(self.copyLstrip)
+        act.setShortcut('Ctrl+Shift+C')
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
         act.setShortcut('Ctrl+V')
@@ -1109,13 +1125,19 @@ class DocumentEditor(QsciScintilla):
     def updateSelectionInfo(self):
         window = self.window()
         if window and hasattr(window, 'uiCursorInfoLBL'):
-            selection = self.getSelection()
-            if selection[0] == -1:
-                pos = self.getCursorPosition()
-                window.uiCursorInfoLBL.setText('Line: {} Pos: {}'.format(*pos))
+            sline, spos, eline, epos = self.getSelection()
+            # Add 1 to line numbers because document line numbers are 1 based
+            if sline == -1:
+                line, pos = self.getCursorPosition()
+                line += 1
+                window.uiCursorInfoLBL.setText('Line: {} Pos: {}'.format(line, pos))
             else:
+                sline += 1
+                eline += 1
                 window.uiCursorInfoLBL.setText(
-                    'Line: {} Pos: {} To Line: {} Pos: {}'.format(*selection)
+                    'Line: {} Pos: {} To Line: {} Pos: {}'.format(
+                        sline, spos, eline, epos
+                    )
                 )
 
     def setHighlightedKeywords(self, lexer, keywords):

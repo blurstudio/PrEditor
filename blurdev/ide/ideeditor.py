@@ -227,6 +227,7 @@ class IdeEditor(Window):
         self.uiRedoACT.triggered.connect(self.documentRedo)
         self.uiCutACT.triggered.connect(self.documentCut)
         self.uiCopyACT.triggered.connect(self.documentCopy)
+        self.uiCopyLstripACT.triggered.connect(self.documentCopyLstrip)
         self.uiPasteACT.triggered.connect(self.documentPaste)
         self.uiSelectAllACT.triggered.connect(self.documentSelectAll)
         self.uiSelectToMatchingBraceACT.triggered.connect(self.documentSelectMatching)
@@ -538,6 +539,11 @@ class IdeEditor(Window):
         doc = self.currentDocument()
         if doc:
             doc.copy()
+
+    def documentCopyLstrip(self):
+        doc = self.currentDocument()
+        if doc:
+            doc.copyLstrip()
 
     def documentExec(self):
         doc = self.currentDocument()
@@ -1535,6 +1541,9 @@ class IdeEditor(Window):
         self.uiUndoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/undo.png')))
         self.uiRedoACT.setIcon(QIcon(blurdev.resourcePath('img/ide/redo.png')))
         self.uiCopyACT.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        self.uiCopyLstripACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        )
         self.uiCutACT.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
         self.uiCommentAddACT.setIcon(
             QIcon(blurdev.resourcePath('img/ide/comment_add.png'))
@@ -1639,6 +1648,7 @@ class IdeEditor(Window):
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiCutACT)
         self.uiMainTBAR.addAction(self.uiCopyACT)
+        self.uiMainTBAR.addAction(self.uiCopyLstripACT)
         self.uiMainTBAR.addAction(self.uiPasteACT)
         self.uiMainTBAR.addSeparator()
         self.uiMainTBAR.addAction(self.uiCommentAddACT)

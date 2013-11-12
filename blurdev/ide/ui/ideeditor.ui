@@ -185,6 +185,7 @@
     <addaction name="separator"/>
     <addaction name="uiCutACT"/>
     <addaction name="uiCopyACT"/>
+    <addaction name="uiCopyLstripACT"/>
     <addaction name="uiPasteACT"/>
     <addaction name="separator"/>
     <addaction name="uiSelectAllACT"/>
@@ -891,6 +892,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+P</string>
+   </property>
+  </action>
+  <action name="uiCopyLstripACT">
+   <property name="text">
+    <string>Copy lstrip</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
  </widget>
