@@ -98,7 +98,10 @@ class Dialog(QDialog):
         if self.aboutToClearPathsEnabled:
             import blurdev
 
-            blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
+            try:
+                blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
+            except TypeError:
+                pass
 
     def exec_(self):
         # do not use the DeleteOnClose attribute when executing a dialog as often times a user will be accessing

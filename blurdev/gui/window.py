@@ -94,7 +94,10 @@ class Window(QMainWindow):
         if self.aboutToClearPathsEnabled:
             import blurdev
 
-            blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
+            try:
+                blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
+            except TypeError:
+                pass
 
     def setGeometry(self, *args):
         """
