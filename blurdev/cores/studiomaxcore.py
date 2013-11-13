@@ -9,8 +9,9 @@
 #
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
-import Py3dsMax, os
+import Py3dsMax
 from Py3dsMax import mxs
+import os, sys, platform
 from blurdev.cores.core import Core
 from PyQt4.QtGui import QApplication, QFileDialog, QImage
 from PyQt4.QtCore import Qt, QSize
@@ -45,6 +46,18 @@ class StudiomaxCore(Core):
         Core.__init__(self)
         self.setObjectName('studiomax')
         self._supportLegacy = True
+
+    def addLibraryPaths(self, app):
+        if sys.platform != 'win32':
+            return
+        if mxs.maxVersion()[0] / 1000 == 16 and platform.architecture()[0] == '64bit':
+            path = os.path.split(sys.executable)[0]
+            if os.path.exists(os.path.join(path, 'QtOpenGL4.dll')):
+                # Special case for if max has our pyqt installed inside it
+                print 'adding studiomax', path
+                app.addLibraryPath(os.path.split(sys.executable)[0])
+                return
+        super(StudiomaxCore, self).addLibraryPaths(app)
 
     def configUpdated(self):
         """
