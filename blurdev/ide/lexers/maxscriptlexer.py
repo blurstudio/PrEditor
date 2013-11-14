@@ -17,7 +17,7 @@ import sys
 py26orNewer = sys.hexversion >= 0x02060000
 
 MS_KEYWORDS = """
-if then else not
+if then else not and or key
 do while for in with where
 function fn rollout struct parameters attributes exit continue
 local global
