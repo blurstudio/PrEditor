@@ -1,22 +1,19 @@
-##
-# 	\namespace	blurdev.cores.studiomaxcore
-#
-# 	\remarks	This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		04/12/10
-#
+import os
+import sys
+import platform
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
 from Py3dsMax import mxs
-import os, sys, platform
-from blurdev.cores.core import Core
 from PyQt4.QtGui import QApplication, QFileDialog, QImage
 from PyQt4.QtCore import Qt, QSize
 
-# -------------------------------------------------------------------------------------------------------------
+import blurdev
+import blurdev.ini
+import blurdev.tools.tool
+import blurdev.tools.toolsenvironment
+from blurdev.cores.core import Core
+
 
 STUDIOMAX_MACRO_TEMPLATE = """
 macroscript %(studioName)s_%(id)s_Macro
@@ -42,6 +39,10 @@ if ( pyblurdev != undefined ) then (
 
 
 class StudiomaxCore(Core):
+    """
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
+    """
+
     def __init__(self):
         Core.__init__(self)
         self.setObjectName('studiomax')
@@ -61,8 +62,7 @@ class StudiomaxCore(Core):
 
     def configUpdated(self):
         """
-            :remarks	Preform any core specific updating of config. Returns if any actions were taken.
-            :return		<bool>
+        Preform any core specific updating of config. Returns if any actions were taken.
         """
         blurlib = mxs._blurLibrary
         if blurlib:
@@ -78,7 +78,6 @@ class StudiomaxCore(Core):
         _n = mxs.pyhelper.namify
         callbacks = mxs.callbacks
         blurdevid = _n('blurdev')
-
         callbacks.addScript(
             _n(maxSignal),
             STUDIOMAX_CALLBACK_TEMPLATE % {'signal': blurdevSignal, 'args': args},
@@ -86,13 +85,9 @@ class StudiomaxCore(Core):
 
     def createToolMacro(self, tool, macro=''):
         """
-            \remarks	Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
-                        Studiomax application for the inputed Core tool
-            
-            \return		<bool> success
+        Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
+        Studiomax application for the inputed Core tool
         """
-        import blurdev
-
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
@@ -141,30 +136,26 @@ class StudiomaxCore(Core):
         mxs.filein(filename)
         mxs.colorman.setIconFolder('.')
         mxs.colorman.setIconFolder('Icons')
-
         return True
 
     def disableKeystrokes(self):
         """
-            \remarks	[overloaded] disables keystrokes in maxscript
+        Disables keystrokes in maxscript
         """
         mxs.enableAccelerators = False
-
         return Core.disableKeystrokes(self)
 
     def enableKeystrokes(self):
         """
-            \remarks	[overloaded] disables keystrokes in maxscript - max will always try to turn them on
+        Disables keystrokes in maxscript - max will always try to turn them on
         """
         mxs.enableAccelerators = False
-
         return Core.enableKeystrokes(self)
 
     def errorCoreText(self):
         """
-            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-                        If a empty string is returned this line will not be shown in the error email.
-            :returns	<str>
+        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+        If a empty string is returned this line will not be shown in the error email.
         """
         return '<i>Open File:</i> %s' % mxs.maxFilePath + mxs.maxFileName
 
@@ -192,14 +183,13 @@ class StudiomaxCore(Core):
 
     def macroName(self):
         """
-            \Remarks	Returns the name to display for the create macro action in treegrunt
+        Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Macro...'
 
     def quietMode(self):
         """
-            \Remarks	Use this to decide if you should provide user input. 
-            \Return		<bool>
+        Use this to decide if you should provide user input. 
         """
         if mxs.MAXSCRIPTHOST == 1 or mxs.GetQuietMode():
             # This is set in startup/blurStartupMaxLib.ms
@@ -218,10 +208,7 @@ class StudiomaxCore(Core):
         self.setSupportLegacy(pref.restoreProperty('supportLegacy', False))
 
     def registerPaths(self):
-        from blurdev.tools import ToolsEnvironment
-
-        env = ToolsEnvironment.activeEnvironment()
-
+        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
         if QApplication.instance():
             shiftPressed = (
                 QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
@@ -235,8 +222,6 @@ class StudiomaxCore(Core):
             if not envname:
                 envname = env.objectName()
             if envname:
-                import blurdev.ini
-
                 # update the maxscript code only if we are actually changing code environments
                 if (
                     shiftPressed
@@ -260,11 +245,9 @@ class StudiomaxCore(Core):
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
-            \remarks	[overloaded] handle maxscript script running
+        Handle maxscript script running
         """
-
         if not filename:
-
             # make sure there is a QApplication running
             if QApplication.instance():
                 filename = str(
@@ -277,21 +260,13 @@ class StudiomaxCore(Core):
                 )
                 if not filename:
                     return
-
         filename = str(filename)
 
         # run a maxscript file
         if os.path.splitext(filename)[1] in ('.ms', '.mcr'):
             if os.path.exists(filename):
-                # try:
-                # in max 2012 this would generate a error when processing specific return character of \n which is the linux end line convention.
-                # see http://redmine.blur.com/issues/6446 for more details.
-                # 	Py3dsMax.runMaxscript(filename)
-                # except:
-                # 	print 'Except', filename
                 return mxs.filein(filename)
             return False
-
         return Core.runScript(self, filename, scope, argv, toolType)
 
     def setSupportLegacy(self, state):
@@ -302,13 +277,9 @@ class StudiomaxCore(Core):
 
     def toolTypes(self):
         """
-            \remarks	Overloads the toolTypes method from the Core class to show tool types that are related to
-                        Studiomax applications
-                        
-            \return		<blurdev.tools.ToolType>
+        Overloads the toolTypes method from the Core class to show tool types that are related to
+        Studiomax applications
         """
-        from blurdev.tools import ToolsEnvironment, ToolType
-
+        ToolType = blurdev.tools.tool.ToolType
         output = ToolType.Studiomax | ToolType.LegacyStudiomax
-
         return output

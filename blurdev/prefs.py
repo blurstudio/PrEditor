@@ -6,8 +6,9 @@ Module for handling user interface preferences
 import os
 import getpass
 
-from blurdev.XML import XMLDocument
-from blurdev import osystem
+import blurdev
+from .XML import XMLDocument
+from . import osystem
 
 
 # cache of all the preferences
@@ -53,8 +54,6 @@ class Preference(XMLDocument):
 
     def path(self, coreName='', shared=False):
         """ return the path to the application's prefrences folder """
-        import blurdev
-
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
@@ -150,12 +149,10 @@ def find(name, reload=False, coreName='', shared=False, index=0):
     :rtype: :class:`Preference`
 
     """
-    import blurdev
-
     key = str(name).replace(' ', '-').lower()
     if index > 0:
         key = '%s%s' % (key, index)
-    if reload or not key in _cache:
+    if reload or (key not in _cache):
         # create a new preference record
         pref = Preference()
         pref.setShared(shared)

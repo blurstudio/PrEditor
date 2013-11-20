@@ -4,6 +4,7 @@ Defines some deocrators that are commonly useful
 
 """
 
+import traceback
 from blurdev import debug
 
 
@@ -14,19 +15,9 @@ def abstractmethod(function):
     """
 
     def newFunction(*args, **kwargs):
-        # when debugging, raise an error
-        if debug.isDebugLevel(debug.DebugLevel.High):
-            raise NotImplementedError(
-                debug.debugObjectString(
-                    function, 'Abstract implementation is not implemented.'
-                )
-            )
-        else:
-            debug.debugObject(
-                function,
-                'Abstract implementation is not implemented',
-                debug.DebugLevel.Mid,
-            )
+        debug.debugObject(
+            function, 'Abstract implementation is not implemented', debug.DebugLevel.Mid
+        )
         return function(*args, **kwargs)
 
     newFunction.__name__ = function.__name__

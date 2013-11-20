@@ -1,46 +1,41 @@
-##
-# 	\namespace	blurdev.tools.index
-#
-# 	\remarks	Defines the indexing system for the tools package
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
+from __future__ import absolute_import
+
+import glob
+import os
+import re
 
 from PyQt4.QtCore import QObject
-import glob, os
+
+import blurdev
+import blurdev.tools.toolscategory
+import blurdev.tools.tool
+import blurdev.tools.toolsfavoritegroup
 
 
 class ToolsIndex(QObject):
+    """ Defines the indexing system for the tools package
+    """
+
     def __init__(self, environment):
         QObject.__init__(self, environment)
-
         self._loaded = False
         self._favoritesLoaded = False
         self._categoryCache = {}
         self._toolCache = {}
 
     def baseCategories(self):
-        """
-            \remarks	returns the categories that are parented to this index
-            \return		<list> [ <ToolCategory>, .. ]
+        """ returns the categories that are parented to this index
         """
         self.load()
-
-        from toolscategory import ToolsCategory
-
         output = [cat for cat in self._categoryCache.values() if cat.parent() == self]
         output.sort(lambda x, y: cmp(x.objectName(), y.objectName()))
         return output
 
     def clear(self):
-        """
-            \remarks	clears the current cache of information
+        """ clears the current cache of information
         """
         # save the favorites first
         self.saveFavorites()
-
         # reload the data
         self._favoritesLoaded = False
         self._loaded = False
@@ -48,59 +43,47 @@ class ToolsIndex(QObject):
         self._toolCache.clear()
 
         # remove all the children
-        from tool import Tool
-        from toolsfavoritegroup import ToolsFavoriteGroup
-        from toolscategory import ToolsCategory
-
-        for child in self.findChildren(ToolsFavoriteGroup):
+        for child in self.findChildren(
+            blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup
+        ):
             child.setParent(None)
             child.deleteLater()
 
-        for child in self.findChildren(Tool):
+        for child in self.findChildren(blurdev.tools.tool.Tool):
             child.setParent(None)
             child.deleteLater()
 
-        for child in self.findChildren(ToolsCategory):
+        for child in self.findChildren(blurdev.tools.toolscategory.ToolsCategory):
             child.setParent(None)
             child.deleteLater()
 
     def categories(self):
-        """
-            \remarks	returns the current categories for this index
-            \return		<list> [ <blurdev.tools.ToolsCategory>, .. ]
+        """ returns the current categories for this index
         """
         self.load()
-
         output = self._categoryCache.values()
         output.sort(lambda x, y: cmp(x.objectName(), y.objectName()))
         return output
 
     def cacheCategory(self, category):
-        """
-            \remarks	caches the category
+        """ caches the category
         """
         self._categoryCache[str(category.objectName())] = category
 
     def cacheTool(self, tool):
-        """
-            \remarks	caches the inputed tool by its name
+        """ caches the inputed tool by its name
         """
         self._toolCache[str(tool.objectName())] = tool
 
     def environment(self):
-        """
-            \remarks	returns this index's environment
-            \return		<ToolsEnvironment>
+        """ returns this index's environment
         """
         return self.parent()
 
     def rebuild(self):
+        """ rebuilds the index from the file system
         """
-            \remarks	rebuilds the index from the file system
-        """
-        from blurdev.XML import XMLDocument
-
-        doc = XMLDocument()
+        doc = blurdev.XML.XMLDocument()
         root = doc.addNode('index')
 
         # walk through the hierarchy
@@ -109,7 +92,6 @@ class ToolsIndex(QObject):
         legacy = root.addNode('legacy')
 
         # go through all the different language tool folders
-        # --------------------------------------------------------------------------------
         # MCH 07/11/12: This is necessary for backwards compatibility until we switch over to the flat hierarchy
         if os.path.isdir(
             self.environment().relativePath('code/python/tools/External_Tools')
@@ -117,7 +99,6 @@ class ToolsIndex(QObject):
             # This is for the old tools system and is very blur specific
             relPath = 'code/*/tools/*/'
         else:
-            # --------------------------------------------------------------------------------
             # This is for the new tools system
             relPath = 'code/*/tools/'
         for path in glob.glob(self.environment().relativePath(relPath)):
@@ -138,16 +119,15 @@ class ToolsIndex(QObject):
         self.loadFavorites()
 
     def rebuildPath(self, path, parent, tools, legacy=False, parentCategoryId=''):
-        """
-            \remarks	rebuilds the tool information recursively for the inputed path and tools
-            \param		path				<str>
-            \param		parent				<blurdev.XML.XMLElement>
-            \param		tools				<blurdev.XML.XMLElement>
-            \param		legacy				<bool>
-            \param		parentCategoryId	<str>
+        """ rebuilds the tool information recursively for the inputed path and tools
+            
+            :param path: str
+            :param parent: <blurdev.XML.XMLElement>
+            :param tools: <blurdev.XML.XMLElement>
+            :param legacy: bool
+            :param parentCategoryId: str
         """
         foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
-
         if parentCategoryId:
             categoryId = parentCategoryId + '::' + foldername
         else:
@@ -165,8 +145,6 @@ class ToolsIndex(QObject):
         processed = []
         if not legacy:
             paths = glob.glob(path + '/*/__meta__.xml')
-
-            from blurdev.XML import XMLDocument
 
             def setValueForNode(cat, category='category', name='name', value=''):
                 """ Returns the requested node if it exists, or creates and sets it if it does not. """
@@ -187,7 +165,7 @@ class ToolsIndex(QObject):
                 )
 
                 # store the tool information
-                doc = XMLDocument()
+                doc = blurdev.XML.XMLDocument()
                 if doc.load(toolPath) and doc.root():
                     toolIndex.addChild(doc.root())
                     child = doc.root().findChild('category')
@@ -275,26 +253,21 @@ class ToolsIndex(QObject):
         self.loadFavorites()
 
     def favoriteGroups(self):
-        """
-            \remarks	returns the favorites items for this index
+        """ returns the favorites items for this index
         """
         self.loadFavorites()
-
-        from toolsfavoritegroup import ToolsFavoriteGroup
-
         return [
             child
-            for child in self.findChildren(ToolsFavoriteGroup)
+            for child in self.findChildren(
+                blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup
+            )
             if child.parent() == self
         ]
 
     def favoriteTools(self):
-        """
-            \remarks	returns all the tools that are favorited and linked
-            \return		<list> [ <blurdev.tools.Tool>, .. ]
+        """ returns all the tools that are favorited and linked
         """
         self.loadFavorites()
-
         return [
             tool
             for tool in self._toolCache.values()
@@ -302,91 +275,67 @@ class ToolsIndex(QObject):
         ]
 
     def filename(self):
-        """
-            \remarks	returns the filename for this index
-            \return		<str>
+        """ returns the filename for this index
         """
         return self.environment().relativePath('code/tools.xml')
 
     def load(self):
-        """
-            \remarks	loads the current index from the system
+        """ loads the current index from the system
         """
         if not self._loaded:
             self._loaded = True
-
-            from blurdev.XML import XMLDocument
-
-            doc = XMLDocument()
+            doc = blurdev.XML.XMLDocument()
 
             filename = self.filename()
             if doc.load(filename):
-                from toolscategory import ToolsCategory
-                from tool import Tool
-
                 root = doc.root()
 
                 # load categories
                 categories = root.findChild('categories')
                 if categories:
                     for xml in categories.children():
-                        ToolsCategory.fromIndex(self, self, xml)
+                        blurdev.tools.toolscategory.ToolsCategory.fromIndex(
+                            self, self, xml
+                        )
 
                 # load tools
                 tools = root.findChild('tools')
                 if tools:
                     for xml in tools.children():
-                        Tool.fromIndex(self, xml)
+                        blurdev.tools.tool.Tool.fromIndex(self, xml)
 
     def loadFavorites(self):
         if not self._favoritesLoaded:
             self._favoritesLoaded = True
-
             # load favorites
-            import blurdev
-            from toolsfavoritegroup import ToolsFavoriteGroup
-
-            from blurdev import prefs
-
-            pref = prefs.find(
+            pref = blurdev.prefs.find(
                 'treegrunt/%s_favorites' % (self.environment().objectName())
             )
-
             children = pref.root().children()
             for child in children:
                 if child.nodeName == 'group':
-                    ToolsFavoriteGroup.fromXml(self, self, child)
+                    blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup.fromXml(
+                        self, self, child
+                    )
                 else:
                     self.findTool(child.attribute('id')).setFavorite(True)
 
     def findCategory(self, name):
-        """
-            \remarks	returns the tool based on the inputed name, returning the default option if no tool is found
-            \return		<blurdev.tools.Tool>
+        """ returns the tool based on the inputed name, returning the default option if no tool is found
         """
         self.load()
-
         return self._categoryCache.get(str(name))
 
     def findTool(self, name):
-        """
-            \remarks	returns the tool based on the inputed name, returning the default option if no tool is found
-            \return		<blurdev.tools.Tool>
+        """ returns the tool based on the inputed name, returning the default option if no tool is found
         """
         self.load()
-
-        from tool import Tool
-
-        return self._toolCache.get(str(name), Tool())
+        return self._toolCache.get(str(name), blurdev.tools.tool.Tool())
 
     def findToolsByCategory(self, name):
-        """
-            \remarks	looks up the tools based on the inputed category name
-            \param		name		<str>
-            \return		<list> [ <blurdev.tools.Tool>, .. ]
+        """ looks up the tools based on the inputed category name
         """
         self.load()
-
         output = [
             tool for tool in self._toolCache.values() if tool.categoryName() == name
         ]
@@ -396,14 +345,9 @@ class ToolsIndex(QObject):
         return output
 
     def findToolsByLetter(self, letter):
-        """
-            \remarks	looks up tools based on the inputed letter
-            \param		letter		<str>
-            \return		<list> [ <blurdev.tools.Tool>, .. ]
+        """ looks up tools based on the inputed letter
         """
         self.load()
-
-        import re
 
         if letter == '#':
             regex = re.compile('\d')
@@ -422,12 +366,7 @@ class ToolsIndex(QObject):
     def saveFavorites(self):
         # load favorites
         if self._favoritesLoaded:
-            import blurdev
-            from toolsfavoritegroup import ToolsFavoriteGroup
-
-            from blurdev import prefs
-
-            pref = prefs.find(
+            pref = blurdev.prefs.find(
                 'treegrunt/%s_favorites' % (self.environment().objectName())
             )
             root = pref.root()
@@ -441,21 +380,13 @@ class ToolsIndex(QObject):
             for tool in self.favoriteTools():
                 node = root.addNode('tool')
                 node.setAttribute('id', tool.objectName())
-
             pref.save()
 
     def search(self, searchString):
-        """
-            \remarks	looks up tools by the inputed search string
-            \param		searchString	<str> || <QString>
-            \return		<list> [ <trax.api.data.Tool>, .. ]
+        """ looks up tools by the inputed search string
         """
         self.load()
-
-        import re
-
         expr = re.compile(str(searchString).replace('*', '.*'), re.IGNORECASE)
-
         output = []
         for tool in self._toolCache.values():
             if expr.search(tool.displayName()):

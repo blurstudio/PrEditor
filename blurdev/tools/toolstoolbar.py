@@ -1,37 +1,24 @@
-##
-# 	\namespace	blurdev.tools.toolstoolbar
-#
-# 	\remarks	Creates a toolbar that contains links to blurdev Tools
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		10/13/09
-#
+from PyQt4.QtCore import Qt, QSize
+from PyQt4.QtGui import QAction, QToolBar, QIcon, QMenu, QCursor, QHBoxLayout
 
-from PyQt4.QtGui import QAction
-from PyQt4.QtGui import QToolBar
-from blurdev.gui import Dialog
+import blurdev
+from ..gui import Dialog
 
 
 class ToolbarAction(QAction):
+    """ Creates a toolbar that contains links to blurdev Tools
+    """
+
     def __init__(self, parent, toolId):
         QAction.__init__(self, parent)
-
         self._toolId = toolId
-
-        import blurdev
-
         tool = blurdev.findTool(toolId)
         if tool:
-            from PyQt4.QtGui import QIcon
-
             self.setIcon(QIcon(tool.icon()))
             self.setText(tool.displayName())
             self.setToolTip(tool.toolTip())
 
     def exec_(self):
-        import blurdev
-
         blurdev.runTool(self._toolId)
 
     def remove(self):
@@ -49,25 +36,16 @@ class ToolbarAction(QAction):
         return ToolbarAction(parent, xml.attribute('toolId'))
 
 
-# -------------------------------------------------------------------------------------------------------------
-
-
 class ToolsToolBar(QToolBar):
     """ QToolBar sub-class to contain actions for Tools """
 
     def __init__(self, parent, title):
         QToolBar.__init__(self, parent)
-
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
         self.setObjectName(title)
         self.setToolTip('Drag & Drop Scripts and Tools')
-
-        from PyQt4.QtCore import QSize
-
         self.setIconSize(QSize(16, 16))
-
-        from PyQt4.QtCore import Qt
 
         # create connections
         self.actionTriggered.connect(self.runAction)
@@ -109,8 +87,6 @@ class ToolsToolBar(QToolBar):
 
     def mousePressEvent(self, event):
         """ overload the mouse press event to handle custom context menus clicked on toolbuttons """
-        from PyQt4.QtCore import Qt
-
         # on a right click, show the menu
         if event.button() == Qt.RightButton:
             widget = self.childAt(event.x(), event.y())
@@ -118,9 +94,6 @@ class ToolsToolBar(QToolBar):
             # show menus for the toolbars
             if widget and isinstance(widget.defaultAction(), ToolbarAction):
                 self.setContextMenuPolicy(Qt.CustomContextMenu)
-
-                from PyQt4.QtGui import QMenu, QCursor
-
                 action = widget.defaultAction()
 
                 menu = QMenu(self)
@@ -159,20 +132,13 @@ class ToolsToolBarDialog(Dialog):
         Dialog.__init__(self, parent)
         self.aboutToClearPathsEnabled = False
         self.setWindowTitle(title)
-
-        from PyQt4.QtGui import QHBoxLayout
-
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
         self._toolbar = ToolsToolBar(self, title)
         layout.addWidget(self._toolbar)
         self.setLayout(layout)
-
         self.setFixedHeight(30)
-
-        from PyQt4.QtCore import Qt
-
         self.setWindowFlags(Qt.Tool)
 
     def fromXml(self, xml):
@@ -204,11 +170,6 @@ class ToolsToolBarDialog(Dialog):
     def instance(parent=None):
         if not ToolsToolBarDialog._instance:
             inst = ToolsToolBarDialog(parent, 'Blur Tools')
-
-            from PyQt4.QtCore import Qt
-
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
-
             ToolsToolBarDialog._instance = inst
-
         return ToolsToolBarDialog._instance

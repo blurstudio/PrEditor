@@ -1,21 +1,49 @@
-##
-# 	\namespace	blurdev
-#
-# 	\remarks	The blurdev package is the core library methods for tools development at Blur Studio
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
+""" The blurdev package is the core library methods for tools development at Blur Studio
+
+    The blurdev package is also the primary environment manager for blur tools.
+    It contains useful sub-packages for various tasks, such as media encoding,
+    and includes a Qt gui library.
+
+"""
+
+from __future__ import absolute_import
 
 __DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 
 # track the install path
-import os, sys
+import os
+import sys
 import copy
+import types
+import cPickle
+import re
 
-from PyQt4.QtGui import QMainWindow, QDialog, QVBoxLayout
+from PyQt4.QtGui import (
+    QMainWindow,
+    QDialog,
+    QVBoxLayout,
+    QApplication,
+    QWizard,
+    QMessageBox,
+)
+from PyQt4.QtCore import Qt
+import blur.Stone
 
+# TODO: It is probably unnecessary to import most of these subpackages in the root package.
+import blurdev.version
+import blurdev.settings
+import blurdev.enum
+import blurdev.debug
+import blurdev.osystem
+import blurdev.media
+import blurdev.XML
+import blurdev.prefs
+import blurdev.tools
+import blurdev.ini
+
+
+installPath = os.path.split(__file__)[0]
+"""Stores the full filepath of the blurdev installation directory."""
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -36,9 +64,7 @@ def activeEnvironment():
     :mod:`blurdev.tools` system.
     
     """
-    from blurdev.tools import ToolsEnvironment
-
-    return ToolsEnvironment.activeEnvironment()
+    return blurdev.tools.ToolsEnvironment.activeEnvironment()
 
 
 def bindMethod(object, name, method):
@@ -47,8 +73,6 @@ def bindMethod(object, name, method):
     dirty alternative to sub-classing when not possible.
     
     """
-    import types
-
     object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
 
 
@@ -60,8 +84,6 @@ def ensureWindowIsVisible(widget):
     widget.	
     
     """
-    from PyQt4.QtGui import QApplication
-
     desktop = QApplication.desktop()
     geo = widget.geometry()
     for screen in range(desktop.screenCount()):
@@ -83,55 +105,35 @@ def ensureWindowIsVisible(widget):
 
 
 def findDevelopmentEnvironment():
-    from blurdev.tools import ToolsEnvironment
-
-    return ToolsEnvironment.findDevelopmentEnvironment()
+    return blurdev.tools.ToolsEnvironment.findDevelopmentEnvironment()
 
 
 def findTool(name, environment=''):
-    init()
-
-    from tools import ToolsEnvironment
-
     if not environment:
-        env = ToolsEnvironment.activeEnvironment()
+        env = blurdev.tools.ToolsEnvironment.activeEnvironment()
     else:
-        env = ToolsEnvironment.findEnvironment(environment)
-
+        env = blurdev.tools.ToolsEnvironment.findEnvironment(environment)
     if env:
         return env.index().findTool(name)
-
-    from tools.tool import Tool
-
-    return Tool()
+    return blurdev.tools.Tool()
 
 
 def runtime(filepath):
-    import os.path
-
     return os.path.join(installPath, 'runtimes', filepath)
 
 
 def init():
+    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.version.toString()
     pythonw_print_bugfix()
-    global core, prefs, application, debug, osystem, settings, tools, enum, XML, gui
-    # initialize the settings
-    import settings
-
-    settings.init()
-
+    blurdev.settings.init()
+    blurdev.ini.LoadConfigData()
+    global core, application
     # create the core and application
     if not core:
-        # create the core instance
         from blurdev.cores import Core
-        import prefs, debug, osystem, settings, tools, enum, XML
 
-        # create the core
         core = Core()
-
-        # initialize the application
         application = core.init()
-        import gui
 
 
 def launch(
@@ -169,13 +171,8 @@ def launch(
                       be wrapped by that.
     """
     global _appHasExec
-
-    init()
-
     # create the app if necessary
     app = None
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import QWizard
     from blurdev.cores.core import Core
 
     if application:
@@ -205,7 +202,6 @@ def launch(
         urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
         oldkwargs = copy.copy(kwargs)
         if urlArgs:
-            import cPickle
 
             urlArgs = cPickle.loads(urlArgs)
             if kwargs is None:
@@ -279,8 +275,6 @@ def quickReload(modulename):
     based on the imported module.
     
     """
-    import sys, re
-
     expr = re.compile(str(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
 
     # reload longer chains first
@@ -296,8 +290,6 @@ def quickReload(modulename):
 
 
 def packageForPath(path):
-    import os.path
-
     path = str(path)
     splt = os.path.normpath(path).split(os.path.sep)
     index = 1
@@ -317,11 +309,8 @@ def prefPath(relpath, coreName=''):
     # use the core
     if not coreName and core:
         coreName = core.objectName()
-
-    import osystem, os.path
-
     basepath = os.path.join(
-        osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
+        blurdev.osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
     )
     return os.path.normpath(os.path.join(basepath, relpath))
 
@@ -341,9 +330,7 @@ def pythonw_print_bugfix():
 
 
 def registerScriptPath(filename):
-    from tools import ToolsEnvironment
-
-    ToolsEnvironment.registerScriptPath(filename)
+    blurdev.tools.ToolsEnvironment.registerScriptPath(filename)
 
 
 def relativePath(path, additional):
@@ -353,8 +340,6 @@ def relativePath(path, additional):
     :param additional: Additional folder/file path appended to the path.
     :return str: The modified path
     """
-    import os.path
-
     return os.path.join(os.path.split(str(path))[0], additional)
 
 
@@ -362,8 +347,6 @@ def resetWindowPos():
     """
         Reset any top level widgets(windows) to 0,0 use this to find windows that are offscreen.
     """
-    from PyQt4.QtGui import QApplication
-
     for widget in QApplication.instance().topLevelWidgets():
         if widget.isVisible():
             geo = widget.geometry()
@@ -386,32 +369,23 @@ def resourcePath(relpath):
 
 
 def runTool(toolId, macro=""):
-    init()
-
-    from PyQt4.QtGui import QApplication
-    from tools import ToolsEnvironment
-
     # load the tool
-    tool = ToolsEnvironment.activeEnvironment().index().findTool(toolId)
+    tool = blurdev.tools.ToolsEnvironment.activeEnvironment().index().findTool(toolId)
     if not tool.isNull():
         tool.exec_(macro)
 
     # let the user know the tool could not be found
     elif QApplication.instance():
-        from PyQt4.QtGui import QMessageBox
-
         QMessageBox.critical(
             None,
             'Tool Not Found',
             '%s is not a tool in %s environment.'
-            % (toolId, ToolsEnvironment.activeEnvironment().objectName()),
+            % (toolId, blurdev.tools.ToolsEnvironment.activeEnvironment().objectName()),
         )
 
 
 def setActiveEnvironment(env):
-    from blurdev.tools import ToolsEnvironment
-
-    return ToolsEnvironment.findEnvironment(env).setActive()
+    return blurdev.tools.ToolsEnvironment.findEnvironment(env).setActive()
 
 
 def setAppUserModelID(id, prefix='Blur'):
@@ -427,10 +401,6 @@ def setAppUserModelID(id, prefix='Blur'):
                    fooBar, the associated appId should be *Blur.FooBar*.  
                    Defaults to *Blur*.
     """
-    try:
-        import blur.Stone
-    except:
-        return False
     if hasattr(blur.Stone, 'qSetCurrentProcessExplicitAppUserModelID'):
         blur.Stone.qSetCurrentProcessExplicitAppUserModelID('%s.%s' % (prefix, id))
         return True
@@ -473,13 +443,5 @@ def startProgress(title='Progress', parent=None):
     return MultiProgressDialog.start(title)
 
 
-# track the install path
-installPath = os.path.split(__file__)[0]
-"""Stores the full filepath of the blurdev installation directory."""
-
 # initialize the core
 init()
-# add the blurdev version info to the error email
-import version
-
-os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = version.toString()

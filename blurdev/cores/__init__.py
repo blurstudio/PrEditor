@@ -1,12 +1,5 @@
-##
-# 	\namespace	blurdev.cores
-#
-# 	\remarks	Defines the different core systems for the blurdev
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
+""" Defines the different core systems for the blurdev
+"""
 
 Core = None
 

@@ -4,9 +4,7 @@ import glob
 import re
 import platform
 
-import blurdev.osystem
-import blurdev.settings
-import blurdev.debug
+import blurdev
 
 
 _movieFileTypes = {

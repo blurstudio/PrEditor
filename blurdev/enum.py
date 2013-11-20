@@ -1,38 +1,28 @@
-##
-# 	\namespace	blurdev.enum
-#
-# 	\remarks	Python based enumartion class, create and parse binary classes
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		08/06/08
-#
-"""
-Python based enumartion class, create and parse binary classes
+""" Python based enumartion class, create and parse binary classes
 
-The enum module defines a single class -- :class:`enum` -- to act as an 
-enumerated type similar to the enumerated type present in other languages.
-
-A short example::
-
-    >>> Colors = enum("Red", "Yellow", "Blue")
-    >>> Color.Red
-    1
-    >>> Color.Yellow
-    2
-    >>> Color.Blue
-    4
-    >>> Color.labelByValue(Color.Blue)
-    'Blue'
+    The enum module defines a single class -- :class:`enum` -- to act as an 
+    enumerated type similar to the enumerated type present in other languages.
+    
+    A short example::
+    
+        >>> Colors = enum("Red", "Yellow", "Blue")
+        >>> Color.Red
+        1
+        >>> Color.Yellow
+        2
+        >>> Color.Blue
+        4
+        >>> Color.labelByValue(Color.Blue)
+        'Blue'
     
 """
 
 import re
-from sys import maxint
+import sys
 
 
-class enum:
-    INDICES = xrange(maxint)  # indices constant to use for looping
+class enum(object):
+    INDICES = xrange(sys.maxint)  # indices constant to use for looping
 
     def __call__(self, key):
         return self.value(key)
@@ -49,6 +39,7 @@ class enum:
             raise AttributeError, key
 
     def __init__(self, *args, **kwds):
+        super(enum, self).__init__()
         self._keys = list(args) + kwds.keys()
         self._compound = kwds.keys()
         self._descr = {}
@@ -73,8 +64,6 @@ class enum:
         return key in self._keys
 
     def labels(self, byVal=False):
-        import re
-
         if byVal:
             return [
                 ' '.join(re.findall('[A-Z]+[^A-Z]*', key))
@@ -83,8 +72,6 @@ class enum:
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 
     def labelByValue(self, value):
-        import re
-
         return ' '.join(re.findall('[A-Z]+[^A-Z]*', self.keyByValue(value)))
 
     def isValid(self, value):
@@ -139,18 +126,15 @@ class enum:
         for key in self._keys:
             if not key in self._compound and value & self.value(key):
                 parts.append(key)
-
         if parts:
             return ' '.join(parts)
         return default
 
     def fromString(self, labels):
         parts = str(labels).split(' ')
-
         value = 0
         for part in parts:
             value |= self.value(part)
-
         return value
 
     def setDescription(self, value, descr):

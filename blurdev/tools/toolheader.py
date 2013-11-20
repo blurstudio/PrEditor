@@ -1,14 +1,8 @@
-##
-# 	\namespace	blurdev.tools.toolheader
-#
-# 	\remarks	Creates the ToolHeader class parses a tool file for header information
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
+import os
+import re
 
-import os.path
+from PyQt4.QtCore import QObject
+
 
 HEADER_HTML = """
 <html>
@@ -33,16 +27,16 @@ HEADER_HTML = """
 </html>
 """
 
-from PyQt4.QtCore import QObject
-
 
 class ToolHeader(QObject):
+    """ Creates the ToolHeader class parses a tool file for header information
+    """
+
     def __init__(self, tool):
         QObject.__init__(self, tool)
 
     def html(self):
         filename = self.parent().sourcefile()
-
         if not os.path.exists(filename):
             return self.blankHeader()
 
@@ -70,8 +64,6 @@ class ToolHeader(QObject):
 
     @staticmethod
     def parseMaxscript(lines):
-        import re
-
         header = ['<p>']
         open_comment = False
 
@@ -127,8 +119,6 @@ class ToolHeader(QObject):
 
     @staticmethod
     def parsePython(lines):
-        import re
-
         header = ['<p>']
         open_comment = False
 

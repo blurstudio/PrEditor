@@ -1,26 +1,20 @@
-##
-# 	\namespace	blurdev.tools.toolscategory
-#
-# 	\remarks	Creates the ToolsCategory class for grouping tools together
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
-
 from PyQt4.QtCore import QObject
+
+import blurdev.tools.toolsindex
+import blurdev.tools.tool
 
 
 class ToolsCategory(QObject):
+    """ Creates the ToolsCategory class for grouping tools together
+    """
+
     def __init__(self, parent):
         QObject.__init__(self, parent)
-
         self._toolTypeLoaded = False
         self._toolType = 0
 
     def addTool(self, tool):
-        """
-            \remarks	adds the tool to the cache
+        """ adds the tool to the cache
         """
         tool.setParent(self)
         self._toolType |= tool.toolType()
@@ -30,42 +24,34 @@ class ToolsCategory(QObject):
         return name.replace('_', ' ').strip()
 
     def index(self):
+        """ returns the index from which this category is instantiated
         """
-            \remarks	returns the index from which this category is instantiated
-            \return		<blurdev.tools.ToolIndex>
-        """
-        from toolsindex import ToolsIndex
-
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, blurdev.tools.toolsindex.ToolsIndex):
             output = output.parent()
         return output
 
     def subcategories(self):
-        """
-            \remarks	returns a list of the sub-categories for this category
-            \return		<list> [ <ToolsCategory>, .. ]
+        """ returns a list of the sub-categories for this category
         """
         return [child for child in self.children() if isinstance(child, ToolsCategory)]
 
     def tools(self, toolType=None):
+        """ returns a list of the tools for this category
         """
-            \remarks	returns a list of the tools for this category
-            \return		<list> [ <blurdev.tools.Tool>, .. ]
-        """
-        from tool import Tool
-
-        return [child for child in self.children() if isinstance(child, Tool)]
+        return [
+            child
+            for child in self.children()
+            if isinstance(child, blurdev.tools.tool.Tool)
+        ]
 
     def toolType(self):
-        """
-            \remarks	returns the toolType for this category
+        """ returns the toolType for this category
         """
         if not self._toolTypeLoaded:
             self._toolTypeLoaded = True
             for cat in self.subcategories():
                 self._toolType |= cat.toolType()
-
         return self._toolType
 
     @staticmethod

@@ -31,7 +31,13 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 
 import os
 import datetime
-from enum import enum
+import inspect
+
+from PyQt4.QtCore import Qt, QString
+from PyQt4.QtGui import QMessageBox
+
+import blurdev
+from .enum import enum
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
 _debugLogger = None
@@ -40,13 +46,13 @@ _errorReport = []
 DebugLevel = enum('Low', 'Mid', 'High')
 
 
-class Stopwatch:
+class Stopwatch(object):
     def __init__(self, name, debugLevel=1):
+        super(StopWatch, self).__init__()
         self._name = str(name)
         self._count = 0
         self._debugLevel = debugLevel
         self._lapStack = []
-
         self.reset()
 
     def newLap(self, message):
@@ -63,7 +69,6 @@ class Stopwatch:
     def startLap(self, message):
         if _currentLevel < self._debugLevel:
             return False
-
         self._lapStack.append((message, datetime.datetime.now()))
         return True
 
@@ -82,7 +87,6 @@ class Stopwatch:
         output.append('------------------------------------------')
         output += self._records
         output.append('')
-
         debugMsg('\n'.join(output), self._debugLevel)
         return True
 
@@ -91,12 +95,10 @@ class Stopwatch:
             return False
 
         curr = datetime.datetime.now()
-
         message, sstart = self._lapStack.pop()
-
         # process the elapsed time
         elapsed = str(curr - sstart)
-        if not '.' in elapsed:
+        if '.' not in elapsed:
             elapsed += '.'
 
         while len(elapsed) < 14:
@@ -145,8 +147,6 @@ def debugObject(object, msg, level=2):
 
 
 def debugObjectString(object, msg):
-    import inspect
-
     # debug a module
     if inspect.ismodule(object):
         return '[%s module] :: %s' % (object.__name__, msg)
@@ -204,8 +204,6 @@ def debugLevel():
 
 
 def emailList():
-    import blurdev
-
     return blurdev.activeEnvironment().emailOnError()
 
 
@@ -229,11 +227,8 @@ def isDebugLevel(level):
     :rtype: bool
     
     """
-    from PyQt4.QtCore import Qt, QString
-
-    if type(level) in (str, QString):
+    if isinstance(level, (basestring, QString)):
         level = DebugLevel.value(str(level))
-
     return level <= debugLevel()
 
 
@@ -244,8 +239,6 @@ def printCallingFunction(compact=False):
     :param compact: If set to True, prints a more compact printout
     
     """
-    import inspect
-
     current = inspect.currentframe().f_back
     try:
         parent = current.f_back
@@ -296,8 +289,6 @@ def showErrorReport(
     message='There were errors that occurred.  Click the Details button for more info.',
 ):
     if not errorsReported():
-        from PyQt4.QtGui import QMessageBox
-
         QMessageBox.critical(None, subject, message)
     else:
         from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog
@@ -316,32 +307,24 @@ def setDebugLevel(level):
     :type level: :data:`DebugLevel`
 
     """
-    from PyQt4.QtCore import QString
-
-    import blurdev
-
     global _currentLevel
 
     # clear the debug level
     if not level:
         _currentLevel = 0
-
         if blurdev.core:
             blurdev.core.emitDebugLevelChanged()
-
         return True
 
     # check for the debug value if a string is passed in
-    if type(level) in (str, QString):
+    if isinstance(level, (basestring, QString)):
         level = DebugLevel.value(str(level))
 
     # assign the debug flag
     if DebugLevel.isValid(level):
         _currentLevel = level
-
         if blurdev.core:
             blurdev.core.emitDebugLevelChanged()
-
         return True
     else:
         debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)

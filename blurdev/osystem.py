@@ -15,20 +15,26 @@ way.
 
 """
 
+import getpass
+import sys
 import os
 import re
 import subprocess
+from distutils.sysconfig import get_python_inc
+import shutil
+import platform
 
 from PyQt4.QtCore import QProcess
 
-from blurdev import settings
+import blurdev
+from . import settings
+from . import scripts
+
 
 # Get the active version of python, not a hard coded value.
 def pythonPath():
     if settings.OS_TYPE != 'Windows':
         return 'python'
-    from distutils.sysconfig import get_python_inc
-
     return r'%s\python.exe' % os.path.split(get_python_inc())[0]
 
 
@@ -52,7 +58,7 @@ def expandvars(text, cache=None):
         return ''
 
     # check for circular dependencies
-    if cache == None:
+    if cache is None:
         cache = {}
 
     # return the cleaned variable
@@ -134,14 +140,11 @@ def createShortcut(
                     
     """
     if settings.OS_TYPE == 'Windows':
-        import blurdev.scripts
-
         if not path:
-            path = blurdev.scripts.winshell.desktop(1)
+            path = scripts.winshell.desktop(1)
             if not os.path.exists(path):
                 os.makedirs(path)
         if not target:
-            import sys
 
             target = sys.executable
         if not startin:
@@ -156,7 +159,6 @@ def createShortcut(
                 os.makedirs(outPath)
             outIcon = os.path.abspath('%s\%s.ico' % (outPath, title))
             if os.path.exists(icon):
-                import shutil
 
                 shutil.copyfile(icon, outIcon)
                 if os.path.exists(outIcon):
@@ -165,7 +167,6 @@ def createShortcut(
                     icon = None
             else:
                 if ext == '.png':
-                    import platform
 
                     if platform.architecture()[0] == '64bit':
                         progF = 'ProgramFiles(x86)'
@@ -185,7 +186,7 @@ def createShortcut(
         shortcut = os.path.join(path, '%s.lnk' % title)
         print shortcut, '---', target, '---', args, '---', startin, '---', icon, '---', description
         if icon:
-            blurdev.scripts.winshell.CreateShortcut(
+            scripts.winshell.CreateShortcut(
                 shortcut,
                 target,
                 Arguments='"%s"' % args,
@@ -194,21 +195,18 @@ def createShortcut(
                 Description=description,
             )
         else:
-            blurdev.scripts.winshell.CreateShortcut(
+            scripts.winshell.CreateShortcut(
                 shortcut,
                 target,
                 Arguments=args,
                 StartIn=startin,
                 Description=description,
             )
-        import blurdev.media
-
         blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
 
 
 def explore(filename):
-    """Launches the filename given the current platform
-
+    """ Launches the filename given the current platform
     """
     # pull the filpath from the inputed filename
     fpath = os.path.normpath(unicode(filename))
@@ -224,18 +222,14 @@ def explore(filename):
         cmd = expandvars(os.environ.get('BDEV_CMD_BROWSE', ''))
         if not cmd:
             return False
-
         subprocess.Popen(cmd % {'filepath': fpath}, shell=True)
 
 
 def programFilesPath(path=''):
-    """Returns the path to 32bit program files on windows.
+    """ Returns the path to 32bit program files on windows.
     
-    :param path: this string is appended to the path
-    
+        :param path: this string is appended to the path
     """
-    import platform
-
     if platform.architecture()[0] == '64bit':
         progF = 'ProgramFiles(x86)'
     else:
@@ -248,7 +242,7 @@ def shell(command, basepath='', persistent=False):
     Runs the given shell command in its own window.  The command will be run
     from the current working directory, or from *basepath*, if given.  
     If persistent is True, the shell will stay open after the command is run.
->
+
     """
     if not basepath:
         basepath = os.curdir
@@ -312,10 +306,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     
     """
     # determine the debug level
-    import os
-    from blurdev import debug
-    from PyQt4.QtCore import QProcess
-    import subprocess
+    debug = blurdev.debug
 
     success = False
     filename = str(filename)
@@ -324,7 +315,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     if not (os.path.isfile(filename) or filename.startswith('http://')):
         return False
 
-    if debugLevel == None:
+    if debugLevel is None:
         debugLevel = debug.debugLevel()
 
     # determine the base path for the system
@@ -334,7 +325,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
 
     # strip out the information we need
     ext = os.path.splitext(filename)[1]
-    if cmd == None:
+    if cmd is None:
         if filename.startswith('http://'):
             cmd = expandvars(os.environ.get('BDEV_CMD_WEB', ''))
         elif ext == ".py":
@@ -345,8 +336,6 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     options = {'filepath': filename, 'basepath': basePath}
 
     # build the environment to pass along
-    import blurdev
-
     env = None
     env = os.environ.copy()
     envPath = blurdev.activeEnvironment().path()
@@ -429,7 +418,6 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
                 cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
                 if not cmd:
                     return False
-
                 success = subprocess.Popen(cmd % options, shell=True)
 
     return success
@@ -448,8 +436,6 @@ def username():
     otherwise, returns an empty string.
 
     """
-    import getpass
-
     try:
         return getpass.getuser()
     except getpass.GetPassWarning:

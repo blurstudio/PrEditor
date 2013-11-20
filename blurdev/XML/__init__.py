@@ -36,19 +36,22 @@ The blurdev XML module defines two classes -- :class:`XMLElement` and
 
 """
 
-from xmlelement import XMLElement
-from xmldocument import XMLDocument
+from __future__ import absolute_import
+
+from .xmlelement import XMLElement
+from .xmldocument import XMLDocument
 
 
 def __dict_replace(s, d):
-    """Replace substrings of a string using a dictionary."""
+    """ Replace substrings of a string using a dictionary."""
     for key, value in d.items():
         s = s.replace(key, value)
     return s
 
 
 def escape(data, entities={}):
-    """Escape &, <, and > in a string of data.
+    """
+    Escape &, <, and > in a string of data.
 
     You can escape other strings of data by passing a dictionary as
     the optional entities parameter.  The keys and values must all be
@@ -65,7 +68,8 @@ def escape(data, entities={}):
 
 
 def unescape(data, entities={}):
-    """Unescape &amp;, &lt;, and &gt; in a string of data.
+    """
+    Unescape &amp;, &lt;, and &gt; in a string of data.
 
     You can unescape other strings of data by passing a dictionary as
     the optional entities parameter.  The keys and values must all be

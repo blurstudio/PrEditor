@@ -1,4 +1,4 @@
-##
+# #
 # 	\namespace	blurdev.tools.ToolsEnvironment
 #
 # 	\remarks	Defines the ToolsEnvironment class for the tools package
@@ -7,16 +7,26 @@
 # 	\author		Blur Studio
 # 	\date		06/11/10
 #
+from __future__ import absolute_import
 
 import os
+import sys
 import re
 import datetime
+
 from PyQt4.QtCore import QObject, pyqtSignal, QDateTime
+
+import blurdev
+import blurdev.tools.toolsindex
+
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
 
 class ToolsEnvironment(QObject):
+    """ Defines the ToolsEnvironment class for the tools package
+    """
+
     # static members
     environments = []
     # Should disabled tools be shown
@@ -42,22 +52,18 @@ class ToolsEnvironment(QObject):
 
     def clearPathSymbols(self):
         """
-            \remarks	removes the path symbols from the environment
+        Removes the path symbols from the environment
         """
         if self.isEmpty():
             return False
 
         path = self.normalizePath(self.path())
 
-        import sys, os
-
         # do not remove python path variables
         pythonpath = [
             split.lower() for split in os.environ.get('pythonpath', '').split(';')
         ]
         # do not remove paths for protected modules.
-        import blurdev
-
         symbols = blurdev.core.protectedModules()
         for name in symbols:
             mod = sys.modules.get(name)
@@ -78,8 +84,7 @@ class ToolsEnvironment(QObject):
         ]
         sys.path = newpaths
 
-        from blurdev import debug
-
+        debug = blurdev.debug
         debug.debugObject(
             self.clearPathSymbols,
             '%s were removed from sys.path'
@@ -90,7 +95,18 @@ class ToolsEnvironment(QObject):
         newmodules = {}
 
         for key, value in sys.modules.items():
-            if not key in symbols:
+            protected = False
+            if key in symbols:
+                protected = True
+            ckey = key
+            while not protected and '.' in ckey:
+                ckey = ckey.rsplit('.', 1)[0]
+                if key in symbols:
+                    protected = True
+            if protected:
+                continue
+
+            if key not in symbols:
                 found = False
                 try:
                     found = path in value.__file__.lower()
@@ -116,10 +132,7 @@ class ToolsEnvironment(QObject):
             \return		<blurdev.tools.index.Index>
         """
         if not self._index:
-            from toolsindex import ToolsIndex
-
-            self._index = ToolsIndex(self)
-
+            self._index = blurdev.tools.toolsindex.ToolsIndex(self)
         return self._index
 
     def isActive(self):
@@ -240,14 +253,10 @@ class ToolsEnvironment(QObject):
             \return		<str>
         """
         if not self.isEmpty():
-            import os.path
-
             return os.path.abspath(os.path.join(str(self.path()), str(path)))
         return ''
 
     def resetPaths(self):
-        import blurdev, os.path
-
         blurdev.core.aboutToClearPaths.emit()
         self.clearPathSymbols()
         self.registerPath(self.path())
@@ -271,8 +280,6 @@ class ToolsEnvironment(QObject):
             self._active = True
             self.registerPath(self.path())
             # make tools importable
-            import blurdev, os
-
             self.registerPath(
                 os.path.join(
                     blurdev.activeEnvironment().path(), 'code', 'python', 'tools'
@@ -280,14 +287,10 @@ class ToolsEnvironment(QObject):
             )
 
             # set the legacy environment active
-            import blurdev.ini
-
             blurdev.ini.SetActiveEnvironment(unicode(self.objectName()))
 
             # emit the environment activateion change signal
             if not silent:
-                import blurdev
-
                 # core can be defined as None at this point in if this was called during blurdev.core init.
                 if blurdev.core:
                     blurdev.core.emitEnvironmentActivated()
@@ -356,8 +359,6 @@ class ToolsEnvironment(QObject):
         Syncs a single environment definition with the legacy config.ini file.
         
         """
-        import blurdev.ini
-
         name = env.objectName()
         legacy = env.legacyName()
         envPath = env.path()
@@ -385,8 +386,6 @@ class ToolsEnvironment(QObject):
         legacy config.ini file.
                 
         """
-        import blurdev.ini
-
         for env in ToolsEnvironment.environments:
             name = env.objectName()
             legacy = env.legacyName()
@@ -463,8 +462,6 @@ class ToolsEnvironment(QObject):
         output.setLegacyName(legacyName)
 
         ToolsEnvironment.environments.append(output)
-        import blurdev.ini
-
         # update blurdev.ini
         # TODO: this will register the TEMPORARY_TOOLS_ENV env with legacy tools, but
         # not other new environments
@@ -531,9 +528,7 @@ class ToolsEnvironment(QObject):
             \param		path		<str> || <QString>
             \return		<str>
         """
-        from blurdev import settings
-
-        return settings.normalizePath(path)
+        return blurdev.settings.normalizePath(path)
 
     @staticmethod
     def loadConfig(filename, included=False):
@@ -543,9 +538,7 @@ class ToolsEnvironment(QObject):
             \param		included		<bool> 	marks whether or not this is an included file
             \return		<bool> success
         """
-        from blurdev.XML import XMLDocument
-
-        doc = XMLDocument()
+        doc = blurdev.XML.XMLDocument()
         if doc.load(filename):
             root = doc.root()
 
@@ -562,8 +555,6 @@ class ToolsEnvironment(QObject):
 
             # initialize the default environment
             if not included:
-                import blurdev
-
                 pref = blurdev.prefs.find(
                     'blurdev/core', coreName=blurdev.core.objectName()
                 )
@@ -599,14 +590,12 @@ class ToolsEnvironment(QObject):
                 # 						ToolsEnvironment.defaultEnvironment().setActive(silent=True)
 
                 # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
-                import os
-
                 environPath = os.environ.get('BLURDEV_PATH')
                 found = False
                 if environPath:
-                    from blurdev.tools import TEMPORARY_TOOLS_ENV
-
-                    env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
+                    env = ToolsEnvironment.findEnvironment(
+                        blurdev.tools.TEMPORARY_TOOLS_ENV
+                    )
                     if env.isEmpty():
                         found = True
                 if not found:
@@ -623,13 +612,9 @@ class ToolsEnvironment(QObject):
         if not filename:
             return False
 
-        from blurdev.XML import XMLDocument
-
-        doc = XMLDocument()
+        doc = blurdev.XML.XMLDocument()
         root = doc.addNode('tools_environments')
         root.setAttribute('version', 1.0)
-
-        import os.path
 
         filename = os.path.normcase(filename)
         for env in ToolsEnvironment.environments:
@@ -646,14 +631,10 @@ class ToolsEnvironment(QObject):
             \param		path		<str>
             \return		<bool> success
         """
-        from blurdev import settings
-
-        settings.registerPath(path)
+        blurdev.settings.registerPath(path)
 
     @staticmethod
     def registerScriptPath(filename):
-        import os.path
-
         # push the local path to the front of the list
         path = os.path.split(filename)[0]
 

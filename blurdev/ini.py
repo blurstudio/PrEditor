@@ -1,52 +1,34 @@
-#
-# 	__PYDOC__
-#
-# 	[TITLE]
-# 	blurGlobals.py
-#
-# 	[DESCRIPTION]
-# 	Functions to read through and initialize the paths for Blur Studios.
-# 	Also has functions for accessing & setting INI information.
-#
-# 	[CREATION INFO]
-# 	Author: Eric Hulser
-# 	Email: beta@blur.com
-# 	Company: Blur Studios
-# 	Date: 06/21/06
-#
-# 	[HISTORY]
-# 	--1.0	- Created
-#
-# 	[DEPENDENCIES]
-#
-# 	__END__
-#
+"""
+Functions to read through and initialize the paths for Blur Studios.
+Also has functions for accessing & setting INI information.
 
-# -------------------------------------------------------------------------------------------------------------
-# 										GLOBAL DEFINITIONS
-# -------------------------------------------------------------------------------------------------------------
 
-import ConfigParser, sys, os, os.path, getpass
+"""
+
+import ConfigParser
+import sys
+import os
+import getpass
+import shutil
+
+import blurdev
+import blurdev.tools
+
 
 configFile = "c:/blur/config.ini"  # Default path information for Blur Studio
 environments = {}
 activeEnvironment = 'production'
 blurConfigFile = None
 
-# -------------------------------------------------------------------------------------------------------------
-# 											INI FUNCTIONS
-# -------------------------------------------------------------------------------------------------------------
-
 
 def GetINISetting(inFileName, inSection="", inKey=""):
-    """
-        :remarks
-                    Gets the value of the inputed key found in the given section of an INI file, if it exists and
-                    the key is specified.  If the key is not specified, but the section exists, then the function
-                    will return a list of all the keys in that section.
-        :param		inFileName			<string>
-        :param		inSection			<variant>
-        :param		inKey				<variant>		Default:''
+    """	Gets the value of the inputed key found in the given section of an INI file, if it exists and
+        the key is specified.  If the key is not specified, but the section exists, then the function
+        will return a list of all the keys in that section.
+                    
+        :param inFileName:
+        :param inSection:
+        :param inKey:
         :returns:	<string> || <list>[ <string>,.. ]
     """
     if os.path.isfile(inFileName):
@@ -68,18 +50,12 @@ def GetINISetting(inFileName, inSection="", inKey=""):
 
 
 def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
-    """
-        :remarks	Sets the ini section setting of the inputed file with the give key/value pair.
-                    By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
-                    It will use ConfigParser.ConfigParser instead. You will not be able to write to the
-                    DEFAULT Section when using ConfigParser.ConfigParser.
-        :param		inFileName			<string>
-        :param		inSection			<variant>
-        :param		inKey				<variant>
-        :param		inValue				<variant>
-        :param		useConfigParser		<bool>		Default False
+    """ Sets the ini section setting of the inputed file with the give key/value pair.
+        By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
+        It will use ConfigParser.ConfigParser instead. You will not be able to write to the
+        DEFAULT Section when using ConfigParser.ConfigParser.
         
-        :return		<bool>
+        :returns: bool
     """
     if useConfigParser:
         tParser = ConfigParser.ConfigParser()
@@ -108,13 +84,9 @@ def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
 
 
 def DelINISetting(inFileName, inSection, inKey=""):
-    """
-        :remarks	Delets the given section & key ( if specified ) from the inputed file, if the file exists.
-        :param		inFileName			<string>
-        :param		inSection			<variant>
-        :param		inKey				<variant>
-        
-        :return		<bool>
+    """ Delets the given section & key ( if specified ) from the inputed file, if the file exists.
+
+        :returns: bool
     """
     if os.path.isfile(inFileName):
         tParser = ToolParserClass()
@@ -136,9 +108,9 @@ def EndINIFn():
 
 
 class switch(object):
-    """
-        :remarks	Provides a switch call that mimics that of C/C++.
-        :return		<bool>
+    """ Provides a switch call that mimics that of C/C++.
+    
+        :returns: bool
     """
 
     def __init__(self, value):
@@ -159,41 +131,19 @@ class switch(object):
             return False
 
 
-# -------------------------------------------------------------------------------------------------------------
-# 										TOOL SETTING CLASS
-# -------------------------------------------------------------------------------------------------------------
-
-
-class SectionClass:
-    """
-        :remarks	Represents an INI file's section, providing quick and easy access to its properties
-        :methods	GetProperty( <string> propName )
-                    GetName()
-                    Load( <ConfigParser> parser )
-                    Save( <ConfigParser> parser )
-                    SetID( <string> sectionName )
-                    SetProperty( <string> propName, <variant> propValue )
-        :members	<void>
+class SectionClass(object):
+    """ Represents an INI file's section, providing quick and easy access to its properties
     """
 
     def __getattr__(self, attrKey):
-        """
-            :remarks	Overloaded the get attribute for this class to run the GetProperty function for the given attribute
-            :param		attrKey		<string>
-            
-            :return		<variant> || AttributeError
+        """ Overloaded the get attribute for this class to run the GetProperty function for the given attribute
         """
         if not attrKey.startswith('_'):
             return self.GetProperty(attrKey)
         raise AttributeError, attrKey
 
     def __setattr__(self, attrKey, attrValue):
-        """
-            :remarks	Overloaded the set attribute for this class to run the SetProperty function for the given attribute
-            :param		attrKey		<string>
-            :param		attrValue	<variant>
-            
-            :return		True || AttributeError
+        """ Overloaded the set attribute for this class to run the SetProperty function for the given attribute
         """
         if not attrKey.startswith('_'):
             self.SetProperty(attrKey, attrValue)
@@ -201,27 +151,21 @@ class SectionClass:
             raise AttributeError, attrKey
 
     def __init__(self, sectionName):
+        """ Class initialization.  Set the sectionName for the class instance to the given variable *required*
         """
-            :remarks	Class initialization.  Set the sectionName for the class instance to the given variable *required*
-            :param		sectionName		<string>		**Required
-        """
+        super(SectionClass, self).__init__()
         self.__dict__['_sectionName'] = sectionName
         self.__dict__['_properties'] = {}
 
     def GetName(self):
-        """
-            :remarks	Returns the section name for this instance
-            :return		<string>
+        """ Returns the section name for this instance
         """
         return self._sectionName
 
     def GetProperty(self, propName):
-        """
-            :remarks	Gets the property whose dictionary key matches the inputed name from the instance's
-                        _properties dictionary, or returns a blank string if not found.
-            :param		propName		<string>
-        
-            :return		<string>
+        """ Gets the property whose dictionary key matches the inputed name from the instance's
+            _properties dictionary, or returns a blank string if not found.
+
         """
         propName = propName.lower()
         if propName in self._properties:
@@ -229,9 +173,7 @@ class SectionClass:
         return ''
 
     def GetPropNames(self):
-        """
-            :remarks	Returns the _properties dictionary keys
-            :return		<list> [ <string>, .. ]
+        """ Returns the _properties dictionary keys
         """
         return self._properties.keys()
 
@@ -239,11 +181,7 @@ class SectionClass:
         return self._properties.values()
 
     def Load(self, parser):
-        """
-            :remarks	Loads the data from the inputed parser if it has a section whose name matches this instance's name.
-            :param		parser		<ConfigParser> || <ToolParserClass>
-        
-            :return		<bool>
+        """ Loads the data from the inputed parser if it has a section whose name matches this instance's name.
         """
         if parser.has_section(self._sectionName):
             self.__dict__['_properties'] = {}
@@ -255,11 +193,7 @@ class SectionClass:
         return False
 
     def Save(self, parser):
-        """
-            :remarks	Saves the data for this instance to the inputed parser
-            :param		parser		<ConfigParser> || <ToolParserClass>
-        
-            :return		True
+        """ Saves the data for this instance to the inputed parser
         """
         if not parser.has_section(self._sectionName):
             parser.add_section(self._sectionName)
@@ -271,20 +205,13 @@ class SectionClass:
         return True
 
     def SetName(self, sectionName):
-        """
-            :remarks	Sets the instances name to the inputed string
-            :param		sectionName		<string>
+        """ Sets the instances name to the inputed string
         """
         self._sectionName = sectionName
 
     def SetProperty(self, propName, propValue):
-        """
-            :remarks	Sets the property and value for the INI part based on the inputed values.  ** The inputed
-                        propName is converted to lowercase **
-            :param		propName		<string>
-            :param		propValue		<variant>
-        
-            :return		True
+        """ Sets the property and value for the INI part based on the inputed values.  ** The inputed
+            propName is converted to lowercase **
         """
         propName = unicode(propName).lower()
         self._properties[propName] = propValue
@@ -292,13 +219,7 @@ class SectionClass:
 
 
 class ToolParserClass(ConfigParser.ConfigParser):
-    """
-        :remarks	Provides an easy way to create and manage tool related config files.
-        Methods:	GetFileName()
-                    GetSection( <string> sectionName )
-                    Load( <string> fileName = '' )
-                    Save( <string> fileName = '' )
-        Members:	<void>
+    """ Provides an easy way to create and manage tool related config files.
     """
 
     def __getattr__(self, attrKey):
@@ -317,25 +238,22 @@ class ToolParserClass(ConfigParser.ConfigParser):
         self._toolID = toolID
         self._location = location
         self._sectionClasses = []
-
         if toolID:
             self.Load()
 
     def GetFileName(self):
         """
-            :remarks
-                        Builds the file name for this class instance using its location and toolID.
-                        Locations:
-                                3dsMax:	Uses 'maxPlugPath'  pathID with the GetPath function
-                                XSI:	Uses 'xsiPlugPath'  pathID with the GetPath function
-                                Other:	Uses 'userPlugPath' pathID with the GetPath function
-        
-                        The fileName is built as:
-                            GetPath( pathID ) + toolID + '.ini'
-        
-                        If there is no toolID specified for this instance, then this function returns a blank string.
-        
-            :return		<string>
+        Builds the file name for this class instance using its location and toolID.
+        Locations:
+                3dsMax:	Uses 'maxPlugPath'  pathID with the GetPath function
+                XSI:	Uses 'xsiPlugPath'  pathID with the GetPath function
+                Other:	Uses 'userPlugPath' pathID with the GetPath function
+
+        The fileName is built as:
+            GetPath( pathID ) + toolID + '.ini'
+
+        If there is no toolID specified for this instance, then this function returns a blank string.
+
         """
         outFileName = ''
 
@@ -352,12 +270,8 @@ class ToolParserClass(ConfigParser.ConfigParser):
         return outFileName
 
     def GetSection(self, sectionName):
-        """
-            :remarks	Returns the section whose name matches the inputed string, adding a new SectionClass to this
-                        instance's list if none is found.
-            :param		sectionName		<string>
-        
-            :return		<SectionClass>
+        """ Returns the section whose name matches the inputed string, adding a new SectionClass to this
+            instance's list if none is found.
         """
         for tSection in self._sectionClasses:
             if tSection.GetName().lower() == sectionName.lower():
@@ -368,27 +282,19 @@ class ToolParserClass(ConfigParser.ConfigParser):
         return outSection
 
     def GetSectionNames(self):
-        """
-            :remarks	Get a list of all the section names for this class instance
-            :return		<list>[ <string>, .. ]
+        """ Get a list of all the section names for this class instance
         """
         return [tSection.GetName() for tSection in self._sectionClasses]
 
     def GetSections(self):
-        """
-            :remarks	Returns the sction class children of this ToolParser instance
-            :return		<list>[ <SectionClass>, .. ]
+        """ Returns the sction class children of this ToolParser instance
         """
         return self._sectionClasses
 
     def Load(self, fileName=''):
-        """
-            :remarks	Load up a config file and builds its class information based on its sections/keys/values.
-                        If the fileName is specified, then the parser uses the inputed file name to open, otherwise
-                        it will use the GetFileName function to build its own name.
-            :param		fileName		<string>		OPTIONAL
-        
-            :return		<bool>
+        """ Load up a config file and builds its class information based on its sections/keys/values.
+            If the fileName is specified, then the parser uses the inputed file name to open, otherwise
+            it will use the GetFileName function to build its own name.
         """
         if not fileName:
             fileName = self.GetFileName()
@@ -401,7 +307,6 @@ class ToolParserClass(ConfigParser.ConfigParser):
                     # If the file is corrupted load the backup
                     path = os.environ.get('bdev_config_ini_backup')
                     if os.path.exists(path):
-                        import shutil
 
                         shutil.copy2(path, fileName)
                         self.Load(fileName)
@@ -476,26 +381,16 @@ class ToolParserClass(ConfigParser.ConfigParser):
                 fp.write("\n")
 
 
-# -------------------------------------------------------------------------------------------------------------
-# 									BLUR GLOBALS PATH DEFINITIONS
-# -------------------------------------------------------------------------------------------------------------
-
-
 def _normEnv(environmentID):
+    """ Normalizes inputed environmentID.  Function is setup for backwards compatibility, setting
+        code path 'local' and 'network' to work with new environments and turns the ID to lowercase
     """
-        :remarks	Normalizes inputed environmentID.  Function is setup for backwards compatibility, setting
-                    code path 'local' and 'network' to work with new environments and turns the ID to lowercase
-        :return		<string>
-    """
-    # 	if ( environmentID.lower() == 'local' ):
-    # 		return 'Development'
     if environmentID.lower() == 'network':
         return 'Production'
     if environmentID.lower() == 'offline':
         return 'Offline'
     if environmentID.lower() == 'beta':
         return 'Beta'
-
     return environmentID
 
 
@@ -509,18 +404,8 @@ def addSysPath(path):
 
 
 def AddResourcePath(inRelativePath):
-    """
-    #	:remarks
-    #				Adds a relative path to the sys.path list, combining the inputed path with the current
-    #				GetCodePath results.
-    #	:example
-    #				AddResourcePath( 'Main/Production_Tools/Treegrunt_resource/' ) adds 'h:/treegrunt/Main/Production_Tools/Treegrunt_resource'
-    #				if 'h:/treegrunt/' is the current codeRoot value.
-    #
-    #	:param		inRelativePath		<string>
-    #
-    #	:return
-    #				<bool>
+    """ Adds a relative path to the sys.path list, combining the inputed path with the current
+        GetCodePath results.
     """
     tPath = os.path.normpath(os.path.join(GetCodePath(), inRelativePath).lower())
     if not tPath in sys.path:
@@ -530,51 +415,27 @@ def AddResourcePath(inRelativePath):
 
 
 def GetActiveEnvironment():
-    """
-    #	:remarks
-    #				Returns the active environment SectionClass
-    #	:return
-    #				<SectionClass>
+    """ Returns the active environment SectionClass
     """
     return environments[activeEnvironment]
 
 
 def GetActiveEnvironmentID():
-    """
-    #	:remarks
-    #				Returns the id of the active environment
-    #	:return
-    #				<string>
+    """ Returns the id of the active environment
     """
     return GetActiveEnvironment().GetName()
 
 
 def GetCodePath(inEnvironment=''):
-    """
-    #	:remarks
-    #				Returns the 'codeRoot' pathID value for the given environment.  If no environment is specified,
-    #				then the current active environment is used.
-    #
-    #	:param		inEnvironment 		<string>
-    #
-    #	:sa GetPath
-    #
-    #	:return
-    #				<string>
+    """ Returns the 'codeRoot' pathID value for the given environment.  If no environment is specified,
+        then the current active environment is used.
     """
     return GetPath('codeRoot', inEnvironment=inEnvironment)
 
 
 def GetEnvironment(environmentID):
-    """
-    #	:remarks
-    #				Returns the SectionClass instance whose ID matches the inputed envrionment ID from the global
-    #				environments list (if a match is found)
-    #
-    #	:param		environmentID		<string>
-    #
-    #	:return
-    #				<SectionClass>
+    """ Returns the SectionClass instance whose ID matches the inputed envrionment ID from the global
+        environments list (if a match is found)
     """
     if not environmentID:
         environmentID = activeEnvironment
@@ -587,12 +448,7 @@ def GetEnvironment(environmentID):
 
 
 def GetEnvironmentIDs(verifyPathIDsExist=[]):
-    """
-    #	:remarks
-    #				Returns all available environment IDs from the global environments dictionary
-    #
-    #	:return
-    #				<list>[ <string>, .. ]
+    """Returns all available environment IDs from the global environments dictionary
     """
     outEnvironmentIDs = []
     for tEnvironment in environments.values():
@@ -609,20 +465,11 @@ def GetEnvironmentIDs(verifyPathIDsExist=[]):
 def GetPath(
     inPathKey, inEnvironment='', inPathSeparator='/', inIncludeLastSeparator=True
 ):
-    """
-    #	:remarks
-    #				Gets the path associated with the inputed path key.  If an environment is passed in, then
-    #				that environment section is used to find the path value, otherwise the active environment is
-    #				used.  If the inputed path key does not exist in the given environment, then the value for the
-    #				default environment is returned, and if no match exists for the default section, a blank string
-    #				is outputed.
-    #
-    #	:param		inPathKey			<string>
-    #	:param		inEnvironment		<string>
-    #	:param		inPathSeparator		<string>
-    #
-    #	:return
-    #				<string>
+    """ Gets the path associated with the inputed path key.  If an environment is passed in, then
+        that environment section is used to find the path value, otherwise the active environment is
+        used.  If the inputed path key does not exist in the given environment, then the value for the
+        default environment is returned, and if no match exists for the default section, a blank string
+        is outputed.
     """
     if not inEnvironment:
         inEnvironment = activeEnvironment
@@ -644,16 +491,9 @@ def GetPath(
 
 
 def GetPathIDs(inEnvironment=''):
-    """
-    #	:remarks
-    #				Collects all the available pathIDs for the inputed environment, using the active environment
-    #				if no input is specified.  Combines the given environment and the default values (which are
-    #				available for any environment)
-    #
-    #	:param		inEnvironment			<string>
-    #
-    #	:return
-    #				<list>[ <string>, .. ]
+    """ Collects all the available pathIDs for the inputed environment, using the active environment
+        if no input is specified.  Combines the given environment and the default values (which are
+        available for any environment)
     """
     if not inEnvironment:
         inEnvironment = activeEnvironment
@@ -670,19 +510,9 @@ def GetPathIDs(inEnvironment=''):
 
 
 def GetPaths(inEnvironment='', inPathSeparator='/'):
-    """
-    #	:remarks
-    #				Collects all the available paths for the inputed environment, using the active environment
-    #				if no input is specified.  Combines the given environment and the default values (which are
-    #				available for any environment)
-    #
-    #	:param		inEnvironment		<string>
-    #	:param		inPathSeparator		<string>
-    #
-    #	:sa GetPathIDs
-    #
-    #	:return
-    #				<list>[ <string>, .. ]
+    """ Collects all the available paths for the inputed environment, using the active environment
+        if no input is specified.  Combines the given environment and the default values (which are
+        available for any environment)
     """
     outPaths = []
     for tPathID in GetPathIDs(inEnvironment=inEnvironment):
@@ -692,17 +522,9 @@ def GetPaths(inEnvironment='', inPathSeparator='/'):
 
 
 def IsEnvironmentValid(environmentID='', verifyPathIDsExist=[]):
-    """
-    #	:remarks
-    #				Checks to see if the given environment exists by checking the paths associated with it,
-    #				if the pathIDs array is blank, then all the paths are checked, otherwise only those specified
-    #				are checked.
-    #
-    #	:param		environmentID		<string>
-    #	:param		pathIDs				<list>[ <string>, .. ]
-    #
-    #	:return
-    #				<bool>
+    """ Checks to see if the given environment exists by checking the paths associated with it,
+        if the pathIDs array is blank, then all the paths are checked, otherwise only those specified
+        are checked.
     """
     if not environmentID:
         environmentID = activeEnvironment
@@ -719,26 +541,13 @@ def IsEnvironmentValid(environmentID='', verifyPathIDsExist=[]):
 
 
 def IsOffsite():
-    """
-    #	:remarks
-    #				Checks to see if the current active environment is set to being offsite
-    #	:return
-    #				<bool>
+    """ Checks to see if the current active environment is set to being offsite
     """
     return activeEnvironment == 'Offline'
 
 
 def IsPath(pathID, inEnvironment=''):
-    """
-    #	:remarks
-    #				Checks to see if the inputed ID is in the list of available path IDs for the specified
-    #				environment
-    #
-    #	:param		pathID			<string>
-    #	:param		inEnvironment	<string>
-    #
-    #	:return
-    #				<bool>
+    """ Checks to see if the inputed ID is in the list of available path IDs for the specified environment
     """
     for tPathID in GetPathIDs(inEnvironment=''):
         if tPathID.lower() == pathID.lower():
@@ -747,33 +556,23 @@ def IsPath(pathID, inEnvironment=''):
 
 
 def IsScripter():
-    """
-    #	:remarks
-    #				Checks to see if the code path for the development environment exists on the user's machine
-    #	:return
-    #				<bool>
+    """ Checks to see if the code path for the development environment exists on the user's machine
     """
     return os.path.exists(GetCodePath(inEnvironment='development'))
 
 
 def LoadConfigData():
+    """ Loads the config data from the blur config.ini file to populate the path templates and data
     """
-    #	:remarks
-    #				Loads the config data from the blur config.ini file to populate the path templates and data
-    #	:return
-    #				<bool>
-    """
-    global environments, activeEnvironment
-
+    global environments, activeEnvironment, blurConfigFile
     environments = {}
 
     if os.path.exists(configFile):
-        global blurConfigFile
+
         blurConfigFile = ToolParserClass()
         blurConfigFile.Load(configFile)
-        import blurdev
-        from blurdev.tools import ToolsEnvironment, TEMPORARY_TOOLS_ENV
 
+        TEMPORARY_TOOLS_ENV = blurdev.tools.TEMPORARY_TOOLS_ENV
         activeEnvironment = unicode(blurdev.activeEnvironment().legacyName())
 
         for tSection in blurConfigFile.GetSections():
@@ -786,7 +585,7 @@ def LoadConfigData():
         environments['default'] = tDefaultSection
 
         # set up the temporary environment if pressent
-        env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
+        env = blurdev.tools.ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
         if not env.isEmpty():
             codeRootPath = os.path.abspath(
                 os.path.join(env.path(), 'maxscript', 'treegrunt')
@@ -803,15 +602,7 @@ def LoadConfigData():
 
 
 def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys={}):
-    """
-    #	:remarks
-    #				Removes templates from the inputed path - this way paths can be built using symbolic links
-    #
-    #	:param		inPath			<string>
-    #	:param		inCustomKeys	<dictionary>{ <key>: <string> }
-    #
-    #	:return
-    #				<string>
+    """ Removes templates from the inputed path - this way paths can be built using symbolic links
     """
     tSplit = inPath.replace('[', ']').split(']')
     outName = ''
@@ -829,14 +620,7 @@ def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys={}):
 
 
 def SetActiveEnvironment(inEnvironment):
-    """
-    #	:remarks
-    #				Sets the current active environment to the inputed value
-    #
-    #	:param		inEnvironment		<string>
-    #
-    #	:return
-    #				<bool>
+    """ Sets the current active environment to the inputed value
     """
     global activeEnvironment
 
@@ -849,8 +633,8 @@ def SetActiveEnvironment(inEnvironment):
 
 
 def ReloadAllModules():
-    """Reloads all modules in memory"""
-
+    """ Reloads all modules in memory
+    """
     for module in sys.modules.itervalues():
         if (module != None) and module.__name__.find("blur") != -1:
             try:
@@ -860,20 +644,12 @@ def ReloadAllModules():
             except:
                 pass
                 # xsi.LogMessage( "No Module Named:  " + module.__name__ )
-
     return True
 
 
 def SetCodePath(inEnvironment, reloadModules=False):
-    """
-    #	:remarks
-    #				Sets the current active environment to the inputed value, replacing the code path within
-    #				the sys path info for importing libraries from the right environment
-    #
-    #	:param		inEnvironment			<string>
-    #
-    #	:return
-    #				<string>
+    """ Sets the current active environment to the inputed value, replacing the code path within
+        the sys path info for importing libraries from the right environment
     """
     oldCodePath = GetCodePath()
     outCodePath = oldCodePath
@@ -899,16 +675,7 @@ def SetCodePath(inEnvironment, reloadModules=False):
 
 
 def NormPath(inPath, inPathSeparator="/", inIncludeLastSeparator=True):
-    """
-    #	:remarks
-    #				Normalizes the inputed path
-    #
-    #	:param		inPath					<string>
-    #	:param		inPathSeparator			<string>
-    #	:param		inIncludeLastSeparator	<bool>
-    #
-    #	:return
-    #				<string>
+    """ Normalizes the inputed path
     """
     if inPath == "":
         return ""
@@ -936,16 +703,8 @@ def EndGlobalsFN():
     return None
 
 
-# -------------------------------------------------------------------------------------------------------------
-# 										BOOLEAN FUNCTIONS
-# -------------------------------------------------------------------------------------------------------------
-
-
 def IsInt(inString):
-    """
-    #	:remarks 	Checks if the inputed string is a valid int type
-    #	:param		<string>
-    #	:return 	<bool>
+    """ Checks if the inputed string is a valid int type
     """
     try:
         int(inString)
@@ -955,27 +714,10 @@ def IsInt(inString):
 
 
 def IsFloat(inString):
-    """
-    #	:remarks 	Checks if the inputed string is a valid float type
-    #	:param		<string>
-    #	:return 	<bool>
+    """ Checks if the inputed string is a valid float type
     """
     try:
         float(inString)
         return True
     except:
         return False
-
-
-# -------------------------------------------------------------------------------------------------------------
-# 										PATH FUNCTIONS
-# -------------------------------------------------------------------------------------------------------------
-def ______end______():
-    pass
-
-
-# -------------------------------------------------------------------------------------------------------------
-# 											INITIALIZATION
-# -------------------------------------------------------------------------------------------------------------
-
-LoadConfigData()

@@ -1,17 +1,12 @@
-##
-# 	\namespace	blurdev.tools.toolsfavoritegroup
-#
-# 	\remarks	Creates the ToolsFavoriteGroup class for grouping favorited tools together
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
-
 from PyQt4.QtCore import QObject
+
+import blurdev.tools.toolsindex
 
 
 class ToolsFavoriteGroup(QObject):
+    """ Creates the ToolsFavoriteGroup class for grouping favorited tools together
+    """
+
     def __init__(self, parent, name):
         QObject.__init__(self, parent)
         self.setObjectName(name)
@@ -34,10 +29,8 @@ class ToolsFavoriteGroup(QObject):
         tool.setFavoriteGroup(self)
 
     def index(self):
-        from toolsindex import ToolsIndex
-
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, blurdev.tools.toolsindex.ToolsIndex):
             output = output.parent()
         return output
 

@@ -1,18 +1,16 @@
-##
-# 	\namespace	blurdev.tools.tool
-#
-# 	\remarks	Creates the ToolsCategory class for grouping tools together
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
+from __future__ import absolute_import
 
 import os
+import importlib
 
-from PyQt4.QtCore import QObject
+from PyQt4.QtCore import QObject, Qt
+from PyQt4.QtGui import QApplication
 
-from blurdev.enum import enum
+import blurdev
+from ..enum import enum
+import blurdev.tools.toolheader
+import blurdev.tools.toolsindex
+
 
 # 					1			2			4			8		  16			32				64					128				256
 ToolType = enum(
@@ -30,9 +28,11 @@ ToolType = enum(
 
 
 class Tool(QObject):
+    """ Creates the ToolsCategory class for grouping tools together
+    """
+
     def __init__(self):
         QObject.__init__(self)
-
         self._displayName = ''
         self._path = ''
         self._sourcefile = ''
@@ -58,16 +58,11 @@ class Tool(QObject):
             return output.replace('_', ' ').strip()
 
     def exec_(self, macro=''):
+        """ Runs this tool with the inputed macro command
+            
+            :param str macro: macro
         """
-            \remarks	runs this tool with the inputed macro command
-            \param		macro	<str>
-        """
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QApplication
-        import blurdev
-
-        from blurdev import debug
-
+        debug = blurdev.debug
         if QApplication.instance().keyboardModifiers() == Qt.ControlModifier or debug.isDebugLevel(
             debug.DebugLevel.Mid
         ):
@@ -82,16 +77,7 @@ class Tool(QObject):
         # Log what tool was used and when.
         try:
             # uses the environment variable "bdev_use_log_class" to import a module similar to the following
-            # import datetime
-            # def logEvent(info):
-            # 	info.setdefault('created', datetime.datetime.today())
-            # 	f = open(r'c:\temp\log.txt', 'w')
-            # 	f.write(repr(info))
-            # 	f.close()
-            # 	return info
             useLogClass = os.environ.get('bdev_use_log_class')
-            import importlib
-
             useLog = importlib.import_module(useLogClass)
             info = {'name': self.objectName()}
             info['miscInfo'] = macro
@@ -113,9 +99,7 @@ class Tool(QObject):
 
     def header(self):
         if not self._header:
-            from toolheader import ToolHeader
-
-            self._header = ToolHeader(self)
+            self._header = blurdev.tools.toolheader.ToolHeader(self)
         return self._header
 
     def icon(self):
@@ -144,14 +128,11 @@ class Tool(QObject):
         )
 
     def index(self):
-        """
-            \remarks	returns the index from which this category is instantiated
+        """ returns the index from which this category is instantiated
             \return		<blurdev.tools.ToolIndex>
         """
-        from toolsindex import ToolsIndex
-
         output = self.parent()
-        while output and not isinstance(output, ToolsIndex):
+        while output and not isinstance(output, blurdev.tools.toolsindex.ToolsIndex):
             output = output.parent()
         return output
 
@@ -162,8 +143,6 @@ class Tool(QObject):
         return self.relativePath('%s.blurproj' % self.displayName())
 
     def relativePath(self, relpath):
-        import os.path
-
         output = os.path.join(self.path(), relpath)
         return output
 
@@ -195,9 +174,9 @@ class Tool(QObject):
         )  # ensure that the tool id is properly formated since it is case sensitive
 
     def setToolType(self, toolType):
-        """
-            \remarks	sets the current tools type
-            \param		toolType	<ToolType>
+        """ sets the current tools type
+            :param toolType: ToolType
+            
         """
         self._toolType = toolType
 
@@ -214,9 +193,7 @@ class Tool(QObject):
         return self._toolTip
 
     def toolType(self):
-        """
-            \remarks	returns the toolType for this category
-            \return		<ToolType>
+        """ returns the toolType for this category
         """
         return self._toolType
 
@@ -228,18 +205,15 @@ class Tool(QObject):
 
     @staticmethod
     def fromIndex(index, xml):
-        """
-            \remarks	creates a new tool record based on the inputed xml information for the given index
-            \param		index	<ToolsIndex>
-            \param		xml		<blurdev.XML.XMLElement>
+        """ creates a new tool record based on the inputed xml information for the given index
+            :param index: <ToolsIndex>
+            :param xml: <blurdev.XML.XMLElement>
         """
         output = Tool()
         output.setObjectName(xml.attribute('name'))
 
         # load modern tools
         loc = xml.attribute('loc')
-        import os.path
-
         if loc:
             output.setPath(os.path.split(index.environment().relativePath(loc))[0])
 

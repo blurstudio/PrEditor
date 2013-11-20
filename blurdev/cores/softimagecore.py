@@ -1,18 +1,15 @@
-##
-# 	\namespace	blurdev.cores.softimagecore
-#
-# 	\remarks	This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Softimage sessions
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		04/12/10
-#
+import os
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
 from PySoftimage import xsi
-from blurdev.cores.core import Core
+from PyQt4.QtGui import QApplication, QCursor
+import win32com.client
+from win32com.client import constants
 
-# -------------------------------------------------------------------------------------------------------------
+from blurdev.cores.core import Core
+import blurdev.tools.toolsenvironment
+import blurdev.tools.tool
+
 
 SOFTIMAGE_MACRO_TEMPLATE = """
 import win32com.client
@@ -39,70 +36,59 @@ def %(displayName)s_Execute(  ):
 
 
 class SoftimageCore(Core):
+    """
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Softimage sessions
+    """
+
     def __init__(self):
         Core.__init__(self)
         self.setObjectName('softimage')
 
     def errorCoreText(self):
         """
-            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-                        If a empty string is returned this line will not be shown in the error email.
-            :returns	<str>
+        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+        If a empty string is returned this line will not be shown in the error email.
+        
         """
         return '<i>Open File:</i> %s' % xsi.ActiveProject.ActiveScene.FileName.Value
 
     def isKeystrokesEnabled(self):
-        from PyQt4.QtGui import QApplication, QCursor
-
         disabled = False
         if QApplication.instance().focusWidget():
             window = QApplication.instance().focusWidget().window()
             geom = window.geometry()
             disabled = geom.contains(QCursor.pos())
-
         return not disabled
 
     def init(self):
         # connect the plugin to 3dsmax
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())
-
         self.protectModule('PySoftimage')
-
         # load this file as a plugin for XSI
         xsi.LoadPlugin(__file__)
-
         # init the base class
         return Core.init(self)
 
     def macroName(self):
         """
-            \Remarks	Returns the name to display for the create macro action in treegrunt
+        Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Macro...'
 
     def toolTypes(self):
         """
-            \remarks	Overloads the toolTypes method from the Core class to show tool types that are related to
-                        Studiomax applications
-                        
-            \return		<blurdev.tools.ToolType>
+        Overloads the toolTypes method from the Core class to show tool types that are related to
+        Studiomax applications
         """
-        from blurdev.tools import ToolsEnvironment, ToolType
-
+        ToolType = blurdev.tools.tool.ToolType
         output = ToolType.Softimage | ToolType.LegacySoftimage
-
         return output
 
     def createToolMacro(self, tool, macro=''):
         """
-            \remarks	Overloads the createToolMacro virtual method from the Core class, this will create a command plugin for the
-                        Softimage application for the inputed Core tool
-            
-            \return		<bool> success
+        Overloads the createToolMacro virtual method from the Core class, this will create a command plugin for the
+        Softimage application for the inputed Core tool
         """
-        import win32com.client, os
-        from win32com.client import constants
-
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
@@ -116,9 +102,6 @@ class SoftimageCore(Core):
         }
 
         # create the macroscript
-
-        import os
-
         pluginsPath = os.path.join(
             xsi.GetInstallationPath2(constants.siUserPath), 'Application', 'Plugins'
         )
@@ -129,5 +112,4 @@ class SoftimageCore(Core):
 
         # reloading softimage plugins
         xsi.UpdatePlugins()
-
         return True

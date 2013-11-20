@@ -1,39 +1,20 @@
-##
-# 	\namespace	blurdev.tools.toolstoolbar
-#
-# 	\remarks	Creates a toolbar that contains favorite Treegrunt tools.
-#
-# 	\author		douglas@blur.com
-# 	\author		Blur Studio
-# 	\date		11/02/11
-#
-
-
-# ------------------------------------------------------------------------------------------------------------------------
-
-
 import os
 import webbrowser
-
-import blurdev
-from blurdev.gui import Dialog
 
 from PyQt4.QtGui import QIcon, QAction, QToolBar, QMenu, QCursor, QHBoxLayout
 from PyQt4.QtCore import QSize, Qt, QRect
 
-
-# ------------------------------------------------------------------------------------------------------------------------
+import blurdev
+from ..gui import Dialog
 
 
 class LovebarAction(QAction):
     def __init__(self, parent, tool):
         QAction.__init__(self, parent)
-
         self._tool = tool
         self._toolWikiName = tool.displayName().replace(' ', '_')
         self._toolDsiplayName = tool.displayName()
         self._toolID = tool.objectName()
-
         iconPath = tool.icon()
         if not os.path.exists(iconPath):
             iconPath = blurdev.resourcePath('img/blank.png')
@@ -48,22 +29,22 @@ class LovebarAction(QAction):
         self.parent().removeAction(self)
 
     def documentation(self):
-        import trax.api
-
-        webbrowser.open(
-            trax.api.redmine.url(
-                'pipeline', 'wiki', self._tool.displayName().replace(' ', '_')
+        url_template = os.environ.get('BDEV_USER_GUIDE_URL')
+        if url_template:
+            webbrowser.open(
+                url_template % str(self._tool.displayName().replace(' ', '_'))
             )
-        )
 
     def explore(self):
         os.startfile(self._tool._path)
 
 
 class ToolsLoveBar(QToolBar):
+    """ Creates a toolbar that contains favorite Treegrunt tools.
+    """
+
     def __init__(self, parent, title):
         QToolBar.__init__(self, parent)
-
         self._actions = []
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
@@ -142,7 +123,6 @@ class ToolsLoveBar(QToolBar):
 
     def mousePressEvent(self, event):
         """ Overload the mouse press event to handle custom context menus clicked on toolbuttons. """
-
         # On a right click, show the menu.
         if event.button() == Qt.RightButton:
             widget = self.childAt(event.x(), event.y())
@@ -188,13 +168,6 @@ class ToolsLoveBarDialog(Dialog):
         Dialog.__init__(self, parent)
         self.aboutToClearPathsEnabled = False
         self.setWindowTitle(title)
-
-        # Load the UI.
-        # blurdev.gui.loadUi( __file__, self )
-
-        # Load Treegrunt's palette.
-        # self.setPalette(blurdev.gui.dialogs.treegruntdialog.TreegruntDialog._instance.palette())
-
         # Setting up the dialog.
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -204,39 +177,28 @@ class ToolsLoveBarDialog(Dialog):
         self.setLayout(layout)
         self.setFixedHeight(36)
         self.setWindowFlags(Qt.Tool)
-
         # restoring settings.
         self.restoreSettings()
 
     def closeEvent(self, event):
-        """
-            \remarks    [virtual]   overload the close event to handle saving of preferences before shutting down
-            \param      event       <QEvent>
+        """ overload the close event to handle saving of preferences before shutting down
         """
         self.recordSettings()
         Dialog.closeEvent(self, event)
 
     def recordSettings(self):
+        """ records settings to be used for another session
         """
-            \remarks	records settings to be used for another session
-        """
-        from blurdev import prefs
-
-        pref = prefs.find('tools/Lovebar')
-
+        pref = blurdev.prefs.find('tools/Lovebar')
         # Record the geometry.
         pref.recordProperty('geom', self.geometry())
-
         # Save the settings.
         pref.save()
 
     def restoreSettings(self):
+        """ restores settings that were saved by a previous session
         """
-            \remarks    restores settings that were saved by a previous session
-        """
-        from blurdev import prefs
-
-        pref = prefs.find('tools/Lovebar')
+        pref = blurdev.prefs.find('tools/Lovebar')
 
         # reload the geometry
         geom = pref.restoreProperty('geom', QRect())
@@ -247,11 +209,6 @@ class ToolsLoveBarDialog(Dialog):
     def instance(parent=None):
         if not ToolsLoveBarDialog._instance:
             inst = ToolsLoveBarDialog(parent, 'Lovebar')
-
-            from PyQt4.QtCore import Qt
-
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
-
             ToolsLoveBarDialog._instance = inst
-
         return ToolsLoveBarDialog._instance

@@ -1,25 +1,47 @@
-##
-# 	\namespace	blurdev.cores.core
-#
-# 	\remarks	The Core class provides all the main shared functionality and signals that need to be distributed between different
-# 				pacakges
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
-
 import sys
 import time
 import os
+import glob
+import platform
+from email import Encoders
+from email.MIMEText import MIMEText
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+import smtplib
 
-from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt
-from PyQt4.QtGui import QApplication, QSplashScreen
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL
+from PyQt4.QtGui import QApplication, QWidget, QFileDialog, QMessageBox, QSplashScreen
+import PyQt4.uic
+from PyQt4.QtWinMigrate import QMfcApp
+
+try:
+    import PeyeonScript as eyeon
+except ImportError:
+    eyeon = None
+
+import blurdev
+import blurdev.prefs
+import blurdev.debug
+import blurdev.XML
+import blurdev.osystem
+import blurdev.tools
+import blurdev.tools.tool
+import blurdev.tools.toolsenvironment
+import blurdev.tools.toolslovebar
+import blurdev.tools.toolstoolbar
+import blurdev.ide.ideeditor
+import blurdev.gui.windows.loggerwindow
+import blurdev.gui.widgets.pyularwidget
+from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
+from blurdev.gui.windows.sdkwindow import SdkWindow
+import blurdev.cores.application
 from application import Application
-from blurdev.tools.toolsenvironment import ToolsEnvironment
 
 
 class Core(QObject):
+    """
+    The Core class provides all the main shared functionality and signals that need to be distributed between different pacakges.
+    """
 
     # ----------------------------------------------------------------
     # blurdev signals
@@ -93,6 +115,7 @@ class Core(QObject):
         self._defaultPalette = -1
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
+        self._stylesheet = None
         self.environment_override_filepath = os.environ.get(
             'bdev_environment_override_filepath', ''
         )
@@ -109,64 +132,47 @@ class Core(QObject):
 
     def addLibraryPaths(self, app):
         # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
-        import sys
-
         if sys.platform != 'win32':
             return
-        import platform
-
         if platform.architecture()[0] == '64bit':
             app.addLibraryPath("c:/windows/system32/blur64/")
         else:
             app.addLibraryPath("c:/blur/common/")
 
     def createDefaultPalette(self):
-        import blurdev
-        from PyQt4.QtGui import QWidget
-
         w = QWidget(None)
-
-        import PyQt4.uic
-
         PyQt4.uic.loadUi(blurdev.resourcePath('palette.ui'), w)
-
         palette = w.palette()
-
         w.close()
         w.deleteLater()
-
         return palette
 
     def configUpdated(self):
-        """
-            :remarks	Preform any core specific updating of config. Returns if any actions were taken.
-            :return		<bool>
+        """ Preform any core specific updating of config. Returns if any actions were taken.
         """
         return False
 
     def connectAppSignals(self):
-        """
-            \remarks	[virtual] connect the signals emitted by the application we're in to the blurdev core system
+        """ Connect the signals emitted by the application we're in to the blurdev core system
         """
         pass
 
     def connectPlugin(
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
     ):
-        """
-            \remarks	creates a QMfcApp instance for the inputed plugin and window if no app is currently running
-            \param		hInstance	<int>
-            \param		hwnd		<int>
-            \param		style		<str>
-            \param		palette		<QPalette>
-            \param		stylesheet	<str>
-            \return		<bool> success
+        """ Creates a QMfcApp instance for the inputed plugin and window if no app is currently running
+            
+            :param int hInstance:
+            :param int hwnd:
+            :param str style:
+            :param QPalette palette:
+            :param str stylesheet:
+            :returns: bool for success
+            
         """
 
         # check to see if there is an application already running
         if not QApplication.instance():
-            from PyQt4.QtWinMigrate import QMfcApp
-
             # create the plugin instance
             if QMfcApp.pluginInstance(hInstance):
                 self.setHwnd(hwnd)
@@ -187,16 +193,8 @@ class Core(QObject):
         return False
 
     def createToolMacro(self, tool, macro=''):
+        """ Method to create macros for a tool, should be overloaded per core
         """
-            \remarks	[virtual] method to create macros for a tool, should be overloaded per core
-            
-            \param		tool	<trax.api.tools.Tool>
-            \param		macro	<str>						specific macro for the tool to run
-            
-            \return		<bool> success
-        """
-        import blurdev
-
         blurdev.osystem.createShortcut(
             tool.displayName(),
             tool.sourcefile(),
@@ -216,10 +214,7 @@ class Core(QObject):
         self._keysEnabled = False
 
     def dispatch(self, signal, *args):
-        """
-            \remarks	dispatches a string based signal through the system from an application
-            \param		signal	<str>
-            \param		*args	<tuple> additional arguments
+        """ Dispatches a string based signal through the system from an application
         """
         if self.signalsBlocked():
             return
@@ -233,8 +228,6 @@ class Core(QObject):
 
         # otherwise emit a custom signal
         else:
-            from PyQt4.QtCore import SIGNAL
-
             self.emit(SIGNAL(signal), *args)
 
         # emit linked signals
@@ -249,9 +242,7 @@ class Core(QObject):
             # This records the last time a user deliberately changed the
             # environment.  If the environment has a timeout, it will use
             # this timestamp to enforce the timeout.
-            from blurdev import prefs
-
-            pref = prefs.find('blurdev/core', coreName=self.objectName())
+            pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
             pref.recordProperty(
                 'environment_set_timestamp', QDateTime.currentDateTime()
             )
@@ -266,10 +257,8 @@ class Core(QObject):
         self._keysEnabled = True
 
     def errorCoreText(self):
-        """
-            :remarks	Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-                        If a empty string is returned this line will not be shown in the error email.
-            :returns	<str>
+        """ Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+            If a empty string is returned this line will not be shown in the error email.
         """
         return ''
 
@@ -300,11 +289,8 @@ class Core(QObject):
         return QObject.eventFilter(self, object, event)
 
     def linkSignals(self, signal, trigger):
-        """
-            \remarks	creates a dependency so that when the inputed signal is dispatched, the dependent trigger signal is also dispatched.  This will only work
-                        for trigger signals that do not take any arguments for the dispatch.
-            \param		signal		<str>
-            \param		trigger		<str>
+        """ Creates a dependency so that when the inputed signal is dispatched, the dependent trigger signal is also dispatched.  This will only work
+            for trigger signals that do not take any arguments for the dispatch.
         """
         if not signal in self._linkedSignals:
             self._linkedSignals[signal] = [trigger]
@@ -312,22 +298,19 @@ class Core(QObject):
             self._linkedSignals[signal].append(trigger)
 
     def init(self):
-        """
-            \remarks	initializes the core system
+        """ Initializes the core system
         """
         # register protected modules
-        self.protectModule(
-            'blurdev'
-        )  # do not want to affect this module during environment switching
+        # do not want to affect this module during environment switching
+        self.protectModule('blurdev')
         # we should never remove main. If we do in specific cases it will prevent external tools from
         # running if they use "if __name__ == '__main__':" as __name__ will return None
         self.protectModule('__main__')
 
         # initialize the tools environments
-        import blurdev
-        from blurdev.tools import ToolsEnvironment
-
-        ToolsEnvironment.loadConfig(blurdev.resourcePath('tools_environments.xml'))
+        blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
+            blurdev.resourcePath('tools_environments.xml')
+        )
 
         # 		# Gets the override filepath, it is defined this way, instead of
         # 		# being defined in the class definition, so that we can change this
@@ -347,24 +330,19 @@ class Core(QObject):
                 app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
                 app.setEffectEnabled(Qt.UI_FadeTooltip, False)
                 app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
-
                 app.aboutToQuit.connect(self.recordToolbar)
-
                 app.installEventFilter(self)
             self.addLibraryPaths(app)
 
         # create a new application
-        elif not app:
-            output = Application([])
+        else:
+            output = blurdev.cores.application.Application([])
             self.addLibraryPaths(output)
 
         # restore the core settings
         self.restoreSettings()
-        self.registerPaths()
         self.connectAppSignals()
-
         self.restoreToolbar()
-
         return output
 
     def applyEnvironmentTimeouts(self):
@@ -374,20 +352,16 @@ class Core(QObject):
         default environment.
         
         """
-        env = ToolsEnvironment.activeEnvironment()
-
+        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
         threshold_time = env.timeoutThreshold()
-
-        from blurdev import prefs
-
-        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
         last_timestamp = pref.restoreProperty('environment_set_timestamp', None)
 
         if not last_timestamp:
             return
 
         if last_timestamp < threshold_time:
-            ToolsEnvironment.defaultEnvironment().setActive()
+            blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment().setActive()
             pref.recordProperty(
                 'environment_set_timestamp', QDateTime.currentDateTime()
             )
@@ -405,15 +379,13 @@ class Core(QObject):
 
         env = override_dict['environment']
         timestamp = override_dict['timestamp']
-        from blurdev import prefs
-
-        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
         last_timestamp = pref.restoreProperty(
             'last_environment_override_timestamp', None
         )
         if last_timestamp and last_timestamp >= timestamp:
             return
-        ToolsEnvironment.findEnvironment(env).setActive()
+        blurdev.tools.toolsenvironment.ToolsEnvironment.findEnvironment(env).setActive()
         pref.recordProperty(
             'last_environment_override_timestamp', QDateTime.currentDateTime()
         )
@@ -426,8 +398,6 @@ class Core(QObject):
         return self._hwnd
 
     def ideeditor(self, parent=None):
-        from blurdev.ide.ideeditor import IdeEditor
-
         return IdeEditor.instance(parent)
 
     def isKeystrokesEnabled(self):
@@ -437,21 +407,18 @@ class Core(QObject):
         return self._lastFileName
 
     def logger(self, parent=None):
+        """ Creates and returns the logger instance
         """
-            \remarks	creates and returns the logger instance
-        """
-        from blurdev.gui.windows.loggerwindow import LoggerWindow
 
-        return LoggerWindow.instance(parent)
+        return blurdev.gui.windows.loggerwindow.LoggerWindow.instance(parent)
 
     def lovebar(self, parent=None):
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
 
-        return ToolsLoveBarDialog.instance(parent)
+        return blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent)
 
     def macroName(self):
         """
-            \Remarks	Returns the name to display for the create macro action in treegrunt
+        Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Desktop Shortcut...'
 
@@ -460,19 +427,15 @@ class Core(QObject):
 
     def newScript(self):
         """
-            \remarks	creates a new script window for editing
+        Creates a new script window for editing
         """
-        from blurdev.ide import IdeEditor
-
-        IdeEditor.createNew()
+        blurdev.ide.ideeditor.IdeEditor.createNew()
 
     def openScript(self, filename=''):
         """
-            \remarks	opens the an existing script in a new window for editing
+        Opens the an existing script in a new window for editing
         """
         if not filename:
-            from PyQt4.QtGui import QFileDialog
-
             # make sure there is a QApplication running
             if QApplication.instance():
                 filename = str(
@@ -488,20 +451,17 @@ class Core(QObject):
 
         if filename:
             self._lastFileName = filename
-
-            from blurdev.ide import IdeEditor
-
-            IdeEditor.edit(filename=filename)
+            blurdev.ide.ideeditor.IdeEditor.edit(filename=filename)
 
     def postQueueEvent(self):
         """
-            \remarks	Insert a call to processQueueItem on the next event loop
+        Insert a call to processQueueItem on the next event loop
         """
         QApplication.postEvent(self, QEvent(self.qProcessID))
 
     def processQueueItem(self):
         """
-            \remarks	Call the current queue item and post the next queue event if it exists
+        Call the current queue item and post the next queue event if it exists
         """
         if self._itemQueue:
             if self._maxDelayPerCycle == -1:
@@ -518,7 +478,7 @@ class Core(QObject):
 
     def _runQueueItem(self):
         """
-            \Remarks	Process the top item on the queue, catch the error generated if the underlying c/c++ object has been deleted, and alow the queue to continue processing.
+        Process the top item on the queue, catch the error generated if the underlying c/c++ object has been deleted, and alow the queue to continue processing.
         """
         try:
             item = self._itemQueue.pop(0)
@@ -535,39 +495,32 @@ class Core(QObject):
 
     def protectModule(self, moduleName):
         """
-            \remarks	registers the inputed module name for protection from tools environment switching
-            \param		moduleName	<str> || <QString>
+        Registers the inputed module name for protection from tools environment switching
         """
         key = str(moduleName)
-        if not key in self._protectedModules:
+        if key not in self._protectedModules:
             self._protectedModules.append(str(moduleName))
 
     def protectedModules(self):
         """
-            \remarks	returns the modules that should not be affected when a tools environment changes
-            \return		<list> [ <str> ]
+        Returns the modules that should not be affected when a tools environment changes
         """
         return self._protectedModules
 
     def pyular(self, parent=None):
-        from blurdev.gui.widgets.pyularwidget import PyularDialog
-
-        return PyularDialog.instance(parent)
+        return blurdev.gui.widgets.pyularwidget.PyularDialog.instance(parent)
 
     def quietMode(self):
         """
-            \Remarks	Use this to decide if you should provide user input. 
-            \Return		<bool>
+        Use this to decide if you should provide user input. 
         """
         return False
 
     def registerPaths(self):
         """
-            \remarks	registers the paths that are needed based on this core
+        Registers the paths that are needed based on this core
         """
-        from blurdev.tools import ToolsEnvironment
-
-        env = ToolsEnvironment.activeEnvironment()
+        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
         env.registerPath(env.relativePath('maxscript/treegrunt/lib'))
         env.registerPath(env.relativePath('code/python/lib'))
 
@@ -592,35 +545,27 @@ class Core(QObject):
             env.registerPath(env.relativePath(path))
 
     def recordSettings(self):
-        r"""
-            \remarks	Subclasses can reimplement this to add data before it is saved
+        """
+        Subclasses can reimplement this to add data before it is saved
         """
         pref = self.recordCoreSettings()
         pref.save()
 
     def recordCoreSettings(self):
-        from blurdev import prefs
-
-        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
         # record the tools environment
-        from blurdev.tools import ToolsEnvironment
-
         pref.recordProperty(
-            'environment', ToolsEnvironment.activeEnvironment().objectName()
+            'environment',
+            blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment().objectName(),
         )
 
         # record the debug
-        from blurdev import debug
-
-        pref.recordProperty('debugLevel', debug.debugLevel())
-
+        pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
         return pref
 
     def recordToolbar(self):
-        from blurdev import prefs
-
-        pref = prefs.find('blurdev/toolbar', coreName=self.objectName())
+        pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
 
         # record the toolbar
         child = pref.root().findChild('toolbardialog')
@@ -629,16 +574,16 @@ class Core(QObject):
         if child:
             child.remove()
 
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-
-        if ToolsToolBarDialog._instance:
-            ToolsToolBarDialog._instance.toXml(pref.root())
+        if blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance:
+            blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance.toXml(pref.root())
 
         pref.save()
 
     def createEnvironmentOverride(self, env=None, timestamp=None):
         if env is None:
-            env = ToolsEnvironment.defaultEnvironment().objectName()
+            env = (
+                blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment().objectName()
+            )
         if timestamp is None:
             timestamp = QDateTime.currentDateTime()
 
@@ -646,9 +591,7 @@ class Core(QObject):
         if not fp:
             return
 
-        from blurdev import XML
-
-        doc = XML.XMLDocument()
+        doc = blurdev.XML.XMLDocument()
         root = doc.addNode('environment_overrides')
         root.setAttribute('version', 1.0)
         el = root.addNode('environment_override')
@@ -660,9 +603,7 @@ class Core(QObject):
             pass
 
     def getEnvironmentOverride(self):
-        from blurdev import XML
-
-        doc = XML.XMLDocument()
+        doc = blurdev.XML.XMLDocument()
         self.environment_override_filepath = os.environ.get(
             'bdev_environment_override_filepath', ''
         )
@@ -706,11 +647,10 @@ class Core(QObject):
 
     def restoreSettings(self):
         self.blockSignals(True)
+        TEMPORARY_TOOLS_ENV = blurdev.tools.TEMPORARY_TOOLS_ENV
+        ToolsEnvironment = blurdev.tools.toolsenvironment.ToolsEnvironment
 
-        from blurdev import prefs
-        from blurdev.tools import ToolsEnvironment, TEMPORARY_TOOLS_ENV
-
-        pref = prefs.find('blurdev/core', coreName=self.objectName())
+        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
         # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
         environPath = os.environ.get('BLURDEV_PATH')
@@ -731,10 +671,8 @@ class Core(QObject):
 
         # restore the active debug level
         level = pref.restoreProperty('debugLevel')
-        if level != None:
-            from blurdev import debug
-
-            debug.setDebugLevel(level)
+        if level is not None:
+            blurdev.debug.setDebugLevel(level)
 
         self.blockSignals(False)
 
@@ -746,10 +684,7 @@ class Core(QObject):
         return pref
 
     def restoreToolbar(self):
-        from blurdev import prefs
-
-        pref = prefs.find('blurdev/toolbar', coreName=self.objectName())
-
+        pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
         # restore the toolbar
         child = pref.root().findChild('toolbardialog')
         if child:
@@ -757,8 +692,7 @@ class Core(QObject):
 
     def rootWindow(self):
         """
-            \remarks	returns the currently active window
-            \return		<QWidget> || None
+        Returns the currently active window
         """
         # for MFC apps there should be no root window
         if self.isMfcApp():
@@ -784,31 +718,40 @@ class Core(QObject):
 
     def runDelayed(self, function, *args, **kargs):
         """
-            \remarks	Alternative to a for loop that will not block the ui. Each item added with this method will be processed during a single application event loop. If you add 5 items with runDelayed it will process the first item, update the ui, process the second item, update the ui, etc. This is usefull if you have a large amount of items to process, but processing of a individual item does not take a long time. Also it does not need to happen immediately.
-            \param		function		<function>	The function to call when ready to process.
-            \param		*args, **kargs	<list> || <dict>	any arguments that need to be called on function
-            \sa			<blurdev.core.runDelayedReplace>, <blurdev.core._runDelayed>
-            | #A simplified code example of what is happening.
-            | queue = []
-            | for i in range(100): queue.append(myFunction)
-            | while True:	# program event loop
-            | 	updateUI()	# update the programs ui
-            |	if queue:
-            |		item = queue.pop(0)	# remove the first item in the list
-            |		item()	# call the stored function
+        Alternative to a for loop that will not block the ui. Each item added 
+        with this method will be processed during a single application event 
+        loop. If you add 5 items with runDelayed it will process the first item, 
+        update the ui, process the second item, update the ui, etc. This is 
+        usefull if you have a large amount of items to process, but processing 
+        of a individual item does not take a long time. Also it does not need 
+        to happen immediately.
+        
+        :param function: The function to call when ready to process.
+        
+        Any additional arguments or keyword arguments passed to this function 
+        will be passed along to the provided function
+
+        | #A simplified code example of what is happening.
+        | queue = []
+        | for i in range(100): queue.append(myFunction)
+        | while True:	# program event loop
+        | 	updateUI()	# update the programs ui
+        |	if queue:
+        |		item = queue.pop(0)	# remove the first item in the list
+        |		item()	# call the stored function
+        
         """
         self._runDelayed(function, False, *args, **kargs)
 
     def runDelayedReplace(self, function, *args, **kargs):
         """
-            \remarks	Same as the runDelayed, but will check if the queue contains a matching function, *args, and **kargs. If found it will remove it and append it at the end of the queue.
+        Same as the runDelayed, but will check if the queue contains a matching function, *args, and **kargs. If found it will remove it and append it at the end of the queue.
         """
         self._runDelayed(function, True, *args, **kargs)
 
     def isDelayed(self, function, *args, **kwargs):
         """
-            \remarks	Is the supplied function and arguments are in the runDelayed queue
-            \return		<bool>
+        Is the supplied function and arguments are in the runDelayed queue
         """
         if (function, args, kargs) in self._itemQueue:
             return True
@@ -816,21 +759,30 @@ class Core(QObject):
 
     def _runDelayed(self, function, replace, *args, **kargs):
         """
-            \remarks	Alternative to a for loop that will not block the ui. Each item added with this method will be processed during a single application event loop.
-                        If you add 5 items with runDelayed it will process the first item, update the ui, process the second item, update the ui, etc.
-                        This is usefull if you have a large amount of items to process, but processing of a individual item does not take a long time. Also it does not
-                        need to happen immediately.
-            \param		function	<>	The function to call when ready to process.
-            \param		replace		<bool>	If true, it will attempt to remove the first item in the queue with matching function, *args, **kargs
-            \param		*args, **kargs	any arguments that need to be called on function
-            | #A simplified code example of what is happening.
-            | queue = []
-            | for i in range(100): queue.append(myFunction)
-            | while True:	# program event loop
-            | 	updateUI()	# update the programs ui
-            |	if queue:
-            |		item = queue.pop(0)	# remove the first item in the list
-            |		item()	# call the stored function
+        Alternative to a for loop that will not block the ui. Each item added 
+        with this method will be processed during a single application event loop.
+        If you add 5 items with runDelayed it will process the first item, update 
+        the ui, process the second item, update the ui, etc. This is usefull if 
+        you have a large amount of items to process, but processing of a 
+        individual item does not take a long time. Also it does not need to 
+        happen immediately.
+                        
+        :param function: The function to call when ready to process.
+        :param bool replace: If true, it will attempt to remove the first item in the queue with matching function, *args, **kargs
+        
+        Any additional arguments or keyword arguments passed to this function 
+        will be passed along to the provided function
+        
+        
+        | #A simplified code example of what is happening.
+        | queue = []
+        | for i in range(100): queue.append(myFunction)
+        | while True:	# program event loop
+        | 	updateUI()	# update the programs ui
+        |	if queue:
+        |		item = queue.pop(0)	# remove the first item in the list
+        |		item()	# call the stored function
+        
         """
         isProcessing = bool(self._itemQueue)
         queueItem = (function, args, kargs)
@@ -844,9 +796,7 @@ class Core(QObject):
 
     def runMacro(self, command):
         """
-            \remarks	[virtual] Runs a macro command
-            \param		command 	<str>		command to run
-            \return		<bool> success
+        Runs a macro command
         """
         print '[blurdev.cores.core.Core.runMacro] virtual method not defined'
         return False
@@ -854,24 +804,18 @@ class Core(QObject):
     def runStandalone(
         self, filename, debugLevel=None, basePath='', environ=None, paths=None
     ):
-        from blurdev import osystem
-
-        osystem.startfile(filename, debugLevel, basePath)
+        blurdev.osystem.startfile(filename, debugLevel, basePath)
 
     def runScript(self, filename='', scope=None, argv=None, toolType=None):
         """
-            \remarks	Runs an inputed file in the best way this core knows how
+        Runs an inputed file in the best way this core knows how
             
-            \param		filename	<str>
-            \param		scope		<dict> || None						the scope to run the script in
-            \param		argv		<list> [ <str> cmd, .. ] || None	commands to pass to the script at run time
-            \param		toolType	<ToolType>							determines the tool type for this tool
-            
-            \return		<bool> success
-        """
-        import sys
-        from PyQt4.QtGui import QFileDialog, QMessageBox
+        :param str filename:
+        :param dict scope: The scope to run the script in (ie. locals(), globals())
+        :param list argv: Commands to pass to the script at run time
+        :param toolType: determines the tool type for this tool
 
+        """
         if not filename:
             # make sure there is a QApplication running
             if QApplication.instance():
@@ -893,26 +837,19 @@ class Core(QObject):
             return False
 
         # build the scope
-        if scope == None:
+        if scope is None:
             scope = {}
 
         filename = str(filename)
 
         # run the script
-        from blurdev import debug
-        import os
-
         if filename and os.path.exists(filename):
             self._lastFileName = filename
 
             ext = os.path.splitext(filename)[1]
 
-            from blurdev.tools import ToolType, ToolsEnvironment
-
             # always run legacy external tools as standalone - they can cause QApplication conflicts
-            if toolType == ToolType.LegacyExternal:
-                import os
-
+            if toolType == blurdev.tools.tool.ToolType.LegacyExternal:
                 os.startfile(filename)
 
             # run a python file
@@ -929,7 +866,9 @@ class Core(QObject):
                         argv_bak = None
 
                     # if the path does not exist, then register it
-                    ToolsEnvironment.registerScriptPath(filename)
+                    blurdev.tools.toolsenvironment.ToolsEnvironment.registerScriptPath(
+                        filename
+                    )
 
                     scope['__name__'] = '__main__'
                     scope['__file__'] = filename
@@ -947,11 +886,6 @@ class Core(QObject):
 
             # run a fusion script
             elif ext.startswith('.eyeonscript'):
-                try:
-                    import PeyeonScript as eyeon
-                except:
-                    eyeon = None
-
                 if eyeon:
                     fusion = eyeon.scriptapp('Fusion')
                     if fusion:
@@ -976,7 +910,6 @@ class Core(QObject):
                         'PeyonScript Missing',
                         'Could not import Fusion Python Libraries.',
                     )
-
                 return True
 
             # run an external link
@@ -991,8 +924,6 @@ class Core(QObject):
         return False
 
     def sdkBrowser(self, parent=None):
-        from blurdev.gui.windows.sdkwindow import SdkWindow
-
         return SdkWindow.instance(parent)
 
     def setLastFileName(self, filename):
@@ -1003,39 +934,36 @@ class Core(QObject):
 
     def setMaxDelayPerCycle(self, seconds):
         """
-            \Remarks	Run delayed will process as many items as it can within this time frame every event loop. 
-                        Seconds is a float value for seconds. If seconds is -1 it will only process 1 item per event loop.
-                        This value does not limit the cycle, it just prevents a new queue item from being called if the total
-                        time exceeds this value. If your queue items will take almost the full time, you may want to set this value to -1.
-            \Param		seconds	<float>
+        Run delayed will process as many items as it can within this time 
+        frame every event loop.  Seconds is a float value for seconds. If 
+        seconds is -1 it will only process 1 item per event loop. This value 
+        does not limit the cycle, it just prevents a new queue item from being 
+        called if the total time exceeds this value. If your queue items will 
+        take almost the full time, you may want to set this value to -1.
+        
         """
         self._maxDelayPerCycle = seconds
 
     def sendEmail(self, sender, targets, subject, message, attachments=None):
         """
-            :remarks	Sends a email.
-            :param		sender		<string>	The source email address.
-            :param		targets		<string>||<list>||<tuple>	The email address(s) to send the email to.
-            :param		subject		<string>	The subject of the email.
-            :param		message		<string>	The body of the message. Treated as html
-            :param		attachments	<list>		File paths for files to be attached.
+        Sends an email.
+        
+        :param str sender: The source email address.
+        :param targets: A single email string, or a list of email address(s) to send the email to.
+        :param str subject: The subject of the email.
+        :param str message: The body of the message. Treated as html
+        :param list attachments: File paths for files to be attached.
+        
         """
-        from email import Encoders
-        from email.MIMEText import MIMEText
-        from email.MIMEMultipart import MIMEMultipart
-        from email.MIMEBase import MIMEBase
-
         output = MIMEMultipart()
         output['Subject'] = str(subject)
         output['From'] = str(sender)
 
         # convert to string
-        if type(targets) in (tuple, list):
+        if isinstance(targets, (tuple, list)):
             output['To'] = ', '.join(targets)
         else:
             output['To'] = str(targets)
-
-        from PyQt4.QtCore import QDateTime
 
         output['Date'] = str(
             QDateTime.currentDateTime().toString('ddd, d MMM yyyy hh:mm:ss')
@@ -1065,29 +993,63 @@ class Core(QObject):
                 )
                 output.attach(txt)
 
-        import smtplib
-
         smtp = smtplib.SMTP()
-
         smtp.connect('mail.blur.com')
         smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
-
         smtp.close()
 
     def setObjectName(self, objectName):
         if objectName != self.objectName():
             QObject.setObjectName(self, objectName)
-
-            # clear the caching environments
-            from blurdev import prefs
-
-            prefs.clearCache()
-
+            blurdev.prefs.clearCache()
             # make sure we have the proper settings restored based on the new application
             self.restoreSettings()
 
-    def shutdown(self):
+    def setStyleSheet(self, stylesheet):
+        """ Accepts the name of a stylesheet included with blurdev, or a full
+            path to any stylesheet.  If given None, it will remove the 
+            stylesheet.
+        """
+        app = QApplication.instance()
+        if app:
+            if stylesheet is None:
+                app.setStyleSheet('')
+                self._stylesheet = None
+            elif os.path.isfile(stylesheet):
+                with open(stylesheet) as f:
+                    app.setStyleSheet(f.read())
+                self._stylesheet = stylesheet
+            else:
+                # Try to find an installed stylesheet with the given name
+                path = os.path.join(
+                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    'resource',
+                    'stylesheet',
+                    '{}.css'.format(stylesheet),
+                )
+                if os.path.isfile(path):
+                    with open(path) as f:
+                        app.setStyleSheet(f.read())
+                    self._stylesheet = stylesheet
 
+    def styleSheet(self):
+        """ Returns the name of the current stylesheet.
+        """
+        return self._stylesheet
+
+    def styleSheets(self):
+        """ Returns a list of installed stylesheet names.
+        """
+        cssdir = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'resource',
+            'stylesheet',
+        )
+        cssfiles = glob.glob(os.path.join(cssdir, '*.css'))
+        # Only return the filename without the .css extension
+        return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
+
+    def shutdown(self):
         # record the settings
         self.recordToolbar()
         self.recordSettings()
@@ -1097,24 +1059,16 @@ class Core(QObject):
             QApplication.instance().quit()
 
     def showIdeEditor(self):
-        from blurdev.ide import IdeEditor
-
-        IdeEditor.instance().edit()
+        blur.ide.ideeditor.IdeEditor.instance().edit()
 
     def showToolbar(self, parent=None):
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-
-        ToolsToolBarDialog.instance(parent).show()
+        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent).show()
 
     def showLovebar(self, parent=None):
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
-
-        ToolsLoveBarDialog.instance(parent).show()
+        blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent).show()
 
     def showPyular(self, parent=None):
-        from blurdev.gui.widgets.pyularwidget import PyularDialog
-
-        PyularDialog.instance(parent).show()
+        blurdev.gui.widgets.pyularwidget.PyularDialog.instance(parent).show()
 
     def showTreegrunt(self):
         treegrunt = self.treegrunt()
@@ -1126,7 +1080,7 @@ class Core(QObject):
 
     def showLogger(self):
         """
-            \remarks	creates the python logger and displays it
+        Creates the python logger and displays it
         """
         logger = self.logger()
         logger.show()
@@ -1136,33 +1090,24 @@ class Core(QObject):
 
     def unprotectModule(self, moduleName):
         """
-            \remarks	removes the inputed module name from protection from tools environment switching
-            \param		moduleName	<str> || <QString>
+        Removes the inputed module name from protection from tools environment switching
         """
         key = str(moduleName)
         while key in self._protectedModules:
             self._protectedModules.remove(key)
 
     def toolbar(self, parent=None):
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-
-        return ToolsToolBarDialog.instance(parent)
+        return blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent)
 
     def toolTypes(self):
         """
-            \remarks	Virtual method to determine what types of tools that the trax system should be looking at
-            \return		<trax.api.tools.ToolType>
+        Determines what types of tools that the trax system should be looking at
         """
-        from blurdev.tools import ToolsEnvironment, ToolType
-
+        ToolType = blurdev.tools.tool.ToolType
         output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
-
         return output
 
     def treegrunt(self, parent=None):
+        """ Creates and returns the logger instance
         """
-            \remarks	creates and returns the logger instance
-        """
-        from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
-
         return TreegruntDialog.instance(parent)

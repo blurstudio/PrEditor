@@ -2,7 +2,7 @@
 
 Certain aspects of the Windows user interface are grouped by
  Microsoft as Shell functions. These include the Desktop, shortcut
- icons, special folders (such as My Documents) and a few other things.
+ icons, special folders(such as My Documents) and a few other things.
 
 These are mostly available via the shell module of the win32all
  extensions, but whenever I need to use them, I've forgotten the
@@ -17,17 +17,19 @@ Several of the shell items have two variants: personal and common,
  to all users of the system.
 
 (c) Tim Golden <winshell@timgolden.me.uk> 25th November 2003
-Licensed under the (GPL-compatible) MIT License:
+Licensed under the(GPL-compatible) MIT License:
 http://www.opensource.org/licenses/mit-license.php
 
-9th Nov 2005  0.2  . License changed to MIT
-                   . Added functionality using SHFileOperation
-25th Nov 2003 0.1  . Initial release by Tim Golden
+9th Nov 2005	0.2	. License changed to MIT
+                                     . Added functionality using SHFileOperation
+25th Nov 2003 0.1	. Initial release by Tim Golden
 """
 
 __VERSION__ = "0.2"
 
-import os, sys
+import os
+import sys
+
 from win32com import storagecon
 from win32com.shell import shell, shellcon
 import win32api
@@ -40,33 +42,31 @@ class x_winshell(Exception):
 
 #
 # Although this can be done in one call, Win9x didn't
-#  support it, so I added this workaround.
+# 	support it, so I added this workaround.
 #
 def get_path(folder_id):
     return shell.SHGetPathFromIDList(shell.SHGetSpecialFolderLocation(0, folder_id))
 
 
 def desktop(common=0):
-    "What folder is equivalent to the current desktop?"
+    """ What folder is equivalent to the current desktop? """
     return get_path(
         (shellcon.CSIDL_DESKTOP, shellcon.CSIDL_COMMON_DESKTOPDIRECTORY)[common]
     )
 
 
 def common_desktop():
-    #
-    # Only here because already used in code
-    #
+    """ Only here because already used in code """
     return desktop(common=1)
 
 
 def application_data(common=0):
-    "What folder holds application configuration files?"
+    """ What folder holds application configuration files?"""
     return get_path((shellcon.CSIDL_APPDATA, shellcon.CSIDL_COMMON_APPDATA)[common])
 
 
 def favourites(common=0):
-    "What folder holds the Explorer favourites shortcuts?"
+    """ What folder holds the Explorer favourites shortcuts?"""
     return get_path((shellcon.CSIDL_FAVORITES, shellcon.CSIDL_COMMON_FAVORITES)[common])
 
 
@@ -74,22 +74,22 @@ bookmarks = favourites
 
 
 def start_menu(common=0):
-    "What folder holds the Start Menu shortcuts?"
+    """ What folder holds the Start Menu shortcuts?"""
     return get_path((shellcon.CSIDL_STARTMENU, shellcon.CSIDL_COMMON_STARTMENU)[common])
 
 
 def programs(common=0):
-    "What folder holds the Programs shortcuts (from the Start Menu)?"
+    """ What folder holds the Programs shortcuts(from the Start Menu)?"""
     return get_path((shellcon.CSIDL_PROGRAMS, shellcon.CSIDL_COMMON_PROGRAMS)[common])
 
 
 def startup(common=0):
-    "What folder holds the Startup shortcuts (from the Start Menu)?"
+    """ What folder holds the Startup shortcuts(from the Start Menu)?"""
     return get_path((shellcon.CSIDL_STARTUP, shellcon.CSIDL_COMMON_STARTUP)[common])
 
 
 def personal_folder():
-    "What folder holds the My Documents files?"
+    """ What folder holds the My Documents files?"""
     return get_path(shellcon.CSIDL_PERSONAL)
 
 
@@ -97,23 +97,23 @@ my_documents = personal_folder
 
 
 def recent():
-    "What folder holds the Documents shortcuts (from the Start Menu)?"
+    """ What folder holds the Documents shortcuts(from the Start Menu)?"""
     return get_path(shellcon.CSIDL_RECENT)
 
 
 def sendto():
-    "What folder holds the SendTo shortcuts (from the Context Menu)?"
+    """ What folder holds the SendTo shortcuts(from the Context Menu)?"""
     return get_path(shellcon.CSIDL_SENDTO)
 
 
 #
 # Internally abstracted function to handle one
-#  of several shell-based file manipulation
-#  routines. Not all the possible parameters
-#  are covered which might be passed to the
-#  underlying SHFileOperation API call, but
-#  only those which seemed useful to me at
-#  the time.
+# 	of several shell-based file manipulation
+# 	routines. Not all the possible parameters
+# 	are covered which might be passed to the
+# 	underlying SHFileOperation API call, but
+# 	only those which seemed useful to me at
+# 	the time.
 #
 def _file_operation(
     operation,
@@ -173,14 +173,14 @@ def copy_file(
     silent=False,
     hWnd=None,
 ):
-    """Perform a shell-based file copy. Copying in
-   this way allows the possibility of undo, auto-renaming,
-   and showing the "flying file" animation during the copy.
-   
-  The default options allow for undo, don't automatically
-   clobber on a name clash, automatically rename on collision
-   and display the animation.
-  """
+    """ Perform a shell-based file copy. Copying in
+        this way allows the possibility of undo, auto-renaming,
+        and showing the "flying file" animation during the copy.
+         
+        The default options allow for undo, don't automatically
+        clobber on a name clash, automatically rename on collision
+        and display the animation.
+    """
     _file_operation(
         shellcon.FO_COPY,
         source_path,
@@ -202,14 +202,14 @@ def move_file(
     silent=False,
     hWnd=None,
 ):
-    """Perform a shell-based file move. Moving in
-   this way allows the possibility of undo, auto-renaming,
-   and showing the "flying file" animation during the copy.
-   
-  The default options allow for undo, don't automatically
-   clobber on a name clash, automatically rename on collision
-   and display the animation.
-  """
+    """ Perform a shell-based file move. Moving in
+        this way allows the possibility of undo, auto-renaming,
+        and showing the "flying file" animation during the copy.
+     
+        The default options allow for undo, don't automatically
+        clobber on a name clash, automatically rename on collision
+        and display the animation.
+    """
     _file_operation(
         shellcon.FO_MOVE,
         source_path,
@@ -231,14 +231,14 @@ def rename_file(
     silent=False,
     hWnd=None,
 ):
-    """Perform a shell-based file rename. Renaming in
-   this way allows the possibility of undo, auto-renaming,
-   and showing the "flying file" animation during the copy.
-   
-  The default options allow for undo, don't automatically
-   clobber on a name clash, automatically rename on collision
-   and display the animation.
-  """
+    """ Perform a shell-based file rename. Renaming in
+        this way allows the possibility of undo, auto-renaming,
+        and showing the "flying file" animation during the copy.
+     
+        The default options allow for undo, don't automatically
+        clobber on a name clash, automatically rename on collision
+        and display the animation.
+    """
     _file_operation(
         shellcon.FO_RENAME,
         source_path,
@@ -259,15 +259,15 @@ def delete_file(
     silent=False,
     hWnd=None,
 ):
-    """Perform a shell-based file delete. Deleting in
-   this way uses the system recycle bin, allows the 
-   possibility of undo, and showing the "flying file" 
-   animation during the delete.
-   
-  The default options allow for undo, don't automatically
-   clobber on a name clash, automatically rename on collision
-   and display the animation.
-  """
+    """ Perform a shell-based file delete. Deleting in
+        this way uses the system recycle bin, allows the 
+        possibility of undo, and showing the "flying file" 
+        animation during the delete.
+     
+        The default options allow for undo, don't automatically
+        clobber on a name clash, automatically rename on collision
+        and display the animation.
+    """
     _file_operation(
         shellcon.FO_DELETE,
         source_path,
@@ -283,23 +283,23 @@ def delete_file(
 def CreateShortcut(
     Path, Target, Arguments="", StartIn="", Icon=("", 0), Description=""
 ):
-    """Create a Windows shortcut:
+    """ Create a Windows shortcut:
 
-  Path - As what file should the shortcut be created?
-  Target - What command should the desktop use?
-  Arguments - What arguments should be supplied to the command?
-  StartIn - What folder should the command start in?
-  Icon - (filename, index) What icon should be used for the shortcut?
-  Description - What description should the shortcut be given?
+    Path - As what file should the shortcut be created?
+    Target - What command should the desktop use?
+    Arguments - What arguments should be supplied to the command?
+    StartIn - What folder should the command start in?
+    Icon -(filename, index) What icon should be used for the shortcut?
+    Description - What description should the shortcut be given?
 
-  eg
-  CreateShortcut (
-    Path=os.path.join (desktop (), "PythonI.lnk"),
-    Target=r"c:\python\python.exe",
-    Icon=(r"c:\python\python.exe", 0),
-    Description="Python Interpreter"
-  )
-  """
+    eg
+    CreateShortcut(
+        Path=os.path.join(desktop(), "PythonI.lnk"),
+        Target=r"c:\python\python.exe",
+        Icon=(r"c:\python\python.exe", 0),
+        Description="Python Interpreter"
+    )
+    """
     sh = pythoncom.CoCreateInstance(
         shell.CLSID_ShellLink,
         None,
@@ -361,15 +361,15 @@ PROPERTIES = (
 
 #
 # This was taken from someone else's example,
-#  but I can't find where. If you know, please
-#  tell me so I can give due credit.
+# 	but I can't find where. If you know, please
+# 	tell me so I can give due credit.
 #
 def structured_storage(filename):
-    """Pick out info from MS documents with embedded
-   structured storage (typically MS Word docs etc.)
+    """ Pick out info from MS documents with embedded
+        structured storage(typically MS Word docs etc.)
 
-  Returns a dictionary of information found
-  """
+        Returns a dictionary of information found
+    """
 
     if not pythoncom.StgIsStorageFile(filename):
         return {}

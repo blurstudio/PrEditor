@@ -1,7 +1,10 @@
 #!/usr/bin/env python
+
 import copy
 import os
 import sys
+import ConfigParser
+from optparse import OptionParser
 
 # define the default environment variables
 OS_TYPE = ''
@@ -17,12 +20,10 @@ _inited = False
 defaults = {}
 
 # load the default environment from the settings INI
-import ConfigParser
-
 config = ConfigParser.RawConfigParser()
 config.read(os.path.dirname(__file__) + '/resource/settings.ini')
 for option in config.options(OS_TYPE):
-    if not option in os.environ:
+    if option not in os.environ:
         value = config.get(OS_TYPE, option)
         if value == 'None':
             value = ''
@@ -47,23 +48,18 @@ def init():
     global _inited
     if _inited:
         return
-
     _inited = True
 
     # set this variable in any runtime to load arguments from command line
     if hasattr(sys, 'argv') and os.environ.get('BDEV_EXEC') == '1':
-        from optparse import OptionParser
-
         parser = OptionParser()
         parser.disable_interspersed_args()
 
         # add additional options from the environment
         for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
-            if not addtl:
-                continue
-
-            option, help = addtl.split('=')
-            parser.add_option('', '--%s' % option, dest=option, help=help)
+            if addtl:
+                option, help = addtl.split('=')
+                parser.add_option('', '--{}'.format(option), dest=option, help=help)
 
         # initialize common command line options
         parser.add_option(
@@ -110,14 +106,12 @@ def init():
 
         # set options
         for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
-            if not addtl:
-                continue
-
-            option, help = addtl.split('=')
-            if option in options.__dict__ and options.__dict__[option] != None:
-                registerVariable(
-                    'BDEV_OPT_%s' % option.upper(), options.__dict__[option]
-                )
+            if addtl:
+                option, help = addtl.split('=')
+                if option in options.__dict__ and options.__dict__[option] != None:
+                    registerVariable(
+                        'BDEV_OPT_%s' % option.upper(), options.__dict__[option]
+                    )
 
     # register default paths
     for key in os.environ.keys():
@@ -132,21 +126,16 @@ def init():
 
 
 def normalizePath(path):
-    import os
-
     path = os.path.abspath(unicode(path))
-
     # use lowercase for windows since we don't want duplicates - in other
     # operating systems, the path is case-sensitive
     if OS_TYPE == 'Windows':
         path = path.lower()
-
     return path
 
 
 def registerVariable(key, value):
-    """
-        \Remarks	Add the key value pair to both the current os.environ, and the startup_environ
+    """ Add the key value pair to both the current os.environ, and the startup_environ
     """
     value = str(value)
     os.environ[key] = value
@@ -155,11 +144,7 @@ def registerVariable(key, value):
 
 def registerPath(path):
     path = normalizePath(path)
-    import os.path, sys
-
     if path and path != '.' and not path in sys.path:
-        import sys
-
         sys.path.insert(0, path)
         return True
     return False
