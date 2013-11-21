@@ -1,21 +1,32 @@
-##
-# 	\namespace	blurdev.gui.windows.loggerwindow.loggerwindow
-#
-# 	\remarks	LoggerWindow class is an overloaded python interpreter for blurdev
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/15/08
-#
+""" LoggerWindow class is an overloaded python interpreter for blurdev
 
-from PyQt4.QtCore import QObject, QPoint
-from PyQt4.QtGui import QTextEdit
+"""
 
 import re
 import __main__
 import os
 import sys
 import traceback
+import socket
+
+from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt
+from PyQt4.QtGui import (
+    QTextEdit,
+    QApplication,
+    QTextCursor,
+    QTextDocument,
+    QTextCharFormat,
+    QMessageBox,
+    QColor,
+)
+
+import blurdev
+from blurdev import debug
+from .completer import PythonCompleter
+from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
+from blurdev.tools import ToolsEnvironment
+import blurdev.gui.windows.loggerwindow
+
 
 emailformat = """
 <html>
@@ -60,13 +71,8 @@ emailformat = """
 </html>
 """
 
-# ----------------------------------------------------------------
-
 
 class ErrorLog(QObject):
-    def fileno(self):
-        return 0
-
     def flush(self):
         """ flush the logger instance """
         self.parent().flush()
@@ -76,30 +82,20 @@ class ErrorLog(QObject):
         self.parent().write(msg, error=True)
 
 
-# ----------------------------------------------------------------
-
-
 class ConsoleEdit(QTextEdit):
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
 
         # store the error buffer
         self._completer = None
-
-        from PyQt4.QtCore import QTimer
-
         self._errorTimer = QTimer()
         self._errorTimer.setSingleShot(True)
         self._errorTimer.timeout.connect(self.handleError)
 
         # create the completer
-        from completer import PythonCompleter
-
         self.setCompleter(PythonCompleter(self))
 
         # overload the sys logger (if we are not on a high debugging level)
-        from blurdev import debug
-
         if (
             os.path.basename(sys.executable) != 'python.exe'
             or debug.debugLevel() != debug.DebugLevel.High
@@ -108,8 +104,6 @@ class ConsoleEdit(QTextEdit):
             sys.stderr = ErrorLog(self)
 
         # create the highlighter
-        from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
-
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
 
@@ -139,13 +133,10 @@ class ConsoleEdit(QTextEdit):
         """
         if not error:
             return
-        from blurdev import debug
 
         # do not email when debugging
         if debug.debugLevel():
             return
-
-        import blurdev
 
         # get current user
         username = blurdev.osystem.username()
@@ -154,8 +145,6 @@ class ConsoleEdit(QTextEdit):
 
         # get current host
         try:
-            import socket
-
             host = socket.gethostname()
         except:
             host = 'Unknown'
@@ -167,9 +156,6 @@ class ConsoleEdit(QTextEdit):
 
         # Build the message
         message = ['<ul>']
-
-        from PyQt4.QtCore import QDateTime
-
         message.append('<li><b>user: </b>%s</li>' % username)
         message.append('<li><b>host: </b>%s</li>' % host)
         message.append(
@@ -180,8 +166,6 @@ class ConsoleEdit(QTextEdit):
         message.append('<li><b>executable: </b>%s</li>' % sys.executable)
 
         # notify where the error came from
-        from PyQt4.QtGui import QApplication
-
         window = QApplication.activeWindow()
 
         # use the root application
@@ -261,12 +245,9 @@ class ConsoleEdit(QTextEdit):
 
     def executeCommand(self):
         """ executes the current line of code """
-        import re
-
         # grab the command from the line
         block = self.textCursor().block().text()
         results = re.search('>>> (.*)', unicode(block))
-
         if results:
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
@@ -301,9 +282,6 @@ class ConsoleEdit(QTextEdit):
         else:
             self.startInputLine()
 
-    def fileno(self):
-        return 0
-
     def flush(self):
         self.clear()
 
@@ -316,8 +294,6 @@ class ConsoleEdit(QTextEdit):
     def insertCompletion(self, completion):
         """ inserts the completion text into the editor """
         if self.completer().widget() == self:
-            from PyQt4.QtGui import QTextCursor
-
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.Left)
             cursor.movePosition(QTextCursor.EndOfWord)
@@ -332,8 +308,6 @@ class ConsoleEdit(QTextEdit):
         else:
             text = mimeData.text()
 
-        from PyQt4.QtGui import QTextDocument
-
         doc = QTextDocument()
 
         if html:
@@ -342,8 +316,6 @@ class ConsoleEdit(QTextEdit):
             doc.setPlainText(text)
 
         text = doc.toPlainText()
-
-        import re
 
         exp = re.compile(
             '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
@@ -367,8 +339,6 @@ class ConsoleEdit(QTextEdit):
 
     def keyPressEvent(self, event):
         """ overload the key press event to handle custom events """
-
-        from PyQt4.QtCore import Qt
 
         completer = self.completer()
 
@@ -433,8 +403,6 @@ class ConsoleEdit(QTextEdit):
 
     def moveToHome(self):
         """ moves the cursor to the home location """
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QTextCursor, QApplication
 
         mode = QTextCursor.MoveAnchor
 
@@ -460,9 +428,6 @@ class ConsoleEdit(QTextEdit):
 
     def startInputLine(self):
         """ create a new command prompt line """
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QTextCursor
-        from PyQt4.QtGui import QTextCharFormat
 
         self.moveCursor(QTextCursor.End)
 
@@ -482,22 +447,14 @@ class ConsoleEdit(QTextEdit):
         """ process an error event handling """
 
         # determine the error email path
-        from blurdev.tools import ToolsEnvironment
-
         emails = ToolsEnvironment.activeEnvironment().emailOnError()
         if emails:
             self.emailError(emails, ''.join(self.lastError()))
 
         # if the logger is not visible, prompt the user
-        from blurdev.gui.windows.loggerwindow import LoggerWindow
-
-        inst = LoggerWindow.instance()
+        inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
         if not inst.isVisible():
-            import blurdev
-
             if not blurdev.core.quietMode():
-                from PyQt4.QtGui import QMessageBox
-
                 result = QMessageBox.question(
                     blurdev.core.rootWindow(),
                     'Error Occurred',
@@ -509,10 +466,6 @@ class ConsoleEdit(QTextEdit):
 
     def write(self, msg, error=False):
         """ write the message to the logger """
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QTextCharFormat
-        from PyQt4.QtGui import QTextCursor, QColor
-
         self.moveCursor(QTextCursor.End)
         charFormat = QTextCharFormat()
 
