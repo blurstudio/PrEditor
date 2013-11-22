@@ -48,7 +48,7 @@ DebugLevel = enum('Low', 'Mid', 'High')
 
 class Stopwatch(object):
     def __init__(self, name, debugLevel=1):
-        super(StopWatch, self).__init__()
+        super(Stopwatch, self).__init__()
         self._name = str(name)
         self._count = 0
         self._debugLevel = debugLevel
