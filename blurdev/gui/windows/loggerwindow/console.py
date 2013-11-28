@@ -8,6 +8,7 @@ import os
 import sys
 import traceback
 import socket
+from abc import ABCMeta
 
 from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt
 from PyQt4.QtGui import (
@@ -26,6 +27,21 @@ from .completer import PythonCompleter
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 from blurdev.tools import ToolsEnvironment
 import blurdev.gui.windows.loggerwindow
+
+# win32com's redirects all sys.stderr output to sys.stdout if the existing sys.stdout is not a instance of its SafeOutput
+# Make our logger classes inherit from SafeOutput so they don't get replaced by win32com
+try:
+    from win32com.axscript.client.framework import SafeOutput
+
+    class Win32ComFix(SafeOutput):
+        pass
+
+
+except ImportError:
+    SafeOutput = None
+
+    class Win32ComFix(object):
+        pass
 
 
 emailformat = """
@@ -72,7 +88,7 @@ emailformat = """
 """
 
 
-class ErrorLog(QObject):
+class ErrorLog(QObject, Win32ComFix):
     def flush(self):
         """ flush the logger instance """
         self.parent().flush()
@@ -82,7 +98,7 @@ class ErrorLog(QObject):
         self.parent().write(msg, error=True)
 
 
-class ConsoleEdit(QTextEdit):
+class ConsoleEdit(QTextEdit, Win32ComFix):
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
 
@@ -479,4 +495,9 @@ class ConsoleEdit(QTextEdit):
             charFormat.setForeground(Qt.red)
 
         self.setCurrentCharFormat(charFormat)
-        self.insertPlainText(msg)
+        try:
+            self.insertPlainText(msg)
+        except:
+            if SafeOutput:
+                # win32com writes to the debugger if it is unable to print, so ensure it still does this.
+                SafeOutput.write(self, msg)
