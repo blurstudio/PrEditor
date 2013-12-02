@@ -41,6 +41,7 @@ class DocumentEditor(QsciScintilla):
         self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
         self._saveTimer = 0.0
+        self._autoReloadOnChange = False
         # used to store the right click location
         self._clickPos = None
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
@@ -96,6 +97,9 @@ class DocumentEditor(QsciScintilla):
             self.unindentSelection(True)
         self.setSelection(startline, startcol + 1, endline, endcol)
         self.endUndoAction()
+
+    def autoReloadOnChange(self):
+        return self._autoReloadOnChange
 
     def checkForSave(self):
         if self.isModified():
@@ -745,9 +749,12 @@ class DocumentEditor(QsciScintilla):
     def reloadDialog(self, message, title='Reload File...'):
         if not self._dialogShown:
             self._dialogShown = True
-            result = QMessageBox.question(
-                self.window(), title, message, QMessageBox.Yes | QMessageBox.No
-            )
+            if self._autoReloadOnChange or not self.isModified():
+                result = QMessageBox.Yes
+            else:
+                result = QMessageBox.question(
+                    self.window(), title, message, QMessageBox.Yes | QMessageBox.No
+                )
             self._dialogShown = False
             if result == QMessageBox.Yes:
                 return self.load(self.filename())
@@ -1025,6 +1032,12 @@ class DocumentEditor(QsciScintilla):
         act.setCheckable(True)
         act.setChecked(self.indentationsUseTabs())
 
+        if self._fileMonitoringActive:
+            act = menu.addAction('Auto Reload file')
+            act.triggered.connect(self.setAutoReloadOnChange)
+            act.setCheckable(True)
+            act.setChecked(self._autoReloadOnChange)
+
         if self.language() == 'Python':
             menu.addSeparator()
             act = menu.addAction('Autoformat (PEP 8)')
@@ -1139,6 +1152,9 @@ class DocumentEditor(QsciScintilla):
                         sline, spos, eline, epos
                     )
                 )
+
+    def setAutoReloadOnChange(self, state):
+        self._autoReloadOnChange = state
 
     def setHighlightedKeywords(self, lexer, keywords):
         """
