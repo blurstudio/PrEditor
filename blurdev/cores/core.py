@@ -398,7 +398,7 @@ class Core(QObject):
         return self._hwnd
 
     def ideeditor(self, parent=None):
-        return IdeEditor.instance(parent)
+        return blurdev.ide.ideeditor.IdeEditor.instance(parent)
 
     def isKeystrokesEnabled(self):
         return self._keysEnabled
