@@ -275,7 +275,9 @@ def quickReload(modulename):
     based on the imported module.
     
     """
-    expr = re.compile(str(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
+    expr = re.compile(
+        unicode(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*')
+    )
 
     # reload longer chains first
     keys = sys.modules.keys()
@@ -290,7 +292,7 @@ def quickReload(modulename):
 
 
 def packageForPath(path):
-    path = str(path)
+    path = unicode(path)
     splt = os.path.normpath(path).split(os.path.sep)
     index = 1
 
@@ -340,7 +342,7 @@ def relativePath(path, additional):
     :param additional: Additional folder/file path appended to the path.
     :return str: The modified path
     """
-    return os.path.join(os.path.split(str(path))[0], additional)
+    return os.path.join(os.path.split(unicode(path))[0], additional)
 
 
 def resetWindowPos():
@@ -365,7 +367,7 @@ def resourcePath(relpath):
     :param relpath: The additional path added to the blurdev\resource folder path.
     :return str: The modified path
     """
-    return relativePath(__file__, 'resource/%s' % relpath)
+    return relativePath(__file__, r'resource\%s' % relpath)
 
 
 def runTool(toolId, macro=""):
