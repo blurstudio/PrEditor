@@ -65,9 +65,9 @@ class SoftimageCore(Core):
     def init(self):
         # BlurApplication is used to connect QApplication to Softimage
         if platform.architecture()[0] == '64bit':
-            plugin = r'\\source\production\workgroups\xsi_blurdev\Application\Plugins\BlurApplication64.dll'
+            plugin = blurdev.resourcePath('softimage\BlurApplication64.dll')
         else:
-            plugin = r'\\source\production\workgroups\xsi_blurdev\Application\Plugins\BlurApplication.dll'
+            plugin = blurdev.resourcePath('softimage\BlurApplication.dll')
         xsi.loadPlugin(plugin)
         # connect the plugin to Softimage
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())
