@@ -1,10 +1,12 @@
 import os
+import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
-from PySoftimage import xsi
 from PyQt4.QtGui import QApplication, QCursor
 import win32com.client
 from win32com.client import constants
+
+xsi = win32com.client.Dispatch('XSI.Application').Application
 
 from blurdev.cores.core import Core
 import blurdev.tools.toolsenvironment
@@ -61,7 +63,13 @@ class SoftimageCore(Core):
         return not disabled
 
     def init(self):
-        # connect the plugin to 3dsmax
+        # BlurApplication is used to connect QApplication to Softimage
+        if platform.architecture()[0] == '64bit':
+            plugin = r'\\source\production\workgroups\xsi_blurdev\Application\Plugins\BlurApplication64.dll'
+        else:
+            plugin = r'\\source\production\workgroups\xsi_blurdev\Application\Plugins\BlurApplication.dll'
+        xsi.loadPlugin(plugin)
+        # connect the plugin to Softimage
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())
         self.protectModule('PySoftimage')
         # load this file as a plugin for XSI
