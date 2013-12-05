@@ -69,6 +69,7 @@ class IdeEditor(Window):
 
     def __init__(self, parent=None):
         Window.__init__(self, parent)
+        self.aboutToClearPathsEnabled = False
 
         # load the ui
         import blurdev
