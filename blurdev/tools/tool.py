@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import os
-import importlib
 
 from PyQt4.QtCore import QObject, Qt
 from PyQt4.QtGui import QApplication
@@ -46,6 +45,7 @@ class Tool(QObject):
         self._favoriteGroup = None
         self._header = None
         self._disabled = False
+        self._usagestatsEnabled = True
 
     def disabled(self):
         return self._disabled
@@ -75,24 +75,9 @@ class Tool(QObject):
             blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
 
         # Log what tool was used and when.
-        try:
-            # uses the environment variable "bdev_use_log_class" to import a module similar to the following
-            useLogClass = os.environ.get('bdev_use_log_class')
-            useLog = importlib.import_module(useLogClass)
+        if self._usagestatsEnabled:
             info = {'name': self.objectName()}
             info['miscInfo'] = macro
-            useLog.logEvent(info)
-        except Exception, e:
-            if debug.debugLevel() >= debug.DebugLevel.High:
-                raise
-            else:
-                # If redmine commits fail, allow code to continue.
-                console = blurdev.core.logger().console()
-                error = ''.join(console.lastError())
-                emails = (
-                    blurdev.tools.ToolsEnvironment.activeEnvironment().emailOnError()
-                )
-                console.emailError(emails, error)
 
     def favoriteGroup(self):
         return self._favoriteGroup
@@ -180,6 +165,9 @@ class Tool(QObject):
         """
         self._toolType = toolType
 
+    def setUsagestatsEnabled(self, state):
+        self._usagestatsEnabled = state
+
     def setVersion(self, version):
         self._version = version
 
@@ -196,6 +184,9 @@ class Tool(QObject):
         """ returns the toolType for this category
         """
         return self._toolType
+
+    def usagestatsEnabled(self):
+        return self._usagestatsEnabled
 
     def version(self):
         return self._version
@@ -232,6 +223,9 @@ class Tool(QObject):
                 )
                 output.setDisabled(
                     data.findProperty('disabled', 'false').lower() == 'true'
+                )
+                output.setUsagestatsEnabled(
+                    data.findProperty('usagestats', 'true').lower() == 'true'
                 )
         else:
             output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))
