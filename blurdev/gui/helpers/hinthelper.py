@@ -1,15 +1,16 @@
-##
-# 	\namespace	blurdev.gui.helpers.hinthelper
-#
-# 	\remarks	The HintHelper class helps provide a constant tool tip to
-# 				text editing fields
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		12/18/08
-#
+"""
+The HintHelper class helps provide a constant tool tip to widgets
 
-from PyQt4.QtGui import QLabel, QComboBox, QLineEdit, QTextEdit, QPlainTextEdit
+"""
+
+from PyQt4.QtGui import (
+    QLabel,
+    QComboBox,
+    QLineEdit,
+    QTextEdit,
+    QPlainTextEdit,
+    QTreeWidget,
+)
 from PyQt4.QtCore import Qt
 
 
@@ -27,11 +28,19 @@ class HintHelper(QLabel):
                 lineEdit = parent.lineEdit()
                 lineEdit.textChanged.connect(self.toggleVisibility)
                 self.setAlignment(lineEdit.alignment())
+            self.setCursor(Qt.IBeamCursor)
 
         # connect to a lineedit
         elif isinstance(parent, (QLineEdit, QTextEdit, QPlainTextEdit)):
             parent.textChanged.connect(self.toggleVisibility)
             self.setAlignment(Qt.AlignTop)
+            self.setCursor(Qt.IBeamCursor)
+
+        elif isinstance(parent, QTreeWidget):
+            model = parent.model()
+            model.rowsInserted.connect(self.toggleVisibility)
+            model.rowsRemoved.connect(self.toggleVisibility)
+            self.setAlignment(Qt.AlignCenter)
 
         # update the information
         self.setText(hint)
@@ -47,7 +56,6 @@ class HintHelper(QLabel):
         parent.installEventFilter(self)
         self.move(6, 4)
 
-        self.setCursor(Qt.IBeamCursor)
         self.raise_()
 
     def enabled(self):
@@ -96,5 +104,7 @@ class HintHelper(QLabel):
         # check a textedit
         elif isinstance(parent, (QTextEdit, QPlainTextEdit)):
             state = parent.toPlainText() == ''
+        if isinstance(parent, QTreeWidget):
+            state = not bool(parent.topLevelItemCount())
         QLabel.setVisible(self, state)
         self.resizeHintHelper()
