@@ -1197,13 +1197,14 @@ class IdeEditor(Window):
         pref.recordProperty('windowStateSave', self.saveState())
 
         pref.recordProperty('MidiViewMode', self.uiWindowsAREA.viewMode())
-        pref.recordProperty(
-            'openFiles',
-            [str(doc.filename()) for doc in self.documents() if doc.filename()],
-        )
-        pref.recordProperty(
-            'currentDocument', unicode(self.currentDocument().filename())
-        )
+        openFiles = [
+            unicode(doc.filename()) for doc in self.documents() if doc.filename()
+        ]
+        if openFiles:
+            pref.recordProperty('openFiles', openFiles)
+            pref.recordProperty(
+                'currentDocument', unicode(self.currentDocument().filename())
+            )
 
         pref.recordProperty('projectTreeState', self.uiProjectTREE.recordOpenState())
 
