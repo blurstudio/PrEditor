@@ -17,9 +17,6 @@ import copy
 import types
 import cPickle
 import re
-import inspect
-import glob
-import random
 
 from PyQt4.QtGui import (
     QMainWindow,
@@ -28,8 +25,6 @@ from PyQt4.QtGui import (
     QApplication,
     QWizard,
     QMessageBox,
-    QSplashScreen,
-    QPixmap,
 )
 from PyQt4.QtCore import Qt
 import blur.Stone
@@ -141,65 +136,6 @@ def init():
         application = core.init()
 
 
-def splashscreen(filepath=None, toolname=None, ctor=None):
-    splash_filepaths = None
-
-    # If a splashscreen filepath is provided, use that
-    if filepath and os.path.isfile(filepath):
-        splash_filepaths = [filepath]
-
-    if not splash_filepaths:
-
-        if not toolname:
-            if ctor and inspect.isclass(ctor):
-                toolname = ctor.__name__
-
-            else:
-                # Get the filepath where this function was called
-                calling_filepath = inspect.stack()[1][1]
-                toolname = os.path.basename(os.path.dirname(calling_filepath))
-
-        if toolname:
-            splash_dir = os.path.join(r'\\source\source\dev\share_all\splash', toolname)
-            if os.path.isdir(splash_dir):
-                splash_filepaths = glob.glob(os.path.join(splash_dir, '*.*'))
-
-    if not splash_filepaths and ctor:
-        # check in the img dir where the widget is defined.
-        try:
-            srcfile = inspect.getsourcefile(ctor)
-        except TypeError:
-            pass
-        else:
-            imgdir = os.path.join(os.path.dirname(srcfile), 'img')
-            glob_paths = [
-                os.path.join(imgdir, 'splash.*'),
-                os.path.join(imgdir, 'icon.*'),
-                os.path.join(imgdir, '*.*'),
-            ]
-            for glob_path in glob_paths:
-                splash_filepaths = glob.glob(glob_path)
-                if splash_filepaths:
-                    break
-
-    if not splash_filepaths:
-        # Default splash screens
-        splash_filepaths = glob.glob(
-            r'\\source\source\dev\share_all\splash\default\*.*'
-        )
-
-    if splash_filepaths:
-        pixmap = QPixmap(random.choice(splash_filepaths))
-        minsize = 128
-        if pixmap.width() < minsize and pixmap.height() < minsize:
-            pixmap = pixmap.scaled(minsize, minsize, Qt.KeepAspectRatio)
-        splash = QSplashScreen(pixmap)
-        splash.show()
-        return splash
-
-    return None
-
-
 def launch(
     ctor,
     modal=False,
@@ -259,11 +195,6 @@ def launch(
         # use the instance method if requested
         widget = ctor.instance()
     else:
-
-        # If no splashscreen is provided try to find an appropriate one, or
-        # create a default splash.
-        if splash is None:
-            splash = splashscreen(ctor=ctor)
 
         # show a splash screen if provided
         if splash:

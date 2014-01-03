@@ -8,9 +8,32 @@
 # 	\date		06/15/10
 #
 
+import os
+import glob
+import random
+
+from PyQt4.QtGui import QPixmap, QSplashScreen
+
 from window import Window
 from dialog import Dialog
 from wizard import Wizard
+
+
+SPLASH_DIR = r'\\source\source\dev\share_all\splash'
+
+
+def randomSplashScreen(toolname='default'):
+    splash_dir = os.path.join(SPLASH_DIR, toolname)
+
+    if os.path.isdir(splash_dir):
+        splash_filepaths = glob.glob(os.path.join(splash_dir, '*.*'))
+        if splash_filepaths:
+            pixmap = QPixmap(random.choice(splash_filepaths))
+            splash = QSplashScreen(pixmap)
+            splash.show()
+            return splash
+
+    return None
 
 
 def compPixmap(imageData):
