@@ -147,3 +147,29 @@ def findPixmap(filename, thumbSize=None):
             QPixmapCache.insert(filename, cache)
 
         return QPixmap(cache)
+
+
+def connectLogger(
+    parent, start=True, sequence='F2', text='Show Logger', objName='uiShowLoggerACT'
+):
+    """ Optionally starts the logger, and creates a QAction on the provided parent with the provided
+    keyboard shortcut to run it.
+    :param parent: The parent widget, normally a window
+    :param start: Start logging imeadeately. Defaults to True. Disable if you don't want to redirect imeadeately.
+    :param sequence: A string representing the keyboard shortcut associated with the QAction. Defaults to 'F2'
+    :param text: The display text for the QAction. Defaults to 'Show Logger'
+    :param objName: Set the QAction's objectName to this value. Defaults to 'uiShowLoggerACT'
+    :return : The created QAction
+    """
+    import blurdev
+    from PyQt4.QtGui import QAction, QKeySequence
+
+    if start:
+        blurdev.core.logger(parent)
+    # Create shortcuts for launching the logger
+    action = QAction(text, parent)
+    action.setObjectName(objName)
+    action.triggered.connect(blurdev.core.showLogger)
+    action.setShortcut(QKeySequence(sequence))
+    parent.addAction(action)
+    return action
