@@ -155,7 +155,7 @@ def connectLogger(
     """ Optionally starts the logger, and creates a QAction on the provided parent with the provided
     keyboard shortcut to run it.
     :param parent: The parent widget, normally a window
-    :param start: Start logging imeadeately. Defaults to True. Disable if you don't want to redirect imeadeately.
+    :param start: Start logging immediately. Defaults to True. Disable if you don't want to redirect immediately.
     :param sequence: A string representing the keyboard shortcut associated with the QAction. Defaults to 'F2'
     :param text: The display text for the QAction. Defaults to 'Show Logger'
     :param objName: Set the QAction's objectName to this value. Defaults to 'uiShowLoggerACT'
