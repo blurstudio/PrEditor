@@ -8,4 +8,7 @@
 #   \date       08/11/11
 #
 
-import winshell
+import blurdev.settings
+
+if blurdev.settings.OS_TYPE == 'Windows':
+    import winshell

@@ -28,7 +28,6 @@ from PyQt4.QtCore import QProcess
 
 import blurdev
 from . import settings
-from . import scripts
 
 
 # Get the active version of python, not a hard coded value.
@@ -140,6 +139,8 @@ def createShortcut(
                     
     """
     if settings.OS_TYPE == 'Windows':
+        from . import scripts
+
         if not path:
             path = scripts.winshell.desktop(1)
             if not os.path.exists(path):
