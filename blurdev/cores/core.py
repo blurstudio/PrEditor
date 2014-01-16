@@ -30,10 +30,6 @@ import blurdev.tools.toolsenvironment
 import blurdev.tools.toolslovebar
 import blurdev.tools.toolstoolbar
 import blurdev.ide.ideeditor
-import blurdev.gui.windows.loggerwindow
-import blurdev.gui.widgets.pyularwidget
-from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
-from blurdev.gui.windows.sdkwindow import SdkWindow
 import blurdev.cores.application
 from application import Application
 
@@ -409,6 +405,7 @@ class Core(QObject):
     def logger(self, parent=None):
         """ Creates and returns the logger instance
         """
+        import blurdev.gui.windows.loggerwindow
 
         return blurdev.gui.windows.loggerwindow.LoggerWindow.instance(parent)
 
@@ -508,6 +505,8 @@ class Core(QObject):
         return self._protectedModules
 
     def pyular(self, parent=None):
+        import blurdev.gui.widgets.pyularwidget
+
         return blurdev.gui.widgets.pyularwidget.PyularDialog.instance(parent)
 
     def quietMode(self):
@@ -924,6 +923,8 @@ class Core(QObject):
         return False
 
     def sdkBrowser(self, parent=None):
+        from blurdev.gui.windows.sdkwindow import SdkWindow
+
         return SdkWindow.instance(parent)
 
     def setLastFileName(self, filename):
@@ -1068,7 +1069,7 @@ class Core(QObject):
         blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent).show()
 
     def showPyular(self, parent=None):
-        blurdev.gui.widgets.pyularwidget.PyularDialog.instance(parent).show()
+        self.pyular(parent).show()
 
     def showTreegrunt(self):
         treegrunt = self.treegrunt()
@@ -1110,4 +1111,6 @@ class Core(QObject):
     def treegrunt(self, parent=None):
         """ Creates and returns the logger instance
         """
+        from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
+
         return TreegruntDialog.instance(parent)
