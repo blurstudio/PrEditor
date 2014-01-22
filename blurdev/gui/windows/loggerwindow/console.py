@@ -165,11 +165,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         except:
             host = 'Unknown'
 
-        # Build the brief & subject information
-        if not subject:
-            subject = error.split('\n')[-2]
-        subject = '[Python Error] %s' % subject
-
         # Build the message
         message = ['<ul>']
         message.append('<li><b>user: </b>%s</li>' % username)
@@ -183,6 +178,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # notify where the error came from
         window = QApplication.activeWindow()
+        className = ''
 
         # use the root application
         if window.__class__.__name__ == 'LoggerWindow':
@@ -193,6 +189,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 '<li><b>window: </b>%s (from %s Class)</li>'
                 % (window.objectName(), window.__class__.__name__)
             )
+            className = '[W:%s]' % window.__class__.__name__
+
+        # Build the brief & subject information
+        if not subject:
+            subject = error.split('\n')[-2]
+
+        subject = '[Python Error][U:%s][C:%s]%s %s' % (
+            username,
+            blurdev.core.objectName(),
+            className,
+            subject,
+        )
 
         coreMsg = blurdev.core.errorCoreText()
         if coreMsg:
