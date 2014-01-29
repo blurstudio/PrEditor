@@ -50,6 +50,9 @@ class ToolsEnvironment(QObject):
         self._autoupdate = False
         self._keychain = ''
 
+    def __str__(self):
+        return '<ToolsEnvironment ({})>'.format(self.objectName())
+
     def clearPathSymbols(self):
         """
         Removes the path symbols from the environment
