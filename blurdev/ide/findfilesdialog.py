@@ -310,8 +310,20 @@ class FindFilesDialog(Dialog):
             self._searchThread.searchedCount(),
         )
 
-        self._allResultsText = ''
-        self._resultsFileText = ''
+        baseText = (
+            'Base Path: {basePath}\n'
+            'File Types: {fileTypes}\n'
+            'Find Text: {findText}\n'
+            'Is Regular Exp: {isRe}\n\n'
+        )
+        baseText = baseText.format(
+            basePath=self.uiBasePathTXT.text(),
+            fileTypes=self.uiFileTypesDDL.currentText(),
+            findText=self.uiSearchTXT.text(),
+            isRe=self.uiRegexCHK.isChecked(),
+        )
+        self._allResultsText = baseText
+        self._resultsFileText = baseText
 
         filenames = results.keys()
         filenames.sort()
