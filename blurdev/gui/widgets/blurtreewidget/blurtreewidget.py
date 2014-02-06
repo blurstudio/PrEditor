@@ -436,7 +436,7 @@ class BlurTreeWidget(LockableTreeWidget):
                 else QTreeWidgetItemIterator.Disabled
             )
 
-        iterator = QTreeWidgetItemIterator(tree, flags)
+        iterator = QTreeWidgetItemIterator(self, flags)
         item = iterator.value()
         while item:
             if func is None or func(item):
