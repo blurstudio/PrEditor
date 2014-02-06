@@ -403,18 +403,46 @@ class BlurTreeWidget(LockableTreeWidget):
             self.itemExpandAllChildren(item, True)
             # self.blockSignals( False )
 
-    def itemIterator(self):
-        """ Returns a generator that iterates over the items in a QTreeWidget.
-            This utilizes the QTreeWidgetItemIterator, and so items will be 
-            traversed using the pre-order traversal order that it uses, thus
-            the parent node will be visited BEFORE the child node.
-            
-            For more info: http://qt-project.org/doc/qt-4.8/qtreewidgetitemiterator.html
+    def itemIterator(self, selected=None, hidden=None, enabled=None, func=None):
+        """ 
+        Returns a generator that iterates over the items in a QTreeWidget.
+        For more info: http://qt-project.org/doc/qt-4.8/qtreewidgetitemiterator.html
+        
+        The selected, hidden, and enabled arguments, if set, will only yield items
+        that match the given value.
+        
+        The func argument allows you to pass in a function that takes a treewidgetitem
+        as an argument and returns True if it should be yielded, or False if it
+        should be skipped.
         """
-        it = QTreeWidgetItemIterator(self)
-        while it.value():
-            yield it.value()
-            it += 1
+
+        flags = QTreeWidgetItemIterator.All
+        if selected is not None:
+            flags |= (
+                QTreeWidgetItemIterator.Selected
+                if selected
+                else QTreeWidgetItemIterator.Unselected
+            )
+        if hidden is not None:
+            flags |= (
+                QTreeWidgetItemIterator.Hidden
+                if hidden
+                else QTreeWidgetItemIterator.NotHidden
+            )
+        if enabled is not None:
+            flags |= (
+                QTreeWidgetItemIterator.Enabled
+                if enabled
+                else QTreeWidgetItemIterator.Disabled
+            )
+
+        iterator = QTreeWidgetItemIterator(tree, flags)
+        item = iterator.value()
+        while item:
+            if func is None or func(item):
+                yield item
+            iterator += 1
+            item = iterator.value()
 
     def itemExpandAllChildren(self, item, state, filter=None, column=0, contains=False):
         """
