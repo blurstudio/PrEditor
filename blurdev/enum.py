@@ -121,13 +121,13 @@ class enum(object):
                 return index
         return -1
 
-    def toString(self, value, default='None'):
+    def toString(self, value, default='None', sep=' '):
         parts = []
         for key in self._keys:
             if not key in self._compound and value & self.value(key):
                 parts.append(key)
         if parts:
-            return ' '.join(parts)
+            return sep.join(parts)
         return default
 
     def fromString(self, labels):
