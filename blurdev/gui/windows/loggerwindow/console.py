@@ -166,6 +166,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             host = 'Unknown'
 
         # Build the message
+        envName = blurdev.activeEnvironment().objectName()
         message = ['<ul>']
         message.append('<li><b>user: </b>%s</li>' % username)
         message.append('<li><b>host: </b>%s</li>' % host)
@@ -175,6 +176,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         )
         message.append('<li><b>python: </b>%s</li>' % sys.version)
         message.append('<li><b>executable: </b>%s</li>' % sys.executable)
+        message.append(
+            '<li><b>blurdev env:</b> %s: %s</li>'
+            % (envName, blurdev.activeEnvironment().path())
+        )
 
         # notify where the error came from
         window = QApplication.activeWindow()
@@ -194,10 +199,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # Build the brief & subject information
         if not subject:
             subject = error.split('\n')[-2]
+        if envName:
+            envName = '[E:%s]' % envName
 
-        subject = '[Python Error][U:%s][C:%s]%s %s' % (
+        subject = '[Python Error][U:%s][C:%s]%s%s %s' % (
             username,
             blurdev.core.objectName(),
+            envName,
             className,
             subject,
         )
