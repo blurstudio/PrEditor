@@ -398,16 +398,21 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.insertCompletion(completer.currentCompletion())
             completer.clear()
 
-        elif event.key() == Qt.Key_Escape:
+        elif event.key() == Qt.Key_Escape and completer.popup().isVisible():
             completer.clear()
 
         # other wise handle the keypress
         else:
-            QTextEdit.keyPressEvent(self, event)
+            ctrlSpace = (
+                event.key() == Qt.Key_Space
+                and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
+            )
+            # Process all events we do not want to override
+            if not ctrlSpace:
+                QTextEdit.keyPressEvent(self, event)
 
             # check for particular events for the completion
             if completer:
-
                 # look for documentation popups
                 if event.key() == Qt.Key_ParenLeft:
                     rect = self.cursorRect()
@@ -418,8 +423,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 elif event.key() == Qt.Key_ParenRight:
                     completer.hideDocumentation()
 
-                # determine if we need to show the popup or if it already is visible, we need to updte it
-                elif event.key() == Qt.Key_Period or completer.popup().isVisible():
+                # determine if we need to show the popup or if it already is visible, we need to update it
+                elif (
+                    event.key() == Qt.Key_Period
+                    or event.key() == Qt.Key_Escape
+                    or completer.popup().isVisible()
+                    or ctrlSpace
+                ):
                     completer.refreshList(scope=__main__.__dict__)
                     completer.popup().setCurrentIndex(
                         completer.completionModel().index(0, 0)
@@ -435,17 +445,19 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def moveToHome(self):
         """ moves the cursor to the home location """
-
         mode = QTextCursor.MoveAnchor
-
         # select the home
         if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
             mode = QTextCursor.KeepAnchor
-
         # grab the cursor
         cursor = self.textCursor()
-        block = unicode(cursor.block().text()).split()
-        cursor.movePosition(QTextCursor.StartOfBlock, mode)
+        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
+            # move to the top of the document if control is pressed
+            cursor.movePosition(QTextCursor.Start)
+        else:
+            # Otherwise just move it to the start of the line
+            block = unicode(cursor.block().text()).split()
+            cursor.movePosition(QTextCursor.StartOfBlock, mode)
         cursor.movePosition(
             QTextCursor.Right, mode, 4
         )  # the line is 4 characters long (>>> )
