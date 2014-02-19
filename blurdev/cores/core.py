@@ -995,7 +995,7 @@ class Core(QObject):
                 output.attach(txt)
 
         smtp = smtplib.SMTP()
-        smtp.connect('mail.blur.com')
+        smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
         smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
         smtp.close()
 
