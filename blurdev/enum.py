@@ -130,8 +130,8 @@ class enum(object):
             return sep.join(parts)
         return default
 
-    def fromString(self, labels):
-        parts = str(labels).split(' ')
+    def fromString(self, labels, sep=' '):
+        parts = str(labels).split(sep)
         value = 0
         for part in parts:
             value |= self.value(part)
