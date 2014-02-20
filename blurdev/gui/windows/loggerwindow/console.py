@@ -99,14 +99,20 @@ class ErrorLog(QObject, Win32ComFix):
 
 
 class ConsoleEdit(QTextEdit, Win32ComFix):
+    _additionalInfo = None
+
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
 
         # store the error buffer
         self._completer = None
+        self.errorTimeout = 50
         self._errorTimer = QTimer()
         self._errorTimer.setSingleShot(True)
         self._errorTimer.timeout.connect(self.handleError)
+        self._additionalInfoTimer = QTimer()
+        self._additionalInfoTimer.setSingleShot(True)
+        self._additionalInfoTimer.timeout.connect(self.clearAdditionalInfo)
 
         # create the completer
         self.setCompleter(PythonCompleter(self))
@@ -233,17 +239,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         message.append(unicode(error).replace('\n', '<br>'))
         message.append('</code></pre></div>')
         # append any passed in body text
-        if information != None:
-            message.append('<h3>Information</h3>')
-            message.append('<hr>')
-            message.append(
-                '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
-            )
-            try:
-                message.append(unicode(information).replace('\n', '<br>'))
-            except:
-                message.append('module.errorLog() generated a error.')
-            message.append('</code></pre></div>')
+        for info in (information, ConsoleEdit.additionalInfo()):
+            if info != None:
+                message.append('<h3>Information</h3>')
+                message.append('<hr>')
+                message.append(
+                    '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
+                )
+                try:
+                    message.append(unicode(info).replace('\n', '<br>'))
+                except:
+                    message.append('module.errorLog() generated a error.')
+                message.append('</code></pre></div>')
         # append extra stuff
         if hasattr(sys, 'last_traceback'):
             tb = sys.last_traceback
@@ -518,7 +525,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         else:
             # start recording information to the error buffer
             self._errorTimer.stop()
-            self._errorTimer.start(50)
+            self._errorTimer.start(self.errorTimeout)
+            # Ensure the additionalInfo timeout lasts longer than the error timer
+            self.resetAdditionalInfo()
 
             charFormat.setForeground(Qt.red)
 
@@ -529,3 +538,20 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             if SafeOutput:
                 # win32com writes to the debugger if it is unable to print, so ensure it still does this.
                 SafeOutput.write(self, msg)
+
+    # These methods are used to insert extra data into error reports when debugging hard to reproduce errors.
+    @classmethod
+    def additionalInfo(cls):
+        return cls._additionalInfo
+
+    @classmethod
+    def clearAdditionalInfo(cls):
+        cls.setAdditionalInfo(None)
+
+    def resetAdditionalInfo(self):
+        self._additionalInfoTimer.stop()
+        self._additionalInfoTimer.start(self.errorTimeout * 2)
+
+    @classmethod
+    def setAdditionalInfo(cls, info):
+        cls._additionalInfo = info

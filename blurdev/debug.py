@@ -108,6 +108,22 @@ class Stopwatch(object):
         self._records.append('\tlap: %s | %s' % (elapsed, message))
 
 
+class AdditionalErrorInfo(object):
+    def __init__(self, message):
+        """
+        If a error happens in this context include this message inside the error report email.
+        :param message: the text string to include in the error email
+        """
+        super(AdditionalErrorInfo, self).__init__()
+        self.message = message
+
+    def __enter__(self):
+        blurdev.core.logger().uiConsoleTXT.setAdditionalInfo(self.message)
+
+    def __exit__(self, type, value, traceback):
+        blurdev.core.logger().uiConsoleTXT.resetAdditionalInfo()
+
+
 def clearErrorReport():
     """Clears the current report"""
     global _errorReport
