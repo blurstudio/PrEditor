@@ -2,7 +2,16 @@
 The tools package contains the referencing system for all the Tools
 """
 import os
-import importlib
+
+# Compatibility with pre-2.7
+try:
+    from importlib import import_module
+except ImportError:
+
+    def import_module(name):
+        return __import__(name)
+
+
 import blurdev
 from blurdev.tools.toolsenvironment import ToolsEnvironment
 from blurdev.tools.tool import ToolType, Tool
@@ -22,7 +31,7 @@ def logUsage(info):
     try:
         # uses the environment variable "bdev_use_log_class" to import a module similar to the following
         useLogClass = os.environ.get('bdev_use_log_class')
-        useLog = importlib.import_module(useLogClass)
+        useLog = import_module(useLogClass)
         useLog.logEvent(info)
         return True
     except Exception, e:
