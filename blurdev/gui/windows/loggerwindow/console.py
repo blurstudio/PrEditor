@@ -322,7 +322,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.startInputLine()
 
     def flush(self):
-        self.clear()
+        pass
 
     def focusInEvent(self, event):
         """ overload the focus in event to ensure the completer has the proper widget """
