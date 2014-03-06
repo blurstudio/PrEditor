@@ -38,7 +38,7 @@ html = '''<table>
     <tr>
         <td><b><code>(?P&lt;name&gt;...)</code></b></td><td>Group subpattern and capture into named group</td>
         <td><b><code>(?P=name)</code></b></td><td>Matches whatever text was matched by the earlier group named name. See (?P&lt;name&gt;...).</td>
-        <td><b><code>\g<name></code></b></td><td>Replaced with the text from the matching (?P&lt;name&gt;...) when passed to the repl argument of re.sub(). See (?P&lt;name&gt;...).</td>
+        <td><b><code>(?:...)</code></b></td><td>Groups Subpattern, but does not capture submatch</td>
     </tr>
     <tr>
         <td><b><code>(?=...)</code></b></td><td><i><u>Lookahead assertion:</i></u> Matches if ... matches next, but doesn't consume any of the string.</td>
@@ -47,8 +47,8 @@ html = '''<table>
     </tr>
     <tr>
         <td><b><code>(?&gt;!...)</code></b></td><td width=27%><i><u>Negative Lookbehind Assertion:</i></u> Matches if the current position in the string is not preceded by a match for ...</td>
-        <td><b><code>(?:...)</code></b></td><td>Groups Subpattern, but does not capture submatch</td>
-        <td><b><code></code></b></td><td width=27%><i><u></i></u></td>
+        <td><b><code>\g&lt;name&gt;</code></b></td><td>Replaced with the text from the matching (?P&lt;name&gt;...) when passed to the repl argument of re.sub(). You can also pass in a group index. See (?P&lt;name&gt;...).</td>
+        <td><b><code>\1</code></b></td><td width=27%>Replaced with the text from the matching group for the provided index when passed to the repl argument of re.sub().</td>
     </tr>
 </table>'''
 
