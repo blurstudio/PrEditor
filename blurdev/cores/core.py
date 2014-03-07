@@ -1060,7 +1060,7 @@ class Core(QObject):
             QApplication.instance().quit()
 
     def showIdeEditor(self):
-        blur.ide.ideeditor.IdeEditor.instance().edit()
+        blurdev.ide.ideeditor.IdeEditor.instance().edit()
 
     def showToolbar(self, parent=None):
         blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent).show()
