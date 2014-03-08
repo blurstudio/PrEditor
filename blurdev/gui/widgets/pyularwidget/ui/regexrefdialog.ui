@@ -204,12 +204,12 @@ p, li { white-space: pre-wrap; }
 &lt;td&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-style:italic; text-decoration: underline;&quot;&gt;Negative Lookahead Assertion:&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; Matches if ... doesn't match next.&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt; font-weight:600;&quot;&gt;(?&amp;gt;=...)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt; font-weight:600;&quot;&gt;(?&amp;lt;=...)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-style:italic; text-decoration: underline;&quot;&gt;Positive Lookbehind Assertion:&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; Matches if the current position in the string is preceded by a match for ... that ends at the current position.&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
 &lt;tr&gt;
 &lt;td&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt; font-weight:600;&quot;&gt;(?&amp;gt;!...)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Courier New,courier'; font-size:8pt; font-weight:600;&quot;&gt;(?&amp;lt;!...)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td&gt;
 &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt; font-style:italic; text-decoration: underline;&quot;&gt;Negative Lookbehind Assertion:&lt;/span&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt; Matches if the current position in the string is not preceded by a match for ...&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
 &lt;td&gt;
