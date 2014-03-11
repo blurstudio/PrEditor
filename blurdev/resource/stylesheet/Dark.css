@@ -28,12 +28,12 @@ rgb(40,119,204)	|					|General Highlight Gradient
 
 /*Application Defaults*/
 QMainWindow, QDialog { 
-	background-color: rgb(35,35,35); 
+	background-color: rgb(40,40,40); 
 	color: rgb(215,215,215);
 }
 
 QWidget {
-	background-color: rgb(35,35,35); 
+	background-color: rgb(40,40,40); 
 	color: rgb(215,215,215);
 }
 
@@ -206,7 +206,7 @@ QSlider::groove:vertical {
 
 
 /*Buttons*/
-QPushButton {
+/*QPushButton {
 	padding: 5px 10px;
 }
 
@@ -247,7 +247,7 @@ QPushButton:hover, QToolButton:hover {
 	border-bottom-style: solid;
 	border-color: rgb(50,150,255);
 	border-width: 2px;
-}
+}*/
 
 QToolButton:hover {
 	border-style: solid;
@@ -270,7 +270,6 @@ QPushButton:disabled, QToolButton:disabled {
 QListView, 
 QTableView, 
 QTreeView, 
-QComboBox, 
 QLineEdit, 
 QTextEdit, 
 QPlainTextEdit, 
@@ -306,10 +305,10 @@ QListView:disabled, QTableView:disabled, QTreeView:disabled {
 QHeaderView {
 }
 
-QComboBox QAbstractItemView { 
+/*QComboBox QAbstractItemView { 
 	background-color: rgb(80,80,80); 
 	color: rgb(200,200,200); 
-}
+}*/
 
 
 
@@ -318,6 +317,7 @@ QMessageBox QPushButton, QProgressDialog QPushButton {
 	min-width: 50px;
 	padding: 3px;
 }
+
 /*
 QTabBar::tab {
 	padding: 3px 10px;

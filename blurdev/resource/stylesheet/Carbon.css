@@ -1,0 +1,30 @@
+QMainWindow, QDialog, QWidget { 
+	background-color: rgb(145,145,145); 
+}
+
+QListView, QTableView, QTreeView { 
+	background-color: rgb(84,84,84);
+	alternate-background-color: rgb(74,74,74); 
+	color: rgb(200,200,200); 
+}
+
+QListView:disabled, QTableView:disabled, QTreeView:disabled { 
+	background-color: rgb(84,84,84);
+	alternate-background-color: rgb(74,74,74); 
+	color: rgb(200,200,200); 
+}
+
+QMenu {
+	border-style: solid;
+	border-color: rgb(80,80,80);
+	border-width: 1px;
+}
+
+QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
+	background-color: rgb(80,80,80); 
+	color: rgb(200,200,200); 
+}
+
+QMenu, QListView, QComboBox, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
+	selection-background-color: rgb(255,170,0);
+}
