@@ -561,6 +561,10 @@ class Core(QObject):
 
         # record the debug
         pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
+
+        # record the tools style
+        pref.recordProperty('style', self._stylesheet)
+
         return pref
 
     def recordToolbar(self):
@@ -672,6 +676,11 @@ class Core(QObject):
         level = pref.restoreProperty('debugLevel')
         if level is not None:
             blurdev.debug.setDebugLevel(level)
+
+        # restore the active style
+        self.setStyleSheet(
+            os.environ.get('BDEV_STYLESHEET', pref.restoreProperty('style'))
+        )
 
         self.blockSignals(False)
 
@@ -1032,6 +1041,12 @@ class Core(QObject):
                     with open(path) as f:
                         app.setStyleSheet(f.read())
                     self._stylesheet = stylesheet
+
+        # Storing the stylesheet as an environment variable for other external tools.
+        os.environ['BDEV_STYLESHEET'] = stylesheet or ''
+
+        # Recording preferences.
+        self.recordSettings()
 
     def styleSheet(self):
         """ Returns the name of the current stylesheet.
