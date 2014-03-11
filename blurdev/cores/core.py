@@ -1043,7 +1043,7 @@ class Core(QObject):
                     self._stylesheet = stylesheet
 
         # Storing the stylesheet as an environment variable for other external tools.
-        os.environ['BDEV_STYLESHEET'] = stylesheet or ''
+        os.environ['BDEV_STYLESHEET'] = str(stylesheet) or ''
 
         # Recording preferences.
         self.recordSettings()
