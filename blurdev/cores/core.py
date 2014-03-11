@@ -679,7 +679,7 @@ class Core(QObject):
 
         # restore the active style
         self.setStyleSheet(
-            os.environ.get('BDEV_STYLESHEET', pref.restoreProperty('style'))
+            os.environ.get('BDEV_STYLESHEET') or pref.restoreProperty('style')
         )
 
         self.blockSignals(False)
@@ -1043,7 +1043,7 @@ class Core(QObject):
                     self._stylesheet = stylesheet
 
         # Storing the stylesheet as an environment variable for other external tools.
-        os.environ['BDEV_STYLESHEET'] = str(stylesheet) or ''
+        os.environ['BDEV_STYLESHEET'] = str(stylesheet) if stylesheet else ''
 
         # Recording preferences.
         self.recordSettings()
