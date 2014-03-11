@@ -28,3 +28,7 @@ QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstrac
 QMenu, QListView, QComboBox, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
 	selection-background-color: rgb(255,170,0);
 }
+
+QComboBox:editable {
+	background-color: rgb(84,84,84);
+}
