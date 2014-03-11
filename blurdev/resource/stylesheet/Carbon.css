@@ -31,4 +31,5 @@ QMenu, QListView, QComboBox, QTableView, QTreeView, QLineEdit, QTextEdit, QPlain
 
 QComboBox:editable {
 	background-color: rgb(84,84,84);
+	color: rgb(200,200,200); 
 }
