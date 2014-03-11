@@ -1022,7 +1022,7 @@ class Core(QObject):
         """
         app = QApplication.instance()
         if app:
-            if stylesheet is None:
+            if stylesheet is None or stylesheet == 'None':
                 app.setStyleSheet('')
                 self._stylesheet = None
             elif os.path.isfile(stylesheet):
@@ -1044,7 +1044,7 @@ class Core(QObject):
 
         if self.objectName() != 'blurdev':
             # Storing the stylesheet as an environment variable for other external tools.
-            os.environ['BDEV_STYLESHEET'] = str(stylesheet) if stylesheet else ''
+            os.environ['BDEV_STYLESHEET'] = str(stylesheet)
 
             # Recording preferences.
             self.recordSettings()
