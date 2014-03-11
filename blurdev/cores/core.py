@@ -1042,11 +1042,12 @@ class Core(QObject):
                         app.setStyleSheet(f.read())
                     self._stylesheet = stylesheet
 
-        # Storing the stylesheet as an environment variable for other external tools.
-        os.environ['BDEV_STYLESHEET'] = str(stylesheet) if stylesheet else ''
+        if self.objectName() != 'blurdev':
+            # Storing the stylesheet as an environment variable for other external tools.
+            os.environ['BDEV_STYLESHEET'] = str(stylesheet) if stylesheet else ''
 
-        # Recording preferences.
-        self.recordSettings()
+            # Recording preferences.
+            self.recordSettings()
 
     def styleSheet(self):
         """ Returns the name of the current stylesheet.
