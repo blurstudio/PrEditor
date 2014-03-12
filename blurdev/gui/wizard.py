@@ -30,11 +30,6 @@ class Wizard(QWizard):
         else:
             QWizard.__init__(self, parent)
 
-        # use the default palette
-        # palette = blurdev.core.defaultPalette()
-        # if ( palette ):
-        # 	self.setPalette( palette )
-
         # set the delete attribute to clean up the window once it is closed
         from PyQt4.QtCore import Qt
 

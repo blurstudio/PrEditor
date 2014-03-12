@@ -47,11 +47,6 @@ class Dialog(QDialog):
         else:
             QDialog.__init__(self, parent)
 
-        # use the default palette
-        # palette = blurdev.core.defaultPalette()
-        # if ( palette ):
-        # 	self.setPalette( palette )
-
         # set the delete attribute to clean up the window once it is closed
         self.setAttribute(Qt.WA_DeleteOnClose)
 

@@ -21,10 +21,6 @@ class WinWidget(QWinWidget):
         out = WinWidget(hwnd)
         out.showCentered()
 
-        # palette = blurdev.core.defaultPalette()
-        # if ( palette ):
-        # 	out.setPalette( palette )
-
         import sip
 
         sip.transferback(out)

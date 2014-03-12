@@ -108,7 +108,6 @@ class Core(QObject):
         self._mfcApp = False
         self._logger = None
         self._linkedSignals = {}
-        self._defaultPalette = -1
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
         self._stylesheet = None
@@ -134,14 +133,6 @@ class Core(QObject):
             app.addLibraryPath("c:/windows/system32/blur64/")
         else:
             app.addLibraryPath("c:/blur/common/")
-
-    def createDefaultPalette(self):
-        w = QWidget(None)
-        PyQt4.uic.loadUi(blurdev.resourcePath('palette.ui'), w)
-        palette = w.palette()
-        w.close()
-        w.deleteLater()
-        return palette
 
     def configUpdated(self):
         """ Preform any core specific updating of config. Returns if any actions were taken.
@@ -199,11 +190,6 @@ class Core(QObject):
         )
 
         return True
-
-    def defaultPalette(self):
-        if self._defaultPalette == -1:
-            self._defaultPalette = self.createDefaultPalette()
-        return self._defaultPalette
 
     def disableKeystrokes(self):
         # disable the client keystrokes
