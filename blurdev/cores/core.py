@@ -679,7 +679,8 @@ class Core(QObject):
 
         # restore the active style
         self.setStyleSheet(
-            os.environ.get('BDEV_STYLESHEET') or pref.restoreProperty('style')
+            os.environ.get('BDEV_STYLESHEET') or pref.restoreProperty('style'),
+            recordPrefs=False,
         )
 
         self.blockSignals(False)
@@ -1015,7 +1016,7 @@ class Core(QObject):
             # make sure we have the proper settings restored based on the new application
             self.restoreSettings()
 
-    def setStyleSheet(self, stylesheet):
+    def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
             path to any stylesheet.  If given None, it will remove the 
             stylesheet.
@@ -1046,8 +1047,9 @@ class Core(QObject):
             # Storing the stylesheet as an environment variable for other external tools.
             os.environ['BDEV_STYLESHEET'] = str(stylesheet)
 
-            # Recording preferences.
-            self.recordSettings()
+            if recordPrefs:
+                # Recording preferences.
+                self.recordSettings()
 
     def styleSheet(self):
         """ Returns the name of the current stylesheet.
