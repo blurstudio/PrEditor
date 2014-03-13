@@ -207,27 +207,8 @@ class Tool(QObject):
         loc = xml.attribute('loc')
         if loc:
             output.setPath(os.path.split(index.environment().relativePath(loc))[0])
-
-            # load the meta data
-            data = xml.findChild('data')
-            if data:
-                output.setVersion(data.attribute('version'))
-                output.setIcon(data.findProperty('icon'))
-                output.setSourcefile(output.relativePath(data.findProperty('src')))
-                output.setWikiPage(data.findProperty('wiki'))
-                output.setToolType(
-                    ToolType.fromString(data.attribute('type', 'AllTools'))
-                )
-                output.setDisplayName(
-                    data.findProperty('displayName', output.objectName())
-                )
-                output.setDisabled(
-                    data.findProperty('disabled', 'false').lower() == 'true'
-                )
-                output.setUsagestatsEnabled(
-                    data.findProperty('usagestats', 'true').lower() == 'true'
-                )
         else:
+            # load legacy tools
             output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))
             filename = xml.attribute('src')
             output.setPath(
@@ -236,6 +217,20 @@ class Tool(QObject):
             )
             output.setSourcefile(filename)
             output.setIcon(xml.attribute('icon'))
+
+        # load the meta data
+        data = xml.findChild('data')
+        if data:
+            output.setVersion(data.attribute('version'))
+            output.setIcon(data.findProperty('icon'))
+            output.setSourcefile(output.relativePath(data.findProperty('src')))
+            output.setWikiPage(data.findProperty('wiki'))
+            output.setToolType(ToolType.fromString(data.attribute('type', 'AllTools')))
+            output.setDisplayName(data.findProperty('displayName', output.objectName()))
+            output.setDisabled(data.findProperty('disabled', 'false').lower() == 'true')
+            output.setUsagestatsEnabled(
+                data.findProperty('usagestats', 'true').lower() == 'true'
+            )
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))

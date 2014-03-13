@@ -127,6 +127,54 @@ class ToolsIndex(QObject):
             :param legacy: bool
             :param parentCategoryId: str
         """
+
+        def setValueForNode(cat, category='category', name='name', value=''):
+            """ Returns the requested node if it exists, or creates and sets it if it does not. """
+            if cat.attribute(name) == value:
+                return cat
+            for child in cat.children():
+                if child.attribute(name) == value:
+                    return child
+            child = cat.addNode(category)
+            child.setAttribute(name, value)
+            return child
+
+        def copyXmlData(toolPath, node, categoryId):
+            """ Copys the contents of the metadata xml file into the tools index. """
+            # store the tool information
+            doc = blurdev.XML.XMLDocument()
+            if doc.load(toolPath) and doc.root():
+                node.addChild(doc.root())
+                child = doc.root().findChild('category')
+                if child:
+                    categoryId = '::'.join(
+                        [split.strip('_') for split in child.value().split('::')]
+                    )
+                    # build the category data
+                    splits = categoryId.split("::")
+                    cat = parent
+                    while splits:
+                        cat = setValueForNode(cat, 'category', 'name', splits[0])
+                        count = len(splits)
+                        if count > 2:
+                            splits = [
+                                '::'.join((splits[0], splits[1].strip('_')))
+                            ] + splits[2:]
+                        elif count > 1:
+                            splits = ['::'.join((splits[0], splits[1].strip('_')))]
+                        else:
+                            splits = []
+                node.setAttribute('category', categoryId)
+            else:
+                print 'Error loading tool: ', toolPath
+
+        def processLegacyXmlFiles(script, node, categoryId, xmls):
+            """ If a matching xml file exists add its contents to the index """
+            # Note: If there is a python and maxscript tool with the same name, this xml will be applied to both of them.
+            toolPath = '{}.xml'.format(os.path.splitext(script)[0])
+            if toolPath in xmls:
+                copyXmlData(toolPath, toolIndex, categoryId)
+
         foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
         if parentCategoryId:
             categoryId = parentCategoryId + '::' + foldername
@@ -146,15 +194,6 @@ class ToolsIndex(QObject):
         if not legacy:
             paths = glob.glob(path + '/*/__meta__.xml')
 
-            def setValueForNode(cat, category='category', name='name', value=''):
-                """ Returns the requested node if it exists, or creates and sets it if it does not. """
-                for child in cat.children():
-                    if child.attribute(name) == value:
-                        return child
-                cat = cat.addNode(category)
-                cat.setAttribute(name, value)
-                return cat
-
             for toolPath in paths:
                 toolId = os.path.normpath(toolPath).split(os.path.sep)[-2]
                 toolIndex = tools.addNode('tool')
@@ -164,32 +203,7 @@ class ToolsIndex(QObject):
                     'loc', self.environment().stripRelativePath(toolPath)
                 )
 
-                # store the tool information
-                doc = blurdev.XML.XMLDocument()
-                if doc.load(toolPath) and doc.root():
-                    toolIndex.addChild(doc.root())
-                    child = doc.root().findChild('category')
-                    if child:
-                        categoryId = '::'.join(
-                            [split.strip('_') for split in child.value().split('::')]
-                        )
-                        # build the category data
-                        splits = categoryId.split("::")
-                        cat = parent
-                        while splits:
-                            cat = setValueForNode(cat, 'category', 'name', splits[0])
-                            count = len(splits)
-                            if count > 2:
-                                splits = [
-                                    '::'.join((splits[0], splits[1].strip('_')))
-                                ] + splits[2:]
-                            elif count > 1:
-                                splits = ['::'.join((splits[0], splits[1].strip('_')))]
-                            else:
-                                splits = []
-                    toolIndex.setAttribute('category', categoryId)
-                else:
-                    print 'Error loading tool: ', toolPath
+                copyXmlData(toolPath, toolIndex, categoryId)
 
                 processed.append(toolPath)
 
@@ -197,6 +211,7 @@ class ToolsIndex(QObject):
         else:
             # add maxscript legacy tools
             scripts = glob.glob(path + '/*.ms')
+            xmls = set(glob.glob(os.path.join(path, '*.xml')))
             for script in scripts:
                 toolId = os.path.splitext(os.path.basename(script))[0]
                 toolIndex = tools.addNode('legacy_tool')
@@ -205,6 +220,7 @@ class ToolsIndex(QObject):
                 toolIndex.setAttribute('src', script)
                 toolIndex.setAttribute('type', 'LegacyStudiomax')
                 toolIndex.setAttribute('icon', 'icon24.bmp')
+                processLegacyXmlFiles(script, toolIndex, categoryId, xmls)
 
             # add python legacy tools
             scripts = glob.glob(path + '/*.py*')
@@ -226,6 +242,7 @@ class ToolsIndex(QObject):
                         toolIndex.setAttribute('icon', 'img/icon.png')
                     else:
                         toolIndex.setAttribute('icon', 'icon24.bmp')
+                    processLegacyXmlFiles(script, toolIndex, categoryId, xmls)
 
             # add link support
             links = glob.glob(path + '/*.lnk')
