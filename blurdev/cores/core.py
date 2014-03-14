@@ -12,8 +12,9 @@ import smtplib
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL
 from PyQt4.QtGui import QApplication, QWidget, QFileDialog, QMessageBox, QSplashScreen
 import PyQt4.uic
-from PyQt4.QtWinMigrate import QMfcApp
 
+if sys.platform == 'win32':  # shitty
+    from PyQt4.QtWinMigrate import QMfcApp
 try:
     import PeyeonScript as eyeon
 except ImportError:
