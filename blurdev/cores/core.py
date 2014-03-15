@@ -30,7 +30,9 @@ import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 import blurdev.tools.toolslovebar
 import blurdev.tools.toolstoolbar
-import blurdev.ide.ideeditor
+
+if hasattr('PyQt4', 'Qsci'):
+    import blurdev.ide.ideeditor
 import blurdev.cores.application
 from application import Application
 
@@ -1009,7 +1011,9 @@ class Core(QObject):
             stylesheet.
         """
         app = QApplication.instance()
-        if app:
+        if app and isinstance(
+            app, QApplication
+        ):  # Don't set stylesheet if QCoreApplication
             if stylesheet is None or stylesheet == 'None':
                 app.setStyleSheet('')
                 self._stylesheet = None
