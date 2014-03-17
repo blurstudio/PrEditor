@@ -49,6 +49,7 @@ class Core(QObject):
     fileCheckedIn = pyqtSignal(str)
     fileCheckedOut = pyqtSignal(str)
     aboutToClearPaths = pyqtSignal()  # emited before environment is changed or reloaded
+    styleSheetChanged = pyqtSignal(str)
 
     # ----------------------------------------------------------------
     # 3d Application Signals (common)
@@ -1041,6 +1042,8 @@ class Core(QObject):
             if recordPrefs:
                 # Recording preferences.
                 self.recordSettings()
+        # Notify widgets of the stylesheet change
+        self.styleSheetChanged.emit(str(stylesheet))
 
     def styleSheet(self):
         """ Returns the name of the current stylesheet.
