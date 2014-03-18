@@ -18,6 +18,7 @@ QMenu {
 	border-style: solid;
 	border-color: rgb(80,80,80);
 	border-width: 1px;
+	color: rgb(215,215,215);
 }
 
 QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
