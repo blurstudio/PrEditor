@@ -87,7 +87,8 @@ class ToolsIndex(QObject):
         root = doc.addNode('index')
 
         # walk through the hierarchy
-        categories = root.addNode('categories')
+        categoriesNode = root.addNode('categories')
+        categories = set()
         tools = root.addNode('tools')
         legacy = root.addNode('legacy')
 
@@ -109,6 +110,23 @@ class ToolsIndex(QObject):
             self.environment().relativePath('maxscript/treegrunt/main/*/')
         ):
             self.rebuildPath(path, categories, tools, True)
+        # process the categories into the final delivery node structure
+        parent = {}
+        for category in categories:
+            splits = category.split('::')
+            node = parent
+            for index in range(len(splits)):
+                name = '::'.join(splits[: index + 1])
+                node.setdefault(name, {})
+                node = node[name]
+        # and add them to the xml
+        def addChildren(node, data):
+            for key in data:
+                child = node.addNode('category')
+                child.setAttribute('name', key)
+                addChildren(child, data[key])
+
+        addChildren(categoriesNode, parent)
 
         # save the index file
         doc.save(self.filename())
@@ -118,7 +136,7 @@ class ToolsIndex(QObject):
         self.load()
         self.loadFavorites()
 
-    def rebuildPath(self, path, parent, tools, legacy=False, parentCategoryId=''):
+    def rebuildPath(self, path, categories, tools, legacy=False, parentCategoryId=''):
         """ rebuilds the tool information recursively for the inputed path and tools
             
             :param path: str
@@ -127,17 +145,6 @@ class ToolsIndex(QObject):
             :param legacy: bool
             :param parentCategoryId: str
         """
-
-        def setValueForNode(cat, category='category', name='name', value=''):
-            """ Returns the requested node if it exists, or creates and sets it if it does not. """
-            if cat.attribute(name) == value:
-                return cat
-            for child in cat.children():
-                if child.attribute(name) == value:
-                    return child
-            child = cat.addNode(category)
-            child.setAttribute(name, value)
-            return child
 
         def copyXmlData(toolPath, node, categoryId):
             """ Copys the contents of the metadata xml file into the tools index. """
@@ -150,20 +157,7 @@ class ToolsIndex(QObject):
                     categoryId = '::'.join(
                         [split.strip('_') for split in child.value().split('::')]
                     )
-                    # build the category data
-                    splits = categoryId.split("::")
-                    cat = parent
-                    while splits:
-                        cat = setValueForNode(cat, 'category', 'name', splits[0])
-                        count = len(splits)
-                        if count > 2:
-                            splits = [
-                                '::'.join((splits[0], splits[1].strip('_')))
-                            ] + splits[2:]
-                        elif count > 1:
-                            splits = ['::'.join((splits[0], splits[1].strip('_')))]
-                        else:
-                            splits = []
+                    categories.add(categoryId)
                 node.setAttribute('category', categoryId)
             else:
                 print 'Error loading tool: ', toolPath
@@ -184,10 +178,7 @@ class ToolsIndex(QObject):
         categoryId = '::'.join([split.strip('_') for split in categoryId.split('::')])
 
         # create a category
-        categoryIndex = parent.findChildById(categoryId)
-        if not categoryIndex:
-            categoryIndex = parent.addNode('category')
-            categoryIndex.setAttribute('name', categoryId)
+        categories.add(categoryId)
 
         # add non-legacy tools
         processed = []
@@ -261,7 +252,7 @@ class ToolsIndex(QObject):
                 os.path.split(path)[0].endswith('_resource')
                 or (path + '__meta__.xml' in processed)
             ):
-                self.rebuildPath(path, categoryIndex, tools, legacy, categoryId)
+                self.rebuildPath(path, categories, tools, legacy, categoryId)
 
     def reload(self):
         """Reload the index without rebuilding it. This will allow users to refresh the index without restarting treegrunt."""
