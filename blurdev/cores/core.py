@@ -96,9 +96,9 @@ class Core(QObject):
 
     # ----------------------------------------------------------------
 
-    def __init__(self, hwnd=0):
+    def __init__(self, hwnd=0, objectName='blurdev'):
         QObject.__init__(self)
-        QObject.setObjectName(self, 'blurdev')
+        QObject.setObjectName(self, objectName)
 
         # create custom properties
         self._protectedModules = []

@@ -132,7 +132,12 @@ def init():
     if not core:
         from blurdev.cores import Core
 
-        core = Core()
+        objectName = None
+        _exe = os.path.basename(sys.executable).lower()
+        # Treat designer as a seperate core so it gets its own prefrences.
+        if 'designer' in _exe:
+            objectName = 'designer'
+        core = Core(objectName=objectName)
         application = core.init()
 
 
