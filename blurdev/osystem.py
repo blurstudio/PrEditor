@@ -345,6 +345,12 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         email = blurdev.activeEnvironment().emailOnError()
         if email:
             env['BLURDEV_ERROR_EMAIL'] = str(email[0])
+
+    # Sets the stylesheet env variable so that launched applications can use it.
+    stylesheet = blurdev.core.styleSheet()
+    if stylesheet:
+        env['BDEV_STYLESHEET'] = str(stylesheet)
+
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
         # run it in debug mode for windows
