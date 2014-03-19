@@ -96,8 +96,10 @@ class Core(QObject):
 
     # ----------------------------------------------------------------
 
-    def __init__(self, hwnd=0, objectName='blurdev'):
+    def __init__(self, hwnd=0, objectName=None):
         QObject.__init__(self)
+        if objectName == None:
+            objectName = 'blurdev'
         QObject.setObjectName(self, objectName)
 
         # create custom properties
