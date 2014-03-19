@@ -10,9 +10,9 @@ class MotionBuilderCore(Core):
     This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
     """
 
-    def __init__(self):
-        Core.__init__(self)
-        self.setObjectName('motionbuilder')
+    def __init__(self, *args, **kargs):
+        kargs['objectName'] = 'motionbuilder'
+        Core.__init__(self, *args, **kargs)
 
     def activeWindow(self):
         """

@@ -42,9 +42,9 @@ class SoftimageCore(Core):
     This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Softimage sessions
     """
 
-    def __init__(self):
-        Core.__init__(self)
-        self.setObjectName('softimage')
+    def __init__(self, *args, **kargs):
+        kargs['objectName'] = 'softimage'
+        Core.__init__(self, *args, **kargs)
 
     def errorCoreText(self):
         """

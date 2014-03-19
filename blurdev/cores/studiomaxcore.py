@@ -43,9 +43,9 @@ class StudiomaxCore(Core):
     This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
     """
 
-    def __init__(self):
-        Core.__init__(self)
-        self.setObjectName('studiomax')
+    def __init__(self, *args, **kargs):
+        kargs['objectName'] = 'studiomax'
+        Core.__init__(self, *args, **kargs)
         self._supportLegacy = True
 
     def addLibraryPaths(self, app):
