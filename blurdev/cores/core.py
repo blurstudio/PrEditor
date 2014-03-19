@@ -15,10 +15,6 @@ import PyQt4.uic
 
 if sys.platform == 'win32':  # shitty
     from PyQt4.QtWinMigrate import QMfcApp
-try:
-    import PeyeonScript as eyeon
-except ImportError:
-    eyeon = None
 
 import blurdev
 import blurdev.prefs
@@ -885,6 +881,14 @@ class Core(QObject):
 
             # run a fusion script
             elif ext.startswith('.eyeonscript'):
+
+                # Moved import here because even attempting this import causes
+                # win32 errors in Motionbuilder.
+                try:
+                    import PeyeonScript as eyeon
+                except ImportError:
+                    eyeon = None
+
                 if eyeon:
                     fusion = eyeon.scriptapp('Fusion')
                     if fusion:
