@@ -135,4 +135,7 @@ class Dialog(QDialog):
         if self == Dialog._instance:
             Dialog._instance = None
             self.setAttribute(Qt.WA_DeleteOnClose, True)
-        self.close()
+        try:
+            self.close()
+        except RuntimeError:
+            pass

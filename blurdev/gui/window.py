@@ -121,4 +121,7 @@ class Window(QMainWindow):
         if self == Window._instance:
             Window._instance = None
             self.setAttribute(Qt.WA_DeleteOnClose, True)
-        self.close()
+        try:
+            self.close()
+        except RuntimeError:
+            pass
