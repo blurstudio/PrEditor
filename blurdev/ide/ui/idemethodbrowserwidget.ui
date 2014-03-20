@@ -77,12 +77,6 @@
      <attribute name="headerStretchLastSection">
       <bool>false</bool>
      </attribute>
-     <attribute name="headerVisible">
-      <bool>false</bool>
-     </attribute>
-     <attribute name="headerStretchLastSection">
-      <bool>false</bool>
-     </attribute>
      <column>
       <property name="text">
        <string>Method</string>
@@ -97,6 +91,12 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>uiSearchTXT</tabstop>
+  <tabstop>uiSortedCHK</tabstop>
+  <tabstop>uiRefreshBTN</tabstop>
+  <tabstop>uiMethodTREE</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

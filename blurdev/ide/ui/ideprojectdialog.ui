@@ -87,9 +87,6 @@
      <attribute name="headerVisible">
       <bool>false</bool>
      </attribute>
-     <attribute name="headerVisible">
-      <bool>false</bool>
-     </attribute>
      <column>
       <property name="text">
        <string notr="true">1</string>
@@ -113,9 +110,14 @@
   <customwidget>
    <class>FilePickerWidget</class>
    <extends>QWidget</extends>
-   <header>blurdev.gui.widgets.filepickerwidget</header>
+   <header>blur3d.pipe.cinematic.gui.widget.filepickerwidget</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>uiProjectNameTXT</tabstop>
+  <tabstop>uiProjectTREE</tabstop>
+  <tabstop>uiButtonsBOX</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

@@ -129,6 +129,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>uiSearchTXT</tabstop>
+  <tabstop>uiFindNextBTN</tabstop>
+  <tabstop>uiFindPrevBTN</tabstop>
+  <tabstop>uiFindWholeWordsCHK</tabstop>
+  <tabstop>uiCaseSensitiveCHK</tabstop>
+  <tabstop>uiQRegExpCHK</tabstop>
+  <tabstop>uiCloseBTN</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
