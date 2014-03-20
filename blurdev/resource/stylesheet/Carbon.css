@@ -44,3 +44,7 @@ QGroupBox::title {
 	margin-top: -10px;
 	margin-left: 20px;
 }*/
+
+HintHelper {
+	background-color: rgba(0,0,0,0);
+}
