@@ -329,6 +329,11 @@ QTabBar::tab {
 }
 */
 
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                                stop: 0 rgb(100, 100, 100),
+                                stop: 0.8 rgb(40, 40, 40));
+ }
 
 /*Blur widgets*/
 HintHelper {
