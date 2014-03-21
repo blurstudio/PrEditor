@@ -570,6 +570,14 @@ class Core(QObject):
 
         pref.save()
 
+    def refreshStyleSheet(self):
+        """ Reload the current stylesheet to force a update of the display of widgets. """
+        app = QApplication.instance()
+        if app and isinstance(
+            app, QApplication
+        ):  # Don't set stylesheet if QCoreApplication
+            app.setStyleSheet(app.styleSheet())
+
     def createEnvironmentOverride(self, env=None, timestamp=None):
         if env is None:
             env = (

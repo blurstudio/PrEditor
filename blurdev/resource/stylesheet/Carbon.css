@@ -48,3 +48,12 @@ QGroupBox::title {
 HintHelper {
 	background-color: rgba(0,0,0,0);
 }
+
+/*Style Treegrunt's environment helper colors*/
+QComboBox#uiEnvironmentDDL {
+	background: rgb(200, 131, 0, 150);
+}
+
+QComboBox#uiEnvironmentDDL[defaultTreegruntEnv="true"] {
+	background: rgb(0, 200, 0, 150);
+}
