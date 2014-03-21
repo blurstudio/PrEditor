@@ -208,7 +208,11 @@ QSlider::groove:vertical {
 /*Buttons*/
 
 QPushButton {
-	padding: 2px 2px;
+	padding: 1.25ex 1.25ex;
+}
+
+QToolButton {
+	padding: 0.75ex 0.75ex;
 }
 
 QPushButton, QCheckBox, QRadioButton, QLabel {
