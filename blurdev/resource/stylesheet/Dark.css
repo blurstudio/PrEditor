@@ -79,7 +79,7 @@ QMenuBar::item:hover {
 									  stop:0 rgb(81,88,95), stop:1 rgb(68,74,80));
 	border-style: solid;
 	border-color: rgb(215,215,215);
-	border-width: 2px;		
+	border-width: 1px;		
 	border-radius: 2px;
 }
 
@@ -206,8 +206,9 @@ QSlider::groove:vertical {
 
 
 /*Buttons*/
+
 QPushButton {
-	padding: 5px 10px;
+	padding: 2px 2px;
 }
 
 QPushButton, QCheckBox, QRadioButton, QLabel {
@@ -246,12 +247,12 @@ QPushButton:hover, QToolButton:hover {
 	border-top-style: solid;
 	border-bottom-style: solid;
 	border-color: rgb(50,150,255);
-	border-width: 2px;
+	border-width: 1px;
 }
 
 QToolButton:hover {
 	border-style: solid;
-	border-width: 2px;
+	border-width: 1px;
 }
 
 
