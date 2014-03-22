@@ -1020,6 +1020,9 @@ class Core(QObject):
             # make sure we have the proper settings restored based on the new application
             self.restoreSettings()
 
+    def reloadStyleSheet(self):
+        self.setStyleSheet(self.styleSheet())
+
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
             path to any stylesheet.  If given None, it will remove the 
