@@ -263,7 +263,7 @@ class StudiomaxCore(Core):
         filename = str(filename)
 
         # run a maxscript file
-        if os.path.splitext(filename)[1] in ('.ms', '.mcr'):
+        if os.path.splitext(filename)[1] in ('.ms', '.mcr', '.mse'):
             if os.path.exists(filename):
                 return mxs.filein(filename)
             return False

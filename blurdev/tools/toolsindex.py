@@ -201,7 +201,9 @@ class ToolsIndex(QObject):
         # add legacy tools
         else:
             # add maxscript legacy tools
-            scripts = glob.glob(path + '/*.ms')
+            scripts = glob.glob(os.path.join(path, '*.ms'))
+            scripts.extend(glob.glob(os.path.join(path, '*.mse')))
+            scripts.extend(glob.glob(os.path.join(path, '*.mcr')))
             xmls = set(glob.glob(os.path.join(path, '*.xml')))
             for script in scripts:
                 toolId = os.path.splitext(os.path.basename(script))[0]
