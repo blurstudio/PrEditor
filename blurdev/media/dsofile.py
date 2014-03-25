@@ -50,6 +50,41 @@ class DSOCustProperty(object):
 class DSOFile(object):
 
     PropertyTypes = _enum('String', 'Long', 'Double', 'Bool', 'Date')
+    SummaryKeys = _enum(
+        'Title',
+        'subject',
+        'Author',
+        'Keywords',
+        'Comments',
+        'Template',
+        'LastSavedBy',
+        'RevisionNumber',
+        'TotalEditTime',
+        'DateLastPrinted',
+        'DateCreated',
+        'DateLastSaved',
+        'PageCount',
+        'WordCount',
+        'CharacterCount',
+        'Thumbnail',
+        'ApplicationName',
+        'DocumentSecurity',
+        'Category',
+        'PresentationFormat',
+        'ByteCount',
+        'LineCount',
+        'ParagraphCount',
+        'SlideCount',
+        'NoteCount',
+        'HiddenSlideCount',
+        'MultimediaClipCount',
+        'Manager',
+        'Company',
+        'CharacterCountWithSpaces',
+        'SharedDocument',
+        'Version',
+        'DigitalSignature',
+    )
     """Enumerated type representing the value types."""
 
     def __init__(self):
@@ -119,3 +154,8 @@ class DSOFile(object):
 
     def save(self):
         self.dso.save()
+
+    def summaryProperty(self, key):
+        if isinstance(key, (int, long)):
+            key = self.SummaryKeys.labelByValue(key)
+        return getattr(self.dso.SummaryProperties, key)
