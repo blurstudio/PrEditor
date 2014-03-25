@@ -192,7 +192,7 @@ class MaxscriptLexer(QsciLexerCustom):
 
                 if kwd.lower() in self.hlkwords:
                     self.setStyling(len(kwd), self.SmartHighlight)
-                elif kwd in keywords:
+                elif kwd.lower() in keywords:
                     self.setStyling(len(kwd), self.Keyword)
                 else:
                     self.setStyling(len(kwd), self.Default)
