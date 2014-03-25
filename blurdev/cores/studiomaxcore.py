@@ -108,16 +108,20 @@ class StudiomaxCore(Core):
         f.close()
 
         # convert icon files to max standard ...
-        root = QImage(tool.icon())
+        def resizeImage(image, outSize):
+            difWidth = image.size().width() - outSize.width()
+            difHeight = image.size().height() - outSize.height()
+            if difWidth < 0 or difHeight < 0:
+                ret = image.copy(
+                    difWidth / 2, difHeight / 2, outSize.width(), outSize.height()
+                )
+            else:
+                ret = image.scaled(outSize, Qt.KeepAspectRatio)
+            return ret
+
         outSize = QSize(24, 24)
-        difWidth = root.size().width() - outSize.width()
-        difHeight = root.size().height() - outSize.height()
-        if difWidth < 0 or difHeight < 0:
-            icon24 = root.copy(
-                difWidth / 2, difHeight / 2, outSize.width(), outSize.height()
-            )
-        else:
-            icon24 = root.scaled(outSize, Qt.KeepAspectRatio)
+        icon24 = tool.image()
+        icon24 = resizeImage(icon24, outSize)
 
         # ... for 24x24 pixels (image & alpha icons)
         basename = mxs.pathConfig.resolvePathSymbols(
@@ -128,7 +132,10 @@ class StudiomaxCore(Core):
         icon24.alphaChannel().save(basename + '_24a.bmp')
 
         # ... and for 16x16 pixels (image & alpha icons)
-        icon16 = root.scaled(16, 16)
+        outSize = QSize(16, 16)
+        # Attempt to load the 16 pixel icon if present
+        icon16 = tool.image(replace=('24', ''))
+        icon16 = resizeImage(icon16, outSize)
         icon16.save(basename + '_16i.bmp')
         icon16.alphaChannel().save(basename + '_16a.bmp')
 

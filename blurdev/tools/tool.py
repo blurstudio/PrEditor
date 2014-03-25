@@ -99,6 +99,21 @@ class Tool(QObject):
             )
         return path
 
+    def image(self, replace=None):
+        """ Returns a QImage of the icon including any alpha channel """
+        from PyQt4.QtGui import QImage
+
+        iconName = self.icon()
+        if isinstance(replace, (tuple, list)):
+            iconName = iconName.replace(replace[0], replace[1])
+        ret = QImage(iconName)
+        isBmp = os.path.splitext(iconName)[-1] == '.bmp'
+        if isBmp:
+            alpha = QImage(iconName.replace('.bmp', '_a.bmp'))
+            if not alpha.isNull():
+                ret.setAlphaChannel(alpha)
+        return ret
+
     def isFavorite(self):
         return self._favorite
 
