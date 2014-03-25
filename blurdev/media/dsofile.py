@@ -48,6 +48,7 @@ class DSOCustProperty(object):
 
 
 class DSOFile(object):
+    """Enumerated type representing the value types."""
 
     PropertyTypes = _enum('String', 'Long', 'Double', 'Bool', 'Date')
     SummaryKeys = _enum(
@@ -85,7 +86,6 @@ class DSOFile(object):
         'Version',
         'DigitalSignature',
     )
-    """Enumerated type representing the value types."""
 
     def __init__(self):
         super(DSOFile, self).__init__()
