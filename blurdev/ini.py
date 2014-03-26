@@ -10,6 +10,7 @@ import sys
 import os
 import getpass
 import shutil
+import codecs
 
 import blurdev
 import blurdev.tools
@@ -19,6 +20,7 @@ configFile = "c:/blur/config.ini"  # Default path information for Blur Studio
 environments = {}
 activeEnvironment = 'production'
 blurConfigFile = None
+fallbackEncoding = 'utf-16'
 
 
 def GetINISetting(inFileName, inSection="", inKey=""):
@@ -319,6 +321,24 @@ class ToolParserClass(ConfigParser.ConfigParser):
 
             return True
         return False
+
+    def read(self, filenames):
+        try:
+            read_ok = ConfigParser.ConfigParser.read(self, filenames)
+        except ConfigParser.MissingSectionHeaderError:
+            # Attempt to read the file using a specific encoding.
+            read_ok = []
+            if isinstance(filenames, basestring):
+                filenames = [filenames]
+            for filename in filenames:
+                try:
+                    fp = codecs.open(filename, "r", fallbackEncoding)
+                except IOError:
+                    continue
+                self._read(fp, filename)
+                fp.close()
+                read_ok.append(filename)
+        return read_ok
 
     def Save(self, fileName=''):
         """
