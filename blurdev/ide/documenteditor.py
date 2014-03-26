@@ -10,7 +10,7 @@
 
 import os.path
 
-from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal
+from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal, QTextCodec
 from PyQt4.Qsci import QsciScintilla
 from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog, QMessageBox
 
@@ -37,6 +37,7 @@ class DocumentEditor(QsciScintilla):
         self._filename = ''
         self._language = ''
         self._lastSearch = ''
+        self._textCodec = None
         self._fileMonitoringActive = False
         self._marginsFont = QFont()
         self._lastSearchDirection = self.SearchDirection.First
@@ -430,7 +431,11 @@ class DocumentEditor(QsciScintilla):
         if filename and os.path.exists(filename):
             f = QFile(filename)
             f.open(QFile.ReadOnly)
-            self.read(f)
+            text = f.readAll()
+            self._textCodec = QTextCodec.codecForUtfText(
+                text, QTextCodec.codecForName('System')
+            )
+            self.setText(self._textCodec.toUnicode(text))
             f.close()
             self.updateFilename(filename)
             self.enableFileWatching(True)
@@ -842,7 +847,11 @@ class DocumentEditor(QsciScintilla):
                 )
                 f.close()
                 return False
-            self.write(f)
+            # Attempt to save the file using the same codec that it used to display it
+            if self._textCodec:
+                f.write(self._textCodec.fromUnicode(self.text()))
+            else:
+                self.write(f)
             f.close()
 
             # update the file
@@ -1140,18 +1149,22 @@ class DocumentEditor(QsciScintilla):
         if window and hasattr(window, 'uiCursorInfoLBL'):
             sline, spos, eline, epos = self.getSelection()
             # Add 1 to line numbers because document line numbers are 1 based
+            text = ''
             if sline == -1:
                 line, pos = self.getCursorPosition()
                 line += 1
-                window.uiCursorInfoLBL.setText('Line: {} Pos: {}'.format(line, pos))
+                text = 'Line: {} Pos: {}'.format(line, pos)
             else:
                 sline += 1
                 eline += 1
-                window.uiCursorInfoLBL.setText(
-                    'Line: {} Pos: {} To Line: {} Pos: {}'.format(
-                        sline, spos, eline, epos
-                    )
+                text = 'Line: {} Pos: {} To Line: {} Pos: {}'.format(
+                    sline, spos, eline, epos
                 )
+            if self._textCodec and self._textCodec.name() != 'System':
+                text = 'Encoding: {enc} {text}'.format(
+                    enc=self._textCodec.name(), text=text
+                )
+            window.uiCursorInfoLBL.setText(text)
 
     def setAutoReloadOnChange(self, state):
         self._autoReloadOnChange = state

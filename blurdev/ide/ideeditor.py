@@ -2003,6 +2003,7 @@ class IdeEditor(Window):
                 )
             )
             self.uiLanguageDDL.setCurrentLanguage(document.language())
+            document.updateSelectionInfo()
         else:
             self.setWindowTitle(
                 '%s | %s - %s'
@@ -2013,6 +2014,7 @@ class IdeEditor(Window):
                 )
             )
             self.uiLanguageDDL.setCurrentLanguage('')
+            self.uiCursorInfoLBL.setText('')
 
     def updateSettings(self):
         # update the application settings
