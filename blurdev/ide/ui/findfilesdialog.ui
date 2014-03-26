@@ -20,10 +20,58 @@
    <string>File Search Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
+   <item row="4" column="1">
+    <widget class="QTreeWidget" name="uiResultsTREE">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="expandsOnDoubleClick">
+      <bool>false</bool>
+     </property>
+     <attribute name="headerVisible">
+      <bool>false</bool>
+     </attribute>
+     <column>
+      <property name="text">
+       <string notr="true">1</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="uiResultsLBL">
+     <property name="text">
+      <string>results</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
     <widget class="QLabel" name="uiFileTypesLBL">
+     <property name="toolTip">
+      <string>Only search files with this file type. Use *.* for all files.</string>
+     </property>
      <property name="text">
       <string>filetypes</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="uiBasePathLBL">
+     <property name="text">
+      <string>base path</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="uiFindLBL">
+     <property name="text">
+      <string>find text</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
      </property>
     </widget>
    </item>
@@ -44,42 +92,7 @@
      </item>
     </layout>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="uiBasePathLBL">
-     <property name="text">
-      <string>base path</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLabel" name="uiFindLBL">
-     <property name="text">
-      <string>find text</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QTreeWidget" name="uiResultsTREE">
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="expandsOnDoubleClick">
-      <bool>false</bool>
-     </property>
-     <attribute name="headerVisible">
-      <bool>false</bool>
-     </attribute>
-     <column>
-      <property name="text">
-       <string notr="true">1</string>
-      </property>
-     </column>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="2">
+   <item row="5" column="0" colspan="2">
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QLabel" name="uiFeedbackLBL">
@@ -137,17 +150,7 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
-    <widget class="QLabel" name="uiResultsLBL">
-     <property name="text">
-      <string>results</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QLineEdit" name="uiSearchTXT">
@@ -181,7 +184,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="1">
+   <item row="2" column="1">
     <widget class="QComboBox" name="uiFileTypesDDL">
      <property name="editable">
       <bool>true</bool>
@@ -213,6 +216,11 @@
      </item>
      <item>
       <property name="text">
+       <string>*.html;*.xml</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>*.py;*.pyw;*.ms</string>
       </property>
      </item>
@@ -221,6 +229,43 @@
        <string>*.py;*.pyw;*.ms;*.h;*.cpp</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>*.py;*.pyw;*.ms;*.h;*.cpp;*.html;*.xml</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="uiExcludeRegexDDL">
+     <property name="editable">
+      <bool>true</bool>
+     </property>
+     <item>
+      <property name="text">
+       <string/>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>[\\/].svn[\\/]?</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>[\\/].svn[\\/]?|.git</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="uiFileTypesLBL_2">
+     <property name="toolTip">
+      <string>Exclude any file paths that match this expression.</string>
+     </property>
+     <property name="text">
+      <string>file exclude</string>
+     </property>
     </widget>
    </item>
   </layout>

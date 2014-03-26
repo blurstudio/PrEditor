@@ -1775,7 +1775,10 @@ class IdeEditor(Window):
 
     def showSearchFilesDialog(self):
         dlg = self.searchFileDialog()
-        dlg.setSearchText(self.searchText())
+        st = self.searchText()
+        # If no text is provided use the saved value
+        if st:
+            dlg.setSearchText(st)
         dlg.show()
 
     def setCurrentLanguage(self, language):

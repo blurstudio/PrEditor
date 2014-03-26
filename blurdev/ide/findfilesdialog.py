@@ -27,6 +27,7 @@ class FindFilesThread(QThread):
 
         self._basepath = ''
         self._filetypes = ''
+        self._excludeRegex = ''
         self._searchText = ''
         self._findall = False
         self._results = {}  # file, lines pairing
@@ -68,7 +69,9 @@ class FindFilesThread(QThread):
             re.compile(unicode(os.path.splitext(ftype)[0]).replace('*', '[^\.]*'))
             for ftype in self._filetypes.split(';')
         ]
-        filetypes = [os.path.splitext(ftype)[1] for ftype in self._filetypes.split(';')]
+        filetypes = set(
+            [os.path.splitext(ftype)[1] for ftype in self._filetypes.split(';')]
+        )
 
         self._resultsCount = 0
         self._searchedCount = 0
@@ -88,6 +91,11 @@ class FindFilesThread(QThread):
                             return
                         filename = os.path.join(path, file)
 
+                        # Ignore any files that matach the provided exclude regex
+                        if self._excludeRegex and re.findall(
+                            self._excludeRegex, filename
+                        ):
+                            continue
                         # make sure we have the proper file type
                         if not (
                             self._findall or os.path.splitext(filename)[1] in filetypes
@@ -165,6 +173,9 @@ class FindFilesThread(QThread):
     def setBasePath(self, basepath):
         self._basepath = basepath
 
+    def setExcludeRegex(self, filetypes):
+        self._excludeRegex = filetypes
+
     def setFileTypes(self, filetypes):
         self._filetypes = filetypes
         self._findall = '.*' in filetypes
@@ -216,6 +227,14 @@ class FindFilesDialog(Dialog):
         # initialize the ui from the prefs
         self.uiSearchTXT.setText(ideglobals.FILE_SEARCH_TEXT)
         self.uiBasePathTXT.setText(ideglobals.FILE_SEARCH_PATH)
+        excludes = set(os.environ['bdev_find_in_files_exclude'].split(','))
+        excludes.add(ideglobals.FILE_SEARCH_EXCLUDE)
+        self.uiExcludeRegexDDL.clear()
+        self.uiExcludeRegexDDL.addItems(sorted(excludes))
+        self.uiExcludeRegexDDL.setCurrentIndex(
+            self.uiExcludeRegexDDL.findText(ideglobals.FILE_SEARCH_EXCLUDE)
+        )
+
         ftypes = set(os.environ['bdev_find_in_files_exts'].split(','))
         ftypes.add(ideglobals.FILE_SEARCH_TYPES)
         self.uiFileTypesDDL.clear()
@@ -253,6 +272,7 @@ class FindFilesDialog(Dialog):
         ideglobals.FILE_SEARCH_TEXT = unicode(self.uiSearchTXT.text())
         ideglobals.FILE_SEARCH_TYPES = unicode(self.uiFileTypesDDL.currentText())
         ideglobals.FILE_SEARCH_PATH = unicode(self.uiBasePathTXT.text())
+        ideglobals.FILE_SEARCH_EXCLUDE = unicode(self.uiExcludeRegexDDL.currentText())
 
     def copyFilenames(self):
         QApplication.clipboard().setText(self._resultsFileText)
@@ -401,6 +421,9 @@ class FindFilesDialog(Dialog):
         self._searchThread.setSearchText(unicode(self.uiSearchTXT.text()))
         self._searchThread.setBasePath(basepath)
         self._searchThread.setFileTypes(unicode(self.uiFileTypesDDL.currentText()))
+        self._searchThread.setExcludeRegex(
+            unicode(self.uiExcludeRegexDDL.currentText())
+        )
         self._searchThread.setUseRegex(self.uiRegexCHK.isChecked())
 
         # start the search thrad
