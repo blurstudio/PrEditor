@@ -332,12 +332,14 @@ class FindFilesDialog(Dialog):
 
         baseText = (
             'Base Path: {basePath}\n'
+            'Exclude: {exclude}\n'
             'File Types: {fileTypes}\n'
             'Find Text: {findText}\n'
             'Is Regular Exp: {isRe}\n\n'
         )
         baseText = baseText.format(
             basePath=self.uiBasePathTXT.text(),
+            exclude=self.uiExcludeRegexDDL.currentText(),
             fileTypes=self.uiFileTypesDDL.currentText(),
             findText=self.uiSearchTXT.text(),
             isRe=self.uiRegexCHK.isChecked(),
