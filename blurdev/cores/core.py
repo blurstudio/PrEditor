@@ -656,8 +656,20 @@ class Core(QObject):
         if environPath:
             env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
             if env.isEmpty():
+                devel = (
+                    os.environ.get('BDEV_ENVIRONMENT_DEVEL', 'False').lower() == 'true'
+                )
+                offline = (
+                    os.environ.get('BDEV_ENVIRONMENT_OFFLINE', 'False').lower()
+                    == 'true'
+                )
+                environFile = os.environ.get('BDEV_ENVIRONMENT_ENVIRON_FILE', '')
                 env = ToolsEnvironment.createNewEnvironment(
-                    TEMPORARY_TOOLS_ENV, environPath
+                    TEMPORARY_TOOLS_ENV,
+                    environPath,
+                    development=devel,
+                    offline=offline,
+                    environmentFile=environFile,
                 )
                 env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
                 env.setTemporary(True)

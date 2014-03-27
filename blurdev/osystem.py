@@ -339,12 +339,16 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     # build the environment to pass along
     env = None
     env = os.environ.copy()
-    envPath = blurdev.activeEnvironment().path()
+    actEnv = blurdev.activeEnvironment()
+    envPath = actEnv.path()
     if envPath:
         env['BLURDEV_PATH'] = str(envPath)
-        email = blurdev.activeEnvironment().emailOnError()
+        email = actEnv.emailOnError()
         if email:
             env['BLURDEV_ERROR_EMAIL'] = str(email[0])
+        env['BDEV_ENVIRONMENT_OFFLINE'] = repr(actEnv.isOffline())
+        env['BDEV_ENVIRONMENT_DEVEL'] = repr(actEnv.isDevelopment())
+        env['BDEV_ENVIRONMENT_ENVIRON_FILE'] = str(actEnv.sourceFile())
 
     # Sets the stylesheet env variable so that launched applications can use it.
     stylesheet = blurdev.core.styleSheet()
