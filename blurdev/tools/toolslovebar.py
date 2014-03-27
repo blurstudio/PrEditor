@@ -1,7 +1,7 @@
 import os
 import webbrowser
 
-from PyQt4.QtGui import QIcon, QAction, QToolBar, QMenu, QCursor, QHBoxLayout
+from PyQt4.QtGui import QIcon, QAction, QToolBar, QMenu, QCursor, QHBoxLayout, QPixmap
 from PyQt4.QtCore import QSize, Qt, QRect
 
 import blurdev
@@ -15,10 +15,7 @@ class LovebarAction(QAction):
         self._toolWikiName = tool.displayName().replace(' ', '_')
         self._toolDsiplayName = tool.displayName()
         self._toolID = tool.objectName()
-        iconPath = tool.icon()
-        if not os.path.exists(iconPath):
-            iconPath = blurdev.resourcePath('img/blank.png')
-        self.setIcon(QIcon(iconPath))
+        self.setIcon(QIcon(QPixmap(tool.image())))
         self.setText(tool.displayName())
         self.setToolTip(tool.toolTip())
 

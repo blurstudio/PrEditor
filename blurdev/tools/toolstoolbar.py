@@ -1,5 +1,5 @@
 from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QAction, QToolBar, QIcon, QMenu, QCursor, QHBoxLayout
+from PyQt4.QtGui import QAction, QToolBar, QIcon, QMenu, QCursor, QHBoxLayout, QPixmap
 
 import blurdev
 from ..gui import Dialog
@@ -14,7 +14,7 @@ class ToolbarAction(QAction):
         self._toolId = toolId
         tool = blurdev.findTool(toolId)
         if tool:
-            self.setIcon(QIcon(tool.icon()))
+            self.setIcon(QIcon(QPixmap(tool.image())))
             self.setText(tool.displayName())
             self.setToolTip(tool.toolTip())
 
