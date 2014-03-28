@@ -56,7 +56,7 @@ class SoftimageCore(Core):
 
     def isKeystrokesEnabled(self):
         disabled = False
-        if QApplication.instance().focusWidget():
+        if QApplication.instance().focusWidget() != None:
             window = QApplication.instance().focusWidget().window()
             geom = window.geometry()
             disabled = geom.contains(QCursor.pos())
