@@ -85,15 +85,12 @@ class PythonCompleter(QCompleter):
     def refreshList(self, scope=None):
         """ refreshes the string list based on the cursor word """
         object, prefix = self.currentObject(scope)
-        if object:
-            # Collect non-hidden method/variable names
-            keys = [key for key in dir(object) if not key.startswith('_')]
-            keys.sort()
-
-            self.model().setStringList(keys)
-            self.setCompletionPrefix(prefix)
-        else:
-            self.model().setStringList([])
+        self.model().setStringList([])
+        # Collect non-hidden method/variable names
+        keys = [key for key in dir(object) if not key.startswith('_')]
+        keys.sort()
+        self.model().setStringList(keys)
+        self.setCompletionPrefix(prefix)
 
     def clear(self):
         self.popup().hide()
