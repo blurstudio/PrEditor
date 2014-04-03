@@ -1157,8 +1157,12 @@ class DocumentEditor(QsciScintilla):
             else:
                 sline += 1
                 eline += 1
-                text = 'Line: {} Pos: {} To Line: {} Pos: {}'.format(
-                    sline, spos, eline, epos
+                text = 'Line: {sline} Pos: {spos} To Line: {eline} Pos: {epos} Line Count: {lineCount}'.format(
+                    sline=sline,
+                    spos=spos,
+                    eline=eline,
+                    epos=epos,
+                    lineCount=eline - sline + 1,
                 )
             if self._textCodec and self._textCodec.name() != 'System':
                 text = 'Encoding: {enc} {text}'.format(
