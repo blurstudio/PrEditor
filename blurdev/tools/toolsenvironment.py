@@ -82,7 +82,7 @@ class ToolsEnvironment(QObject):
         newpaths = [
             spath
             for spath in sys.path
-            if (not path in spath.lower() and spath != '.')
+            if (path not in spath.lower() and spath != '.')
             or spath.lower() in pythonpath
         ]
         sys.path = newpaths
@@ -101,28 +101,39 @@ class ToolsEnvironment(QObject):
             protected = False
             if key in symbols:
                 protected = True
+
+            # Used by multiprocessing library, don't remove this.
+            if key == '__parents_main__':
+                protected = True
+
+            # Protect submodules of protected packages
             ckey = key
             while not protected and '.' in ckey:
                 ckey = ckey.rsplit('.', 1)[0]
-                if key in symbols:
+                if ckey in symbols:
                     protected = True
+
             if protected:
                 continue
 
-            if key not in symbols:
-                found = False
+            else:
+                # Only clear out modules that are loaded from the environment system.
+                # This excludes locally installed packages, packages that are
+                # loaded from outside the environment system via pythonpath or
+                # sys.path manipulation, and any other module that exists
+                # outside the environment paths.
                 try:
-                    found = path in value.__file__.lower()
-                except:
+                    is_environment_package = path in value.__file__.lower()
+                except Exception:
                     pass
-
-                if found:
-                    debug.debugObject(
-                        self.clearPathSymbols,
-                        'removing %s from sys.modules' % key,
-                        debug.DebugLevel.Mid,
-                    )
-                    sys.modules.pop(key)
+                else:
+                    if is_environment_package:
+                        debug.debugObject(
+                            self.clearPathSymbols,
+                            'removing %s from sys.modules' % key,
+                            debug.DebugLevel.Mid,
+                        )
+                        sys.modules.pop(key)
 
         return True
 
