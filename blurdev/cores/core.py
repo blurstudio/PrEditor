@@ -26,9 +26,6 @@ import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 import blurdev.tools.toolslovebar
 import blurdev.tools.toolstoolbar
-
-if hasattr('PyQt4', 'Qsci'):
-    import blurdev.ide.ideeditor
 import blurdev.cores.application
 from application import Application
 
@@ -382,6 +379,8 @@ class Core(QObject):
         return self._hwnd
 
     def ideeditor(self, parent=None):
+        import blurdev.ide.ideeditor
+
         return blurdev.ide.ideeditor.IdeEditor.instance(parent)
 
     def isKeystrokesEnabled(self):
@@ -414,6 +413,8 @@ class Core(QObject):
         """
         Creates a new script window for editing
         """
+        import blurdev.ide.ideeditor
+
         blurdev.ide.ideeditor.IdeEditor.createNew()
 
     def openScript(self, filename=''):
@@ -436,6 +437,8 @@ class Core(QObject):
 
         if filename:
             self._lastFileName = filename
+            import blurdev.ide.ideeditor
+
             blurdev.ide.ideeditor.IdeEditor.edit(filename=filename)
 
     def postQueueEvent(self):
@@ -1101,6 +1104,8 @@ class Core(QObject):
             QApplication.instance().quit()
 
     def showIdeEditor(self):
+        import blurdev.ide.ideeditor
+
         blurdev.ide.ideeditor.IdeEditor.instance().edit()
 
     def showToolbar(self, parent=None):
