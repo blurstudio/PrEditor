@@ -86,8 +86,11 @@ class PythonCompleter(QCompleter):
         """ refreshes the string list based on the cursor word """
         object, prefix = self.currentObject(scope)
         self.model().setStringList([])
-        # Collect non-hidden method/variable names
-        keys = [key for key in dir(object) if not key.startswith('_')]
+        # Only show hidden method/variable names if the hidden character '_' is typed in.
+        if prefix.startswith('_'):
+            keys = [key for key in dir(object) if key.startswith('_')]
+        else:
+            keys = [key for key in dir(object) if not key.startswith('_')]
         keys.sort()
         self.model().setStringList(keys)
         self.setCompletionPrefix(prefix)
