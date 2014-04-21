@@ -10,7 +10,15 @@ from email.MIMEBase import MIMEBase
 import smtplib
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL
-from PyQt4.QtGui import QApplication, QWidget, QFileDialog, QMessageBox, QSplashScreen
+from PyQt4.QtGui import (
+    QApplication,
+    QWidget,
+    QFileDialog,
+    QMessageBox,
+    QSplashScreen,
+    QMainWindow,
+    QDialog,
+)
 import PyQt4.uic
 
 if sys.platform == 'win32':  # shitty
@@ -724,6 +732,21 @@ class Core(QObject):
             # Ignore QSplashScreen's, they should never be considered the root window.
             if isinstance(window, QSplashScreen):
                 return None
+            # If the application does not have focus try to find A top level widget
+            # that doesn't have a parent and is a QMainWindow or QDialog
+            if window == None:
+                windows = []
+                dialogs = []
+                for w in QApplication.instance().topLevelWidgets():
+                    if w.parent() == None:
+                        if isinstance(w, QMainWindow):
+                            windows.append(w)
+                        elif isinstance(w, QDialog):
+                            dialogs.append(w)
+                if windows:
+                    window = windows[0]
+                elif dialogs:
+                    window = dialogs[0]
 
             # grab the root window
             if window:
@@ -733,7 +756,6 @@ class Core(QObject):
                         return window
                     else:
                         window = parent
-
         return window
 
     def runDelayed(self, function, *args, **kargs):
