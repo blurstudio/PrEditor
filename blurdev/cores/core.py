@@ -198,6 +198,12 @@ class Core(QObject):
 
         return True
 
+    def defaultEnvironmentPath(self):
+        return os.path.normpath(
+            os.environ['bdev_master_tools_env_config']
+            % {'filepath': blurdev.resourcePath()}
+        )
+
     def disableKeystrokes(self):
         # disable the client keystrokes
         self._keysEnabled = False
@@ -298,7 +304,7 @@ class Core(QObject):
 
         # initialize the tools environments
         blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
-            blurdev.resourcePath('tools_environments.xml')
+            self.defaultEnvironmentPath()
         )
 
         # 		# Gets the override filepath, it is defined this way, instead of

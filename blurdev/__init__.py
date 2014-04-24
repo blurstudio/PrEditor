@@ -368,7 +368,7 @@ def resetWindowPos():
             widget.setGeometry(geo)
 
 
-def resourcePath(relpath):
+def resourcePath(relpath=''):
     """
     Returns the full path to the file inside the blurdev\resource folder
     :param relpath: The additional path added to the blurdev\resource folder path.
