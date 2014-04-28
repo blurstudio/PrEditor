@@ -200,11 +200,6 @@ def launch(
         # use the instance method if requested
         widget = ctor.instance()
     else:
-
-        # show a splash screen if provided
-        if splash:
-            splash.show()
-
         # Handle any url arguments that were passed in using the environment.
         urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
         oldkwargs = copy.copy(kwargs)
@@ -237,8 +232,8 @@ def launch(
             # If url arguments are passed in that the tool doesn't accept, remove them.
             widget = launchWidget(ctor, args, oldkwargs)
 
-        if splash:
-            splash.finish(widget)
+    if splash:
+        splash.finish(widget)
 
     # If the passed in ctor is not a Dialog or Window, wrap it in a dialog
     # so that it displays correctly.  It will get garbage collected and close
