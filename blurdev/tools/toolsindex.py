@@ -136,7 +136,15 @@ class ToolsIndex(QObject):
         self.load()
         self.loadFavorites()
 
-    def rebuildPath(self, path, categories, tools, legacy=False, parentCategoryId=''):
+    def rebuildPath(
+        self,
+        path,
+        categories,
+        tools,
+        legacy=False,
+        parentCategoryId='',
+        foldername=None,
+    ):
         """ rebuilds the tool information recursively for the inputed path and tools
             
             :param path: str
@@ -169,7 +177,9 @@ class ToolsIndex(QObject):
             if toolPath in xmls:
                 copyXmlData(toolPath, toolIndex, categoryId)
 
-        foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
+        # If the folder name was not passed in, use the current directory.
+        if foldername == None:
+            foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
         if parentCategoryId:
             categoryId = parentCategoryId + '::' + foldername
         else:
@@ -246,6 +256,21 @@ class ToolsIndex(QObject):
                 toolIndex.setAttribute('name', 'LegacyExternal::%s' % toolId)
                 toolIndex.setAttribute('src', link)
                 toolIndex.setAttribute('type', 'LegacyExternal')
+
+        # Look for any linked folders
+        links = glob.glob(os.path.join(path, '*.tglnk'))
+        for link in links:
+            doc = blurdev.XML.XMLDocument()
+            doc.load(link)
+            for node in doc.findChildren('TGLink', recursive=True):
+                target = node.attribute('path', '') % {
+                    'envRoot': blurdev.activeEnvironment().path()
+                }
+                if os.path.exists(target):
+                    name = node.attribute('name')
+                    self.rebuildPath(
+                        target, categories, tools, legacy, categoryId, foldername=name
+                    )
 
         # add subcategories
         subpaths = glob.glob(path + '/*/')
