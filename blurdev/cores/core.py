@@ -35,7 +35,7 @@ import blurdev.tools.toolsenvironment
 import blurdev.tools.toolslovebar
 import blurdev.tools.toolstoolbar
 import blurdev.cores.application
-from application import Application
+import blurdev.settings
 
 
 class Core(QObject):
@@ -331,7 +331,11 @@ class Core(QObject):
 
         # create a new application
         else:
-            output = blurdev.cores.application.Application([])
+            if blurdev.settings.OS_TYPE == 'Linux':
+                if os.environ.get('DISPLAY') == None:
+                    output = blurdev.cores.application.CoreApplication([])
+            if output == None:
+                output = blurdev.cores.application.Application([])
             self.addLibraryPaths(output)
 
         # restore the core settings

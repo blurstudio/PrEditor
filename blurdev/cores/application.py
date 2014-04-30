@@ -1,5 +1,10 @@
 from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import pyqtSignal
+from PyQt4.QtCore import pyqtSignal, QCoreApplication
+
+
+class CoreApplication(QCoreApplication):
+    # Does not get called, but exists incase a script tries to connect to it.
+    sessionEnding = pyqtSignal()
 
 
 class Application(QApplication):
