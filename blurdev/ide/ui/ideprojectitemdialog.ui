@@ -145,7 +145,7 @@
   <customwidget>
    <class>FilePickerWidget</class>
    <extends>QWidget</extends>
-   <header>blur3d.pipe.cinematic.gui.widget.filepickerwidget</header>
+   <header>blurdev.gui.widgets.filepickerwidget</header>
   </customwidget>
  </customwidgets>
  <tabstops>
