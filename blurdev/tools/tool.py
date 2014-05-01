@@ -62,12 +62,6 @@ class Tool(QObject):
             
             :param str macro: macro
         """
-        debug = blurdev.debug
-        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier or debug.isDebugLevel(
-            debug.DebugLevel.Mid
-        ):
-            blurdev.activeEnvironment().resetPaths()
-
         # run standalone
         if self.toolType() & ToolType.LegacyExternal:
             blurdev.core.runStandalone(self.sourcefile())
