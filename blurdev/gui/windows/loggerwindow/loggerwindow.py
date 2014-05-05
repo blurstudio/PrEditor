@@ -110,7 +110,7 @@ class LoggerWindow(Window):
         import sys, platform
 
         self.setWindowTitle(
-            'Command Logger - %s %s'
+            'Python Logger - %s %s'
             % ('%i.%i.%i' % sys.version_info[:3], platform.architecture()[0])
         )
 
