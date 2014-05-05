@@ -27,7 +27,6 @@ from PyQt4.QtGui import (
     QMessageBox,
 )
 from PyQt4.QtCore import Qt
-import blur.Stone
 
 # TODO: It is probably unnecessary to import most of these subpackages in the root package.
 import blurdev.version
@@ -337,7 +336,7 @@ def registerScriptPath(filename):
     blurdev.tools.ToolsEnvironment.registerScriptPath(filename)
 
 
-def relativePath(path, additional):
+def relativePath(path, additional=''):
     """
     Replaces the last element in the path with the passed in additional path.
     :param path: Source path. Generally a file name.
@@ -369,7 +368,7 @@ def resourcePath(relpath=''):
     :param relpath: The additional path added to the blurdev\resource folder path.
     :return str: The modified path
     """
-    return relativePath(__file__, r'resource\%s' % relpath)
+    return os.path.join(relativePath(__file__), 'resource', relpath)
 
 
 def runTool(toolId, macro=""):
@@ -405,6 +404,12 @@ def setAppUserModelID(id, prefix='Blur'):
                    fooBar, the associated appId should be *Blur.FooBar*.  
                    Defaults to *Blur*.
     """
+    # Try/except is to prevent the NEED for blur.Stone.
+    try:
+        # Import blur.Stone here because It is not needed elsewhere
+        import blur.Stone
+    except ImportError:
+        return False
     if hasattr(blur.Stone, 'qSetCurrentProcessExplicitAppUserModelID'):
         blur.Stone.qSetCurrentProcessExplicitAppUserModelID('%s.%s' % (prefix, id))
         return True

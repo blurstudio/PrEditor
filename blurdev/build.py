@@ -140,6 +140,8 @@ if __name__ == '__main__':
 
     Target(product, path, [svnnsi, svnpy], [nsi])
 
+    global Parser
+    Parser = parser
     build()
 
     # see if the user wants to run the installer
