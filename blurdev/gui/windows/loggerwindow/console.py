@@ -28,21 +28,25 @@ from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 from blurdev.tools import ToolsEnvironment
 import blurdev.gui.windows.loggerwindow
 
+SafeOutput = None
+
+
+class Win32ComFix(object):
+    pass
+
+
 # win32com's redirects all sys.stderr output to sys.stdout if the existing sys.stdout is not a instance of its SafeOutput
 # Make our logger classes inherit from SafeOutput so they don't get replaced by win32com
-try:
-    from win32com.axscript.client.framework import SafeOutput
+# This is only neccissary for Softimage
+if blurdev.core.objectName() == 'softimage':
+    try:
+        from win32com.axscript.client.framework import SafeOutput
 
-    class Win32ComFix(SafeOutput):
+        class Win32ComFix(SafeOutput):
+            pass
+
+    except ImportError:
         pass
-
-
-except ImportError:
-    SafeOutput = None
-
-    class Win32ComFix(object):
-        pass
-
 
 emailformat = """
 <html>
