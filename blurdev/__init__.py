@@ -56,6 +56,13 @@ core = None  # create a managed Core instance
 The blurdev managed :class:`Core` object from the :mod:`blurdev.cores` module.
 """
 
+lastLaunched = None
+"""
+This is set any time blurdev.launch is called. It contains the Dialog or Window
+object. This is for debugging, and there is no guarantee that the object has not
+been deleted.
+"""
+
 
 def activeEnvironment():
     """
@@ -174,7 +181,7 @@ def launch(
                       you specify a class using this argument, in which case it will
                       be wrapped by that.
     """
-    global _appHasExec
+    global _appHasExec, lastLaunched
     # create the app if necessary
     app = None
     from blurdev.cores.core import Core
@@ -252,6 +259,8 @@ def launch(
         dlg.setWindowIcon(widget.windowIcon())
         widget = dlg
 
+    # Store the last launched tool so a developer can easily find it to experiment with.
+    lastLaunched = widget
     # check to see if the tool is running modally and return the result
     if modal:
         widget.exec_()
