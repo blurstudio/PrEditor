@@ -56,8 +56,9 @@ core = None  # create a managed Core instance
 """
 The blurdev managed :class:`Core` object from the :mod:`blurdev.cores` module.
 """
-
-lastLaunched = None
+# Weakref.ref does not accept None, and None is not callable. Passing the lambda
+# ensures the same functionality even if no tool has been launched yet.
+lastLaunched = weakref.ref(lambda: None)
 """
 This is set any time blurdev.launch is called. It contains the Dialog or Window
 object. This is for debugging, and there is no guarantee that the object has not
