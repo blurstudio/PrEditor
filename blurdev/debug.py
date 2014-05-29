@@ -32,6 +32,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 import os
 import datetime
 import inspect
+import weakref
 
 from PyQt4.QtCore import Qt, QString
 from PyQt4.QtGui import QMessageBox
@@ -195,7 +196,6 @@ def debugStubMethod(object, msg, level=2):
     :param level: debugLevel
     :type msg: str
     :type level: :data:`DebugLevel`
-   
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
 
@@ -285,6 +285,22 @@ def printCallingFunction(compact=False):
         output = '\n'.join(output)
     print output
     return output
+
+
+def recycleGui(cls, *args, **kwargs):
+    """ Closes the last gui of the provided class, suppressing any errors and returns a new instance of the class.
+    :param cls: the class of the object to create
+    :param *args: additional arguments passed to the class
+    :param **kwargs: additional keyword arguments passed to the class
+    :returns: A new instance of the class
+    """
+    try:
+        recycleGui._stored_().close()
+    except:
+        pass
+    out = cls(*args, **kwargs)
+    recycleGui._stored_ = weakref.ref(out)
+    return out
 
 
 def reportError(msg, debugLevel=1):

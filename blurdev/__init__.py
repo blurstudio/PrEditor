@@ -17,6 +17,7 @@ import copy
 import types
 import cPickle
 import re
+import weakref
 
 from PyQt4.QtGui import (
     QMainWindow,
@@ -260,7 +261,7 @@ def launch(
         widget = dlg
 
     # Store the last launched tool so a developer can easily find it to experiment with.
-    lastLaunched = widget
+    lastLaunched = weakref.ref(widget)
     # check to see if the tool is running modally and return the result
     if modal:
         widget.exec_()
