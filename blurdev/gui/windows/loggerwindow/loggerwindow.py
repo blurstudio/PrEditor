@@ -99,6 +99,9 @@ class LoggerWindow(Window):
         )
         self.uiCloseLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
 
+        # Make action shortcuts available anywhere in the Logger
+        self.addAction(self.uiClearLogACT)
+
         # refresh the ui
         self.refreshDebugLevels()
         self.uiWorkboxWGT.setLanguage('Python')
