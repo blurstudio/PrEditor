@@ -110,13 +110,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # store the error buffer
         self._completer = None
-        self.errorTimeout = 50
-        self._errorTimer = QTimer()
-        self._errorTimer.setSingleShot(True)
-        self._errorTimer.timeout.connect(self.handleError)
-        self._additionalInfoTimer = QTimer()
-        self._additionalInfoTimer.setSingleShot(True)
-        self._additionalInfoTimer.timeout.connect(self.clearAdditionalInfo)
 
         # create the completer
         self.setCompleter(PythonCompleter(self))
@@ -128,6 +121,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         ):
             sys.stdout = self
             sys.stderr = ErrorLog(self)
+            sys.excepthook = ConsoleEdit.excepthook
 
         # create the highlighter
         highlight = CodeHighlighter(self)
@@ -145,6 +139,39 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         return self._completer
 
     @staticmethod
+    def excepthook(exctype, value, traceback_):
+        """
+        Logger Console excepthook. Re-implemented from sys.excepthook.  Catches
+        all unhandled exceptions so that the user may be prompted that an error
+        has occurred and can automatically show the Console view.		
+        
+        """
+        # Call the base implementation.  This generallly prints the traceback to stderr.
+        sys.__excepthook__(exctype, value, traceback_)
+
+        # Email the error traceback.
+        emails = ToolsEnvironment.activeEnvironment().emailOnError()
+        if emails:
+            traceback_msg = ''.join(
+                traceback.format_exception(exctype, value, traceback_)
+            )
+            ConsoleEdit.emailError(emails, traceback_msg)
+
+        ConsoleEdit.clearAdditionalInfo()
+
+        # If the logger is not visible, prompt the user to show it.
+        inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
+        if not inst.isVisible() and not blurdev.core.quietMode():
+            result = QMessageBox.question(
+                blurdev.core.rootWindow(),
+                'Error Occurred',
+                'An error has occurred in your Python script.  Would you like to see the log?',
+                QMessageBox.Yes | QMessageBox.No,
+            )
+            if result == QMessageBox.Yes:
+                inst.show()
+
+    @staticmethod
     def emailError(emails, error, subject=None, information=None):
         """
         Generates and sends a email of the traceback, and usefull information provided by the class if available.
@@ -152,6 +179,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             If the erroring class provides the folowing method, what ever text it returns will be included in the email under Additional Information
             |	def errorLog(self):
             |		return '[Additional text to include in email]'
+            
         :param emails: A string of the emails to send to
         :param error: The error message to pass along
         :param subject: If not provided the second to last line of the error is used
@@ -244,7 +272,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         message.append('</code></pre></div>')
         # append any passed in body text
         for info in (information, ConsoleEdit.additionalInfo()):
-            if info != None:
+            if info is not None:
                 message.append('<h3>Information</h3>')
                 message.append('<hr>')
                 message.append(
@@ -282,10 +310,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             emailformat % {'subject': subject, 'body': '\n'.join(message)},
         )
 
-    def errorTimeout(self):
-        """ end the error lookup """
-        self._timer.stop()
-
     def executeCommand(self):
         """ executes the current line of code """
         # grab the command from the line
@@ -311,7 +335,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     ) in __main__.__dict__, __main__.__dict__
 
                 # print the resulting commands
-                if cmdresult != None:
+                if cmdresult is not None:
                     self.write(unicode(cmdresult))
 
                 self.startInputLine()
@@ -498,41 +522,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
             self.insertPlainText(inputstr)
 
-    def handleError(self):
-        """ process an error event handling """
-
-        # determine the error email path
-        emails = ToolsEnvironment.activeEnvironment().emailOnError()
-        if emails:
-            self.emailError(emails, ''.join(self.lastError()))
-
-        # if the logger is not visible, prompt the user
-        inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
-        if not inst.isVisible():
-            if not blurdev.core.quietMode():
-                result = QMessageBox.question(
-                    blurdev.core.rootWindow(),
-                    'Error Occurred',
-                    'An error has occurred in your Python script.  Would you like to see the log?',
-                    QMessageBox.Yes | QMessageBox.No,
-                )
-                if result == QMessageBox.Yes:
-                    inst.show()
-
     def write(self, msg, error=False):
         """ write the message to the logger """
         self.moveCursor(QTextCursor.End)
-        charFormat = QTextCharFormat()
 
+        charFormat = QTextCharFormat()
         if not error:
             charFormat.setForeground(QColor(17, 154, 255))
         else:
-            # start recording information to the error buffer
-            self._errorTimer.stop()
-            self._errorTimer.start(self.errorTimeout)
-            # Ensure the additionalInfo timeout lasts longer than the error timer
-            self.resetAdditionalInfo()
-
             charFormat.setForeground(Qt.red)
 
         self.setCurrentCharFormat(charFormat)
@@ -542,6 +539,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             if SafeOutput:
                 # win32com writes to the debugger if it is unable to print, so ensure it still does this.
                 SafeOutput.write(self, msg)
+
+        # Pass data along to the original stdout
+        try:
+            sys.__stdout__.write(msg)
+        except:
+            pass
 
     # These methods are used to insert extra data into error reports when debugging hard to reproduce errors.
     @classmethod
@@ -553,8 +556,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         cls.setAdditionalInfo(None)
 
     def resetAdditionalInfo(self):
-        self._additionalInfoTimer.stop()
-        self._additionalInfoTimer.start(self.errorTimeout * 2)
+        ConsoleEdit.clearAdditionalInfo()
 
     @classmethod
     def setAdditionalInfo(cls, info):
