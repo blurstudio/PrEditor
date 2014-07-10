@@ -13,6 +13,25 @@ QMenu {
 	border-width: 1px;
 }
 
+QMenu::icon {
+    border: 2px inset transparent;
+}
+
+QMenu::icon:checked {
+    background-color: rgb(50,150,255);
+    border: 2px inset rgb(50,150,255);
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    left: 2px;
+}
+
+QMenu::item {
+	padding: 4px 24px;
+}
+
+
 QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
 	background-color: rgb(90,90,90); 
 	color: rgb(200,200,200);
