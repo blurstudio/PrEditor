@@ -45,7 +45,7 @@ class PythonCompleter(QCompleter):
             word = self.textUnderCursor()
             # determine if we are in docMode or not
             if word.endswith('(') and not docMode:
-                return None
+                return (None, '')
 
             word = word.rstrip('(')
             split = unicode(word).split('.')
