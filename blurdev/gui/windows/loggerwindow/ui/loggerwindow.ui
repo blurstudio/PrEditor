@@ -189,10 +189,13 @@
   </action>
   <action name="uiClearLogACT">
    <property name="text">
-    <string>&amp;Clear Log</string>
+    <string>&amp;Clear Python Console</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears the top section of the Python Logger. This does not clear the workbox.</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Backspace</string>
+    <string>Ctrl+Shift+D</string>
    </property>
   </action>
   <action name="uiNewScriptACT">
