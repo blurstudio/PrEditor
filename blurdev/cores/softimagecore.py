@@ -2,7 +2,8 @@ import os
 import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
-from PyQt4.QtGui import QApplication, QCursor
+from PyQt4.QtGui import QApplication
+import win32gui
 import win32com.client
 from win32com.client import constants
 
@@ -55,12 +56,15 @@ class SoftimageCore(Core):
         return '<i>Open File:</i> %s' % xsi.ActiveProject.ActiveScene.FileName.Value
 
     def isKeystrokesEnabled(self):
-        disabled = False
-        if QApplication.instance().focusWidget() != None:
-            window = QApplication.instance().focusWidget().window()
-            geom = window.geometry()
-            disabled = geom.contains(QCursor.pos())
-        return not disabled
+        # Checks all of the top level windows of Qt against the win32 forground window id to see if qt has focus
+        handle = win32gui.GetForegroundWindow()
+        if [
+            True
+            for w in QApplication.instance().topLevelWidgets()
+            if handle == int(w.winId())
+        ]:
+            return False
+        return True
 
     def init(self):
         # BlurApplication is used to connect QApplication to Softimage
