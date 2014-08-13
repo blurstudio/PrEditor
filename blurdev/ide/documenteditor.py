@@ -28,6 +28,9 @@ class DocumentEditor(QsciScintilla):
     fontsChanged = pyqtSignal(
         QFont, QFont
     )  # emits the font size change (font size, margin font size)
+    documentSaved = pyqtSignal(
+        QsciScintilla, object
+    )  # (DocumentEditor, filename) emitted when ever the document is saved.
 
     def __init__(self, parent, filename='', lineno=0):
         self._showSmartHighlighting = True
@@ -853,6 +856,8 @@ class DocumentEditor(QsciScintilla):
             else:
                 self.write(f)
             f.close()
+            # notify that the document was saved
+            self.documentSaved.emit(self, filename)
 
             # update the file
             self.updateFilename(filename)
