@@ -58,11 +58,7 @@ class SoftimageCore(Core):
     def isKeystrokesEnabled(self):
         # Checks all of the top level windows of Qt against the win32 forground window id to see if qt has focus
         handle = win32gui.GetForegroundWindow()
-        if [
-            True
-            for w in QApplication.instance().topLevelWidgets()
-            if handle == int(w.winId())
-        ]:
+        if QWidget.find(handle):
             return False
         return True
 
