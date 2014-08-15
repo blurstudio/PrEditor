@@ -68,7 +68,8 @@ class EnumWidget(QWidget):
                 widget.setObjectName(key)
                 widget.setToolTip(self._enumType.description(self._enumType.value(key)))
                 widget.setText(' '.join(re.findall('[A-Z]+[^A-Z]*', key)))
-                widget.setChecked((self.value() & self._enumType.value(key)) != 0)
+                enumVal = self._enumType.value(key)
+                widget.setChecked((self.value() & enumVal) == enumVal)
                 widget.toggled.connect(self.recalculateValue)
                 widget.setAttribute(Qt.WA_DeleteOnClose)
                 self.layout().addWidget(widget, row, column)
@@ -98,9 +99,8 @@ class EnumWidget(QWidget):
         """ sets the value for this widget """
         self._value = value
         for child in self.findChildren(QCheckBox):
-            child.setChecked(
-                (value & self._enumType.value(unicode(child.objectName()))) != 0
-            )
+            enumVal = self._enumType.value(unicode(child.objectName()))
+            child.setChecked((value & enumVal) == enumVal)
 
     def value(self):
         """ returns the current value state for this widget """
