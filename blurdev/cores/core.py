@@ -858,7 +858,9 @@ class Core(QObject):
     ):
         blurdev.osystem.startfile(filename, debugLevel, basePath)
 
-    def runScript(self, filename='', scope=None, argv=None, toolType=None):
+    def runScript(
+        self, filename='', scope=None, argv=None, toolType=None, toolName=None
+    ):
         """
         Runs an inputed file in the best way this core knows how
             
@@ -927,7 +929,15 @@ class Core(QObject):
                     sys.argv = [filename] + argv
                     scope['sys'] = sys
 
+                    # create a tool stopwatch used to debug
+                    env = blurdev.activeEnvironment()
+                    if env.stopwatchEnabled:
+                        if toolName == None:
+                            toolName = filename
+                        env.stopwatch = blurdev.debug.Stopwatch(toolName)
                     execfile(filename, scope)
+                    if env.stopwatchEnabled:
+                        env.stopwatch.stop()
 
                     # restore the system information
                     sys.path = path_bak

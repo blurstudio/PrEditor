@@ -66,7 +66,9 @@ class Tool(QObject):
         if self.toolType() & ToolType.LegacyExternal:
             blurdev.core.runStandalone(self.sourcefile())
         else:
-            blurdev.core.runScript(self.sourcefile())  # , toolType = self.toolType() )
+            blurdev.core.runScript(
+                self.sourcefile(), toolName=self.displayName()
+            )  # , toolType = self.toolType() )
 
         # Log what tool was used and when.
         if self._usagestatsEnabled:
