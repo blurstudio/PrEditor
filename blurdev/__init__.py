@@ -331,15 +331,14 @@ def prefPath(relpath, coreName=''):
 
 def pythonw_print_bugfix():
     """
-    Python <=2.4 has a bug where pythonw will silently crash if more than
-    4096 bytes are written to sys.stdout.  This avoids that problem by
-    redirecting all output to devnull when in Python 2.4 and when using
-    pythonw.exe.
-    
+    When running pythonw print statements and file handles tend to have problems
+    so, if its pythonw and stderr and stdout haven't been redirected, redirect them
+    to os.devnull.
     """
     if os.path.basename(sys.executable) == 'pythonw.exe':
-        if sys.version_info[:2] <= (2, 4):
+        if sys.stdout == sys.__stdout__:
             sys.stdout = open(os.devnull, 'w')
+        if sys.stderr == sys.__stderr__:
             sys.stderr = open(os.devnull, 'w')
 
 
