@@ -250,7 +250,9 @@ class StudiomaxCore(Core):
         # register standard paths
         return Core.registerPaths(self)
 
-    def runScript(self, filename='', scope=None, argv=None, toolType=None):
+    def runScript(
+        self, filename='', scope=None, argv=None, toolType=None, toolName=None
+    ):
         """
         Handle maxscript script running
         """
@@ -274,7 +276,7 @@ class StudiomaxCore(Core):
             if os.path.exists(filename):
                 return mxs.filein(filename)
             return False
-        return Core.runScript(self, filename, scope, argv, toolType)
+        return Core.runScript(self, filename, scope, argv, toolType, toolName=toolName)
 
     def setSupportLegacy(self, state):
         pass
