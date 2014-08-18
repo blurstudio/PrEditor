@@ -2,7 +2,7 @@ import os
 import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
-from PyQt4.QtGui import QApplication
+from PyQt4.QtGui import QWidget
 import win32gui
 import win32com.client
 from win32com.client import constants
