@@ -49,10 +49,10 @@ class ToolsEnvironment(QObject):
         self._timeout = ''
         self._autoupdate = False
         self._keychain = ''
-        # Set this to True to enable the environment tool stopwatch
-        # this will start a stopwatch every time blurdev.core.runScript is called
-        # and stop it once that script has finished. This will allow you to time
-        # how long it takes to launch a tool.
+        # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the environment
+        # tool stopwatch this will start a stopwatch every time blurdev.core.runScript is
+        # called and stop it once that script has finished(this should include showEvent).
+        # This will allow you to time how long it takes to launch a tool.
         # You can add laps by calling blurdev.activeEnvironment().stopwatch.newLap('info text')
         self.stopwatchEnabled = False
         self.stopwatch = blurdev.debug.Stopwatch('Default tool')
