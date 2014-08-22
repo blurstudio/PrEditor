@@ -37,7 +37,7 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
     
     def createWidget( self, parent ):
         from %(module)s import %(class)s
-        return %(class)s( parent )
+        return %(class)s(parent=parent)
     
     def name( self ):
         return "%(class)s"
