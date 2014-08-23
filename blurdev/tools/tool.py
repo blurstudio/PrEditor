@@ -170,6 +170,9 @@ class Tool(QObject):
             str(self.objectName()).lower(), self.objectName()
         )  # ensure that the tool id is properly formated since it is case sensitive
 
+    def setToolTip(self, tip):
+        self._toolTip = tip
+
     def setToolType(self, toolType):
         """ sets the current tools type
             :param toolType: ToolType
@@ -243,6 +246,7 @@ class Tool(QObject):
             output.setUsagestatsEnabled(
                 data.findProperty('usagestats', 'true').lower() == 'true'
             )
+            output.setToolTip(data.findProperty('toolTip', ''))
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))
