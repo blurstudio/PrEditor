@@ -74,6 +74,7 @@ class Tool(QObject):
         if self._usagestatsEnabled:
             info = {'name': self.objectName()}
             info['miscInfo'] = macro
+            blurdev.tools.logUsage(info)
 
     def favoriteGroup(self):
         return self._favoriteGroup
