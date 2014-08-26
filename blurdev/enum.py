@@ -28,12 +28,7 @@ class enum(object):
         return self.value(key)
 
     def __getattr__(self, key):
-        if key == 'All':
-            out = 0
-            for k in self._keys:
-                out |= self.__dict__[k]
-            return out
-        elif key == '__name__':
+        if key == '__name__':
             return 'enum'
         else:
             raise AttributeError, key
@@ -69,6 +64,12 @@ class enum(object):
 
         for kwd, value in kwds.items():
             self.__dict__[kwd] = value
+
+        if not ('All' in args or 'All' in kwds):
+            out = 0
+            for k in self._keys:
+                out |= self.__dict__[k]
+            self.__dict__['All'] = out
 
     def count(self):
         return len(self._keys)
