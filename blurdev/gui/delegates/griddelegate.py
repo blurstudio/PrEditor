@@ -1,5 +1,5 @@
 ##
-# 	\namespace	trax.gui.delegates.blurgriddelegate
+# 	\namespace	python.blurdev.gui.delegates.blurgriddelegate
 #
 # 	\remarks	This module provides a simple way to draw grids for trees
 # 				If you need to make complex editing controlled by a diffrent class you can use setDelegate.

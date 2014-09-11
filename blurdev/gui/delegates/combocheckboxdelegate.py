@@ -1,12 +1,12 @@
 ##
-# 	\namespace	trax.gui.delegates.combocheckboxdelegate
+# 	:namespace	python.blurdev.gui.delegates.combocheckboxdelegate
 #
-# 	\remarks	The ComboCheckboxDelegate class is designed to let a programmer turn any Combobox into a multi-selection
+# 	:remarks	The ComboCheckboxDelegate class is designed to let a programmer turn any Combobox into a multi-selection
 # 				list that will let a user checkoff multiple options from the drop down list and use them
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/22/09
+# 	:author		beta@blur.com
+# 	:author		Blur Studio
+# 	:date		01/22/09
 #
 
 from PyQt4.QtCore import *

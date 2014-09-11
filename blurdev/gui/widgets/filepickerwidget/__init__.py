@@ -1,5 +1,5 @@
 ##
-# 	:namespace	trax.gui.widgets.filepickerwidget
+# 	:namespace	python.blurdev.gui.widgets.filepickerwidget
 #
 # 	:remarks	The filepickerwidget package implements a simple file picking widget
 #

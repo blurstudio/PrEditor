@@ -1,7 +1,7 @@
 ##
-# 	:namespace	trax.gui.widgets.enumwidget
+# 	:namespace	python.blurdev.gui.widgets.enumwidget
 #
-# 	:remarks	The EnumWidget class is a simple expansion system for trax.api.enum class types, allowing dynamic creation
+# 	:remarks	The EnumWidget class is a simple expansion system for blurdev.enum.enum class types, allowing dynamic creation
 # 				of checkboxes based on the options for a given enum, and supplying simple ways to calculate what the user settings
 # 				are
 #
@@ -16,9 +16,6 @@ from PyQt4.QtCore import pyqtSignal, pyqtProperty, Qt, QString
 from PyQt4.QtGui import QWidget, QCheckBox, QGridLayout
 from blurdev.gui import Dialog
 
-import trax.api
-import trax.gui
-
 
 class EnumWidget(QWidget):
 
@@ -28,7 +25,7 @@ class EnumWidget(QWidget):
         """
             :remarks	Creates a dynamic widget for dealing with enumerated value types
             :param		parent			<QWidget>
-            :param		enumType		<trax.api.enum>
+            :param		enumType		<blurdev.enum.enum>
             :param		columnCount		<int>				number of columns to split the values into
             :param		value			<int>				current state of the widget
         """

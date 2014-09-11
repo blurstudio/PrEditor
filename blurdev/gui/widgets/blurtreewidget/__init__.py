@@ -1,5 +1,5 @@
 ##
-# 	:namespace	trax.gui.widgets
+# 	:namespace	python.blurdev.gui.widgets
 #
 # 	:remarks
 #
