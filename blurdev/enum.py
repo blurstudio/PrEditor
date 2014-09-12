@@ -68,7 +68,8 @@ class enum(object):
         if not ('All' in args or 'All' in kwds):
             out = 0
             for k in self._keys:
-                out |= self.__dict__[k]
+                if isinstance(self.__dict__[k], int):
+                    out |= self.__dict__[k]
             self.__dict__['All'] = out
 
     def count(self):
