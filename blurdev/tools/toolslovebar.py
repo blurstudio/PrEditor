@@ -209,3 +209,13 @@ class ToolsLoveBarDialog(Dialog):
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
             ToolsLoveBarDialog._instance = inst
         return ToolsLoveBarDialog._instance
+
+    @classmethod
+    def instanceShutdown(cls):
+        """ Faster way to shutdown the instance of ToolsLoveBarDialog if it possibly was not used. Returns if shutdown was required.
+            :return: Bool. Shutdown was requried
+        """
+        if cls._instance:
+            cls._instance.shutdown()
+            return True
+        return False

@@ -370,3 +370,13 @@ class LoggerWindow(Window):
             LoggerWindow._instance = inst
 
         return LoggerWindow._instance
+
+    @classmethod
+    def instanceShutdown(cls):
+        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used. Returns if shutdown was required.
+            :return: Bool. Shutdown was requried
+        """
+        if cls._instance:
+            cls._instance.shutdown()
+            return True
+        return False
