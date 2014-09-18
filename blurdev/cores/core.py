@@ -21,9 +21,6 @@ from PyQt4.QtGui import (
 )
 import PyQt4.uic
 
-if sys.platform == 'win32':  # shitty
-    from PyQt4.QtWinMigrate import QMfcApp
-
 import blurdev
 import blurdev.prefs
 import blurdev.debug
@@ -167,6 +164,8 @@ class Core(QObject):
 
         # check to see if there is an application already running
         if not QApplication.instance():
+            if sys.platform == 'win32':  # shitty
+                from PyQt4.QtWinMigrate import QMfcApp
             # create the plugin instance
             if QMfcApp.pluginInstance(hInstance):
                 self.setHwnd(hwnd)
@@ -415,7 +414,6 @@ class Core(QObject):
         return blurdev.gui.windows.loggerwindow.LoggerWindow.instance(parent)
 
     def lovebar(self, parent=None):
-
         return blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent)
 
     def macroName(self):
@@ -1136,14 +1134,37 @@ class Core(QObject):
         # Only return the filename without the .css extension
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
 
+    def quitQtOnShutdown(self):
+        """ If true is returned, all windows will be closed and QApplication.instance().quit() will be 
+        called. This can be overridden in cores to prevent shutdown.
+        """
+        return True
+
     def shutdown(self):
         # record the settings
         self.recordToolbar()
         self.recordSettings()
 
-        if QApplication.instance():
-            QApplication.instance().closeAllWindows()
-            QApplication.instance().quit()
+        if self.quitQtOnShutdown():
+            if QApplication.instance():
+                QApplication.instance().closeAllWindows()
+                QApplication.instance().quit()
+        else:
+            # The app is probably maya or Motionbuilder, so closing all windows, and killing the app
+            # is not what we want to do. This saves prefs and closes any of the instance windows if
+            # they are active
+
+            # Make sure to close the Toolbar and Lovebar
+            blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
+            blurdev.tools.toolslovebar.ToolsLoveBarDialog.instanceShutdown()
+            # Make sure to close Treegrunt
+            from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
+
+            TreegruntDialog.instanceShutdown()
+            # Make sure to close the Logger window
+            from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+            LoggerWindow.instanceShutdown()
 
     def showIdeEditor(self):
         import blurdev.ide.ideeditor
@@ -1190,7 +1211,7 @@ class Core(QObject):
 
     def toolTypes(self):
         """
-        Determines what types of tools that the trax system should be looking at
+        Determines what types of tools that the treegrunt system should be looking at
         """
         ToolType = blurdev.tools.tool.ToolType
         output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal

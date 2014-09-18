@@ -9,6 +9,13 @@ Core = None
 _exe = os.path.basename(sys.executable).lower()
 
 # initialize the system for Motion Builder
+if 'maya' in _exe:
+    try:
+        from mayacore import MayaCore as Core
+    except:
+        pass
+
+# initialize the system for Motion Builder
 if 'motionbuilder' in _exe:
     try:
         from motionbuildercore import MotionBuilderCore as Core

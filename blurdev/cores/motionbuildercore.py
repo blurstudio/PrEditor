@@ -23,7 +23,7 @@ class MotionBuilderCore(Core):
 
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'motionbuilder'
-        Core.__init__(self, *args, **kargs)
+        super(MotionBuilderCore, self).__init__(*args, **kargs)
         # Shutdown blurdev when Motion builder closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
@@ -98,9 +98,14 @@ class MotionBuilderCore(Core):
         """
         return 'Create Macro...'
 
+    def quitQtOnShutdown(self):
+        """ Qt should not be closed when the MayaCore has shutdown called
+        """
+        return False
+
     def toolTypes(self):
         """
-        Method to determine what types of tools that the trax system should be looking at
+        Method to determine what types of tools that the treegrunt system should be looking at
         """
         output = blurdev.tools.tool.ToolType.MotionBuilder
         return output

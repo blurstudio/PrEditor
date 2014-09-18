@@ -11,7 +11,7 @@ import blurdev.tools.toolheader
 import blurdev.tools.toolsindex
 
 
-# 					1			2			4			8		  16			32				64					128				256
+# 					1			2			4			8		  16			32				64					128				256			  512
 ToolType = enum(
     'External',
     'Trax',
@@ -22,7 +22,8 @@ ToolType = enum(
     'LegacyExternal',
     'LegacyStudiomax',
     'LegacySoftimage',
-    AllTools=511,
+    'Maya',
+    AllTools=1023,
 )
 
 
