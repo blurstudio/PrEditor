@@ -1186,10 +1186,11 @@ class DocumentEditor(QsciScintilla):
         """
 
         lexer.highlightedKeywords = keywords
+        marginFont = self.marginsFont()
         # 		folds = self.contractedFolds()
         self.setLexer(lexer)
-
-    # 		self.setContractedFolds(folds)
+        # 		self.setContractedFolds(folds)
+        self.setMarginsFont(marginFont)
 
     def indentSelection(self, all=False):
         if all:

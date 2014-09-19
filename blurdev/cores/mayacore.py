@@ -17,9 +17,9 @@ class MayaCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    # 	def addLibraryPaths(self, app):
-    # 		# Do not add default library paths
-    # 		pass
+    def addLibraryPaths(self, app):
+        # Do not add default library paths
+        pass
 
     # 	def activeWindow(self):
     # 		"""
