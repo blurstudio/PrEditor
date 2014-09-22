@@ -10,7 +10,7 @@
 
 from blurdev.gui import Window
 from blurdev import prefs
-from PyQt4.QtGui import QSplitter, QKeySequence, QIcon
+from PyQt4.QtGui import QSplitter, QKeySequence, QIcon, QColor
 from PyQt4.QtCore import Qt
 import blurdev
 
@@ -106,6 +106,54 @@ class LoggerWindow(Window):
         self.refreshDebugLevels()
         self.uiWorkboxWGT.setLanguage('Python')
         self.uiWorkboxWGT.setShowSmartHighlighting(True)
+
+        # Ensure the workbox lexer colors are set to sane defaults
+        # applications like maya cause the lexer to have bad default colors
+        # TODO: This could probably be stored in prefs so its customizable.
+        self._paperColor = {
+            0: (255, 255, 255, 255),
+            1: (255, 255, 255, 255),
+            2: (255, 255, 255, 255),
+            3: (255, 255, 255, 255),
+            4: (255, 255, 255, 255),
+            5: (255, 255, 255, 255),
+            6: (255, 255, 255, 255),
+            7: (255, 255, 255, 255),
+            8: (255, 255, 255, 255),
+            9: (255, 255, 255, 255),
+            10: (255, 255, 255, 255),
+            11: (255, 255, 255, 255),
+            12: (255, 255, 255, 255),
+            13: (224, 192, 224, 255),
+            14: (155, 255, 155, 255),
+            15: (255, 255, 255, 255),
+        }
+        self._textColor = {
+            0: (128, 128, 128, 255),
+            1: (0, 127, 0, 255),
+            2: (0, 127, 127, 255),
+            3: (127, 0, 127, 255),
+            4: (127, 0, 127, 255),
+            5: (0, 0, 127, 255),
+            6: (127, 0, 0, 255),
+            7: (127, 0, 0, 255),
+            8: (0, 0, 255, 255),
+            9: (0, 127, 127, 255),
+            10: (0, 0, 0, 255),
+            11: (0, 0, 0, 255),
+            12: (127, 127, 127, 255),
+            13: (0, 0, 0, 255),
+            14: (64, 112, 144, 255),
+            15: (128, 80, 0, 255),
+        }
+        lex = self.uiWorkboxWGT.lexer()
+        for key, value in self._paperColor.iteritems():
+            lex.setPaper(QColor(*value), key)
+        for key, value in self._textColor.iteritems():
+            lex.setColor(QColor(*value), key)
+        lex.setDefaultPaper(QColor(255, 255, 255, 255))
+        self.uiWorkboxWGT.setMarginsFont(self.uiWorkboxWGT.font())
+
         # calling setLanguage resets this value to False
         self.restorePrefs()
         self.overrideKeyboardShortcuts()
