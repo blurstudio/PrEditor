@@ -87,9 +87,18 @@ class DocumentEditor(QsciScintilla):
                 QMessageBox.Ok,
             )
             return
-        options = autopep8.parse_args([''])[0]
+        version = autopep8.__version__.split('.')
+        if version and version[0] < 1:
+            QMessageBox.warning(
+                self.window(),
+                'autopep8 out of date',
+                'The autopep8 library is out of date and needs to be updated. To use this feature you must install it. https://pypi.python.org/pypi/autopep8/ ',
+                QMessageBox.Ok,
+            )
+            return
+        options = autopep8.parse_args([''])
         options.max_line_length = self.edgeColumn()
-        fixed = autopep8.fix_string(self.text(), options=options)
+        fixed = autopep8.fix_code(unicode(self.text()), options=options)
         self.beginUndoAction()
         startline, startcol, endline, endcol = self.getSelection()
         self.selectAll()
