@@ -94,14 +94,6 @@ class ToolsEnvironment(QObject):
         ]
         sys.path = newpaths
 
-        debug = blurdev.debug
-        debug.debugObject(
-            self.clearPathSymbols,
-            '%s were removed from sys.path'
-            % list(set(oldpaths).difference(set(newpaths))),
-            debug.DebugLevel.Mid,
-        )
-
         newmodules = {}
 
         for key, value in sys.modules.items():
@@ -135,11 +127,6 @@ class ToolsEnvironment(QObject):
                     pass
                 else:
                     if is_environment_package:
-                        debug.debugObject(
-                            self.clearPathSymbols,
-                            'removing %s from sys.modules' % key,
-                            debug.DebugLevel.Mid,
-                        )
                         sys.modules.pop(key)
 
         return True
