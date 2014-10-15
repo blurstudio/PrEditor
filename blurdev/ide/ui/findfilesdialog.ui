@@ -216,22 +216,27 @@
      </item>
      <item>
       <property name="text">
+       <string>*.mel</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
        <string>*.html;*.xml</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>*.py;*.pyw;*.ms</string>
+       <string>*.py;*.pyw;*.ms;*.mel</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>*.py;*.pyw;*.ms;*.h;*.cpp</string>
+       <string>*.py;*.pyw;*.ms;*.h;*.cpp;*.mel</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>*.py;*.pyw;*.ms;*.h;*.cpp;*.html;*.xml</string>
+       <string>*.py;*.pyw;*.ms;*.h;*.cpp;*.html;*.xml;*.mel</string>
       </property>
      </item>
     </widget>
