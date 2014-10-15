@@ -104,6 +104,7 @@ class ErrorLog(QObject, Win32ComFix):
 
 class ConsoleEdit(QTextEdit, Win32ComFix):
     _additionalInfo = None
+    excepthook = None
 
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
@@ -114,11 +115,22 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # create the completer
         self.setCompleter(PythonCompleter(self))
 
+        # sys.__stdout__ and sys.__excepthook__ don't work if some third party has implemented their
+        # own override. Use these to backup the current logger so the logger displays output, but
+        # application specific consoles also get the info.
+        self.stdout = None
+        self.stderr = None
+        ConsoleEdit.excepthook = None
         # overload the sys logger (if we are not on a high debugging level)
         if (
             os.path.basename(sys.executable) != 'python.exe'
             or debug.debugLevel() != debug.DebugLevel.High
         ):
+            # Store the current outputs
+            self.stdout = sys.stdout
+            self.stderr = sys.stderr
+            ConsoleEdit.excepthook = sys.excepthook
+            # insert our own outputs
             sys.stdout = self
             sys.stderr = ErrorLog(self)
             sys.excepthook = ConsoleEdit.excepthook
@@ -147,7 +159,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         
         """
         # Call the base implementation.  This generallly prints the traceback to stderr.
-        sys.__excepthook__(exctype, value, traceback_)
+        if ConsoleEdit.excepthook:
+            ConsoleEdit.excepthook(exctype, value, traceback_)
+        else:
+            sys.__excepthook__(exctype, value, traceback_)
 
         # Email the error traceback.
         emails = ToolsEnvironment.activeEnvironment().emailOnError()
@@ -542,7 +557,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # Pass data along to the original stdout
         try:
-            sys.__stdout__.write(msg)
+            if sys.stderr and error:
+                self.stderr.write(msg)
+            elif self.stdout:
+                self.stdout.write(msg)
+            else:
+                sys.__stdout__.write(msg)
         except:
             pass
 
