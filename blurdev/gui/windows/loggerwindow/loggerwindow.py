@@ -9,14 +9,65 @@
 #
 
 from blurdev.gui import Window
+from blurdev.gui.widgets.newtabwidget import NewTabWidget
 from blurdev import prefs
-from PyQt4.QtGui import QSplitter, QKeySequence, QIcon, QColor
 from PyQt4.QtCore import Qt
+from PyQt4.QtGui import (
+    QSplitter,
+    QKeySequence,
+    QIcon,
+    QColor,
+    QWidget,
+    QMessageBox,
+    QMenu,
+    QCursor,
+    QInputDialog,
+)
 import blurdev
 
 
 class LoggerWindow(Window):
     _instance = None
+
+    # Ensure the workbox lexer colors are set to sane defaults
+    # applications like maya cause the lexer to have bad default colors
+    # TODO: This could probably be stored in prefs so its customizable.
+    _paperColor = {
+        0: (255, 255, 255, 255),
+        1: (255, 255, 255, 255),
+        2: (255, 255, 255, 255),
+        3: (255, 255, 255, 255),
+        4: (255, 255, 255, 255),
+        5: (255, 255, 255, 255),
+        6: (255, 255, 255, 255),
+        7: (255, 255, 255, 255),
+        8: (255, 255, 255, 255),
+        9: (255, 255, 255, 255),
+        10: (255, 255, 255, 255),
+        11: (255, 255, 255, 255),
+        12: (255, 255, 255, 255),
+        13: (224, 192, 224, 255),
+        14: (155, 255, 155, 255),
+        15: (255, 255, 255, 255),
+    }
+    _textColor = {
+        0: (128, 128, 128, 255),
+        1: (0, 127, 0, 255),
+        2: (0, 127, 127, 255),
+        3: (127, 0, 127, 255),
+        4: (127, 0, 127, 255),
+        5: (0, 0, 127, 255),
+        6: (127, 0, 0, 255),
+        7: (127, 0, 0, 255),
+        8: (0, 0, 255, 255),
+        9: (0, 127, 127, 255),
+        10: (0, 0, 0, 255),
+        11: (0, 0, 0, 255),
+        12: (127, 127, 127, 255),
+        13: (0, 0, 0, 255),
+        14: (64, 112, 144, 255),
+        15: (128, 80, 0, 255),
+    }
 
     def __init__(self, parent):
         Window.__init__(self, parent)
@@ -24,6 +75,7 @@ class LoggerWindow(Window):
 
         import blurdev.gui
 
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
         blurdev.gui.loadUi(__file__, self)
 
         # create the splitter layout
@@ -35,12 +87,18 @@ class LoggerWindow(Window):
         self.uiConsoleTXT = ConsoleEdit(self.uiSplitterSPLIT)
         self.uiConsoleTXT.setMinimumHeight(1)
 
-        # create the workbox
-        from workboxwidget import WorkboxWidget
-
-        self.uiWorkboxWGT = WorkboxWidget(self.uiSplitterSPLIT)
-        self.uiWorkboxWGT.setConsole(self.uiConsoleTXT)
-        self.uiWorkboxWGT.setMinimumHeight(1)
+        # create the workbox tabs
+        self._currentTab = -1
+        self.uiWorkboxTAB = NewTabWidget(self.uiSplitterSPLIT)
+        # Connect the tab widget signals
+        self.uiWorkboxTAB.addTabClicked.connect(self.addWorkbox)
+        self.uiWorkboxTAB.tabCloseRequested.connect(self.removeWorkbox)
+        self.uiWorkboxTAB.tabBar().setContextMenuPolicy(Qt.CustomContextMenu)
+        self.uiWorkboxTAB.tabBar().customContextMenuRequested.connect(
+            self.workboxTabRightClick
+        )
+        # create the default workbox
+        self.uiWorkboxWGT = self.addWorkbox()
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()
@@ -72,9 +130,7 @@ class LoggerWindow(Window):
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
-        self.uiIndentationsTabsACT.toggled.connect(
-            self.uiWorkboxWGT.setIndentationsUseTabs
-        )
+        self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
@@ -104,55 +160,6 @@ class LoggerWindow(Window):
 
         # refresh the ui
         self.refreshDebugLevels()
-        self.uiWorkboxWGT.setLanguage('Python')
-        self.uiWorkboxWGT.setShowSmartHighlighting(True)
-
-        # Ensure the workbox lexer colors are set to sane defaults
-        # applications like maya cause the lexer to have bad default colors
-        # TODO: This could probably be stored in prefs so its customizable.
-        self._paperColor = {
-            0: (255, 255, 255, 255),
-            1: (255, 255, 255, 255),
-            2: (255, 255, 255, 255),
-            3: (255, 255, 255, 255),
-            4: (255, 255, 255, 255),
-            5: (255, 255, 255, 255),
-            6: (255, 255, 255, 255),
-            7: (255, 255, 255, 255),
-            8: (255, 255, 255, 255),
-            9: (255, 255, 255, 255),
-            10: (255, 255, 255, 255),
-            11: (255, 255, 255, 255),
-            12: (255, 255, 255, 255),
-            13: (224, 192, 224, 255),
-            14: (155, 255, 155, 255),
-            15: (255, 255, 255, 255),
-        }
-        self._textColor = {
-            0: (128, 128, 128, 255),
-            1: (0, 127, 0, 255),
-            2: (0, 127, 127, 255),
-            3: (127, 0, 127, 255),
-            4: (127, 0, 127, 255),
-            5: (0, 0, 127, 255),
-            6: (127, 0, 0, 255),
-            7: (127, 0, 0, 255),
-            8: (0, 0, 255, 255),
-            9: (0, 127, 127, 255),
-            10: (0, 0, 0, 255),
-            11: (0, 0, 0, 255),
-            12: (127, 127, 127, 255),
-            13: (0, 0, 0, 255),
-            14: (64, 112, 144, 255),
-            15: (128, 80, 0, 255),
-        }
-        lex = self.uiWorkboxWGT.lexer()
-        for key, value in self._paperColor.iteritems():
-            lex.setPaper(QColor(*value), key)
-        for key, value in self._textColor.iteritems():
-            lex.setColor(QColor(*value), key)
-        lex.setDefaultPaper(QColor(255, 255, 255, 255))
-        self.uiWorkboxWGT.setMarginsFont(self.uiWorkboxWGT.font())
 
         # calling setLanguage resets this value to False
         self.restorePrefs()
@@ -164,6 +171,34 @@ class LoggerWindow(Window):
             'Python Logger - %s %s'
             % ('%i.%i.%i' % sys.version_info[:3], platform.architecture()[0])
         )
+
+    @classmethod
+    def _genPrefName(cls, baseName, index):
+        if index:
+            baseName = '{name}{index}'.format(name=baseName, index=index)
+        return baseName
+
+    def addWorkbox(self):
+        from workboxwidget import WorkboxWidget
+
+        workbox = WorkboxWidget(self.uiWorkboxTAB)
+        workbox.setConsole(self.uiConsoleTXT)
+        workbox.setMinimumHeight(1)
+        self.uiWorkboxTAB.addTab(workbox, 'Workbox')
+        self.uiIndentationsTabsACT.toggled.connect(workbox.setIndentationsUseTabs)
+        workbox.setLanguage('Python')
+        workbox.setShowSmartHighlighting(True)
+        # update the lexer
+        lex = workbox.lexer()
+        for key, value in self._paperColor.iteritems():
+            lex.setPaper(QColor(*value), key)
+        for key, value in self._textColor.iteritems():
+            lex.setColor(QColor(*value), key)
+        lex.setDefaultPaper(QColor(255, 255, 255, 255))
+        workbox.setMarginsFont(workbox.font())
+        # If only one tab is visible, don't show the close tab button
+        self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
+        return workbox
 
     def adjustWorkboxOrientation(self, state):
         if state:
@@ -192,7 +227,7 @@ class LoggerWindow(Window):
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxWGT.execAll()
+        self.uiWorkboxTAB.currentWidget().execAll()
 
     def execSelected(self):
         """
@@ -200,7 +235,7 @@ class LoggerWindow(Window):
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxWGT.execSelected()
+        self.uiWorkboxTAB.currentWidget().execSelected()
 
     def gotoError(self):
         text = self.uiConsoleTXT.textCursor().selectedText()
@@ -252,7 +287,6 @@ class LoggerWindow(Window):
         pref = prefs.find('blurdev\LoggerWindow')
         pref.recordProperty('loggergeom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
-        pref.recordProperty('WorkboxText', self.uiWorkboxWGT.text())
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
         pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
@@ -269,13 +303,26 @@ class LoggerWindow(Window):
         )
         pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
-        lexer = self.uiWorkboxWGT.lexer()
-        if lexer:
-            font = lexer.font(0)
-        else:
-            font = self.uiWorkboxWGT.font()
-        pref.recordProperty('workboxFont', font)
-        pref.recordProperty('workboxMarginFont', self.uiWorkboxWGT.marginsFont())
+
+        for index in range(self.uiWorkboxTAB.count()):
+            workbox = self.uiWorkboxTAB.widget(index)
+            pref.recordProperty(self._genPrefName('WorkboxText', index), workbox.text())
+            lexer = workbox.lexer()
+            if lexer:
+                font = lexer.font(0)
+            else:
+                font = workbox.font()
+            pref.recordProperty(self._genPrefName('workboxFont', index), font)
+            pref.recordProperty(
+                self._genPrefName('workboxMarginFont', index), workbox.marginsFont()
+            )
+            pref.recordProperty(
+                self._genPrefName('workboxTabTitle', index),
+                self.uiWorkboxTAB.tabBar().tabText(index),
+            )
+        pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
+        pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
+
         pref.save()
 
     def restorePrefs(self):
@@ -283,7 +330,6 @@ class LoggerWindow(Window):
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
             self.setGeometry(rect)
-        self.uiWorkboxWGT.setText(pref.restoreProperty('WorkboxText', ''))
         self.uiEditorVerticalACT.setChecked(
             pref.restoreProperty('SplitterVertical', False)
         )
@@ -293,7 +339,6 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setSizes(sizes)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
-        self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         self.uiAutoCompleteEnabledACT.setChecked(
             pref.restoreProperty('hintingEnabled', True)
         )
@@ -315,16 +360,36 @@ class LoggerWindow(Window):
         font = pref.restoreProperty('consoleFont', None)
         if font:
             self.uiConsoleTXT.setFont(font)
-        font = pref.restoreProperty('workboxFont', None)
-        if font:
-            lexer = self.uiWorkboxWGT.lexer()
-            if lexer:
-                font = lexer.setFont(font, 0)
-            else:
-                font = self.uiWorkboxWGT.setFont(font)
-        font = pref.restoreProperty('workboxMarginFont', None)
-        if font:
-            self.uiWorkboxWGT.setMarginsFont(font)
+        # Restore the workboxes
+        count = pref.restoreProperty('WorkboxCount', 1)
+        for index in range(count - self.uiWorkboxTAB.count()):
+            # create each of the workbox tabs
+            self.addWorkbox()
+        for index in range(count):
+            workbox = self.uiWorkboxTAB.widget(index)
+            workbox.setText(
+                pref.restoreProperty(self._genPrefName('WorkboxText', index), '')
+            )
+            font = pref.restoreProperty(self._genPrefName('workboxFont', index), None)
+            if font:
+                lexer = workbox.lexer()
+                if lexer:
+                    font = lexer.setFont(font, 0)
+                else:
+                    font = workbox.setFont(font)
+            font = pref.restoreProperty(
+                self._genPrefName('workboxMarginFont', index), None
+            )
+            if font:
+                workbox.setMarginsFont(font)
+            tabText = pref.restoreProperty(
+                self._genPrefName('workboxTabTitle', index), 'Workbox'
+            )
+            self.uiWorkboxTAB.tabBar().setTabText(index, tabText)
+        self.uiWorkboxTAB.setCurrentIndex(
+            pref.restoreProperty('WorkboxCurrentIndex', 0)
+        )
+
         self.restoreToolbars()
 
     def restoreToolbars(self):
@@ -333,12 +398,29 @@ class LoggerWindow(Window):
         if state:
             self.restoreState(state)
 
+    def removeWorkbox(self, index):
+        if self.uiWorkboxTAB.count() == 1:
+            msg = "You have to leave at least one tab open."
+            QMessageBox.critical(self, 'Tab can not be closed.', msg, QMessageBox.Ok)
+            return
+        msg = "Would you like to donate this tabs contents to the /dev/null fund for wayward code?"
+        if (
+            QMessageBox.question(
+                self, 'Donate to the cause?', msg, QMessageBox.Yes | QMessageBox.Cancel
+            )
+            == QMessageBox.Yes
+        ):
+            self.uiWorkboxTAB.removeTab(index)
+        self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
+
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        if state:
-            self.uiWorkboxWGT.setAutoCompletionSource(self.uiWorkboxWGT.AcsAll)
-        else:
-            self.uiWorkboxWGT.setAutoCompletionSource(self.uiWorkboxWGT.AcsNone)
+        for index in range(self.uiWorkboxTAB.count()):
+            tab = self.uiWorkboxTAB.widget(index)
+            if state:
+                tab.setAutoCompletionSource(tab.AcsAll)
+            else:
+                tab.setAutoCompletionSource(tab.AcsNone)
 
     def setClearBeforeRunning(self, state):
         if state:
@@ -383,7 +465,12 @@ class LoggerWindow(Window):
     def showEvent(self, event):
         super(LoggerWindow, self).showEvent(event)
         self.restoreToolbars()
-        self.uiWorkboxWGT.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+        self.updateIndentationsUseTabs()
+
+    def updateIndentationsUseTabs(self):
+        for index in range(self.uiWorkboxTAB.count()):
+            tab = self.uiWorkboxTAB.widget(index)
+            tab.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
     def showSdk(self):
         if not self.uiDisableSDKShortcutACT.isChecked():
@@ -399,6 +486,23 @@ class LoggerWindow(Window):
 
         # clear out the system
         self.close()
+
+    def workboxTabRightClick(self, pos):
+        self._currentTab = self.uiWorkboxTAB.tabBar().tabAt(pos)
+        if self._currentTab == -1:
+            return
+        menu = QMenu(self.uiWorkboxTAB.tabBar())
+        act = menu.addAction('Rename')
+        act.triggered.connect(self.renameTab)
+        menu.popup(QCursor.pos())
+
+    def renameTab(self):
+        if self._currentTab != -1:
+            current = self.uiWorkboxTAB.tabBar().tabText(self._currentTab)
+            msg = 'Rename the {} tab to:'.format(current)
+            name, success = QInputDialog.getText(None, 'Rename Tab', msg, text=current)
+            if success:
+                self.uiWorkboxTAB.tabBar().setTabText(self._currentTab, name)
 
     @staticmethod
     def instance(parent=None):
