@@ -25,6 +25,7 @@ from PyQt4.QtCore import (
     QDateTime,
     QString,
     QByteArray,
+    Qt,
 )
 from PyQt4.QtGui import QColor, QFont
 
@@ -252,6 +253,10 @@ class XMLElement:
         # Restore a QByteArray (Experimental)
         elif valtype == 'QByteArray':
             value = QByteArray.fromPercentEncoding(self.attribute('value', ''))
+
+        # Restore a Qt.CheckState
+        elif valtype == 'CheckState':
+            value = Qt.CheckState(self.attribute('value', 0))
 
         # Restore a basic value
         else:
