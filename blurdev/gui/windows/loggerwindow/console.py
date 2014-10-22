@@ -104,7 +104,7 @@ class ErrorLog(QObject, Win32ComFix):
 
 class ConsoleEdit(QTextEdit, Win32ComFix):
     _additionalInfo = None
-    excepthook = None
+    _excepthook = None
 
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
@@ -120,7 +120,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # application specific consoles also get the info.
         self.stdout = None
         self.stderr = None
-        ConsoleEdit.excepthook = None
+        ConsoleEdit._excepthook = None
         # overload the sys logger (if we are not on a high debugging level)
         if (
             os.path.basename(sys.executable) != 'python.exe'
@@ -129,7 +129,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # Store the current outputs
             self.stdout = sys.stdout
             self.stderr = sys.stderr
-            ConsoleEdit.excepthook = sys.excepthook
+            ConsoleEdit._excepthook = sys.excepthook
             # insert our own outputs
             sys.stdout = self
             sys.stderr = ErrorLog(self)
@@ -159,8 +159,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         
         """
         # Call the base implementation.  This generallly prints the traceback to stderr.
-        if ConsoleEdit.excepthook:
-            ConsoleEdit.excepthook(exctype, value, traceback_)
+        if ConsoleEdit._excepthook:
+            ConsoleEdit._excepthook(exctype, value, traceback_)
         else:
             sys.__excepthook__(exctype, value, traceback_)
 
