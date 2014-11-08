@@ -732,7 +732,9 @@ class Core(QObject):
         """
         # for MFC apps there should be no root window
         if self.isMfcApp():
-            return None
+            from blurdev.gui.winwidget import WinWidget
+
+            return WinWidget.newInstance(self.hwnd())
 
         window = None
         if QApplication.instance():
