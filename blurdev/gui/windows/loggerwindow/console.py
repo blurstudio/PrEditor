@@ -105,6 +105,8 @@ class ErrorLog(QObject, Win32ComFix):
 class ConsoleEdit(QTextEdit, Win32ComFix):
     _additionalInfo = None
     _excepthook = None
+    # Ensure the error prompt only shows up once.
+    _errorPrompted = False
 
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
@@ -176,7 +178,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # If the logger is not visible, prompt the user to show it.
         inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
-        if not inst.isVisible() and not blurdev.core.quietMode():
+        if (
+            not inst.isVisible()
+            and not blurdev.core.quietMode()
+            and not ConsoleEdit._errorPrompted
+        ):
+            # This is used to ensure we only ever show a single error prompt. In special cases this
+            # messagebox was showing multiple times, which is very annoying to the user.
+            # This is not needed for normal Qt event loops, but if some other system (c++, threading)
+            # raises multiple errors that get processed outside the standard qt event loop.
+            ConsoleEdit._errorPrompted = True
             result = QMessageBox.question(
                 blurdev.core.rootWindow(),
                 'Error Occurred',
@@ -185,6 +196,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             )
             if result == QMessageBox.Yes:
                 inst.show()
+            # The messagebox was closed, so reset the tracking variable.
+            ConsoleEdit._errorPrompted = False
 
     @staticmethod
     def emailError(emails, error, subject=None, information=None):
