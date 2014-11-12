@@ -1,4 +1,5 @@
-from PyQt4.QtGui import QApplication
+from PyQt4.QtCore import Qt
+from PyQt4.QtGui import QApplication, QMainWindow
 import maya.cmds
 
 import blurdev.tools.tool
@@ -21,16 +22,14 @@ class MayaCore(Core):
         # Do not add default library paths
         pass
 
-    # 	def activeWindow(self):
-    # 		"""
-    # 		Make sure the root Maya window is used, or it won't parent properly
-    # 		"""
-    # 		window = None
-    # 		if QApplication.instance():
-    # 			window = QApplication.instance().activeWindow()
-    # 			while window.parent():
-    # 				window = window.parent()
-    # 		return window
+    def lovebar(self, parent=None):
+        if parent == None:
+            parent = self.rootWindow()
+        hasInstance = blurdev.tools.toolslovebar.ToolsLoveBar._instance != None
+        lovebar = blurdev.tools.toolslovebar.ToolsLoveBar.instance(parent)
+        if not hasInstance and isinstance(parent, QMainWindow):
+            parent.addToolBar(Qt.RightToolBarArea, lovebar)
+        return lovebar
 
     def macroName(self):
         """
@@ -42,6 +41,22 @@ class MayaCore(Core):
         """ Qt should not be closed when the MayaCore has shutdown called
         """
         return False
+
+    def restoreToolbars(self):
+        super(MayaCore, self).restoreToolbars()
+        # Restore the toolbar positions if they are visible
+        maya.cmds.windowPref(restoreMainWindowState="startupMainWindowState")
+
+    def showLovebar(self, parent=None):
+        self.lovebar(parent=parent).show()
+
+    def shutdownToolbars(self):
+        """ Closes the toolbars and save their prefs if they are used
+        
+        This is abstracted from shutdown, so specific cores can control how they shutdown
+        """
+        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
+        blurdev.tools.toolslovebar.ToolsLoveBar.instanceShutdown()
 
     def toolTypes(self):
         """

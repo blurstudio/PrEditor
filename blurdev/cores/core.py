@@ -324,7 +324,7 @@ class Core(QObject):
                 app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
                 app.setEffectEnabled(Qt.UI_FadeTooltip, False)
                 app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
-                app.aboutToQuit.connect(self.recordToolbar)
+                app.aboutToQuit.connect(self.recordToolbars)
                 app.installEventFilter(self)
             self.addLibraryPaths(app)
 
@@ -340,7 +340,7 @@ class Core(QObject):
         # restore the core settings
         self.restoreSettings()
         self.connectAppSignals()
-        self.restoreToolbar()
+        self.restoreToolbars()
         return output
 
     def applyEnvironmentTimeouts(self):
@@ -574,7 +574,7 @@ class Core(QObject):
 
         return pref
 
-    def recordToolbar(self):
+    def recordToolbars(self):
         pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
 
         # record the toolbar
@@ -586,6 +586,8 @@ class Core(QObject):
 
         if blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance:
             blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance.toXml(pref.root())
+        if blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance:
+            blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance.recordSettings()
 
         pref.save()
 
@@ -719,12 +721,15 @@ class Core(QObject):
 
         return pref
 
-    def restoreToolbar(self):
+    def restoreToolbars(self):
         pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
         # restore the toolbar
         child = pref.root().findChild('toolbardialog')
         if child:
             self.toolbar().fromXml(pref.root())
+        pref = blurdev.prefs.find('tools/Lovebar', coreName=self.objectName())
+        if pref.restoreProperty('isVisible'):
+            self.showLovebar(parent=self.rootWindow())
 
     def rootWindow(self):
         """
@@ -1144,7 +1149,7 @@ class Core(QObject):
 
     def shutdown(self):
         # record the settings
-        self.recordToolbar()
+        self.recordToolbars()
         self.recordSettings()
 
         if self.quitQtOnShutdown():
@@ -1157,8 +1162,7 @@ class Core(QObject):
             # they are active
 
             # Make sure to close the Toolbar and Lovebar
-            blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
-            blurdev.tools.toolslovebar.ToolsLoveBarDialog.instanceShutdown()
+            self.shutdownToolbars()
             # Make sure to close Treegrunt
             from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
@@ -1167,6 +1171,14 @@ class Core(QObject):
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
             LoggerWindow.instanceShutdown()
+
+    def shutdownToolbars(self):
+        """ Closes the toolbars and save their prefs if they are used
+        
+        This is abstracted from shutdown, so specific cores can control how they shutdown
+        """
+        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
+        blurdev.tools.toolslovebar.ToolsLoveBarDialog.instanceShutdown()
 
     def showIdeEditor(self):
         import blurdev.ide.ideeditor

@@ -40,6 +40,8 @@ class ToolsLoveBar(QToolBar):
     """ Creates a toolbar that contains favorite Treegrunt tools.
     """
 
+    _instance = None
+
     def __init__(self, parent, title):
         QToolBar.__init__(self, parent)
         self._actions = []
@@ -47,7 +49,6 @@ class ToolsLoveBar(QToolBar):
         self.setAcceptDrops(True)
         self.setObjectName(title)
         self.setToolTip('Drag & Drop Scripts and Tools')
-        self.setIconSize(QSize(22, 22))
 
         # Create connections.
         self.actionTriggered.connect(self.runAction)
@@ -113,6 +114,22 @@ class ToolsLoveBar(QToolBar):
                 action = LovebarAction(self, tool)
                 self.addAction(action)
 
+    def recordSettings(self):
+        """ records settings to be used for another session
+        """
+        pref = blurdev.prefs.find('tools/Lovebar')
+        pref.recordProperty('isVisible', self.isVisible())
+        # Save the settings.
+        pref.save()
+
+    def restoreSettings(self):
+        """ restores settings that were saved by a previous session
+        """
+        pass
+        # NOTE: toolbar geometry, floating etc should be restored by the QMainWindow's restoreState
+        # In maya this is accomplished in the blur_maya plugin when it calls
+        # cmds.windowPref(restoreMainWindowState="startupMainWindowState")
+
     def refresh(self):
         self.clear()
         self.populate()
@@ -152,10 +169,49 @@ class ToolsLoveBar(QToolBar):
             act = menu.addAction('Refesh')
             act.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
             act.triggered.connect(self.refresh)
+
+            if not isinstance(self.parent(), ToolsLoveBarDialog):
+                menu.addSeparator()
+                act = menu.addAction('Close')
+                act.setIcon(QIcon(blurdev.resourcePath('img/cancel.png')))
+                act.triggered.connect(self.close)
+
             menu.popup(QCursor.pos())
         else:
             self.setContextMenuPolicy(Qt.DefaultContextMenu)
             event.ignore()
+
+    def shutdown(self):
+        """
+        If this item is the class instance properly close it and remove it from memory so it can be recreated.
+        """
+        # allow the global instance to be cleared
+        if self == ToolsLoveBar._instance:
+            ToolsLoveBar._instance = None
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.recordSettings()
+        try:
+            self.close()
+        except RuntimeError:
+            pass
+
+    @classmethod
+    def instance(cls, parent=None):
+        if not cls._instance:
+            inst = cls(parent, 'Lovebar')
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+            cls._instance = inst
+        return cls._instance
+
+    @classmethod
+    def instanceShutdown(cls):
+        """ Faster way to shutdown the instance of ToolsLoveBarDialog if it possibly was not used. Returns if shutdown was required.
+            :return: Bool. Shutdown was requried
+        """
+        if cls._instance:
+            cls._instance.shutdown()
+            return True
+        return False
 
 
 class ToolsLoveBarDialog(Dialog):
@@ -177,18 +233,13 @@ class ToolsLoveBarDialog(Dialog):
         # restoring settings.
         self.restoreSettings()
 
-    def closeEvent(self, event):
-        """ overload the close event to handle saving of preferences before shutting down
-        """
-        self.recordSettings()
-        Dialog.closeEvent(self, event)
-
     def recordSettings(self):
         """ records settings to be used for another session
         """
         pref = blurdev.prefs.find('tools/Lovebar')
         # Record the geometry.
         pref.recordProperty('geom', self.geometry())
+        pref.recordProperty('isVisible', self.isVisible())
         # Save the settings.
         pref.save()
 
