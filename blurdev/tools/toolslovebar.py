@@ -48,6 +48,7 @@ class ToolsLoveBar(QToolBar):
         self.setWindowTitle(title)
         self.setAcceptDrops(True)
         self.setObjectName(title)
+        self.setIconSize(QSize(16, 16))
         self.setToolTip('Drag & Drop Scripts and Tools')
 
         # Create connections.
@@ -228,7 +229,7 @@ class ToolsLoveBarDialog(Dialog):
         self._toolbar = ToolsLoveBar(self, title)
         layout.addWidget(self._toolbar)
         self.setLayout(layout)
-        self.setFixedHeight(36)
+        self.setFixedHeight(28)
         self.setWindowFlags(Qt.Tool)
         # restoring settings.
         self.restoreSettings()

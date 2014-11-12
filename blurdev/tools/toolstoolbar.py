@@ -39,6 +39,8 @@ class ToolbarAction(QAction):
 class ToolsToolBar(QToolBar):
     """ QToolBar sub-class to contain actions for Tools """
 
+    _instance = None
+
     def __init__(self, parent, title):
         QToolBar.__init__(self, parent)
         self.setWindowTitle(title)
@@ -98,10 +100,18 @@ class ToolsToolBar(QToolBar):
 
                 menu = QMenu(self)
                 act = menu.addAction('Run %s' % action.text())
+                act.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
                 act.triggered.connect(action.exec_)
 
                 act = menu.addAction('Remove %s' % action.text())
+                act.setIcon(QIcon(blurdev.resourcePath('img/remove.png')))
                 act.triggered.connect(action.remove)
+
+                if not isinstance(self.parent(), ToolsToolBarDialog):
+                    menu.addSeparator()
+                    act = menu.addAction('Close')
+                    act.setIcon(QIcon(blurdev.resourcePath('img/cancel.png')))
+                    act.triggered.connect(self.close)
 
                 menu.exec_(QCursor.pos())
 
@@ -119,10 +129,45 @@ class ToolsToolBar(QToolBar):
 
     def toXml(self, xml):
         """ saves this toolbar information to an xml element """
+        # Remove the old data
+        actionsxml = xml.findChild('toolbar')
+        if actionsxml:
+            actionsxml.remove()
         # store tool bar info
         actionsxml = xml.addNode('toolbar')
         for action in self.actions():
             action.toXml(actionsxml)
+
+    def shutdown(self):
+        """
+        If this item is the class instance properly close it and remove it from memory so it can be recreated.
+        """
+        # allow the global instance to be cleared
+        if self == ToolsToolBar._instance:
+            ToolsToolBar._instance = None
+            self.setAttribute(Qt.WA_DeleteOnClose, True)
+        try:
+            self.close()
+        except RuntimeError:
+            pass
+
+    @classmethod
+    def instance(cls, parent=None):
+        if not cls._instance:
+            inst = cls(parent, 'BlurBar')
+            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+            cls._instance = inst
+        return cls._instance
+
+    @classmethod
+    def instanceShutdown(cls):
+        """ Faster way to shutdown the instance of ToolsToolBarDialog if it possibly was not used. Returns if shutdown was required.
+            :return: Bool. Shutdown was requried
+        """
+        if cls._instance:
+            cls._instance.shutdown()
+            return True
+        return False
 
 
 class ToolsToolBarDialog(Dialog):

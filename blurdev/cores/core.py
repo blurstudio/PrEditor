@@ -584,12 +584,15 @@ class Core(QObject):
         if child:
             child.remove()
 
-        if blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance:
-            blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance.toXml(pref.root())
+        self.recordToolbarXML(pref)
         if blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance:
             blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance.recordSettings()
 
         pref.save()
+
+    def recordToolbarXML(self, pref):
+        if blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance:
+            blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance.toXml(pref.root())
 
     def refreshStyleSheet(self):
         """ Reload the current stylesheet to force a update of the display of widgets. """

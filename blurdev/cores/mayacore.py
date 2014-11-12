@@ -42,6 +42,13 @@ class MayaCore(Core):
         """
         return False
 
+    def recordToolbarXML(self, pref):
+        if blurdev.tools.toolstoolbar.ToolsToolBar._instance:
+            toolbar = blurdev.tools.toolstoolbar.ToolsToolBar._instance
+            toolbar.toXml(pref.root())
+            child = pref.root().addNode('toolbardialog')
+            child.setAttribute('visible', toolbar.isVisible())
+
     def restoreToolbars(self):
         super(MayaCore, self).restoreToolbars()
         # Restore the toolbar positions if they are visible
@@ -50,13 +57,25 @@ class MayaCore(Core):
     def showLovebar(self, parent=None):
         self.lovebar(parent=parent).show()
 
+    def showToolbar(self, parent=None):
+        self.toolbar(parent=parent).show()
+
     def shutdownToolbars(self):
         """ Closes the toolbars and save their prefs if they are used
         
         This is abstracted from shutdown, so specific cores can control how they shutdown
         """
-        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
+        blurdev.tools.toolstoolbar.ToolsToolBar.instanceShutdown()
         blurdev.tools.toolslovebar.ToolsLoveBar.instanceShutdown()
+
+    def toolbar(self, parent=None):
+        if parent == None:
+            parent = self.rootWindow()
+        hasInstance = blurdev.tools.toolstoolbar.ToolsToolBar._instance != None
+        toolbar = blurdev.tools.toolstoolbar.ToolsToolBar.instance(parent)
+        if not hasInstance and isinstance(parent, QMainWindow):
+            parent.addToolBar(Qt.RightToolBarArea, toolbar)
+        return toolbar
 
     def toolTypes(self):
         """
