@@ -396,9 +396,9 @@ class Core(QObject):
         return self._hwnd
 
     def ideeditor(self, parent=None):
-        import blurdev.ide.ideeditor
+        from blurdev.ide.ideeditor import IdeEditor
 
-        return blurdev.ide.ideeditor.IdeEditor.instance(parent)
+        return IdeEditor.instance(parent)
 
     def isKeystrokesEnabled(self):
         return self._keysEnabled
@@ -409,12 +409,14 @@ class Core(QObject):
     def logger(self, parent=None):
         """ Creates and returns the logger instance
         """
-        import blurdev.gui.windows.loggerwindow
+        from blurdev.gui.windows.loggerwindow import LoggerWindow
 
-        return blurdev.gui.windows.loggerwindow.LoggerWindow.instance(parent)
+        return LoggerWindow.instance(parent)
 
     def lovebar(self, parent=None):
-        return blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent)
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        return ToolsLoveBarDialog.instance(parent)
 
     def macroName(self):
         """
@@ -429,9 +431,9 @@ class Core(QObject):
         """
         Creates a new script window for editing
         """
-        import blurdev.ide.ideeditor
+        from blurdev.ide.ideeditor import IdeEditor
 
-        blurdev.ide.ideeditor.IdeEditor.createNew()
+        IdeEditor.createNew()
 
     def openScript(self, filename=''):
         """
@@ -453,9 +455,9 @@ class Core(QObject):
 
         if filename:
             self._lastFileName = filename
-            import blurdev.ide.ideeditor
+            from blurdev.ide.ideeditor import IdeEditor
 
-            blurdev.ide.ideeditor.IdeEditor.edit(filename=filename)
+            IdeEditor.edit(filename=filename)
 
     def postQueueEvent(self):
         """
@@ -512,9 +514,9 @@ class Core(QObject):
         return self._protectedModules
 
     def pyular(self, parent=None):
-        import blurdev.gui.widgets.pyularwidget
+        from blurdev.gui.widgets.pyularwidget import PyularDialog
 
-        return blurdev.gui.widgets.pyularwidget.PyularDialog.instance(parent)
+        return PyularDialog.instance(parent)
 
     def quietMode(self):
         """
@@ -585,14 +587,18 @@ class Core(QObject):
             child.remove()
 
         self.recordToolbarXML(pref)
-        if blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance:
-            blurdev.tools.toolslovebar.ToolsLoveBarDialog._instance.recordSettings()
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        if ToolsLoveBarDialog._instance:
+            ToolsLoveBarDialog._instance.recordSettings()
 
         pref.save()
 
     def recordToolbarXML(self, pref):
-        if blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance:
-            blurdev.tools.toolstoolbar.ToolsToolBarDialog._instance.toXml(pref.root())
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
+        if ToolsToolBarDialog._instance:
+            ToolsToolBarDialog._instance.toXml(pref.root())
 
     def refreshStyleSheet(self):
         """ Reload the current stylesheet to force a update of the display of widgets. """
@@ -1180,19 +1186,24 @@ class Core(QObject):
         
         This is abstracted from shutdown, so specific cores can control how they shutdown
         """
-        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instanceShutdown()
-        blurdev.tools.toolslovebar.ToolsLoveBarDialog.instanceShutdown()
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        ToolsToolBarDialog.instanceShutdown()
+        ToolsLoveBarDialog.instanceShutdown()
 
     def showIdeEditor(self):
-        import blurdev.ide.ideeditor
+        from blurdev.ide.ideeditor import IdeEditor
 
-        blurdev.ide.ideeditor.IdeEditor.instance().edit()
+        IdeEditor.instance().edit()
 
     def showToolbar(self, parent=None):
         blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent).show()
 
     def showLovebar(self, parent=None):
-        blurdev.tools.toolslovebar.ToolsLoveBarDialog.instance(parent).show()
+        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
+
+        ToolsLoveBarDialog.instance(parent).show()
 
     def showPyular(self, parent=None):
         self.pyular(parent).show()

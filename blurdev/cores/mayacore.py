@@ -25,8 +25,10 @@ class MayaCore(Core):
     def lovebar(self, parent=None):
         if parent == None:
             parent = self.rootWindow()
-        hasInstance = blurdev.tools.toolslovebar.ToolsLoveBar._instance != None
-        lovebar = blurdev.tools.toolslovebar.ToolsLoveBar.instance(parent)
+        from blurdev.tools.toolslovebar import ToolsLoveBar
+
+        hasInstance = ToolsLoveBar._instance != None
+        lovebar = ToolsLoveBar.instance(parent)
         if not hasInstance and isinstance(parent, QMainWindow):
             parent.addToolBar(Qt.RightToolBarArea, lovebar)
         return lovebar
@@ -65,8 +67,11 @@ class MayaCore(Core):
         
         This is abstracted from shutdown, so specific cores can control how they shutdown
         """
-        blurdev.tools.toolstoolbar.ToolsToolBar.instanceShutdown()
-        blurdev.tools.toolslovebar.ToolsLoveBar.instanceShutdown()
+        from blurdev.tools.toolstoolbar import ToolsToolBar
+        from blurdev.tools.toolslovebar import ToolsLoveBar
+
+        ToolsToolBar.instanceShutdown()
+        ToolsLoveBar.instanceShutdown()
 
     def toolbar(self, parent=None):
         if parent == None:
