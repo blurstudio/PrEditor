@@ -31,47 +31,101 @@ class LoggerWindow(Window):
 
     # Ensure the workbox lexer colors are set to sane defaults
     # applications like maya cause the lexer to have bad default colors
-    # TODO: This could probably be stored in prefs so its customizable.
-    _paperColor = {
-        0: (255, 255, 255, 255),
-        1: (255, 255, 255, 255),
-        2: (255, 255, 255, 255),
-        3: (255, 255, 255, 255),
-        4: (255, 255, 255, 255),
-        5: (255, 255, 255, 255),
-        6: (255, 255, 255, 255),
-        7: (255, 255, 255, 255),
-        8: (255, 255, 255, 255),
-        9: (255, 255, 255, 255),
-        10: (255, 255, 255, 255),
-        11: (255, 255, 255, 255),
-        12: (255, 255, 255, 255),
-        13: (224, 192, 224, 255),
-        14: (155, 255, 155, 255),
-        15: (255, 255, 255, 255),
+    colorSchemeDefault = {
+        'color': {
+            0: [128, 128, 128, 255],
+            1: [0, 127, 0, 255],
+            2: [0, 127, 127, 255],
+            3: [127, 0, 127, 255],
+            4: [127, 0, 127, 255],
+            5: [0, 0, 127, 255],
+            6: [127, 0, 0, 255],
+            7: [127, 0, 0, 255],
+            8: [0, 0, 255, 255],
+            9: [0, 127, 127, 255],
+            10: [0, 0, 0, 255],
+            11: [0, 0, 0, 255],
+            12: [127, 127, 127, 255],
+            13: [0, 0, 0, 255],
+            14: [64, 112, 144, 255],
+            15: [128, 80, 0, 255],
+        },
+        'defaultPaper': [255, 255, 255, 255],
+        'foldMarginsBackground': [224, 224, 224, 255],
+        'foldMarginsForeground': [255, 255, 255, 255],
+        'marginsBackground': [224, 224, 224, 255],
+        'marginsForeground': [0, 0, 0, 255],
+        'paper': {
+            0: [255, 255, 255, 255],
+            1: [255, 255, 255, 255],
+            2: [255, 255, 255, 255],
+            3: [255, 255, 255, 255],
+            4: [255, 255, 255, 255],
+            5: [255, 255, 255, 255],
+            6: [255, 255, 255, 255],
+            7: [255, 255, 255, 255],
+            8: [255, 255, 255, 255],
+            9: [255, 255, 255, 255],
+            10: [255, 255, 255, 255],
+            11: [255, 255, 255, 255],
+            12: [255, 255, 255, 255],
+            13: [224, 192, 224, 255],
+            14: [155, 255, 155, 255],
+            15: [255, 255, 255, 255],
+        },
     }
-    _textColor = {
-        0: (128, 128, 128, 255),
-        1: (0, 127, 0, 255),
-        2: (0, 127, 127, 255),
-        3: (127, 0, 127, 255),
-        4: (127, 0, 127, 255),
-        5: (0, 0, 127, 255),
-        6: (127, 0, 0, 255),
-        7: (127, 0, 0, 255),
-        8: (0, 0, 255, 255),
-        9: (0, 127, 127, 255),
-        10: (0, 0, 0, 255),
-        11: (0, 0, 0, 255),
-        12: (127, 127, 127, 255),
-        13: (0, 0, 0, 255),
-        14: (64, 112, 144, 255),
-        15: (128, 80, 0, 255),
+
+    colorSchemeMonokai = {
+        'caretBackgroundColor': (40, 40, 40, 255),
+        'caretForegroundColor': (255, 255, 255, 255),
+        'color': {
+            0: (128, 128, 128, 255),
+            1: (117, 113, 94, 255),
+            2: (174, 129, 255, 255),
+            3: (230, 219, 116, 255),
+            4: (230, 219, 116, 255),
+            5: (249, 38, 114, 255),
+            6: (230, 219, 116, 255),
+            7: (230, 219, 116, 255),
+            8: (166, 226, 46, 255),
+            9: (166, 226, 46, 255),
+            10: (250, 250, 250, 255),
+            11: (250, 250, 250, 255),
+            12: (117, 113, 94, 255),
+            13: (0, 0, 0, 255),
+            14: (64, 112, 144, 255),
+            15: (128, 80, 0, 255),
+        },
+        'defaultPaper': (40, 40, 40, 255),
+        'foldMarginsBackground': (40, 40, 40, 255),
+        'foldMarginsForeground': (255, 255, 255, 255),
+        'marginsBackground': (40, 40, 40, 255),
+        'marginsForeground': (255, 255, 255, 255),
+        'paper': {
+            0: (40, 40, 40, 255),
+            1: (40, 40, 40, 255),
+            2: (40, 40, 40, 255),
+            3: (40, 40, 40, 255),
+            4: (40, 40, 40, 255),
+            5: (40, 40, 40, 255),
+            6: (40, 40, 40, 255),
+            7: (40, 40, 40, 255),
+            8: (40, 40, 40, 255),
+            9: (40, 40, 40, 255),
+            10: (40, 40, 40, 255),
+            11: (40, 40, 40, 255),
+            12: (40, 40, 40, 255),
+            13: (40, 40, 40, 255),
+            14: (155, 255, 155, 255),
+            15: (40, 40, 40, 255),
+        },
     }
 
     def __init__(self, parent):
         Window.__init__(self, parent)
         self.aboutToClearPathsEnabled = False
+        # set the default color scheme
+        self._currentColorScheme = self.colorSchemeDefault
 
         import blurdev.gui
 
@@ -184,20 +238,17 @@ class LoggerWindow(Window):
         workbox = WorkboxWidget(self.uiWorkboxTAB)
         workbox.setConsole(self.uiConsoleTXT)
         workbox.setMinimumHeight(1)
-        self.uiWorkboxTAB.addTab(workbox, 'Workbox')
+        index = self.uiWorkboxTAB.addTab(workbox, 'Workbox')
         self.uiIndentationsTabsACT.toggled.connect(workbox.setIndentationsUseTabs)
         workbox.setLanguage('Python')
         workbox.setShowSmartHighlighting(True)
         # update the lexer
         lex = workbox.lexer()
-        for key, value in self._paperColor.iteritems():
-            lex.setPaper(QColor(*value), key)
-        for key, value in self._textColor.iteritems():
-            lex.setColor(QColor(*value), key)
-        lex.setDefaultPaper(QColor(255, 255, 255, 255))
+        workbox.setColorScheme(self._currentColorScheme)
         workbox.setMarginsFont(workbox.font())
         # If only one tab is visible, don't show the close tab button
         self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
+        self.uiWorkboxTAB.setCurrentIndex(index)
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -220,6 +271,15 @@ class LoggerWindow(Window):
 
     def closeLogger(self):
         self.close()
+
+    def colorScheme(self):
+        return self._currentColorScheme
+
+    def setColorScheme(self, colors):
+        self._currentColorScheme = colors
+        for index in range(self.uiWorkboxTAB.count()):
+            box = self.uiWorkboxTAB.widget(index)
+            box.setColorScheme(colors)
 
     def execAll(self):
         """
@@ -323,6 +383,8 @@ class LoggerWindow(Window):
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
 
+        pref.recordProperty('colorScheme', self.colorScheme())
+
         pref.save()
 
     def restorePrefs(self):
@@ -389,6 +451,9 @@ class LoggerWindow(Window):
         self.uiWorkboxTAB.setCurrentIndex(
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
+
+        colorScheme = pref.restoreProperty('colorScheme', self.colorSchemeDefault)
+        self.setColorScheme(colorScheme)
 
         self.restoreToolbars()
 

@@ -12,7 +12,14 @@ import os.path
 
 from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal, QTextCodec
 from PyQt4.Qsci import QsciScintilla
-from PyQt4.QtGui import QApplication, QFont, QFileDialog, QInputDialog, QMessageBox
+from PyQt4.QtGui import (
+    QApplication,
+    QFont,
+    QFileDialog,
+    QInputDialog,
+    QMessageBox,
+    QColor,
+)
 
 from blurdev.enum import enum
 from blurdev.ide import lang
@@ -46,6 +53,14 @@ class DocumentEditor(QsciScintilla):
         self._lastSearchDirection = self.SearchDirection.First
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
+        # TODO: figure out how to query these values
+        # QSci doesnt provide accessors to these values, so store them internally
+        self._foldMarginBackgroundColor = QColor(224, 224, 224)
+        self._foldMarginForegroundColor = QColor()
+        self._marginsBackgroundColor = QColor(224, 224, 224)
+        self._marginsForegroundColor = QColor()
+        self._caretForegroundColor = QColor()
+        self._caretBackgroundColor = QColor(255, 255, 255, 255)
         # used to store the right click location
         self._clickPos = None
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
@@ -113,6 +128,20 @@ class DocumentEditor(QsciScintilla):
 
     def autoReloadOnChange(self):
         return self._autoReloadOnChange
+
+    def caretBackgroundColor(self):
+        return self._caretBackgroundColor
+
+    def caretForegroundColor(self):
+        return self._caretForegroundColor
+
+    def setCaretLineBackgroundColor(self, color):
+        self._caretBackgroundColor = color
+        super(DocumentEditor, self).setCaretLineBackgroundColor(color)
+
+    def setCaretForegroundColor(self, color):
+        self._caretForegroundColor = color
+        super(DocumentEditor, self).setCaretForegroundColor(color)
 
     def checkForSave(self):
         if self.isModified():
@@ -291,6 +320,62 @@ class DocumentEditor(QsciScintilla):
             text = re.sub(r'^\W', '', unicode(text), flags=re.M)
         QApplication.clipboard().setText(text)
 
+    def colorScheme(self):
+        """ Pulls the current color settings from the DocumentEditor and returns them as a dict.
+        
+        This dict contains diffrent color types, color(foreground), paper(background), defaultPaper,
+        etc, these contain lists of colors for each color enum, or a color definition if no enum is 
+        used. A color def is a list of r,g,b,alpha values that can be passed as args to QColor.
+        
+        returns:
+            A dict of color settings
+        """
+        # See the index number definitions here
+        # http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciLexerPython.html#a9091a6d7c7327b004480ebaa130c1c18ac55b65493dace8925090544c401e8556
+        lex = self.lexer()
+        # Get the current colors from the proper implementaton
+        ret = {}
+        ret['paper'] = dict(
+            [(i, lex.paper(i).getRgb()) for i in range(lex.Decorator + 1)]
+        )
+        ret['color'] = dict(
+            [(i, lex.color(i).getRgb()) for i in range(lex.Decorator + 1)]
+        )
+        # For some reason this takes a index, but the setter doesn't
+        ret['defaultPaper'] = lex.defaultPaper(0).getRgb()
+        ret['marginsForeground'] = self.marginsForegroundColor().getRgb()
+        ret['marginsBackground'] = self.marginsBackgroundColor().getRgb()
+        foldMarginColors = self.foldMarginColors()
+        ret['foldMarginsForeground'] = foldMarginColors[0].getRgb()
+        ret['foldMarginsBackground'] = foldMarginColors[1].getRgb()
+        ret['caretBackgroundColor'] = self.caretBackgroundColor().getRgb()
+        ret['caretForegroundColor'] = self.caretForegroundColor().getRgb()
+        return ret
+
+    def setColorScheme(self, colors):
+        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
+        # See the index number definitions here
+        # http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciLexerPython.html#a9091a6d7c7327b004480ebaa130c1c18ac55b65493dace8925090544c401e8556
+        lex = self.lexer()
+        for key, value in colors['paper'].iteritems():
+            lex.setPaper(QColor(*value), int(key))
+        for key, value in colors['color'].iteritems():
+            lex.setColor(QColor(*value), int(key))
+        lex.setDefaultPaper(QColor(*colors['defaultPaper']))
+        if 'marginsBackground' in colors:
+            self.setMarginsBackgroundColor(QColor(*colors['marginsBackground']))
+        if 'marginsForeground' in colors:
+            self.setMarginsForegroundColor(QColor(*colors['marginsForeground']))
+        if 'foldMarginsBackground' in colors and 'foldMarginsForeground' in colors:
+            self.setFoldMarginColors(
+                QColor(*colors['foldMarginsForeground']),
+                QColor(*colors['foldMarginsBackground']),
+            )
+        if 'caretForegroundColor' in colors:
+            self.setCaretForegroundColor(QColor(*colors['caretForegroundColor']))
+        if 'caretBackgroundColor' in colors:
+            self.setCaretLineBackgroundColor(QColor(*colors['caretBackgroundColor']))
+
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
         newlineR = text.indexOf('\r')
@@ -386,6 +471,14 @@ class DocumentEditor(QsciScintilla):
             if os.path.exists(path):
                 window.searchFileDialog().setBasePath(path)
             window.uiFindInFilesACT.triggered.emit(False)
+
+    def foldMarginColors(self):
+        return self._foldMarginForegroundColor, self._foldMarginBackgroundColor
+
+    def setFoldMarginColors(self, foreground, background):
+        self._foldMarginForegroundColor = foreground
+        self._foldMarginBackgroundColor = background
+        super(DocumentEditor, self).setFoldMarginColors(foreground, background)
 
     def goToLine(self, line=None):
         if type(line) != int:
@@ -647,6 +740,20 @@ class DocumentEditor(QsciScintilla):
         palette.setColor(palette.Base, scheme.value('document_color_background'))
         palette.setColor(palette.Text, scheme.value('document_color_text'))
         self.setPalette(palette)
+
+    def marginsBackgroundColor(self):
+        return self._marginsBackgroundColor
+
+    def marginsForegroundColor(self):
+        return self._marginsForegroundColor
+
+    def setMarginsBackgroundColor(self, color):
+        self._marginsBackgroundColor = color
+        super(DocumentEditor, self).setMarginsBackgroundColor(color)
+
+    def setMarginsForegroundColor(self, color):
+        self._marginsForegroundColor = color
+        super(DocumentEditor, self).setMarginsForegroundColor(color)
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -1196,10 +1303,16 @@ class DocumentEditor(QsciScintilla):
 
         lexer.highlightedKeywords = keywords
         marginFont = self.marginsFont()
+        foldMarginColors = self.foldMarginColors()
+        marginBackground = self.marginsBackgroundColor()
+        marginForeground = self.marginsForegroundColor()
         # 		folds = self.contractedFolds()
         self.setLexer(lexer)
         # 		self.setContractedFolds(folds)
         self.setMarginsFont(marginFont)
+        self.setMarginsBackgroundColor(marginBackground)
+        self.setMarginsForegroundColor(marginForeground)
+        self.setFoldMarginColors(*foldMarginColors)
 
     def indentSelection(self, all=False):
         if all:
