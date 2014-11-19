@@ -1,3 +1,5 @@
+import os
+import sys
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import QApplication, QMainWindow
 import maya.cmds
@@ -21,6 +23,11 @@ class MayaCore(Core):
     def addLibraryPaths(self, app):
         # Do not add default library paths
         pass
+
+    @property
+    def headless(self):
+        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        return 'mayabatch' in os.path.basename(sys.executable).lower()
 
     def lovebar(self, parent=None):
         if parent == None:

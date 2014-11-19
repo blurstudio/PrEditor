@@ -115,6 +115,7 @@ class Core(QObject):
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
         self._stylesheet = None
+        self._headless = False
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
@@ -330,11 +331,15 @@ class Core(QObject):
 
         # create a new application
         else:
+            from blurdev.cores.application import CoreApplication, Application
+
+            # Check for headless environment's
             if blurdev.settings.OS_TYPE == 'Linux':
                 if os.environ.get('DISPLAY') == None:
-                    output = blurdev.cores.application.CoreApplication([])
+                    output = CoreApplication([])
+                    self._headless = True
             if output == None:
-                output = blurdev.cores.application.Application([])
+                output = Application([])
             self.addLibraryPaths(output)
 
         # restore the core settings
@@ -391,6 +396,11 @@ class Core(QObject):
 
     def isMfcApp(self):
         return self._mfcApp
+
+    @property
+    def headless(self):
+        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        return self._headless
 
     def hwnd(self):
         return self._hwnd
@@ -577,6 +587,9 @@ class Core(QObject):
         return pref
 
     def recordToolbars(self):
+        if self.headless:
+            # If running headless, the toolbars were not created, and prefs don't need to be saved
+            return
         pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
 
         # record the toolbar
@@ -731,6 +744,9 @@ class Core(QObject):
         return pref
 
     def restoreToolbars(self):
+        if self.headless:
+            # If running headless, do not try to create gui elements
+            return
         pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
         # restore the toolbar
         child = pref.root().findChild('toolbardialog')
