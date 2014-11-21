@@ -28,12 +28,12 @@ class PythonLexer(QsciLexerPython):
             return QColor(155, 255, 155)
         return super(PythonLexer, self).defaultPaper(style)
 
-    def keywords(self, set):
+    def keywords(self, keyset):
         # Words to be highlighted
-        if set == 2 and self.highlightedKeywords:
+        if keyset == 2 and self.highlightedKeywords:
             return self.highlightedKeywords
-        ret = super(PythonLexer, self).keywords(set)
-        if set == 1:
+        ret = super(PythonLexer, self).keywords(keyset)
+        if keyset == 1:
             ret += ' True False abs divmod input open staticmethod all enumerate int ord str any eval isinstance pow sum basestring execfile'
             ret += ' issubclass print super bin file iter property tuple bool filter len range type bytearray float list raw_input unichr'
             ret += ' callable format locals reduce unicode chr frozenset long reload vars classmethod getattr map repr xrange cmp globals max'
