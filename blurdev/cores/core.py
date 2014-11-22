@@ -1,13 +1,7 @@
 import sys
 import time
 import os
-import glob
 import platform
-from email import Encoders
-from email.MIMEText import MIMEText
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEBase import MIMEBase
-import smtplib
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL
 from PyQt4.QtGui import (
@@ -19,18 +13,14 @@ from PyQt4.QtGui import (
     QMainWindow,
     QDialog,
 )
-import PyQt4.uic
 
 import blurdev
 import blurdev.prefs
 import blurdev.debug
-import blurdev.XML
 import blurdev.osystem
 import blurdev.tools
 import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
-import blurdev.tools.toolslovebar
-import blurdev.tools.toolstoolbar
 import blurdev.cores.application
 import blurdev.settings
 
@@ -622,6 +612,8 @@ class Core(QObject):
             app.setStyleSheet(app.styleSheet())
 
     def createEnvironmentOverride(self, env=None, timestamp=None):
+        from blurdev.XML import XMLDocument
+
         if env is None:
             env = (
                 blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment().objectName()
@@ -633,7 +625,7 @@ class Core(QObject):
         if not fp:
             return
 
-        doc = blurdev.XML.XMLDocument()
+        doc = XMLDocument()
         root = doc.addNode('environment_overrides')
         root.setAttribute('version', 1.0)
         el = root.addNode('environment_override')
@@ -645,7 +637,9 @@ class Core(QObject):
             pass
 
     def getEnvironmentOverride(self):
-        doc = blurdev.XML.XMLDocument()
+        from blurdev.XML import XMLDocument
+
+        doc = XMLDocument()
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
@@ -1057,6 +1051,12 @@ class Core(QObject):
         :param list attachments: File paths for files to be attached.
         
         """
+        from email import Encoders
+        from email.MIMEText import MIMEText
+        from email.MIMEMultipart import MIMEMultipart
+        from email.MIMEBase import MIMEBase
+        import smtplib
+
         output = MIMEMultipart()
         output['Subject'] = str(subject)
         output['From'] = str(sender)
@@ -1157,6 +1157,8 @@ class Core(QObject):
     def styleSheets(self):
         """ Returns a list of installed stylesheet names.
         """
+        import glob
+
         cssdir = os.path.join(
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'resource',
@@ -1214,6 +1216,8 @@ class Core(QObject):
         IdeEditor.instance().edit()
 
     def showToolbar(self, parent=None):
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
         blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent).show()
 
     def showLovebar(self, parent=None):
@@ -1251,6 +1255,8 @@ class Core(QObject):
             self._protectedModules.remove(key)
 
     def toolbar(self, parent=None):
+        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+
         return blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent)
 
     def toolTypes(self):
