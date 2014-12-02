@@ -286,6 +286,7 @@
  <tabstops>
   <tabstop>uiBasePathTXT</tabstop>
   <tabstop>uiBasePathBTN</tabstop>
+  <tabstop>uiExcludeRegexDDL</tabstop>
   <tabstop>uiFileTypesDDL</tabstop>
   <tabstop>uiSearchTXT</tabstop>
   <tabstop>uiPyularBTN</tabstop>
