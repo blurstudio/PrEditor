@@ -1218,7 +1218,7 @@ class Core(QObject):
     def showToolbar(self, parent=None):
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
-        blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent).show()
+        ToolsToolBarDialog.instance(parent).show()
 
     def showLovebar(self, parent=None):
         from blurdev.tools.toolslovebar import ToolsLoveBarDialog
@@ -1257,7 +1257,7 @@ class Core(QObject):
     def toolbar(self, parent=None):
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
-        return blurdev.tools.toolstoolbar.ToolsToolBarDialog.instance(parent)
+        return ToolsToolBarDialog.instance(parent)
 
     def toolTypes(self):
         """

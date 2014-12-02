@@ -52,8 +52,10 @@ class MayaCore(Core):
         return False
 
     def recordToolbarXML(self, pref):
-        if blurdev.tools.toolstoolbar.ToolsToolBar._instance:
-            toolbar = blurdev.tools.toolstoolbar.ToolsToolBar._instance
+        from blurdev.tools.toolstoolbar import ToolsToolBar
+
+        if ToolsToolBar._instance:
+            toolbar = ToolsToolBar._instance
             toolbar.toXml(pref.root())
             child = pref.root().addNode('toolbardialog')
             child.setAttribute('visible', toolbar.isVisible())
@@ -83,8 +85,10 @@ class MayaCore(Core):
     def toolbar(self, parent=None):
         if parent == None:
             parent = self.rootWindow()
-        hasInstance = blurdev.tools.toolstoolbar.ToolsToolBar._instance != None
-        toolbar = blurdev.tools.toolstoolbar.ToolsToolBar.instance(parent)
+        from blurdev.tools.toolstoolbar import ToolsToolBar
+
+        hasInstance = ToolsToolBar._instance != None
+        toolbar = ToolsToolBar.instance(parent)
         if not hasInstance and isinstance(parent, QMainWindow):
             parent.addToolBar(Qt.RightToolBarArea, toolbar)
         return toolbar
