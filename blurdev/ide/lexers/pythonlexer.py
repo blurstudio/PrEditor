@@ -13,7 +13,7 @@ from PyQt4.QtGui import QColor
 
 
 class PythonLexer(QsciLexerPython):
-    # Items in this list will be highligheded using the color for self.HighlightedIdentifier
+    # Items in this list will be highlighted using the color for self.HighlightedIdentifier
     highlightedKeywords = ''
 
     def __init__(self, *args):
