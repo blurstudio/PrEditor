@@ -1010,6 +1010,19 @@ class DocumentEditor(QsciScintilla):
         self.setLexer(lexer)
         self.initSettings()
 
+    def setLexer(self, lexer):
+        super(DocumentEditor, self).setLexer(lexer)
+        # QSciLexer.wordCharacters is not virtual, or even exposed. This hack allows custom lexers
+        # to define their own wordCharacters
+        if hasattr(lexer, 'wordCharactersOverride'):
+            wordCharacters = lexer.wordCharactersOverride
+        else:
+            # We can't query the lexer for its word characters, but we can query the document.
+            # This ensures the lexer's wordCharacters are used if switching from a wordCharactersOverride
+            # lexer to a lexer that doesn't define custom wordCharacters.
+            wordCharacters = self.wordCharacters()
+        self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters)
+
     def setLineMarginWidth(self, width):
         self.setMarginWidth(self.SymbolMargin, width)
 
@@ -1023,7 +1036,7 @@ class DocumentEditor(QsciScintilla):
         r"""
             \remarks	Set the regular expression used to control if a selection is considered valid for
                         smart highlighting.
-            \param		exp		<str>	Defaul:'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
+            \param		exp		<str>	Default:'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
         """
         self._smartHighlightingRegEx = exp
         self.selectionValidator = re.compile(exp)
@@ -1245,22 +1258,23 @@ class DocumentEditor(QsciScintilla):
         lexer = self.lexer()
         if selectedText != lexer.highlightedKeywords:
             if selectedText:
+                validator = self.selectionValidator
+                if hasattr(self.lexer(), 'selectionValidator'):
+                    # If a lexer has defined its own selectionValidator use that instead
+                    validator = self.lexer().selectionValidator
                 # Does the text contain a non allowed word?
-                if not self.selectionValidator.findall(selectedText) == []:
+                if not validator.findall(selectedText) == []:
                     return
                 else:
                     selection = self.getSelection()
                     # the character before and after the selection must not be a word.
                     text = self.text(selection[2])  # Character after
                     if selection[3] < len(text):
-                        if self.selectionValidator.findall(text[selection[3]]) == []:
+                        if validator.findall(text[selection[3]]) == []:
                             return
                     text = self.text(selection[0])  # Character Before
                     if selection[1] and selection[1] != -1:
-                        if (
-                            self.selectionValidator.findall(text[selection[1] - 1])
-                            == []
-                        ):
+                        if validator.findall(text[selection[1] - 1]) == []:
                             return
             # Make the lexer highlight words
             self.setHighlightedKeywords(lexer, selectedText)

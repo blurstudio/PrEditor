@@ -277,6 +277,31 @@ xgmSetArchiveSize xgmSetAttr xgmSetGuideCVCount xgmSyncPatchVisibility xgmWrapXG
 
 
 class MelLexer(QsciLexerCPP):
+    # Items in this list will be highlighted using the color for self.GlobalClass
+    _highlightedKeywords = ''
+    # Mel uses $varName for variables, so we have to allow them in words
+    selectionValidator = re.compile('[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%"\\~&{}|=<>\']')
+    wordCharactersOverride = (
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$'
+    )
+
+    @property
+    def highlightedKeywords(self):
+        return self._highlightedKeywords
+
+    @highlightedKeywords.setter
+    def highlightedKeywords(self, keywords):
+        if len(keywords.split(' ')) == 1:
+            # If only one keyword was passed in, check if the current selection starts with a $
+            # if so, insert it in front of provided keyword
+            parent = self.parent()
+            if parent:
+                sline, spos, eline, epos = parent.getSelection()
+                pos = parent.positionFromLineIndex(sline, spos)
+                if parent.text()[pos - 1] == '$':
+                    keywords = '${}'.format(keywords)
+        self._highlightedKeywords = keywords
+
     def defaultColor(self, style):
         if style == self.KeywordSet2:
             # Set the highlight color for this lexer
@@ -288,8 +313,18 @@ class MelLexer(QsciLexerCPP):
             return super(MelLexer, self).defaultFont(self.Keyword)
         return super(MelLexer, self).defaultFont(style)
 
+    def defaultPaper(self, style):
+        if style == self.GlobalClass:
+            # Set the highlight color for this lexer
+            return QColor(155, 255, 155)
+        return super(MelLexer, self).defaultPaper(style)
+
     def keywords(self, style):
-        if style == 1:  # Keyword
+        if (
+            style == 4 and self.highlightedKeywords
+        ):  # GlobalClass Used to handle SmartHighlighting
+            return self.highlightedKeywords
+        elif style == 1:  # Keyword
             return MEL_SYNTAX
         elif style == 2:  # KeywordSet2
             return MEL_KEYWORDS
