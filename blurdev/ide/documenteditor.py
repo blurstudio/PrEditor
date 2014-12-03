@@ -56,7 +56,7 @@ class DocumentEditor(QsciScintilla):
         # TODO: figure out how to query these values
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
-        self._foldMarginForegroundColor = QColor()
+        self._foldMarginForegroundColor = QColor(Qt.white)
         self._marginsBackgroundColor = QColor(224, 224, 224)
         self._marginsForegroundColor = QColor()
         self._caretForegroundColor = QColor()
@@ -473,9 +473,21 @@ class DocumentEditor(QsciScintilla):
             window.uiFindInFilesACT.triggered.emit(False)
 
     def foldMarginColors(self):
+        """ Returns the fold margin's foreground and background QColor
+        
+        Returns:
+            foreground(QColor): The foreground color
+            background(QColor): The background color
+        """
         return self._foldMarginForegroundColor, self._foldMarginBackgroundColor
 
     def setFoldMarginColors(self, foreground, background):
+        """ Sets the fold margins foreground and background QColor
+        
+        Args:
+            foreground(QColor): The forground color of the checkerboard
+            background(QColor): The background color of the checkerboard
+        """
         self._foldMarginForegroundColor = foreground
         self._foldMarginBackgroundColor = background
         super(DocumentEditor, self).setFoldMarginColors(foreground, background)
