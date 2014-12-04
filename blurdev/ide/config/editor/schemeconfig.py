@@ -179,6 +179,8 @@ def registerSections(configSet):
     mfont = QFont(dfont)
     mfont.setPointSize(7)
 
+    dbackground = QColor('white')
+
     params = {
         # application scheme settings
         'application_font': afont.toString(),
@@ -196,25 +198,27 @@ def registerSections(configSet):
         'document_font': dfont.toString(),
         'document_marginFont': mfont.toString(),
         'document_EnableFontResize': True,
-        'document_color_currentLine': QColor('white'),
+        'document_color_currentLine': dbackground,
         'document_color_cursor': QColor('black'),
-        'document_color_background': QColor('white'),
+        'document_color_background': dbackground,
         'document_color_method': QColor('darkBlue'),
         'document_color_text': QColor('black'),
         'document_color_comment': QColor('darkGreen'),
         'document_color_keyword': QColor('darkBlue'),
+        'document_color_keywordBackground': dbackground,
         'document_color_number': QColor('darkRed'),
         'document_color_string': QColor('darkOrange'),
         'document_color_operator': QColor('darkRed'),
         'document_color_regex': QColor('darkRed'),
-        'document_color_margins': QColor('white'),
+        'document_color_margins': QColor(224, 224, 224),
+        'document_color_marginsText': QColor('black'),
         'document_color_foldMargin': QColor('white'),
         'document_color_foldMarginText': QColor('black'),
         'document_color_marginsText': QColor('black'),
         'document_color_indentGuide': QColor('black'),
         'document_color_invalidBrace': QColor('red'),
         'document_color_braceHighlight': QColor('yellow'),
-        'document_color_braceBackground': QColor('white'),
+        'document_color_braceBackground': dbackground,
         'document_color_braceText': QColor('black'),
         'document_color_markerForeground': QColor('white'),
         'document_color_markerBackground': QColor('black'),
@@ -228,6 +232,8 @@ def registerSections(configSet):
         'document_color_tag': QColor('darkBlue'),
         'document_color_entity': QColor('darkBlue'),
         'document_color_error': QColor('darkRed'),
+        'document_color_smartHighlight': QColor(64, 112, 144),
+        'document_color_smartHighlightBackground': QColor(155, 255, 155),
     }
 
     # register the section to the configset

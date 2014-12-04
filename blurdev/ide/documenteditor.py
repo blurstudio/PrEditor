@@ -695,13 +695,21 @@ class DocumentEditor(QsciScintilla):
             language = lang.byName(self.language())
             if language:
                 for key, values in language.lexerColorTypes().items():
+                    if key == 'smarthighlight':
+                        # The ini parser in language.lexerColorTypes lowercasses the keys
+                        # but scheme expects the original names.
+                        key = 'smartHighlight'
                     clr = scheme.value('document_color_%s' % key)
                     if not clr:
                         continue
 
+                    bgclr = scheme.value('document_color_%sBackground' % key)
+                    if not bgclr:
+                        bgclr = default_bg
+
                     for value in values:
                         lexer.setColor(clr, value)
-                        lexer.setPaper(default_bg)
+                        lexer.setPaper(bgclr, value)
 
             # set default coloring styles
             lexer.setColor(
@@ -735,6 +743,7 @@ class DocumentEditor(QsciScintilla):
         self.setSelectionForegroundColor(scheme.value('document_color_highlightText'))
         self.setSelectionBackgroundColor(scheme.value('document_color_highlight'))
         self.setMarginsBackgroundColor(scheme.value('document_color_margins'))
+        self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
         self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
         self.setEdgeColor(scheme.value('document_color_limitColumn'))
 
