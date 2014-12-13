@@ -16,4 +16,5 @@
 	<plugin module="blurdev.gui.widgets.spellchecktextbrowser"	class="SpellCheckTextBrowser"/>
 	<plugin module="blurdev.gui.widgets.clearabledateedit"		class="ClearableDateEdit"/>
 	<plugin module="blurdev.gui.widgets.dragdroptestwidget"		class="DragDropTestWidget"/>
+	<plugin module="blurdev.gui.widgets.envcombobox"			class="EnvComboBox"/>
 </plugins>

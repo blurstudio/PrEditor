@@ -80,11 +80,21 @@ HintHelper {
 	background-color: rgba(0,0,0,0);
 }
 
-/*Style Treegrunt's environment helper colors*/
-QComboBox#uiEnvironmentDDL {
+/* Start Treegrunt Environment Combo Box Style*/
+QComboBox#uiEnvironmentDDL, QComboBox#uiEnvironmentDDL QListView::item {
+	/* Default color of the default items in the popup via the "QComboBox#uiEnvironmentDDL" selector */
+	qproperty-defaultEnvBackground: rgb(0, 200, 0, 150);
+	qproperty-defaultEnvColor: rgb(30,30,30);
+	/* All other popup items are styled via the "QComboBox#uiEnvironmentDDL QListView::item" 
+	selector. It is also used to style the combo box via the "QComboBox#uiEnvironmentDDL" selector */
 	background: rgb(200, 131, 0, 150);
 }
-
-QComboBox#uiEnvironmentDDL[defaultTreegruntEnv="true"] {
+QComboBox#uiEnvironmentDDL QListView::item:selected {
+	/* Style the selected item in the popup */
+	background: rgb(0, 0, 255);
+}
+/* Used to style the background color of the combo box when using the defaultEnv */
+QComboBox#uiEnvironmentDDL[defaultActive="true"] {
 	background: rgb(0, 200, 0, 150);
 }
+/* End Treegrunt Environment Combo Box Style */
