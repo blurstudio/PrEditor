@@ -1,5 +1,6 @@
 from PyQt4.QtGui import QComboBox, QColor, QBrush, QStyledItemDelegate
 from PyQt4.QtCore import pyqtProperty, Qt
+import blurdev
 
 
 class EnvComboBoxDelegate(QStyledItemDelegate):
@@ -57,6 +58,7 @@ class EnvComboBox(QComboBox):
         self._defaultActive = False
         self.setItemDelegate(EnvComboBoxDelegate(self))
         self.currentIndexChanged.connect(self.updateColors)
+        blurdev.core.styleSheetChanged.connect(self.updateColors)
 
     def defaultEnv(self):
         model = self.model()
