@@ -9,9 +9,10 @@ class TabBarPlus(QTabBar):
     def __init__(self, parent=None):
         super(TabBarPlus, self).__init__(parent)
         # Plus Button
-        self.plusButton = QPushButton("+")
-        self.plusButton.setParent(self)
-        self.plusButton.clicked.connect(self.plusClicked.emit)
+        self.uiPlusBTN = QPushButton("+")
+        self.uiPlusBTN.setParent(self)
+        self.uiPlusBTN.setObjectName('uiPlusBTN')
+        self.uiPlusBTN.clicked.connect(self.plusClicked.emit)
         self.movePlusButton()
 
     def sizeHint(self):
@@ -37,13 +38,13 @@ class TabBarPlus(QTabBar):
         h = self.geometry().top()
         w = self.width()
         if size > w:  # Show just to the left of the scroll buttons
-            self.plusButton.move(w - 54, h)
+            self.uiPlusBTN.move(w - 54, h)
         else:
-            self.plusButton.move(size, h)
+            self.uiPlusBTN.move(size, h)
         # Resize the button to fit the height of the tab bar
         hint = self.sizeHint().height()
-        self.plusButton.setMaximumSize(hint, hint)
-        self.plusButton.setMinimumSize(hint, hint)
+        self.uiPlusBTN.setMaximumSize(hint, hint)
+        self.uiPlusBTN.setMinimumSize(hint, hint)
 
 
 class NewTabWidget(QTabWidget):
