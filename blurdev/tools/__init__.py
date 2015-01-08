@@ -22,17 +22,28 @@ TEMPORARY_TOOLS_ENV = 'TEMPORARY'
 
 
 def logUsage(info):
-    """ A function that attempts to log tool usage using the modulename defined in the bdev_use_log_class
+    """ Log that a tool was launched.
+    
+    Attempts to log tool usage using the modulename defined in the BDEV_USE_LOG_CLASS
     environment variable. The module should accept a dictonary arugment containing the info it should log.
     If it needs to report a failure, it should raise a Exception.
-    :param info: A dictionary of info passed to the called function
-    :return bool: If the usage reporting was successfull.
+    This function can be disabled by setting the environment variable BDEV_DISABLE_TOOL_USAGE_LOG to true.
+    
+    Args:
+        info(dict): A dictionary of info passed to the called function
+    
+    Returns:
+        bool: If the usage reporting was successfull.
+    
+    Raises:
+        Exception: If blurdev.debug.debugLevel is set to High, raises any exceptions generated, 
+                    otherwise consumes them and sends a error email.
     """
     if os.environ.get('BDEV_DISABLE_TOOL_USAGE_LOG', 'False').lower() == "true":
         # This environment variable can be used to disable tool use logging.
         return False
     try:
-        # uses the environment variable "bdev_use_log_class" to import a module similar to the following
+        # uses the environment variable "BDEV_USE_LOG_CLASS" to import a module similar to the following
         useLogClass = os.environ.get('BDEV_USE_LOG_CLASS')
         useLog = import_module(useLogClass)
         useLog.logEvent(info)
