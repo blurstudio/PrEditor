@@ -28,9 +28,12 @@ def logUsage(info):
     :param info: A dictionary of info passed to the called function
     :return bool: If the usage reporting was successfull.
     """
+    if os.environ.get('BDEV_DISABLE_TOOL_USAGE_LOG', 'False').lower() == "true":
+        # This environment variable can be used to disable tool use logging.
+        return False
     try:
         # uses the environment variable "bdev_use_log_class" to import a module similar to the following
-        useLogClass = os.environ.get('bdev_use_log_class')
+        useLogClass = os.environ.get('BDEV_USE_LOG_CLASS')
         useLog = import_module(useLogClass)
         useLog.logEvent(info)
         return True
