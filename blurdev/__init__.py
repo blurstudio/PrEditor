@@ -382,6 +382,16 @@ def resourcePath(relpath=''):
 
 
 def runTool(toolId, macro=""):
+    """ Runs the tool with the given tool id.
+    
+    Finds the tool with the given tool id name for the activeEnvironment if it exists.
+    You can pass a macro to the tool.exec_ call.
+    
+    Args:
+        toolId(str): The tool Id for the tool. See Tool.objectName()
+        macro(str): I have no idea what this is for. Looks like it was from when treegrunt 
+                    was moved to blurdev.
+    """
     # load the tool
     tool = blurdev.tools.ToolsEnvironment.activeEnvironment().index().findTool(toolId)
     if not tool.isNull():
