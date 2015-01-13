@@ -36,6 +36,13 @@ elif 'xsi' in _exe:
     except:
         pass
 
+# initialize the system for running inside Fusion
+elif 'fusion' in _exe:
+    try:
+        from fusioncore import FusionCore as Core
+    except:
+        pass
+
 if Core is None:
     # import the default core
     from core import Core

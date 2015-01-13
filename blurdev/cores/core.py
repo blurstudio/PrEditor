@@ -109,6 +109,9 @@ class Core(QObject):
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
+        # When Using Fusion, this will be populated with a PeyeonScript.scriptapp connected to
+        # the parent fusion process. Otherwise this will be None
+        self.fusionApp = None
 
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -1254,6 +1257,14 @@ class Core(QObject):
         while key in self._protectedModules:
             self._protectedModules.remove(key)
 
+    def uuid(self):
+        """ Application specific unique identifier
+        
+        Returns:
+            None: 
+        """
+        return None
+
     def toolbar(self, parent=None):
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
 
@@ -1264,7 +1275,10 @@ class Core(QObject):
         Determines what types of tools that the treegrunt system should be looking at
         """
         ToolType = blurdev.tools.tool.ToolType
-        output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
+        if self.objectName() == 'fusion':
+            output = ToolType.Fusion
+        else:
+            output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
         return output
 
     def treegrunt(self, parent=None):

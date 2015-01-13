@@ -1,0 +1,285 @@
+import os
+import sys
+import time
+import multiprocessing
+from multiprocessing import Process, Pipe
+import blurdev
+from PyQt4.QtCore import QTimer
+from blurdev.protocols import BaseProtocolHandler
+
+try:
+    # Optional: In case blur.Stone is not installed, though this will mean it can't automatically
+    # close python
+    import blur.Stone as Stone
+except:
+    Stone = None
+
+
+class InvalidHandler(Exception):
+    """ Returned to the pipe if a invalid request was provided """
+
+    pass
+
+
+class External(object):
+    """ Singleton class used for multiProcess communication.
+    
+    This class provides a easy way to spawn a secondary instance of python and run Qt/blurdev. It 
+    also provides for two way communication between the two processes. Currently, the parent process 
+    does not check its pipe for data automatically, you will need to periodicly poll that data using 
+    checkPipe if you would like to receive that info.
+    
+    Note:
+        This uses blur.Stone to monitor the parent process though it is optional, if blur.Stone is 
+        not installed, it may not properly close the subprocesses.
+    
+    Args:
+        send: If provided, call multiProcess, and send the data. Defaults to None. See parsePipe 
+            for valid values.
+    
+    Attributes:
+        checkIfOrphaned (bool): If true, exit blurdev if the parent process terminates
+        childProcess (multiprocessing.Process): Pointer to the child process
+        exitMonitorPid (int): Parent process id used to check if the parent process has terminated.
+        exitMonitorProcessName (str): Parent process name used to check if the parent process
+            has terminated. Because of how multiprocessing works this becomes invalid before the
+            pid. In most cases the pid will not become invalid until the child python closes.
+        isChildProcess (bool): If true, this is the child process, otherwise it is the parent process.
+        timerCommand (QTimer): QTimer used to to check if there is data in the pipe, and check
+            if the parent process has closed.
+    
+    Example:
+        In the parent process, this will spawn a child process if neccissary, and send 
+        ['treegrunt', 'Python_Logger'] to the child process. In this case it will launch the
+        Python_Logger tool. In the child process, it would send the message back up the pipe 
+        to the parent process.
+        
+        >>> import blurdev.external
+        >>> blurdev.external.External(['treegrunt', 'Python_Logger'])
+    """
+
+    _instance = None
+
+    def __new__(cls, send=None):
+        if not cls._instance:
+            cls._instance = super(External, cls).__new__(cls, send=send)
+            cls._parentPipe = None
+            cls._childPipe = None
+            cls.checkIfOrphaned = False
+            cls.childProcess = None
+            cls.exitMonitorPid = None
+            cls.exitMonitorProcessName = ''
+            cls.isChildProcess = False
+            cls.timerCommand = None
+        return cls._instance
+
+    def __init__(self, send=None):
+        super(External, self).__init__()
+        if send:
+            self.multiProcess()
+            self.send(send)
+
+    def checkPipe(self):
+        """ Poll the pipe to see if it contains data and return if it does and the data. 
+        
+        If the pipe is broken because the parent process was closed, it will call 
+        shutdownIfParentClosed if checkIfOrphaned is enabled.
+        
+        Returns:
+            bool: If the pipe had data
+            var: The data stored in the pipe
+        """
+        pipe = self.pipe()
+        try:
+            if pipe and pipe.poll():
+                data = pipe.recv()
+                return True, data
+        except IOError as e:
+            if e.errno == 109:
+                # The pipe has been ended, shutdown blurdev and exit python even if the parent
+                # process is still running
+                if self.checkIfOrphaned:
+                    self.shutdownIfParentClosed(force=True)
+        return False, None
+
+    @classmethod
+    def launch(
+        cls,
+        hwnd,
+        childPipe=None,
+        exitMonitorPid=None,
+        exitMonitorProcessName=None,
+        compid=None,
+    ):
+        """ Used to initialize a new instance of python and start the Qt Event loop.
+        
+        This function configures blurdev and starts Qt. It calls QApplication.exec_() and will not 
+        exit until blurdev is shutdown.
+        
+        Args:
+            hwnd(int): The win32 id used to parent Qt to the parent process
+            childPipe(multiProcess.Pipe): The Pipe used for inter-process communication. Defaults to None.
+            exitMonitorPid(int): Shutdown blurdev when this pid becomes invalid. Defaults to None.
+            exitMonitorProcessName(str): Used with exitMonitorPid. Closing applications with a
+                multiprocessing instance running often does not invalidate the pid, but changes
+                the process name, checking both, allows us to detect that the process has closed
+                even though the pid is still valid. Defaults to None.
+            compid(string): A unique id used by Fusion to connect to the correct fusion if more than
+                one fusion is open. Defaults to None.
+        """
+        instance = cls()
+        instance.exitMonitorProcessName = exitMonitorProcessName
+        instance.isChildProcess = True
+        # Put blurdev into the correct mode
+        blurdev.core.setHwnd(hwnd)
+        blurdev.core._mfcApp = True
+        if compid:
+            # If a compid was passed, in create a connection to fusion
+            import PeyeonScript as eyeon
+
+            blurdev.core.fusionApp = eyeon.scriptapp('Fusion', 'localhost', 0.0, compid)
+            blurdev.core.setObjectName('fusion')
+        if childPipe:
+            # Monitor the pipe for communications from the parent application
+            instance._childPipe = childPipe
+            instance.timerCommand = QTimer(blurdev.core)
+            instance.timerCommand.timeout.connect(instance.parsePipe)
+            instance.timerCommand.start(100)
+        if exitMonitorPid and Stone:
+            # Make parsePipe check if the parent process was closed, if so exit qt.
+            instance.exitMonitorPid = exitMonitorPid
+            instance.checkIfOrphaned = True
+        elif exitMonitorPid and Stone == None:
+            print 'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
+        # If this is not set, Qt will close when ever a QDialog or QMainWindow is closed
+        app = blurdev.application
+        app.setQuitOnLastWindowClosed(False)
+        # This is neccissary as long as our stylesheets depend on Plastique as a base.
+        blurdev.application.setStyle('Plastique')
+        # Start Qt's event loop
+        blurdev.startApplication()
+
+    def multiProcess(self):
+        """ Spawns or returns instance of python and the Pipe to communicate with.
+        
+        It is safe to call this method multiple times in both the parent and child processes. It
+        will only spawn a new instance of python in the parent process if the child process has been
+        closed, or never launched. When called in the child process it does nothing
+        """
+        # Only create the subprocess if it hasn't already been created
+        if self.isChildProcess or (self.childProcess and self.childProcess.is_alive()):
+            return self.childProcess, self._parentPipe
+        # NOTE: I am using a blur.Stone function to monitor if fusion is closed. If blur.Stone in not
+        # installed, you need a way to close it. For now I am showing a python console. In the future
+        # I may extract the win32 code so it can be checked, but it will probably be slower.
+        exe = 'python.exe'
+        daemon = True
+        if Stone:
+            exe = 'pythonw.exe'
+            daemon = False
+        multiprocessing.set_executable(os.path.join(sys.exec_prefix, exe))
+        if not hasattr(sys, 'argv'):
+            # Fusion does not create sys.argv so manually create it
+            sys.argv = ['']
+        # Get all neccissary info to properly parent, communicate and detect closing
+        hwnd = blurdev.core.hwnd()  # parent Qt to fusion
+        compid = blurdev.core.uuid()  # Allow scripts to control fusion
+        pid = os.getpid()  # Detect if fusion was closed
+
+        self._parentPipe, self._childPipe = Pipe()
+        kwargs = {'compid': compid, 'exitMonitorPid': pid, 'childPipe': self._childPipe}
+        self.childProcess = Process(target=External.launch, args=(hwnd,), kwargs=kwargs)
+        self.childProcess.daemon = daemon
+        self.childProcess.start()
+        return self.childProcess, self._parentPipe
+
+    def parsePipe(self):
+        """ Callback used to monitor for incoming commands and execute them.
+        
+        Processes data in pipe(), and uses a handler to process the code. Valid data should be in the
+        form of ['handlerName', 'handlerCommand'] or ['handlerName', 'handlerCommand', {'keyword', 'args'}].
+        It will also accept a Exception as the only data. If a Exception is received it will be raised.
+        If a invalid request is received, it will send a InvalidHandler exception back up the pipe.
+        
+        If checkIfOrphaned is True, and exitMonitorPid is populated, it will check if the process is
+        still running, if not, it will call blurdev.core.shutdown() and allow python to close without
+        processing any queued pipe items.
+        """
+        if self.checkIfOrphaned and self.exitMonitorPid:
+            if self.shutdownIfParentClosed():
+                return
+        name = None
+        command = None
+        params = {}
+        hasData, data = self.checkPipe()
+        if hasData:
+            if isinstance(data, Exception):
+                raise data
+            if isinstance(data, (list, tuple)) and len(data) > 1:
+                # Lists/tuple's are only valid if they contain an id string and a dictionary
+                name = data[0]
+                command = data[1]
+                # params are optional
+                if len(data) > 2:
+                    params = data[2]
+                handler = data
+            if (
+                not isinstance(name, basestring)
+                or not isinstance(command, basestring)
+                or not isinstance(params, dict)
+            ):
+                print 'Invalid data', [name, command, params]
+                msg = "Please provide valid command handler arguments. Example: ['handlerName', 'handlerCommand', {'keyword', 'args'}]"
+                self.send(InvalidHandler(msg))
+                return
+            handler = BaseProtocolHandler.findHandler(name, command, params)
+            if handler:
+                handler.run()
+
+    def pipe(self):
+        """ Returns the pipe used to communicate with the other end of the application.
+        
+        Returns:
+            multiprocessing.Pipe: used to communicate with the other process
+        """
+        if self.isChildProcess:
+            return self._childPipe
+        return self._parentPipe
+
+    def send(self, data):
+        """ Sends a command to be handled in the other process
+        
+        Commands must be a list. The first item is the name of the handler. The second item is the 
+        command to send to the handler. You can optionally pass a dictionary of kwargs as the third 
+        argument.
+        
+        See Also: blurdev.protocols
+        
+        Args:
+            data(list): Command to send.
+        
+        Returns:
+            bool: If data was sent
+        """
+        pipe = self.pipe()
+        if pipe:
+            pipe.send(data)
+            return True
+        return False
+
+    def shutdownIfParentClosed(self, force=False):
+        """ Shutdown blurdev if parent process is closed.
+        
+        Uses blur.Stone to check if the parent process is still running, if not, it calls
+        blurdev.core.shutdown() to close qt and allow python to exit.
+        
+        Args:
+            force(bool): Ignore blur.Stone check and force blurdev to shutdown.
+        """
+        if force or not Stone.isRunning(self.exitMonitorPid, 'Fusion.exe'):
+            print 'Fusion is no longer running, shutting down blurdev and saving prefs'
+            if 'python.exe' in sys.executable.lower():
+                time.sleep(1)
+            blurdev.core.shutdown()
+            return True
+        return False

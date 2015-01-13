@@ -183,7 +183,7 @@ def launch(
                       you specify a class using this argument, in which case it will
                       be wrapped by that.
     """
-    global _appHasExec, lastLaunched
+    global lastLaunched
     # create the app if necessary
     app = None
     from blurdev.cores.core import Core
@@ -274,11 +274,18 @@ def launch(
                 widget.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
             )
         # run the application if this item controls it and it hasnt been run before
-        if application and not _appHasExec:
-            application.setWindowIcon(widget.windowIcon())
-            _appHasExec = True
-            application.exec_()
+        startApplication(widget.windowIcon())
     return widget
+
+
+def startApplication(windowIcon=None):
+    """ Starts blurdev.application if it hasn't already been started. """
+    global _appHasExec
+    if application and not _appHasExec:
+        if windowIcon:
+            application.setWindowIcon(windowIcon)
+        _appHasExec = True
+        application.exec_()
 
 
 def quickReload(modulename):
