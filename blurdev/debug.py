@@ -30,6 +30,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 """
 
 import os
+import sys
 import datetime
 import inspect
 import weakref
@@ -123,6 +124,71 @@ class AdditionalErrorInfo(object):
 
     def __exit__(self, type, value, traceback):
         blurdev.core.logger().uiConsoleTXT.resetAdditionalInfo()
+
+
+# --------------------------------------------------------------------------------
+# A pdb that works inside qt and softwares we run qt inside, like 3ds Max
+_blurPdb = None
+
+
+def getPdb():
+    """ Creates or returns a instance of pdb that works when normal pdb doesnt.
+    
+    The first time this is called it creates a pdb instance using PdbInput and PdbOutput for stdin 
+    and stdout. Any future calls to getPdb will return this same pdb. If pdb is activated, it will
+    open the blurdev logger in a new instance of python using blurdev.external, all pdb output will 
+    be routed to this new logger. Commands typed in this logger will be passed back to this instance 
+    of pdb.
+    
+    Returns:
+        pdb.Pdb: Special instance of pdb.
+    """
+    global _blurPdb
+    if not _blurPdb:
+        import pdb
+        from blurdev.utils.pdbio import PdbInput, PdbOutput
+
+        _blurPdb = pdb.Pdb(stdin=PdbInput(), stdout=PdbOutput())
+    return _blurPdb
+
+
+def set_trace():
+    """ Call getPdb().set_trace().
+    
+    Enter the debugger at the calling stack frame. This is useful to hard-code a breakpoint at a 
+    given point in a program, even if the code is not otherwise being debugged (e.g. when an 
+    assertion fails).
+    """
+    getPdb().set_trace()
+
+
+def post_mortem(t=None):
+    """ Call getPdb().post_mortem().
+    
+    Enter post-mortem debugging of the given traceback object. If no traceback is given, it uses the 
+    one of the exception that is currently being handled (an exception must be being handled if the 
+    default is to be used).
+    
+    Args:
+        t (traceback): exception to preform a post_mortem on.
+    """
+    # Copied from Python 2.7's pdb because post_mortem doesn't support custom pdb.
+    # handling the default
+    if t is None:
+        # sys.exc_info() returns (type, value, traceback) if an exception is
+        # being handled, otherwise it returns None
+        t = sys.exc_info()[2]
+        if t is None:
+            raise ValueError(
+                "A valid traceback must be passed if no " "exception is being handled"
+            )
+
+    p = getPdb()
+    p.reset()
+    p.interaction(None, t)
+
+
+# --------------------------------------------------------------------------------
 
 
 def clearErrorReport():

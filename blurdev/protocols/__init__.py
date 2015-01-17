@@ -8,6 +8,7 @@
 #   :date       01/12/15
 #
 
+import sys as _sys
 import os as _os
 import subprocess as _subprocess
 import cPickle as _cPickle
@@ -71,6 +72,42 @@ class TreegruntHandler(BaseProtocolHandler):
         if not tool.isNull():
             _os.environ['BDEV_URL_ARGS'] = _cPickle.dumps(self.params)
             tool.exec_()
+
+
+class BlurdevHandler(BaseProtocolHandler):
+    """ Used to run specific blurdev commands.
+    
+    Can be used to show the logger and treegrunt. If you use the TreegruntHandler to show the logger 
+    in the external treegrunt, it will launch a new python process for the logger, which is not what 
+    we want to happen.
+    """
+
+    name = 'blurdev'
+
+    def run(self):
+        if self.command == 'showLogger':
+            _blurdev.core.showLogger()
+        elif self.command == 'showTreegrunt':
+            _blurdev.core.showTreegrunt()
+
+
+class WriteStdOutputHandler(BaseProtocolHandler):
+    """ Writes the msg param to the requested output
+    
+    Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys counterparts.
+    print calls print. You must pass the parameter 'msg' as a string, this will be written to the 
+    requestd output
+    """
+
+    name = 'stdoutput'
+
+    def run(self):
+        if self.command == 'stdout':
+            _sys.stdout.write(self.params['msg'])
+        elif self.command == 'stderr':
+            _sys.stderr.write(self.params['msg'])
+        elif self.command == 'print':
+            print self.params['msg']
 
 
 class ShotgunActionMenuItemHandler(BaseProtocolHandler):

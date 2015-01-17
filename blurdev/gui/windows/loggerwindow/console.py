@@ -141,6 +141,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
 
+        # If populated, also write to this interface
+        self.outputPipe = None
+
+        self._pdbPrompt = '(Pdb) '
+        self._consolePrompt = '>>> '
+        self.pdbMode = False
+
         self.startInputLine()
 
     def clear(self):
@@ -342,7 +349,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """ executes the current line of code """
         # grab the command from the line
         block = self.textCursor().block().text()
-        results = re.search('>>> (.*)', unicode(block))
+        results = re.search('{prompt}(.*)'.format(prompt=self.prompt()), unicode(block))
         if results:
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
@@ -521,10 +528,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # Otherwise just move it to the start of the line
             block = unicode(cursor.block().text()).split()
             cursor.movePosition(QTextCursor.StartOfBlock, mode)
-        cursor.movePosition(
-            QTextCursor.Right, mode, 4
-        )  # the line is 4 characters long (>>> )
+        # move the cursor to the end of the prompt.
+        cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
         self.setTextCursor(cursor)
+
+    def prompt(self):
+        if self.pdbMode:
+            return self._pdbPrompt
+        return self._consolePrompt
 
     def setCompleter(self, completer):
         """ sets the completer instance for this widget """
@@ -539,12 +550,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.moveCursor(QTextCursor.End)
 
         # if this is not already a new line
-        if self.textCursor().block().text() != '>>> ':
+        if self.textCursor().block().text() != self.prompt():
             charFormat = QTextCharFormat()
             charFormat.setForeground(Qt.lightGray)
             self.setCurrentCharFormat(charFormat)
 
-            inputstr = '>>> '
+            inputstr = self.prompt()
             if unicode(self.textCursor().block().text()):
                 inputstr = '\n' + inputstr
 
@@ -567,6 +578,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             if SafeOutput:
                 # win32com writes to the debugger if it is unable to print, so ensure it still does this.
                 SafeOutput.write(self, msg)
+
+        # if a outputPipe was provided, write the message to that pipe
+        if self.outputPipe:
+            self.outputPipe(msg, error=error)
 
         # Pass data along to the original stdout
         try:
