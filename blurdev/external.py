@@ -5,7 +5,7 @@ import multiprocessing
 from multiprocessing import Process, Pipe
 import blurdev
 from PyQt4.QtCore import QTimer
-from blurdev.protocols import BaseProtocolHandler
+from blurdev.protocols import BaseProtocolHandler, InvalidHandler
 
 try:
     # Optional: In case blur.Stone is not installed, though this will mean it can't automatically
@@ -13,12 +13,6 @@ try:
     import blur.Stone as Stone
 except:
     Stone = None
-
-
-class InvalidHandler(Exception):
-    """ Returned to the pipe if a invalid request was provided """
-
-    pass
 
 
 class External(object):
@@ -148,6 +142,11 @@ class External(object):
             return True
         return False
 
+    def childIsAlive(self):
+        if not self.isChildProcess:
+            return self.childProcess.is_alive()
+        return False
+
     @classmethod
     def launch(
         cls,
@@ -180,7 +179,8 @@ class External(object):
         instance.parentCore = parentCore
         # Diffrent parent cores have diffrent requirements. Studiomax and other software cores are
         # not importable externally, so we need to identify them by their object name.
-        if parentCore.lower() != 'studiomax':
+        parentCore = parentCore.lower()
+        if parentCore != 'studiomax':
             blurdev.core.setHwnd(hwnd)
             blurdev.core._mfcApp = True
         if compid:
@@ -199,9 +199,10 @@ class External(object):
         elif exitMonitorPid and Stone == None:
             print 'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
         blurdev.core.setObjectName('multiprocessing')
-        # If this is not set, Qt will close when ever a QDialog or QMainWindow is closed
-        app = blurdev.application
-        app.setQuitOnLastWindowClosed(False)
+        if not instance.checkIfOrphaned:
+            # If this is not set, Qt will close when ever a QDialog or QMainWindow is closed
+            app = blurdev.application
+            app.setQuitOnLastWindowClosed(False)
         # This is neccissary as long as our stylesheets depend on Plastique as a base.
         blurdev.application.setStyle('Plastique')
         # Start Qt's event loop
@@ -335,4 +336,11 @@ class External(object):
 
     def writeToPipe(self, msg, error=False):
         command = 'stderr' if error else 'stdout'
-        self.send(['stdoutput', command, {'msg': msg}])
+        # use wrapper to ensure that the pickle process doesn't end up creating a int or something.
+        self.send(
+            [
+                'stdoutput',
+                command,
+                {'msg': '!!!{}!!!'.format(msg), 'pdb': True, 'wrapper': '!!!'},
+            ]
+        )

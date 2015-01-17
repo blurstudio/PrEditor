@@ -375,6 +375,12 @@ HintHelper {
 	color: rgb(150,150,150);
 }
 
+ConsoleEdit[pyPdbMode="true"] {
+	/* Change the selection color of the console when in pdb mode */
+	selection-background-color: rgb(0, 255, 0);
+	selection-color: rgb(0, 0, 0);
+}
+
 /* Start Treegrunt Environment Combo Box Style*/
 QComboBox#uiEnvironmentDDL, QComboBox#uiEnvironmentDDL QListView::item {
 	/* Default color of the default items in the popup via the "QComboBox#uiEnvironmentDDL" selector */

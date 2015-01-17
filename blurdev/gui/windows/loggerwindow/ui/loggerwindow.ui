@@ -76,6 +76,7 @@
     </property>
     <addaction name="uiRunSelectedACT"/>
     <addaction name="uiRunAllACT"/>
+    <addaction name="uiPdbModeACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
    </widget>
@@ -365,6 +366,23 @@
    </property>
    <property name="text">
     <string>Disable SDK shortcut</string>
+   </property>
+  </action>
+  <action name="uiPdbModeACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Pdb Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>If pdb is not running in the parent process pdb mode will not acomplish much.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+`</string>
    </property>
   </action>
  </widget>

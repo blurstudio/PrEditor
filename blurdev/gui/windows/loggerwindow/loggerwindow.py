@@ -140,6 +140,7 @@ class LoggerWindow(Window):
 
         self.uiConsoleTXT = ConsoleEdit(self.uiSplitterSPLIT)
         self.uiConsoleTXT.setMinimumHeight(1)
+        self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
 
         # create the workbox tabs
         self._currentTab = -1
@@ -182,6 +183,7 @@ class LoggerWindow(Window):
 
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
+        self.uiPdbModeACT.triggered.connect(self.uiConsoleTXT.setPdbMode)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
@@ -589,9 +591,22 @@ class LoggerWindow(Window):
         return LoggerWindow._instance
 
     @classmethod
+    def instanceSetPdbMode(cls, mode):
+        """ Sets the instance of LoggerWindow to pdb mode if the logger instance has been created.
+        
+        Args:
+            mode (bool): The mode to set it to
+        """
+        if cls._instance:
+            if cls._instance.uiConsoleTXT.pdbMode() != mode:
+                cls._instance.uiConsoleTXT.setPdbMode(mode)
+
+    @classmethod
     def instanceShutdown(cls):
-        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used. Returns if shutdown was required.
-            :return: Bool. Shutdown was requried
+        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used. 
+        
+        Returns:
+            bool: If a shutdown was required
         """
         if cls._instance:
             cls._instance.shutdown()

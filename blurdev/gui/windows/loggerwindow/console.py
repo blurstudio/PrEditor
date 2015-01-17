@@ -10,7 +10,7 @@ import traceback
 import socket
 from abc import ABCMeta
 
-from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt
+from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt, pyqtProperty
 from PyQt4.QtGui import (
     QTextEdit,
     QApplication,
@@ -144,9 +144,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # If populated, also write to this interface
         self.outputPipe = None
 
+        # These variables are used to enable pdb mode. This is a special mode used by the logger if
+        # it is launched externally via getPdb, set_trace, or post_mortem in blurdev.debug.
         self._pdbPrompt = '(Pdb) '
         self._consolePrompt = '>>> '
-        self.pdbMode = False
+        self._pdbMode = False
+        # if populated when setPdbMode is called, this action will be enabled and its check state
+        # will match the current pdbMode.
+        self.pdbModeAction = None
 
         self.startInputLine()
 
@@ -349,36 +354,48 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """ executes the current line of code """
         # grab the command from the line
         block = self.textCursor().block().text()
-        results = re.search('{prompt}(.*)'.format(prompt=self.prompt()), unicode(block))
+        p = '{prompt}(.*)'.format(
+            prompt=self.prompt().replace('(', '\(').replace(')', '\)')
+        )
+        results = re.search(p, unicode(block))
         if results:
+            commandText = unicode(results.groups()[0])
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
                 # insert a new line
                 self.insertPlainText('\n')
 
-                # evaluate the command
-                cmdresult = None
-                try:
-                    cmdresult = eval(
-                        unicode(results.groups()[0]),
-                        __main__.__dict__,
-                        __main__.__dict__,
-                    )
-                except:
-                    exec (
-                        unicode(results.groups()[0])
-                    ) in __main__.__dict__, __main__.__dict__
+                if self._pdbMode:
+                    if commandText:
+                        import blurdev.external
 
-                # print the resulting commands
-                if cmdresult is not None:
-                    self.write(unicode(cmdresult))
+                        blurdev.external.External(['pdb', '', {'msg': commandText}])
+                    else:
+                        # Sending a blank line to pdb will cause it to quit raising a exception.
+                        # Most likely the user just wants to add some white space between their
+                        # commands, so just add a new prompt line.
+                        self.startInputLine()
+                        self.insertPlainText(commandText)
+                else:
+                    # evaluate the command
+                    cmdresult = None
+                    try:
+                        cmdresult = eval(
+                            commandText, __main__.__dict__, __main__.__dict__
+                        )
+                    except:
+                        exec (commandText) in __main__.__dict__, __main__.__dict__
 
-                self.startInputLine()
+                    # print the resulting commands
+                    if cmdresult is not None:
+                        self.write(unicode(cmdresult))
+
+                    self.startInputLine()
 
             # otherwise, move the command to the end of the line
             else:
                 self.startInputLine()
-                self.insertPlainText(unicode(results.groups()[0]))
+                self.insertPlainText(commandText)
 
         # if no command, then start a new line
         else:
@@ -532,8 +549,27 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
         self.setTextCursor(cursor)
 
+    def pdbMode(self):
+        return self._pdbMode
+
+    def setPdbMode(self, mode):
+        if self.pdbModeAction:
+            if not self.pdbModeAction.isEnabled():
+                # pdbModeAction is disabled by default, enable the action, so the user can switch
+                # between pdb and normal mode any time they want. pdbMode does nothing if this instance
+                # of python is not the child process of blurdev.external.External, and the parent
+                # process is in pdb mode.
+                self.pdbModeAction.blockSignals(True)
+                self.pdbModeAction.setChecked(mode)
+                self.pdbModeAction.blockSignals(False)
+                self.pdbModeAction.setEnabled(True)
+        self._pdbMode = mode
+        self.startInputLine()
+        # Make sure the stylesheet recalculates for the new value
+        blurdev.core.refreshStyleSheet()
+
     def prompt(self):
-        if self.pdbMode:
+        if self._pdbMode:
             return self._pdbPrompt
         return self._consolePrompt
 
@@ -609,3 +645,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     @classmethod
     def setAdditionalInfo(cls, info):
         cls._additionalInfo = info
+
+    # This property is used by the stylesheet to style pdbMode diffrently than normal mode.
+    pyPdbMode = pyqtProperty(bool, pdbMode, setPdbMode)

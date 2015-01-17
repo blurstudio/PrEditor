@@ -15,6 +15,12 @@ import cPickle as _cPickle
 import blurdev as _blurdev
 
 
+class InvalidHandler(Exception):
+    """ Returned to the pipe if a invalid request was provided """
+
+    pass
+
+
 class BaseProtocolHandler(object):
     name = 'base'
     eval_params = True
@@ -96,18 +102,57 @@ class WriteStdOutputHandler(BaseProtocolHandler):
     
     Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys counterparts.
     print calls print. You must pass the parameter 'msg' as a string, this will be written to the 
-    requestd output
+    requested output. You can optionally pass a boolean to 'pdb', if the instance of the
+    LoggerWindow exists it will enable or disable pdb mode on it.
+    
+    Sometimes when sending a string like '161  \t\t\n' msg will end up as the int 161. In cases like
+    this you can pass the optional keyword 'wrapper' containing a string like '!!!'. If you use wrapper
+    you must add the wrapper string to the start and end of your string. If these are missing it will
+    send a InvalidHandler exception back up the pipe. These wrappers will be removed before the message
+    is written.
     """
 
     name = 'stdoutput'
 
     def run(self):
+        msg = self.params['msg']
+        pdbMode = self.params.get('pdb')
+        wrapper = self.params.get('wrapper')
+        if wrapper:
+            # Passing values like '161  \t\t\n' along the pipe ends up with just a int. To get around
+            # this I am adding a wrapper string to the start and end of the msg. so we need to remove
+            # the wrapper characters.
+            length = len(wrapper)
+            if len(msg) < length or (
+                msg[:length] != wrapper or msg[-length:] != wrapper
+            ):
+                errorMsg = (
+                    'The wrapper "{wrapper}" could not be found in the message\n{msg}'
+                )
+                import blurdev.external
+
+                blurdev.external.External(
+                    InvalidHandler(errorMsg.format(wrapper=wrapper, msg=msg))
+                )
+                return
+            msg = msg[length:-length]
+        if pdbMode == True and msg.strip():
+            # Don't trigger pdb mode if a empty(including new lines) string was sent
+            from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+            LoggerWindow.instanceSetPdbMode(pdbMode)
         if self.command == 'stdout':
-            _sys.stdout.write(self.params['msg'])
+            _sys.stdout.write(msg)
         elif self.command == 'stderr':
-            _sys.stderr.write(self.params['msg'])
+            _sys.stderr.write(msg)
         elif self.command == 'print':
-            print self.params['msg']
+            print msg
+        if pdbMode == False:
+            # disable pdbMode after the message was written because the message often contains the
+            # (pdb) prompt.
+            from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+            LoggerWindow.instanceSetPdbMode(pdbMode)
 
 
 class ShotgunActionMenuItemHandler(BaseProtocolHandler):
