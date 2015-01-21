@@ -107,6 +107,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     _excepthook = None
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
+    # the color error messages are displayed in, can be set by stylesheets
+    _errorMessageColor = QColor(Qt.red)
 
     def __init__(self, parent):
         QTextEdit.__init__(self, parent)
@@ -164,6 +166,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """ returns the completer instance that is associated with this editor """
         return self._completer
 
+    def errorMessageColor(self):
+        return self.__class__._errorMessageColor
+
+    def setErrorMessageColor(self, color):
+        self.__class__._errorMessageColor = color
+
     @staticmethod
     def excepthook(exctype, value, traceback_):
         """
@@ -202,9 +210,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             mBox.setObjectName('uiPythonErrorMBOX')
             mBox.setWindowTitle('Error Occurred')
             mBox.setTextFormat(Qt.RichText)
+            msg = 'The following error has occurred:<br><br><font color=%(color)s>%(text)s</font>'
             mBox.setText(
-                'The following error has occurred:<br><br><font color="red">%s</font>'
-                % traceback_msg.split('\n')[-2]
+                msg
+                % {
+                    'text': traceback_msg.split('\n')[-2],
+                    'color': ConsoleEdit._errorMessageColor.name(),
+                }
             )
             ackButton = mBox.addButton('Ignore', QMessageBox.RejectRole)
             mBox.setDefaultButton(ackButton)
@@ -636,7 +648,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         if not error:
             charFormat.setForeground(QColor(17, 154, 255))
         else:
-            charFormat.setForeground(Qt.red)
+            charFormat.setForeground(self.errorMessageColor())
 
         self.setCurrentCharFormat(charFormat)
         try:
@@ -677,5 +689,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     def setAdditionalInfo(cls, info):
         cls._additionalInfo = info
 
-    # This property is used by the stylesheet to style pdbMode diffrently than normal mode.
+    # These properties are used by the stylesheet to style various items.
     pyPdbMode = pyqtProperty(bool, pdbMode, setPdbMode)
+    pyErrorMessageColor = pyqtProperty(QColor, errorMessageColor, setErrorMessageColor)
