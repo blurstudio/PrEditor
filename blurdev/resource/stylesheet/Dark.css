@@ -352,6 +352,11 @@ QMessageBox QPushButton, QProgressDialog QPushButton {
 	min-width: 50px;
 	padding: 3px;
 }
+
+QMessageBox#uiPythonErrorMBOX QPushButton {
+	min-width: 90px;
+}
+
 /*
 QTabBar::tab {
 	padding: 3px 10px;

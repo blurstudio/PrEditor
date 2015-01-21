@@ -199,6 +199,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # raises multiple errors that get processed outside the standard qt event loop.
             ConsoleEdit._errorPrompted = True
             mBox = QMessageBox(blurdev.core.rootWindow())
+            mBox.setObjectName('uiPythonErrorMBOX')
             mBox.setWindowTitle('Error Occurred')
             mBox.setTextFormat(Qt.RichText)
             mBox.setText(
