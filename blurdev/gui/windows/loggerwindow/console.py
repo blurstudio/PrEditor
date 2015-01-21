@@ -238,9 +238,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     'main.pyw',
                 )
                 body = '[Description]\n\n-------\n%s' % traceback_msg
+                if 'python' in sys.executable:
+                    python_exe = sys.executable
+                else:
+                    if sys.platform == 'win32':
+                        python_exe = r'C:\python27\pythonw.exe'
+                    else:
+                        python_exe = r'/usr/bin/pythonw'
                 subprocess.Popen(
                     [
-                        sys.executable,
+                        python_exe,
                         toolPath,
                         '--project',
                         'pipeline',
