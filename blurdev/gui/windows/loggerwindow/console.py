@@ -180,10 +180,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # Email the error traceback.
         emails = ToolsEnvironment.activeEnvironment().emailOnError()
+        traceback_msg = ''.join(traceback.format_exception(exctype, value, traceback_))
         if emails:
-            traceback_msg = ''.join(
-                traceback.format_exception(exctype, value, traceback_)
-            )
             ConsoleEdit.emailError(emails, traceback_msg)
 
         ConsoleEdit.clearAdditionalInfo()
@@ -200,14 +198,46 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # This is not needed for normal Qt event loops, but if some other system (c++, threading)
             # raises multiple errors that get processed outside the standard qt event loop.
             ConsoleEdit._errorPrompted = True
-            result = QMessageBox.question(
-                blurdev.core.rootWindow(),
-                'Error Occurred',
-                'An error has occurred in your Python script.  Would you like to see the log?',
-                QMessageBox.Yes | QMessageBox.No,
+            mBox = QMessageBox(blurdev.core.rootWindow())
+            mBox.setWindowTitle('Error Occurred')
+            mBox.setTextFormat(Qt.RichText)
+            mBox.setText(
+                'The following error has occurred:<br><br><font color="red">%s</font>'
+                % traceback_msg.split('\n')[-2]
             )
-            if result == QMessageBox.Yes:
+            ackButton = mBox.addButton('Ignore', QMessageBox.RejectRole)
+            mBox.setDefaultButton(ackButton)
+            loggerButton = mBox.addButton('Show Logger', QMessageBox.AcceptRole)
+            requestButton = mBox.addButton('Submit Request', QMessageBox.ActionRole)
+            mBox.setIcon(QMessageBox.Critical)
+            mBox.exec_()
+            if mBox.clickedButton() == loggerButton:
                 inst.show()
+            elif mBox.clickedButton() == requestButton:
+                import subprocess
+
+                toolPath = os.path.join(
+                    blurdev.activeEnvironment().path(),
+                    'code',
+                    'python',
+                    'tools',
+                    'RequestPimp',
+                    'main.pyw',
+                )
+                body = '[Description]\n\n-------\n%s' % traceback_msg
+                subprocess.Popen(
+                    [
+                        sys.executable,
+                        toolPath,
+                        '--project',
+                        'pipeline',
+                        '--subject',
+                        traceback_msg.split('\n')[-2],
+                        '--body',
+                        body,
+                    ]
+                )
+
             # The messagebox was closed, so reset the tracking variable.
             ConsoleEdit._errorPrompted = False
 
