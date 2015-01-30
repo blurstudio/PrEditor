@@ -368,19 +368,7 @@ class IdeEditor(Window):
             self.refreshOpen()
 
     def copyFilenameToClipboard(self):
-        if self.uiBrowserTAB.currentIndex() == 0:
-            item = self.uiProjectTREE.currentItem()
-            if item.isFileSystem():
-                import os
-
-                path = os.path.abspath(item.filePath())
-            else:
-                path = item.text(0)
-        elif self.uiBrowserTAB.currentIndex() == 2:
-            path = self.currentFilePath()
-        else:
-            path = ''
-
+        path = self.currentFilePath()
         QApplication.clipboard().setText(path)
 
     def createNewFolder(self):

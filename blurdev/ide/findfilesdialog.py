@@ -78,41 +78,51 @@ class FindFilesThread(QThread):
 
         # look up the files in a separate thread
         try:
-            for (path, dirs, files) in os.walk(self._basepath):
-                self._output.append('Checking Directory: %s' % path)
-                for file in files:
-                    try:
-                        self._output.append('	Checking File: %s' % file)
-                        if self._exit:
-                            self._exit = False
+            # It would be very expensive to search the same path twice
+            basepaths = [
+                os.path.normpath(os.path.normcase(p)) for p in self._basepath.split(';')
+            ]
+            # The treeview used to display the results alphabetically is updated durring the
+            # search, so we must search basepaths alphabetically so the results list doesn't
+            # have results appended before the previous results
+            for basepath in sorted(set(basepaths)):
+                self._output.append('Searching Basepath: %s' % basepath)
+                for (path, dirs, files) in os.walk(basepath):
+                    self._output.append('Checking Directory: %s' % path)
+                    for file in files:
+                        try:
+                            self._output.append('	Checking File: %s' % file)
+                            if self._exit:
+                                self._exit = False
+                                self._output.append(
+                                    "!!!!!!!!!!!!!!!!!!!! Exiting !!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                                )
+                                return
+                            filename = os.path.join(path, file)
+
+                            # Ignore any files that matach the provided exclude regex
+                            if self._excludeRegex and re.findall(
+                                self._excludeRegex, filename
+                            ):
+                                continue
+                            # make sure we have the proper file type
+                            if not (
+                                self._findall
+                                or os.path.splitext(filename)[1] in filetypes
+                            ):
+                                continue
+
+                            # make sure the filename matches the expression
+                            for expr in exprs:
+                                if expr.match(filename):
+                                    self.searchFile(filename)
+                                    break
+                        except Exception, e:
+                            self._errors.append({"exception": e, "file": file})
                             self._output.append(
-                                "!!!!!!!!!!!!!!!!!!!! Exiting !!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                                "	------ Error Reading file: %s Exception: %s"
+                                % (filename, repr(e))
                             )
-                            return
-                        filename = os.path.join(path, file)
-
-                        # Ignore any files that matach the provided exclude regex
-                        if self._excludeRegex and re.findall(
-                            self._excludeRegex, filename
-                        ):
-                            continue
-                        # make sure we have the proper file type
-                        if not (
-                            self._findall or os.path.splitext(filename)[1] in filetypes
-                        ):
-                            continue
-
-                        # make sure the filename matches the expression
-                        for expr in exprs:
-                            if expr.match(filename):
-                                self.searchFile(filename)
-                                break
-                    except Exception, e:
-                        self._errors.append({"exception": e, "file": file})
-                        self._output.append(
-                            "	------ Error Reading file: %s Exception: %s"
-                            % (filename, repr(e))
-                        )
         except Exception, e:
             self._errors.append({"exception": e})
             self._output.append("------ Error looping over dirs: %s" % repr(e))
@@ -331,14 +341,14 @@ class FindFilesDialog(Dialog):
         )
 
         baseText = (
-            'Base Path: {basePath}\n'
+            'Base Path: {basepath}\n'
             'Exclude: {exclude}\n'
             'File Types: {fileTypes}\n'
             'Find Text: {findText}\n'
             'Is Regular Exp: {isRe}\n\n'
         )
         baseText = baseText.format(
-            basePath=self.uiBasePathTXT.text(),
+            basepath=self.uiBasePathTXT.text(),
             exclude=self.uiExcludeRegexDDL.currentText(),
             fileTypes=self.uiFileTypesDDL.currentText(),
             findText=self.uiSearchTXT.text(),
@@ -402,14 +412,17 @@ class FindFilesDialog(Dialog):
 
     def search(self):
         # verify the basepath exists
-        basepath = unicode(self.uiBasePathTXT.text())
-        if not os.path.exists(basepath):
-            from PyQt4.QtGui import QMessageBox
+        basepaths = unicode(self.uiBasePathTXT.text())
+        for basepath in basepaths.split(';'):
+            if not os.path.exists(basepath):
+                from PyQt4.QtGui import QMessageBox
 
-            QMessageBox.critical(
-                self, 'Invalid Basepath', 'The basepath you entered does not exist'
-            )
-            return False
+                QMessageBox.critical(
+                    self,
+                    'Invalid Basepath',
+                    'The basepath you entered does not exist.\n{}'.format(basepath),
+                )
+                return False
 
         # update the button
         self.uiSearchBTN.setText('Stop Search')
@@ -421,7 +434,7 @@ class FindFilesDialog(Dialog):
 
         # set the search options
         self._searchThread.setSearchText(unicode(self.uiSearchTXT.text()))
-        self._searchThread.setBasePath(basepath)
+        self._searchThread.setBasePath(basepaths)
         self._searchThread.setFileTypes(unicode(self.uiFileTypesDDL.currentText()))
         self._searchThread.setExcludeRegex(
             unicode(self.uiExcludeRegexDDL.currentText())

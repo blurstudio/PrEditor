@@ -60,8 +60,11 @@
    </item>
    <item row="0" column="0">
     <widget class="QLabel" name="uiBasePathLBL">
+     <property name="toolTip">
+      <string>You can specify multiple base search paths. Separate them with a ;</string>
+     </property>
      <property name="text">
-      <string>base path</string>
+      <string>base path(s)</string>
      </property>
     </widget>
    </item>
@@ -78,12 +81,19 @@
    <item row="0" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QLineEdit" name="uiBasePathTXT"/>
+      <widget class="QLineEdit" name="uiBasePathTXT">
+       <property name="toolTip">
+        <string>You can specify multiple base search paths. Separate them with a ;</string>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QToolButton" name="uiBasePathBTN">
        <property name="focusPolicy">
         <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="toolTip">
+        <string>You can specify multiple base search paths. Separate them with a ;</string>
        </property>
        <property name="text">
         <string>...</string>
