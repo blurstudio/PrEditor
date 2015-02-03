@@ -199,7 +199,7 @@ class External(object):
         elif exitMonitorPid and Stone == None:
             print 'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
         blurdev.core.setObjectName('multiprocessing')
-        if not instance.checkIfOrphaned:
+        if parentCore != 'studiomax' and instance.checkIfOrphaned:
             # If this is not set, Qt will close when ever a QDialog or QMainWindow is closed
             app = blurdev.application
             app.setQuitOnLastWindowClosed(False)
