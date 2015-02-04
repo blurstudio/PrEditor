@@ -1275,11 +1275,12 @@ class Core(QObject):
         Determines what types of tools that the treegrunt system should be looking at
         """
         ToolType = blurdev.tools.tool.ToolType
-        if self.objectName() == 'fusion':
-            output = ToolType.Fusion
-        else:
-            output = ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
-        return output
+        if self.objectName() == 'multiprocessing':
+            import blurdev.external as external
+
+            if external.External().parentCore == 'fusion':
+                return ToolType.Fusion
+        return ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
 
     def treegrunt(self, parent=None):
         """ Creates and returns the logger instance
