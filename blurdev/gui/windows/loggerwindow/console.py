@@ -8,6 +8,7 @@ import os
 import sys
 import traceback
 import socket
+import getpass
 from abc import ABCMeta
 
 from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt, pyqtProperty
@@ -27,6 +28,7 @@ from .completer import PythonCompleter
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 from blurdev.tools import ToolsEnvironment
 import blurdev.gui.windows.loggerwindow
+from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
 
 SafeOutput = None
 
@@ -47,6 +49,63 @@ if blurdev.core.objectName() == 'softimage':
 
     except ImportError:
         pass
+
+additionalInfoHtml = """<br><h3>Information</h3>
+<br>
+<div style="background:white;padding:5 10 5 10;border:1px black solid"><pre><code>
+%(info)s
+</code></pre></div>"""
+
+additionalInfoTextile = """h3. Information
+<pre><code class="Python">
+%(info)s
+</code></pre>"""
+
+messageBodyHtml = """<ul>
+<li><b>user: </b>%(username)s</li>
+<li><b>host: </b>%(hostname)s</li>
+<li><b>date: </b>%(date)s</li>
+<li><b>python: </b>%(pythonversion)s</li>
+<li><b>executable: </b>%(executable)s</li>
+<li><b>blurdev core:</b> %(blurdevcore)s</li>
+<li><b>blurdev env:</b> %(blurdevenv)s</li>
+%(windowinfo)s
+%(coremsg)s
+</ul>
+<br>
+<h3>Traceback Printout</h3>
+<br>
+%(error)s
+%(additionalinfo)s"""
+
+messageBodyTextile = """* *user:* %(username)s
+* *host:* %(hostname)s
+* *date:* %(date)s
+* *python:* %(pythonversion)s
+* *executable:* %(executable)s
+* *blurdev core:* %(blurdevcore)s
+* *blurdev env:* %(blurdevenv)s
+%(windowinfo)s
+%(coremsg)s
+h3. Traceback Printout
+<pre><code class="Python">
+%(error)s</code></pre>
+%(additionalinfo)s"""
+
+messageBodyPlain = """user: %(username)s
+host: %(hostname)s
+date: %(date)s
+python: %(pythonversion)s
+executable: %(executable)s
+blurdev core: %(blurdevcore)s
+blurdev env: %(blurdevenv)s
+%(windowinfo)s
+%(coremsg)s
+Traceback Printout
+
+%(error)s
+
+%(additionalinfo)s"""
 
 emailformat = """
 <html>
@@ -78,9 +137,9 @@ emailformat = """
     </head>
     <body>
         <h1>%(subject)s</h1>
-        <br><br>
+        <br>
         %(body)s
-        <br><br><br><br>
+        <br><br>
         <hr/>
         <span class="footer">
             <p>You have received this notification because you have either subscribed to it, or are involved in it.<br/>
@@ -173,6 +232,61 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.__class__._errorMessageColor = color
 
     @staticmethod
+    def highlightCodeHtml(code, lexer, style, linenos=True, divstyles=None):
+
+        try:
+            from pygments import highlight
+            from pygments.lexers import get_lexer_by_name
+            from pygments.formatters import HtmlFormatter
+        except Exception, e:
+            print 'Could not import pygments, using old html formatting', str(e)
+            htmlTemplate = """<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>
+%(code)s
+</code></pre></div>"""
+            return htmlTemplate % {'code': code.replace('\n', '<br>')}
+
+        lexer = lexer or 'python'
+        style = style or 'colorful'
+        defstyles = 'overflow:auto;width:auto;'
+        if not divstyles:
+            divstyles = (
+                'border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;'
+            )
+
+        formatter = HtmlFormatter(
+            style=style,
+            linenos=False,
+            noclasses=True,
+            cssclass='',
+            cssstyles=defstyles + divstyles,
+            prestyles='margin: 0',
+        )
+        html = highlight(code, get_lexer_by_name(lexer), formatter)
+        if linenos:
+            html = ConsoleEdit.insert_line_numbers(html)
+        return html
+
+    @staticmethod
+    def insert_line_numbers(html):
+        match = re.search('(<pre[^>]*>)(.*)(</pre>)', html, re.DOTALL)
+        if not match:
+            return html
+
+        pre_open = match.group(1)
+        pre = match.group(2)
+        pre_close = match.group(3)
+
+        html = html.replace(pre_close, '</pre></td></tr></table>')
+        numbers = range(1, pre.count('\n') + 1)
+        format = '%' + str(len(str(numbers[-1]))) + 'i'
+        lines = '\n'.join(format % i for i in numbers)
+        html = html.replace(
+            pre_open,
+            '<table><tr><td>' + pre_open + lines + '</pre></td><td>' + pre_open,
+        )
+        return html
+
+    @staticmethod
     def excepthook(exctype, value, traceback_):
         """
         Logger Console excepthook. Re-implemented from sys.excepthook.  Catches
@@ -192,8 +306,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         if emails:
             ConsoleEdit.emailError(emails, traceback_msg)
 
-        ConsoleEdit.clearAdditionalInfo()
-
         # If the logger is not visible, prompt the user to show it.
         inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
         if (
@@ -206,84 +318,32 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # This is not needed for normal Qt event loops, but if some other system (c++, threading)
             # raises multiple errors that get processed outside the standard qt event loop.
             ConsoleEdit._errorPrompted = True
-            mBox = QMessageBox(blurdev.core.rootWindow())
-            mBox.setObjectName('uiPythonErrorMBOX')
-            mBox.setWindowTitle('Error Occurred')
-            mBox.setTextFormat(Qt.RichText)
-            msg = 'The following error has occurred:<br><br><font color=%(color)s>%(text)s</font>'
-            mBox.setText(
-                msg
-                % {
-                    'text': traceback_msg.split('\n')[-2],
-                    'color': ConsoleEdit._errorMessageColor.name(),
-                }
-            )
-            ackButton = mBox.addButton('Ignore', QMessageBox.RejectRole)
-            mBox.setDefaultButton(ackButton)
-            loggerButton = mBox.addButton('Show Logger', QMessageBox.AcceptRole)
-            requestButton = mBox.addButton('Submit Request', QMessageBox.ActionRole)
-            mBox.setIcon(QMessageBox.Critical)
-            mBox.exec_()
-            if mBox.clickedButton() == loggerButton:
-                inst.show()
-            elif mBox.clickedButton() == requestButton:
-                import subprocess
-
-                toolPath = os.path.join(
-                    blurdev.activeEnvironment().path(),
-                    'code',
-                    'python',
-                    'tools',
-                    'RequestPimp',
-                    'main.pyw',
-                )
-                body = '[Description]\n\n-------\n%s' % traceback_msg
-                if 'python' in sys.executable:
-                    python_exe = sys.executable
-                else:
-                    if sys.platform == 'win32':
-                        python_exe = r'C:\python27\pythonw.exe'
-                    else:
-                        python_exe = r'/usr/bin/pythonw'
-                subprocess.Popen(
-                    [
-                        python_exe,
-                        toolPath,
-                        '--project',
-                        'pipeline',
-                        '--subject',
-                        traceback_msg.split('\n')[-2],
-                        '--body',
-                        body,
-                    ]
-                )
+            errorDialog = ErrorDialog(blurdev.core.rootWindow())
+            errorDialog.setText(traceback_msg)
+            errorDialog.exec_()
 
             # The messagebox was closed, so reset the tracking variable.
             ConsoleEdit._errorPrompted = False
 
+        ConsoleEdit.clearAdditionalInfo()
+
     @staticmethod
-    def emailError(emails, error, subject=None, information=None):
+    def buildErrorMessage(error, subject=None, information=None, format='html'):
         """
-        Generates and sends a email of the traceback, and usefull information provided by the class if available.
+        Generates a email of the traceback, and useful information provided by the class if available.
         
-            If the erroring class provides the folowing method, what ever text it returns will be included in the email under Additional Information
+            If the erroring class provides the following method, any text it returns will be included in the message under Additional Information
             |	def errorLog(self):
             |		return '[Additional text to include in email]'
-            
-        :param emails: A string of the emails to send to
+
         :param error: The error message to pass along
-        :param subject: If not provided the second to last line of the error is used
         :param information: if provided this string is included under the Information header of the provided email
         """
         if not error:
             return
 
-        # do not email when debugging
-        if debug.debugLevel():
-            return
-
         # get current user
-        username = blurdev.osystem.username()
+        username = getpass.getuser()
         if not username:
             username = 'Anonymous'
 
@@ -295,19 +355,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # Build the message
         envName = blurdev.activeEnvironment().objectName()
-        message = ['<ul>']
-        message.append('<li><b>user: </b>%s</li>' % username)
-        message.append('<li><b>host: </b>%s</li>' % host)
-        message.append(
-            '<li><b>date: </b>%s</li>'
-            % QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
-        )
-        message.append('<li><b>python: </b>%s</li>' % sys.version)
-        message.append('<li><b>executable: </b>%s</li>' % sys.executable)
-        message.append(
-            '<li><b>blurdev env:</b> %s: %s</li>'
-            % (envName, blurdev.activeEnvironment().path())
-        )
+        minfo = {}
+        minfo['username'] = username
+        minfo['hostname'] = host
+        minfo['date'] = QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
+        minfo['pythonversion'] = sys.version.replace('\n', '')
+        minfo['executable'] = sys.executable
+        minfo['blurdevcore'] = blurdev.core.objectName()
+        minfo['blurdevenv'] = '%s: %s' % (envName, blurdev.activeEnvironment().path())
 
         # notify where the error came from
         window = QApplication.activeWindow()
@@ -317,10 +372,17 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         if window.__class__.__name__ == 'LoggerWindow':
             window = window.parent()
 
+        minfo['windowinfo'] = ''
         if window:
-            message.append(
-                '<li><b>window: </b>%s (from %s Class)</li>'
-                % (window.objectName(), window.__class__.__name__)
+            if format == 'html':
+                windowinfo = '<li><b>window: </b>%s (from %s Class)</li>'
+            elif format == 'textile':
+                windowinfo = '* *window:* %s (from %s Class)'
+            else:
+                windowinfo = '%s (from %s Class)'
+            minfo['windowinfo'] = windowinfo % (
+                window.objectName(),
+                window.__class__.__name__,
             )
             className = '[W:%s]' % window.__class__.__name__
 
@@ -339,40 +401,54 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         )
 
         coreMsg = blurdev.core.errorCoreText()
+
+        minfo['coremsg'] = ''
         if coreMsg:
-            message.append('<li><b>blurdev.core Message:</b> %s</li>' % coreMsg)
+            if format == 'html':
+                coremsg = '<li><b>blurdev.core Message:</b> %s</li>'
+            elif format == 'textile':
+                coremsg = '* *blurdev.core Message:* %s'
+            else:
+                coremsg = 'blurdev.core Message: %s'
+            minfo['coremsg'] = coremsg % coreMsg
 
         # Load in any aditional error info from the environment variables
+        minfo['bdevenvinfo'] = ''
         prefix = 'BDEV_EMAILINFO_'
         for key in sorted(os.environ):
             if key.startswith(prefix):
-                message.append(
-                    '<li><b>%s:</b> %s</li>'
-                    % (key[len(prefix) :].replace('_', ' ').lower(), os.environ[key])
+                if format == 'html':
+                    bdevenvinfo = '<li><b>%s:</b> %s</li>'
+                elif format == 'textile':
+                    bdevenvinfo = '* *%s:* %s'
+                else:
+                    bdevenvinfo = '%s: %s'
+
+                minfo['bdevenvinfo'] += bdevenvinfo % (
+                    key[len(prefix) :].replace('_', ' ').lower(),
+                    os.environ[key],
                 )
 
-        message.append('</ul>')
-        message.append('<br>')
-        message.append('<h3>Traceback Printout</h3>')
-        message.append('<hr>')
-        message.append(
-            '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
-        )
-        message.append(unicode(error).replace('\n', '<br>'))
-        message.append('</code></pre></div>')
+        if format == 'html':
+            errorstr = ConsoleEdit.highlightCodeHtml(unicode(error), 'pytb', 'default')
+        else:
+            errorstr = unicode(error)
+        minfo['error'] = errorstr
+
         # append any passed in body text
+        minfo['additionalinfo'] = ''
         for info in (information, ConsoleEdit.additionalInfo()):
             if info is not None:
-                message.append('<h3>Information</h3>')
-                message.append('<hr>')
-                message.append(
-                    '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
-                )
-                try:
-                    message.append(unicode(info).replace('\n', '<br>'))
-                except:
-                    message.append('module.errorLog() generated a error.')
-                message.append('</code></pre></div>')
+                if format == 'html':
+                    addinfo = additionalInfoHtml % {
+                        'info': unicode(info).replace('\n', '<br>')
+                    }
+                elif format == 'textile':
+                    addinfo = additionalInfoTextile % {'info': unicode(info)}
+                else:
+                    addinfo = unicode(info)
+                minfo['additionalinfo'] += addinfo
+
         # append extra stuff
         if hasattr(sys, 'last_traceback'):
             tb = sys.last_traceback
@@ -382,22 +458,51 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     module = frame.f_locals.get('self')
                     if module:
                         if hasattr(module, 'errorLog'):
-                            message.append('<h3>Additional Information</h3>')
-                            message.append('<hr>')
-                            message.append(
-                                '<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>'
-                            )
                             try:
-                                message.append(module.errorLog().replace('\n', '<br>'))
-                            except:
-                                message.append('module.errorLog() generated a error.')
-                            message.append('</code></pre></div>')
+                                errorlog = module.errorLog()
+                            except Exception, e:
+                                modulename = frame.f_globals.get('__name__')
+                                if not modulename:
+                                    modulename = 'module'
+                                errorlog = '%s.errorLog() generated an error: %s' % (
+                                    modulename,
+                                    str(e),
+                                )
+                            if format == 'html':
+                                addinfo = additionalInfoHtml % {
+                                    'info': unicode(errorlog).replace('\n', '<br>')
+                                }
+                            elif format == 'textile':
+                                addinfo = additionalInfoTextile % {
+                                    'info': unicode(errorlog)
+                                }
+                            else:
+                                addinfo = unicode(errorlog)
+                            minfo['additionalinfo'] += addinfo
 
+        if format == 'html':
+            message = messageBodyHtml % minfo
+        elif format == 'textile':
+            message = messageBodyTextile % minfo
+        else:
+            message = messageBodyPlain % minfo
+        return subject, message
+
+    @staticmethod
+    def emailError(emails, error, subject=None, information=None):
+        if not error:
+            return
+
+        # do not email when debugging
+        if debug.debugLevel():
+            return
+
+        subject, message = ConsoleEdit.buildErrorMessage(error, subject, information)
         blurdev.core.sendEmail(
             'thePipe@blur.com',
             emails,
             subject,
-            emailformat % {'subject': subject, 'body': '\n'.join(message)},
+            emailformat % {'subject': subject, 'body': message},
         )
 
     def executeCommand(self):
