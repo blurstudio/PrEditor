@@ -71,6 +71,7 @@ messageBodyHtml = """<ul>
 <li><b>blurdev env:</b> %(blurdevenv)s</li>
 %(windowinfo)s
 %(coremsg)s
+%(bdevenvinfo)s
 </ul>
 <br>
 <h3>Traceback Printout</h3>
@@ -87,6 +88,7 @@ messageBodyTextile = """* *user:* %(username)s
 * *blurdev env:* %(blurdevenv)s
 %(windowinfo)s
 %(coremsg)s
+%(bdevenvinfo)s
 h3. Traceback Printout
 <pre><code class="Python">
 %(error)s</code></pre>
@@ -101,6 +103,7 @@ blurdev core: %(blurdevcore)s
 blurdev env: %(blurdevenv)s
 %(windowinfo)s
 %(coremsg)s
+%(bdevenvinfo)s
 Traceback Printout
 
 %(error)s
@@ -232,7 +235,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.__class__._errorMessageColor = color
 
     @staticmethod
-    def highlightCodeHtml(code, lexer, style, linenos=True, divstyles=None):
+    def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
 
         try:
             from pygments import highlight
