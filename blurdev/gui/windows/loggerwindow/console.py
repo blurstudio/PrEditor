@@ -57,6 +57,7 @@ additionalInfoHtml = """<br><h3>Information</h3>
 </code></pre></div>"""
 
 additionalInfoTextile = """h3. Information
+
 <pre><code class="Python">
 %(info)s
 </code></pre>"""
@@ -88,6 +89,7 @@ messageBodyTextile = """* *user:* %(username)s
 * *blurdev env:* %(blurdevenv)s %(windowinfo)s %(coremsg)s %(bdevenvinfo)s
 
 h3. Traceback Printout
+
 <pre><code class="Python">
 %(error)s</code></pre>
 
