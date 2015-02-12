@@ -159,15 +159,22 @@ def set_trace():
     given point in a program, even if the code is not otherwise being debugged (e.g. when an 
     assertion fails).
     """
-    getPdb().set_trace()
+    bPdb = getPdb()
+    # Use the autoUp feature to step above the call to bPdb.set_trace so the user is at the line
+    # that called this function, not inside this function.
+    bPdb.stdin.setAutoUp(True)
+    bPdb.set_trace()
 
 
 def post_mortem(t=None):
     """ Call getPdb().post_mortem().
     
     Enter post-mortem debugging of the given traceback object. If no traceback is given, it uses the 
-    one of the exception that is currently being handled (an exception must be being handled if the 
-    default is to be used).
+    exception that is currently being handled (for the default to be used, this function must be
+    called from within the except of a try/except statement.)
+    
+    See Also:
+        blurdev.debug.pm()
     
     Args:
         t (traceback): exception to preform a post_mortem on.
@@ -186,6 +193,12 @@ def post_mortem(t=None):
     p = getPdb()
     p.reset()
     p.interaction(None, t)
+
+
+def pm():
+    """ Calls blurdev.debug.post_mortem passing in sys.last_traceback.
+    """
+    post_mortem(sys.last_traceback)
 
 
 # --------------------------------------------------------------------------------

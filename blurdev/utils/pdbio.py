@@ -13,7 +13,24 @@ class PdbBase(object):
 
 
 class PdbInput(PdbBase):
+    # autoUp is used to move the current frame above blurdev.debug.set_trace. This makes the current
+    # frame into your code, not inside the blurdev.debug.set_trace function.
+    _autoUp = False
+
+    @classmethod
+    def autoUp(cls):
+        return cls._autoUp
+
+    @classmethod
+    def setAutoUp(cls, state):
+        cls._autoUp = state
+
     def readline(self):
+        # If autoUp is enabled we need to tell pdb to move up the current frame up to where the user
+        # actually called the pdb command.
+        if self.autoUp():
+            self.setAutoUp(False)
+            return "up"
         out = ''
         active = False
         # Stop the timer checking the pipe so our pdb commands don't disapear

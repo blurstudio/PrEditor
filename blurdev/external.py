@@ -199,7 +199,12 @@ class External(object):
         elif exitMonitorPid and Stone == None:
             print 'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
         blurdev.core.setObjectName('multiprocessing')
-        if parentCore != 'studiomax' and instance.checkIfOrphaned:
+        # Notes: studiomax: max crashes if app.quitOnLastWindowClosed is False.
+        # 		fusion:if True, closing any window/dialog will cause qt to close and python to exit
+        # 		external: pdb auto continue on close is not triggered if app.quitOnLastWindowClosed is false
+        if parentCore == 'fusion' or (
+            parentCore != 'studiomax' and not instance.checkIfOrphaned
+        ):
             # If this is not set, Qt will close when ever a QDialog or QMainWindow is closed
             app = blurdev.application
             app.setQuitOnLastWindowClosed(False)
