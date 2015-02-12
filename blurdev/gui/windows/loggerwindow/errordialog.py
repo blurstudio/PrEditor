@@ -11,6 +11,7 @@ class ErrorDialog(Dialog):
         blurdev.gui.loadUi(__file__, self)
 
         self.parent_ = parent
+        self.requestPimpPID = None
         self.setWindowTitle('Error Occurred')
         self.errorLabel.setTextFormat(Qt.RichText)
         self.iconLabel.setPixmap(
@@ -70,7 +71,7 @@ class ErrorDialog(Dialog):
             self.traceback_msg, format='textile'
         )
         subject = self.traceback_msg.split('\n')[-2]
-        subprocess.Popen(
+        process = subprocess.Popen(
             [
                 python_exe,
                 toolPath,
@@ -82,5 +83,39 @@ class ErrorDialog(Dialog):
                 body,
             ]
         )
-        QTimer.singleShot(5000, self.close)
+        self.requestPimpPID = process.pid
+        QTimer.singleShot(1000, self.waitForRequestPimp)
         self.setCursor(Qt.WaitCursor)
+
+    def waitForRequestPimp(self):
+        # don't attempt this unless we're on the best OS evar
+        if not sys.platform == 'win32':
+            QTimer.singleShot(5000, self.close)
+            return
+        # checks if the pdplayer window has opened yet
+        import win32gui, win32process
+        from PyQt4.QtGui import QMessageBox
+
+        def handleGet(handle, args):
+            if win32gui.IsWindowVisible(handle) and win32gui.IsWindowEnabled(handle):
+                junk, found_pid = win32process.GetWindowThreadProcessId(handle)
+                if found_pid == self.requestPimpPID:
+                    args.append(handle)
+
+        handles = []
+        win32gui.EnumWindows(handleGet, handles)
+
+        if handles:
+            self.close()
+        else:
+            pids = win32process.EnumProcesses()
+            if self.requestPimpPID in pids:
+                QTimer.singleShot(100, self.waitForRequestPimp)
+
+            else:
+                self.setCursor(Qt.ArrowCursor)
+                errorstr = (
+                    'RequestPimp (%s) seems to have crashed before launching.'
+                    % str(self.requestPimpPID)
+                )
+                QMessageBox.warning(self, 'Error', errorstr, QMessageBox.Ok)

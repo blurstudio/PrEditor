@@ -373,6 +373,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # use the root application
         if window.__class__.__name__ == 'LoggerWindow':
             window = window.parent()
+        elif window.__class__.__name__ == 'ErrorDialog':
+            window = window.parent()
 
         minfo['windowinfo'] = ''
         if window:
