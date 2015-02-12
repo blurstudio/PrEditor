@@ -85,13 +85,12 @@ messageBodyTextile = """* *user:* %(username)s
 * *python:* %(pythonversion)s
 * *executable:* %(executable)s
 * *blurdev core:* %(blurdevcore)s
-* *blurdev env:* %(blurdevenv)s
-%(windowinfo)s
-%(coremsg)s
-%(bdevenvinfo)s
+* *blurdev env:* %(blurdevenv)s %(windowinfo)s %(coremsg)s %(bdevenvinfo)s
+
 h3. Traceback Printout
 <pre><code class="Python">
 %(error)s</code></pre>
+
 %(additionalinfo)s"""
 
 messageBodyPlain = """user: %(username)s
@@ -380,9 +379,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             if format == 'html':
                 windowinfo = '<li><b>window: </b>%s (from %s Class)</li>'
             elif format == 'textile':
-                windowinfo = '* *window:* %s (from %s Class)'
+                windowinfo = '\n* *window:* %s (from %s Class)'
             else:
-                windowinfo = '%s (from %s Class)'
+                windowinfo = '\n%s (from %s Class)'
             minfo['windowinfo'] = windowinfo % (
                 window.objectName(),
                 window.__class__.__name__,
@@ -410,9 +409,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             if format == 'html':
                 coremsg = '<li><b>blurdev.core Message:</b> %s</li>'
             elif format == 'textile':
-                coremsg = '* *blurdev.core Message:* %s'
+                coremsg = '\n* *blurdev.core Message:* %s'
             else:
-                coremsg = 'blurdev.core Message: %s'
+                coremsg = '\nblurdev.core Message: %s'
             minfo['coremsg'] = coremsg % coreMsg
 
         # Load in any aditional error info from the environment variables
@@ -423,9 +422,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 if format == 'html':
                     bdevenvinfo = '<li><b>%s:</b> %s</li>'
                 elif format == 'textile':
-                    bdevenvinfo = '* *%s:* %s'
+                    bdevenvinfo = '\n* *%s:* %s'
                 else:
-                    bdevenvinfo = '%s: %s'
+                    bdevenvinfo = '\n%s: %s'
 
                 minfo['bdevenvinfo'] += bdevenvinfo % (
                     key[len(prefix) :].replace('_', ' ').lower(),

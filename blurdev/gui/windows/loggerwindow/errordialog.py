@@ -80,7 +80,6 @@ class ErrorDialog(Dialog):
                 subject,
                 '--additional-info',
                 body,
-                '--dry-run',
             ]
         )
         QTimer.singleShot(5000, self.close)
