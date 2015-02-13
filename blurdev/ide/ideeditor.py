@@ -337,13 +337,13 @@ class IdeEditor(Window):
         # these actions need to have a new triggered call
         self.duplicateAction(menu, self.uiExploreACT, editor.exploreDocument)
         self.duplicateAction(menu, self.uiConsoleACT, editor.launchConsole)
+        act = menu.addAction('Show In Project Tree')
+        act.triggered.connect(editor.selectProjectItem)
         self.duplicateAction(menu, self.uiFindInFilesACT, editor.findInFilesPath)
         menu.addSeparator()
         self.duplicateAction(
             menu, self.uiCopyFilenameACT, editor.copyFilenameToClipboard
         )
-        act = menu.addAction('Show In Project Tree')
-        act.triggered.connect(editor.selectProjectItem)
         menu.addSeparator()
         self.duplicateAction(menu, self.uiReloadFileACT, editor.reloadFile)
         self.duplicateAction(menu, self.uiCloseACT, editor.closeEditor)
@@ -1459,10 +1459,20 @@ class IdeEditor(Window):
         return self._searchText
 
     def selectProjectItem(self, filename):
+        """ For a given filename attempt to select it in the project tree.
+        
+        Args:
+            filename (str): The filepath of the item you want to select
+        
+        Returns:
+            bool: A project item was selected
+        """
+        ret = False
+        filename = os.path.normcase(filename)
         partial = {}
         output = None
         for item in self.uiProjectTREE.itemIterator():
-            fpath = item.filePath()
+            fpath = os.path.normcase(item.filePath())
             if fpath == filename:
                 output = item
                 break
@@ -1483,9 +1493,11 @@ class IdeEditor(Window):
             self.uiProjectTREE.clearSelection()
             output.setSelected(True)
             self.uiProjectTREE.scrollToItem(item, self.uiProjectTREE.PositionAtTop)
+            ret = True
         while output:
             output.setExpanded(True)
             output = output.parent()
+        return ret
 
     def setNoDebug(self):
         from blurdev import debug
