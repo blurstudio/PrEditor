@@ -379,11 +379,11 @@ class IdeEditor(Window):
         import os
 
         if os.path.isfile(path):
-            path = os.path.split(str(path))[0]
+            path = os.path.split(unicode(path))[0]
 
         text, accepted = QInputDialog.getText(self, 'New Folder Name', '')
         if accepted:
-            folder = os.path.join(path, str(text))
+            folder = os.path.join(path, unicode(text))
             try:
                 os.mkdir(folder)
             except:
@@ -410,13 +410,13 @@ class IdeEditor(Window):
             if item:
                 path = item.filePath()
                 if path:
-                    path = os.path.split(str(path))[0]
+                    path = os.path.split(unicode(path))[0]
         else:
-            path = str(
+            path = unicode(
                 self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
             )
             if path:
-                path = os.path.split(str(path))[0]
+                path = os.path.split(unicode(path))[0]
 
         return os.path.normpath(path)
 
@@ -443,7 +443,7 @@ class IdeEditor(Window):
 
         # load an explorer file
         elif self.uiBrowserTAB.currentIndex() == 2:
-            filename = str(
+            filename = unicode(
                 self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
             )
 
@@ -788,7 +788,7 @@ class IdeEditor(Window):
 
             urls = event.mimeData().urls()
             for url in urls:
-                text = str(url.toString())
+                text = unicode(url.toString())
                 if text.startswith('file://'):
                     # striping off only 2 slashes preserves linux functionality
                     filename = text.replace('file://', '')
@@ -866,7 +866,7 @@ class IdeEditor(Window):
             self.currentDocumentChanged.emit()
 
     def editItem(self):
-        filename = str(self.currentFilePath())
+        filename = unicode(self.currentFilePath())
 
         # load the file
         if filename:
@@ -946,7 +946,7 @@ class IdeEditor(Window):
         return self._lastSavedFilename
 
     def load(self, filename, lineno=0, useRegistry=True):
-        filename = os.path.abspath(str(filename))
+        filename = os.path.normcase(os.path.abspath(unicode(filename)))
 
         if not QFileInfo(filename).isFile():
             return False
@@ -956,7 +956,7 @@ class IdeEditor(Window):
 
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
-            if window.widget().filename() == filename:
+            if os.path.normcase(window.widget().filename()) == filename:
                 window.setFocus()
                 return True
 
@@ -968,7 +968,7 @@ class IdeEditor(Window):
             from blurdev import osystem
             from blurdev.ide import RegistryType
 
-            ext = os.path.splitext(str(filename))[-1]
+            ext = os.path.splitext(filename)[-1]
             cmd = self.registry().findCommand(filename)
 
             # run a command line operation on the file
@@ -1021,7 +1021,7 @@ class IdeEditor(Window):
     def projectFindInFiles(self):
         import os.path
 
-        filepath = str(self.currentFilePath())
+        filepath = unicode(self.currentFilePath())
         if os.path.isfile(filepath):
             filepath = os.path.dirname(filepath)
 
@@ -1096,7 +1096,7 @@ class IdeEditor(Window):
     def documentOpenItem(self):
         import os.path
 
-        path = str(self.currentFilePath())
+        path = unicode(self.currentFilePath())
         if os.path.isfile(path):
             self.load(path)
 
@@ -1104,7 +1104,7 @@ class IdeEditor(Window):
         import os
         from blurdev import settings
 
-        path = str(self.currentFilePath())
+        path = unicode(self.currentFilePath())
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
@@ -1167,7 +1167,7 @@ class IdeEditor(Window):
             'toolbarVisibility',
             dict(
                 [
-                    (str(toolbar.windowTitle()), toolbar.isVisible())
+                    (unicode(toolbar.windowTitle()), toolbar.isVisible())
                     for toolbar in self.findChildren(QToolBar)
                 ]
             ),
@@ -1235,7 +1235,7 @@ class IdeEditor(Window):
 
         for window in self.uiWindowsAREA.subWindowList():
             self.uiOpenTREE.addTopLevelItem(
-                QTreeWidgetItem([str(window.windowTitle()).strip('*')])
+                QTreeWidgetItem([unicode(window.windowTitle()).strip('*')])
             )
 
         self.uiOpenTREE.blockSignals(False)
@@ -1308,7 +1308,7 @@ class IdeEditor(Window):
         # restore toolbar visibility
         tbarvis = pref.restoreProperty('toolbarVisibility', {})
         for tbar in self.findChildren(QToolBar):
-            tbar.setVisible(tbarvis.get(str(tbar.windowTitle()), True))
+            tbar.setVisible(tbarvis.get(unicode(tbar.windowTitle()), True))
 
         # restore the run level
         text = pref.restoreProperty('selectedRunLevel', None)
@@ -1399,14 +1399,14 @@ class IdeEditor(Window):
     def runSelected(self):
         project = self.currentProject()
         if project:
-            selected = str(self.uiCommandDDL.currentText())
+            selected = unicode(self.uiCommandDDL.currentText())
             commandList = project.commandList()
             if not selected in commandList:
                 return False
             command = commandList[selected][1]
             if self.uiCommandArgsACT.isVisible():
                 argumentList = project.argumentList()
-                key = str(self.uiCommandArgsDDL.currentText())
+                key = unicode(self.uiCommandArgsDDL.currentText())
                 if key != 'No Args' and key in argumentList:
                     arguments = argumentList[key][1]
                     command += arguments
@@ -1906,7 +1906,7 @@ class IdeEditor(Window):
         # update based on the current environment overrides
         section = globalconfig.section('Editor::Environment')
         for key, value in section.value('variables').items():
-            environ[key] = str(value)
+            environ[key] = unicode(value)
 
         # grab the current config
         config = self.currentConfigSet()
@@ -1923,10 +1923,10 @@ class IdeEditor(Window):
         author = config.section('Common::Author')
         if author:
             # set the environment settings based on the author config
-            environ['BDEV_AUTHOR_EMAIL'] = str(author.value('email'))
-            environ['BDEV_AUTHOR_COMPANY'] = str(author.value('company'))
-            environ['BDEV_AUTHOR_NAME'] = str(author.value('name'))
-            environ['BDEV_AUTHOR_INITIALS'] = str(author.value('initials'))
+            environ['BDEV_AUTHOR_EMAIL'] = unicode(author.value('email'))
+            environ['BDEV_AUTHOR_COMPANY'] = unicode(author.value('company'))
+            environ['BDEV_AUTHOR_NAME'] = unicode(author.value('name'))
+            environ['BDEV_AUTHOR_INITIALS'] = unicode(author.value('initials'))
 
         # set the environment
         os.environ = environ
@@ -1996,7 +1996,7 @@ class IdeEditor(Window):
             self.setWindowTitle(
                 '%s | %s - [%s] - %s'
                 % (
-                    str(blurdev.core.objectName()).capitalize(),
+                    unicode(blurdev.core.objectName()).capitalize(),
                     projtext,
                     path,
                     version.toString(),
@@ -2008,7 +2008,7 @@ class IdeEditor(Window):
             self.setWindowTitle(
                 '%s | %s - %s'
                 % (
-                    str(blurdev.core.objectName()).capitalize(),
+                    unicode(blurdev.core.objectName()).capitalize(),
                     projtext,
                     version.toString(),
                 )
