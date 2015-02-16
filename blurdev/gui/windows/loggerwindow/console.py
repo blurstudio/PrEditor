@@ -6,6 +6,7 @@ import re
 import __main__
 import os
 import sys
+import sip
 import traceback
 import socket
 import getpass
@@ -188,6 +189,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.stdout = None
         self.stderr = None
         ConsoleEdit._excepthook = None
+        self._errorLog = None
         # overload the sys logger (if we are not on a high debugging level)
         if (
             os.path.basename(sys.executable) != 'python.exe'
@@ -200,6 +202,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # insert our own outputs
             sys.stdout = self
             sys.stderr = ErrorLog(self)
+            self._errorLog = sys.stderr
             sys.excepthook = ConsoleEdit.excepthook
 
         # create the highlighter
@@ -760,18 +763,23 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def write(self, msg, error=False):
         """ write the message to the logger """
-        self.moveCursor(QTextCursor.End)
+        if not sip.isdeleted(self):
+            self.moveCursor(QTextCursor.End)
 
-        charFormat = QTextCharFormat()
-        if not error:
-            charFormat.setForeground(QColor(17, 154, 255))
+            charFormat = QTextCharFormat()
+            if not error:
+                charFormat.setForeground(QColor(17, 154, 255))
+            else:
+                charFormat.setForeground(self.errorMessageColor())
+
+            self.setCurrentCharFormat(charFormat)
+            try:
+                self.insertPlainText(msg)
+            except:
+                if SafeOutput:
+                    # win32com writes to the debugger if it is unable to print, so ensure it still does this.
+                    SafeOutput.write(self, msg)
         else:
-            charFormat.setForeground(self.errorMessageColor())
-
-        self.setCurrentCharFormat(charFormat)
-        try:
-            self.insertPlainText(msg)
-        except:
             if SafeOutput:
                 # win32com writes to the debugger if it is unable to print, so ensure it still does this.
                 SafeOutput.write(self, msg)
