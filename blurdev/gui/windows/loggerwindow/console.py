@@ -301,9 +301,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         has occurred and can automatically show the Console view.		
         
         """
-        # Call the base implementation.  This generallly prints the traceback to stderr.
+        # Call the base implementation.  This generaly prints the traceback to stderr.
         if ConsoleEdit._excepthook:
-            ConsoleEdit._excepthook(exctype, value, traceback_)
+            try:
+                ConsoleEdit._excepthook(exctype, value, traceback_)
+            except TypeError:
+                # If the ConsoleEdit is no longer valid because it has been c++ garbage collected
+                sys.__excepthook__(exctype, value, traceback_)
         else:
             sys.__excepthook__(exctype, value, traceback_)
 
