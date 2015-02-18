@@ -1906,7 +1906,8 @@ class IdeEditor(Window):
         # update based on the current environment overrides
         section = globalconfig.section('Editor::Environment')
         for key, value in section.value('variables').items():
-            environ[key] = unicode(value)
+            # Note: These must be str because os.environ gets passed to subprocess
+            environ[key] = str(value)
 
         # grab the current config
         config = self.currentConfigSet()
@@ -1923,10 +1924,11 @@ class IdeEditor(Window):
         author = config.section('Common::Author')
         if author:
             # set the environment settings based on the author config
-            environ['BDEV_AUTHOR_EMAIL'] = unicode(author.value('email'))
-            environ['BDEV_AUTHOR_COMPANY'] = unicode(author.value('company'))
-            environ['BDEV_AUTHOR_NAME'] = unicode(author.value('name'))
-            environ['BDEV_AUTHOR_INITIALS'] = unicode(author.value('initials'))
+            # Note: These must be str because os.environ gets passed to subprocess
+            environ['BDEV_AUTHOR_EMAIL'] = str(author.value('email'))
+            environ['BDEV_AUTHOR_COMPANY'] = str(author.value('company'))
+            environ['BDEV_AUTHOR_NAME'] = str(author.value('name'))
+            environ['BDEV_AUTHOR_INITIALS'] = str(author.value('initials'))
 
         # set the environment
         os.environ = environ
