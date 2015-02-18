@@ -138,9 +138,22 @@ class PythonCompleter(QCompleter):
 
         while -1 < pos:
             char = block[pos]
-            if not re.match('^[a-zA-Z0-9_\.\(\)]$', char):
+            if not re.match("^[a-zA-Z0-9_\.\(\)'\"]$", char):
                 break
             word = char + word
             pos -= 1
+
+        # If the word starts with a opening parentheses, remove it if there is not a matching closing one.
+        if word and word[0] == '(':
+            count = 0
+            # use a simple instance count to check if the opening parentheses is closed
+            for char in word:
+                if char == '(':
+                    count += 1
+                elif char == ')':
+                    count -= 1
+            if count:
+                # the opening parentheses is not closed, remove it
+                word = word[1:]
 
         return str(word)
