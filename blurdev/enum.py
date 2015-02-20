@@ -1,10 +1,330 @@
-""" Python based enumartion class, create and parse binary classes
+import re
+import sys
+from numbers import Number
 
-    The enum module defines a single class -- :class:`enum` -- to act as an 
-    enumerated type similar to the enumerated type present in other languages.
-    
+# =============================================================================
+# CLASSES
+# =============================================================================
+
+
+class _MetaEnumGroup(type):
+    def __new__(cls, className, bases, classDict):
+        newCls = type.__new__(cls, className, bases, classDict)
+        newCls.__init_enums__()
+        return newCls
+
+    def fromValue(self, value):
+        value = int(value)
+        for e in list(self):
+            if int(e) == value:
+                return e
+
+    def keys(self):
+        return [str(e) for e in self._ENUMERATORS]
+
+    def values(self):
+        return [int(e) for e in self._ENUMERATORS]
+
+    def __getitem__(self, key):
+        if isinstance(key, Number):
+            return list(self)[int(key)]
+        else:
+            return getattr(self, str(key))
+
+    def __iter__(self):
+        for e in self._ENUMERATORS:
+            yield e
+
+
+# =============================================================================
+
+
+class Enum(object):
+    """A basic enumerator class.
+
+    Enumerators are named values that act as identifiers.  Typically, a
+    list of enumerators are component pieces of an `EnumGroup`.
+
+    Example:
+        class Suit(Enum):
+            pass
+        
+        class Suits(EnumGroup):
+            Hearts = Suit()
+            Spades = Suit()
+            Clubs = Suit()
+            Diamonds = Suit()
+
+    Enum objects can be combined and compared using binary "and" and "or"
+    operations.
+
+    Example:
+        mySuits = Suits.Hearts | Suits.Spades
+        
+        if Suits.Hearts & mySuits:
+            print "This is true!"
+        
+        if Suits.Clubs & mySuits:
+            print "This is false!"
+
+    Attributes:
+        name: The name of the enumerator.
+        number: The integer value representation of the enumerator.
+        label: The enumerator's label.
+        labelIndex: The enumerator's index within its parent EnumGroup.
+    """
+
+    REMOVEREGEX = re.compile('[_ ]+')
+
+    def __init__(self, number=None, label=None, **kwargs):
+        """Initializes a new Enum object.
+
+        In addition to the named arguments listed below, keyword arguments
+        may be given that will be set as attributes on the Enum.
+
+        Args:
+            number(int): The integer representation of the Enum. The default
+                is to have this number determined dynamically based on its
+                place with the parent EnumGroup.
+            label(str): The Enum's label. The default is to inherit the
+                attribute name the Enum is associated with in its parent
+                EnumGroup.
+        """
+        self._name = None
+        self._number = number
+        self._label = label
+        self._labelIndex = None
+        self._cmpLabel = None
+        self._cmpName = None
+        self._enumGroup = None
+        if kwargs:
+            self.__dict__.update(kwargs)
+
+    @property
+    def name(self):
+        """The name of the Enum."""
+        return self._name
+
+    @property
+    def number(self):
+        """The number representation of the Enum."""
+        return self._number
+
+    @property
+    def label(self):
+        """The Enum's label."""
+        return self._label
+
+    @property
+    def labelIndex(self):
+        """The Enum's index within its parent EnumGroup."""
+        return self._labelIndex
+
+    def _setName(self, name):
+        if name == None:
+            self._name = None
+            self._cmpName = None
+        else:
+            self._name = name
+            self._cmpName = self.toComparisonStr(name)
+
+    def _setLabel(self, label):
+        if label == None:
+            self._label = None
+            self._cmpLabel = None
+        else:
+            self._label = label
+            self._cmpLabel = self.toComparisonStr(label)
+
+    def __and__(self, other):
+        return int(self) & int(other)
+
+    def __or__(self, other):
+        return int(self) | int(other)
+
+    def __hash__(self):
+        return self.number
+
+    def __int__(self):
+        return self.number
+
+    def __str__(self):
+        if self.label is None:
+            return self.name
+        return self.label
+
+    def __cmp__(self, value):
+        if not isinstance(value, Enum):
+            return -1
+        return self.number - value.number
+
+    def __repr__(self):
+        if self._enumGroup == None:
+            enumGroupName = ""
+        else:
+            enumGroupName = self._enumGroup.__name__
+        return '<{mdl}.{cls}.{name}>'.format(
+            mdl=self.__class__.__module__,
+            cls=self.__class__.__name__,
+            name=str(self.name),
+        )
+
+    def __neq__(self, value):
+        return not self.__eq__(value)
+
+    def __eq__(self, value):
+        if value == None:
+            return False
+        if isinstance(value, Enum):
+            return self.number == value.number
+        if isinstance(value, int):
+            return self.number == value
+        if isinstance(value, str) or isinstance(value, unicode):
+            if self._compareStr(value):
+                return True
+        return False
+
+    def _compareStr(self, inStr):
+        cmpStr = self.toComparisonStr(inStr)
+        return cmpStr in (self._cmpLabel, self._cmpName)
+
+    @classmethod
+    def toComparisonStr(cls, value):
+        return cls.REMOVEREGEX.sub('', str(value).lower())
+
+
+# =============================================================================
+
+
+class EnumGroup(object):
+    """A container class for collecting, organizing, and accessing Enums.
+
+    An EnumGroup class is a container for Enum objects.  It provides
+    organizational convenience, and in most cases handles the generation
+    and assignment of Enum numbers, names, and labels.
+
+    Example:
+        class Suit(Enum):
+            pass
+        
+        class Suits(EnumGroup):
+            Hearts = Suit()
+            Spades = Suit()
+            Clubs = Suit()
+            Diamonds = Suit()
+
+    The above example outlines defining an enumerator, and grouping
+    four of them inside of a group.  This provides a number of things,
+    including references by attribute, name, and index.  Also provided
+    is an "All" attribute, if one is not explicitly assigned, that
+    compare true against any members of the group via the binary "and"
+    operator.
+
+    Example:
+        # By attribute.
+        Suits.Hearts
+        
+        # By name.
+        Suits['Hearts']
+        
+        suitList = list(Suits)
+        
+        if Suits.Hearts & Suits.All:
+            print "This is true!"
+
+    Attributes:
+        All: The sum of all members.
+    """
+
+    __metaclass__ = _MetaEnumGroup
+    _ENUMERATORS = None
+    All = 0
+
+    def __init__(self):
+        raise InstantiationError('Unable to instantiate static class EnumGroup.')
+
+    @classmethod
+    def append(cls, *args, **kwargs):
+        """Appends additional enumerators to the EnumGroup.
+
+        New members can be provided as ordered arguments where the
+        each Enum's label is used to determine the attribute name, or
+        by keyword arguments where the key is the attribute name and
+        the Enum is the value.  When using an Enum's label to determine
+        its name, any spaces in the label will be converted to underscores.
+
+        Example:
+            Suits.append(Suit(None, 'Funky'), Foo=Suit())
+
+            # The "Funky" and "Foo" suits are now available.
+            Suits.Funky
+            Suits.Foo
+
+        Raises:
+            ValueError
+        """
+        if [e for e in (list(args) + kwargs.values()) if not isinstance(e, Enum)]:
+            raise ValueError('Given items must be of class Enum.')
+        if [e for e in args if not e.label]:
+            raise ValueError('Enums given as ordered arguments must have a label.')
+        for e in args:
+            setattr(cls, cls._labelToVarName(e.label), e)
+        for n, e in kwargs.iteritems():
+            setattr(cls, n, e)
+        cls.__init_enums__()
+
+    @classmethod
+    def __init_enums__(cls):
+        enums = []
+        for name, value in vars(cls).iteritems():
+            if isinstance(value, Enum):
+                enums.append(value)
+                value._enumGroup = cls
+                value._setName(name)
+                if value.label is None:
+                    value._setLabel(cls._varNameToLabel(name))
+        enumNumbers = [enum.number for enum in enums if enum.number]
+        num = 1
+        for enum in enums:
+            if enum._number == None:
+                while num in enumNumbers:
+                    num *= 2
+                enum._number = num
+                enumNumbers.append(num)
+        enums.sort()
+        labelIndex = 0
+        for enum in enums:
+            if enum._label != None:
+                enum._labelIndex = labelIndex
+                labelIndex += 1
+        cls._ENUMERATORS = enums
+        if isinstance(cls.All, int):
+            cls.All = sum(enumNumbers)
+
+    @classmethod
+    def _varNameToLabel(cls, varName):
+        label = str(varName)
+        label = re.sub(r'[_]+', ' ', label)
+        return label.capitalize()
+
+    @classmethod
+    def _labelToVarName(cls, label):
+        name = str(label)
+        name = re.sub(r'\s+', '_', name)
+        return name
+
+
+# =============================================================================
+
+
+class enum(object):
+    """DEPRECATED: Python based enumerator class.
+
+    This class is deprecated and should be replaced by blurdev.enum.Enum and
+    blurdev.enum.EnumGroup.
+
     A short example::
-    
+
         >>> Colors = enum("Red", "Yellow", "Blue")
         >>> Color.Red
         1
@@ -14,14 +334,8 @@
         4
         >>> Color.labelByValue(Color.Blue)
         'Blue'
-    
-"""
+    """
 
-import re
-import sys
-
-
-class enum(object):
     INDICES = xrange(sys.maxint)  # indices constant to use for looping
 
     def __call__(self, key):
@@ -243,3 +557,15 @@ class enum(object):
         self._descr[value] = descr
 
     matches = classmethod(matches)
+
+
+# =============================================================================
+# EXCEPTIONS
+# =============================================================================
+
+
+class InstantiationError(Exception):
+    pass
+
+
+# =============================================================================
