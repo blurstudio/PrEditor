@@ -15,6 +15,7 @@ import re
 from PyQt4.QtCore import pyqtSignal, pyqtProperty, Qt, QString
 from PyQt4.QtGui import QWidget, QCheckBox, QGridLayout
 from blurdev.gui import Dialog
+from blurdev.enum import EnumGroup
 
 
 class EnumWidget(QWidget):
@@ -62,10 +63,20 @@ class EnumWidget(QWidget):
                     row += 1
                 # create the value checkbox
                 widget = QCheckBox(self)
-                widget.setObjectName(key)
-                widget.setToolTip(self._enumType.description(self._enumType.value(key)))
-                widget.setText(' '.join(re.findall('[A-Z]+[^A-Z]*', key)))
-                enumVal = self._enumType.value(key)
+                if isinstance(self._enumType, EnumGroup):
+                    key = self._enumType[key]
+                    widget.setObjectName(key.name)
+                    if hasattr(key, 'description'):
+                        widget.setToolTip(key.description)
+                    enumVal = key
+                    name = key.label
+                else:
+                    # TODO: remove once blurdev.enum.enum is no longer used
+                    widget.setObjectName(key)
+                    enumVal = self._enumType.value(key)
+                    widget.setToolTip(self._enumType.description(enumVal))
+                    name = key
+                widget.setText(' '.join(re.findall('[A-Z]+[^A-Z]*', name)))
                 widget.setChecked((self.value() & enumVal) == enumVal)
                 widget.toggled.connect(self.recalculateValue)
                 widget.setAttribute(Qt.WA_DeleteOnClose)
@@ -78,7 +89,11 @@ class EnumWidget(QWidget):
         value = 0
         for child in self.findChildren(QCheckBox):
             if child.isChecked():
-                value |= self._enumType.value(unicode(child.objectName()))
+                if isinstance(self._enumType, EnumGroup):
+                    value |= self._enumType[unicode(child.objectName())]
+                else:
+                    # TODO: remove once blurdev.enum.enum is no longer used
+                    value |= self._enumType.value(unicode(child.objectName()))
 
         self._value = value
         self.valueChanged.emit(value)
@@ -88,16 +103,23 @@ class EnumWidget(QWidget):
         self._columnCount = count
         self.recalculateGrid()
 
-    def setEnumType(self, type):
-        self._enumType = type
+    def setEnumType(self, enumType):
+        self._enumType = enumType
         self.recalculateGrid()
 
     def setValue(self, value):
         """ sets the value for this widget """
         self._value = value
+        self.blockSignals(True)
         for child in self.findChildren(QCheckBox):
-            enumVal = self._enumType.value(unicode(child.objectName()))
+            if isinstance(self._enumType, EnumGroup):
+                enumVal = self._enumType[unicode(child.objectName())]
+            else:
+                # TODO: remove once blurdev.enum.enum is no longer used
+                enumVal = self._enumType.value(unicode(child.objectName()))
             child.setChecked((value & enumVal) == enumVal)
+        self.blockSignals(False)
+        self.recalculateValue()
 
     def value(self):
         """ returns the current value state for this widget """
