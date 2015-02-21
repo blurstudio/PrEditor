@@ -9,22 +9,64 @@ from numbers import Number
 
 
 class _MetaEnumGroup(type):
+    """An EnumGroup metaclass.
+    """
+
     def __new__(cls, className, bases, classDict):
         newCls = type.__new__(cls, className, bases, classDict)
         newCls.__init_enums__()
         newCls._cls = cls
+        newCls._clsName = className
+        newCls._clsBases = bases
+        newCls._clsDict = classDict
         return newCls
 
+    def fromLabel(self, label):
+        """Gets an enumerator based on the given label.
+
+        Args:
+            label(str): The label to look up.
+
+        Raises:
+            ValueError
+
+        Returns:
+            Enum
+        """
+        label = str(label)
+        for e in list(self):
+            if e.label == label:
+                return e
+        raise ValueError('No enumerators exist with the given label.')
+
     def fromValue(self, value):
+        """Gets an enumerator based on the given value.
+
+        Args:
+            value(int): The value to look up.
+
+        Raises:
+            ValueError
+
+        Returns:
+            Enum
+        """
         value = int(value)
         for e in list(self):
             if int(e) == value:
                 return e
+        raise ValueError('No enumerators exist with the given value.')
 
-    def keys(self):
-        return [str(e) for e in self._ENUMERATORS]
+    def labels(self):
+        """The labels of all Enums in the EnumGroup."""
+        return [e.label for e in self._ENUMERATORS]
+
+    def names(self):
+        """The names of all Enums in the EnumGroup."""
+        return [e.name for e in self._ENUMERATORS]
 
     def values(self):
+        """The values of all Enums in the EnumGroup."""
         return [int(e) for e in self._ENUMERATORS]
 
     def __getitem__(self, key):
@@ -43,6 +85,16 @@ class _MetaEnumGroup(type):
         if isinstance(inst, cls._cls):
             return True
         return False
+
+    def __str__(self):
+        return '{0}({1})'.format(self._clsName, self.join())
+
+    def __repr__(self):
+        return '<{mdl}.{cls}({enums})>'.format(
+            mdl=self._clsDict.get('__module__', 'unknown'),
+            cls=self._clsName,
+            enums=self.join(),
+        )
 
 
 # =============================================================================
@@ -177,10 +229,6 @@ class Enum(object):
         return self.number - value.number
 
     def __repr__(self):
-        if self._enumGroup == None:
-            enumGroupName = ""
-        else:
-            enumGroupName = self._enumGroup.__name__
         return '<{mdl}.{cls}.{name}>'.format(
             mdl=self.__class__.__module__,
             cls=self.__class__.__name__,
@@ -329,7 +377,7 @@ class EnumGroup(object):
         Returns:
             list(Enum, ...): The list of resulting Enum objects.
         """
-        names = str(string).split(separator)
+        names = str(string).split(str(separator))
         return [getattr(cls, n) for n in names]
 
     @classmethod
