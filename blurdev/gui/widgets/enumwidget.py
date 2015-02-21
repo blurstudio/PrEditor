@@ -56,7 +56,11 @@ class EnumWidget(QWidget):
         row = 0  # current row
         # generate the checkboxes
         if self._enumType:
-            for key in self._enumType.keys():
+            if isinstance(self._enumType, EnumGroup):
+                keys = [et.name for et in self._enumType]
+            else:
+                keys = self._enumType.keys()
+            for key in keys:
                 # create a new row when the column requires it
                 if column == self.columnCount():
                     column = 0
