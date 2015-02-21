@@ -1,5 +1,6 @@
 import re
 import sys
+import inspect
 from numbers import Number
 
 # =============================================================================
@@ -82,7 +83,8 @@ class Enum(object):
         labelIndex: The enumerator's index within its parent EnumGroup.
     """
 
-    REMOVEREGEX = re.compile('[_ ]+')
+    _REMOVEREGEX = re.compile('[_ ]+')
+    _CREATIONORDER = 0
 
     def __init__(self, number=None, label=None, **kwargs):
         """Initializes a new Enum object.
@@ -98,6 +100,8 @@ class Enum(object):
                 attribute name the Enum is associated with in its parent
                 EnumGroup.
         """
+        self._creationOrder = Enum._CREATIONORDER
+        Enum._CREATIONORDER += 1
         self._name = None
         self._number = number
         self._label = label
@@ -198,7 +202,7 @@ class Enum(object):
 
     @classmethod
     def toComparisonStr(cls, value):
-        return cls.REMOVEREGEX.sub('', str(value).lower())
+        return cls._REMOVEREGEX.sub('', str(value).lower())
 
 
 # =============================================================================
@@ -284,13 +288,16 @@ class EnumGroup(object):
     @classmethod
     def __init_enums__(cls):
         enums = []
-        for name, value in vars(cls).iteritems():
-            if isinstance(value, Enum):
-                enums.append(value)
-                value._enumGroup = cls
-                value._setName(name)
-                if value.label is None:
-                    value._setLabel(cls._varNameToLabel(name))
+        orderedEnums = sorted(
+            inspect.getmembers(cls, lambda o: isinstance(o, Enum),),
+            key=lambda i: i[1]._creationOrder,
+        )
+        for name, value in orderedEnums:
+            enums.append(value)
+            value._enumGroup = cls
+            value._setName(name)
+            if value.label is None:
+                value._setLabel(cls._varNameToLabel(name))
         enumNumbers = [enum.number for enum in enums if enum.number]
         num = 1
         for enum in enums:
