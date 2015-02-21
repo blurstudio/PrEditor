@@ -151,8 +151,14 @@ class Enum(object):
     def __and__(self, other):
         return int(self) & int(other)
 
+    def __rand__(self, other):
+        return int(other) & int(self)
+
     def __or__(self, other):
         return int(self) | int(other)
+
+    def __ror__(self, other):
+        return int(other) | int(self)
 
     def __hash__(self):
         return self.number
@@ -284,6 +290,10 @@ class EnumGroup(object):
         for n, e in kwargs.iteritems():
             setattr(cls, n, e)
         cls.__init_enums__()
+
+    @classmethod
+    def join(self, separator=','):
+        return ','.join([str(e) for e in self._ENUMERATORS])
 
     @classmethod
     def __init_enums__(cls):
