@@ -292,7 +292,7 @@ class EnumGroup(object):
         cls.__init_enums__()
 
     @classmethod
-    def join(self, separator=','):
+    def join(cls, include=None, separator=','):
         """Joins all child Enums together into a single string.
 
         The string representation of each Enum is joined using the
@@ -304,7 +304,29 @@ class EnumGroup(object):
         Returns:
             str: The joined enumerators.
         """
-        return ','.join([str(e) for e in self._ENUMERATORS])
+        include = include or cls.All
+        return ','.join([str(e) for e in cls._ENUMERATORS if e & int(include)])
+
+    @classmethod
+    def split(cls, string, separator=','):
+        """Splits the given string and returns the corresponding Enums.
+
+        The string is split using the provided separator, and all names
+        contained within must be attributes of the EnumGroup class that
+        is performing the split.
+
+        Args:
+            string(str): The string containing the desired Enum names.
+            separator(str): The separator to split on.  Default is ','.
+
+        Raises:
+            AttributeError
+
+        Returns:
+            list(Enum, ...): The list of resulting Enum objects.
+        """
+        names = str(string).split(separator)
+        return [getattr(cls, n) for n in names]
 
     @classmethod
     def __init_enums__(cls):
