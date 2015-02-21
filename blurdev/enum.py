@@ -307,7 +307,9 @@ class EnumGroup(object):
             str: The joined enumerators.
         """
         include = include or cls.All
-        return ','.join([str(e) for e in cls._ENUMERATORS if e & int(include)])
+        return str(separator).join(
+            [str(e) for e in cls._ENUMERATORS if e & int(include)]
+        )
 
     @classmethod
     def split(cls, string, separator=','):
