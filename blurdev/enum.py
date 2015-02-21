@@ -306,7 +306,7 @@ class EnumGroup(object):
         Returns:
             str: The joined enumerators.
         """
-        include = include or cls.All
+        include = include == None and cls.All or include
         return str(separator).join(
             [str(e) for e in cls._ENUMERATORS if e & int(include)]
         )
