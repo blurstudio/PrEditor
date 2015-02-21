@@ -299,6 +299,8 @@ class EnumGroup(object):
         given separator.
 
         Args:
+            include(int|Enum): Only enumerators that compare via bitwise "and" against
+                the given int or Enum will be returned.  Default is EnumGroup.All.
             separator(str): The separator to use.  Default is ",".
 
         Returns:
