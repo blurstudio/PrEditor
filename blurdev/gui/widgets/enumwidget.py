@@ -57,6 +57,7 @@ class EnumWidget(QWidget):
         # generate the checkboxes
         if self._enumType:
             if isinstance(self._enumType, EnumGroup):
+                # EnumGroup.keys returns the label value, not the name value.
                 keys = [et.name for et in self._enumType]
             else:
                 keys = self._enumType.keys()
