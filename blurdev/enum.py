@@ -293,6 +293,17 @@ class EnumGroup(object):
 
     @classmethod
     def join(self, separator=','):
+        """Joins all child Enums together into a single string.
+
+        The string representation of each Enum is joined using the
+        given separator.
+
+        Args:
+            separator(str): The separator to use.  Default is ",".
+
+        Returns:
+            str: The joined enumerators.
+        """
         return ','.join([str(e) for e in self._ENUMERATORS])
 
     @classmethod
