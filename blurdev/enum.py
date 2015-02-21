@@ -11,6 +11,7 @@ class _MetaEnumGroup(type):
     def __new__(cls, className, bases, classDict):
         newCls = type.__new__(cls, className, bases, classDict)
         newCls.__init_enums__()
+        newCls._cls = cls
         return newCls
 
     def fromValue(self, value):
@@ -34,6 +35,13 @@ class _MetaEnumGroup(type):
     def __iter__(self):
         for e in self._ENUMERATORS:
             yield e
+
+    def __instancecheck__(cls, inst):
+        if type(inst) == cls:
+            return True
+        if isinstance(inst, cls._cls):
+            return True
+        return False
 
 
 # =============================================================================
