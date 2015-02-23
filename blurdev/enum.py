@@ -439,8 +439,9 @@ class EnumGroup(object):
     @classmethod
     def _varNameToLabel(cls, varName):
         label = str(varName)
-        label = re.sub(r'[_]+', ' ', label)
-        return label.capitalize()
+        label = ' '.join(re.findall('[A-Z]+[^A-Z]*', label))
+        label = re.sub(r'[_\s]+', ' ', label)
+        return label
 
     @classmethod
     def _labelToVarName(cls, label):
