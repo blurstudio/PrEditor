@@ -32,6 +32,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 import os
 import sys
 import datetime
+import time
 import inspect
 import weakref
 
@@ -49,12 +50,46 @@ DebugLevel = enum('Low', 'Mid', 'High')
 
 
 class Stopwatch(object):
-    def __init__(self, name, debugLevel=1):
+    """ Tracks the total time from the creation of the Stopwatch till Stopwatch.stop is called.
+    
+    You can capture lap data as well, this allows you to time the total execution time but also
+    check how long each section of code is taking. While this class takes a blurdev.debug.DebugLevel
+    param that prevent's the class from printing, and this class is designed to take as little time
+    to run as possible, Stopwatch is a profiling class and should be removed from final code.
+    
+    Example:
+        from blurdev.enum import Enum, EnumGroup
+        w = Stopwatch('EnumGroup', useClock=True)
+        w.newLap('Creating Suit')
+        class Suit(Enum): pass
+        w.newLap('Creating Suits')
+        class Suits(EnumGroup):
+            Hearts = Suit(description='A Heart')
+            Spades = Suit(description='A Spade', label='Spades Of Fun')
+            Clubs = Suit(description='A Club')
+            Diamonds = Suit()
+        w.stop()
+        
+        # Will output
+            DEBUG (Low) : time:0.00041085440651 | EnumGroup Stopwatch
+            ------------------------------------------
+                lap: 3.5837767546e-05 | Creating Suit
+                lap: 0.000343445272316 | Creating Suits
+    
+    Args:
+        name (str): The name of the stopwatch used in the final output
+        debugLevel (blurdev.debug.DebugLevel): Minimum debug level required to print this stopwatch
+        useClock (bool): Uses datetime.datetime.now for timing by default, if set to True, use
+                    time.clock. Use this if you need to time on smaller scales.
+    """
+
+    def __init__(self, name, debugLevel=1, useClock=False):
         super(Stopwatch, self).__init__()
         self._name = str(name)
         self._count = 0
         self._debugLevel = debugLevel
         self._lapStack = []
+        self._now = time.clock if useClock else datetime.datetime.now
         self.reset()
 
     def newLap(self, message):
@@ -63,7 +98,7 @@ class Stopwatch(object):
         self.startLap(message)
 
     def reset(self):
-        self._starttime = datetime.datetime.now()
+        self._starttime = self._now()
         self._laptime = None
         self._records = []
         self._laps = []
@@ -71,7 +106,7 @@ class Stopwatch(object):
     def startLap(self, message):
         if _currentLevel < self._debugLevel:
             return False
-        self._lapStack.append((message, datetime.datetime.now()))
+        self._lapStack.append((message, self._now()))
         return True
 
     def stop(self):
@@ -82,7 +117,7 @@ class Stopwatch(object):
         while self._lapStack:
             self.stopLap()
 
-        ttime = str(datetime.datetime.now() - self._starttime)
+        ttime = str(self._now() - self._starttime)
 
         # output the logs
         output = ['time:%s | %s Stopwatch' % (ttime, self._name)]
@@ -96,7 +131,7 @@ class Stopwatch(object):
         if not self._lapStack:
             return False
 
-        curr = datetime.datetime.now()
+        curr = self._now()
         message, sstart = self._lapStack.pop()
         # process the elapsed time
         elapsed = str(curr - sstart)
