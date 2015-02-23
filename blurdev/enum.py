@@ -58,16 +58,16 @@ class _MetaEnumGroup(type):
         raise ValueError('No enumerators exist with the given value.')
 
     def labels(self):
-        """The labels of all Enums in the EnumGroup."""
-        return [e.label for e in self._ENUMERATORS]
+        """A generator containing all Enum labels in the EnumGroup."""
+        return (e.label for e in self._ENUMERATORS)
 
     def names(self):
-        """The names of all Enums in the EnumGroup."""
-        return [e.name for e in self._ENUMERATORS]
+        """A generator containing all Enum names in the EnumGroup."""
+        return (e.name for e in self._ENUMERATORS)
 
     def values(self):
-        """The values of all Enums in the EnumGroup."""
-        return [int(e) for e in self._ENUMERATORS]
+        """A generator containing all Enum values in the EnumGroup."""
+        return (int(e) for e in self._ENUMERATORS)
 
     def __getitem__(self, key):
         if isinstance(key, Number):
