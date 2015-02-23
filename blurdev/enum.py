@@ -219,9 +219,7 @@ class Enum(object):
         return self.number
 
     def __str__(self):
-        if self.label is None:
-            return self.name
-        return self.label
+        return self.name
 
     def __cmp__(self, value):
         if not isinstance(value, Enum):
