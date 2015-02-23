@@ -170,11 +170,11 @@ class Enum(object):
                 super(CompositeEnum, ss).__init__(number, lbl)
                 ss._name = name
 
-        # Register out composite enum class as a virtual
+        # Register our composite enum class as a virtual
         # subclass of this enum's class, plus the same for
-        # the other enum if it itself an Enum object.  This
-        # will make the composite isinstance check true against
-        # both.
+        # the other enum if it's an Enum object.  This
+        # will make the composite enum isinstance check true
+        # against both.
         self.__class__.register(CompositeEnum)
         if isinstance(other, Enum):
             other.__class__.register(CompositeEnum)
