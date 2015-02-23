@@ -66,6 +66,9 @@ class DocumentEditor(QsciScintilla):
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
         # this is caused because multiple signals are emitted and processed.
         self._dialogShown = False
+        # used to store perminately highlighted keywords
+        self._permaHighlight = []
+        self._highlightedKeywords = ''
         self.setSmartHighlightingRegEx()
 
         # intialize settings
@@ -396,6 +399,16 @@ class DocumentEditor(QsciScintilla):
         if newlineN != -1:
             return self.EolUnix
         return self.EolMac
+
+    def editPermaHighlight(self):
+        text, success = QInputDialog.getText(
+            self,
+            'Edit PermaHighlight keywords',
+            'Add keywords separated by a space',
+            text=' '.join(self.permaHighlight()),
+        )
+        if success:
+            self.setPermaHighlight(unicode(text).split(' '))
 
     def enableFileWatching(self, state):
         """
@@ -835,6 +848,17 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(text)
         return super(DocumentEditor, self).paste()
 
+    def permaHighlight(self):
+        return self._permaHighlight
+
+    def setPermaHighlight(self, value):
+        print 'Value', value
+        if not isinstance(value, list):
+            raise TypeError('PermaHighlight must be a list')
+        self._permaHighlight = value
+        lexer = self.lexer()
+        self.setHighlightedKeywords(lexer, self._highlightedKeywords)
+
     def redo(self):
         super(DocumentEditor, self).redo()
         self.refreshTitle()
@@ -1111,6 +1135,10 @@ class DocumentEditor(QsciScintilla):
         # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
+        if self._showSmartHighlighting:
+            act = menu.addAction('Edit PermaHighlight keywords')
+            act.setIcon(QIcon(blurdev.resourcePath('img/ide/highlighter.png')))
+            act.triggered.connect(self.editPermaHighlight)
 
         menu.addSeparator()
 
@@ -1335,8 +1363,8 @@ class DocumentEditor(QsciScintilla):
             :param		lexer		<QSciLexer>	Update this lexer and set as the lexer on the document.
             :param		keywords	<str>	keywords to highlight
         """
-
-        lexer.highlightedKeywords = keywords
+        self._highlightedKeywords = keywords
+        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [unicode(keywords)])
         marginFont = self.marginsFont()
         foldMarginColors = self.foldMarginColors()
         marginBackground = self.marginsBackgroundColor()
