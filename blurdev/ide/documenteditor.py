@@ -1136,7 +1136,7 @@ class DocumentEditor(QsciScintilla):
         act.triggered.connect(self.goToDefinition)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
         if self._showSmartHighlighting:
-            act = menu.addAction('Edit PermaHighlight keywords')
+            act = menu.addAction('Edit PermaHighlight')
             act.setIcon(QIcon(blurdev.resourcePath('img/ide/highlighter.png')))
             act.triggered.connect(self.editPermaHighlight)
 
