@@ -1,3 +1,4 @@
+import abc
 import re
 import sys
 import inspect
@@ -87,6 +88,7 @@ class Enum(object):
         labelIndex: The enumerator's index within its parent EnumGroup.
     """
 
+    __metaclass__ = abc.ABCMeta
     _REMOVEREGEX = re.compile('[_ ]+')
     _CREATIONORDER = 0
 
@@ -159,10 +161,27 @@ class Enum(object):
         return int(other) & int(self)
 
     def __or__(self, other):
-        return int(self) | int(other)
+        value = int(self) | int(other)
+        label = '{0} {1}'.format(str(self), str(other))
+        name = '{0}_{1}'.format(str(self), str(other))
+
+        class CompositeEnum(Enum):
+            def __init__(ss, number, lbl, name):
+                super(CompositeEnum, ss).__init__(number, lbl)
+                ss._name = name
+
+        # Register out composite enum class as a virtual
+        # subclass of this enum's class, plus the same for
+        # the other enum if it itself an Enum object.  This
+        # will make the composite isinstance check true against
+        # both.
+        self.__class__.register(CompositeEnum)
+        if isinstance(other, Enum):
+            other.__class__.register(CompositeEnum)
+        return CompositeEnum(value, label, name)
 
     def __ror__(self, other):
-        return int(other) | int(self)
+        return self | other
 
     def __hash__(self):
         return self.number
@@ -171,7 +190,10 @@ class Enum(object):
         return self.number
 
     def __str__(self):
-        return self.name
+        if self.name:
+            return self.name
+        else:
+            return self.label
 
     def __cmp__(self, value):
         if not isinstance(value, Enum):
