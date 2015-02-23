@@ -21,54 +21,6 @@ class _MetaEnumGroup(type):
         newCls._clsDict = classDict
         return newCls
 
-    def fromLabel(self, label):
-        """Gets an enumerator based on the given label.
-
-        Args:
-            label(str): The label to look up.
-
-        Raises:
-            ValueError
-
-        Returns:
-            Enum
-        """
-        label = str(label)
-        for e in list(self):
-            if e.label == label:
-                return e
-        raise ValueError('No enumerators exist with the given label.')
-
-    def fromValue(self, value):
-        """Gets an enumerator based on the given value.
-
-        Args:
-            value(int): The value to look up.
-
-        Raises:
-            ValueError
-
-        Returns:
-            Enum
-        """
-        value = int(value)
-        for e in list(self):
-            if int(e) == value:
-                return e
-        raise ValueError('No enumerators exist with the given value.')
-
-    def labels(self):
-        """A generator containing all Enum labels in the EnumGroup."""
-        return (e.label for e in self._ENUMERATORS)
-
-    def names(self):
-        """A generator containing all Enum names in the EnumGroup."""
-        return (e.name for e in self._ENUMERATORS)
-
-    def values(self):
-        """A generator containing all Enum values in the EnumGroup."""
-        return (int(e) for e in self._ENUMERATORS)
-
     def __getitem__(self, key):
         if isinstance(key, Number):
             return list(self)[int(key)]
@@ -338,6 +290,44 @@ class EnumGroup(object):
         cls.__init_enums__()
 
     @classmethod
+    def fromLabel(cls, label):
+        """Gets an enumerator based on the given label.
+
+        Args:
+            label(str): The label to look up.
+
+        Raises:
+            ValueError
+
+        Returns:
+            Enum
+        """
+        label = str(label)
+        for e in cls._ENUMERATORS:
+            if e.label == label:
+                return e
+        raise ValueError('No enumerators exist with the given label.')
+
+    @classmethod
+    def fromValue(cls, value):
+        """Gets an enumerator based on the given value.
+
+        Args:
+            value(int): The value to look up.
+
+        Raises:
+            ValueError
+
+        Returns:
+            Enum
+        """
+        value = int(value)
+        for e in cls._ENUMERATORS:
+            if int(e) == value:
+                return e
+        raise ValueError('No enumerators exist with the given value.')
+
+    @classmethod
     def join(cls, include=None, separator=','):
         """Joins all child Enums together into a single string.
 
@@ -356,6 +346,16 @@ class EnumGroup(object):
         return str(separator).join(
             [str(e) for e in cls._ENUMERATORS if e & int(include)]
         )
+
+    @classmethod
+    def labels(cls):
+        """A generator containing all Enum labels in the EnumGroup."""
+        return (e.label for e in cls._ENUMERATORS)
+
+    @classmethod
+    def names(cls):
+        """A generator containing all Enum names in the EnumGroup."""
+        return (e.name for e in cls._ENUMERATORS)
 
     @classmethod
     def split(cls, string, separator=','):
@@ -377,6 +377,11 @@ class EnumGroup(object):
         """
         names = str(string).split(str(separator))
         return [getattr(cls, n) for n in names]
+
+    @classmethod
+    def values(cls):
+        """A generator containing all Enum values in the EnumGroup."""
+        return (int(e) for e in cls._ENUMERATORS)
 
     @classmethod
     def __init_enums__(cls):
