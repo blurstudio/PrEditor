@@ -39,10 +39,6 @@ class _MetaEnumGroup(type):
         else:
             return getattr(self, str(key))
 
-    def __iter__(self):
-        for e in self._ENUMERATORS:
-            yield e
-
     def __instancecheck__(cls, inst):
         if type(inst) == cls:
             return True
@@ -50,8 +46,12 @@ class _MetaEnumGroup(type):
             return True
         return False
 
-    def __str__(self):
-        return '{0}({1})'.format(self._clsName, self.join())
+    def __iter__(self):
+        for e in self._ENUMERATORS:
+            yield e
+
+    def __len__(self):
+        return len(self._ENUMERATORS)
 
     def __repr__(self):
         return '<{mdl}.{cls}({enums})>'.format(
@@ -59,6 +59,41 @@ class _MetaEnumGroup(type):
             cls=self._clsName,
             enums=self.join(),
         )
+
+    def __str__(self):
+        return '{0}({1})'.format(self._clsName, self.join())
+
+    def __getattr__(self, name):
+        """This is entirely for backwards compatibility.
+
+        This should/will be removed once a full transition is made.
+        This is primarily required because there will be a period
+        of time when trax.api is going out using the new EnumGroup
+        setup, but there will be a time when not everyone has the
+        update installed.
+        """
+        # Construct an old enum from our EnumGroup.  If we have
+        # descriptions for our new-style Enums, which is not
+        # guaranteed, then we will set them.  Otherwise we will
+        # give it an empty string.
+        kwargs = dict()
+        descriptions = dict()
+        for e in self._ENUMERATORS:
+            kwargs[e.name] = e.number
+            try:
+                descriptions[e.name] = e.description
+            except AttributeError:
+                descriptions[e.number] = ''
+        oldEnum = enum(**kwargs)
+        for number, desc in descriptions.iteritems():
+            oldEnum.setDescription(number, desc)
+        # Try and return the attribute from the old-style enum.
+        try:
+            return getattr(oldEnum, name)
+        except AttributeError:
+            raise AttributeError(
+                "'EnumGroup' object has no attribute '{}'".format(name)
+            )
 
 
 # =============================================================================
