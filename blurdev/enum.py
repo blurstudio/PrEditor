@@ -206,6 +206,9 @@ class Enum(object):
     def __rand__(self, other):
         return int(other) & int(self)
 
+    def __not__(self):
+        return ~int(self)
+
     def __or__(self, other):
         value = int(self) | int(other)
         label = '{0} {1}'.format(str(self), str(other))
@@ -270,6 +273,9 @@ class Enum(object):
             if self._compareStr(value):
                 return True
         return False
+
+    def __xor__(self, other):
+        return int(self) ^ int(other)
 
     def _compareStr(self, inStr):
         cmpStr = self.toComparisonStr(inStr)
