@@ -284,6 +284,20 @@ class EnumGroup(object):
         if Suits.Hearts & Suits.All:
             print "This is true!"
 
+    An EnumGroup can also act as a factory for composite Enum objects.
+    If a known composite value is available, like 3, which is the
+    combination of enum values 1 and 2, a composite Enum object can
+    be constructed.
+
+    Example:
+        comp = Suits(3)
+
+        if Suits.Hearts & comp:
+            print "This is true!"
+
+        if Suits.Clubs & comp:
+            print "This is false!"
+
     Attributes:
         All: The sum of all members.
     """
