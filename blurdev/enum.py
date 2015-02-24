@@ -22,6 +22,17 @@ class _MetaEnumGroup(type):
         newCls._clsDict = classDict
         return newCls
 
+    def __call__(self, number):
+        number = int(number)
+        e = None
+        for enum in self._ENUMERATORS:
+            if enum & number:
+                if e:
+                    e = e | enum
+                else:
+                    e = enum
+        return e
+
     def __getitem__(self, key):
         if isinstance(key, Number):
             return list(self)[int(key)]
@@ -188,6 +199,9 @@ class Enum(object):
 
     def __int__(self):
         return self.number
+
+    def __call__(self):
+        return int(self)
 
     def __str__(self):
         if self.name:
