@@ -363,10 +363,12 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
             if ext == '.pyw':
                 cmd = pythonPath() + ' "%(filepath)s"'
             if cmd:
+                print 1
                 success = subprocess.Popen(
                     'cmd.exe /k %s' % cmd % options, env=env, cwd=basePath
                 )
             else:
+                print 2
                 success = subprocess.Popen(
                     'cmd.exe /k "%s"' % filename, env=env, cwd=basePath
                 )
@@ -399,6 +401,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
 
             # run the file
             options['filepath'] = tempfilename
+            print 3
             success = subprocess.Popen(debugcmd % options, shell=True)
 
         return success
@@ -408,10 +411,15 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         # run the command in windows
         if settings.OS_TYPE == 'Windows':
             if cmd:
+                print 4
+                print 'cmd', cmd
+                print 'options', options
+                print 'cmd + options', cmd % options
                 success = subprocess.Popen(
                     cmd % options, shell=True, cwd=basePath, env=env
                 )
             else:
+                print 5, [filename, basePath]
                 success = subprocess.Popen(
                     '"%s"' % filename, cwd=basePath, env=env, shell=True
                 )
@@ -424,11 +432,14 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         # in other platforms, we'll use subprocess.Popen
         else:
             if cmd:
+                print 6
                 success = subprocess.Popen(cmd % options, shell=True)
             else:
+                print 7
                 cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
                 if not cmd:
                     return False
+                print 8
                 success = subprocess.Popen(cmd % options, shell=True)
 
     return success

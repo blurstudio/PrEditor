@@ -914,7 +914,8 @@ class IdeEditor(Window):
 
         # restore initial files in the same order
         for filename in self._initfiles:
-            self.load(filename)
+            # Force the document to load in the IDE, do not attempt to run it.
+            self.load(filename, useRegistry=False)
 
         # initialize the logger
         import blurdev
