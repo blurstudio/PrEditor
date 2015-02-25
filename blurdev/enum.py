@@ -203,11 +203,37 @@ class Enum(object):
     def __and__(self, other):
         return int(self) & int(other)
 
-    def __rand__(self, other):
-        return int(other) & int(self)
+    def __call__(self):
+        return int(self)
 
-    def __not__(self):
+    def __cmp__(self, value):
+        if not isinstance(value, Enum):
+            return -1
+        return self.number - value.number
+
+    def __eq__(self, value):
+        if value == None:
+            return False
+        if isinstance(value, Enum):
+            return self.number == value.number
+        if isinstance(value, int):
+            return self.number == value
+        if isinstance(value, str) or isinstance(value, unicode):
+            if self._compareStr(value):
+                return True
+        return False
+
+    def __hash__(self):
+        return self.number
+
+    def __int__(self):
+        return self.number
+
+    def __invert__(self):
         return ~int(self)
+
+    def __neq__(self, value):
+        return not self.__eq__(value)
 
     def __or__(self, other):
         value = int(self) | int(other)
@@ -229,28 +255,8 @@ class Enum(object):
             other.__class__.register(CompositeEnum)
         return CompositeEnum(value, label, name)
 
-    def __ror__(self, other):
-        return self | other
-
-    def __hash__(self):
-        return self.number
-
-    def __int__(self):
-        return self.number
-
-    def __call__(self):
-        return int(self)
-
-    def __str__(self):
-        if self.name:
-            return self.name
-        else:
-            return self.label
-
-    def __cmp__(self, value):
-        if not isinstance(value, Enum):
-            return -1
-        return self.number - value.number
+    def __rand__(self, other):
+        return int(other) & int(self)
 
     def __repr__(self):
         return '<{mdl}.{cls}.{name}>'.format(
@@ -259,20 +265,17 @@ class Enum(object):
             name=str(self.name),
         )
 
-    def __neq__(self, value):
-        return not self.__eq__(value)
+    def __ror__(self, other):
+        return self | other
 
-    def __eq__(self, value):
-        if value == None:
-            return False
-        if isinstance(value, Enum):
-            return self.number == value.number
-        if isinstance(value, int):
-            return self.number == value
-        if isinstance(value, str) or isinstance(value, unicode):
-            if self._compareStr(value):
-                return True
-        return False
+    def __rxor__(self, other):
+        return self ^ other
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        else:
+            return self.label
 
     def __xor__(self, other):
         return int(self) ^ int(other)
