@@ -31,10 +31,24 @@ from . import settings
 
 
 # Get the active version of python, not a hard coded value.
-def pythonPath():
+def pythonPath(pyw=False, architecture=None):
     if settings.OS_TYPE != 'Windows':
         return 'python'
-    return r'%s\python.exe' % os.path.split(get_python_inc())[0]
+    # Attempt to get the basepath from the registry
+    try:
+        basepath, typ = blurdev.osystem.registryValue(
+            'HKEY_LOCAL_MACHINE',
+            r'SOFTWARE\Python\PythonCore\2.7\InstallPath',
+            '',
+            architecture=architecture,
+        )
+    except WindowsError:
+        basepath = ''
+    if not basepath:
+        # Unable to pull the path from the registry just use the current python path
+        basepath = os.path.split(get_python_inc())[0]
+    # build the path to the python executable. If requested use pythonw instead of python
+    return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
 
 
 EXTENSION_MAP = {}
@@ -292,7 +306,7 @@ def shell(command, basepath='', persistent=False):
     return success
 
 
-def startfile(filename, debugLevel=None, basePath='', cmd=None):
+def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=None):
     """
     Runs the filename in a shell with proper commands given, or passes 
     the command to the shell. (CMD in windows) the current platform
@@ -329,8 +343,11 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
     if cmd is None:
         if filename.startswith('http://'):
             cmd = expandvars(os.environ.get('BDEV_CMD_WEB', ''))
-        elif ext == ".py":
-            cmd = pythonPath() + ' "%(filepath)s"'
+        elif ext in (".py", ".pyw"):
+            cmd = (
+                pythonPath(pyw=ext == ".pyw", architecture=architecture)
+                + ' "%(filepath)s"'
+            )
         else:
             cmd = expandvars(os.environ.get(EXTENSION_MAP.get(ext, ''), ''))
 
@@ -361,14 +378,14 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         if settings.OS_TYPE == 'Windows':
             # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
             if ext == '.pyw':
-                cmd = pythonPath() + ' "%(filepath)s"'
+                cmd = (
+                    pythonPath(pyw=False, architecture=architecture) + ' "%(filepath)s"'
+                )
             if cmd:
-                print 1
                 success = subprocess.Popen(
                     'cmd.exe /k %s' % cmd % options, env=env, cwd=basePath
                 )
             else:
-                print 2
                 success = subprocess.Popen(
                     'cmd.exe /k "%s"' % filename, env=env, cwd=basePath
                 )
@@ -401,25 +418,18 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
 
             # run the file
             options['filepath'] = tempfilename
-            print 3
             success = subprocess.Popen(debugcmd % options, shell=True)
 
         return success
-
     # otherwise run it directly
     else:
         # run the command in windows
         if settings.OS_TYPE == 'Windows':
             if cmd:
-                print 4
-                print 'cmd', cmd
-                print 'options', options
-                print 'cmd + options', cmd % options
                 success = subprocess.Popen(
                     cmd % options, shell=True, cwd=basePath, env=env
                 )
             else:
-                print 5, [filename, basePath]
                 success = subprocess.Popen(
                     '"%s"' % filename, cwd=basePath, env=env, shell=True
                 )
@@ -432,16 +442,12 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None):
         # in other platforms, we'll use subprocess.Popen
         else:
             if cmd:
-                print 6
                 success = subprocess.Popen(cmd % options, shell=True)
             else:
-                print 7
                 cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
                 if not cmd:
                     return False
-                print 8
                 success = subprocess.Popen(cmd % options, shell=True)
-
     return success
 
 
@@ -463,3 +469,101 @@ def username():
     except getpass.GetPassWarning:
         pass
     return ''
+
+
+# --------------------------------------------------------------------------------
+# 								Read registy values
+# --------------------------------------------------------------------------------
+def getRegKey(registry, key, architecture=None):
+    """ Returns a _winreg hkey or none.
+    
+    Args:
+        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
+    
+    Returns:
+        A _winreg handle object
+    """
+    # Do not want to import _winreg unless it is neccissary
+    regKey = None
+    import _winreg
+
+    aReg = _winreg.ConnectRegistry(None, getattr(_winreg, registry))
+    if architecture == 32:
+        sam = _winreg.KEY_WOW64_32KEY
+    elif architecture == 64:
+        sam = _winreg.KEY_WOW64_64KEY
+    else:
+        sam = 0
+    try:
+        regKey = _winreg.OpenKey(aReg, key, 0, _winreg.KEY_READ | sam)
+    except WindowsError:
+        pass
+    return regKey
+
+
+def listRegKeyValues(registry, key, architecture=None):
+    """ Returns a list of child keys and their values as tuples.
+    
+    Each tuple contains 3 items.
+        - A string that identifies the value name
+        - An object that holds the value data, and whose type depends on the underlying registry type
+        - An integer that identifies the type of the value data (see table in docs for _winreg.SetValueEx)
+    
+    Args:
+        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
+    
+    Returns:
+        List of tuples
+    """
+    import _winreg
+
+    regKey = getRegKey(registry, key, architecture=architecture)
+    ret = []
+    if regKey:
+        subKeys, valueCount, modified = _winreg.QueryInfoKey(regKey)
+        for index in range(valueCount):
+            ret.append(_winreg.EnumValue(regKey, index))
+    return ret
+
+
+def listRegKeys(registry, key, architecture=None):
+    import _winreg
+
+    regKey = getRegKey(registry, key, architecture=architecture)
+    ret = []
+    if regKey:
+        index = 0
+        while True:
+            try:
+                ret.append(_winreg.EnumKey(regKey, index))
+                index += 1
+            except WindowsError:
+                break
+    return ret
+
+
+def registryValue(registry, key, value_name, architecture=None):
+    """ Returns the value and type of the provided registry key's value name.
+    
+    Args:
+        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        value_name (str): The name of the value to read. To read the '(Default)' key pass a 
+            empty string.
+        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
+    
+    Returns:
+        object: Value stored in key
+        int: registry type for value. See _winreg's Value Types
+    """
+    # Do not want to import _winreg unless it is neccissary
+    regKey = getRegKey(registry, key, architecture=architecture)
+    if regKey:
+        import _winreg
+
+        return _winreg.QueryValueEx(regKey, value_name)
+    return '', 0

@@ -42,11 +42,25 @@ class Tool(QObject):
         self._version = ''
         self._icon = ''
         self._toolType = 0
+        self._architecture = None
         self._favorite = False
         self._favoriteGroup = None
         self._header = None
         self._disabled = False
         self._usagestatsEnabled = True
+
+    def architecture(self):
+        """ This tool needs to run in this architecture (32bit or 64bit) when running externally
+        
+        If this tool is run by external treegrunt, launch the tool with this version of python if
+        possible. If None the system default will be used.
+        """
+        return self._architecture
+
+    def setArchitecture(self, architecture):
+        if isinstance(architecture, basestring):
+            architecture = int(architecture)
+        self._architecture = architecture
 
     def disabled(self):
         return self._disabled
@@ -65,11 +79,15 @@ class Tool(QObject):
         """
         # run standalone
         if self.toolType() & ToolType.LegacyExternal:
-            blurdev.core.runStandalone(self.sourcefile())
+            blurdev.core.runStandalone(
+                self.sourcefile(), architecture=self.architecture()
+            )
         else:
             blurdev.core.runScript(
-                self.sourcefile(), toolName=self.displayName()
-            )  # , toolType = self.toolType() )
+                self.sourcefile(),
+                toolName=self.displayName(),
+                architecture=self.architecture(),
+            )
 
         # Log what tool was used and when.
         if self._usagestatsEnabled:
@@ -248,6 +266,7 @@ class Tool(QObject):
                 data.findProperty('usagestats', 'true').lower() == 'true'
             )
             output.setToolTip(data.findProperty('toolTip', ''))
+            output.setArchitecture(data.findProperty('architecture', None))
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))

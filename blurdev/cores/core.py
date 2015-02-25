@@ -881,12 +881,26 @@ class Core(QObject):
         return False
 
     def runStandalone(
-        self, filename, debugLevel=None, basePath='', environ=None, paths=None
+        self,
+        filename,
+        debugLevel=None,
+        basePath='',
+        environ=None,
+        paths=None,
+        architecture=None,
     ):
-        blurdev.osystem.startfile(filename, debugLevel, basePath)
+        blurdev.osystem.startfile(
+            filename, debugLevel, basePath, architecture=architecture
+        )
 
     def runScript(
-        self, filename='', scope=None, argv=None, toolType=None, toolName=None
+        self,
+        filename='',
+        scope=None,
+        argv=None,
+        toolType=None,
+        toolName=None,
+        architecture=None,
     ):
         """
         Runs an inputed file in the best way this core knows how
@@ -937,7 +951,7 @@ class Core(QObject):
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
                 if self.objectName() in ('external', 'treegrunt'):
-                    self.runStandalone(filename)
+                    self.runStandalone(filename, architecture=architecture)
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)
