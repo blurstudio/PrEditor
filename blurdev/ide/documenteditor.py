@@ -41,6 +41,7 @@ class DocumentEditor(QsciScintilla):
 
     def __init__(self, parent, filename='', lineno=0):
         self._showSmartHighlighting = True
+        self._smartHighlightingSupported = False
         QsciScintilla.__init__(self, parent)
 
         # create custom properties
@@ -852,12 +853,14 @@ class DocumentEditor(QsciScintilla):
         return self._permaHighlight
 
     def setPermaHighlight(self, value):
-        print 'Value', value
         if not isinstance(value, list):
             raise TypeError('PermaHighlight must be a list')
-        self._permaHighlight = value
         lexer = self.lexer()
-        self.setHighlightedKeywords(lexer, self._highlightedKeywords)
+        if self._smartHighlightingSupported:
+            self._permaHighlight = value
+            self.setHighlightedKeywords(lexer, self._highlightedKeywords)
+        else:
+            raise TypeError('PermaHighlight is not supported by this lexer.')
 
     def redo(self):
         super(DocumentEditor, self).redo()
@@ -1102,12 +1105,14 @@ class DocumentEditor(QsciScintilla):
             self.selectionChanged.disconnect(self.updateHighlighter)
         except:
             pass
+        self._smartHighlightingSupported = False
+        lexer = self.lexer()
         # connect to signal if enabling and possible
-        if hasattr(self.lexer(), 'highlightedKeywords'):
+        if hasattr(lexer, 'highlightedKeywords'):
             if state:
                 self.selectionChanged.connect(self.updateHighlighter)
+                self._smartHighlightingSupported = True
             else:
-                lexer = self.lexer()
                 self.setHighlightedKeywords(self.lexer(), '')
 
     def setShowWhitespaces(self, state):
@@ -1135,7 +1140,7 @@ class DocumentEditor(QsciScintilla):
         # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
-        if self._showSmartHighlighting:
+        if self._showSmartHighlighting and self._smartHighlightingSupported:
             act = menu.addAction('Edit PermaHighlight')
             act.setIcon(QIcon(blurdev.resourcePath('img/ide/highlighter.png')))
             act.triggered.connect(self.editPermaHighlight)
