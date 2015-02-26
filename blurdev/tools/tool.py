@@ -45,6 +45,7 @@ class Tool(QObject):
         self._architecture = None
         self._favorite = False
         self._favoriteGroup = None
+        self._redistributable = True
         self._header = None
         self._disabled = False
         self._usagestatsEnabled = True
@@ -158,6 +159,13 @@ class Tool(QObject):
     def projectFile(self):
         return self.relativePath('%s.blurproj' % self.displayName())
 
+    def redistributable(self):
+        """ If False, this tool should be excluded from offsite distro. """
+        return self._redistributable
+
+    def setRedistributable(self, state):
+        self._redistributable = state
+
     def relativePath(self, relpath):
         output = os.path.join(self.path(), relpath)
         return output
@@ -267,6 +275,9 @@ class Tool(QObject):
             )
             output.setToolTip(data.findProperty('toolTip', ''))
             output.setArchitecture(data.findProperty('architecture', None))
+            output.setRedistributable(
+                data.findProperty('redistributable', 'true').capitalize() == 'True'
+            )
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))

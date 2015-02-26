@@ -398,6 +398,14 @@ class ToolsIndex(QObject):
 
         return output
 
+    def findToolsByRedistributable(self, state):
+        """ Return a list of tools with redistributable set to the provided boolean value """
+        return [
+            tool
+            for tool in blurdev.activeEnvironment().index().tools()
+            if tool.redistributable() == state
+        ]
+
     def saveFavorites(self):
         # load favorites
         if self._favoritesLoaded:
