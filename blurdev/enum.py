@@ -201,7 +201,9 @@ class Enum(object):
             self._cmpLabel = self.toComparisonStr(label)
 
     def __and__(self, other):
-        return int(self) & int(other)
+        if isinstance(other, Enum):
+            other = int(other)
+        return int(self) & other
 
     def __call__(self):
         return int(self)
@@ -236,7 +238,9 @@ class Enum(object):
         return not self.__eq__(value)
 
     def __or__(self, other):
-        value = int(self) | int(other)
+        if isinstance(other, Enum):
+            other = int(other)
+        value = int(self) | other
         label = '{0} {1}'.format(str(self), str(other))
         name = '{0}_{1}'.format(str(self), str(other))
 
@@ -256,7 +260,9 @@ class Enum(object):
         return CompositeEnum(value, label, name)
 
     def __rand__(self, other):
-        return int(other) & int(self)
+        if isinstance(other, Enum):
+            other = int(other)
+        return other & int(self)
 
     def __repr__(self):
         return '<{mdl}.{cls}.{name}>'.format(
@@ -278,7 +284,9 @@ class Enum(object):
             return self.label
 
     def __xor__(self, other):
-        return int(self) ^ int(other)
+        if isinstance(other, Enum):
+            other = int(other)
+        return int(self) ^ other
 
     def _compareStr(self, inStr):
         cmpStr = self.toComparisonStr(inStr)
