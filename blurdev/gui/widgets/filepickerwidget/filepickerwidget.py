@@ -16,7 +16,12 @@ from PyQt4.QtGui import (
     QHBoxLayout,
     QApplication,
     QFileDialog,
+    QColor,
 )
+
+resolvedStylesheetDefault = """QLineEdit {color: rgba%(fg)s;
+    background: rgba%(bg)s;
+}"""
 
 
 class LineEdit(QLineEdit):
@@ -43,6 +48,10 @@ class FilePickerWidget(QWidget):
     filenameEdited = pyqtSignal(str)
 
     def __init__(self, parent):
+        self._correctBackground = QColor(0, 128, 0, 100)
+        self._correctForeground = QColor(Qt.green)
+        self._inCorrectBackground = QColor(139, 0, 0, 100)
+        self._inCorrectForeground = QColor(Qt.red)
         QWidget.__init__(self, parent)
 
         self.uiFilenameTXT = LineEdit(self)
@@ -68,6 +77,7 @@ class FilePickerWidget(QWidget):
 
         self.uiFilenameTXT.editingFinished.connect(self.emitFilenameEdited)
         self.uiPickFileBTN.clicked.connect(self.pickPath)
+        self.resolvedStylesheet = resolvedStylesheetDefault
 
         self.resolve()
 
@@ -123,30 +133,23 @@ class FilePickerWidget(QWidget):
 
     def resolve(self):
         if self.resolvePath():
-            from PyQt4.QtGui import QPalette, QColor
-
-            palette = self.uiFilenameTXT.palette()
-
             import os.path
 
             if os.path.exists(str(self.uiFilenameTXT.text())):
-                fg = QColor("darkGreen")
-                bg = QColor("green")
-                bg.setAlpha(100)
+                fg = self.correctForeground
+                bg = self.correctBackground
                 self._resolved = True
             else:
-                fg = QColor("darkRed")
-                bg = QColor("red")
-                bg.setAlpha(100)
+                fg = self.inCorrectForeground
+                bg = self.inCorrectBackground
                 self._resolved = False
 
-            palette.setColor(QPalette.Text, fg)
-            palette.setColor(QPalette.Base, bg)
+            style = self.resolvedStylesheet % {'bg': bg.getRgb(), 'fg': fg.getRgb()}
         else:
-            palette = self.palette()
+            style = ''
             self._resolved = False
 
-        self.uiFilenameTXT.setPalette(palette)
+        self.uiFilenameTXT.setStyleSheet(style)
 
     def resolvePath(self):
         return self._resolvePath
@@ -178,6 +181,39 @@ class FilePickerWidget(QWidget):
     def setResolvePath(self, state):
         self._resolvePath = state
         self.resolve()
+
+    # Load the colors from the stylesheets
+    @pyqtProperty(QColor)
+    def correctBackground(self):
+        return self._correctBackground
+
+    @correctBackground.setter
+    def correctBackground(self, color):
+        self._correctBackground = color
+
+    @pyqtProperty(QColor)
+    def correctForeground(self):
+        return self._correctForeground
+
+    @correctForeground.setter
+    def correctForeground(self, color):
+        self._correctForeground = color
+
+    @pyqtProperty(QColor)
+    def inCorrectBackground(self):
+        return self._inCorrectBackground
+
+    @inCorrectBackground.setter
+    def inCorrectBackground(self, color):
+        self._inCorrectBackground = color
+
+    @pyqtProperty(QColor)
+    def inCorrectForeground(self):
+        return self._inCorrectForeground
+
+    @inCorrectForeground.setter
+    def inCorrectForeground(self, color):
+        self._inCorrectForeground = color
 
     pyCaption = pyqtProperty("QString", caption, setCaption)
     pyFilters = pyqtProperty("QString", filters, setFilters)

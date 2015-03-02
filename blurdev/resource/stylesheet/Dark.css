@@ -408,3 +408,11 @@ QComboBox#uiEnvironmentDDL[defaultActive="true"] {
 	background: rgb(0, 200, 0, 150);
 }
 /* End Treegrunt Environment Combo Box Style */
+
+/* Generic re-usable colors that can be accessed by custom qproperty's */
+QWidget {
+	qproperty-correctBackground: rgba(0, 100, 0, 100);
+	qproperty-correctForeground: green;
+	qproperty-inCorrectBackground: rgba(128, 0, 0, 100);
+	qproperty-inCorrectForeground: red;
+}
