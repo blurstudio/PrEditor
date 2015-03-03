@@ -173,8 +173,11 @@ def pendingdeprecation(args):
     return deco
 
 
-def stopwatch(text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True):
-    """
+def stopwatch(
+    text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True, useClock=False
+):
+    """ Generate a stopwatch you can use to time code execution time.
+    
     Generate a blurdev.debug.Stopwatch that tells how long it takes the 
     decorated function to run.  You can access the Stopwatch object by calling 
     __stopwatch__ on the function object.  If you function is called 
@@ -182,13 +185,13 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True):
     If your function is part of a class, make sure to call 
     self(self.slowFunction.__stopwatch__).
 
-    :param text: optional message text
-    :param debugLevel: the debug level the stopwatch will use to pring messages.
-    :param acceptArgs: Does the decorated function take args or kwargs? Mainly
-                        used to fix issues with PyQt signals.
-    :type text: str
-    :type debugLevel: :data:`DebugLevel`
-    :type acceptArgs: bool
+    Args:
+        text (str): Optional message text. If blank it will use the name of the function.
+        debugLevel (blurdev.debug.DebugLevel): DebugLevel the stopwatch will use to print messages.
+        acceptArgs (bool): Does the decorated function take args or kwargs? Mainly
+                    used to fix issues with PyQt signals. Defaults to True.
+        useClock (bool): Uses datetime.datetime.now for timing by default, if set to True, use
+                    time.clock. Use this if you need to time on smaller scales.
     
     Example:
         from blurdev.decorators import stopwatch
@@ -215,7 +218,9 @@ def stopwatch(text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True):
             nMsg += ' %s' % msg
 
         def newFunction(*args, **kwargs):
-            function.__stopwatch__ = debug.Stopwatch(nMsg, debugLevel)
+            function.__stopwatch__ = debug.Stopwatch(
+                nMsg, debugLevel, useClock=useClock
+            )
             if acceptArgs:
                 output = function(*args, **kwargs)
             else:
