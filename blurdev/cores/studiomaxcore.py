@@ -251,7 +251,13 @@ class StudiomaxCore(Core):
         return Core.registerPaths(self)
 
     def runScript(
-        self, filename='', scope=None, argv=None, toolType=None, toolName=None
+        self,
+        filename='',
+        scope=None,
+        argv=None,
+        toolType=None,
+        toolName=None,
+        architecture=None,
     ):
         """
         Handle maxscript script running
