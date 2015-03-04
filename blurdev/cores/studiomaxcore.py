@@ -282,7 +282,15 @@ class StudiomaxCore(Core):
             if os.path.exists(filename):
                 return mxs.filein(filename)
             return False
-        return Core.runScript(self, filename, scope, argv, toolType, toolName=toolName)
+        return Core.runScript(
+            self,
+            filename,
+            scope,
+            argv,
+            toolType,
+            toolName=toolName,
+            architecture=architecture,
+        )
 
     def setSupportLegacy(self, state):
         pass
