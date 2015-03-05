@@ -116,7 +116,7 @@ class LoggerWindow(Window):
             'commentblock': (117, 113, 94, 255),
             'unclosedstring': (255, 255, 255, 255),
             'smarthighlight': (255, 255, 255, 255),
-            'decorator': (240, 200, 102, 255),
+            'decorator': (240, 100, 102, 255),
         },
         'paper': {
             'default': (45, 45, 45, 255),
