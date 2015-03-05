@@ -60,8 +60,12 @@ class DocumentEditor(QsciScintilla):
         self._foldMarginForegroundColor = QColor(Qt.white)
         self._marginsBackgroundColor = QColor(224, 224, 224)
         self._marginsForegroundColor = QColor()
+        self._matchedBraceBackground = QColor(224, 224, 224)
+        self._matchedBraceForeground = QColor()
         self._caretForegroundColor = QColor()
         self._caretBackgroundColor = QColor(255, 255, 255, 255)
+        self._selectionBackgroundColor = QColor(192, 192, 192)
+        self._selectionForegroundColor = QColor(Qt.black)
         # used to store the right click location
         self._clickPos = None
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
@@ -358,14 +362,32 @@ class DocumentEditor(QsciScintilla):
 
     def setColorScheme(self, colors):
         """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
-        # See the index number definitions here
-        # http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciLexerPython.html#a9091a6d7c7327b004480ebaa130c1c18ac55b65493dace8925090544c401e8556
+        # lookup the language
+        language = lang.byName(self.language())
         lex = self.lexer()
-        for key, value in colors['paper'].iteritems():
-            lex.setPaper(QColor(*value), int(key))
-        for key, value in colors['color'].iteritems():
-            lex.setColor(QColor(*value), int(key))
-        lex.setDefaultPaper(QColor(*colors['defaultPaper']))
+        # set the default coloring
+        defaultPaper = QColor(*colors['paper'].get('default', (0, 0, 0)))
+        defaultColor = QColor(*colors['color'].get('default', (224, 224, 224)))
+        for i in range(128):
+            lex.setPaper(defaultPaper, i)
+            if defaultColor:
+                lex.setColor(defaultColor, i)
+        lex.setDefaultPaper(defaultPaper)
+        if language:
+            for colorName, keys in language.lexerColorTypes().items():
+                if colorName in colors['paper']:
+                    paper = colors['paper'][colorName]
+                else:
+                    paper = None
+                if colorName in colors['color']:
+                    color = colors['color'][colorName]
+                else:
+                    color = None
+                for key in keys:
+                    if paper:
+                        lex.setPaper(QColor(*paper), key)
+                    if color:
+                        lex.setColor(QColor(*color), key)
         if 'marginsBackground' in colors:
             self.setMarginsBackgroundColor(QColor(*colors['marginsBackground']))
         if 'marginsForeground' in colors:
@@ -379,6 +401,22 @@ class DocumentEditor(QsciScintilla):
             self.setCaretForegroundColor(QColor(*colors['caretForegroundColor']))
         if 'caretBackgroundColor' in colors:
             self.setCaretLineBackgroundColor(QColor(*colors['caretBackgroundColor']))
+        if 'selectionForeground' in colors:
+            self.setSelectionForegroundColor(QColor(*colors['selectionForeground']))
+        if 'selectionBackground' in colors:
+            self.setSelectionBackgroundColor(QColor(*colors['selectionBackground']))
+        if 'matchedBraceForeground' in colors:
+            self.setMatchedBraceForegroundColor(
+                QColor(*colors['matchedBraceForeground'])
+            )
+        if 'matchedBraceBackground' in colors:
+            self.setMatchedBraceBackgroundColor(
+                QColor(*colors['matchedBraceBackground'])
+            )
+        if 'braceBadForeground' in colors:
+            lex.setColor(QColor(*colors['braceBadForeground']), self.STYLE_BRACEBAD)
+        if 'braceBadBackground' in colors:
+            lex.setPaper(QColor(*colors['braceBadBackground']), self.STYLE_BRACEBAD)
 
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
@@ -790,6 +828,20 @@ class DocumentEditor(QsciScintilla):
         self._marginsForegroundColor = color
         super(DocumentEditor, self).setMarginsForegroundColor(color)
 
+    def matchedBraceBackgroundColor(self):
+        return self._matchedBraceBackground
+
+    def matchedBraceForegroundColor(self):
+        return self._matchedBraceForeground
+
+    def setMatchedBraceBackgroundColor(self, color):
+        self._matchedBraceBackground = color
+        super(DocumentEditor, self).setMatchedBraceBackgroundColor(color)
+
+    def setMatchedBraceForegroundColor(self, color):
+        self._matchedBraceForeground = color
+        super(DocumentEditor, self).setMatchedBraceForegroundColor(color)
+
     def markerNext(self):
         line, index = self.getCursorPosition()
         newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
@@ -1034,6 +1086,20 @@ class DocumentEditor(QsciScintilla):
         window = self.window()
         if window:
             window.selectProjectItem(self.filename())
+
+    def selectionBackgroundColor(self):
+        return self._selectionBackgroundColor
+
+    def setSelectionBackgroundColor(self, color):
+        self._selectionBackgroundColor = color
+        super(DocumentEditor, self).setSelectionBackgroundColor(color)
+
+    def selectionForegroundColor(self):
+        return self._selectionForegroundColor
+
+    def setSelectionForegroundColor(self, color):
+        self._selectionForegroundColor = color
+        super(DocumentEditor, self).setSelectionForegroundColor(color)
 
     def setLanguage(self, language):
         if language == 'Plain Text':
@@ -1374,6 +1440,8 @@ class DocumentEditor(QsciScintilla):
         foldMarginColors = self.foldMarginColors()
         marginBackground = self.marginsBackgroundColor()
         marginForeground = self.marginsForegroundColor()
+        matchedBraceBackground = self.matchedBraceBackgroundColor()
+        matchedBraceForeground = self.matchedBraceForegroundColor()
         # 		folds = self.contractedFolds()
         self.setLexer(lexer)
         # 		self.setContractedFolds(folds)
@@ -1381,6 +1449,8 @@ class DocumentEditor(QsciScintilla):
         self.setMarginsBackgroundColor(marginBackground)
         self.setMarginsForegroundColor(marginForeground)
         self.setFoldMarginColors(*foldMarginColors)
+        self.setMatchedBraceBackgroundColor(matchedBraceBackground)
+        self.setMatchedBraceForegroundColor(matchedBraceForeground)
 
     def indentSelection(self, all=False):
         if all:
