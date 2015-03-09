@@ -38,6 +38,7 @@ class Tool(QObject):
         self._sourcefile = ''
         self._toolTip = ''
         self._wikiPage = ''
+        self._url = ''
         self._macros = []
         self._version = ''
         self._icon = ''
@@ -230,6 +231,12 @@ class Tool(QObject):
     def usagestatsEnabled(self):
         return self._usagestatsEnabled
 
+    def url(self):
+        return self._url
+
+    def setUrl(self, url):
+        self._url = url
+
     def version(self):
         return self._version
 
@@ -267,6 +274,7 @@ class Tool(QObject):
             output.setIcon(data.findProperty('icon'))
             output.setSourcefile(output.relativePath(data.findProperty('src')))
             output.setWikiPage(data.findProperty('wiki'))
+            output.setUrl(data.findProperty('url'))
             output.setToolType(ToolType.fromString(data.attribute('type', 'AllTools')))
             output.setDisplayName(data.findProperty('displayName', output.objectName()))
             output.setDisabled(data.findProperty('disabled', 'false').lower() == 'true')
