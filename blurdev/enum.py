@@ -89,6 +89,7 @@ class _MetaEnumGroup(type):
             oldEnum.setDescription(number, desc)
         # Try and return the attribute from the old-style enum.
         try:
+            print 'Using a old method!', name
             return getattr(oldEnum, name)
         except AttributeError:
             raise AttributeError(
@@ -238,9 +239,10 @@ class Enum(object):
         return not self.__eq__(value)
 
     def __or__(self, other):
+        o = other
         if isinstance(other, Enum):
-            other = int(other)
-        value = int(self) | other
+            o = int(other)
+        value = int(self) | o
         label = '{0} {1}'.format(str(self), str(other))
         name = '{0}_{1}'.format(str(self), str(other))
 
