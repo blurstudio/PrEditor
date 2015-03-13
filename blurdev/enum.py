@@ -322,9 +322,12 @@ class EnumGroup(object):
     The above example outlines defining an enumerator, and grouping
     four of them inside of a group.  This provides a number of things,
     including references by attribute, name, and index.  Also provided
-    is an "All" attribute, if one is not explicitly assigned, that
-    compare true against any members of the group via the binary "and"
-    operator.
+    is an "All" attribute, if one is not explicitly assigned, it will be
+    a CompositeEnum of all the defined enums, and compare true against 
+    any members of the group via the binary "and" operator. Also provided 
+    is an "Nothing" attribute, if one is not explicitly assigned, it 
+    compares false against any members of the group and when converted to 
+    a int its value will be zero.
 
     Example:
         # By attribute.
@@ -359,6 +362,7 @@ class EnumGroup(object):
     __metaclass__ = _MetaEnumGroup
     _ENUMERATORS = None
     All = 0
+    Nothing = 0
 
     def __init__(self):
         raise InstantiationError('Unable to instantiate static class EnumGroup.')
@@ -515,8 +519,28 @@ class EnumGroup(object):
                 enum._labelIndex = labelIndex
                 labelIndex += 1
         cls._ENUMERATORS = enums
+        # Build the All object if its not defined
         if isinstance(cls.All, int):
-            cls.All = sum(enumNumbers)
+            for e in enums:
+                if isinstance(cls.All, int):
+                    cls.All = e
+                else:
+                    cls.All |= e
+        # Build the Nothing object if its not defined
+        if isinstance(cls.Nothing, int) and enums:
+            processed = set()
+            for i, enum in enumerate(enums):
+                enumClass = enum.__class__
+                if i == 0:
+                    # Create the Nothing instance from the first class type
+                    cls.Nothing = enumClass(0, 'Nothing')
+                elif enumClass not in processed:
+                    # Register our Nothing enum's class as a virtual
+                    # subclass of any additional enum classes. This
+                    # will make the Nothing enum isinstance check true
+                    # against all Enums in this EnumGroup.
+                    enumClass.register(cls.Nothing.__class__)
+                processed.add(enumClass)
 
     @classmethod
     def _varNameToLabel(cls, varName):
