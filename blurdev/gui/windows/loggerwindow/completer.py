@@ -87,10 +87,13 @@ class PythonCompleter(QCompleter):
         object, prefix = self.currentObject(scope)
         self.model().setStringList([])
         # Only show hidden method/variable names if the hidden character '_' is typed in.
-        if prefix.startswith('_'):
-            keys = [key for key in dir(object) if key.startswith('_')]
-        else:
-            keys = [key for key in dir(object) if not key.startswith('_')]
+        try:
+            if prefix.startswith('_'):
+                keys = [key for key in dir(object) if key.startswith('_')]
+            else:
+                keys = [key for key in dir(object) if not key.startswith('_')]
+        except AttributeError:
+            keys = []
         keys.sort()
         self.model().setStringList(keys)
         self.setCompletionPrefix(prefix)
