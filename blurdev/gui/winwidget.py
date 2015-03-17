@@ -19,7 +19,14 @@ class WinWidget(QWinWidget):
         import blurdev
 
         out = WinWidget(hwnd)
-        out.showCentered()
+        # QWinWidget's showCentered doesn't work. In fact it appears to be working as it was
+        # programmed, but I wonder if the QDialog auto center no longer works with a width
+        # and height of zero.
+        geo = blurdev.core.mainWindowGeometry()
+        if geo.isValid():
+            out.setGeometry(geo)
+        else:
+            out.showCentered()
 
         import sip
 

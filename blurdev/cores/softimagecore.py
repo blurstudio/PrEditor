@@ -2,6 +2,7 @@ import os
 import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
+from PyQt4.QtCore import QRect
 from PyQt4.QtGui import QWidget
 import win32gui
 import win32com.client
@@ -82,6 +83,10 @@ class SoftimageCore(Core):
         Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Macro...'
+
+    def mainWindowGeometry(self):
+        x, y, w, h = win32gui.GetWindowRect(xsi.GetWindowHandle())
+        return QRect(0, 0, w - x, h - y)
 
     def toolTypes(self):
         """

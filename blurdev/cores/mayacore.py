@@ -15,6 +15,7 @@ class MayaCore(Core):
 
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'maya'
+        self._supportsDocking = True
         super(MayaCore, self).__init__(*args, **kargs)
         # Shutdown blurdev when Maya closes
         if QApplication.instance():

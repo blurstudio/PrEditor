@@ -6,7 +6,7 @@ import platform
 import Py3dsMax
 from Py3dsMax import mxs
 from PyQt4.QtGui import QApplication, QFileDialog, QImage
-from PyQt4.QtCore import Qt, QSize
+from PyQt4.QtCore import Qt, QSize, QRect
 
 import blurdev
 import blurdev.ini
@@ -193,6 +193,10 @@ class StudiomaxCore(Core):
         Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Macro...'
+
+    def mainWindowGeometry(self):
+        box = mxs.windows.getWindowPos(Py3dsMax.GetWindowHandle())
+        return QRect(0, 0, box.w, box.h)
 
     def quietMode(self):
         """

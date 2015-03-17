@@ -3,7 +3,7 @@ import time
 import os
 import platform
 
-from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL
+from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL, QRect
 from PyQt4.QtGui import (
     QApplication,
     QWidget,
@@ -101,6 +101,7 @@ class Core(QObject):
         self._lastFileName = ''
         self._mfcApp = False
         self._logger = None
+        self._supportsDocking = False
         self._linkedSignals = {}
         self._itemQueue = []
         self._maxDelayPerCycle = 0.1
@@ -426,6 +427,14 @@ class Core(QObject):
         Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Desktop Shortcut...'
+
+    def mainWindowGeometry(self):
+        """ QWinWidget doesn't properly center its children.
+        
+        In MFC apps this function returns the size of the main window. Note: Qt doesn't include the 
+        titlebar so the position may be off by that ammount.
+        """
+        return QRect()
 
     def maxDelayPerCycle(self):
         return self._maxDelayPerCycle
@@ -1262,6 +1271,9 @@ class Core(QObject):
         logger.activateWindow()
         logger.raise_()
         logger.console().setFocus()
+
+    def supportsDocking(self):
+        return self._supportsDocking
 
     def unprotectModule(self, moduleName):
         """
