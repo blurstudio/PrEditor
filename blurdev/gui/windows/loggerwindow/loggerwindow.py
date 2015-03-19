@@ -401,7 +401,9 @@ class LoggerWindow(Window):
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
 
+        # NOTE: Move colorScheme into StyleSheets and replace it.
         pref.recordProperty('colorScheme_V1', self.colorScheme())
+        pref.recordProperty('styleSheet', self.styleSheet())
 
         pref.save()
 
@@ -472,6 +474,7 @@ class LoggerWindow(Window):
 
         colorScheme = pref.restoreProperty('colorScheme_V1', self.colorSchemeDefault)
         self.setColorScheme(colorScheme)
+        self.setStyleSheet(pref.restoreProperty('styleSheet', ''))
 
         self.restoreToolbars()
 
