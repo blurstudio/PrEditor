@@ -208,10 +208,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # create the highlighter
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
+        self.uiCodeHighlighter = highlight
 
         # If populated, also write to this interface
         self.outputPipe = None
 
+        self._foregroundColor = QColor(Qt.black)
+        self._stdoutColor = QColor(17, 154, 255)
+        self._commentColor = QColor(0, 206, 52)
+        self._keywordColor = QColor(17, 154, 255)
+        self._stringColor = QColor(255, 128, 0)
         # These variables are used to enable pdb mode. This is a special mode used by the logger if
         # it is launched externally via getPdb, set_trace, or post_mortem in blurdev.debug.
         self._pdbPrompt = '(Pdb) '
@@ -221,12 +227,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # will match the current pdbMode.
         self.pdbModeAction = None
 
-        self.startInputLine()
+        self._firstShow = True
 
     def clear(self):
         """ clears the text in the editor """
         QTextEdit.clear(self)
         self.startInputLine()
+
+    def commentColor(self):
+        return self._commentColor
+
+    def setCommentColor(self, color):
+        self._commentColor = color
 
     def completer(self):
         """ returns the completer instance that is associated with this editor """
@@ -237,6 +249,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def setErrorMessageColor(self, color):
         self.__class__._errorMessageColor = color
+
+    def foregroundColor(self):
+        return self._foregroundColor
+
+    def setForegroundColor(self, color):
+        self._foregroundColor = color
 
     @staticmethod
     def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
@@ -698,6 +716,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     )
                     completer.complete(rect)
 
+    def keywordColor(self):
+        return self._keywordColor
+
+    def setKeywordColor(self, color):
+        self._keywordColor = color
+
     def moveToHome(self):
         """ moves the cursor to the home location """
         mode = QTextCursor.MoveAnchor
@@ -748,15 +772,21 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             completer.setWidget(self)
             completer.activated.connect(self.insertCompletion)
 
+    def showEvent(self, event):
+        # _firstShow is used to ensure the first imput prompt is styled by any active stylesheet
+        if self._firstShow:
+            self.startInputLine()
+            self._firstShow = False
+        super(ConsoleEdit, self).showEvent(event)
+
     def startInputLine(self):
         """ create a new command prompt line """
-
         self.moveCursor(QTextCursor.End)
 
         # if this is not already a new line
         if self.textCursor().block().text() != self.prompt():
             charFormat = QTextCharFormat()
-            charFormat.setForeground(Qt.lightGray)
+            charFormat.setForeground(self.foregroundColor())
             self.setCurrentCharFormat(charFormat)
 
             inputstr = self.prompt()
@@ -765,6 +795,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
             self.insertPlainText(inputstr)
 
+    def stdoutColor(self):
+        return self._stdoutColor
+
+    def setStdoutColor(self, color):
+        self._stdoutColor = color
+
+    def stringColor(self):
+        return self._stringColor
+
+    def setStringColor(self, color):
+        self._stringColor = color
+
     def write(self, msg, error=False):
         """ write the message to the logger """
         if not sip.isdeleted(self):
@@ -772,7 +814,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
             charFormat = QTextCharFormat()
             if not error:
-                charFormat.setForeground(QColor(17, 154, 255))
+                charFormat.setForeground(self.stdoutColor())
             else:
                 charFormat.setForeground(self.errorMessageColor())
 
@@ -822,3 +864,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     # These properties are used by the stylesheet to style various items.
     pyPdbMode = pyqtProperty(bool, pdbMode, setPdbMode)
     pyErrorMessageColor = pyqtProperty(QColor, errorMessageColor, setErrorMessageColor)
+    pyForegroundColor = pyqtProperty(QColor, foregroundColor, setForegroundColor)
+    pyStdoutColor = pyqtProperty(QColor, stdoutColor, setStdoutColor)
+    pyCommentColor = pyqtProperty(QColor, commentColor, setCommentColor)
+    pyKeywordColor = pyqtProperty(QColor, keywordColor, setKeywordColor)
+    pyStringColor = pyqtProperty(QColor, stringColor, setStringColor)

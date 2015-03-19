@@ -9,7 +9,8 @@
 # 	\date		11/12/08
 #
 
-from PyQt4.QtGui import QSyntaxHighlighter
+from PyQt4.QtCore import pyqtProperty, QRegExp
+from PyQt4.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
 
 
 class CodeHighlighter(QSyntaxHighlighter):
@@ -21,18 +22,34 @@ class CodeHighlighter(QSyntaxHighlighter):
         self._strings = []
         self._comments = []
         self._consoleMode = False
+        # color storage
+        self._commentColor = QColor(0, 206, 52)
+        self._keywordColor = QColor(17, 154, 255)
+        self._stringColor = QColor(255, 128, 0)
 
         # setup the font
         font = widget.font()
         font.setFamily('Courier New')
         widget.setFont(font)
 
+    def commentColor(self):
+        # pull the color from the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'commentColor'):
+            return parent.commentColor()
+        return self._commentColor
+
+    def setCommentColor(self, color):
+        # set the color for the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'setCommentColor'):
+            parent.setCommentColor(color)
+        self._commentColor = color
+
     def commentFormat(self):
         """ returns the comments QTextCharFormat for this highlighter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
-
         format = QTextCharFormat()
-        format.setForeground(QColor(0, 206, 52))
+        format.setForeground(self.commentColor())
         format.setFontItalic(True)
 
         return format
@@ -44,8 +61,6 @@ class CodeHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         """ highlights the inputed text block based on the rules of this code highlighter """
         if not self.isConsoleMode() or str(text).startswith('>>>'):
-            from PyQt4.QtCore import QRegExp
-
             # format the keywords
             format = self.keywordFormat()
             for kwd in self._keywords:
@@ -98,12 +113,24 @@ class CodeHighlighter(QSyntaxHighlighter):
 
             pos = expr.indexIn(text, pos + matched)
 
+    def keywordColor(self):
+        # pull the color from the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'keywordColor'):
+            return parent.keywordColor()
+        return self._keywordColor
+
+    def setKeywordColor(self, color):
+        # set the color for the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'setKeywordColor'):
+            parent.setKeywordColor(color)
+        self._keywordColor = color
+
     def keywordFormat(self):
         """ returns the keywords QTextCharFormat for this highlighter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
-
         format = QTextCharFormat()
-        format.setForeground(QColor(17, 154, 255))
+        format.setForeground(self.keywordColor())
 
         return format
 
@@ -149,11 +176,22 @@ class CodeHighlighter(QSyntaxHighlighter):
             return True
         return False
 
+    def stringColor(self):
+        # pull the color from the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'stringColor'):
+            return parent.stringColor()
+        return self._stringColor
+
+    def setStringColor(self, color):
+        # set the color for the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'setStringColor'):
+            parent.setStringColor(color)
+        self._stringColor = color
+
     def stringFormat(self):
         """ returns the keywords QTextCharFormat for this highligter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
-
         format = QTextCharFormat()
-        format.setForeground(QColor(255, 128, 0))
-
+        format.setForeground(self.stringColor())
         return format

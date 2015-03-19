@@ -80,6 +80,10 @@ HintHelper {
 	background-color: rgba(0,0,0,0);
 }
 
+ConsoleEdit {
+	qproperty-pyForegroundColor: rgb(192, 192, 192);
+}
+
 ConsoleEdit[pyPdbMode="true"] {
 	/* Change the selection color of the console when in pdb mode */
 	selection-background-color: rgb(0, 255, 0);
