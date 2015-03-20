@@ -12,7 +12,7 @@ import socket
 import getpass
 from abc import ABCMeta
 
-from PyQt4.QtCore import QObject, QPoint, QTimer, QDateTime, Qt, pyqtProperty
+from PyQt4.QtCore import QObject, QPoint, QDateTime, Qt, pyqtProperty
 from PyQt4.QtGui import (
     QTextEdit,
     QApplication,
@@ -351,6 +351,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         has occurred and can automatically show the Console view.		
         
         """
+        # Print a new line before the traceback is printed. This ensures that the first line is not
+        # printed on a prompt, and also provides seperation between tracebacks that makes it easier
+        # to identify which traceback you are looking at when multiple tracebacks are received.
+        print ''
         # Call the base implementation.  This generaly prints the traceback to stderr.
         if ConsoleEdit._excepthook:
             try:
