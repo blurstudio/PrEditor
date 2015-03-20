@@ -55,7 +55,6 @@ class StudiomaxCore(Core):
             path = os.path.split(sys.executable)[0]
             if os.path.exists(os.path.join(path, 'QtOpenGL4.dll')):
                 # Special case for if max has our pyqt installed inside it
-                print 'adding studiomax', path
                 app.addLibraryPath(os.path.split(sys.executable)[0])
                 return
         super(StudiomaxCore, self).addLibraryPaths(app)
