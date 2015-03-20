@@ -6,20 +6,39 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>533</width>
-    <height>367</height>
+    <width>530</width>
+    <height>216</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Python Logger</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QSplitter" name="uiSplitterSPLIT">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <widget class="ConsoleEdit" name="uiConsoleTXT">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>1</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="NewTabWidget" name="uiWorkboxTAB"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="uiMenuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>533</width>
+     <width>530</width>
      <height>21</height>
     </rect>
    </property>
@@ -79,6 +98,7 @@
     <addaction name="uiPdbModeACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
+    <addaction name="uiClearToLastPromptACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="uiDebugMENU"/>
@@ -385,7 +405,28 @@
     <string>Ctrl+`</string>
    </property>
   </action>
+  <action name="uiClearToLastPromptACT">
+   <property name="text">
+    <string>Clear to Last Prompt</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Backspace</string>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>NewTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>blurdev.gui.widgets.newtabwidget</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConsoleEdit</class>
+   <extends>QTextEdit</extends>
+   <header>blurdev.gui.windows.loggerwindow</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

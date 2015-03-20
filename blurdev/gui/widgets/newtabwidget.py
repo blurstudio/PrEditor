@@ -63,24 +63,3 @@ class NewTabWidget(QTabWidget):
 
         # Signals
         self._tab.plusClicked.connect(self.addTabClicked.emit)
-
-    @staticmethod
-    def _qDesignerDomXML():
-        """
-        Explicitly specify the xml so designer understands how to handle this as a container.
-        """
-        # Note: This doesn't work yet
-        xml = []
-        xml.append('<ui>')
-        xml.append(' <widget class="QTabWidget">')
-        xml.append('   <widget class="NewTabWidget" name="NewTabWidget"/>')
-        xml.append(' </widget>')
-        xml.append(' <customwidgets>')
-        xml.append('  <customwidget>')
-        xml.append('   <class>NewTabWidget</class>')
-        xml.append('   <extends>QTabWidget</extends>')
-        xml.append('   <container>1</container>')
-        xml.append('  </customwidget>')
-        xml.append(' </customwidgets>')
-        xml.append('</ui>')
-        return '\n'.join(xml)

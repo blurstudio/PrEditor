@@ -148,19 +148,15 @@ class LoggerWindow(Window):
         self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
         blurdev.gui.loadUi(__file__, self)
 
-        # create the splitter layout
-        self.uiSplitterSPLIT = QSplitter(self)
-
-        # create the console widget
-        from console import ConsoleEdit
-
-        self.uiConsoleTXT = ConsoleEdit(self.uiSplitterSPLIT)
-        self.uiConsoleTXT.setMinimumHeight(1)
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
+        self.uiClearToLastPromptACT.triggered.connect(
+            self.uiConsoleTXT.clearToLastPrompt
+        )
+        # If we don't disable this shortcut Qt won't respond to this classes or the ConsoleEdit's
+        self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
 
         # create the workbox tabs
         self._currentTab = -1
-        self.uiWorkboxTAB = NewTabWidget(self.uiSplitterSPLIT)
         # Connect the tab widget signals
         self.uiWorkboxTAB.addTabClicked.connect(self.addWorkbox)
         self.uiWorkboxTAB.tabCloseRequested.connect(self.removeWorkbox)
@@ -173,13 +169,6 @@ class LoggerWindow(Window):
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()
-
-        # create the layout
-        from PyQt4.QtGui import QVBoxLayout
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.uiSplitterSPLIT)
-        self.centralWidget().setLayout(layout)
 
         # create the connections
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)

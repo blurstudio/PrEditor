@@ -3,6 +3,7 @@
 	<plugin module="blurdev.gui"						 		class="Dialog" 				container="True"/>
 	<plugin module="blurdev.gui"						 		class="Window" 				container="True"/>
 	<plugin module="blurdev.gui.widgets.accordianwidget" 		class="AccordianWidget" 	container="True"/>
+	<plugin module="blurdev.gui.widgets.newtabwidget" 			class="NewTabWidget" 	container="True"/>
 	<plugin module="blurdev.gui.widgets.filepickerwidget" 		class="FilePickerWidget"/>
 	<plugin module="blurdev.ide.documenteditor" 				class="DocumentEditor"/>
 	<plugin module="blurdev.gui.widgets.colorwidgets" 			class="ColorPickerWidget"/>

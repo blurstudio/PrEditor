@@ -21,6 +21,7 @@ from PyQt4.QtGui import (
     QTextCharFormat,
     QMessageBox,
     QColor,
+    QAction,
 )
 
 import blurdev
@@ -229,10 +230,41 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         self._firstShow = True
 
+        self.uiClearToLastPromptACT = QAction('Clear to Last', self)
+        self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
+        self.uiClearToLastPromptACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Backspace)
+        self.addAction(self.uiClearToLastPromptACT)
+
     def clear(self):
         """ clears the text in the editor """
         QTextEdit.clear(self)
         self.startInputLine()
+
+    def clearToLastPrompt(self):
+        # store the current cursor position so we can restore when we are done
+        currentCursor = self.textCursor()
+        # move to the end of the document so we can search backwards
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.End)
+        self.setTextCursor(cursor)
+        # Check if the last line is a empty prompt. If so, then preform two finds so we
+        # find the prompt we are looking for instead of this empty prompt
+        findCount = (
+            2 if self.toPlainText()[-len(self.prompt()) :] == self.prompt() else 1
+        )
+        for i in range(findCount):
+            self.find(self.prompt(), QTextDocument.FindBackward)
+        # move to the end of the found line, select the rest of the text and remove it
+        # preserving history if there is anything to remove.
+        cursor = self.textCursor()
+        cursor.movePosition(cursor.EndOfLine)
+        cursor.movePosition(cursor.End, cursor.KeepAnchor)
+        text = cursor.selectedText()
+        if text:
+            self.setTextCursor(cursor)
+            self.insertPlainText('')
+        # Restore the cursor position to its original location
+        self.setTextCursor(currentCursor)
 
     def commentColor(self):
         return self._commentColor
