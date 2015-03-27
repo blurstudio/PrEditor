@@ -22,6 +22,41 @@ from wizard import Wizard
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
+def pyqtPropertyInit(name, default):
+    """Initializes a default pyqtProperty value with a usable getter and setter.
+
+    Example:
+        class TestClass(QWidget):
+            def __init__(self, *args, **kwargs):
+                super(TestClass, self).__init__(*args, **kwargs)
+
+            stdoutColor = pyqtPropertyInit('_stdoutColor', QColor(0, 0, 255))
+            pyForegroundColor = pyqtPropertyInit('_pyForegroundColor', QColor(0, 0, 255))
+
+    Args:
+        name(str): The name of internal attribute to store to and lookup from.
+        default: The property's default value.  This will also define the pyqtProperty type.
+
+    Returns:
+        pyqtProperty
+    """
+
+    def _getattrDefault(default, self, attrName):
+        try:
+            value = getattr(self, attrName)
+        except AttributeError:
+            setattr(self, attrName, default)
+            return default
+        return value
+
+    ga = partial(_getattrDefault, default)
+    return pyqtProperty(
+        default.__class__,
+        fget=(lambda s: ga(s, name)),
+        fset=(lambda s, v: setattr(s, name, v)),
+    )
+
+
 def randomSplashScreen(toolname='default'):
     splash_dir = os.path.join(SPLASH_DIR, toolname)
 
@@ -38,7 +73,7 @@ def randomSplashScreen(toolname='default'):
 
 def compPixmap(imageData):
     """
-    Composits the given pixmaps or image paths into a single pixmap. It takes a list of lists containing a image path or a pixmap and
+    Composites the given pixmaps or image paths into a single pixmap. It takes a list of lists containing a image path or a pixmap and
     optionaly a list of cordinate data. The cordinate data can be just position [5, 5] or position and size [5, 5, 10, 10]. The first
     item in the list becomes the base canvas being drawn on and ignores the cordinate data.
 
