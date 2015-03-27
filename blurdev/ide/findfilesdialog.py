@@ -260,6 +260,7 @@ class FindFilesDialog(Dialog):
         self.uiCloseBTN.clicked.connect(self.close)
         self.uiBasePathBTN.clicked.connect(self.pickFolder)
         self.uiResultsTREE.itemDoubleClicked.connect(self.loadFile)
+        self.uiResultsTREE.itemActivated.connect(self.loadFile)
         self.uiPyularBTN.clicked.connect(self.showPyular)
         self.uiCopyFilenamesBTN.clicked.connect(self.copyFilenames)
         self.uiCopyResultsBTN.clicked.connect(self.copyResults)
@@ -289,6 +290,13 @@ class FindFilesDialog(Dialog):
 
     def copyResults(self):
         QApplication.clipboard().setText(self._allResultsText)
+
+    def keyPressEvent(self, event):
+        if self.focusWidget() == self.uiResultsTREE:
+            if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+                # If the uiResultsTREE is in focus open the selected file don't start searching again.
+                return
+        super(FindFilesDialog, self).keyPressEvent(event)
 
     def loadFile(self, item):
         if item.parent():
