@@ -12,11 +12,13 @@ import os
 import glob
 import random
 
+from PyQt4.QtCore import pyqtProperty
 from PyQt4.QtGui import QPixmap, QSplashScreen
 
 from window import Window
 from dialog import Dialog
 from wizard import Wizard
+from functools import partial
 
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
