@@ -196,6 +196,10 @@ class StudiomaxCore(Core):
     def mainWindowGeometry(self):
         if self.headless:
             raise Exception('You are showing a gui in a headless environment. STOP IT!')
+        if mxs.maxVersion()[0] / 1000 < 16:
+            # mxs.windows.getWindowPos is new in max 2014, so dont try to call it in previous
+            # versions of max
+            return QRect()
         box = mxs.windows.getWindowPos(Py3dsMax.GetWindowHandle())
         return QRect(0, 0, box.w, box.h)
 
