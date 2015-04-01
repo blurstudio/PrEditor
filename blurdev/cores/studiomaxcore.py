@@ -194,6 +194,8 @@ class StudiomaxCore(Core):
         return 'Create Macro...'
 
     def mainWindowGeometry(self):
+        if self.headless:
+            raise Exception('You are showing a gui in a headless environment. STOP IT!')
         box = mxs.windows.getWindowPos(Py3dsMax.GetWindowHandle())
         return QRect(0, 0, box.w, box.h)
 

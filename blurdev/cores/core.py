@@ -175,7 +175,8 @@ class Core(QObject):
                         app.setStylesheet(stylesheet)
 
                     # initialize the logger
-                    self.logger()
+                    if not self.headless:
+                        self.logger()
 
                 return True
         return False
@@ -434,6 +435,8 @@ class Core(QObject):
         In MFC apps this function returns the size of the main window. Note: Qt doesn't include the 
         titlebar so the position may be off by that ammount.
         """
+        if self.headless:
+            raise Exception('You are showing a gui in a headless environment. STOP IT!')
         return QRect()
 
     def maxDelayPerCycle(self):

@@ -198,8 +198,8 @@ def launch(
     iswiz = False
     try:
         iswiz = issubclass(ctor, QWizard)
-    except Exception:
-        pass
+    except Exception as e:
+        print e.message
 
     if iswiz:
         modal = True

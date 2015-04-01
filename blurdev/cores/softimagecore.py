@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
@@ -56,6 +57,12 @@ class SoftimageCore(Core):
         """
         return '<i>Open File:</i> %s' % xsi.ActiveProject.ActiveScene.FileName.Value
 
+    @property
+    def headless(self):
+        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        ret = 'xsibatch.exe' in sys.executable.lower()
+        return ret
+
     def isKeystrokesEnabled(self):
         # Checks all of the top level windows of Qt against the win32 forground window id to see if qt has focus
         handle = win32gui.GetForegroundWindow()
@@ -85,6 +92,8 @@ class SoftimageCore(Core):
         return 'Create Macro...'
 
     def mainWindowGeometry(self):
+        if self.headless:
+            raise Exception('You are showing a gui in a headless environment. STOP IT!')
         x, y, w, h = win32gui.GetWindowRect(xsi.GetWindowHandle())
         return QRect(0, 0, w - x, h - y)
 
