@@ -21,8 +21,10 @@ from PyQt4.QtGui import (
     QColor,
 )
 
+import blurdev
 from blurdev.enum import enum
 from blurdev.ide import lang
+from blurdev.gui import pyqtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
 from ideeditor import IdeEditor
 import time, re
@@ -60,12 +62,27 @@ class DocumentEditor(QsciScintilla):
         self._foldMarginForegroundColor = QColor(Qt.white)
         self._marginsBackgroundColor = QColor(224, 224, 224)
         self._marginsForegroundColor = QColor()
-        self._matchedBraceBackground = QColor(224, 224, 224)
-        self._matchedBraceForeground = QColor()
+        self._matchedBraceBackgroundColor = QColor(224, 224, 224)
+        self._matchedBraceForegroundColor = QColor()
+        self._unmatchedBraceBackgroundColor = QColor(Qt.white)
+        self._unmatchedBraceForegroundColor = QColor(Qt.blue)
         self._caretForegroundColor = QColor()
         self._caretBackgroundColor = QColor(255, 255, 255, 255)
         self._selectionBackgroundColor = QColor(192, 192, 192)
         self._selectionForegroundColor = QColor(Qt.black)
+        self._indentationGuidesBackgroundColor = QColor(Qt.white)
+        self._indentationGuidesForegroundColor = QColor(Qt.black)
+        self._markerBackgroundColor = QColor(Qt.white)
+        self._markerForegroundColor = QColor(Qt.black)
+        # --------------------------------------------------------------------------------
+        # Requires update to QSci
+        # 		self._indicatorOutlineColor
+        # 		self._indicatorForegroundColor
+        # 		self._hotspotBackgroundColor
+        # 		self._hotspotForegroundColor
+        # 		self._whitespaceBackgroundColor
+        # 		self._whitespaceForegroundColor
+        # --------------------------------------------------------------------------------
         # used to store the right click location
         self._clickPos = None
         # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
@@ -88,6 +105,7 @@ class DocumentEditor(QsciScintilla):
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
         self.selectionChanged.connect(self.updateSelectionInfo)
+        blurdev.core.styleSheetChanged.connect(self.updateColorScheme)
 
         # load the file
         if filename:
@@ -327,96 +345,6 @@ class DocumentEditor(QsciScintilla):
         while len(re.findall(r'^\W', text, flags=re.M)) == count:
             text = re.sub(r'^\W', '', unicode(text), flags=re.M)
         QApplication.clipboard().setText(text)
-
-    def colorScheme(self):
-        """ Pulls the current color settings from the DocumentEditor and returns them as a dict.
-        
-        This dict contains diffrent color types, color(foreground), paper(background), defaultPaper,
-        etc, these contain lists of colors for each color enum, or a color definition if no enum is 
-        used. A color def is a list of r,g,b,alpha values that can be passed as args to QColor.
-        
-        returns:
-            A dict of color settings
-        """
-        # See the index number definitions here
-        # http://pyqt.sourceforge.net/Docs/QScintilla2/classQsciLexerPython.html#a9091a6d7c7327b004480ebaa130c1c18ac55b65493dace8925090544c401e8556
-        lex = self.lexer()
-        # Get the current colors from the proper implementaton
-        ret = {}
-        ret['paper'] = dict(
-            [(i, lex.paper(i).getRgb()) for i in range(lex.Decorator + 1)]
-        )
-        ret['color'] = dict(
-            [(i, lex.color(i).getRgb()) for i in range(lex.Decorator + 1)]
-        )
-        # For some reason this takes a index, but the setter doesn't
-        ret['defaultPaper'] = lex.defaultPaper(0).getRgb()
-        ret['marginsForeground'] = self.marginsForegroundColor().getRgb()
-        ret['marginsBackground'] = self.marginsBackgroundColor().getRgb()
-        foldMarginColors = self.foldMarginColors()
-        ret['foldMarginsForeground'] = foldMarginColors[0].getRgb()
-        ret['foldMarginsBackground'] = foldMarginColors[1].getRgb()
-        ret['caretBackgroundColor'] = self.caretBackgroundColor().getRgb()
-        ret['caretForegroundColor'] = self.caretForegroundColor().getRgb()
-        return ret
-
-    def setColorScheme(self, colors):
-        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
-        # lookup the language
-        language = lang.byName(self.language())
-        lex = self.lexer()
-        # set the default coloring
-        defaultPaper = QColor(*colors['paper'].get('default', (0, 0, 0)))
-        defaultColor = QColor(*colors['color'].get('default', (224, 224, 224)))
-        for i in range(128):
-            lex.setPaper(defaultPaper, i)
-            if defaultColor:
-                lex.setColor(defaultColor, i)
-        lex.setDefaultPaper(defaultPaper)
-        if language:
-            for colorName, keys in language.lexerColorTypes().items():
-                if colorName in colors['paper']:
-                    paper = colors['paper'][colorName]
-                else:
-                    paper = None
-                if colorName in colors['color']:
-                    color = colors['color'][colorName]
-                else:
-                    color = None
-                for key in keys:
-                    if paper:
-                        lex.setPaper(QColor(*paper), key)
-                    if color:
-                        lex.setColor(QColor(*color), key)
-        if 'marginsBackground' in colors:
-            self.setMarginsBackgroundColor(QColor(*colors['marginsBackground']))
-        if 'marginsForeground' in colors:
-            self.setMarginsForegroundColor(QColor(*colors['marginsForeground']))
-        if 'foldMarginsBackground' in colors and 'foldMarginsForeground' in colors:
-            self.setFoldMarginColors(
-                QColor(*colors['foldMarginsForeground']),
-                QColor(*colors['foldMarginsBackground']),
-            )
-        if 'caretForegroundColor' in colors:
-            self.setCaretForegroundColor(QColor(*colors['caretForegroundColor']))
-        if 'caretBackgroundColor' in colors:
-            self.setCaretLineBackgroundColor(QColor(*colors['caretBackgroundColor']))
-        if 'selectionForeground' in colors:
-            self.setSelectionForegroundColor(QColor(*colors['selectionForeground']))
-        if 'selectionBackground' in colors:
-            self.setSelectionBackgroundColor(QColor(*colors['selectionBackground']))
-        if 'matchedBraceForeground' in colors:
-            self.setMatchedBraceForegroundColor(
-                QColor(*colors['matchedBraceForeground'])
-            )
-        if 'matchedBraceBackground' in colors:
-            self.setMatchedBraceBackgroundColor(
-                QColor(*colors['matchedBraceBackground'])
-            )
-        if 'braceBadForeground' in colors:
-            lex.setColor(QColor(*colors['braceBadForeground']), self.STYLE_BRACEBAD)
-        if 'braceBadBackground' in colors:
-            lex.setPaper(QColor(*colors['braceBadBackground']), self.STYLE_BRACEBAD)
 
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
@@ -721,127 +649,6 @@ class DocumentEditor(QsciScintilla):
         self.setMarginWidth(0, QFontMetrics(mfont).width('0000000') + 5)
         self._enableFontResizing = scheme.value('document_EnableFontResize')
 
-        # check to see if the user is using a custom color scheme
-        if not scheme.value('document_override_colors'):
-            return
-
-        # setup the colors
-        default_fg = scheme.value('document_color_text')
-        default_bg = scheme.value('document_color_background')
-        lexer = self.lexer()
-
-        # set the coloring for a lexer
-        if lexer:
-            lexer.setFont(font)
-            lexer.setDefaultPaper(default_bg)
-            lexer.setDefaultColor(default_fg)
-            lexer.setColor(default_bg)
-            lexer.setColor(default_fg)
-
-            # set the default coloring
-            for i in range(128):
-                lexer.setPaper(default_bg, i)
-                lexer.setColor(default_fg, i)
-
-            # lookup the language
-            language = lang.byName(self.language())
-            if language:
-                for key, values in language.lexerColorTypes().items():
-                    if key == 'smarthighlight':
-                        # The ini parser in language.lexerColorTypes lowercasses the keys
-                        # but scheme expects the original names.
-                        key = 'smartHighlight'
-                    clr = scheme.value('document_color_%s' % key)
-                    if not clr:
-                        continue
-
-                    bgclr = scheme.value('document_color_%sBackground' % key)
-                    if not bgclr:
-                        bgclr = default_bg
-
-                    for value in values:
-                        lexer.setColor(clr, value)
-                        lexer.setPaper(bgclr, value)
-
-            # set default coloring styles
-            lexer.setColor(
-                scheme.value('document_color_indentGuide'), self.STYLE_INDENTGUIDE
-            )
-            lexer.setColor(
-                scheme.value('document_color_invalidBrace'), self.STYLE_BRACEBAD
-            )
-            lexer.setColor(
-                scheme.value('document_color_braceHighlight'), self.STYLE_BRACELIGHT
-            )
-            lexer.setColor(
-                scheme.value('document_color_controlCharacter'), self.STYLE_CONTROLCHAR
-            )
-            lexer.setColor(
-                scheme.value('document_color_lineNumber'), self.STYLE_LINENUMBER
-            )
-
-        # set the coloring for a document
-        else:
-            self.setColor(default_fg)
-            self.setPaper(default_bg)
-
-        # set editor level colors
-        self.setFoldMarginColors(
-            scheme.value('document_color_foldMarginText'),
-            scheme.value('document_color_foldMargin'),
-        )
-        self.setCaretLineBackgroundColor(scheme.value('document_color_currentLine'))
-        self.setCaretForegroundColor(scheme.value('document_color_cursor'))
-        self.setSelectionForegroundColor(scheme.value('document_color_highlightText'))
-        self.setSelectionBackgroundColor(scheme.value('document_color_highlight'))
-        self.setMarginsBackgroundColor(scheme.value('document_color_margins'))
-        self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
-        self.setMarginsForegroundColor(scheme.value('document_color_marginsText'))
-        self.setEdgeColor(scheme.value('document_color_limitColumn'))
-
-        self.setUnmatchedBraceForegroundColor(
-            scheme.value('document_color_invalidBrace')
-        )
-        self.setMarkerBackgroundColor(scheme.value('document_color_markerBackground'))
-        self.setMarkerForegroundColor(scheme.value('document_color_markerForeground'))
-        self.setMatchedBraceBackgroundColor(
-            scheme.value('document_color_braceBackground')
-        )
-        self.setMatchedBraceForegroundColor(scheme.value('document_color_braceText'))
-
-        palette = self.palette()
-        palette.setColor(palette.Base, scheme.value('document_color_background'))
-        palette.setColor(palette.Text, scheme.value('document_color_text'))
-        self.setPalette(palette)
-
-    def marginsBackgroundColor(self):
-        return self._marginsBackgroundColor
-
-    def marginsForegroundColor(self):
-        return self._marginsForegroundColor
-
-    def setMarginsBackgroundColor(self, color):
-        self._marginsBackgroundColor = color
-        super(DocumentEditor, self).setMarginsBackgroundColor(color)
-
-    def setMarginsForegroundColor(self, color):
-        self._marginsForegroundColor = color
-        super(DocumentEditor, self).setMarginsForegroundColor(color)
-
-    def matchedBraceBackgroundColor(self):
-        return self._matchedBraceBackground
-
-    def matchedBraceForegroundColor(self):
-        return self._matchedBraceForeground
-
-    def setMatchedBraceBackgroundColor(self, color):
-        self._matchedBraceBackground = color
-        super(DocumentEditor, self).setMatchedBraceBackgroundColor(color)
-
-    def setMatchedBraceForegroundColor(self, color):
-        self._matchedBraceForeground = color
-        super(DocumentEditor, self).setMatchedBraceForegroundColor(color)
-
     def markerNext(self):
         line, index = self.getCursorPosition()
         newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
@@ -1123,9 +930,30 @@ class DocumentEditor(QsciScintilla):
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
+        self.updateColorScheme()
 
     def setLexer(self, lexer):
+        # Backup values destroyed when we set the lexer
+        if lexer:
+            lexer.setFont(self.font())
+        marginFont = self.marginsFont()
+        # 		folds = self.contractedFolds()
         super(DocumentEditor, self).setLexer(lexer)
+        # Restore values destroyed when we set the lexer
+        # 		self.setContractedFolds(folds)
+        self.setMarginsFont(marginFont)
+        self.setMarginsBackgroundColor(self.marginsBackgroundColor())
+        self.setMarginsForegroundColor(self.marginsForegroundColor())
+        self.setFoldMarginColors(*self.foldMarginColors())
+        self.setMatchedBraceBackgroundColor(self.matchedBraceBackgroundColor())
+        self.setMatchedBraceForegroundColor(self.matchedBraceForegroundColor())
+        if lexer:
+            lexer.setColor(
+                self.pyIndentationGuidesForegroundColor, self.STYLE_INDENTGUIDE
+            )
+            lexer.setPaper(
+                self.pyIndentationGuidesBackgroundColor, self.STYLE_INDENTGUIDE
+            )
         # QSciLexer.wordCharacters is not virtual, or even exposed. This hack allows custom lexers
         # to define their own wordCharacters
         if hasattr(lexer, 'wordCharactersOverride'):
@@ -1309,6 +1137,11 @@ class DocumentEditor(QsciScintilla):
 
         menu.popup(self._clickPos)
 
+    def showEvent(self, event):
+        super(DocumentEditor, self).showEvent(event)
+        # Update the colorScheme after the stylesheet has been fully loaded.
+        self.updateColorScheme()
+
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
 
@@ -1351,6 +1184,61 @@ class DocumentEditor(QsciScintilla):
     def undo(self):
         super(DocumentEditor, self).undo()
         self.refreshTitle()
+
+    def updateColorScheme(self):
+        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
+        # lookup the language
+        language = lang.byName(self.language())
+        lex = self.lexer()
+        if not lex:
+            self.setPaper(self.paperDefault)
+            self.setColor(self.colorDefault)
+            return
+        # Set Default lexer colors
+        for i in range(128):
+            lex.setPaper(self.paperDefault, i)
+            lex.setColor(self.colorDefault, i)
+        lex.setDefaultPaper(self.paperDefault)
+        lex.setDefaultColor(self.colorDefault)
+        # Override lexer color/paper values
+        if language:
+            _lexerColorNames = set(
+                [
+                    x.replace('color', '')
+                    for x in dir(self)
+                    if x.startswith('color') and x.replace('color', '')
+                ]
+            )
+            for colorName, keys in language.lexerColorTypes().items():
+                color = None
+                paper = None
+                if colorName == 'misc':
+                    color = self.colorDefault
+                    paper = self.paperDefault
+                else:
+                    for name in _lexerColorNames:
+                        if name.lower() == colorName:
+                            color = getattr(self, 'color{}'.format(name))
+                            paper = getattr(self, 'paper{}'.format(name))
+                            break
+                for key in keys:
+                    if paper:
+                        lex.setPaper(paper, key)
+                    if color:
+                        lex.setColor(color, key)
+        lex.setColor(self.braceBadForeground, self.STYLE_BRACEBAD)
+        lex.setPaper(self.braceBadBackground, self.STYLE_BRACEBAD)
+        lex.setColor(self.pyIndentationGuidesForegroundColor, self.STYLE_INDENTGUIDE)
+        lex.setPaper(self.pyIndentationGuidesBackgroundColor, self.STYLE_INDENTGUIDE)
+        # Update other values stored in the lexer
+        self.setFoldMarginColors(
+            self.foldMarginsForegroundColor, self.foldMarginsBackgroundColor
+        )
+        self.setMarginsBackgroundColor(self.marginsBackgroundColor())
+        self.setMarginsForegroundColor(self.marginsForegroundColor())
+        self.setFoldMarginColors(*self.foldMarginColors())
+        self.setMatchedBraceBackgroundColor(self.matchedBraceBackgroundColor())
+        self.setMatchedBraceForegroundColor(self.matchedBraceForegroundColor())
 
     def updateFilename(self, filename):
         filename = str(filename)
@@ -1434,23 +1322,10 @@ class DocumentEditor(QsciScintilla):
             :param		lexer		<QSciLexer>	Update this lexer and set as the lexer on the document.
             :param		keywords	<str>	keywords to highlight
         """
+        self.updateColorScheme()
         self._highlightedKeywords = keywords
         lexer.highlightedKeywords = ' '.join(self._permaHighlight + [unicode(keywords)])
-        marginFont = self.marginsFont()
-        foldMarginColors = self.foldMarginColors()
-        marginBackground = self.marginsBackgroundColor()
-        marginForeground = self.marginsForegroundColor()
-        matchedBraceBackground = self.matchedBraceBackgroundColor()
-        matchedBraceForeground = self.matchedBraceForegroundColor()
-        # 		folds = self.contractedFolds()
         self.setLexer(lexer)
-        # 		self.setContractedFolds(folds)
-        self.setMarginsFont(marginFont)
-        self.setMarginsBackgroundColor(marginBackground)
-        self.setMarginsForegroundColor(marginForeground)
-        self.setFoldMarginColors(*foldMarginColors)
-        self.setMatchedBraceBackgroundColor(matchedBraceBackground)
-        self.setMatchedBraceForegroundColor(matchedBraceForeground)
 
     def indentSelection(self, all=False):
         if all:
@@ -1566,3 +1441,190 @@ class DocumentEditor(QsciScintilla):
         QsciScintilla.whitespaceVisibility,
         QsciScintilla.setWhitespaceVisibility,
     )
+
+    # Color Setters required because QSci doesn't expose getters.
+    # --------------------------------------------------------------------------------
+    def edgeColor(self):
+        """ This is subclassed so we can create a pyqtProperty of it"""
+        return super(DocumentEditor, self).edgeColor()
+
+    def setEdgeColor(self, color):
+        """ This is subclassed so we can create a pyqtProperty of it"""
+        super(DocumentEditor, self).setEdgeColor(color)
+
+    # Because foreground and background must be set together, this cant use pyqtPropertyInit
+    @pyqtProperty(QColor)
+    def foldMarginsBackgroundColor(self):
+        return self._foldMarginBackgroundColor
+
+    @foldMarginsBackgroundColor.setter
+    def foldMarginsBackgroundColor(self, color):
+        self._foldMarginBackgroundColor = color
+        self.setFoldMarginColors(self._foldMarginForegroundColor, color)
+
+    @pyqtProperty(QColor)
+    def foldMarginsForegroundColor(self):
+        return self._foldMarginForegroundColor
+
+    @foldMarginsForegroundColor.setter
+    def foldMarginsForegroundColor(self, color):
+        self._foldMarginForegroundColor = color
+        self.setFoldMarginColors(color, self._foldMarginBackgroundColor)
+
+    def indentationGuidesBackgroundColor(self):
+        return self._indentationGuidesBackgroundColor
+
+    def setIndentationGuidesBackgroundColor(self, color):
+        self._indentationGuidesBackgroundColor = color
+        super(DocumentEditor, self).setIndentationGuidesBackgroundColor(color)
+
+    def indentationGuidesForegroundColor(self):
+        return self._indentationGuidesForegroundColor
+
+    def setIndentationGuidesForegroundColor(self, color):
+        self._indentationGuidesForegroundColor = color
+        super(DocumentEditor, self).setIndentationGuidesForegroundColor(color)
+
+    def marginsBackgroundColor(self):
+        return self._marginsBackgroundColor
+
+    def setMarginsBackgroundColor(self, color):
+        self._marginsBackgroundColor = color
+        super(DocumentEditor, self).setMarginsBackgroundColor(color)
+
+    def marginsForegroundColor(self):
+        return self._marginsForegroundColor
+
+    def setMarginsForegroundColor(self, color):
+        self._marginsForegroundColor = color
+        super(DocumentEditor, self).setMarginsForegroundColor(color)
+
+    def matchedBraceBackgroundColor(self):
+        return self._matchedBraceBackgroundColor
+
+    def matchedBraceForegroundColor(self):
+        return self._matchedBraceForegroundColor
+
+    def setMatchedBraceBackgroundColor(self, color):
+        self._matchedBraceBackgroundColor = color
+        super(DocumentEditor, self).setMatchedBraceBackgroundColor(color)
+
+    def setMatchedBraceForegroundColor(self, color):
+        self._matchedBraceForegroundColor = color
+        super(DocumentEditor, self).setMatchedBraceForegroundColor(color)
+
+    def markerBackgroundColor(self):
+        return self._markerBackgroundColor
+
+    def setMarkerBackgroundColor(self, color):
+        self._markerBackgroundColor = color
+        super(DocumentEditor, self).setMarkerBackgroundColor(color)
+
+    def markerForegroundColor(self):
+        return self._markerForegroundColor
+
+    def setMarkerForegroundColor(self, color):
+        self._markerForegroundColor = color
+        super(DocumentEditor, self).setMarkerForegroundColor(color)
+
+    def unmatchedBraceBackgroundColor(self):
+        return self._unmatchedBraceBackgroundColor
+
+    def setUnmatchedBraceBackgroundColor(self, color):
+        self._unmatchedBraceBackgroundColor = color
+        super(DocumentEditor, self).setUnmatchedBraceBackgroundColor(color)
+
+    def unmatchedBraceForegroundColor(self):
+        return self._unmatchedBraceForegroundColor
+
+    def setUnmatchedBraceForegroundColor(self, color):
+        self._unmatchedBraceForegroundColor = color
+        super(DocumentEditor, self).setUnmatchedBraceForegroundColor(color)
+
+    # Handle Stylesheet colors for properties that are built into QsciScintilla but dont have getters.
+    pyMarginsBackgroundColor = pyqtProperty(
+        QColor, marginsBackgroundColor, setMarginsBackgroundColor
+    )
+    pyMarginsForegroundColor = pyqtProperty(
+        QColor, marginsForegroundColor, setMarginsForegroundColor
+    )
+    pyMatchedBraceBackgroundColor = pyqtProperty(
+        QColor, matchedBraceBackgroundColor, setMatchedBraceBackgroundColor
+    )
+    pyMatchedBraceForegroundColor = pyqtProperty(
+        QColor, matchedBraceForegroundColor, setMatchedBraceForegroundColor
+    )
+    pyCaretBackgroundColor = pyqtProperty(
+        QColor, caretBackgroundColor, setCaretLineBackgroundColor
+    )
+    pyCaretForegroundColor = pyqtProperty(
+        QColor, caretForegroundColor, setCaretForegroundColor
+    )
+    pySelectionBackgroundColor = pyqtProperty(
+        QColor, selectionBackgroundColor, setSelectionBackgroundColor
+    )
+    pySelectionForegroundColor = pyqtProperty(
+        QColor, selectionForegroundColor, setSelectionForegroundColor
+    )
+    pyIndentationGuidesBackgroundColor = pyqtProperty(
+        QColor, indentationGuidesBackgroundColor, setIndentationGuidesBackgroundColor
+    )
+    pyIndentationGuidesForegroundColor = pyqtProperty(
+        QColor, indentationGuidesForegroundColor, setIndentationGuidesForegroundColor
+    )
+    pyMarkerBackgroundColor = pyqtProperty(
+        QColor, markerBackgroundColor, setMarkerBackgroundColor
+    )
+    pyMarkerForegroundColor = pyqtProperty(
+        QColor, markerForegroundColor, setMarkerForegroundColor
+    )
+    pyUnmatchedBraceBackgroundColor = pyqtProperty(
+        QColor, unmatchedBraceBackgroundColor, setUnmatchedBraceBackgroundColor
+    )
+    pyUnmatchedBraceForegroundColor = pyqtProperty(
+        QColor, unmatchedBraceForegroundColor, setUnmatchedBraceForegroundColor
+    )
+    pyEdgeColor = pyqtProperty(QColor, edgeColor, setEdgeColor)
+
+    # These colors are purely defined in DocumentEditor so we can use pyqtPropertyInit
+    braceBadForeground = pyqtPropertyInit('_braceBadForeground', QColor(255, 255, 255))
+    braceBadBackground = pyqtPropertyInit('_braceBadBackground', QColor(100, 60, 60))
+
+    colorDefault = pyqtPropertyInit('_colorDefault', QColor())
+    colorComment = pyqtPropertyInit('_colorComment', QColor(0, 127, 0))
+    colorNumber = pyqtPropertyInit('_colorNumber', QColor(0, 127, 127))
+    colorString = pyqtPropertyInit('_colorString', QColor(127, 0, 127))
+    colorKeyword = pyqtPropertyInit('_colorKeyword', QColor(0, 0, 127))
+    colorTripleQuotedString = pyqtPropertyInit(
+        '_colorTripleQuotedString', QColor(127, 0, 0)
+    )
+    colorMethod = pyqtPropertyInit('_colorMethod', QColor(0, 0, 255))
+    colorFunction = pyqtPropertyInit('_colorFunction', QColor(0, 127, 127))
+    colorOperator = pyqtPropertyInit('_colorOperator', QColor(0, 0, 0))
+    colorIdentifier = pyqtPropertyInit('_colorIdentifier', QColor(0, 0, 0))
+    colorCommentBlock = pyqtPropertyInit('_colorCommentBlock', QColor(127, 127, 127))
+    colorUnclosedString = pyqtPropertyInit('_colorUnclosedString', QColor(0, 0, 0))
+    colorSmartHighlight = pyqtPropertyInit('_colorSmartHighlight', QColor(64, 112, 144))
+    colorDecorator = pyqtPropertyInit('_colorDecorator', QColor(128, 80, 0))
+
+    _defaultPaper = QColor(255, 255, 255)
+    paperDefault = pyqtPropertyInit('_paperDefault', _defaultPaper)
+    paperComment = pyqtPropertyInit('_paperComment', _defaultPaper)
+    paperNumber = pyqtPropertyInit('_paperNumber', _defaultPaper)
+    paperString = pyqtPropertyInit('_paperString', _defaultPaper)
+    paperKeyword = pyqtPropertyInit('_paperKeyword', _defaultPaper)
+    paperTripleQuotedString = pyqtPropertyInit(
+        '_paperTripleQuotedString', _defaultPaper
+    )
+    paperMethod = pyqtPropertyInit('_paperMethod', _defaultPaper)
+    paperFunction = pyqtPropertyInit('_paperFunction', _defaultPaper)
+    paperOperator = pyqtPropertyInit('_paperOperator', _defaultPaper)
+    paperIdentifier = pyqtPropertyInit('_paperIdentifier', _defaultPaper)
+    paperCommentBlock = pyqtPropertyInit('_paperCommentBlock', _defaultPaper)
+    paperUnclosedString = pyqtPropertyInit(
+        '_paperUnclosedString', QColor(224, 192, 224)
+    )
+    paperSmartHighlight = pyqtPropertyInit(
+        '_paperSmartHighlight', QColor(155, 255, 155)
+    )
+    paperDecorator = pyqtPropertyInit('_paperDecorator', _defaultPaper)

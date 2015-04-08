@@ -29,119 +29,9 @@ import blurdev
 class LoggerWindow(Window):
     _instance = None
 
-    # Ensure the workbox lexer colors are set to sane defaults
-    # applications like maya cause the lexer to have bad default colors
-    colorSchemeDefault = {
-        'color': {
-            'default': (128, 128, 128, 255),
-            'comment': (0, 127, 0, 255),
-            'number': (0, 127, 127, 255),
-            'string': (127, 0, 127, 255),
-            'keyword': (0, 0, 127, 255),
-            'triplequotedstring': (127, 0, 0, 255),
-            'method': (0, 0, 255, 255),
-            'function': (0, 127, 127, 255),
-            'operator': (0, 0, 0, 255),
-            'identifier': (0, 0, 0, 255),
-            'commentblock': (127, 127, 127, 255),
-            'unclosedstring': (0, 0, 0, 255),
-            'smarthighlight': (64, 112, 144, 255),
-            'decorator': (128, 80, 0, 255),
-        },
-        'paper': {
-            'default': (255, 255, 255, 255),
-            'unclosedstring': (224, 192, 224, 255),
-            'smarthighlight': (155, 255, 155, 255),
-        },
-        'foldMarginsBackground': (224, 224, 224, 255),
-        'foldMarginsForeground': (255, 255, 255, 255),
-        'marginsBackground': (224, 224, 224, 255),
-        'marginsForeground': (0, 0, 0, 255),
-        'braceBadForeground': (255, 255, 255),
-        'braceBadBackground': (100, 60, 60),
-        'selectionForeground': (255, 255, 255),
-        'selectionBackground': (192, 192, 192),
-        'caretForegroundColor': (0, 0, 0),
-        'caretBackgroundColor': (255, 255, 255),
-        'matchedBraceForeground': (0, 0, 0),
-        'matchedBraceBackground': (224, 224, 224),
-    }
-
-    colorSchemeMonokai = {
-        'color': {
-            'default': (128, 128, 128, 255),
-            'comment': (117, 113, 94, 255),
-            'number': (174, 129, 255, 255),
-            'string': (230, 219, 116, 255),
-            'keyword': (249, 38, 114, 255),
-            'method': (166, 226, 46, 255),
-            'function': (166, 226, 46, 255),
-            'operator': (250, 250, 250, 255),
-            'identifier': (250, 250, 250, 255),
-            'commentblock': (117, 113, 94, 255),
-            'unclosedstring': (0, 0, 0, 255),
-            'smarthighlight': (64, 112, 144, 255),
-            'decorator': (128, 80, 0, 255),
-        },
-        'paper': {
-            'default': (40, 40, 40, 255),
-            'unclosedstring': (100, 60, 60, 255),
-            'smarthighlight': (155, 255, 155, 255),
-        },
-        'foldMarginsBackground': (35, 35, 35),
-        'foldMarginsForeground': (35, 35, 35),
-        'marginsBackground': (40, 40, 40, 255),
-        'marginsForeground': (255, 255, 255, 255),
-        'caretBackgroundColor': (40, 40, 40, 255),
-        'caretForegroundColor': (255, 255, 255, 255),
-        'selectionForeground': (240, 240, 240),
-        'selectionBackground': (70, 70, 70),
-        'matchedBraceForeground': (240, 240, 240),
-        'matchedBraceBackground': (60, 60, 60),
-        'braceBadForeground': (255, 255, 255),
-        'braceBadBackground': (100, 60, 60),
-    }
-
-    colorSchemeEighties = {
-        'color': {
-            'default': (102, 153, 204, 255),
-            'comment': (153, 153, 153, 255),
-            'number': (249, 145, 87, 255),
-            'string': (153, 204, 153, 255),
-            'keyword': (204, 153, 204, 255),
-            'triplequotedstring': (220, 204, 153, 255),
-            'method': (255, 204, 102, 255),
-            'function': (132, 203, 255, 255),
-            'operator': (204, 204, 204, 255),
-            'commentblock': (117, 113, 94, 255),
-            'unclosedstring': (255, 255, 255, 255),
-            'smarthighlight': (255, 255, 255, 255),
-            'decorator': (240, 100, 102, 255),
-        },
-        'paper': {
-            'default': (45, 45, 45, 255),
-            'unclosedstring': (100, 60, 60, 255),
-            'smarthighlight': (160, 160, 80, 255),
-        },
-        'marginsForeground': (100, 180, 180, 255),
-        'marginsBackground': (45, 45, 45, 255),
-        'selectionForeground': (240, 240, 240),
-        'selectionBackground': (70, 70, 70),
-        'caretForegroundColor': (255, 255, 255),
-        'caretBackgroundColor': (45, 45, 45, 255),
-        'matchedBraceForeground': (240, 240, 240),
-        'matchedBraceBackground': (60, 60, 60),
-        'foldMarginsBackground': (35, 35, 35),
-        'foldMarginsForeground': (35, 35, 35),
-        'braceBadForeground': (255, 255, 255),
-        'braceBadBackground': (100, 60, 60),
-    }
-
     def __init__(self, parent):
         Window.__init__(self, parent)
         self.aboutToClearPathsEnabled = False
-        # set the default color scheme
-        self._currentColorScheme = self.colorSchemeDefault
 
         import blurdev.gui
 
@@ -251,7 +141,6 @@ class LoggerWindow(Window):
         workbox.setShowSmartHighlighting(True)
         # update the lexer
         lex = workbox.lexer()
-        workbox.setColorScheme(self._currentColorScheme)
         workbox.setMarginsFont(workbox.font())
         # If only one tab is visible, don't show the close tab button
         self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
@@ -278,15 +167,6 @@ class LoggerWindow(Window):
 
     def closeLogger(self):
         self.close()
-
-    def colorScheme(self):
-        return self._currentColorScheme
-
-    def setColorScheme(self, colors):
-        self._currentColorScheme = colors
-        for index in range(self.uiWorkboxTAB.count()):
-            box = self.uiWorkboxTAB.widget(index)
-            box.setColorScheme(colors)
 
     def execAll(self):
         """
@@ -390,8 +270,6 @@ class LoggerWindow(Window):
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
 
-        # NOTE: Move colorScheme into StyleSheets and replace it.
-        pref.recordProperty('colorScheme_V1', self.colorScheme())
         pref.recordProperty('styleSheet', self.styleSheet())
 
         pref.save()
@@ -461,8 +339,6 @@ class LoggerWindow(Window):
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
 
-        colorScheme = pref.restoreProperty('colorScheme_V1', self.colorSchemeDefault)
-        self.setColorScheme(colorScheme)
         self.setStyleSheet(pref.restoreProperty('styleSheet', ''))
 
         self.restoreToolbars()

@@ -1196,6 +1196,7 @@ class IdeEditor(Window):
         )
 
         pref.recordProperty('projectTreeState', self.uiProjectTREE.recordOpenState())
+        pref.recordProperty('styleSheet', self.styleSheet())
 
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
@@ -1285,6 +1286,9 @@ class IdeEditor(Window):
         from blurdev import prefs
 
         pref = prefs.find('ide/interface')
+
+        # load the styleSheet
+        self.setStyleSheet(pref.restoreProperty('styleSheet', ''))
 
         # load the recent files
         self._recentFiles = pref.restoreProperty('recentFiles', [])
