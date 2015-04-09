@@ -14,6 +14,21 @@ import cgi
 
 
 class DragDropTestWidget(QTextEdit):
+    def __init__(self, parent=None):
+        super(DragDropTestWidget, self).__init__(parent)
+        self.excludeFormats = set(
+            [
+                QString('text/plain'),
+                QString('text/uri-list'),
+                QString('text/html'),
+                QString('text/uri-lis'),
+                QString('application/x-color'),
+            ]
+        )
+        # a cached instance of the last drop QMimeData
+        # Note: this object can be deleted by the time you get access to it.
+        self.lastMime = None
+
     def insertFromMimeData(self, mimeData):
         self.logEvent(mimeData)
 
@@ -49,6 +64,7 @@ class DragDropTestWidget(QTextEdit):
             html.append('<h1>insertFromMimeData Event</h1><small><b></b></small>')
             data = event
         # Mime Data
+        self.lastMime = data
         html.append(
             '<hr><h1>Mime Data</h1><small><b>has color:</b></small> %r'
             % data.hasColor()
@@ -65,17 +81,8 @@ class DragDropTestWidget(QTextEdit):
             % '<br>'.join([cgi.escape(unicode(url.toString())) for url in data.urls()])
         )
         html.append('<small><b>Additional Formats:</b></small>')
-        excludeFormats = set(
-            [
-                QString('text/plain'),
-                QString('text/uri-list'),
-                QString('text/html'),
-                QString('text/uri-lis'),
-                QString('application/x-color'),
-            ]
-        )
         for f in data.formats():
-            if not f in excludeFormats:
+            if not f in self.excludeFormats:
                 try:
                     html.append(
                         '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small>%s'
