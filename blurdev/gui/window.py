@@ -68,7 +68,7 @@ class Window(QMainWindow):
             )
             if os.path.exists(path):
                 self.setWindowIcon(QIcon(path))
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             pass
 
     def closeEvent(self, event):
