@@ -18,4 +18,6 @@
 	<plugin module="blurdev.gui.widgets.clearabledateedit"		class="ClearableDateEdit"/>
 	<plugin module="blurdev.gui.widgets.dragdroptestwidget"		class="DragDropTestWidget"/>
 	<plugin module="blurdev.gui.widgets.envcombobox"			class="EnvComboBox"/>
+	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragSpinBox"/>
+	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragDoubleSpinBox"/>
 </plugins>
