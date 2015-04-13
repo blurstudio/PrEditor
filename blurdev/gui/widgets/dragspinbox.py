@@ -66,8 +66,10 @@ class _DragSpin(object):
                     self._lastPos = self._dragStart
 
                 else:
-                    r = QApplication.desktop().rect()
+                    dtop = QApplication.desktop()
                     p = e.globalPos()
+                    screen = dtop.screenNumber(p)
+                    r = dtop.availableGeometry(screen)
                     b = self._wrapBoundary
 
                     # when wrapping move to the other side in by 2*boundary
