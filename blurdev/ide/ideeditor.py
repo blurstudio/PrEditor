@@ -20,7 +20,6 @@ from PyQt4.QtCore import (
     QRect,
     QSize,
     QUrl,
-    QVariant,
     Qt,
     QFileSystemWatcher,
 )
@@ -40,7 +39,6 @@ from PyQt4.QtGui import (
     QMessageBox,
     QTreeWidgetItem,
     QToolBar,
-    QToolButton,
     QLabel,
 )
 
@@ -572,7 +570,6 @@ class IdeEditor(Window):
         if not doc:
             return False
 
-        count = doc.replace(self.replaceText())
         return True
 
     def documentReplaceAll(self):
@@ -784,7 +781,6 @@ class IdeEditor(Window):
     def dropEvent(self, event):
         # drop a file
         if event.mimeData().hasUrls():
-            from blurdev import settings
 
             urls = event.mimeData().urls()
             for url in urls:
@@ -947,7 +943,8 @@ class IdeEditor(Window):
         return self._lastSavedFilename
 
     def load(self, filename, lineno=0, useRegistry=True):
-        normalized = os.path.normcase(os.path.abspath(unicode(filename)))
+        filename = unicode(filename)
+        normalized = os.path.normcase(os.path.abspath(filename))
 
         if not QFileInfo(filename).isFile():
             return False
@@ -967,7 +964,6 @@ class IdeEditor(Window):
         # load the file based on the registry
         if useRegistry and mods != Qt.AltModifier:
             from blurdev import osystem
-            from blurdev.ide import RegistryType
 
             ext = os.path.splitext(normalized)[-1]
             cmd = self.registry().findCommand(filename)
@@ -984,6 +980,8 @@ class IdeEditor(Window):
 
             # hardcoded support for sdk files
             elif ext == '.sdk':
+                import blurdev
+
                 blurdev.core.sdkBrowser().showSdk(filename)
                 return True
 
@@ -1032,7 +1030,6 @@ class IdeEditor(Window):
         dlg.show()
 
     def projectNew(self):
-        from ideprojectdialog import IdeProjectDialog
         from ideproject import IdeProject
 
         proj = IdeProject()
@@ -1103,7 +1100,6 @@ class IdeEditor(Window):
 
     def documentExploreItem(self):
         import os
-        from blurdev import settings
 
         path = unicode(self.currentFilePath())
         if os.path.isfile(path):
@@ -1282,7 +1278,6 @@ class IdeEditor(Window):
         return self._registry
 
     def restoreSettings(self):
-        import blurdev
         from blurdev import prefs
 
         pref = prefs.find('ide/interface')
