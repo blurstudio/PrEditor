@@ -947,7 +947,7 @@ class IdeEditor(Window):
         return self._lastSavedFilename
 
     def load(self, filename, lineno=0, useRegistry=True):
-        filename = os.path.normcase(os.path.abspath(unicode(filename)))
+        normalized = os.path.normcase(os.path.abspath(unicode(filename)))
 
         if not QFileInfo(filename).isFile():
             return False
@@ -957,7 +957,7 @@ class IdeEditor(Window):
 
         # make sure the file is not already loaded
         for window in self.uiWindowsAREA.subWindowList():
-            if os.path.normcase(window.widget().filename()) == filename:
+            if os.path.normcase(window.widget().filename()) == normalized:
                 window.setFocus()
                 return True
 
@@ -969,7 +969,7 @@ class IdeEditor(Window):
             from blurdev import osystem
             from blurdev.ide import RegistryType
 
-            ext = os.path.splitext(filename)[-1]
+            ext = os.path.splitext(normalized)[-1]
             cmd = self.registry().findCommand(filename)
 
             # run a command line operation on the file
