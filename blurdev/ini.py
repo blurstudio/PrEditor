@@ -51,18 +51,31 @@ def GetINISetting(inFileName, inSection="", inKey=""):
     return ""
 
 
-def SetINISetting(inFileName, inSection, inKey, inValue, useConfigParser=False):
-    """ Sets the ini section setting of the inputed file with the give key/value pair.
-        By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
-        It will use ConfigParser.ConfigParser instead. You will not be able to write to the
-        DEFAULT Section when using ConfigParser.ConfigParser.
+def SetINISetting(
+    inFileName, inSection, inKey, inValue, useConfigParser=False, writeDefault=True
+):
+    """ Sets the ini section setting of the provided file with the give key/value pair.
         
-        :returns: bool
+    By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
+    It will use ConfigParser.ConfigParser instead. You will not be able to write to the
+    DEFAULT Section when using ConfigParser.ConfigParser. If writeDefault is False it can
+    still use the ToolParserClass, but it will not write the DEFAULT section.
+    
+    Args:
+        inFileName (str): Ini filename to write to
+        inSection (str): Name of the section the value is stored
+        inKey (str): Name of the key to store the value
+        inValue: The value to store
+        useConfigParser (bool): Use the ToolParserClass or ConfigParser class
+        writeDefault (bool): If using ToolParserClass, should it write the DEFAULT section
+        
+    Returns:
+        bool: IF it was able to save the ini setting to file.
     """
     if useConfigParser:
         tParser = ConfigParser.ConfigParser()
     else:
-        tParser = ToolParserClass()
+        tParser = ToolParserClass(writeDefault=writeDefault)
     inSection = unicode(inSection)
     inKey = unicode(inKey)
     inValue = unicode(inValue)
@@ -235,11 +248,12 @@ class ToolParserClass(ConfigParser.ConfigParser):
             return self.GetSection(attrKey)
         raise AttributeError, attrKey
 
-    def __init__(self, toolID='', location=''):
+    def __init__(self, toolID='', location='', writeDefault=True):
         ConfigParser.ConfigParser.__init__(self)
         self._toolID = toolID
         self._location = location
         self._sectionClasses = []
+        self._writeDefault = writeDefault
         if toolID:
             self.Load()
 
@@ -367,29 +381,33 @@ class ToolParserClass(ConfigParser.ConfigParser):
             :remarks	Saves the ini file in alphabetical order
             :param		fp	<file>	A python file object opened in write mode
         """
-        sects = ('GLOBALS', 'default')
-        for section in sects:
-            if section in self._sections:
-                fp.write("[%s]\n" % section)
-                for (key, value) in sorted(self._sections[section].items()):
-                    if key != "__name__":
-                        fp.write(
-                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
-                        )
-                fp.write("\n")
-            elif section in environments:
-                if section == 'default':
-                    fp.write("[DEFAULT]\n")
-                else:
+        sects = ()
+        if self._writeDefault:
+            sects = ('GLOBALS', 'default')
+            for section in sects:
+                if section in self._sections:
                     fp.write("[%s]\n" % section)
-                for (key, value) in sorted(
-                    environments[section].__dict__['_properties'].items()
-                ):
-                    if key != "__name__":
-                        fp.write(
-                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
-                        )
-                fp.write("\n")
+                    for (key, value) in sorted(self._sections[section].items()):
+                        if key != "__name__":
+                            fp.write(
+                                "%s = %s\n"
+                                % (key, unicode(value).replace('\n', '\n\t'))
+                            )
+                    fp.write("\n")
+                elif section in environments:
+                    if section == 'default':
+                        fp.write("[DEFAULT]\n")
+                    else:
+                        fp.write("[%s]\n" % section)
+                    for (key, value) in sorted(
+                        environments[section].__dict__['_properties'].items()
+                    ):
+                        if key != "__name__":
+                            fp.write(
+                                "%s = %s\n"
+                                % (key, unicode(value).replace('\n', '\n\t'))
+                            )
+                    fp.write("\n")
         for section in sorted(self._sections):
             if not section in sects:
                 fp.write("[%s]\n" % section)
