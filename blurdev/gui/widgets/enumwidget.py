@@ -15,7 +15,11 @@ import re
 from PyQt4.QtCore import pyqtSignal, pyqtProperty, Qt, QString
 from PyQt4.QtGui import QWidget, QCheckBox, QGridLayout
 from blurdev.gui import Dialog
-from blurdev.enum import EnumGroup
+from blurdev.enum import EnumGroup, Enum
+
+
+class EnumWidgetEnum(EnumGroup):
+    pass
 
 
 class EnumWidget(QWidget):
@@ -34,6 +38,8 @@ class EnumWidget(QWidget):
         # set the custom propreties
         self._columnCount = columnCount  # number of columns to include in the grid
         self._value = value
+        # Control the class name of the Dynamicly generated Enum
+        self._enumTypeListName = ''
         self.setLayout(QGridLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.setEnumType(enumType)
@@ -111,6 +117,31 @@ class EnumWidget(QWidget):
     def setEnumType(self, enumType):
         self._enumType = enumType
         self.recalculateGrid()
+
+    @pyqtProperty('QStringList')
+    def enumTypeList(self):
+        if self._enumType == None:
+            return []
+        return list(self._enumType.names())
+
+    @enumTypeList.setter
+    def enumTypeList(self, values):
+        enumType = EnumWidgetEnum.copy(self._enumTypeListName)
+        for i, name in enumerate(values):
+            name = unicode(name)
+            setattr(enumType, name, Enum())
+        enumType.__init_enums__()
+        self.setEnumType(enumType)
+
+    @pyqtProperty(QString)
+    def enumTypeListName(self):
+        return self._enumTypeListName
+
+    @enumTypeListName.setter
+    def enumTypeListName(self, name):
+        self._enumTypeListName = str(name)
+        # Re-build the EnumGroup
+        self.enumTypeList = self.enumTypeList
 
     def setValue(self, value):
         """ sets the value for this widget """

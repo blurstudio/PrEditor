@@ -413,7 +413,7 @@ class EnumGroup(object):
         Returns:
             EnumGroup: A new Class type.
         """
-        if name == None:
+        if not name:
             # Generate a unique name for the class if one was not provided
             name = '{name}_{count}'.format(name=cls.__name__, count=cls._copyCount)
             cls._copyCount += 1
