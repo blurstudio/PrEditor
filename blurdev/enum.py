@@ -361,6 +361,7 @@ class EnumGroup(object):
 
     __metaclass__ = _MetaEnumGroup
     _ENUMERATORS = None
+    _copyCount = 1
     All = 0
     Nothing = 0
 
@@ -396,6 +397,27 @@ class EnumGroup(object):
         for n, e in kwargs.iteritems():
             setattr(cls, n, e)
         cls.__init_enums__()
+
+    @classmethod
+    def copy(cls, name=None):
+        """ Returns a new class type from this class without any Enums assigned.
+        
+        If name is not provided it will automatically generate a new class name.
+        For example if the EnumGroup class named DefaultEnums has been copied
+        twice the new class name will be "DefaultEnums_3".
+        If you provide name it will not check for duplicates.
+        
+        Args:
+            name (str|None): The name to give the new class. Defaults to None
+        
+        Returns:
+            EnumGroup: A new Class type.
+        """
+        if name == None:
+            # Generate a unique name for the class if one was not provided
+            name = '{name}_{count}'.format(name=cls.__name__, count=cls._copyCount)
+            cls._copyCount += 1
+        return type(name, cls.__bases__, dict(cls.__dict__))
 
     @classmethod
     def fromLabel(cls, label):
@@ -594,7 +616,7 @@ class enum(object):
         pass in it will assign binary values starting with the first argument, 1, 2, 4, 8, 16, ....
         If you pass in any keyword arguments it will store the value.
         
-        Note: Labels automaticly add spaces for every capital letter after the first, so do not use
+        Note: Labels automatically add spaces for every capital letter after the first, so do not use
         spaces for args, or the keys of kwargs or you will not be able to access those parameters.
         
         :param *args: Properties with binary values are created
@@ -661,7 +683,7 @@ class enum(object):
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 
     def labelByValue(self, value):
-        """ Returns the label for a specific value. Labels automaticly add spaces
+        """ Returns the label for a specific value. Labels automatically add spaces
         for every capital letter after the first.
         :param value: The value you want the label for
         """
