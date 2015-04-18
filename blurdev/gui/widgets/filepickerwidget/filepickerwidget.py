@@ -49,9 +49,9 @@ class FilePickerWidget(QWidget):
 
     def __init__(self, parent):
         self._correctBackground = QColor(0, 128, 0, 100)
-        self._correctForeground = QColor(Qt.green)
+        self._correctForeground = QColor(Qt.white)
         self._inCorrectBackground = QColor(139, 0, 0, 100)
-        self._inCorrectForeground = QColor(Qt.red)
+        self._inCorrectForeground = QColor(Qt.white)
         QWidget.__init__(self, parent)
 
         self.uiFilenameTXT = LineEdit(self)
@@ -60,6 +60,9 @@ class FilePickerWidget(QWidget):
         self.uiPickFileBTN.setToolTip(
             '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to current path.</p></body></html>'
         )
+        # Make this widget focusable and pass the widget focus to uiFilenameTXT
+        self.setFocusProxy(self.uiFilenameTXT)
+        self.setFocusPolicy(Qt.StrongFocus)
         layout = QHBoxLayout(self)
         layout.addWidget(self.uiFilenameTXT)
         layout.addWidget(self.uiPickFileBTN)
@@ -182,6 +185,13 @@ class FilePickerWidget(QWidget):
         self._resolvePath = state
         self.resolve()
 
+    pyCaption = pyqtProperty("QString", caption, setCaption)
+    pyFilters = pyqtProperty("QString", filters, setFilters)
+    pyPickFolder = pyqtProperty("bool", pickFolder, setPickFolder)
+    pyOpenFile = pyqtProperty("bool", openFile, setOpenFile)
+    pyResolvePath = pyqtProperty("bool", resolvePath, setResolvePath)
+    pyFilePath = pyqtProperty("QString", filePath, setFilePath)
+
     # Load the colors from the stylesheets
     @pyqtProperty(QColor)
     def correctBackground(self):
@@ -190,6 +200,7 @@ class FilePickerWidget(QWidget):
     @correctBackground.setter
     def correctBackground(self, color):
         self._correctBackground = color
+        self.resolve()
 
     @pyqtProperty(QColor)
     def correctForeground(self):
@@ -198,6 +209,7 @@ class FilePickerWidget(QWidget):
     @correctForeground.setter
     def correctForeground(self, color):
         self._correctForeground = color
+        self.resolve()
 
     @pyqtProperty(QColor)
     def inCorrectBackground(self):
@@ -206,6 +218,7 @@ class FilePickerWidget(QWidget):
     @inCorrectBackground.setter
     def inCorrectBackground(self, color):
         self._inCorrectBackground = color
+        self.resolve()
 
     @pyqtProperty(QColor)
     def inCorrectForeground(self):
@@ -214,9 +227,4 @@ class FilePickerWidget(QWidget):
     @inCorrectForeground.setter
     def inCorrectForeground(self, color):
         self._inCorrectForeground = color
-
-    pyCaption = pyqtProperty("QString", caption, setCaption)
-    pyFilters = pyqtProperty("QString", filters, setFilters)
-    pyPickFolder = pyqtProperty("bool", pickFolder, setPickFolder)
-    pyOpenFile = pyqtProperty("bool", openFile, setOpenFile)
-    pyResolvePath = pyqtProperty("bool", resolvePath, setResolvePath)
+        self.resolve()
