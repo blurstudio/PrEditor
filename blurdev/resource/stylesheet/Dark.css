@@ -411,9 +411,9 @@ QComboBox#uiEnvironmentDDL[defaultActive="true"] {
 /* Generic re-usable colors that can be accessed by custom qproperty's */
 QWidget {
 	qproperty-correctBackground: rgba(0, 100, 0, 100);
-	qproperty-correctForeground: green;
+	qproperty-correctForeground: rgb(225,255,225);
 	qproperty-inCorrectBackground: rgba(128, 0, 0, 100);
-	qproperty-inCorrectForeground: red;
+	qproperty-inCorrectForeground: rgb(255, 225, 225);
 }
 
 ConsoleEdit {
