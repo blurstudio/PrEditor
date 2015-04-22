@@ -410,6 +410,31 @@ QComboBox#uiEnvironmentDDL[defaultActive="true"] {
 
 /* Generic re-usable colors that can be accessed by custom qproperty's */
 QWidget {
+	qproperty-correctBackground: rgba(0, 100, 0);
+	qproperty-correctForeground: rgb(225,255,225);
+	qproperty-inCorrectBackground: rgba(128, 0, 0);
+	qproperty-inCorrectForeground: rgb(255, 225, 225);
+	/* predefined colornames that can be used to ensure the color is visible in a specific stylesheet */
+	qproperty-colorWhite: black;
+	qproperty-colorBlack: rgb(200,200,200);
+	qproperty-colorCyan: cyan;
+	qproperty-colorDarkCyan: darkCyan;
+	qproperty-colorRed: red;
+	qproperty-colorDarkRed: darkRed;
+	qproperty-colorMagenta: magenta;
+	qproperty-colorDarkMagenta: darkMagenta;
+	qproperty-colorGreen: green;
+	qproperty-colorDarkGreen: #00A400;
+	qproperty-colorYellow: yellow;
+	qproperty-colorDarkYellow: #AAAA00;
+	qproperty-colorBlue: blue;
+	qproperty-colorDarkBlue: darkBlue;
+	qproperty-colorGray: gray;
+	qproperty-colorDarkGray: darkGray;
+	qproperty-colorLightGray: lightGray;
+}
+
+FilePickerWidget {
 	qproperty-correctBackground: rgba(0, 100, 0, 100);
 	qproperty-correctForeground: rgb(225,255,225);
 	qproperty-inCorrectBackground: rgba(128, 0, 0, 100);
