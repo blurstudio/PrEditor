@@ -6,6 +6,7 @@ Defines some deocrators that are commonly useful
 
 import traceback
 from blurdev import debug
+from PyQt4.QtCore import QObject, QTimer
 
 
 def abstractmethod(function):
@@ -236,3 +237,85 @@ def stopwatch(
     if hasattr(text, '__call__'):
         return deco(text)
     return deco
+
+
+class singleShot(QObject):
+    """ Decorator class used to implement a QTimer.singleShot(0, function)
+    
+    This is useful so your refresh function only gets called once even if 
+    its connected to a signal that gets emitted several times at once.
+    
+    Note:
+        While this will pass the args and kwargs of the first call in a
+        event loop, it discards the args and kwargs of any additional
+        calls to this function while in the same event loop.
+        
+    From the Qt Docs:
+        As a special case, a QTimer with a timeout of 0 will time out as 
+        soon as all the events in the window system's event queue have 
+        been processed. This can be used to do heavy work while providing 
+        a snappy user interface
+    """
+
+    def __init__(self):
+        super(singleShot, self).__init__()
+        self._function = None
+        self._callScheduled = False
+        self._args = []
+        self._kwargs = {}
+
+    def __call__(self, function):
+        self._function = function
+
+        def newFunction(*args, **kwargs):
+            if not self._callScheduled:
+                self._args = args
+                self._kwargs = kwargs
+                self._callScheduled = True
+                QTimer.singleShot(0, self.callback)
+
+        newFunction.__name__ = function.__name__
+        newFunction.__doc__ = function.__doc__
+        return newFunction
+
+    def callback(self):
+        """ Calls the decorated function and resets singleShot for the next group of calls
+        """
+        self._callScheduled = False
+        # self._args and self._kwargs need to be cleared before we call self._function
+        args = self._args
+        kwargs = self._kwargs
+        self._args = []
+        self._kwargs = {}
+        self._function(*args, **kwargs)
+
+
+class recursionBlock(object):
+    """ Decorator that only allows the function to be processed every other call.
+    
+    Functions decorated with this are intended to do something that will result in
+    the calling of this function again in a way that doesn't block signals. 
+    
+    For	example when you use the callback of blurdev.gui.pyqtProcessInit to call a
+    function that updates the widget stylesheet which triggers your callback, etc.
+    In this case your function will always be called twice and this prevents the
+    second call from executing.
+    
+    Note if the function call is blocked, this will not return anything.
+    """
+
+    def __init__(self):
+        super(recursionBlock, self).__init__()
+        self._block = False
+
+    def __call__(self, function):
+        def newFunction(*args, **kwargs):
+            if self._block:
+                self._block = False
+                return
+            self._block = True
+            return function(*args, **kwargs)
+
+        newFunction.__name__ = function.__name__
+        newFunction.__doc__ = function.__doc__
+        return newFunction

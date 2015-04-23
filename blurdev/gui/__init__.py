@@ -24,8 +24,14 @@ from functools import partial
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
-def pyqtPropertyInit(name, default):
+def pyqtPropertyInit(name, default, callback=None):
     """Initializes a default pyqtProperty value with a usable getter and setter.
+    
+    You can optionally pass a function that will get called any time the property
+    is set. If using the same callback for multiple properties, you may want to 
+    use the blurdev.decorators.singleShot decorator to prevent your function getting
+    called multiple times at once. This callback must accept the attribute name and
+    value being set.
 
     Example:
         class TestClass(QWidget):
@@ -38,6 +44,7 @@ def pyqtPropertyInit(name, default):
     Args:
         name(str): The name of internal attribute to store to and lookup from.
         default: The property's default value.  This will also define the pyqtProperty type.
+        callback(callable): If provided this function is called when the property is set.
 
     Returns:
         pyqtProperty
@@ -51,11 +58,15 @@ def pyqtPropertyInit(name, default):
             return default
         return value
 
+    def _setattrCallback(callback, attrName, self, value):
+        setattr(self, attrName, value)
+        if callback:
+            callback(self, attrName, value)
+
     ga = partial(_getattrDefault, default)
+    sa = partial(_setattrCallback, callback, name)
     return pyqtProperty(
-        default.__class__,
-        fget=(lambda s: ga(s, name)),
-        fset=(lambda s, v: setattr(s, name, v)),
+        default.__class__, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)),
     )
 
 
