@@ -11,6 +11,7 @@
 from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QHeaderView
 from PyQt4.QtCore import QSize, Qt, QTimer
 import blurdev
+import sip
 
 
 class LockableTreeHeaderView(QHeaderView):
@@ -385,6 +386,9 @@ class LockableTreeWidget(QTreeWidget):
             :param		column		<int>
             :param		recursive	<int>				Number of recursions
         """
+        if sip.isdeleted(item):
+            # The item has been deleted so we have no need to update the sizeHint.
+            return
         if recursive:
             for index in range(item.childCount()):
                 self.updateSizeHintForItem(item.child(index), column, recursive - 1)
