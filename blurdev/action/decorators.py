@@ -1,6 +1,7 @@
 import sys
 
 from .constants import *
+from .exceptions import *
 
 # =============================================================================
 # CLASSES

@@ -287,6 +287,7 @@ import types
 from .base import *
 from .decorators import *
 from .constants import *
+from .exceptions import *
 
 # =============================================================================
 # FUNCTIONS

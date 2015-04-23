@@ -3,6 +3,7 @@ import os.path
 import sys
 
 from .constants import *
+from .exceptions import *
 
 # =============================================================================
 # CLASSES
@@ -567,36 +568,6 @@ class _PropertyDescriptor(object):
             val=repr(self._value),
             atype=repr(self._atype),
         )
-
-
-# =============================================================================
-# EXCEPTIONS
-# =============================================================================
-
-
-class ActionError(Exception):
-    pass
-
-
-# =============================================================================
-
-
-class ArgumentHasNoDefaultError(ActionError):
-    pass
-
-
-# =============================================================================
-
-
-class ArgumentTypeIncorrectError(ActionError):
-    pass
-
-
-# =============================================================================
-
-
-class ArgumentRequiredButNotGivenError(ActionError):
-    pass
 
 
 # =============================================================================
