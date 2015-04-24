@@ -177,7 +177,7 @@ def registerSections(configSet):
 
     # set default margin font
     mfont = QFont(dfont)
-    mfont.setPointSize(7)
+    mfont.setPointSize(9)
 
     dbackground = QColor('white')
 

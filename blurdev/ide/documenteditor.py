@@ -33,6 +33,8 @@ import time, re
 class DocumentEditor(QsciScintilla):
     SearchDirection = enum('First', 'Forward', 'Backward')
     SearchOptions = enum('Backward', 'CaseSensitive', 'WholeWords', 'QRegExp')
+    _defaultFont = QFont()
+    _defaultFont.fromString('Courier New,9,-1,5,50,0,0,0,1,0')
 
     fontsChanged = pyqtSignal(
         QFont, QFont
@@ -52,7 +54,7 @@ class DocumentEditor(QsciScintilla):
         self._lastSearch = ''
         self._textCodec = None
         self._fileMonitoringActive = False
-        self._marginsFont = QFont()
+        self._marginsFont = self._defaultFont
         self._lastSearchDirection = self.SearchDirection.First
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
@@ -638,15 +640,9 @@ class DocumentEditor(QsciScintilla):
         # set the scheme settings
         scheme = configSet.section('Editor::Scheme')
 
-        font = QFont()
-        font.fromString(scheme.value('document_font'))
-
-        mfont = QFont()
-        mfont.fromString(scheme.value('document_marginFont'))
-
-        self.setFont(font)
-        self.setMarginsFont(mfont)
-        self.setMarginWidth(0, QFontMetrics(mfont).width('0000000') + 5)
+        self.setFont(self.documentFont)
+        self.setMarginsFont(self.marginsFont())
+        self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
         self._enableFontResizing = scheme.value('document_EnableFontResize')
 
     def markerNext(self):
@@ -933,9 +929,11 @@ class DocumentEditor(QsciScintilla):
         self.updateColorScheme()
 
     def setLexer(self, lexer):
-        # Backup values destroyed when we set the lexer
         if lexer:
-            lexer.setFont(self.font())
+            lexer.setFont(self.documentFont)
+        else:
+            self.setFont(self.documentFont)
+        # Backup values destroyed when we set the lexer
         marginFont = self.marginsFont()
         # 		folds = self.contractedFolds()
         super(DocumentEditor, self).setLexer(lexer)
@@ -1362,7 +1360,7 @@ class DocumentEditor(QsciScintilla):
 
     def wheelEvent(self, event):
         if self._enableFontResizing and event.modifiers() == Qt.ControlModifier:
-            font = self.font()
+            font = self.documentFont
             marginsFont = self.marginsFont()
             lexer = self.lexer()
             if lexer:
@@ -1585,6 +1583,8 @@ class DocumentEditor(QsciScintilla):
         QColor, unmatchedBraceForegroundColor, setUnmatchedBraceForegroundColor
     )
     pyEdgeColor = pyqtProperty(QColor, edgeColor, setEdgeColor)
+    documentFont = pyqtPropertyInit('_documentFont', _defaultFont)
+    pyMarginsFont = pyqtProperty(QFont, marginsFont, setMarginsFont)
 
     # These colors are purely defined in DocumentEditor so we can use pyqtPropertyInit
     braceBadForeground = pyqtPropertyInit('_braceBadForeground', QColor(255, 255, 255))
