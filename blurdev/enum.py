@@ -201,6 +201,9 @@ class Enum(object):
             self._label = label
             self._cmpLabel = self.toComparisonStr(label)
 
+    def __add__(self, other):
+        return self.__or__(other)
+
     def __and__(self, other):
         if isinstance(other, Enum):
             other = int(other)
