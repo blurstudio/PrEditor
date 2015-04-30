@@ -184,6 +184,8 @@ class Action(object):
             globals().update(mLocals)
         if registerHooks:
             self._registerHooks()
+            self._registerApplicationMethods()
+            self._sortHooks()
 
     def _executePreChildHooks(self, childAction):
         for preChildHook in self._preChildHooks:
