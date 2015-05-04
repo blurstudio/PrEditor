@@ -113,6 +113,37 @@ def get32bitProgramFiles():
     return os.getenv(progF)
 
 
+def html2textile(html, clearStyle=True):
+    """ Converts the provided html text to textile markup using html2textile.
+    
+    Imports the module html2textile and uses it to convert the HTML to textile markup.
+    
+    Args:
+        html (str): The html to convert
+        clearStyle (bool): If it should remove style tags first. Use this if you have html
+            containing style info that is not respected by this function. QTextEdit generates
+            alot of these tags, unfortunately this includes bold.
+    
+    Raises:
+        ImportError: If html2textile is not installed.
+    
+    Returns:
+        str: The textile text.
+    """
+    import html2textile
+
+    if clearStyle:
+        # Remove style tags
+        from lxml import etree
+
+        parser = etree.HTMLParser()
+        tree = etree.fromstring(html, parser)
+        etree.strip_elements(tree, 'style')
+        etree.strip_attributes(tree, 'style')
+        html = etree.tostring(tree)
+    return html2textile.html2textile(html)
+
+
 def imageMagick(source, destination, exe='convert', flags=''):
     """
     Crafts then runs specified command on ImageMagick executables and waits 
@@ -140,20 +171,19 @@ def imageSequenceFromFileName(fileName):
     Gets a list of files that belong to the same image sequence as the 
     passed in file.
     
-    .. note:: 
+        note:: 
     
-       This only works if the last number in filename is part of the 
-       image sequence.  For example, a file signature like this would 
-       not work::
-       
+        This only works if the last number in filename is part of the 
+        image sequence.  For example, a file signature like this would 
+        not work::
+
          C:\temp\test_1234_v01.jpg
 
-       It will ignore numbers inside the extension::
-       
-          C:\temp\test_1234.png1
+        It will ignore numbers inside the extension::
+    
+        C:\temp\test_1234.png1
         
     :rtype: list
-                    
     """
     regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
     fileName = os.path.normpath(fileName)

@@ -20,4 +20,6 @@
 	<plugin module="blurdev.gui.widgets.envcombobox"			class="EnvComboBox"/>
 	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragSpinBox"/>
 	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragDoubleSpinBox"/>
+	<plugin module="blurdev.gui.widgets.richtexteditorwidget.richtexteditorview" class="RichTextEditorView"/>
+	<plugin module="blurdev.gui.widgets.richtexteditorwidget.richtexteditor" class="RichTextEditor"/>
 </plugins>

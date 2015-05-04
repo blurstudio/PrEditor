@@ -1188,7 +1188,9 @@ class IdeEditor(Window):
         pref.recordProperty('openFiles', openFiles)
         pref.recordProperty(
             'currentDocument',
-            unicode(self.currentDocument().filename()) if openFiles else '',
+            unicode(self.currentDocument().filename())
+            if openFiles and self.currentDocument()
+            else '',
         )
 
         pref.recordProperty('projectTreeState', self.uiProjectTREE.recordOpenState())
