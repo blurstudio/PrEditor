@@ -423,14 +423,20 @@ class EnumGroup(object):
         return type(name, cls.__bases__, dict(cls.__dict__))
 
     @classmethod
-    def fromLabel(cls, label):
+    def fromLabel(cls, label, default=None):
         """Gets an enumerator based on the given label.
+
+        If a default is provided and is not None, that value will be returned
+        in the event that the given label does not exist in the EnumGroup.  If
+        no default is provided, a ValueError is raised.
 
         Args:
             label(str): The label to look up.
+            default(*): The default value to return if the label is not found.
 
         Raises:
-            ValueError
+            ValueError: Raised if default is None and the given label does not
+                exist in the EnumGroup.
 
         Returns:
             Enum
@@ -439,17 +445,25 @@ class EnumGroup(object):
         for e in cls._ENUMERATORS:
             if e.label == label:
                 return e
+        if default is not None:
+            return default
         raise ValueError('No enumerators exist with the given label.')
 
     @classmethod
-    def fromValue(cls, value):
+    def fromValue(cls, value, default=None):
         """Gets an enumerator based on the given value.
+
+        If a default is provided and is not None, that value will be returned
+        in the event that the given label does not exist in the EnumGroup.  If
+        no default is provided, a ValueError is raised.
 
         Args:
             value(int): The value to look up.
+            default(*): The default value to return if the label is not found.
 
         Raises:
-            ValueError
+            ValueError: Raised if default is None and the given label does not
+                exist in the EnumGroup.
 
         Returns:
             Enum
@@ -458,6 +472,8 @@ class EnumGroup(object):
         for e in cls._ENUMERATORS:
             if int(e) == value:
                 return e
+        if default is not None:
+            return default
         raise ValueError('No enumerators exist with the given value.')
 
     @classmethod
