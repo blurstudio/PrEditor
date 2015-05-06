@@ -89,7 +89,6 @@ class _MetaEnumGroup(type):
             oldEnum.setDescription(number, desc)
         # Try and return the attribute from the old-style enum.
         try:
-            print 'Using a old method!', name
             return getattr(oldEnum, name)
         except AttributeError:
             raise AttributeError(
