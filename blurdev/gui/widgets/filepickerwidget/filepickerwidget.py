@@ -138,7 +138,12 @@ class FilePickerWidget(QWidget):
         if self.resolvePath():
             import os.path
 
-            if os.path.exists(str(self.uiFilenameTXT.text())):
+            path = unicode(self.uiFilenameTXT.text())
+            if self._pickFolder:
+                valid = os.path.isdir(path)
+            else:
+                valid = os.path.isfile(path)
+            if valid:
                 fg = self.correctForeground
                 bg = self.correctBackground
                 self._resolved = True
