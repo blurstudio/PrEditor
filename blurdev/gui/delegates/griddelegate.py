@@ -16,7 +16,7 @@
 from PyQt4.QtCore import Qt, QRectF, QLine
 from PyQt4.QtGui import (
     QColor,
-    QItemDelegate,
+    QStyledItemDelegate,
     QPen,
     QLineEdit,
     QTextDocument,
@@ -25,9 +25,9 @@ from PyQt4.QtGui import (
 )
 
 
-class GridDelegate(QItemDelegate):
+class GridDelegate(QStyledItemDelegate):
     def __init__(self, parent, gridColor=None):
-        QItemDelegate.__init__(self, parent)
+        super(GridDelegate, self).__init__(parent)
         if not gridColor:
             gridColor = QColor(122, 126, 134)
         # store the pen for the grid
@@ -65,7 +65,7 @@ class GridDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """
-            \remarks	overloaded from QItemDelegate, creates a new editor for the inputed widget
+            \remarks	overloaded from QStyledItemDelegate, creates a new editor for the inputed widget
             \param		parent	<QWidget>
             \param		option	<QStyleOptionViewItem>
             \param		index	<QModelIndex>
@@ -103,7 +103,7 @@ class GridDelegate(QItemDelegate):
             )
             painter.translate(-rect.x(), -rect.y())
         else:
-            QItemDelegate.drawDisplay(self, painter, option, rect, text)
+            super(GridDelegate, self).drawDisplay(painter, option, rect, text)
 
     def drawGradient(self, painter, option, index):
         gradient = QLinearGradient()
@@ -182,10 +182,11 @@ class GridDelegate(QItemDelegate):
 
     def paint(self, painter, option, index):
         """ draw the delegate and the grid """
+        self.initStyleOption(option, index)
         # draw the gradiation
         if self._gradiated:
             self.drawGradient(painter, option, index)
-        QItemDelegate.paint(self, painter, option, index)
+        super(GridDelegate, self).paint(painter, option, index)
         self.drawGrid(painter, option, index)
 
     def pen(self):
@@ -204,7 +205,7 @@ class GridDelegate(QItemDelegate):
             else:
                 funct(editor, index)
         else:
-            QItemDelegate.setEditorData(self, editor, index)
+            super(GridDelegate, self).setEditorData(editor, index)
 
     def setGradiated(self, state):
         self._gradiated = state
@@ -237,7 +238,7 @@ class GridDelegate(QItemDelegate):
             else:
                 funct(editor, model, index)
         else:
-            QItemDelegate.setModelData(self, editor, model, index)
+            super(GridDelegate, self).setModelData(editor, model, index)
 
     def setShowBottomBorder(self, state=True):
         """ sets whether or not bottom borders are drawn """
