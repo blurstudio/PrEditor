@@ -40,7 +40,7 @@ class HTMLItemDelegate(GridDelegate):
         # Copy the parent palette so colors get rendered correctly
         ctx.palette = self.parent().palette()
         if option.state & QStyle.State_Selected:
-            # Simply Copying the palette doesn't
+            # Simply Copying the palette doesn't adjust the highlight text color
             color = ctx.palette.color(QPalette.HighlightedText)
             ctx.palette.setColor(QPalette.Text, color)
         ctx.clip = clip
