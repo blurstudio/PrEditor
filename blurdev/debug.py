@@ -185,7 +185,7 @@ def getPdb():
         # Skip these modules because they are not being debugged. Generally this needs to
         # ignore the Logger Window modules because printing causes the next function to run
         # into these making debugging annoying to say the least.
-        skip = os.environ['BDEV_PDB_SKIP']
+        skip = os.environ['BDEV_PDB_SKIP'].split(',')
         _blurPdb = BlurPdb(stdin=PdbInput(), stdout=PdbOutput(), skip=skip)
     return _blurPdb
 
