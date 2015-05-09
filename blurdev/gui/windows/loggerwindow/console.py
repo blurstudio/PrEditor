@@ -227,6 +227,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # if populated when setPdbMode is called, this action will be enabled and its check state
         # will match the current pdbMode.
         self.pdbModeAction = None
+        # Method used to update the gui when pdb mode changes
+        self.pdbUpdateVisibility = None
 
         self._firstShow = True
 
@@ -589,9 +591,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
                 if self._pdbMode:
                     if commandText:
-                        import blurdev.external
-
-                        blurdev.external.External(['pdb', '', {'msg': commandText}])
+                        self.pdbSendCommand(commandText)
                     else:
                         # Sending a blank line to pdb will cause it to quit raising a exception.
                         # Most likely the user just wants to add some white space between their
@@ -777,6 +777,21 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
         self.setTextCursor(cursor)
 
+    def pdbContinue(self):
+        self.pdbSendCommand('continue')
+
+    def pdbDown(self):
+        self.pdbSendCommand('down')
+
+    def pdbNext(self):
+        self.pdbSendCommand('next')
+
+    def pdbStep(self):
+        self.pdbSendCommand('step')
+
+    def pdbUp(self):
+        self.pdbSendCommand('up')
+
     def pdbMode(self):
         return self._pdbMode
 
@@ -791,10 +806,17 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 self.pdbModeAction.setChecked(mode)
                 self.pdbModeAction.blockSignals(False)
                 self.pdbModeAction.setEnabled(True)
+        if self.pdbUpdateVisibility:
+            self.pdbUpdateVisibility(mode)
         self._pdbMode = mode
         self.startInputLine()
         # Make sure the stylesheet recalculates for the new value
         blurdev.core.refreshStyleSheet()
+
+    def pdbSendCommand(self, commandText):
+        import blurdev.external
+
+        blurdev.external.External(['pdb', '', {'msg': commandText}])
 
     def prompt(self):
         if self._pdbMode:

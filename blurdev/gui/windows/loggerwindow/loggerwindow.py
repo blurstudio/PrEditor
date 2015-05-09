@@ -8,8 +8,9 @@
 # 	\date		01/15/08
 #
 
+import os
 from blurdev.gui import Window
-from blurdev.gui.widgets.newtabwidget import NewTabWidget
+from workboxwidget import WorkboxWidget
 from blurdev import prefs
 from PyQt4.QtCore import Qt
 from PyQt4.QtGui import (
@@ -39,6 +40,8 @@ class LoggerWindow(Window):
         blurdev.gui.loadUi(__file__, self)
 
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
+        self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
+        self.updatePdbVisibility(False)
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
         )
@@ -55,7 +58,7 @@ class LoggerWindow(Window):
             self.workboxTabRightClick
         )
         # create the default workbox
-        self.uiWorkboxWGT = self.addWorkbox()
+        self.uiWorkboxWGT = self.addWorkbox(self.uiWorkboxTAB)
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()
@@ -79,6 +82,12 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
         self.uiPdbModeACT.triggered.connect(self.uiConsoleTXT.setPdbMode)
+
+        self.uiPdbContinueACT.triggered.connect(self.uiConsoleTXT.pdbContinue)
+        self.uiPdbStepACT.triggered.connect(self.uiConsoleTXT.pdbNext)
+        self.uiPdbNextACT.triggered.connect(self.uiConsoleTXT.pdbStep)
+        self.uiPdbUpACT.triggered.connect(self.uiConsoleTXT.pdbUp)
+        self.uiPdbDownACT.triggered.connect(self.uiConsoleTXT.pdbDown)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
@@ -106,6 +115,14 @@ class LoggerWindow(Window):
         )
         self.uiCloseLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
 
+        self.uiPdbContinueACT.setIcon(
+            QIcon(blurdev.resourcePath('img/ide/pdb_continue.png'))
+        )
+        self.uiPdbStepACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_step.png')))
+        self.uiPdbNextACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_next.png')))
+        self.uiPdbUpACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_up.png')))
+        self.uiPdbDownACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_down.png')))
+
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
 
@@ -129,22 +146,21 @@ class LoggerWindow(Window):
             baseName = '{name}{index}'.format(name=baseName, index=index)
         return baseName
 
-    def addWorkbox(self):
-        from workboxwidget import WorkboxWidget
-
-        workbox = WorkboxWidget(self.uiWorkboxTAB)
+    def addWorkbox(self, tabWidget, title='Workbox', closable=True):
+        workbox = WorkboxWidget(tabWidget)
         workbox.setConsole(self.uiConsoleTXT)
         workbox.setMinimumHeight(1)
-        index = self.uiWorkboxTAB.addTab(workbox, 'Workbox')
+        index = tabWidget.addTab(workbox, title)
         self.uiIndentationsTabsACT.toggled.connect(workbox.setIndentationsUseTabs)
         workbox.setLanguage('Python')
         workbox.setShowSmartHighlighting(True)
         # update the lexer
         lex = workbox.lexer()
         workbox.setMarginsFont(workbox.font())
-        # If only one tab is visible, don't show the close tab button
-        self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
-        self.uiWorkboxTAB.setCurrentIndex(index)
+        if closable:
+            # If only one tab is visible, don't show the close tab button
+            tabWidget.setTabsClosable(tabWidget.count() != 1)
+        tabWidget.setCurrentIndex(index)
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -313,7 +329,7 @@ class LoggerWindow(Window):
         count = pref.restoreProperty('WorkboxCount', 1)
         for index in range(count - self.uiWorkboxTAB.count()):
             # create each of the workbox tabs
-            self.addWorkbox()
+            self.addWorkbox(self.uiWorkboxTAB)
         for index in range(count):
             workbox = self.uiWorkboxTAB.widget(index)
             workbox.setText(
@@ -348,6 +364,8 @@ class LoggerWindow(Window):
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
+            # Ensure uiPdbTOOLBAR respects the current pdb mode
+            self.uiConsoleTXT.setPdbMode(self.uiConsoleTXT.pdbMode())
 
     def removeWorkbox(self, index):
         if self.uiWorkboxTAB.count() == 1:
@@ -423,6 +441,11 @@ class LoggerWindow(Window):
             tab = self.uiWorkboxTAB.widget(index)
             tab.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
 
+    def updatePdbVisibility(self, state):
+        self.uiPdbMENU.menuAction().setVisible(state)
+        self.uiPdbTOOLBAR.setVisible(state)
+        self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
+
     def showSdk(self):
         if not self.uiDisableSDKShortcutACT.isChecked():
             blurdev.core.sdkBrowser().show()
@@ -484,6 +507,35 @@ class LoggerWindow(Window):
         if cls._instance:
             if cls._instance.uiConsoleTXT.pdbMode() != mode:
                 cls._instance.uiConsoleTXT.setPdbMode(mode)
+                import blurdev.external
+
+                blurdev.external.External(
+                    ['pdb', '', {'msg': 'blurdev.debug.getPdb().currentLine()'}]
+                )
+
+    @classmethod
+    def instancePdbResult(cls, data):
+        if cls._instance:
+            if data.get('msg') == 'pdb_currentLine':
+                filename = data.get('filename')
+                lineNo = data.get('lineNo')
+                doc = cls._instance.uiPdbTAB.currentWidget()
+                if not isinstance(doc, WorkboxWidget):
+                    doc = cls._instance.addWorkbox(
+                        cls._instance.uiPdbTAB, closable=False
+                    )
+                    cls._instance._pdb_marker = doc.markerDefine(doc.Circle)
+                cls._instance.uiPdbTAB.setTabText(
+                    cls._instance.uiPdbTAB.currentIndex(), filename
+                )
+                doc.markerDeleteAll(cls._instance._pdb_marker)
+                if os.path.exists(filename):
+                    doc.load(filename)
+                    doc.goToLine(lineNo)
+                    doc.markerAdd(lineNo, cls._instance._pdb_marker)
+                else:
+                    doc.clear()
+                    doc._filename = ''
 
     @classmethod
     def instanceShutdown(cls):

@@ -114,33 +114,49 @@ class WriteStdOutputHandler(BaseProtocolHandler):
 
     name = 'stdoutput'
 
+    @classmethod
+    def unwrapMessage(cls, msg, wrapper):
+        # Passing values like '161  \t\t\n' along the pipe ends up with just a int. To get around
+        # this I am adding a wrapper string to the start and end of the msg. so we need to remove
+        # the wrapper characters.
+        length = len(wrapper)
+        if len(msg) < length or (msg[:length] != wrapper or msg[-length:] != wrapper):
+            errorMsg = (
+                'The wrapper "{wrapper}" could not be found in the message\n{msg}'
+            )
+            import blurdev.external
+
+            blurdev.external.External(
+                InvalidHandler(errorMsg.format(wrapper=wrapper, msg=msg))
+            )
+            return False, msg
+        return True, msg[length:-length]
+
     def run(self):
         msg = self.params['msg']
         pdbMode = self.params.get('pdb')
+        pdbResult = self.params.get('pdbResult')
         wrapper = self.params.get('wrapper')
         if wrapper:
-            # Passing values like '161  \t\t\n' along the pipe ends up with just a int. To get around
-            # this I am adding a wrapper string to the start and end of the msg. so we need to remove
-            # the wrapper characters.
-            length = len(wrapper)
-            if len(msg) < length or (
-                msg[:length] != wrapper or msg[-length:] != wrapper
-            ):
-                errorMsg = (
-                    'The wrapper "{wrapper}" could not be found in the message\n{msg}'
-                )
-                import blurdev.external
-
-                blurdev.external.External(
-                    InvalidHandler(errorMsg.format(wrapper=wrapper, msg=msg))
-                )
+            success, msg = self.unwrapMessage(msg, wrapper)
+            if not success:
                 return
-            msg = msg[length:-length]
         if pdbMode == True and msg.strip():
             # Don't trigger pdb mode if a empty(including new lines) string was sent
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
             LoggerWindow.instanceSetPdbMode(pdbMode)
+        if pdbResult:
+            # Some Pdb data was requested, have the logger handle it.
+            from blurdev.gui.windows.loggerwindow import LoggerWindow
+
+            data = {}
+            for key, value in self.params.iteritems():
+                if isinstance(value, basestring):
+                    success, value = self.unwrapMessage(value, wrapper)
+                data[key] = value
+            LoggerWindow.instancePdbResult(data)
+            return
         if self.command == 'stdout':
             _sys.stdout.write(msg)
         elif self.command == 'stderr':

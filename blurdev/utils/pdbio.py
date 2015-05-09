@@ -1,5 +1,55 @@
 import time
 import blurdev.external
+from pdb import Pdb
+
+
+class BlurPdb(Pdb):
+    def currentLine(self):
+        """ Returns the current frame's filename and line number
+        
+        Returns:
+            str: The filename pdb is currently at.
+            int: The line number pdb is currently at.
+        """
+        filename = self.curframe.f_code.co_filename
+        lineNo = self.curframe.f_lineno - 1
+        # Send the data to the remote pdb session
+        data = {
+            'pdbResult': True,
+            'msg': '!!!pdb_currentLine!!!',
+            'filename': '!!!{}!!!'.format(filename),
+            'pdb': True,
+            'wrapper': '!!!',
+            'lineNo': lineNo,
+        }
+        blurdev.external.External(['stdoutput', 'stdout', data])
+        return filename, lineNo
+
+    def do_up(self, arg):
+        Pdb.do_up(self, arg)
+        self.currentLine()
+
+    do_u = do_up
+
+    def do_down(self, arg):
+        Pdb.do_down(self, arg)
+        self.currentLine()
+
+    do_d = do_down
+
+    def do_step(self, arg):
+        ret = Pdb.do_step(self, arg)
+        self.currentLine()
+        return ret
+
+    do_s = do_step
+
+    def do_next(self, arg):
+        ret = Pdb.do_next(self, arg)
+        self.currentLine()
+        return ret
+
+    do_n = do_next
 
 
 class PdbBase(object):

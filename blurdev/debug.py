@@ -180,10 +180,13 @@ def getPdb():
     """
     global _blurPdb
     if not _blurPdb:
-        import pdb
-        from blurdev.utils.pdbio import PdbInput, PdbOutput
+        from blurdev.utils.pdbio import PdbInput, PdbOutput, BlurPdb
 
-        _blurPdb = pdb.Pdb(stdin=PdbInput(), stdout=PdbOutput())
+        # Skip these modules because they are not being debugged. Generally this needs to
+        # ignore the Logger Window modules because printing causes the next function to run
+        # into these making debugging annoying to say the least.
+        skip = os.environ['BDEV_PDB_SKIP']
+        _blurPdb = BlurPdb(stdin=PdbInput(), stdout=PdbOutput(), skip=skip)
     return _blurPdb
 
 
