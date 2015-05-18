@@ -182,7 +182,8 @@ class GridDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         """ draw the delegate and the grid """
-        self.initStyleOption(option, index)
+        # Note: calling initStyleOption, results in the super paint call drawing what ever is
+        # in its cache where it should draw nothing.
         # draw the gradiation
         if self._gradiated:
             self.drawGradient(painter, option, index)
