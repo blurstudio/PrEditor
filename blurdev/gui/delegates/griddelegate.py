@@ -22,6 +22,8 @@ from PyQt4.QtGui import (
     QTextDocument,
     QLinearGradient,
     QBrush,
+    QApplication,
+    QStyleOptionButton,
 )
 
 
@@ -49,6 +51,19 @@ class GridDelegate(QStyledItemDelegate):
     def aboutToBeDestroyed(self):
         """ Prevent crashes due to "delete loops" """
         self._delegate = None
+
+    def checkboxRect(self, option, index):
+        if self.parent():
+            style = self.parent().style()
+            widget = self.parent()
+        else:
+            style = QApplication.style()
+            widget = None
+        checkboxStyle = QStyleOptionButton()
+        checkboxStyle.rect = option.rect
+        rect = style.subElementRect(style.SE_CheckBoxIndicator, checkboxStyle, widget)
+        state = index.model().data(index, Qt.CheckStateRole).toInt()[0]
+        return rect, state
 
     def clearEditor(self):
         """
