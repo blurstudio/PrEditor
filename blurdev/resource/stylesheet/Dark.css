@@ -157,9 +157,11 @@ QScrollBar::handle{
 }
 QScrollBar::handle:horizontal  {
     margin: 3px 3px 3px 3px; 
+	min-width: 20px;
 }
 QScrollBar::handle:vertical  {
     margin: 3px 3px 3px 3px; 
+	min-height: 20px;
 }
 QScrollBar::sub-line, QScrollBar::add-line {
     background: rgb(60,60,60);
