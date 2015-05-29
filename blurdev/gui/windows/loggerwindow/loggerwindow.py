@@ -146,7 +146,9 @@ class LoggerWindow(Window):
             baseName = '{name}{index}'.format(name=baseName, index=index)
         return baseName
 
-    def addWorkbox(self, tabWidget, title='Workbox', closable=True):
+    def addWorkbox(self, tabWidget=None, title='Workbox', closable=True):
+        if tabWidget == None:
+            tabWidget = self.uiWorkboxTAB
         workbox = WorkboxWidget(tabWidget)
         workbox.setConsole(self.uiConsoleTXT)
         workbox.setMinimumHeight(1)
