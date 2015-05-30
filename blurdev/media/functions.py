@@ -84,6 +84,53 @@ def columnize(data, columns=2, maxLen=60, blank=[]):
     return pages
 
 
+def convertImageToBase64(image, ext=None):
+    """ Convert the given image to a base64 encoded string suitable for web.
+    
+    Converts the image to base64 encoding and adds the proper header for use in
+    a html <img src="data:image/<ext>;base64,<data>"> tag.
+    
+    You can provide a image filename, or a existing QImage as the first argument.
+    If you provide a QImage you must provide the ext.
+    
+    Args:
+        image (str|QImage): A QImage or path to valid file.
+        ext (str): The encoding used to convert the image. If image is a file path
+            you can use the default of None. If image is a QImage you must provide
+            the ext. This is also used to fill out the MIME-type.
+    
+    Returns:
+        str: The image converted to a base64 string.
+    
+    Raises:
+        IOError: The provided file path does not exist.
+        ValueError: A QImage was provided but ext was not specified.
+    """
+    from PyQt4.QtCore import QByteArray, QBuffer, QString
+
+    if isinstance(image, (basestring, QString)):
+        image = unicode(image)
+        if not os.path.exists(image):
+            raise IOError('Image path does not exist.')
+        if not ext:
+            ext = os.path.splitext(image)[-1].replace('.', '')
+        from PyQt4.QtGui import QImage
+
+        image = QImage(image)
+    else:
+        if not ext:
+            raise ValueError(
+                'When providing a QImage you must provide the image format.'
+            )
+        # Remove the leading period if provided.
+        ext = ext.replace('.', '')
+    array = QByteArray()
+    buf = QBuffer(array)
+    image.save(buf, ext)
+    rawData = unicode(QString.fromLatin1(array.toBase64().data()))
+    return 'data:image/{ext};base64,{data}'.format(ext=ext, data=rawData)
+
+
 def extractVideoFrame(filename, outputpath):
     """
     This uses ffmpeg to extract a frame as a image.  This requires that 
