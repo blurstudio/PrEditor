@@ -11,6 +11,7 @@
 from PyQt4.QtCore import Qt, QRectF, QSize
 from PyQt4.QtGui import QTextDocument, QStyle, QAbstractTextDocumentLayout, QPalette
 from griddelegate import GridDelegate
+from blurdev.gui import pyqtPropertyInit
 
 
 class HTMLItemDelegate(GridDelegate):
@@ -51,6 +52,9 @@ class HTMLItemDelegate(GridDelegate):
         self.drawGrid(painter, option, index)
 
     def sizeHint(self, option, index):
+        if self.useStaticSizeHint:
+            return self.staticSizeHint
+
         self.initStyleOption(option, index)
 
         doc = QTextDocument()
@@ -58,3 +62,6 @@ class HTMLItemDelegate(GridDelegate):
         doc.setHtml(option.text.replace('\n', ''))
         doc.setTextWidth(option.rect.width())
         return QSize(doc.idealWidth(), doc.size().height())
+
+    staticSizeHint = pyqtPropertyInit('_staticSizeHint', QSize())
+    useStaticSizeHint = pyqtPropertyInit('_useStaticSizeHint', False)
