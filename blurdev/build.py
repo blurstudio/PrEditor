@@ -73,24 +73,37 @@ if ( __name__ == '__main__' ):
         shutil.copyfile(srcPath, destPath)
         import blurdev.ini
         blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_PATH_PREFS_SHARED', '$BDEV_PATH_PREFS', useConfigParser=True)
-        blurdev.ini.SetINISetting(destPath, 'Windows', 'bdev_environment_override_filepath', '', useConfigParser=True)
-        blurdev.ini.SetINISetting(destPath, 'Windows', 'bdev_admin_usernames', '', useConfigParser=True)
+        blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', '', useConfigParser=True)
+        blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_ADMIN_USERNAMES', '', useConfigParser=True)
+        blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_DISABLE_TOOL_USAGE_LOG', 'True', useConfigParser=True)
         # remove non blur specific includes in tools_environments.xml
         print '**************************************************'
         print '*          Updating tools environments           *'
         print '**************************************************'
         doc = blurdev.XML.XMLDocument()
         envXML = os.path.join(path, 'resource', 'tools_environments.xml')
-        print 'path', envXML
+        destXML = os.path.join(path, 'installers', 'resource', 'tools_environments.xml')
         doc.load(envXML)
         root = doc.root()
         for child in root.children():
             if child.name().lower() == 'include':
                 aPath = os.path.abspath(child.attribute('loc'))
                 if aPath.startswith(r'\\source'):
-                    print 'Removing network path', child.name(), aPath
+                    print '  Removing network path', child.name(), aPath
                     child.remove()
-        doc.save(envXML)
+            if child.name().lower() == 'environment':
+                print '  Removing existing environment.', child.name(), child.attribute('loc')
+                child.remove()
+        # Add the offline environment
+        #<environment	name="Blur Offline" loc="c:/blur/dev/offline" default="True" legacyName="Offline" offline="True"/>
+        print '  Adding the offline environment'
+        child = root.addNode('environment')
+        child.setAttribute('name', 'Blur Offline')
+        child.setAttribute('loc', 'c:/blur/dev/offline')
+        child.setAttribute('default', 'True')
+        child.setAttribute('offline', 'True')
+        child.setAttribute('legacyName', 'Offline')
+        doc.save(destXML)
 
     else:
         f.write( '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n' )
