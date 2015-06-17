@@ -567,12 +567,17 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             return
 
         subject, message = ConsoleEdit.buildErrorMessage(error, subject, information)
-        blurdev.core.sendEmail(
-            'thePipe@blur.com',
-            emails,
-            subject,
-            emailformat % {'subject': subject, 'body': message},
-        )
+        try:
+            # MCH 06/17/15: TODO: remove hard coded email address
+            blurdev.core.sendEmail(
+                'thePipe@blur.com',
+                emails,
+                subject,
+                emailformat % {'subject': subject, 'body': message},
+            )
+        except socket.error:
+            # Unable to send error email. It is assumed you don't have a valid email addres.
+            pass
 
     def executeCommand(self):
         """ executes the current line of code """
