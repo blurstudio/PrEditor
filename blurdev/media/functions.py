@@ -232,14 +232,20 @@ def imageSequenceFromFileName(fileName):
         
     :rtype: list
     """
-    regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
+    flags = 0
+    if blurdev.settings.OS_TYPE == 'Windows':
+        flags = re.I
+    regex = re.compile(
+        r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
+    )
     fileName = os.path.normpath(fileName)
     match = regex.match(fileName)
     output = []
     if match:
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
         regex = re.compile(
-            r'%s(\d+)%s' % (re.escape(match.group('pre')), match.group('post'))
+            r'%s(\d+)%s' % (re.escape(match.group('pre')), match.group('post')),
+            flags=flags,
         )
         for file in files:
             if regex.match(file):
@@ -255,8 +261,13 @@ def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
     :param files: A list of files in the image sequence
     :param format: Used to format the output. Uses str.format() command and requires the keys [pre, firstNum, lastNum, post]
     """
+    flags = 0
+    if blurdev.settings.OS_TYPE == 'Windows':
+        flags = re.I
     if len(files) > 1:
-        regex = re.compile(r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)')
+        regex = re.compile(
+            r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
+        )
         match = regex.match(files[0])
         if match:
             info = {}
@@ -300,9 +311,13 @@ def imageSequenceForRepr(fileName):
     :rtype: list
     
     """
+    flags = 0
+    if blurdev.settings.OS_TYPE == 'Windows':
+        flags = re.I
     fileName = unicode(fileName)
     filter = re.compile(
-        r'(?P<pre>^.+?)\[(?P<start>\d+):(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)'
+        r'(?P<pre>^.+?)\[(?P<start>\d+):(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)',
+        flags=flags,
     )
     match = re.match(filter, fileName)
     if match:
@@ -311,7 +326,8 @@ def imageSequenceForRepr(fileName):
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
         regex = re.compile(
             r'%s(?P<frame>\d+)%s'
-            % (match.group('pre').replace('\\', '\\\\'), match.group('post'))
+            % (match.group('pre').replace('\\', '\\\\'), match.group('post')),
+            flags=flags,
         )
         out = []
         for file in files:
