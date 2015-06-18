@@ -126,7 +126,9 @@ def convertImageToBase64(image, ext=None):
         ext = ext.replace('.', '')
     array = QByteArray()
     buf = QBuffer(array)
-    image.save(buf, ext)
+    success = image.save(buf, ext)
+    if not success:
+        raise IOError('{ext} image format is not supported.'.format(ext=ext))
     rawData = unicode(QString.fromLatin1(array.toBase64().data()))
     return 'data:image/{ext};base64,{data}'.format(ext=ext, data=rawData)
 
