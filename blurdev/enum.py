@@ -231,13 +231,16 @@ class Enum(object):
     def __hash__(self):
         return self.number
 
+    def __index__(self):
+        return self.number
+
     def __int__(self):
         return self.number
 
     def __invert__(self):
         return ~int(self)
 
-    def __neq__(self, value):
+    def __ne__(self, value):
         return not self.__eq__(value)
 
     def __or__(self, other):
