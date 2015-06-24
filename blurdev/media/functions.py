@@ -237,11 +237,7 @@ def imageSequenceFromFileName(fileName):
     flags = 0
     if blurdev.settings.OS_TYPE == 'Windows':
         flags = re.I
-    regex = re.compile(
-        r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
-    )
-    fileName = os.path.normpath(fileName)
-    match = regex.match(fileName)
+    match = imageSequenceInfo(fileName)
     output = []
     if match:
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
@@ -253,8 +249,31 @@ def imageSequenceFromFileName(fileName):
             if regex.match(file):
                 output.append(file)
     else:
-        output = [fileName]
+        output = [os.path.normpath(fileName)]
     return output
+
+
+def imageSequenceInfo(path, osystem=None):
+    """ Return a re.match object that seperates the file path into pre/postfix and frame number.
+    
+    Args:
+        path (str): The path to split
+        osystem (str): pass 'Windows' to make the check case insensitive. If None(the default) is
+            passed in it will default to the contents of blurdev.settings.OS_TYPE.
+    
+    Returns:
+        match: Returns the results of the re.match call or None
+    """
+    flags = 0
+    if osystem == None:
+        osystem = blurdev.settings.OS_TYPE
+    if osystem == 'Windows':
+        flags = re.I
+    regex = re.compile(
+        r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
+    )
+    path = os.path.normpath(path)
+    return regex.match(path)
 
 
 def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
@@ -263,18 +282,12 @@ def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
     :param files: A list of files in the image sequence
     :param format: Used to format the output. Uses str.format() command and requires the keys [pre, firstNum, lastNum, post]
     """
-    flags = 0
-    if blurdev.settings.OS_TYPE == 'Windows':
-        flags = re.I
     if len(files) > 1:
-        regex = re.compile(
-            r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
-        )
-        match = regex.match(files[0])
+        match = imageSequenceInfo(files[0])
         if match:
             info = {}
-            for file in files:
-                frame = regex.match(file)
+            for f in files:
+                frame = imageSequenceInfo(f)
                 if frame:
                     frame = frame.group('frame')
                     info.update({int(frame): frame})
