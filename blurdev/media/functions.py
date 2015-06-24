@@ -467,7 +467,7 @@ def spoolText(**kwargs):
 
     def createLink(key, value):
         if isinstance(value, basestring):
-            value = "'%s'" % value
+            value = "'%s'" % (value.replace("'", r"\'"))
         if isinstance(value, dict):
             data = []
             for k, v in value.items():
