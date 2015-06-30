@@ -344,12 +344,14 @@ def imageSequenceForRepr(fileName):
             % (match.group('pre').replace('\\', '\\\\'), match.group('post')),
             flags=flags,
         )
-        out = []
-        for file in files:
-            match = regex.match(file)
+        # Filter the results of the glob and return them in the image sequence order
+        out = {}
+        for f in files:
+            match = regex.match(f)
             if match and start <= int(match.group('frame')) <= end:
-                out.append(file)
-        return out
+                out.update({int(match.group('frame')): f})
+        # Return the file paths sorted by frame number
+        return [out[key] for key in sorted(out)]
     return [fileName]
 
 
