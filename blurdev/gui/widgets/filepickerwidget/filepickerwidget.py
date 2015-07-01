@@ -18,6 +18,11 @@ from PyQt4.QtGui import (
     QFileDialog,
     QColor,
 )
+from blurdev.media import (
+    imageSequenceFromFileName,
+    imageSequenceRepr,
+    imageSequenceForRepr,
+)
 
 resolvedStylesheetDefault = """QLineEdit {color: rgba%(fg)s;
     background: rgba%(bg)s;
@@ -74,7 +79,9 @@ class FilePickerWidget(QWidget):
         self._pickFolder = False
         self._openFile = False
         self._resolvePath = False
+        self._imageSequence = False
         self._resolved = False
+        self._chosenPath = None
 
         self.uiFilenameTXT.textChanged.connect(self.emitFilenameChanged)
 
@@ -97,7 +104,20 @@ class FilePickerWidget(QWidget):
             self.filenameEdited.emit(self.uiFilenameTXT.text())
 
     def filePath(self):
-        return self.uiFilenameTXT.text()
+        # if it's an image sequence, return the last chosen image path
+        return self._chosenPath or self.uiFilenameTXT.text()
+
+    def fileSequence(self):
+        if self._imageSequence:
+            return imageSequenceForRepr(unicode(self.uiFilenameTXT.text()))
+        return []
+
+    def setFileSequence(self, sequence):
+        if self._imageSequence:
+            self._chosenPath = sequence[0]
+            seqRep = imageSequenceRepr(sequence)
+            self.uiFilenameTXT.setText(seqRep)
+            self.resolve()
 
     def filters(self):
         return self._filters
@@ -121,6 +141,11 @@ class FilePickerWidget(QWidget):
                 filepath = QFileDialog.getExistingDirectory(
                     self, self._caption, self.uiFilenameTXT.text()
                 )
+            elif self._imageSequence:
+                initialPath = self._chosenPath or self.uiFilenameTXT.text()
+                filepath = QFileDialog.getOpenFileName(
+                    self, self._caption, initialPath, self._filters
+                )
             elif self._openFile:
                 filepath = QFileDialog.getOpenFileName(
                     self, self._caption, self.uiFilenameTXT.text(), self._filters
@@ -143,6 +168,28 @@ class FilePickerWidget(QWidget):
                 valid = os.path.isdir(path)
             else:
                 valid = os.path.isfile(path)
+
+                if self._imageSequence:
+                    # if we got a valid filename, find the sequence
+                    if valid:
+                        sequenceFiles = imageSequenceFromFileName(path)
+                        seqRep = imageSequenceRepr(sequenceFiles)
+                        self._chosenPath = path
+                    # if not, it could already be an image sequence representation
+                    else:
+                        sequenceFiles = imageSequenceForRepr(path)
+                        valid = (
+                            sequenceFiles
+                            and os.path.isfile(sequenceFiles[0])
+                            and os.path.isfile(sequenceFiles[-1])
+                        )
+                        seqRep = path
+                        # If we don't have a previously selected path, use the path of the first image
+                        # in the sequence.
+                        if not self._chosenPath and valid:
+                            self._chosenPath = sequenceFiles[0]
+                    if valid:
+                        self.uiFilenameTXT.setText(seqRep)
             if valid:
                 fg = self.correctForeground
                 bg = self.correctBackground
@@ -190,11 +237,28 @@ class FilePickerWidget(QWidget):
         self._resolvePath = state
         self.resolve()
 
+    def imageSequence(self):
+        return self._imageSequence
+
+    @pyqtSlot(bool)
+    def setNotImageSequence(self, state):
+        """ Set resolvePath to the oposite of state. """
+        self.setImageSequence(not state)
+
+    @pyqtSlot(bool)
+    def setImageSequence(self, state):
+        if self._openFile:
+            self._imageSequence = state
+            self.resolve()
+        else:
+            raise ValueError("imageSequence only accepted if openFile is enabled.")
+
     pyCaption = pyqtProperty("QString", caption, setCaption)
     pyFilters = pyqtProperty("QString", filters, setFilters)
     pyPickFolder = pyqtProperty("bool", pickFolder, setPickFolder)
     pyOpenFile = pyqtProperty("bool", openFile, setOpenFile)
     pyResolvePath = pyqtProperty("bool", resolvePath, setResolvePath)
+    pyImageSequence = pyqtProperty("bool", imageSequence, setImageSequence)
     pyFilePath = pyqtProperty("QString", filePath, setFilePath)
 
     # Load the colors from the stylesheets
