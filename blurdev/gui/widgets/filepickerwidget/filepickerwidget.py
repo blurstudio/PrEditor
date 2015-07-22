@@ -23,6 +23,7 @@ from blurdev.media import (
     imageSequenceRepr,
     imageSequenceForRepr,
 )
+import os.path
 
 resolvedStylesheetDefault = """QLineEdit {color: rgba%(fg)s;
     background: rgba%(bg)s;
@@ -134,6 +135,11 @@ class FilePickerWidget(QWidget):
 
     def pickPath(self):
         initialPath = self.uiFilenameTXT.text() or self.defaultLocation
+        while not os.path.exists(initialPath):
+            if os.path.dirname(initialPath) == initialPath:
+                break
+            else:
+                initialPath = os.path.dirname(initialPath)
         if QApplication.keyboardModifiers() == Qt.ControlModifier:
             import blurdev
 
@@ -163,8 +169,6 @@ class FilePickerWidget(QWidget):
 
     def resolve(self):
         if self.resolvePath():
-            import os.path
-
             path = unicode(self.uiFilenameTXT.text())
             if self._pickFolder:
                 valid = os.path.isdir(path)
