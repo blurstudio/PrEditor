@@ -8,7 +8,7 @@
 # 	:date		10/06/10
 #
 
-from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt
+from PyQt4.QtCore import pyqtSignal, pyqtSlot, pyqtProperty, Qt, QString
 from PyQt4.QtGui import (
     QWidget,
     QLineEdit,
@@ -53,10 +53,11 @@ class FilePickerWidget(QWidget):
     filenameEdited = pyqtSignal(str)
 
     def __init__(self, parent):
-        self._correctBackground = QColor(0, 128, 0, 100)
+        self._correctBackground = QColor(156, 206, 156, 255)
         self._correctForeground = QColor(Qt.white)
-        self._inCorrectBackground = QColor(139, 0, 0, 100)
+        self._inCorrectBackground = QColor(210, 156, 156, 255)
         self._inCorrectForeground = QColor(Qt.white)
+        self._defaultLocation = ''
         QWidget.__init__(self, parent)
 
         self.uiFilenameTXT = LineEdit(self)
@@ -132,27 +133,28 @@ class FilePickerWidget(QWidget):
         return self._pickFolder
 
     def pickPath(self):
+        initialPath = self.uiFilenameTXT.text() or self.defaultLocation
         if QApplication.keyboardModifiers() == Qt.ControlModifier:
             import blurdev
 
-            blurdev.osystem.explore(self.uiFilenameTXT.text())
+            blurdev.osystem.explore(initialPath)
         else:
             if self._pickFolder:
                 filepath = QFileDialog.getExistingDirectory(
-                    self, self._caption, self.uiFilenameTXT.text()
+                    self, self._caption, initialPath
                 )
             elif self._imageSequence:
-                initialPath = self._chosenPath or self.uiFilenameTXT.text()
+                initialPath = self._chosenPath or initialPath
                 filepath = QFileDialog.getOpenFileName(
                     self, self._caption, initialPath, self._filters
                 )
             elif self._openFile:
                 filepath = QFileDialog.getOpenFileName(
-                    self, self._caption, self.uiFilenameTXT.text(), self._filters
+                    self, self._caption, initialPath, self._filters
                 )
             else:
                 filepath = QFileDialog.getSaveFileName(
-                    self, self._caption, self.uiFilenameTXT.text(), self._filters
+                    self, self._caption, initialPath, self._filters
                 )
             if filepath:
                 self.uiFilenameTXT.setText(filepath)
@@ -215,7 +217,6 @@ class FilePickerWidget(QWidget):
     @pyqtSlot(str)
     def setFilePath(self, filePath):
         self.uiFilenameTXT.setText(filePath)
-
         self.resolve()
 
     def setFilters(self, filters):
@@ -297,3 +298,11 @@ class FilePickerWidget(QWidget):
     def inCorrectForeground(self, color):
         self._inCorrectForeground = color
         self.resolve()
+
+    @pyqtProperty(QString)
+    def defaultLocation(self):
+        return self._defaultLocation
+
+    @defaultLocation.setter
+    def defaultLocation(self, value):
+        self._defaultLocation = QString(value)
