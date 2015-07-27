@@ -199,6 +199,11 @@ def createShortcut(
                         icon = None
 
         shortcut = os.path.join(path, '%s.lnk' % title)
+        # If the shortcut description is longer than 260 characters, the target may end up with
+        # random unicode characters, and the icon is not set properly. The Properties dialog only
+        # shows 259 characters in the description, so we limit the description to 259 characters.
+        description = description[:259]
+
         print shortcut, '---', target, '---', args, '---', startin, '---', icon, '---', description
         if icon:
             scripts.winshell.CreateShortcut(
