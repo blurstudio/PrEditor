@@ -190,6 +190,8 @@ def html2textile(html, clearStyle=True):
         etree.strip_elements(tree, 'style')
         etree.strip_attributes(tree, 'style')
         html = etree.tostring(tree)
+    # replace ellipsis unicode markers with 3 decimals.
+    html = html.replace('&#8230;', '...')
     return html2textile.html2textile(html)
 
 
