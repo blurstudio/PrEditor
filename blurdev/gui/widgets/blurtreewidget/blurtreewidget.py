@@ -79,6 +79,11 @@
 # |		data.setText(';'.join(text))
 # |		return data
 # |
+# |	def mimeTypes(self, tree=None):
+# |		return [
+# |			'text/uri-list',
+# |			'application/x-qabstractitemmodeldatalist']
+# |
 # |	def recordPrefs( self ):
 # |		from trax.gui import prefs
 # |		pref = prefs.find( 'Test_Widget_View' )
@@ -494,6 +499,26 @@ class BlurTreeWidget(LockableTreeWidget):
                 data = funct(items)
         else:
             data = super(BlurTreeWidget, self).mimeData(items)
+        return data
+
+    def mimeTypes(self):
+        """ Define the accepted mimeTypes for this tree widget.
+        
+        Overloaded. If you add this function to the delegate you can override the accepted 
+        mimeTypes for drag Events.
+        
+        Returns:
+            list: A list of mime types this tree view accepts.
+        """
+        name = self.identifierName('mimeTypes')
+        if self._delegate and hasattr(self._delegate, name):
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                data = funct(self)
+            else:
+                data = funct()
+        else:
+            data = super(BlurTreeWidget, self).mimeTypes()
         return data
 
     def prefName(self, name):
