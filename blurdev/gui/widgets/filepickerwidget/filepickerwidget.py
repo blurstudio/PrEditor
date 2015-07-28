@@ -134,7 +134,7 @@ class FilePickerWidget(QWidget):
         return self._pickFolder
 
     def pickPath(self):
-        initialPath = self.uiFilenameTXT.text() or self.defaultLocation
+        initialPath = unicode(self.uiFilenameTXT.text() or self.defaultLocation)
         while not os.path.exists(initialPath):
             if os.path.dirname(initialPath) == initialPath:
                 break
