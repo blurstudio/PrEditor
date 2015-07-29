@@ -84,6 +84,7 @@ class FilePickerWidget(QWidget):
         self._imageSequence = False
         self._resolved = False
         self._chosenPath = None
+        self._imageSequenceFormat = '{pre}[{firstNum}:{lastNum}]{post}'
 
         self.uiFilenameTXT.textChanged.connect(self.emitFilenameChanged)
 
@@ -179,7 +180,9 @@ class FilePickerWidget(QWidget):
                     # if we got a valid filename, find the sequence
                     if valid:
                         sequenceFiles = imageSequenceFromFileName(path)
-                        seqRep = imageSequenceRepr(sequenceFiles)
+                        seqRep = imageSequenceRepr(
+                            sequenceFiles, strFormat=self.imageSequenceFormat
+                        )
                         self._chosenPath = path
                     # if not, it could already be an image sequence representation
                     else:
@@ -310,3 +313,11 @@ class FilePickerWidget(QWidget):
     @defaultLocation.setter
     def defaultLocation(self, value):
         self._defaultLocation = QString(value)
+
+    @pyqtProperty(unicode)
+    def imageSequenceFormat(self):
+        return unicode(self._imageSequenceFormat)
+
+    @imageSequenceFormat.setter
+    def imageSequenceFormat(self, value):
+        self._imageSequenceFormat = unicode(value)
