@@ -483,6 +483,37 @@ def spoolText(**kwargs):
     return '{\n\t%s\n}' % ',\n\t'.join(data)
 
 
+def spoolFileName(prefix, host='thor', folders=['new'], uid=''):
+    """ Generate a unique filename for a spool message on the given host.
+    
+    Builds a full path for a .msg file. It uses uuid.uuid4 to ensure
+    a unique file name. 
+    
+    Example output: 
+        \\thor\spool\new\magma7a934858-a6d9-42bc-b57e-15c8e95258d1.msg
+    
+    Args:
+        prefix (str): Prefix of the uuid for the msg file.
+        host (str): The name of the smb share host. Defaults to 'thor'.
+        folders (list): List of folders to put after '\\[host]\spool' using
+            os.path.join(). Defaults to ['new'].
+        uid (str): The unique part of the string. If nothing is provided
+            uses uuid.uuid4() to generate a unique id.
+    
+    Returns:
+        str: The generated filename.
+    """
+    if not uid:
+        import uuid
+
+        uid = uuid.uuid4()
+    args = [r'\\{}'.format(host), 'spool']
+    args.extend(folders)
+    args.append('{0}{1}.msg'.format(prefix, uid))
+    filename = os.path.abspath(os.path.join(*args))
+    return filename
+
+
 def setAppIdForIcon(source, new=None):
     r"""
     Uses Win7AppID.exe to add the System.AppUserModel.ID property to 
