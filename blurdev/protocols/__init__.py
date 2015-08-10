@@ -210,6 +210,7 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
 
     def run(self):
         # short circuit tool path finding (speedier)
+        # TODO: Check for and parse the xml file instead of expecting the exec file to be main.pyw.
         tool_path = _os.path.normpath(
             _os.path.join(
                 _blurdev.activeEnvironment().path(),
@@ -220,9 +221,11 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
         )
         if _os.path.isfile(tool_path):
             _os.environ['BDEV_URL_ARGS'] = _cPickle.dumps({'params': self.params})
-            process = _subprocess.Popen([r'C:\python27_64\pythonw.exe', tool_path])
-            process.wait()
+            from blurdev.tools import Tool
 
+            tool = Tool()
+            tool.setSourcefile(tool_path)
+            tool.exec_()
         else:
             # Fallback to find tools that don't use the simple pathing.
             tool = _blurdev.findTool(self.command)
