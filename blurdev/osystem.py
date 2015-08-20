@@ -230,12 +230,12 @@ def explore(filename):
     """
     # pull the filpath from the inputed filename
     fpath = os.path.normpath(unicode(filename))
-    if not os.path.isdir(fpath):
-        fpath = os.path.split(fpath)[0]
-
     # run the file in windows
     if settings.OS_TYPE == 'Windows':
-        return os.startfile(fpath)
+        subprocess.Popen(r'explorer.exe /select, "{}"'.format(fpath))
+
+    if not os.path.isdir(fpath):
+        fpath = os.path.split(fpath)[0]
 
     # run the file in linux
     elif settings.OS_TYPE == 'Linux':
