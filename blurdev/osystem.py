@@ -232,7 +232,11 @@ def explore(filename):
     fpath = os.path.normpath(unicode(filename))
     # run the file in windows
     if settings.OS_TYPE == 'Windows':
-        subprocess.Popen(r'explorer.exe /select, "{}"'.format(fpath))
+        if os.path.isfile(fpath):
+            subprocess.Popen(r'explorer.exe /select, "{}"'.format(fpath))
+            return True
+        subprocess.Popen(r'explorer.exe "{}"'.format(fpath))
+        return True
 
     if not os.path.isdir(fpath):
         fpath = os.path.split(fpath)[0]
