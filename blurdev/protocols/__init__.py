@@ -209,6 +209,9 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
         self.params = new_params
 
     def run(self):
+        # Most tools launched with this protocols will likely not have UI's so using the Python
+        # Logger is probably not worth it. Log to a file so we can debug problems.
+        _blurdev.debug.logToFile(r'c:\temp\shotgunProtocol.log')
         # short circuit tool path finding (speedier)
         # TODO: Check for and parse the xml file instead of expecting the exec file to be main.pyw.
         tool_path = _os.path.normpath(
