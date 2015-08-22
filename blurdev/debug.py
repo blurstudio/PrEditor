@@ -161,6 +161,49 @@ class AdditionalErrorInfo(object):
         blurdev.core.logger().uiConsoleTXT.resetAdditionalInfo()
 
 
+class FileLogger:
+    def __init__(self, stdhandle, logfile, _print=True):
+        self._stdhandle = stdhandle
+        self._logfile = logfile
+        self._print = _print
+        # clear the log file
+        open(logfile, 'w').close()
+
+    def flush(self):
+        self._stdhandle.flush()
+
+    def write(self, msg):
+        f = open(self._logfile, 'a')
+        f.write(msg)
+        f.close()
+        if self._print:
+            self._stdhandle.write(msg)
+
+
+def logToFile(path, stdout=True, stderr=True, useOldStd=False):
+    """ Redirect all stdout and/or stderr output to a log file.
+    
+    Creates a FileLogger class for stdout and stderr and installs itself in python.
+    All output will be logged to the file path. Prints the current datetime and
+    sys.version info when stdout is True.
+    
+    Args:
+        path (str): File path to log output to.
+        stdout (bool): If True(default) override sys.stdout.
+        stderr (bool): If True(default) override sys.stderr.
+        useOldStd (bool): If True, messages will be written to the FileLogger
+            and the previous sys.stdout/sys.stderr.
+    """
+    if stderr:
+        sys.stderr = FileLogger(sys.stderr, path, useOldStd)
+    if stdout:
+        sys.stdout = FileLogger(sys.stdout, path, useOldStd)
+        print '--------- Date: %s Version: %s ---------' % (
+            datetime.datetime.today(),
+            sys.version,
+        )
+
+
 # --------------------------------------------------------------------------------
 # A pdb that works inside qt and softwares we run qt inside, like 3ds Max
 _blurPdb = None
