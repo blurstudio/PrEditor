@@ -16,6 +16,9 @@ class NukeCore(Core):
         if 'objectName' not in kargs:
             kargs['objectName'] = 'nuke'
         super(NukeCore, self).__init__(*args, **kargs)
+        # Shutdown blurdev when Nuke closes
+        if QApplication.instance():
+            QApplication.instance().aboutToQuit.connect(self.shutdown)
 
     def createToolMacro(self, tool, macro=''):
         """
