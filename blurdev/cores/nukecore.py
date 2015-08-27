@@ -3,7 +3,7 @@ import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
 import nuke
-from PyQt4.QtGui import QMainWindow
+from PyQt4.QtGui import QMainWindow, QApplication
 from PyQt4.QtCore import Qt
 
 
