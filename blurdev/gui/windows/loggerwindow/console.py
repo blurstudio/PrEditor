@@ -160,7 +160,7 @@ emailformat = """
 class ErrorLog(QObject, Win32ComFix):
     def flush(self):
         """ flush the logger instance """
-        self.parent().flush()
+        pass
 
     def write(self, msg):
         """ log an error message """
