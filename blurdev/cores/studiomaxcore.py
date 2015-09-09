@@ -22,7 +22,7 @@ toolTip: "%(tooltip)s"
 buttonText: "%(displayName)s"
 icon:#( "%(studioName)s_%(id)s_Macro", 1 )
 (
-    local blurdev 	= python.import "blurdev"
+    local blurdev 	= pymax.import "blurdev"
     blurdev.runTool "%(tool)s" macro:"%(macro)s"
 )
 """
@@ -30,7 +30,7 @@ icon:#( "%(studioName)s_%(id)s_Macro", 1 )
 # initialize callback scripts
 STUDIOMAX_CALLBACK_TEMPLATE = """
 global pyblurdev
-if ( pyblurdev == undefined ) then ( pyblurdev = python.import "blurdev" )
+if ( pyblurdev == undefined ) then ( pyblurdev = pymax.import "blurdev" )
 if ( pyblurdev != undefined ) then ( 
     local ms_args = (callbacks.notificationParam())
     pyblurdev.core.dispatch "%(signal)s" %(args)s 
