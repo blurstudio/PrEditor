@@ -13,8 +13,7 @@ class NukeCore(Core):
     """
 
     def __init__(self, *args, **kargs):
-        if 'objectName' not in kargs:
-            kargs['objectName'] = 'nuke'
+        kargs['objectName'] = 'nuke'
         super(NukeCore, self).__init__(*args, **kargs)
         # Shutdown blurdev when Nuke closes
         if QApplication.instance():
