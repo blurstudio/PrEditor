@@ -367,32 +367,42 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         else:
             sys.__excepthook__(exctype, value, traceback_)
 
-        # Email the error traceback.
-        emails = ToolsEnvironment.activeEnvironment().emailOnError()
+        # Check if this traceback should be ignored. Some software like Nuke use exceptions to signal
+        # that special things have happened. Like the user canceled the open file dialog. We don't
+        # want to prompt the user to open the Python Logger for these types of errors. We also don't
+        # want to receive emails or redmine tickets for it. This allows the core to ignore exceptions
+        sendEmail, showPrompt = blurdev.core.shouldReportException(
+            exctype, value, traceback_
+        )
+
         traceback_msg = ''.join(traceback.format_exception(exctype, value, traceback_))
-        if emails:
-            ConsoleEdit.emailError(emails, traceback_msg)
+        if sendEmail:
+            # Email the error traceback.
+            emails = ToolsEnvironment.activeEnvironment().emailOnError()
+            if emails:
+                ConsoleEdit.emailError(emails, traceback_msg)
 
-        # If the logger is not visible, prompt the user to show it.
-        inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
-        if (
-            not inst.isVisible()
-            and not blurdev.core.quietMode()
-            and not ConsoleEdit._errorPrompted
-        ):
-            # This is used to ensure we only ever show a single error prompt. In special cases this
-            # messagebox was showing multiple times, which is very annoying to the user.
-            # This is not needed for normal Qt event loops, but if some other system (c++, threading)
-            # raises multiple errors that get processed outside the standard qt event loop.
-            ConsoleEdit._errorPrompted = True
-            errorDialog = ErrorDialog(blurdev.core.rootWindow())
-            errorDialog.setText(traceback_msg)
-            errorDialog.exec_()
+        if showPrompt:
+            # If the logger is not visible, prompt the user to show it.
+            inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
+            if (
+                not inst.isVisible()
+                and not blurdev.core.quietMode()
+                and not ConsoleEdit._errorPrompted
+            ):
+                # This is used to ensure we only ever show a single error prompt. In special cases this
+                # messagebox was showing multiple times, which is very annoying to the user.
+                # This is not needed for normal Qt event loops, but if some other system (c++, threading)
+                # raises multiple errors that get processed outside the standard qt event loop.
+                ConsoleEdit._errorPrompted = True
+                errorDialog = ErrorDialog(blurdev.core.rootWindow())
+                errorDialog.setText(traceback_msg)
+                errorDialog.exec_()
 
-            # The messagebox was closed, so reset the tracking variable.
-            ConsoleEdit._errorPrompted = False
+                # The messagebox was closed, so reset the tracking variable.
+                ConsoleEdit._errorPrompted = False
 
-        ConsoleEdit.clearAdditionalInfo()
+            ConsoleEdit.clearAdditionalInfo()
 
     @staticmethod
     def buildErrorMessage(error, subject=None, information=None, format='html'):

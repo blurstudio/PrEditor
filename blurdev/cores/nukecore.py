@@ -32,6 +32,29 @@ class NukeCore(Core):
         """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
         return not nuke.GUI
 
+    def shouldReportException(self, exctype, value, traceback_):
+        """ Allow the core to control if the Python Logger shows the ErrorDialog or a email is sent.
+        
+        Use this to prevent a exception from prompting the user to open the Python Logger, and 
+        prevent sending a error email. This is called after parent eventhandler's are called and
+        the traceback will still be printed to the logger after this function is run.
+        
+        This function returns two boolean values, the first controls if a error email should be sent.
+        The second controls if the ErrorDialog should be shown.
+        
+        Args:
+            exctype (type): The Exception class.
+            value : The Exception instance.
+            traceback_ (traceback): The traceback object.
+        
+        Returns:
+            sendEmail: Should the exception be reported in a error email.
+            showPrompt: Should the ErrorDialog be shown if the Python Logger isnt already visible.
+        """
+        if isinstance(value, RuntimeError) and value.message == 'Cancelled':
+            return False, False
+        return True, True
+
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the NukeCore has shutdown called
         """
