@@ -4,7 +4,6 @@ import copy
 import os
 import sys
 import ConfigParser
-from optparse import OptionParser
 
 # define the default environment variables
 OS_TYPE = ''
@@ -52,6 +51,8 @@ def init():
 
     # set this variable in any runtime to load arguments from command line
     if hasattr(sys, 'argv') and os.environ.get('BDEV_EXEC') == '1':
+        from optparse import OptionParser
+
         parser = OptionParser()
         parser.disable_interspersed_args()
 
