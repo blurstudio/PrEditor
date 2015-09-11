@@ -177,6 +177,10 @@ def html2textile(html, clearStyle=True):
     Returns:
         str: The textile text.
     """
+    if not html.strip():
+        # html2textile errors out if no text or only whitespace is passed to it.
+        # So return the unaltered string.
+        return html
     import html2textile
 
     if clearStyle:
