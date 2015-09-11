@@ -1,7 +1,6 @@
 import sys
 import time
 import os
-import platform
 
 from PyQt4.QtCore import QObject, pyqtSignal, QEvent, QDateTime, Qt, SIGNAL, QRect
 from PyQt4.QtGui import (
@@ -128,7 +127,7 @@ class Core(QObject):
         # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
         if sys.platform != 'win32':
             return
-        if platform.architecture()[0] == '64bit':
+        if blurdev.osystem.getPointerSize() == 64:
             app.addLibraryPath("c:/windows/system32/blur64/")
         else:
             app.addLibraryPath("c:/blur/common/")

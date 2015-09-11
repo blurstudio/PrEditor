@@ -1,6 +1,5 @@
 from __future__ import absolute_import
 
-import glob
 import os
 import re
 
@@ -83,6 +82,8 @@ class ToolsIndex(QObject):
     def rebuild(self):
         """ rebuilds the index from the file system
         """
+        import glob
+
         doc = blurdev.XML.XMLDocument()
         root = doc.addNode('index')
 
@@ -153,6 +154,7 @@ class ToolsIndex(QObject):
             :param legacy: bool
             :param parentCategoryId: str
         """
+        import glob
 
         def copyXmlData(toolPath, node, categoryId):
             """ Copys the contents of the metadata xml file into the tools index. """

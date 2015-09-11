@@ -15,19 +15,27 @@ way.
 
 """
 
-import getpass
-import sys
 import os
-import re
 import subprocess
-from distutils.sysconfig import get_python_inc
-import shutil
-import platform
 
 from PyQt4.QtCore import QProcess
 
 import blurdev
 from . import settings
+
+
+def getPointerSize():
+    import struct
+
+    try:
+        size = struct.calcsize('P')
+    except struct.error:
+        # Older installations can only query longs
+        size = struct.calcsize('l')
+    size *= 8
+    global getPointerSize
+    getPointerSize = lambda: size
+    return size
 
 
 # Get the active version of python, not a hard coded value.
@@ -45,6 +53,8 @@ def pythonPath(pyw=False, architecture=None):
     except WindowsError:
         basepath = ''
     if not basepath:
+        from distutils.sysconfig import get_python_inc
+
         # Unable to pull the path from the registry just use the current python path
         basepath = os.path.split(get_python_inc())[0]
     # build the path to the python executable. If requested use pythonw instead of python
@@ -69,6 +79,8 @@ def expandvars(text, cache=None):
     # make sure we have data
     if not text:
         return ''
+
+    import re
 
     # check for circular dependencies
     if cache is None:
@@ -160,6 +172,7 @@ def createShortcut(
             if not os.path.exists(path):
                 os.makedirs(path)
         if not target:
+            import sys
 
             target = sys.executable
         if not startin:
@@ -174,6 +187,7 @@ def createShortcut(
                 os.makedirs(outPath)
             outIcon = os.path.abspath('%s\%s.ico' % (outPath, title))
             if os.path.exists(icon):
+                import shutil
 
                 shutil.copyfile(icon, outIcon)
                 if os.path.exists(outIcon):
@@ -182,8 +196,7 @@ def createShortcut(
                     icon = None
             else:
                 if ext == '.png':
-
-                    if platform.architecture()[0] == '64bit':
+                    if getPointerSize() == 64:
                         progF = 'ProgramFiles(x86)'
                     else:
                         progF = 'programfiles'
@@ -254,7 +267,7 @@ def programFilesPath(path=''):
     
         :param path: this string is appended to the path
     """
-    if platform.architecture()[0] == '64bit':
+    if getPointerSize() == 64:
         progF = 'ProgramFiles(x86)'
     else:
         progF = 'programfiles'
@@ -473,6 +486,8 @@ def username():
     otherwise, returns an empty string.
 
     """
+    import getpass
+
     try:
         return getpass.getuser()
     except getpass.GetPassWarning:

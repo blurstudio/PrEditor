@@ -1,8 +1,6 @@
 import os
 import subprocess
-import glob
 import re
-import platform
 
 import blurdev
 
@@ -155,7 +153,7 @@ def extractVideoFrame(filename, outputpath):
 
 
 def get32bitProgramFiles():
-    if platform.architecture()[0] == '64bit':
+    if blurdev.osystem.getPointerSize() == 64:
         progF = 'ProgramFiles(x86)'
     else:
         progF = 'programfiles'
@@ -240,6 +238,8 @@ def imageSequenceFromFileName(fileName):
     match = imageSequenceInfo(fileName)
     output = []
     if match:
+        import glob
+
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
         regex = re.compile(
             r'%s(\d+)%s' % (re.escape(match.group('pre')), match.group('post')),
@@ -336,6 +336,8 @@ def imageSequenceForRepr(fileName):
     )
     match = re.match(filter, fileName)
     if match:
+        import glob
+
         start = int(match.group('start'))
         end = int(match.group('end'))
         files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))

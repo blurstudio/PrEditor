@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
@@ -51,7 +50,7 @@ class StudiomaxCore(Core):
     def addLibraryPaths(self, app):
         if sys.platform != 'win32':
             return
-        if mxs.maxVersion()[0] / 1000 == 16 and platform.architecture()[0] == '64bit':
+        if mxs.maxVersion()[0] / 1000 == 16 and blurdev.osystem.getPointerSize() == 64:
             path = os.path.split(sys.executable)[0]
             if os.path.exists(os.path.join(path, 'QtOpenGL4.dll')):
                 # Special case for if max has our pyqt installed inside it

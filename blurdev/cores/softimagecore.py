@@ -1,6 +1,5 @@
 import os
 import sys
-import platform
 
 # to be in a Softimage session, we need to be able to import the PySoftimage package
 from PyQt4.QtCore import QRect
@@ -12,9 +11,9 @@ from win32com.client import constants
 xsi = win32com.client.Dispatch('XSI.Application').Application
 
 from blurdev.cores.core import Core
+import blurdev
 import blurdev.tools.toolsenvironment
 import blurdev.tools.tool
-
 
 SOFTIMAGE_MACRO_TEMPLATE = """
 import win32com.client
@@ -72,7 +71,7 @@ class SoftimageCore(Core):
 
     def init(self):
         # BlurApplication is used to connect QApplication to Softimage
-        if platform.architecture()[0] == '64bit':
+        if blurdev.osystem.getPointerSize() == 64:
             plugin = blurdev.resourcePath('softimage\BlurApplication64.dll')
         else:
             plugin = blurdev.resourcePath('softimage\BlurApplication.dll')

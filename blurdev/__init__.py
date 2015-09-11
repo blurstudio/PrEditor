@@ -15,7 +15,6 @@ import os
 import sys
 import copy
 import types
-import cPickle
 import re
 import weakref
 
@@ -212,6 +211,7 @@ def launch(
         urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
         oldkwargs = copy.copy(kwargs)
         if urlArgs:
+            import cPickle
 
             urlArgs = cPickle.loads(urlArgs)
             if kwargs is None:

@@ -33,7 +33,6 @@ import os
 import sys
 import datetime
 import time
-import inspect
 import weakref
 
 from PyQt4.QtCore import Qt, QString
@@ -324,6 +323,8 @@ def debugObject(object, msg, level=2):
 
 
 def debugObjectString(object, msg):
+    import inspect
+
     # debug a module
     if inspect.ismodule(object):
         return '[%s module] :: %s' % (object.__name__, msg)
@@ -415,6 +416,8 @@ def printCallingFunction(compact=False):
     :param compact: If set to True, prints a more compact printout
     
     """
+    import inspect
+
     current = inspect.currentframe().f_back
     try:
         parent = current.f_back

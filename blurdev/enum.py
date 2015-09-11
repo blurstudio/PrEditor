@@ -1,7 +1,6 @@
 import abc
 import re
 import sys
-import inspect
 from numbers import Number
 
 # =============================================================================
@@ -135,7 +134,6 @@ class Enum(object):
     """
 
     __metaclass__ = abc.ABCMeta
-    _REMOVEREGEX = re.compile('[_ ]+')
     _CREATIONORDER = 0
 
     def __init__(self, number=None, label=None, **kwargs):
@@ -190,7 +188,7 @@ class Enum(object):
             self._cmpName = None
         else:
             self._name = name
-            self._cmpName = self.toComparisonStr(name)
+            self._cmpName = name.strip('_ ')
 
     def _setLabel(self, label):
         if label == None:
@@ -198,7 +196,7 @@ class Enum(object):
             self._cmpLabel = None
         else:
             self._label = label
-            self._cmpLabel = self.toComparisonStr(label)
+            self._cmpLabel = label.replace(' ', '').replace('_', '')
 
     def __add__(self, other):
         return self.__or__(other)
@@ -296,12 +294,10 @@ class Enum(object):
         return int(self) ^ other
 
     def _compareStr(self, inStr):
-        cmpStr = self.toComparisonStr(inStr)
-        return cmpStr in (self._cmpLabel, self._cmpName)
-
-    @classmethod
-    def toComparisonStr(cls, value):
-        return cls._REMOVEREGEX.sub('', str(value).lower())
+        return inStr.replace(' ', '').replace('_', '') in (
+            self._cmpLabel,
+            self._cmpName,
+        )
 
 
 # =============================================================================
@@ -537,8 +533,9 @@ class EnumGroup(object):
     @classmethod
     def __init_enums__(cls):
         enums = []
+
         orderedEnums = sorted(
-            inspect.getmembers(cls, lambda o: isinstance(o, Enum),),
+            [(k, v) for k, v in cls.__dict__.iteritems() if isinstance(v, Enum)],
             key=lambda i: i[1]._creationOrder,
         )
         for name, value in orderedEnums:
