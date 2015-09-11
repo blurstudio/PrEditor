@@ -10,15 +10,37 @@ Importing this module applies the suggested patch dynamically.
 """
 
 import xml.dom.minidom
-from xml.sax.saxutils import escape
+
+escape_dict = {
+    '&': "&amp;",
+    ">": "&gt;",
+    "<": "&lt;",
+    '"': '&quot;',
+    '\r': '&#xD;',
+    '\n': '&#xA;',
+    '\t': '&#x9;',
+}
+
+
+def escape(data, entities={}):
+    for k, v in escape_dict.iteritems():
+        data = data.replace(k, v)
+    return data
+
+
+def unescape(data, entities={}):
+    for k, v in escape_dict.iteritems():
+        if k == '&':
+            continue
+        data = data.replace(v, k)
+    # must do ampersand last
+    return data.replace("&amp;", "&")
 
 
 def _write_data(writer, data, isAttrib=False):
     "Writes datachars to writer."
     if isAttrib:
-        data = escape(
-            data, {'"': '&quot;', '\r': '&#xD;', '\n': '&#xA;', '\t': '&#x9;'}
-        )
+        data = escape(data)
     writer.write(data)
 
 

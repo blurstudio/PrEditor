@@ -12,7 +12,7 @@ import xml.dom.minidom
 
 # Load the monkey patched version to fix a known bug http://bugs.python.org/issue5752
 import blurdev.XML.minidom
-from xml.sax.saxutils import escape, unescape
+from blurdev.XML.minidom import escape, unescape
 
 from PyQt4.QtCore import (
     QRect,
@@ -305,9 +305,7 @@ class XMLElement:
         :param fail: If the atribute does not exist return this.
         """
         out = unicode(self._object.getAttribute(attr))
-        d = self._document()
-        if d and hasattr(d, 'escapeDict'):
-            out = unescape(out, d.escapeDict)
+        out = unescape(out)
         if out:
             return out
         return fail
@@ -521,10 +519,8 @@ class XMLElement:
 
         """
         if self._object and (val != '' or self.allowEmptyAttrs):
-            d = self._document()
             val = unicode(val)
-            if d and hasattr(d, 'escapeDict'):
-                val = escape(val, d.escapeDict)
+            val = escape(val)
             self._object.setAttribute(attr, val)
             return True
         return False

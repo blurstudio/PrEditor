@@ -23,7 +23,8 @@ class XMLDocument(XMLElement):
             object = xml.dom.minidom.Document()
         XMLElement.__init__(self, object)
         self.__file__ = ''
-        self.escapeDict = {'"': '&quot;', '\r': '&#xD;', '\n': '&#xA;', '\t': '&#x9;'}
+        # TODO: Remove when all uses are gone, should no longer be needed
+        self.escapeDict = {}
 
     def findElementById(self, childId):
         split = child.split('::')
