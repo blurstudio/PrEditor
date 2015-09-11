@@ -112,6 +112,20 @@ if __name__ == '__main__':
             'True',
             useConfigParser=True,
         )
+        blurdev.ini.SetINISetting(
+            destPath,
+            'Windows',
+            'BDEV_PATH_ICONS',
+            r'C:\blur\icons',
+            useConfigParser=True,
+        )
+        blurdev.ini.SetINISetting(
+            destPath,
+            'Windows',
+            'BDEV_SPLASHSCREEN_SOURCE_DIR',
+            r'C:\blur\splash',
+            useConfigParser=True,
+        )
         # remove non blur specific includes in tools_environments.xml
         print '**************************************************'
         print '*          Updating tools environments           *'
