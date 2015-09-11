@@ -1,8 +1,6 @@
 """ Version module to track the version information for blurdev
 """
 
-import glob
-import re
 import os
 
 _major = 1  # User defined major version
