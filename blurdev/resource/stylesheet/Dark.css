@@ -378,15 +378,6 @@ HintHelper {
 	color: rgb(150,150,150);
 }
 
-ConsoleEdit {
-	qproperty-pyErrorMessageColor: #eb3f06;
-	qproperty-pyForegroundColor: rgb(160, 222, 255);
-	qproperty-pyStdoutColor: rgb(153, 204, 153);
-	qproperty-pyCommentColor: rgb(175, 175, 175);
-	qproperty-pyKeywordColor: rgb(204, 153, 204);
-	qproperty-pyStringColor: rgb(153, 204, 153);
-}
-
 QMessageBox#uiPythonErrorMBOX QPushButton {
 	min-width: 90px;
 }
@@ -450,7 +441,7 @@ ConsoleEdit {
 	qproperty-pyCommentColor: rgb(175, 175, 175);
 	qproperty-pyKeywordColor: rgb(204, 153, 204);
 	qproperty-pyStringColor: rgb(153, 204, 153);
-	/*background-color: rgb(80, 80, 80);*/
+	background-color: rgb(80, 80, 80);
 }
 DocumentEditor {
 	qproperty-pyMarginsForegroundColor: rgb(100, 180, 180);
