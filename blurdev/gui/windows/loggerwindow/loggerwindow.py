@@ -357,7 +357,11 @@ class LoggerWindow(Window):
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
 
-        self.setStyleSheet(pref.restoreProperty('styleSheet', ''))
+        sheet = pref.restoreProperty('styleSheet', '')
+        if sheet:
+            from blurdev.XML.minidom import unescape
+
+            self.setStyleSheet(unescape(sheet))
 
         self.restoreToolbars()
 

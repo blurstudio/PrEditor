@@ -1285,7 +1285,11 @@ class IdeEditor(Window):
         pref = prefs.find('ide/interface')
 
         # load the styleSheet
-        self.setStyleSheet(pref.restoreProperty('styleSheet', ''))
+        sheet = pref.restoreProperty('styleSheet', '')
+        if sheet:
+            from blurdev.XML.minidom import unescape
+
+            self.setStyleSheet(unescape(sheet))
 
         # load the recent files
         self._recentFiles = pref.restoreProperty('recentFiles', [])
