@@ -293,6 +293,8 @@ class LoggerWindow(Window):
         pref.save()
 
     def restorePrefs(self):
+        from blurdev.XML.minidom import unescape
+
         pref = prefs.find('blurdev\LoggerWindow')
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
@@ -335,7 +337,9 @@ class LoggerWindow(Window):
         for index in range(count):
             workbox = self.uiWorkboxTAB.widget(index)
             workbox.setText(
-                pref.restoreProperty(self._genPrefName('WorkboxText', index), '')
+                unescape(
+                    pref.restoreProperty(self._genPrefName('WorkboxText', index), '')
+                )
             )
             font = pref.restoreProperty(self._genPrefName('workboxFont', index), None)
             if font:
@@ -357,11 +361,7 @@ class LoggerWindow(Window):
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
 
-        sheet = pref.restoreProperty('styleSheet', '')
-        if sheet:
-            from blurdev.XML.minidom import unescape
-
-            self.setStyleSheet(unescape(sheet))
+        self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
 
         self.restoreToolbars()
 
