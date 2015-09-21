@@ -74,7 +74,9 @@ class PyularWidget(QWidget):
         self.uiHelpBTN.setIcon(QIcon(blurdev.resourcePath('img/blurdev.png')))
         self.flags = 0
         self.uiSearchTypeDDL.clear()
-        self.uiSearchTypeDDL.addItems(self.ReType.labels(byVal=True))
+        self.uiSearchTypeDDL.addItems(
+            [self.tr(l) for l in self.ReType.labels(byVal=True)]
+        )
 
     def count(self):
         return self.uiCountSPN.value()

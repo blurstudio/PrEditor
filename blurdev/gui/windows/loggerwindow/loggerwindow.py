@@ -135,9 +135,16 @@ class LoggerWindow(Window):
         self.uiConsoleTOOLBAR.show()
         import sys, platform
 
+        loggerName = blurdev.application.translate(
+            'PythonLoggerWindow', 'Python Logger'
+        )
         self.setWindowTitle(
-            'Python Logger - %s %s'
-            % ('%i.%i.%i' % sys.version_info[:3], platform.architecture()[0])
+            '%s - %s %s'
+            % (
+                loggerName,
+                '%i.%i.%i' % sys.version_info[:3],
+                platform.architecture()[0],
+            )
         )
 
     @classmethod

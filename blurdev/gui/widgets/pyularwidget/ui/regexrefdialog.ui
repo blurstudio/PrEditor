@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>RegexRefDialog</class>
- <widget class="QDialog" name="RegexRefDialog">
+ <class>PyularRegexRefDialog</class>
+ <widget class="QDialog" name="PyularRegexRefDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Regex Ref Dialog</string>
+   <string>Pyular Regex Reference</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>PythonLoggerWindow</class>
+ <widget class="QMainWindow" name="PythonLoggerWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -87,7 +87,7 @@
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
-     <string>&amp;File</string>
+     <string comment="File Menu">&amp;File</string>
     </property>
     <addaction name="uiNewScriptACT"/>
     <addaction name="uiOpenScriptACT"/>
