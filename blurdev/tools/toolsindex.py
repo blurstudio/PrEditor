@@ -79,8 +79,12 @@ class ToolsIndex(QObject):
         """
         return self.parent()
 
-    def rebuild(self):
-        """ rebuilds the index from the file system
+    def rebuild(self, filename=None):
+        """ rebuilds the index from the file system.
+        
+        Args:
+            filename (str): If filename is not provided it will store the file in self.filename(). 
+                This is the location that treegrunt looks for its tools.xml file.
         """
         import glob
 
@@ -129,8 +133,11 @@ class ToolsIndex(QObject):
 
         addChildren(categoriesNode, parent)
 
+        # If a filename was not provided get the default
+        if not filename:
+            filename = self.filename()
         # save the index file
-        doc.save(self.filename())
+        doc.save(filename)
 
         # clear the old data & reload
         self.clear()
