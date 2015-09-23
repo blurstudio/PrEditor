@@ -93,10 +93,10 @@ def compPixmap(imageData):
     Example of two step compositing::
     data = [[trax.gui.findIconFile(r'employeeReview\1')],
             [trax.gui.findIconFile(r'employeeReview\alert'), [5, 5]]]
-    map = buildPixmap(data)
+    map = compPixmap(data)
     data = [[trax.gui.findIconFile(r'employeeReview\blank')], 
             [map, [4,2]]]
-    map = buildPixmap(data)
+    map = compPixmap(data)
     """
     from PyQt4.QtGui import QPainter, QPixmap
 
