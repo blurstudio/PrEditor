@@ -274,9 +274,20 @@ class ToolsEnvironment(QObject):
         blurdev.core.emitEnvironmentActivated()
 
     def setActive(self, silent=False, force=False):
-        """
-            \remarks	sets this environment as the active environment and switches the currently running modules from the
-                        system
+        """ Sets this environment as the active environment.
+    
+        It also switches the currently running modules from the system by removing the old 
+        environment path from sys.path and sys.modules. It then adds the paths for this
+        environment to sys.path.
+        
+        Args:
+            silent (bool): If True, do not emit the blurdev.core.environmentActivated signal.
+                Defaults to False.
+            force (bool): IF True, force this environment to reload, even if its is currently
+                active. Defaults to False.
+        
+        Returns:
+            bool: The environment was set active.
         """
         if force or not (self.isActive() or self.isEmpty()):
             # clear out the old environment
@@ -488,14 +499,27 @@ class ToolsEnvironment(QObject):
         return ToolsEnvironment()
 
     @staticmethod
-    def findEnvironment(name):
+    def findEnvironment(name, path=None):
+        """ Looks up the environment by the inputed name or base path.
+        
+        Args:
+            name (str): The name of the environment to find.
+            path (str): If provided try to find a environment with this path. This is only used
+                if the environment was not found by name. Defaults to None.
+        
+        Returns:
+            blurdev.tools.ToolsEnvironment: The environment found. Use env.isEmpty() to check if it
+                is a valid environment.
         """
-            \remarks	looks up the environment by the inputed name
-            \return		<ToolsEnvironment>
-        """
+        # Find the environmet by name.
         for env in ToolsEnvironment.environments:
             if str(env.objectName()) == str(name):
                 return env
+        # If the environment was not found by name, find it by path if one was provided.
+        if path:
+            for env in ToolsEnvironment.environments:
+                if path and os.path.normpath(path) == os.path.normpath(env.path()):
+                    return env
         return ToolsEnvironment()
 
     @staticmethod

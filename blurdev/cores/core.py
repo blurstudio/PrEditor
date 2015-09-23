@@ -726,7 +726,9 @@ class Core(QObject):
         # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
         environPath = os.environ.get('BLURDEV_PATH')
         if environPath:
-            env = ToolsEnvironment.findEnvironment(TEMPORARY_TOOLS_ENV)
+            env = ToolsEnvironment.findEnvironment(
+                TEMPORARY_TOOLS_ENV, path=environPath
+            )
             if env.isEmpty():
                 devel = (
                     os.environ.get('BDEV_ENVIRONMENT_DEVEL', 'False').lower() == 'true'
