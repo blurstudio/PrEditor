@@ -273,12 +273,12 @@ class ToolsEnvironment(QObject):
         )
         blurdev.core.emitEnvironmentActivated()
 
-    def setActive(self, silent=False):
+    def setActive(self, silent=False, force=False):
         """
             \remarks	sets this environment as the active environment and switches the currently running modules from the
                         system
         """
-        if not (self.isActive() or self.isEmpty()):
+        if force or not (self.isActive() or self.isEmpty()):
             # clear out the old environment
             old = self.activeEnvironment()
             old.clearPathSymbols()
