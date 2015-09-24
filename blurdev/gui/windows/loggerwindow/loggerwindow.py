@@ -23,6 +23,7 @@ from PyQt4.QtGui import (
     QMenu,
     QCursor,
     QInputDialog,
+    QApplication,
 )
 import blurdev
 
@@ -135,15 +136,15 @@ class LoggerWindow(Window):
         self.uiConsoleTOOLBAR.show()
         import sys, platform
 
-        loggerName = blurdev.application.translate(
+        loggerName = QApplication.instance().translate(
             'PythonLoggerWindow', 'Python Logger'
         )
         self.setWindowTitle(
-            '%s - %s %s'
+            '%s - %s %ibit'
             % (
                 loggerName,
                 '%i.%i.%i' % sys.version_info[:3],
-                platform.architecture()[0],
+                blurdev.osystem.getPointerSize(),
             )
         )
 
