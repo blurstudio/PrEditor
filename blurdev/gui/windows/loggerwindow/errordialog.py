@@ -92,8 +92,12 @@ class ErrorDialog(Dialog):
         if not sys.platform == 'win32':
             QTimer.singleShot(5000, self.close)
             return
-        # checks if the pdplayer window has opened yet
-        import win32gui, win32process
+        try:
+            # checks if the pdplayer window has opened yet
+            import win32gui, win32process
+        except ImportError:
+            QTimer.singleShot(5000, self.close)
+            return
         from PyQt4.QtGui import QMessageBox
 
         def handleGet(handle, args):
