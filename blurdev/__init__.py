@@ -144,6 +144,8 @@ def init():
         # Treat designer as a seperate core so it gets its own prefrences.
         if 'designer' in _exe:
             objectName = 'designer'
+        elif 'assfreezer' in _exe:
+            objectName = 'assfreezer'
         core = Core(objectName=objectName)
         application = core.init()
 
@@ -433,7 +435,10 @@ def setAppUserModelID(appId, prefix='Blur'):
     """
     # If this function is run inside other applications, it can cause(unparented) new sub windows
     # to parent with this id instead of the parent application in windows.
-    if blurdev.core.objectName() != 'external':
+    # To test: Create a window calling setAppUserModelID before showing it. Use a unique appId. Then
+    # create a unparented window and show it. The unparented window will appear in a different
+    # taskbar group.
+    if not blurdev.core.useAppUserModelID():
         return False
     # Try/except is to prevent the NEED for blur.Stone.
     try:

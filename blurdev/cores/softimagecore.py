@@ -47,6 +47,8 @@ class SoftimageCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'softimage'
         Core.__init__(self, *args, **kargs)
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
 
     def errorCoreText(self):
         """

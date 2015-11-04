@@ -15,6 +15,8 @@ class NukeCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'nuke'
         super(NukeCore, self).__init__(*args, **kargs)
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
         # Shutdown blurdev when Nuke closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)

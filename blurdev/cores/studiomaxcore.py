@@ -46,6 +46,8 @@ class StudiomaxCore(Core):
         kargs['objectName'] = 'studiomax'
         Core.__init__(self, *args, **kargs)
         self._supportLegacy = True
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
 
     def addLibraryPaths(self, app):
         if sys.platform != 'win32':

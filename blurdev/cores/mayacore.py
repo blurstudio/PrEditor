@@ -17,6 +17,8 @@ class MayaCore(Core):
         kargs['objectName'] = 'maya'
         self._supportsDocking = True
         super(MayaCore, self).__init__(*args, **kargs)
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
         # Shutdown blurdev when Maya closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)

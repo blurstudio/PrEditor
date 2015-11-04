@@ -24,6 +24,8 @@ class MotionBuilderCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'motionbuilder'
         super(MotionBuilderCore, self).__init__(*args, **kargs)
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
         # Shutdown blurdev when Motion builder closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)

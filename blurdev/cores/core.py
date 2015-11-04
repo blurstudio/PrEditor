@@ -106,6 +106,7 @@ class Core(QObject):
         self._maxDelayPerCycle = 0.1
         self._stylesheet = None
         self._headless = False
+        self._useAppUserModelID = None
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
@@ -1339,3 +1340,16 @@ class Core(QObject):
         from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
         return TreegruntDialog.instance(parent)
+
+    def useAppUserModelID(self):
+        """ Returns a boolean value controlling if calling blurdev.setAppUserModelID will do anyting. """
+        # Core subclasses Can simply set _useAppUserModelID to True or False if they want to blanket
+        # enable or disable setAppUserModelID.
+        if self._useAppUserModelID == None:
+            # By default allow all core names. If a specific core name needs to be excluded, it
+            # should be added to this list.
+            return self.objectName() not in ('assfreezer', 'designer')
+        return self._useAppUserModelID
+
+    def setUseAppUserModelID(self, value):
+        self._useAppUserModelID = value

@@ -12,6 +12,8 @@ class FusionCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'fusion'
         Core.__init__(self, *args, **kargs)
+        # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
+        self._useAppUserModelID = False
         # NOTE: fusion is globaly available inside fusion.exe, no need to import.
         self.setHwnd(int(fusion.GetMainWindow()))
 
