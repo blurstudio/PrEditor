@@ -24,9 +24,13 @@ class Window(QMainWindow):
             :return		<Window>
         """
         if not cls._instance:
+            import blurdev
+
             cls._instance = cls(parent=parent)
             # protect the memory
             cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+            # but make sure that if we reload the environment, everything gets deleted properly
+            blurdev.core.aboutToClearPaths.connect(cls._instance.shutdown)
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
@@ -48,8 +52,31 @@ class Window(QMainWindow):
         else:
             QMainWindow.__init__(self, parent)
 
+        # INFO
+        # As far as we can tell, the purpose for this class is keeping live references
+        # to the subclasses so they don't get garbage collected, all while getting around having to
+        # actively maintain a list of running dialogs.
+        #
+        # Generally, setting WA_DeleteOnClose to False, and keeping the _instance variable around
+        # will do the trick for pseudo-singleton dialogs. (created with instance=True)
+        #
+        # However, for non-instanced dialogs where multiples are allowed, deleteOnClose is set to True
+        # and no _instance variable is set.  Because there are no live references to the dialog, it is
+        # closed and garbage collected almost immediately in certain programs (xsi, maya).
+        #
+        # The current workaround is to manually set WA_DeleteOnClose to False, however this causes
+        # any subclasses to stick around in memory even when the window/dialog is closed.
+        # So you also have to manually set WA_DeleteOnClose to True in the sub-classed .closeEvent()
+        # method before you call super()
+        #
+        # It is completely possible to write some code that would automatically handle this, and
+        # it is CERTAINLY something we can/will be doing in the future, but for now
+        # we're not quite sure how that would affect the production tools. Technically
+        # this is a problem, but there are currently no consequences from an artist standpoint
+        # because we have more than enough memory to hold all those dead dialogs
+
         # set the delete attribute to clean up the window once it is closed
-        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
         # If this value is set to False calling setGeometry on this window will not adjust the
         # geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
@@ -86,7 +113,8 @@ class Window(QMainWindow):
             from winwidget import WinWidget
 
             WinWidget.uncache(wwidget)
-        if self.aboutToClearPathsEnabled:
+        # only disconnect here if deleting on close
+        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
             import blurdev
 
             try:
@@ -107,21 +135,30 @@ class Window(QMainWindow):
 
     def showEvent(self, event):
         # listen for aboutToClearPaths signal if requested
-        if self.aboutToClearPathsEnabled:
+        # but only connect here if deleting on close
+        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
             import blurdev
 
             blurdev.core.aboutToClearPaths.connect(self.shutdown)
         super(Window, self).showEvent(event)
 
     def shutdown(self):
+        # use a @classmethod to make inheritance magically work
+        self._shutdown(self)
+
+    @classmethod
+    def _shutdown(cls, this):
         """
         If this item is the class instance properly close it and remove it from memory so it can be recreated.
         """
         # allow the global instance to be cleared
-        if self == Window._instance:
-            Window._instance = None
-            self.setAttribute(Qt.WA_DeleteOnClose, True)
+        if this == cls._instance:
+            import blurdev
+
+            cls._instance = None
+            blurdev.core.aboutToClearPaths.disconnect(this.shutdown)
+            this.setAttribute(Qt.WA_DeleteOnClose, True)
         try:
-            self.close()
+            this.close()
         except RuntimeError:
             pass
