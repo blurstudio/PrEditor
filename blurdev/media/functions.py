@@ -280,13 +280,22 @@ def imageSequenceInfo(path, osystem=None):
     return regex.match(path)
 
 
-def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
+def imageSequenceRepr(
+    files, strFormat='{pre}[{firstNum}:{lastNum}]{post}', forceRepr=False
+):
+    """ Takes a list of files and creates a string that represents the sequence.
+    Args:
+        files (list): A list of files in the image sequence.
+        format (str): Used to format the output. Uses str.format() command and requires the 
+            keys [pre, firstNum, lastNum, post]. Defaults to '{pre}[{firstNum}:{lastNum}]{post}'
+        forceRepr (bool): If False and a single frame is provided, it will return just that frame.
+            If True and a single frame is provided, it will return a repr with that frame as the
+            firstNum and lastNum value. False by default.
+    
+    Returns:
+        str: A string representation of the Image Sequence.
     """
-    Takes a list of files and creates a string that represents the sequence.
-    :param files: A list of files in the image sequence
-    :param format: Used to format the output. Uses str.format() command and requires the keys [pre, firstNum, lastNum, post]
-    """
-    if len(files) > 1:
+    if len(files) > 1 or (forceRepr and files):
         match = imageSequenceInfo(files[0])
         if match:
             info = {}
@@ -299,7 +308,7 @@ def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
                 keys = sorted(info.keys())
                 low = info[keys[0]]
                 high = info[keys[-1]]
-                if low != high:
+                if forceRepr or low != high:
                     return strFormat.format(
                         pre=match.group('pre'),
                         firstNum=low,
@@ -311,15 +320,17 @@ def imageSequenceRepr(files, strFormat='{pre}[{firstNum}:{lastNum}]{post}'):
     return ''
 
 
-def imageSequenceReprFromFileName(fileName, strFormat=None):
+def imageSequenceReprFromFileName(fileName, strFormat=None, forceRepr=False):
     """
     Given a filename in a image sequence, return a representation of the image sequence on disk. 
     """
     if strFormat:
         return imageSequenceRepr(
-            imageSequenceFromFileName(fileName), strFormat=strFormat
+            imageSequenceFromFileName(fileName),
+            strFormat=strFormat,
+            forceRepr=forceRepr,
         )
-    return imageSequenceRepr(imageSequenceFromFileName(fileName))
+    return imageSequenceRepr(imageSequenceFromFileName(fileName), forceRepr=forceRepr)
 
 
 def imageSequenceForRepr(fileName):
