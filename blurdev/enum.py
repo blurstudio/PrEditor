@@ -597,6 +597,41 @@ class EnumGroup(object):
 
 
 # =============================================================================
+class Incrementer(object):
+    """ A class that behaves similarly to c i++ or ++i.
+    
+    Once you init this class, every time you call it it will update count and return the previous 
+    value like c's i++. If you pass True to pre, it will increment then return the new value like
+    c's ++i.
+    
+    Args:
+        start (int): Start the counter at this value. Defaults to Zero.
+        increment (int): increment by this value. In most cases it should be 1 or -1. Defaults to one.
+        pre (bool): If true calling the object will return the incremented value. If False it will 
+            return the current value and increment for the next call. Defaults to False.
+    
+    Attributes:
+        count: The current value.
+        increment: The incremnt added to count
+        pre: Should it preform a ++i or i++ operation when called.
+    """
+
+    def __init__(self, start=0, increment=1, pre=False):
+        super(Incrementer, self).__init__()
+        self.count = start
+        self.increment = increment
+        self.pre = pre
+
+    def __call__(self):
+        if self.pre:
+            self.count += self.increment
+            return self.count
+        ret = self.count
+        self.count += self.increment
+        return ret
+
+
+# =============================================================================
 
 
 class enum(object):
