@@ -238,11 +238,26 @@ def createShortcut(
         blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
 
 
-def explore(filename):
-    """ Launches the filename given the current platform
+def explore(filename, dirFallback=False):
+    """ Launches the provided filename in the prefered editor for the specific platform.
+    
+    Args:
+        filename (str): The filepath to explore to.
+        dirFallback (bool): If True, and the file path does not exist, explore to the deepest
+            folder that does exist.
+    
+    Returns:
+        bool: If it was able to explore the filename.
     """
     # pull the filpath from the inputed filename
     fpath = os.path.normpath(unicode(filename))
+
+    if dirFallback:
+        # If the provided filename does not exist, recursively check each parent folder for
+        # existance.
+        while not os.path.exists(fpath) and not os.path.ismount(fpath):
+            fpath = os.path.split(fpath)[0]
+
     # run the file in windows
     if settings.OS_TYPE == 'Windows':
         if os.path.isfile(fpath):
@@ -260,6 +275,8 @@ def explore(filename):
         if not cmd:
             return False
         subprocess.Popen(cmd % {'filepath': fpath}, shell=True)
+        return True
+    return False
 
 
 def programFilesPath(path=''):
