@@ -98,7 +98,7 @@ class Dialog(QDialog):
             )
             if os.path.exists(path):
                 self.setWindowIcon(QIcon(path))
-        except AttributeError:
+        except (AttributeError, KeyError):
             pass
 
     def closeEvent(self, event):
