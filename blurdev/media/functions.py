@@ -346,7 +346,7 @@ def imageSequenceForRepr(fileName):
         flags = re.I
     fileName = unicode(fileName)
     filter = re.compile(
-        r'(?P<pre>^.+?)\[(?P<start>\d+):(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)',
+        r'(?P<pre>^.+?)\[(?P<start>\d+)(?P<separator>[^\da-zA-Z]?)(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)',
         flags=flags,
     )
     match = re.match(filter, fileName)
