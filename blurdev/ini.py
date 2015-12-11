@@ -8,12 +8,6 @@ Also has functions for accessing & setting INI information.
 import ConfigParser
 import sys
 import os
-import getpass
-import shutil
-import codecs
-
-import blurdev
-import blurdev.tools
 
 
 configFile = "c:/blur/config.ini"  # Default path information for Blur Studio
@@ -323,6 +317,7 @@ class ToolParserClass(ConfigParser.ConfigParser):
                     # If the file is corrupted load the backup
                     path = os.environ.get('bdev_config_ini_backup')
                     if os.path.exists(path):
+                        import shutil
 
                         shutil.copy2(path, fileName)
                         self.Load(fileName)
@@ -346,6 +341,8 @@ class ToolParserClass(ConfigParser.ConfigParser):
                 filenames = [filenames]
             for filename in filenames:
                 try:
+                    import codecs
+
                     fp = codecs.open(filename, "r", fallbackEncoding)
                 except IOError:
                     continue
@@ -606,6 +603,7 @@ def LoadConfigData():
     environments = {}
 
     if os.path.exists(configFile):
+        import blurdev.tools
 
         blurConfigFile = ToolParserClass()
         blurConfigFile.Load(configFile)
@@ -646,6 +644,8 @@ def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys={}):
     outName = ''
     for tPart in tSplit:
         if tPart.lower() == 'username':
+            import getpass
+
             tPart = getpass.getuser()
         elif IsPath(tPart):
             tPart = GetPath(
