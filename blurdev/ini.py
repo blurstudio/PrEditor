@@ -312,16 +312,28 @@ class ToolParserClass(ConfigParser.ConfigParser):
         if fileName and os.path.exists(fileName):
             try:
                 self.read(fileName)
-            except ConfigParser.MissingSectionHeaderError:
+            except (
+                ConfigParser.MissingSectionHeaderError,
+                ConfigParser.ParsingError,
+                UnicodeError,
+            ):
                 if fileName == configFile:
                     # If the file is corrupted load the backup
-                    path = os.environ.get('bdev_config_ini_backup')
-                    if os.path.exists(path):
-                        import shutil
-
-                        shutil.copy2(path, fileName)
-                        self.Load(fileName)
-                        return
+                    if RestoreConfig(
+                        fileName, '"{fileName}" is corrupted. Restoring from backup.'
+                    ):
+                        try:
+                            self.read(fileName)
+                        except (
+                            ConfigParser.MissingSectionHeaderError,
+                            ConfigParser.ParsingError,
+                            UnicodeError,
+                        ):
+                            # The backup is corrupted there is nothing else we can do automatically.
+                            print 'The backup config file for "{fileName}" is corrupted. Unable to load blurdev config.'.format(
+                                fileName=fileName
+                            )
+                            return False
             self._sectionClasses = []
             for tSectionName in self.sections():
                 tSection = SectionClass(sectionName=tSectionName)
@@ -602,6 +614,9 @@ def LoadConfigData():
     global environments, activeEnvironment, blurConfigFile
     environments = {}
 
+    if not os.path.exists(configFile):
+        # If the config file is missing load if from a backup
+        RestoreConfig(configFile, '"{fileName}" is missing. Restoring from backup.')
     if os.path.exists(configFile):
         import blurdev.tools
 
@@ -633,6 +648,22 @@ def LoadConfigData():
                 if os.path.exists(codeLibPath):
                     tSection.SetProperty('startupPath', codeLibPath)
                 environments[TEMPORARY_TOOLS_ENV] = tSection
+        return True
+    return False
+
+
+def RestoreConfig(fileName, msg=None):
+    """ Copies a fresh config.ini from the backup location.
+    
+    If msg is provided it will be printed before it copies the file
+    """
+    path = os.environ.get('BDEV_CONFIG_INI_BACKUP')
+    if os.path.exists(path):
+        if msg:
+            print msg.format(fileName=fileName)
+        import shutil
+
+        shutil.copy2(path, fileName)
         return True
     return False
 
