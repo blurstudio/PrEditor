@@ -12,7 +12,7 @@ import socket
 import getpass
 from abc import ABCMeta
 
-from PyQt4.QtCore import QObject, QPoint, QDateTime, Qt, pyqtProperty
+from PyQt4.QtCore import QObject, QPoint, QDateTime, Qt, pyqtProperty, QStringList
 from PyQt4.QtGui import (
     QTextEdit,
     QApplication,
@@ -629,7 +629,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
                     # print the resulting commands
                     if cmdresult is not None:
-                        self.write(unicode(cmdresult))
+                        if isinstance(cmdresult, QStringList):
+                            output = u'PyQt4.QtCore.QStringList('
+                            output += unicode([unicode(i) for i in cmdresult])
+                            output += u')'
+                            self.write(unicode(output))
+                        else:
+                            self.write(unicode(cmdresult))
 
                     self.startInputLine()
 
