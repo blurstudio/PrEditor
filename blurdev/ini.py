@@ -658,7 +658,7 @@ def RestoreConfig(fileName, msg=None):
     If msg is provided it will be printed before it copies the file
     """
     path = os.environ.get('BDEV_CONFIG_INI_BACKUP')
-    if os.path.exists(path):
+    if path and os.path.exists(path):
         if msg:
             print msg.format(fileName=fileName)
         import shutil
