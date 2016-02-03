@@ -260,24 +260,18 @@ class Core(QObject):
         enableTraxOnDccStartup = os.environ.get(
             'BDEV_TRAX_ON_DCC_STARTUP', 'true'
         ).lower()
-        print 'enableTraxOnDccStartup', enableTraxOnDccStartup
         if not self.quietMode() and enableTraxOnDccStartup == 'true':
-            print 'not quiet mode'
             try:
                 # A full trax install is required to work with the blur specific blur3d api
                 import trax
 
                 if trax.isValid:
-                    print 'trax is valid'
                     # Initializing the pipe layer of blur3d.
                     # On import trax.api will be imported and pipeline specific signals will be connected.
                     # See the blur3d/pipe/cinematic/api/__init__.py for more information.
                     import blur3d.pipe.cinematic.api
-
-                    print 'blur3d inited'
             # This is to prevent errors if modules do not exist.
             except ImportError:
-                print 'Its broken'
                 pass
 
     def errorCoreText(self):
