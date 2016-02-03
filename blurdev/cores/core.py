@@ -246,6 +246,40 @@ class Core(QObject):
         # enable the client keystrokes
         self._keysEnabled = True
 
+    def runOnDccStartup(self):
+        """ When starting a DCC like 3ds Max, execute this code on startup.
+        
+        This provides a location for defining additional startup behavior when a DCC is initalized.
+        Currently it is used to check if trax should be imported on startup and if the 
+        blur3d.pipe.cinematic.api scene callbacks should be initalized.
+        
+        This module is safe to call without trax or blur3d being installed.
+        """
+        # Don't run blur3d.pipe callbacks in this dcc when in quiet mode(rendering) or if its
+        # disabled by the environment variable BDEV_TRAX_ON_DCC_STARTUP.
+        enableTraxOnDccStartup = os.environ.get(
+            'BDEV_TRAX_ON_DCC_STARTUP', 'true'
+        ).lower()
+        print 'enableTraxOnDccStartup', enableTraxOnDccStartup
+        if not self.quietMode() and enableTraxOnDccStartup == 'true':
+            print 'not quiet mode'
+            try:
+                # A full trax install is required to work with the blur specific blur3d api
+                import trax
+
+                if trax.isValid:
+                    print 'trax is valid'
+                    # Initializing the pipe layer of blur3d.
+                    # On import trax.api will be imported and pipeline specific signals will be connected.
+                    # See the blur3d/pipe/cinematic/api/__init__.py for more information.
+                    import blur3d.pipe.cinematic.api
+
+                    print 'blur3d inited'
+            # This is to prevent errors if modules do not exist.
+            except ImportError:
+                print 'Its broken'
+                pass
+
     def errorCoreText(self):
         """ Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
             If a empty string is returned this line will not be shown in the error email.
