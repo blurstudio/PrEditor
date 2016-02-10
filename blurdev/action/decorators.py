@@ -189,6 +189,8 @@ class argproperty(object):
         self._default = default
         self._validValues = valid
         self._settable = settable
+        self._order = self.__class__.__order
+        self.__class__.__order += 1
 
     def __call__(self, function):
         def newFunction(*args):
@@ -197,7 +199,7 @@ class argproperty(object):
         if self._name:
             name = self._name
         else:
-            name = str(function.func_name)
+            name = str(function.__name__)
         newFunction.__actionArgument = _Argument(
             name,
             self._atype,
@@ -206,8 +208,7 @@ class argproperty(object):
             self._validValues,
             self._settable,
         )
-        newFunction.__order = self.__class__.__order
-        self.__class__.__order += 1
+        newFunction.__order = self._order
         return newFunction
 
 

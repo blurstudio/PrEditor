@@ -4,16 +4,48 @@ import sys
 
 from .constants import *
 from .exceptions import *
+from .decorators import argproperty
 
 # =============================================================================
 # CLASSES
 # =============================================================================
 
 
+class _ArgPropertyName(object):
+    def __init__(self, name):
+        self.__name__ = name
+
+
+class _ActionMeta(type):
+    def __new__(meta, name, bases, dct):
+        """
+        This metaclass makes the class-variable implementation of the 
+        argproperty() decorator work.
+
+        If using the class-variable implementation, the properties are 
+        instances of the argproperty class at this point. If using the 
+        decorator style , the properties are replaced by functions by this 
+        point. That means we can just check for any leftover instances of
+        argproperty in the class dict and process them.
+
+        The argproperty decorator only uses the method __name__ in creation 
+        of the property, so we use the _ArgPropertyName class to provide that 
+        interface
+        """
+        d = {}
+        for k, v in dct.iteritems():
+            if isinstance(v, argproperty):
+                d[k] = v(_ArgPropertyName(k))
+        dct.update(d)
+        return super(_ActionMeta, meta).__new__(meta, name, bases, dct)
+
+
 class Action(object):
     """An abstract base class that is the core of the action framework.  All
     concrete actions are derived from this class.
     """
+
+    __metaclass__ = _ActionMeta
 
     def __new__(cls, *args, **kwargs):
         if cls is Action:
