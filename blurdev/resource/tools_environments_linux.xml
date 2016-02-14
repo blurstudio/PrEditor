@@ -1,5 +1,5 @@
 <?xml version='1.0'?>
 <tools_environments version="1.0" name="Builtin">
     <!-- load studio standard environments -->
-    <environment default="True" emailOnError="errors@blur.com" loc="/mnt/production" name="Production" keychain="/mnt/production/keychain"/>
+    <environment default="True" emailOnError="errors@blur.com" loc="/mnt/source" name="Production" keychain="/mnt/source/keychain"/>
 </tools_environments>
