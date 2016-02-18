@@ -279,6 +279,25 @@ def explore(filename, dirFallback=False):
     return False
 
 
+def forOS(windows=None, linux=None, mac=None):
+    """ Use this function to return a specific value for the OS blurdev is currently running on.
+    
+    Args:
+        windows: Value returned if running on Windows. Defaults to None.
+        linux: Value returned if running on Linux. Defaults to None.
+        mac: Value returned if running on MacOS. Defaults to None.
+    
+    Returns:
+        The value provided for the current OS or None.
+    """
+    if settings.OS_TYPE == 'Windows':
+        return windows
+    if settings.OS_TYPE == 'Linux':
+        return linux
+    if settings.OS_TYPE == 'MacOS':
+        return mac
+
+
 def programFilesPath(path=''):
     """ Returns the path to 32bit program files on windows.
     
