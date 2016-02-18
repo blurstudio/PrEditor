@@ -10,6 +10,7 @@ import sip
 import traceback
 import socket
 import getpass
+import platform
 from abc import ABCMeta
 
 from PyQt4.QtCore import QObject, QPoint, QDateTime, Qt, pyqtProperty, QStringList
@@ -69,6 +70,7 @@ messageBodyHtml = """<ul>
 <li><b>host: </b>%(hostname)s</li>
 <li><b>date: </b>%(date)s</li>
 <li><b>python: </b>%(pythonversion)s</li>
+<li><b>platform: </b>%(platform)s</li>
 <li><b>executable: </b>%(executable)s</li>
 <li><b>blurdev core:</b> %(blurdevcore)s</li>
 <li><b>blurdev env:</b> %(blurdevenv)s</li>
@@ -86,6 +88,7 @@ messageBodyTextile = """* *user:* %(username)s
 * *host:* %(hostname)s
 * *date:* %(date)s
 * *python:* %(pythonversion)s
+* *platform:* %(platform)s
 * *executable:* %(executable)s
 * *blurdev core:* %(blurdevcore)s
 * *blurdev env:* %(blurdevenv)s %(windowinfo)s %(coremsg)s %(bdevenvinfo)s
@@ -101,6 +104,7 @@ messageBodyPlain = """user: %(username)s
 host: %(hostname)s
 date: %(date)s
 python: %(pythonversion)s
+platform: %(platform)s
 executable: %(executable)s
 blurdev core: %(blurdevcore)s
 blurdev env: %(blurdevenv)s
@@ -437,6 +441,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         minfo['hostname'] = host
         minfo['date'] = QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
         minfo['pythonversion'] = sys.version.replace('\n', '')
+        minfo['platform'] = platform.platform()
         minfo['executable'] = sys.executable
         minfo['blurdevcore'] = blurdev.core.objectName()
         minfo['blurdevenv'] = '%s: %s' % (envName, blurdev.activeEnvironment().path())
