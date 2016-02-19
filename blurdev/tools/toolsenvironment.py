@@ -261,7 +261,10 @@ class ToolsEnvironment(QObject):
             \return		<str>
         """
         if not self.isEmpty():
-            return os.path.abspath(os.path.join(str(self.path()), str(path)))
+            # posixpath.normpath does not convert windows slashes to prevent problems with escaping.
+            # Our tool paths do not have spaces and should not need escaping
+            path = str(path).replace('\\', '/')
+            return os.path.abspath(os.path.join(str(self.path()), path))
         return ''
 
     def resetPaths(self):
