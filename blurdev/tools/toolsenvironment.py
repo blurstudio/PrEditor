@@ -574,6 +574,9 @@ class ToolsEnvironment(QObject):
             \return		<bool> success
         """
         doc = blurdev.XML.XMLDocument()
+        # Expand any environment variables and user directory shortcuts.
+        # For example you can use '~\$TEST_ENV_VAR' which could expand to 'C:\Users\username\test'
+        filename = os.path.expandvars(os.path.expanduser(filename))
         if doc.load(filename):
             root = doc.root()
 
