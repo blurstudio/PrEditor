@@ -252,7 +252,7 @@ def imageSequenceFromFileName(fileName):
         for file in files:
             if regex.match(file):
                 output.append(file)
-    else:
+    if not output:
         output = [os.path.normpath(fileName)]
     return output
 
@@ -273,8 +273,11 @@ def imageSequenceInfo(path, osystem=None):
         osystem = blurdev.settings.OS_TYPE
     if osystem == 'Windows':
         flags = re.I
+    # Look for ScXXX or SXXXX.XX to include in the prefix. This prevents problems with incorrectly
+    # identifying a shot number as a image sequence. Thanks willc.
     regex = re.compile(
-        r'(?P<pre>^.+?)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)', flags=flags
+        r'(?P<pre>^.+?(?:Sc\d{3}_S\d{4}\.\d{2})?\D*)(?P<frame>\d+)?(?P<post>\D*\.[A-Za-z0-9]+?$)',
+        flags=flags,
     )
     path = os.path.normpath(path)
     return regex.match(path)
@@ -301,7 +304,7 @@ def imageSequenceRepr(
             info = {}
             for f in files:
                 frame = imageSequenceInfo(f)
-                if frame:
+                if frame and frame.group('frame'):
                     frame = frame.group('frame')
                     info.update({int(frame): frame})
             if info:
