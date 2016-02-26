@@ -65,18 +65,10 @@ additionalInfoTextile = """h3. Information
 %(info)s
 </code></pre>"""
 
+infoListItemHtml = "<li><b>%(key)s:</b> %(value)s</li>"
+
 messageBodyHtml = """<ul>
-<li><b>user: </b>%(username)s</li>
-<li><b>host: </b>%(hostname)s</li>
-<li><b>date: </b>%(date)s</li>
-<li><b>python: </b>%(pythonversion)s</li>
-<li><b>platform: </b>%(platform)s</li>
-<li><b>executable: </b>%(executable)s</li>
-<li><b>blurdev core:</b> %(blurdevcore)s</li>
-<li><b>blurdev env:</b> %(blurdevenv)s</li>
-%(windowinfo)s
-%(coremsg)s
-%(bdevenvinfo)s
+%(infoList)s
 </ul>
 <br>
 <h3>Traceback Printout</h3>
@@ -84,14 +76,9 @@ messageBodyHtml = """<ul>
 %(error)s
 %(additionalinfo)s"""
 
-messageBodyTextile = """* *user:* %(username)s
-* *host:* %(hostname)s
-* *date:* %(date)s
-* *python:* %(pythonversion)s
-* *platform:* %(platform)s
-* *executable:* %(executable)s
-* *blurdev core:* %(blurdevcore)s
-* *blurdev env:* %(blurdevenv)s %(windowinfo)s %(coremsg)s %(bdevenvinfo)s
+infoListItemTextile = "* *%(key)s:* %(value)s"
+
+messageBodyTextile = """%(infoList)s
 
 h3. Traceback Printout
 
@@ -100,17 +87,10 @@ h3. Traceback Printout
 
 %(additionalinfo)s"""
 
-messageBodyPlain = """user: %(username)s
-host: %(hostname)s
-date: %(date)s
-python: %(pythonversion)s
-platform: %(platform)s
-executable: %(executable)s
-blurdev core: %(blurdevcore)s
-blurdev env: %(blurdevenv)s
-%(windowinfo)s
-%(coremsg)s
-%(bdevenvinfo)s
+infoListItemPlain = "%(key)s: %(value)s"
+
+messageBodyPlain = """%(infoList)s
+
 Traceback Printout
 
 %(error)s
@@ -437,14 +417,33 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # Build the message
         envName = blurdev.activeEnvironment().objectName()
         minfo = {}
-        minfo['username'] = username
-        minfo['hostname'] = host
-        minfo['date'] = QDateTime.currentDateTime().toString('MMM dd, yyyy @ h:mm ap')
-        minfo['pythonversion'] = sys.version.replace('\n', '')
-        minfo['platform'] = platform.platform()
-        minfo['executable'] = sys.executable
-        minfo['blurdevcore'] = blurdev.core.objectName()
-        minfo['blurdevenv'] = '%s: %s' % (envName, blurdev.activeEnvironment().path())
+        from collections import OrderedDict
+
+        infoList = OrderedDict()
+        infoList['username'] = username
+        infoList['hostname'] = host
+        infoList['date'] = QDateTime.currentDateTime().toString(
+            'MMM dd, yyyy @ h:mm ap'
+        )
+        infoList['pythonversion'] = sys.version.replace('\n', '')
+        infoList['platform'] = platform.platform()
+        infoList['executable'] = sys.executable
+        # Include Assburner job info if available
+        jobKey = os.environ.get('AB_JOBID')
+        if jobKey:
+            infoList['assburner job id'] = jobKey
+        burnDir = os.environ.get('AB_BURNDIR')
+        if burnDir:
+            infoList['assburner burn dir'] = burnDir
+        burnFile = os.environ.get('AB_BURNFILE')
+        if burnFile:
+            infoList['assburner burn file'] = burnFile
+
+        infoList['blurdevcore'] = blurdev.core.objectName()
+        infoList['blurdevenv'] = '%s: %s' % (
+            envName,
+            blurdev.activeEnvironment().path(),
+        )
 
         # notify where the error came from
         window = QApplication.activeWindow()
@@ -456,15 +455,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         elif window.__class__.__name__ == 'ErrorDialog':
             window = window.parent()
 
-        minfo['windowinfo'] = ''
         if window:
-            if format == 'html':
-                windowinfo = '<li><b>window: </b>%s (from %s Class)</li>'
-            elif format == 'textile':
-                windowinfo = '\n* *window:* %s (from %s Class)'
-            else:
-                windowinfo = '\n%s (from %s Class)'
-            minfo['windowinfo'] = windowinfo % (
+            infoList['window'] = '%s (from %s Class)' % (
                 window.objectName(),
                 window.__class__.__name__,
             )
@@ -490,32 +482,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         coreMsg = blurdev.core.errorCoreText()
 
-        minfo['coremsg'] = ''
         if coreMsg:
-            if format == 'html':
-                coremsg = '<li><b>blurdev.core Message:</b> %s</li>'
-            elif format == 'textile':
-                coremsg = '\n* *blurdev.core Message:* %s'
-            else:
-                coremsg = '\nblurdev.core Message: %s'
-            minfo['coremsg'] = coremsg % coreMsg
+            infoList['blurdev.core Message'] = coreMsg
 
         # Load in any aditional error info from the environment variables
-        minfo['bdevenvinfo'] = ''
         prefix = 'BDEV_EMAILINFO_'
         for key in sorted(os.environ):
             if key.startswith(prefix):
-                if format == 'html':
-                    bdevenvinfo = '<li><b>%s:</b> %s</li>'
-                elif format == 'textile':
-                    bdevenvinfo = '\n* *%s:* %s'
-                else:
-                    bdevenvinfo = '\n%s: %s'
-
-                minfo['bdevenvinfo'] += bdevenvinfo % (
-                    key[len(prefix) :].replace('_', ' ').lower(),
-                    os.environ[key],
-                )
+                infoList[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
 
         if format == 'html':
             errorstr = ConsoleEdit.highlightCodeHtml(unicode(error), 'pytb', 'default')
@@ -568,11 +542,22 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                                 addinfo = unicode(errorlog)
                             minfo['additionalinfo'] += addinfo
 
+        def joinInfoList(formatter):
+            return '\n'.join(
+                [
+                    formatter % {'key': key, 'value': value}
+                    for key, value in infoList.iteritems()
+                ]
+            )
+
         if format == 'html':
+            minfo['infoList'] = joinInfoList(infoListItemHtml)
             message = messageBodyHtml % minfo
         elif format == 'textile':
+            minfo['infoList'] = joinInfoList(infoListItemTextile)
             message = messageBodyTextile % minfo
         else:
+            minfo['infoList'] = joinInfoList(infoListItemPlain)
             message = messageBodyPlain % minfo
         return subject, message
 
