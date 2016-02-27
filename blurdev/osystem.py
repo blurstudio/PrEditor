@@ -266,11 +266,10 @@ def explore(filename, dirFallback=False):
         subprocess.Popen(r'explorer.exe "{}"'.format(fpath))
         return True
 
-    if not os.path.isdir(fpath):
-        fpath = os.path.split(fpath)[0]
-
     # run the file in linux
     elif settings.OS_TYPE == 'Linux':
+        if not os.path.isdir(fpath):
+            fpath = os.path.split(fpath)[0]
         cmd = expandvars(os.environ.get('BDEV_CMD_BROWSE', ''))
         if not cmd:
             return False
