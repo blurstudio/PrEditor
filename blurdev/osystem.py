@@ -268,8 +268,6 @@ def explore(filename, dirFallback=False):
 
     # run the file in linux
     elif settings.OS_TYPE == 'Linux':
-        if not os.path.isdir(fpath):
-            fpath = os.path.split(fpath)[0]
         cmd = expandvars(os.environ.get('BDEV_CMD_BROWSE', ''))
         if not cmd:
             return False
