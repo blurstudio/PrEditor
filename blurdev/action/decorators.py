@@ -16,7 +16,16 @@ class _ArgNoDefault(object):
 
 
 class _Argument(object):
-    def __init__(self, name, atype, default, propertyName, validValues, settable=True):
+    def __init__(
+        self,
+        name,
+        atype,
+        default,
+        propertyName,
+        validValues,
+        settable=True,
+        allowNone=False,
+    ):
         self._name = name
         self._default = default
         self._found = False
@@ -25,6 +34,7 @@ class _Argument(object):
         self._propertyName = propertyName
         self._validValues = validValues
         self._settable = settable
+        self._allowNone = allowNone
 
     @property
     def name(self):
@@ -80,6 +90,8 @@ class _Argument(object):
                     raise ValueError(msg)
             else:
                 self._value = value
+        elif self._allowNone and value is None:
+            self._value = value
         else:
             msg = 'Given value for argument {name} is not the correct type.'.format(
                 name=self.name,
@@ -164,17 +176,24 @@ class argproperty(object):
     __order = 0
 
     def __init__(
-        self, atype, name=None, default=_ArgNoDefault(), valid=None, settable=True
+        self,
+        atype,
+        name=None,
+        allowNone=False,
+        default=_ArgNoDefault(),
+        valid=None,
+        settable=True,
     ):
         """Initializes the argproperty decorator.
 
         Args:
-            atype(type/tuple): A type or tuple of typed accepted by the argument.
+            atype(type/tuple): A type or tuple of types accepted by the argument.
             name(str): The keyword argument name, if different from the name of the
                 decorated method's name.
             default(*): The default value for the argument.  This also indicates that
                 the argument being defined is optional.  Not specifying a default for
                 the argument will imply that it is a required argument.
+            allowNone(bool): Whether to allow None as the value for this argument. Default to False
             valid(list): A list of values accepted by the argument.
             settable(bool): Whether the argument is settable.  Default is False.
 
@@ -190,6 +209,7 @@ class argproperty(object):
         self._validValues = valid
         self._settable = settable
         self._order = self.__class__.__order
+        self._allowNone = allowNone
         self.__class__.__order += 1
 
     def __call__(self, function):
@@ -207,6 +227,7 @@ class argproperty(object):
             function.__name__,
             self._validValues,
             self._settable,
+            self._allowNone,
         )
         newFunction.__order = self._order
         return newFunction
