@@ -161,12 +161,13 @@ class AdditionalErrorInfo(object):
 
 
 class FileLogger:
-    def __init__(self, stdhandle, logfile, _print=True):
+    def __init__(self, stdhandle, logfile, _print=True, clearLog=True):
         self._stdhandle = stdhandle
         self._logfile = logfile
         self._print = _print
-        # clear the log file
-        open(logfile, 'w').close()
+        if clearLog:
+            # clear the log file
+            open(logfile, 'w').close()
 
     def flush(self):
         self._stdhandle.flush()
@@ -179,7 +180,7 @@ class FileLogger:
             self._stdhandle.write(msg)
 
 
-def logToFile(path, stdout=True, stderr=True, useOldStd=False):
+def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
     """ Redirect all stdout and/or stderr output to a log file.
     
     Creates a FileLogger class for stdout and stderr and installs itself in python.
@@ -192,11 +193,12 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=False):
         stderr (bool): If True(default) override sys.stderr.
         useOldStd (bool): If True, messages will be written to the FileLogger
             and the previous sys.stdout/sys.stderr.
+        clearLog (bool): If True(default) clear the log file when this command is called.
     """
     if stderr:
-        sys.stderr = FileLogger(sys.stderr, path, useOldStd)
+        sys.stderr = FileLogger(sys.stderr, path, useOldStd, clearLog=clearLog)
     if stdout:
-        sys.stdout = FileLogger(sys.stdout, path, useOldStd)
+        sys.stdout = FileLogger(sys.stdout, path, useOldStd, clearLog=clearLog)
         print '--------- Date: %s Version: %s ---------' % (
             datetime.datetime.today(),
             sys.version,
