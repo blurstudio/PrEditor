@@ -94,12 +94,11 @@ class GridDelegate(QStyledItemDelegate):
                 self._editor = funct(parent, option, index, self.parent())
             else:
                 self._editor = funct(parent, option, index)
-            if not self._editor:
-                return None
         else:
             self._editor = QLineEdit(parent)
-        self._editor.setFocus()
-        self._editor.setFocusPolicy(Qt.StrongFocus)
+        if self._editor != None:
+            self._editor.setFocus()
+            self._editor.setFocusPolicy(Qt.StrongFocus)
         return self._editor
 
     def delegate(self):
