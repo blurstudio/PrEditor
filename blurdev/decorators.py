@@ -7,6 +7,7 @@ Defines some deocrators that are commonly useful
 import traceback
 from blurdev import debug
 from PyQt4.QtCore import QObject, QTimer
+import sip
 
 
 def abstractmethod(function):
@@ -287,6 +288,15 @@ class singleShot(QObject):
         kwargs = self._kwargs
         self._args = []
         self._kwargs = {}
+        if args:
+            if sip.isdeleted(args[0]):
+                debug.debugMsg(
+                    '@singleShot: Sip Object is deleted, not calling {}'.format(
+                        self._function.__name__
+                    ),
+                    debug.DebugLevel.High,
+                )
+                return
         self._function(*args, **kwargs)
 
 
