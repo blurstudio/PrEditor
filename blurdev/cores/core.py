@@ -593,8 +593,6 @@ class Core(QObject):
         Registers the paths that are needed based on this core
         """
         env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
-        env.registerPath(env.relativePath('maxscript/treegrunt/lib'))
-        env.registerPath(env.relativePath('code/python/lib'))
 
         # Canonical way to check 64-bitness of python interpreter
         # http://docs.python.org/2/library/platform.html#platform.architecture

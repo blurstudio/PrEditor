@@ -270,10 +270,7 @@ class ToolsEnvironment(QObject):
     def resetPaths(self):
         blurdev.core.aboutToClearPaths.emit()
         self.clearPathSymbols()
-        self.registerPath(self.path())
-        self.registerPath(
-            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'tools')
-        )
+        self.registerPaths()
         blurdev.core.emitEnvironmentActivated()
 
     def setActive(self, silent=False, force=False):
@@ -300,13 +297,7 @@ class ToolsEnvironment(QObject):
 
             # register this environment as active and update the path symbols
             self._active = True
-            self.registerPath(self.path())
-            # make tools importable
-            self.registerPath(
-                os.path.join(
-                    blurdev.activeEnvironment().path(), 'code', 'python', 'tools'
-                )
-            )
+            self.registerPaths()
 
             # set the legacy environment active
             blurdev.ini.SetActiveEnvironment(unicode(self.objectName()))
@@ -670,6 +661,23 @@ class ToolsEnvironment(QObject):
             \return		<bool> success
         """
         blurdev.settings.registerPath(path)
+
+    def registerPaths(self):
+        self.registerPath(self.path())
+        # make tools importable
+        self.registerPath(
+            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'tools')
+        )
+        self.registerPath(
+            os.path.join(
+                blurdev.activeEnvironment().path(), 'maxscript', 'treegrunt', 'lib'
+            )
+        )
+        # make environment libs importable
+        self.registerPath(
+            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
+        )
+        # If this environment has a project make sure we load the project settings
 
     @staticmethod
     def registerScriptPath(filename):
