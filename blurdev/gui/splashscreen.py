@@ -8,6 +8,19 @@ from PyQt4.QtCore import Qt
 SPLASH_DIR = os.environ.get('BDEV_SPLASHSCREEN_SOURCE_DIR')
 
 
+def getSplashScreenDirectory(toolname='default'):
+    """ Get the splashscreen directory for the requested toolname.
+    
+    Args:
+        toolname (str): The name of a sub-directory of the directory defined in 
+            BDEV_SPLASHSCREEN_SOURCE_DIR. Defaults to 'default'.
+    
+    Returns:
+        str: The generated file path.
+    """
+    return os.path.join(SPLASH_DIR, toolname)
+
+
 def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
     """ Randomly picks a image for the provided toolname and returns a QSplashScreen or None.
     
@@ -26,10 +39,10 @@ def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
         QSplashScreen: If a image was picked a QSplashScreen will be returned. Otherwise
             None will be returned.
     """
-    splash_dir = os.path.join(SPLASH_DIR, toolname)
+    splash_dir = getSplashScreenDirectory(toolname)
     # Fallback to the default splashscreens if the requested toolname folder does not exist
     if allowDefault and not os.path.exists(splash_dir):
-        splash_dir = os.path.join(SPLASH_DIR, 'default')
+        splash_dir = getSplashScreenDirectory('default')
 
     if os.path.isdir(splash_dir):
         splash_filepaths = glob.glob(os.path.join(splash_dir, '*.*'))
