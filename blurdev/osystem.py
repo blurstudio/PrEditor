@@ -414,7 +414,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
     actEnv = blurdev.activeEnvironment()
     envPath = actEnv.path()
     if envPath:
-        env['BLURDEV_PATH'] = str(envPath)
+        env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
         email = actEnv.emailOnError()
         if email:
             env['BLURDEV_ERROR_EMAIL'] = str(email[0])
