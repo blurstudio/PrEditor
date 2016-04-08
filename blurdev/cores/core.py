@@ -625,10 +625,11 @@ class Core(QObject):
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
         # record the tools environment
-        pref.recordProperty(
-            'environment',
-            blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment().objectName(),
+        envName = (
+            blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment().objectName()
         )
+        if envName != os.environ.get('BDEV_TOOL_ENVIRONMENT'):
+            pref.recordProperty('environment', envName)
 
         # record the debug
         pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
@@ -750,36 +751,41 @@ class Core(QObject):
 
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
-        # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
-        environPath = os.environ.get('BLURDEV_PATH')
-        if environPath:
-            env = ToolsEnvironment.findEnvironment(
-                TEMPORARY_TOOLS_ENV, path=environPath
-            )
-            if env.isEmpty():
-                devel = (
-                    os.environ.get('BDEV_ENVIRONMENT_DEVEL', 'False').lower() == 'true'
-                )
-                offline = (
-                    os.environ.get('BDEV_ENVIRONMENT_OFFLINE', 'False').lower()
-                    == 'true'
-                )
-                environFile = os.environ.get('BDEV_ENVIRONMENT_ENVIRON_FILE', '')
-                env = ToolsEnvironment.createNewEnvironment(
-                    TEMPORARY_TOOLS_ENV,
-                    environPath,
-                    development=devel,
-                    offline=offline,
-                    environmentFile=environFile,
-                )
-                env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
-                env.setTemporary(True)
+        env = ToolsEnvironment.findEnvironment(os.environ.get('BDEV_TOOL_ENVIRONMENT'))
+        if not env.isEmpty():
             env.setActive()
         else:
-            # restore the active environment
-            env = pref.restoreProperty('environment')
-            if env:
-                ToolsEnvironment.findEnvironment(env).setActive()
+            # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
+            environPath = os.environ.get('BLURDEV_PATH')
+            if environPath:
+                env = ToolsEnvironment.findEnvironment(
+                    TEMPORARY_TOOLS_ENV, path=environPath
+                )
+                if env.isEmpty():
+                    devel = (
+                        os.environ.get('BDEV_ENVIRONMENT_DEVEL', 'False').lower()
+                        == 'true'
+                    )
+                    offline = (
+                        os.environ.get('BDEV_ENVIRONMENT_OFFLINE', 'False').lower()
+                        == 'true'
+                    )
+                    environFile = os.environ.get('BDEV_ENVIRONMENT_ENVIRON_FILE', '')
+                    env = ToolsEnvironment.createNewEnvironment(
+                        TEMPORARY_TOOLS_ENV,
+                        environPath,
+                        development=devel,
+                        offline=offline,
+                        environmentFile=environFile,
+                    )
+                    env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
+                    env.setTemporary(True)
+                env.setActive()
+            else:
+                # restore the active environment
+                env = pref.restoreProperty('environment')
+                if env:
+                    ToolsEnvironment.findEnvironment(env).setActive()
 
         # restore the active debug level
         level = pref.restoreProperty('debugLevel')

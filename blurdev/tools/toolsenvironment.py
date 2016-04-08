@@ -18,6 +18,7 @@ from PyQt4.QtCore import QObject, pyqtSignal, QDateTime
 
 import blurdev
 import blurdev.tools.toolsindex
+import blur.Projects
 
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
@@ -49,6 +50,7 @@ class ToolsEnvironment(QObject):
         self._timeout = ''
         self._autoupdate = False
         self._keychain = ''
+        self._project = ''
         # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the environment
         # tool stopwatch this will start a stopwatch every time blurdev.core.runScript is
         # called and stop it once that script has finished(this should include showEvent).
@@ -60,12 +62,21 @@ class ToolsEnvironment(QObject):
     def __str__(self):
         return '<ToolsEnvironment ({})>'.format(self.objectName())
 
+    def _get_project(self):
+        """ Used by blur.Projects.customize to identify the environment project if set
+        """
+        return self.project()
+
     def clearPathSymbols(self):
         """
         Removes the path symbols from the environment
         """
         if self.isEmpty():
             return False
+
+        # If this environment has a project make sure we unload the project settings
+        # if neccissary before we clear the path symbols.
+        self.deactivateProject()
 
         path = self.normalizePath(self.path())
 
@@ -131,6 +142,14 @@ class ToolsEnvironment(QObject):
 
         return True
 
+    @blur.Projects.customize
+    def activateProject(self):
+        pass
+
+    @blur.Projects.customize
+    def deactivateProject(self):
+        pass
+
     def emailOnError(self):
         return self._emailOnError
 
@@ -172,6 +191,9 @@ class ToolsEnvironment(QObject):
 
     def path(self):
         return self._path
+
+    def project(self):
+        return self._project
 
     def autoUpdate(self):
         return self._autoupdate
@@ -245,6 +267,7 @@ class ToolsEnvironment(QObject):
         envxml.setAttribute('autoupdate', self._autoupdate)
         envxml.setAttribute('timeout', self._timeout)
         envxml.setAttribute('keychain', self._keychain)
+        envxml.setAttribute('project', self._project)
 
         if self._legacyName != self.objectName():
             envxml.setAttribute('legacyName', self._legacyName)
@@ -339,6 +362,9 @@ class ToolsEnvironment(QObject):
 
     def setPath(self, path):
         self._path = path
+
+    def setProject(self, project):
+        self._project = project
 
     def setTimeout(self, timeout):
         self._timeout = timeout
@@ -507,7 +533,7 @@ class ToolsEnvironment(QObject):
         """
         # Find the environmet by name.
         for env in ToolsEnvironment.environments:
-            if str(env.objectName()) == str(name):
+            if unicode(env.objectName()) == unicode(name):
                 return env
         # If the environment was not found by name, find it by path if one was provided.
         if path:
@@ -544,6 +570,7 @@ class ToolsEnvironment(QObject):
         output.setTimeout(xml.attribute('timeout', ''))
         output.setAutoUpdate(xml.attribute('autoupdate') == 'True')
         output.setKeychain(xml.attribute('keychain', ''))
+        output.setProject(xml.attribute('project', ''))
         return output
 
     @staticmethod
@@ -678,6 +705,7 @@ class ToolsEnvironment(QObject):
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
         )
         # If this environment has a project make sure we load the project settings
+        self.activateProject()
 
     @staticmethod
     def registerScriptPath(filename):
