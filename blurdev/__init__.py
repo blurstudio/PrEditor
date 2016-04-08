@@ -200,7 +200,9 @@ def launch(
     try:
         iswiz = issubclass(ctor, QWizard)
     except Exception as e:
-        print e.message
+        # Treegrunt passes a instance and not class. Avoid printing the warning.
+        if e.message != 'issubclass() arg 1 must be a class':
+            print e.message
 
     if iswiz:
         modal = True
