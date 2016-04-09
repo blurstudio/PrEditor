@@ -499,10 +499,14 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
             if cmd:
                 success = subprocess.Popen(cmd % options, shell=True)
             else:
-                cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
-                if not cmd:
-                    return False
-                success = subprocess.Popen(cmd % options, shell=True)
+                # If the provided file is marked as executable just run it.
+                if os.access(filename, os.X_OK):
+                    success = subprocess.Popen(filename, shell=True)
+                else:
+                    cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
+                    if not cmd:
+                        return False
+                    success = subprocess.Popen(cmd % options, shell=True)
     return success
 
 
