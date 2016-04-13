@@ -82,13 +82,14 @@ class Action(object):
                 not defined for the current application context (ie: Maya, Max, etc)
             ArgumentRequiredButNotGivenError: A required argument for the action
                 was not provided
-            TypeError: A value was given that was not of the correct type.  This
+            TypeError: A value was given that was not of the correct type.	This
                 is raised if a child action is provided that is not of class `Action`
                 or if an argument value was given that is not of the correct type
                 as defined by the argument definition for the action.
         """
         self._currentApplication = None
         self.setApplicationContext()
+
         self._preChildHooks = []
         self._postChildHooks = []
         self._enterHook = None
@@ -96,6 +97,7 @@ class Action(object):
         self._executeHook = None
         self._preExecuteHooks = []
         self._postExecuteHooks = []
+
         self._childrenFirst = bool(kwargs.get('childrenFirst', False))
         self._childActions = []
         # This will be used to determine whether any execute has been
@@ -182,6 +184,27 @@ class Action(object):
         """
         self._preExecuteHooks.extend(list(hooks))
 
+    def _clearHooks(self):
+        """Clear all hooks from this action instance
+
+        Args:
+            N/A
+
+        Returns:
+            N/A
+
+        Raises:
+            N/A
+        """
+        self._preChildHooks = []
+        self._postChildHooks = []
+        self._enterHook = None
+        self._exitHook = None
+        self._executeHook = None
+        self._preExecuteHooks = []
+        self._postExecuteHooks = []
+        self._hasContextHooks = False
+
     def setApplicationContext(self, registerHooks=False):
         """Detects and sets the current application context.
 
@@ -215,6 +238,7 @@ class Action(object):
         if mLocals:
             globals().update(mLocals)
         if registerHooks:
+            self._clearHooks()
             self._registerHooks()
             self._registerApplicationMethods()
             self._sortHooks()
@@ -386,7 +410,7 @@ class Action(object):
         kwargs = self._kwargs
         arguments = []
         # Each one of the argument methods will have an attribute
-        # labeling it as such.  That attribute will contain the
+        # labeling it as such.	That attribute will contain the
         # argument object that defines name of the argument along
         # with a place to store its value and a bit to mark it as
         # having been found.  First we need to find those argument
@@ -409,7 +433,7 @@ class Action(object):
         for method in argumentMethods:
             arguments.append(getattr(method, '_argproperty__actionArgument'))
         # Now that we have our argument objects we can process each
-        # one.  The way we do this is to first look for positional
+        # one.	The way we do this is to first look for positional
         # arguments and if they were given we index into that list
         # and pull them out in order until we're beyond the length
         # of the argument list.  If we don't find our argument value
@@ -419,7 +443,7 @@ class Action(object):
         # What we have to do is look to see if the argument we're
         # processing has a rename request and if so look for the
         # target name of the rename for the argument in kwargs and use
-        # that value if found.  If we did find the renamed argument
+        # that value if found.	If we did find the renamed argument
         # we record that value as normal, mark the argument as found,
         # and then update the kwargs dictionary to point the original
         # argument name to the value of the rename.  This will allow
