@@ -143,6 +143,14 @@ class ToolsEnvironment(QObject):
     def deactivateProject(self):
         pass
 
+    @blur.Projects.customize
+    def constructProjectForApplication(self, app):
+        return None
+    
+    @blur.Projects.customize
+    def destructProjectForApplication(self, app):
+        return None
+
     def emailOnError(self):
         return self._emailOnError
 
