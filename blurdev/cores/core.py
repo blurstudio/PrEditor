@@ -1191,6 +1191,30 @@ class Core(QObject):
             # make sure we have the proper settings restored based on the new application
             self.restoreSettings()
 
+    def readStyleSheet(self, stylesheet='', path=None):
+        """ Returns the contents of the requested stylesheet.
+        
+        Args:
+            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css shipped 
+                with blurdev. Ignored if path is provided.
+            path (str): Return the contents of this file path.
+        
+        Returns:
+            str: The contents of stylesheet or blank if stylesheet was not found.
+            valid: A stylesheet was found and loaded.
+        """
+        if path == None:
+            path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'resource',
+                'stylesheet',
+                '{}.css'.format(stylesheet),
+            )
+        if os.path.isfile(path):
+            with open(path) as f:
+                return f.read(), True
+        return '', False
+
     def reloadStyleSheet(self):
         self.setStyleSheet(self.styleSheet())
 
@@ -1212,6 +1236,10 @@ class Core(QObject):
                 self._stylesheet = stylesheet
             else:
                 # Try to find an installed stylesheet with the given name
+                sheet, valid = self.readStyleSheet(stylesheet)
+                if valid:
+                    self._stylesheet = stylesheet
+                app.setStyleSheet(sheet)
                 path = os.path.join(
                     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                     'resource',
