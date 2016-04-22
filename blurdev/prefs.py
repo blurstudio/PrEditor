@@ -52,7 +52,8 @@ class Preference(XMLDocument):
             )
         return self._filename
 
-    def path(self, coreName='', shared=False):
+    @classmethod
+    def path(cls, coreName='', shared=False):
         """ return the path to the application's prefrences folder """
         # use the core
         if not coreName and blurdev.core:
