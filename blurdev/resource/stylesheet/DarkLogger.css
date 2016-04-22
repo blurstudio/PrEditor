@@ -82,6 +82,27 @@ IdeEditor QSlider::add-page {
 	color: rgb(200,200,200); 
 }
 
+LoggerWindow QListView, LoggerWindow QTableView, LoggerWindow QTreeView,
+IdeEditor QListView, IdeEditor QTableView, IdeEditor QTreeView { 
+	alternate-background-color: rgb(95,95,95); 
+}
+
+LoggerWindow QListView:disabled, LoggerWindow QTableView:disabled, LoggerWindow QTreeView:disabled,
+IdeEditor QListView:disabled, IdeEditor QTableView:disabled, IdeEditor QTreeView:disabled { 
+	alternate-background-color: rgb(55,55,55); 
+}
+
+LoggerWindow QPushButton, IdeEditor QPushButton {
+	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+									  stop:0 rgb(65,65,65), stop:1 rgb(50,50,50));
+	border-style:  solid;
+	border-color: rgb(15,15,15);
+	border-width: 1px;
+	border-radius: 2px;
+	min-height: 20px;
+	min-width: 50px;
+}
+
 ConsoleEdit {
 	qproperty-pyErrorMessageColor: #eb3f06;
 	qproperty-pyForegroundColor: rgb(160, 222, 255);
