@@ -52,6 +52,15 @@ elif 'nuke' in _exe:
     except:
         pass
 
+# initialize the system for running inside RV
+elif 'rv' in _exe:
+    from rvcore import RVCore as Core
+
+    try:
+        from rvcore import RVCore as Core
+    except:
+        pass
+
 if Core is None:
     # import the default core
     from core import Core
