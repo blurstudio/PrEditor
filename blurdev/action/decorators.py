@@ -200,12 +200,14 @@ class argproperty(object):
                 decorated method's name.
             default(*): The default value for the argument.  This also indicates that
                 the argument being defined is optional.  Not specifying a default for
-                the argument will imply that it is a required argument.
+                the argument and having defaultInstance==False will imply that it is a required argument.
             allowNone(bool): Whether to allow None as the value for this argument. Default to False
             valid(list): A list of values accepted by the argument.
             settable(bool): Whether the argument is settable.  Default is False.
             defaultInstance(bool): If True, the default value is built directly from atype upon 
-                argument instantiation
+                argument instantiation. This option will override the default value and also
+                indicates that the argument being defined is optional. Not specifying a default for
+                the argument and having defaultInstance==False will imply that it is a required argument.
 
         Returns:
             N/A
