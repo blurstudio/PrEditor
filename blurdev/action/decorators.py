@@ -25,8 +25,10 @@ class _Argument(object):
         validValues,
         settable=True,
         allowNone=False,
+        defaultInstance=False,
     ):
         self._name = name
+        self._defaultInstance = defaultInstance
         self._default = default
         self._found = False
         self._value = None
@@ -42,7 +44,9 @@ class _Argument(object):
 
     @property
     def default(self):
-        if isinstance(self._default, _ArgNoDefault):
+        if self._defaultInstance:
+            return self._atype()
+        elif isinstance(self._default, _ArgNoDefault):
             msg = 'Required argument {name} not provided.'.format(name=self.name)
             raise ArgumentHasNoDefaultError(msg)
         else:
@@ -115,10 +119,13 @@ class _Argument(object):
 
 
 class _ChildActionContainer(object):
-    def __init__(self, childClass, name, argRename=dict()):
+    def __init__(self, childClass, name, argRename=None):
         self._childClass = childClass
         self._name = name
-        self._argRename = argRename
+        if argRename is None:
+            self._argRename = {}
+        else:
+            self._argRename = argRename
 
     @property
     def argRename(self):
@@ -183,6 +190,7 @@ class argproperty(object):
         default=_ArgNoDefault(),
         valid=None,
         settable=True,
+        defaultInstance=False,
     ):
         """Initializes the argproperty decorator.
 
@@ -196,6 +204,8 @@ class argproperty(object):
             allowNone(bool): Whether to allow None as the value for this argument. Default to False
             valid(list): A list of values accepted by the argument.
             settable(bool): Whether the argument is settable.  Default is False.
+            defaultInstance(bool): If True, the default value is built directly from atype upon 
+                argument instantiation
 
         Returns:
             N/A
@@ -206,6 +216,7 @@ class argproperty(object):
         self._name = name
         self._atype = atype
         self._default = default
+        self._defaultInstance = defaultInstance
         self._validValues = valid
         self._settable = settable
         self._order = self.__class__.__order
@@ -228,6 +239,7 @@ class argproperty(object):
             self._validValues,
             self._settable,
             self._allowNone,
+            self._defaultInstance,
         )
         newFunction.__order = self._order
         return newFunction
@@ -304,7 +316,7 @@ class childaction(object):
 
     __order = 0
 
-    def __init__(self, cls, argRename=dict()):
+    def __init__(self, cls, argRename=None):
         """Initializes the childaction decorator.
 
         Args:
@@ -320,7 +332,10 @@ class childaction(object):
             N/A
         """
         self._cls = cls
-        self._argRename = argRename
+        if argRename is None:
+            self._argRename = {}
+        else:
+            self._argRename = argRename
 
     def __call__(self, function):
         def newFunction(*args):
