@@ -438,7 +438,11 @@ class ToolsIndex(QObject):
         """ looks up tools by the inputed search string
         """
         self.load()
-        expr = re.compile(str(searchString).replace('*', '.*'), re.IGNORECASE)
+        try:
+            expr = re.compile(str(searchString).replace('*', '.*'), re.IGNORECASE)
+        except re.error:
+            # a invalid search string was provided, return a empty list
+            return []
         output = []
         for tool in self._toolCache.values():
             if expr.search(tool.displayName()):
