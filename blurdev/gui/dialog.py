@@ -177,3 +177,16 @@ class Dialog(QDialog):
             this.close()
         except RuntimeError:
             pass
+
+    @classmethod
+    def instanceShutdown(cls):
+        """ Call shutdown on this class instance only if the class was instantiated.
+        
+        Returns:
+            bool: if cls.instance().shutdown() needed to be called.
+        """
+        instance = cls._instance
+        if instance:
+            instance.shutdown()
+            return True
+        return False
