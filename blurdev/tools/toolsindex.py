@@ -79,12 +79,16 @@ class ToolsIndex(QObject):
         """
         return self.parent()
 
-    def rebuild(self, filename=None):
+    def rebuild(self, filename=None, configFilename=True):
         """ rebuilds the index from the file system.
+        
+        This does not create any necessary directory structure to save the files.
         
         Args:
             filename (str): If filename is not provided it will store the file in self.filename(). 
                 This is the location that treegrunt looks for its tools.xml file.
+            configFilename (str|bool): if True, save as config.ini next to filename. If a file path
+                is provided save to that file path. 
         """
         import glob
 
@@ -138,6 +142,26 @@ class ToolsIndex(QObject):
             filename = self.filename()
         # save the index file
         doc.save(filename)
+
+        if configFilename:
+            if isinstance(configFilename, bool):
+                configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
+            envName = self.parent().legacyName()
+            envPath = self.parent().path()
+            blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'environment', envName)
+            blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'version', 2.0)
+            blurdev.ini.SetINISetting(
+                configFilename,
+                envName,
+                'coderoot',
+                os.path.join(envPath, 'maxscript', 'treegrunt'),
+            )
+            blurdev.ini.SetINISetting(
+                configFilename,
+                envName,
+                'startuppath',
+                os.path.join(envPath, 'maxscript', 'treegrunt', 'local'),
+            )
 
         # clear the old data & reload
         self.clear()
