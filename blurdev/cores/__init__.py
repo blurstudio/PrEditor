@@ -10,7 +10,9 @@ if sys.platform == 'win32':
     _exe = os.path.basename(sys.executable).lower()
 else:
     # On linux sys.executable does not return the application that python is embedded inside
-    _exe = os.path.basename(os.path.realpath('/proc/{}/exe'.format(os.getpid())))
+    _exe = os.path.basename(
+        os.path.realpath('/proc/{}/exe'.format(os.getpid()))
+    ).lower()
 
 # initialize the system for Motion Builder
 if 'maya' in _exe:
