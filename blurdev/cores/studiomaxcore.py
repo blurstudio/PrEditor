@@ -240,19 +240,27 @@ class StudiomaxCore(Core):
                 envname = env.objectName()
             if envname:
                 # update the maxscript code only if we are actually changing code environments
+                iniEnvname = blurdev.ini.GetINISetting(
+                    blurdev.ini.configFile, 'GLOBALS', 'environment'
+                )
                 if (
                     shiftPressed
-                    or blurdev.ini.GetINISetting(
-                        blurdev.ini.configFile, 'GLOBALS', 'environment'
-                    )
-                    != envname
+                    or iniEnvname != envname
+                    or os.path.normpath(mxs.blurConfigFile) != env.configIni()
                 ):
-                    print 'Switching maxscript environments from', blurdev.ini.GetINISetting(
-                        blurdev.ini.configFile, 'GLOBALS', 'environment'
-                    ), 'To', envname
-                    blurdev.ini.SetINISetting(
-                        blurdev.ini.configFile, 'GLOBALS', 'environment', envname
-                    )
+                    print 'Switching maxscript environments from', iniEnvname, 'To', envname
+                    try:
+                        blurdev.ini.SetINISetting(
+                            blurdev.ini.configFile, 'GLOBALS', 'environment', envname
+                        )
+                    except IOError as e:
+                        # If the user does not have permission to update this, don't except, just log a warning
+                        import warnings
+
+                        warnings.warn(str(e), RuntimeWarning, stacklevel=2)
+                    # update blurConfigFile when switching environments to point to the active environment's
+                    # config.ini if it exists, otherwise default to the standard c:\blur\config.ini
+                    mxs.blurConfigFile = env.configIni()
                     mxs.filein(
                         os.path.join(blurdev.ini.GetCodePath(), 'Lib', 'blurStartup.ms')
                     )

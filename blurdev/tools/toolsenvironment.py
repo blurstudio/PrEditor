@@ -39,6 +39,8 @@ class ToolsEnvironment(QObject):
         QObject.__init__(self)
 
         self._path = ''
+        # Defaults to os.getenv('BDEV_DEFAULT_CONFIG_INI')
+        self._configIni = None
         self._development = False
         self._default = False
         self._active = False
@@ -159,6 +161,17 @@ class ToolsEnvironment(QObject):
     @blur.Projects.customize
     def destructProjectForApplication(self, app):
         return None
+
+    def configIni(self):
+        if not self._configIni:
+            # Attempt to load the environment specific config.ini file.
+            filename = os.path.join(self.path(), 'code', 'config.ini')
+            if os.path.exists(filename):
+                self._configIni = os.path.normpath(filename)
+            else:
+                # if that doesn't exist, use the default config.ini
+                self._configIni = os.path.normpath(os.getenv('BDEV_DEFAULT_CONFIG_INI'))
+        return self._configIni
 
     def emailOnError(self):
         return self._emailOnError
@@ -343,6 +356,9 @@ class ToolsEnvironment(QObject):
 
             return True
         return False
+
+    def setConfigIni(self, path):
+        self._configIni = path
 
     def setCustom(self, state=True):
         self._custom = state
