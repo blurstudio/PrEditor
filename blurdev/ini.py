@@ -8,9 +8,13 @@ Also has functions for accessing & setting INI information.
 import ConfigParser
 import sys
 import os
+from contextlib import contextmanager
+import copy
 
 
-configFile = "c:/blur/config.ini"  # Default path information for Blur Studio
+configFile = os.getenv(
+    'BDEV_DEFAULT_CONFIG_INI'
+)  # Default path information for Blur Studio
 environments = {}
 activeEnvironment = 'production'
 blurConfigFile = None
@@ -55,6 +59,9 @@ def SetINISetting(
     DEFAULT Section when using ConfigParser.ConfigParser. If writeDefault is False it can
     still use the ToolParserClass, but it will not write the DEFAULT section.
     
+    Updating the DEFAULT section will affect any future ini files you write. To prevent this
+    you may want to use the blurdev.ini.temporaryDefaults context.
+    
     Args:
         inFileName (str): Ini filename to write to
         inSection (str): Name of the section the value is stored
@@ -78,7 +85,7 @@ def SetINISetting(
         tParser.read(inFileName)
     if not useConfigParser and inSection.lower() == 'default':
         # special case to support updating the Default section
-        environments[inSection].__dict__['_properties'][inKey] = inValue
+        environments['default'].__dict__['_properties'][inKey] = inValue
     else:
         if inSection.lower() != 'default' and not tParser.has_section(inSection):
             tParser.add_section(inSection)
@@ -790,3 +797,24 @@ def IsFloat(inString):
         return True
     except:
         return False
+
+
+@contextmanager
+def temporaryDefaults():
+    """ Context that restores the current DEFAULT settings in memory, after editing.
+    
+    When modifying the DEFAULT section with blurdev.ini.SetINISetting, it updates the
+    DEFAULT values stored in memory, so any future saves with blurdev.ini, will have
+    those changes. If you want to update DEFAULT for a single file, but not update 
+    the global defaults, you can use this context. Any changes made to DEFAULT while 
+    this context is active will be reverted afterwards, and you can make changes to 
+    multiple DEFAULT keys.
+    """
+    env = environments['default']
+    sectionName = env._sectionName
+    properties = copy.copy(env._properties)
+    try:
+        yield
+    finally:
+        environments['default'].__dict__['_sectionName'] = sectionName
+        environments['default'].__dict__['_properties'] = properties
