@@ -13,7 +13,7 @@ import copy
 
 
 configFile = os.getenv(
-    'BDEV_DEFAULT_CONFIG_INI'
+    'BDEV_DEFAULT_CONFIG_INI', ''
 )  # Default path information for Blur Studio
 environments = {}
 activeEnvironment = 'production'
