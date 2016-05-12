@@ -473,7 +473,9 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
 
             # run the file
             options['filepath'] = tempfilename
-            success = subprocess.Popen(debugcmd % options, shell=True)
+            # TODO: I don't think this successfully passses the env var to the final command
+            # we should probably debug this
+            success = subprocess.Popen(debugcmd % options, env=env, shell=True)
 
         return success
     # otherwise run it directly
@@ -497,16 +499,16 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
         # in other platforms, we'll use subprocess.Popen
         else:
             if cmd:
-                success = subprocess.Popen(cmd % options, shell=True)
+                success = subprocess.Popen(cmd % options, env=env, shell=True)
             else:
                 # If the provided file is marked as executable just run it.
                 if os.access(filename, os.X_OK):
-                    success = subprocess.Popen(filename, shell=True)
+                    success = subprocess.Popen(filename, env=env, shell=True)
                 else:
                     cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
                     if not cmd:
                         return False
-                    success = subprocess.Popen(cmd % options, shell=True)
+                    success = subprocess.Popen(cmd % options, env=env, shell=True)
     return success
 
 
