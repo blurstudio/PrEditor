@@ -170,7 +170,9 @@ class ToolsEnvironment(QObject):
                 self._configIni = os.path.normpath(filename)
             else:
                 # if that doesn't exist, use the default config.ini
-                self._configIni = os.path.normpath(os.getenv('BDEV_DEFAULT_CONFIG_INI'))
+                self._configIni = os.path.normpath(
+                    os.getenv('BDEV_DEFAULT_CONFIG_INI', '')
+                )
         return self._configIni
 
     def emailOnError(self):
