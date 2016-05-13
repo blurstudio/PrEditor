@@ -192,8 +192,13 @@ def launch(
     if application:
         application.setStyle('Plastique')
 
-        if core.objectName() == 'blurdev':
+        # See ToolsEnvironment._resetIfSamePath for more info on why this is being set.
+        current = blurdev.tools.ToolsEnvironment._resetIfSamePath
+        try:
+            blurdev.tools.ToolsEnvironment._resetIfSamePath = False
             core.setObjectName(coreName)
+        finally:
+            blurdev.tools.ToolsEnvironment._resetIfSamePath = current
 
     # always run wizards modally
     iswiz = False

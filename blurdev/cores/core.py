@@ -408,7 +408,9 @@ class Core(QObject):
             return
 
         if last_timestamp < threshold_time:
-            blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment().setActive()
+            env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
+            print 'Environment timeout exceeded, Resetting to default environment:', env.objectName()
+            env.setActive()
             pref.recordProperty(
                 'environment_set_timestamp', QDateTime.currentDateTime()
             )

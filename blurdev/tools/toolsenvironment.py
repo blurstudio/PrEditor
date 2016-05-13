@@ -34,6 +34,19 @@ class ToolsEnvironment(QObject):
     showDisabledTools = False
     # Enabled the first time an environment is evaluated
     initialized = False
+    # In special init cases(switching blurdev.core.objectName() from blurdev to external) we need
+    # to make sure deactivateProject is called, but not reset sys.path and sys.modules.
+    # The specific conditions are:
+    # 	1. app_blurdev's environment is set to env1.
+    # 	2. app_external's environment is set to env2. env2's path is the same as env1.
+    # Because of the way external tools are launched, they import the class from the module, then call
+    # blurdev.launch. blurdev.launch calls blurdev.core.setObjectName(), which in this case causes
+    # the module to be unloaded and become None (see clearPathSymbols). This causes super calls to
+    # fail because you can't pass in None for the type argument.
+    # This often results in a traceback ending something like this:
+    #    super(RequestPimpDialog, self).__init__(parent)
+    # TypeError: must be type, not None
+    _resetIfSamePath = True
 
     def __init__(self):
         QObject.__init__(self)
@@ -71,9 +84,15 @@ class ToolsEnvironment(QObject):
         """
         return self.project()
 
-    def clearPathSymbols(self):
-        """
-        Removes the path symbols from the environment
+    def clearPathSymbols(self, onlyDeactivate=False):
+        """ Removes the path symbols from the environment.
+        
+        Args:
+            onlyDeactivate (bool): If True, call deactivateProject and return without modifying
+                sys.path and sys.modules. You should not normally need to set this to True.
+        
+        Returns:
+            bool: Was sys.modules and sys.path cleared.
         """
         if self.isEmpty():
             return False
@@ -81,6 +100,9 @@ class ToolsEnvironment(QObject):
         # If this environment has a project make sure we unload the project settings
         # if neccissary before we clear the path symbols.
         self.deactivateProject()
+
+        if onlyDeactivate:
+            return False
 
         path = self.normalizePath(self.path())
 
@@ -340,7 +362,10 @@ class ToolsEnvironment(QObject):
         if force or not (self.isActive() or self.isEmpty()):
             # clear out the old environment
             old = self.activeEnvironment()
-            old.clearPathSymbols()
+            # Respect _resetIfSamePath when clearing path symbols
+            samePath = self.normalizePath(self.path()) == self.normalizePath(old.path())
+            onlyDeactivate = not ToolsEnvironment._resetIfSamePath and samePath
+            old.clearPathSymbols(onlyDeactivate=onlyDeactivate)
             old._active = False
 
             # register this environment as active and update the path symbols
