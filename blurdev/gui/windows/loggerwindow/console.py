@@ -431,7 +431,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         infoList['date'] = QDateTime.currentDateTime().toString(
             'MMM dd, yyyy @ h:mm ap'
         )
-        infoList['pythonversion'] = sys.version.replace('\n', '')
+        infoList['python version'] = sys.version.replace('\n', '')
         infoList['platform'] = platform.platform()
         infoList['executable'] = sys.executable
         # Include Assburner job info if available
@@ -445,8 +445,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         if burnFile:
             infoList['assburner burn file'] = burnFile
 
-        infoList['blurdevcore'] = blurdev.core.objectName()
-        infoList['blurdevenv'] = '%s: %s' % (
+        infoList['blurdev core'] = blurdev.core.objectName()
+        infoList['blurdev env'] = '%s: %s' % (
             envName,
             blurdev.activeEnvironment().path(),
         )
