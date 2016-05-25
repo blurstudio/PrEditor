@@ -50,6 +50,7 @@ class DocumentEditor(QsciScintilla):
 
         # create custom properties
         self._filename = ''
+        self.additionalFilenames = []
         self._language = ''
         self._lastSearch = ''
         self._textCodec = None
@@ -721,6 +722,15 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).redo()
         self.refreshTitle()
 
+    def refreshToolTip(self):
+        # TODO: This will proably be removed once I add a user interface to additionalFilenames.
+        toolTip = []
+        if self.additionalFilenames:
+            toolTip.append('<u><b>Additional Filenames:</b></u>')
+            for filename in self.additionalFilenames:
+                toolTip.append(filename)
+        self.setToolTip('\n<br>'.join(toolTip))
+
     def reloadFile(self):
         return self.reloadDialog(
             'Are you sure you want to reload %s? You will lose all changes'
@@ -833,9 +843,14 @@ class DocumentEditor(QsciScintilla):
             '------------------------------ Save Called ------------------------------ ',
             DebugLevel.High,
         )
-        return self.saveAs(self.filename())
+        ret = self.saveAs(self.filename())
+        # If the user has provided additionalFilenames to save, process each of them without
+        # switching the current filename.
+        for filename in self.additionalFilenames:
+            r = self.saveAs(filename, setFilename=False)
+        return ret
 
-    def saveAs(self, filename=''):
+    def saveAs(self, filename='', setFilename=True):
         debugMsg(
             '------------------------------ Save As Called ------------------------------ ',
             DebugLevel.High,
@@ -879,9 +894,10 @@ class DocumentEditor(QsciScintilla):
             self.documentSaved.emit(self, filename)
 
             # update the file
-            self.updateFilename(filename)
-            if newFile:
-                self.enableFileWatching(True)
+            if setFilename:
+                self.updateFilename(filename)
+                if newFile:
+                    self.enableFileWatching(True)
             return True
         return False
 
@@ -1355,6 +1371,9 @@ class DocumentEditor(QsciScintilla):
 
         if self.isModified():
             title += '*'
+
+        if self.additionalFilenames:
+            title += '[]'
 
         return title
 
