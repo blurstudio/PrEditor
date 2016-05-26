@@ -606,7 +606,11 @@ class _PropertyDescriptor(object):
         if not self._settable:
             raise AttributeError('Attribute "{0}" is not settable.'.format(self._name))
         if not isinstance(value, self._atype):
-            raise TypeError('Given value must be of type {0}.'.format(str(self._atype)))
+            raise TypeError(
+                'Given value must be of type {0}. "{1}" provided'.format(
+                    str(self._atype), str(type(value))
+                )
+            )
         if self._valid != None:
             if value in self._valid:
                 self._value = value
