@@ -373,7 +373,7 @@ class ToolsEnvironment(QObject):
             self.registerPaths()
 
             # set the legacy environment active
-            blurdev.ini.SetActiveEnvironment(unicode(self.objectName()))
+            blurdev.ini.SetActiveEnvironment(unicode(self.legacyName()))
 
             # emit the environment activateion change signal
             if not silent:
