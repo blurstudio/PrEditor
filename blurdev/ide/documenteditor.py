@@ -1373,7 +1373,7 @@ class DocumentEditor(QsciScintilla):
             title += '*'
 
         if self.additionalFilenames:
-            title += '[]'
+            title = '[{}]'.format(title)
 
         return title
 
