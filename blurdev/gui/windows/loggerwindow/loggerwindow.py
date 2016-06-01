@@ -140,9 +140,10 @@ class LoggerWindow(Window):
             'PythonLoggerWindow', 'Python Logger'
         )
         self.setWindowTitle(
-            '%s - %s %ibit'
+            '%s - %s - %s %ibit'
             % (
                 loggerName,
+                blurdev.core.objectName(),
                 '%i.%i.%i' % sys.version_info[:3],
                 blurdev.osystem.getPointerSize(),
             )
@@ -496,12 +497,15 @@ class LoggerWindow(Window):
     def instance(parent=None):
         # create the instance for the logger
         if not LoggerWindow._instance:
-            # determine default parenting
-            if not (parent or blurdev.core.isMfcApp()):
-                parent = blurdev.core.rootWindow()
 
             # create the logger instance
             inst = LoggerWindow(parent)
+
+            # RV has a Unique window structure. It makes more sense to not parent a singleton
+            # window than to parent it to a specific top level window.
+            if blurdev.core.objectName() == 'rv':
+                inst.setParent(None)
+                inst.setAttribute(Qt.WA_QuitOnClose, False)
 
             # protect the memory
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
