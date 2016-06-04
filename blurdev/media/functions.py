@@ -276,7 +276,7 @@ def imageSequenceInfo(path, osystem=None):
     # Look for ScXXX or SXXXX.XX to include in the prefix. This prevents problems with incorrectly
     # identifying a shot number as a image sequence. Thanks willc.
     regex = re.compile(
-        r'(?P<pre>^.+?(?:Sc\d{3}_S\d{4}\.\d{2})?\D*)(?P<frame>\d+)?(?P<post>\D*\.[A-Za-z0-9]+?$)',
+        r'(?P<pre>^.+?(?:Sc\d{3}_S\d{4}\.\d{2})?\D*)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)',
         flags=flags,
     )
     path = os.path.normpath(path)
