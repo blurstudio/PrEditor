@@ -17,13 +17,13 @@ class CppLexer(QsciLexerCPP):
     highlightedKeywords = ''
 
     def defaultPaper(self, style):
-        if style == self.KeywordSet2:
+        if style == self.CommentLine:
             # Set the highlight color for this lexer
             return QColor(155, 255, 155)
         return super(CppLexer, self).defaultPaper(style)
 
     def keywords(self, style):
         # Words to be highlighted
-        if style == 2 and self.highlightedKeywords:
+        if style == self.CommentLine and self.highlightedKeywords:
             return self.highlightedKeywords
         return super(CppLexer, self).keywords(style)
