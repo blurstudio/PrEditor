@@ -102,7 +102,6 @@ class Dialog(QDialog):
             pass
 
     def closeEvent(self, event):
-
         # ensure this object gets deleted
         wwidget = None
         if self.testAttribute(Qt.WA_DeleteOnClose):
@@ -150,7 +149,7 @@ class Dialog(QDialog):
 
     def showEvent(self, event):
         # listen for aboutToClearPaths signal if requested
-        # but only handle here if deleting on close
+        # but only connect here if deleting on close
         if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
             import blurdev
 

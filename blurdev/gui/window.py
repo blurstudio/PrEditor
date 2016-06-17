@@ -34,7 +34,6 @@ class Window(QMainWindow):
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
-
         import blurdev
 
         # if there is no root, create
@@ -113,6 +112,7 @@ class Window(QMainWindow):
             from winwidget import WinWidget
 
             WinWidget.uncache(wwidget)
+
         # only disconnect here if deleting on close
         if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
             import blurdev
