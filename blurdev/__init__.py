@@ -25,6 +25,7 @@ from PyQt4.QtGui import (
     QApplication,
     QWizard,
     QMessageBox,
+    QDockWidget,
 )
 from PyQt4.QtCore import Qt
 
@@ -159,6 +160,7 @@ def launch(
     kwargs=None,
     splash=None,
     wrapClass=None,
+    dockWidgetArea=Qt.RightDockWidgetArea,
 ):
     """
     This method is used to create an instance of a widget (dialog/window) to 
@@ -179,10 +181,10 @@ def launch(
                      it will show the existing instance instead of
                      creating a new instance. Ignored if modal == True.
     :param kwargs: A dict of keyword arguments to pass to the widget initialization
-    :param wrapClass: launch() requires a dialog or window to work correctly.  If you pass in 
-                      a widget, it will automatically get wrapped in a Dialog, unless
-                      you specify a class using this argument, in which case it will
-                      be wrapped by that.
+    :param wrapClass: launch() requires a subclass of QDialog, QMainWindow or DockWidget to work 
+        correctly. If you pass in a widget, it will automatically get wrapped in a Dialog, unless
+        you specify a class using this argument, in which case it will be wrapped by that.
+    :param dockWidgetArea: If ctor is a QDockWidget
     """
     global lastLaunched
     # create the app if necessary
@@ -252,10 +254,9 @@ def launch(
     if splash:
         splash.finish(widget)
 
-    # If the passed in ctor is not a Dialog or Window, wrap it in a dialog
-    # so that it displays correctly.  It will get garbage collected and close
-    # otherwise
-    if not isinstance(widget, (QMainWindow, QDialog)):
+    # If the passed in ctor is not a QDialog, QMainWindow or QDockWidget, wrap it in a dialog
+    # so that it displays correctly. It will get garbage collected and close otherwise
+    if not isinstance(widget, (QMainWindow, QDialog, QDockWidget)):
         if wrapClass is not None:
             dlg = wrapClass(None)
         else:
@@ -276,6 +277,8 @@ def launch(
     if modal:
         widget.exec_()
     else:
+        if isinstance(widget, QDockWidget) and widget.parent() and dockWidgetArea:
+            widget.parent().addDockWidget(dockWidgetArea, widget)
         widget.show()
         if instance:
             widget.raise_()

@@ -17,6 +17,7 @@ from PyQt4.QtGui import QPixmap, QSplashScreen
 
 from window import Window
 from dialog import Dialog
+from dockwidget import DockWidget
 from wizard import Wizard
 from functools import partial
 
