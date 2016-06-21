@@ -14,9 +14,8 @@ class RVCore(Core):
         kargs['objectName'] = 'rv'
         super(RVCore, self).__init__(*args, **kargs)
         # TODO: Shutdown blurdev when RV closes
-
-    # 		if QApplication.instance():
-    # 			QApplication.instance().aboutToQuit.connect(self.shutdown)
+        if QApplication.instance():
+            QApplication.instance().aboutToQuit.connect(self.shutdown)
 
     def createToolMacro(self, tool, macro=''):
         """
