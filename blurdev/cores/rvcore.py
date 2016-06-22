@@ -1,4 +1,5 @@
 import re
+import sys
 import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
@@ -16,6 +17,16 @@ class RVCore(Core):
         # TODO: Shutdown blurdev when RV closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
+
+    def addLibraryPaths(self, app):
+        if sys.platform == 'linux2':
+            app.addLibraryPath(r'/usr/lib64/qt4/plugins')
+            # TODO: Use the following code to dynamicly look up this path. It must be run externally
+            # from RV or it will return the wrong path.
+            # 			from PyQt4.QtCore import QLibraryInfo
+            # 			QLibraryInfo.location( QLibraryInfo.PluginsPath)
+            return
+        super(RVCore, self).addLibraryPaths(app)
 
     def createToolMacro(self, tool, macro=''):
         """
