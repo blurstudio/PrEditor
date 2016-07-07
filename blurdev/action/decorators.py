@@ -1,7 +1,7 @@
 import sys
 
-from .constants import *
-from .exceptions import *
+from .constants import Apps, App
+from .exceptions import ArgumentHasNoDefaultError, ArgumentTypeIncorrectError
 
 # =============================================================================
 # CLASSES
@@ -97,8 +97,11 @@ class _Argument(object):
         elif self._allowNone and value is None:
             self._value = value
         else:
-            msg = 'Given value for argument {name} is not the correct type.'.format(
-                name=self.name,
+            msg = (
+                'Given value for argument {name} is not the correct type.\n'
+                'Expected: {exp}\nGot: {got}\nWith Value: {value}'.format(
+                    name=self.name, got=type(value), exp=self.atype, value=value,
+                )
             )
             raise ArgumentTypeIncorrectError(msg)
 
@@ -225,25 +228,32 @@ class argproperty(object):
         self._allowNone = allowNone
         self.__class__.__order += 1
 
-    def __call__(self, function):
+    def __call__(self, function, nameOverride=None):
+        _nameOverride = nameOverride or function.__name__
+
         def newFunction(*args):
-            return getattr(args[0], '_{property}'.format(property=function.__name__))
+            return getattr(args[0], '_{property}'.format(property=nameOverride))
 
         if self._name:
             name = self._name
         else:
-            name = str(function.__name__)
-        newFunction.__actionArgument = _Argument(
+            name = _nameOverride
+        newFunction.__name__ = name
+
+        actionArg = _Argument(
             name,
             self._atype,
             self._default,
-            function.__name__,
+            _nameOverride,
             self._validValues,
             self._settable,
             self._allowNone,
             self._defaultInstance,
         )
-        newFunction.__order = self._order
+
+        # actionArg._argproperty__order = self._order
+        newFunction._argproperty__actionArgument = actionArg
+        newFunction._argproperty__order = self._order
         return newFunction
 
 
@@ -338,16 +348,20 @@ class childaction(object):
             self._argRename = {}
         else:
             self._argRename = argRename
-
-    def __call__(self, function):
-        def newFunction(*args):
-            return getattr(args[0], function.__name__)
-
-        newFunction.__container = _ChildActionContainer(
-            self._cls, function.__name__, self._argRename,
-        )
-        newFunction.__order = self.__class__.__order
+        self._order = self.__class__.__order
         self.__class__.__order += 1
+
+    def __call__(self, function, nameOverride=None):
+        _nameOverride = nameOverride or function.__name__
+
+        def newFunction(*args):
+            return getattr(args[0], _nameOverride)
+
+        newFunction.__name__ = _nameOverride
+        container = _ChildActionContainer(self._cls, _nameOverride, self._argRename,)
+        container._childaction__order = self._order
+        newFunction._childaction__container = container
+        newFunction._childaction__order = self._order
         return newFunction
 
 

@@ -2,40 +2,33 @@ import inspect
 import os.path
 import sys
 
-from .constants import *
-from .exceptions import *
-from .decorators import argproperty
+from .constants import App, Apps
+from .exceptions import ArgumentHasNoDefaultError, ArgumentRequiredButNotGivenError
+from .decorators import argproperty, childaction
 
 # =============================================================================
 # CLASSES
 # =============================================================================
-
-
-class _ArgPropertyName(object):
-    def __init__(self, name):
-        self.__name__ = name
-
-
 class _ActionMeta(type):
     def __new__(meta, name, bases, dct):
         """
         This metaclass makes the class-variable implementation of the 
-        argproperty() decorator work.
+        argproperty() and childaction() decorators work.
 
-        If using the class-variable implementation, the properties are 
-        instances of the argproperty class at this point. If using the 
-        decorator style , the properties are replaced by functions by this 
-        point. That means we can just check for any leftover instances of
-        argproperty in the class dict and process them.
+        If using the class-variable style, the properties are instances of the
+        argproperty/childaction class at this point.
 
-        The argproperty decorator only uses the method __name__ in creation 
-        of the property, so we use the _ArgPropertyName class to provide that 
-        interface
+        If using the decorator style, the properties have been properly set up
+        by this point.
+
+        That means we can just check for any leftover instances
+        of argproperty/childaction in the class dict and process them.
+
         """
         d = {}
         for k, v in dct.iteritems():
-            if isinstance(v, argproperty):
-                d[k] = v(_ArgPropertyName(k))
+            if isinstance(v, (argproperty, childaction)):
+                d[k] = v(None, nameOverride=k)
         dct.update(d)
         return super(_ActionMeta, meta).__new__(meta, name, bases, dct)
 
@@ -325,7 +318,7 @@ class Action(object):
         childActions = sorted(childActions, key=lambda c: c._childaction__order,)
         for container in childActions:
             cls = container.childClass
-            childAction = cls(container.argRename, *args, **kwargs)
+            childAction = cls(*args, argRename=container.argRename, **kwargs)
             setattr(self, container.name, childAction)
             self._childActions.append(childAction)
 
@@ -432,6 +425,7 @@ class Action(object):
         argumentMethods = sorted(argumentMethods, key=lambda a: a._argproperty__order,)
         for method in argumentMethods:
             arguments.append(getattr(method, '_argproperty__actionArgument'))
+
         # Now that we have our argument objects we can process each
         # one.	The way we do this is to first look for positional
         # arguments and if they were given we index into that list
@@ -462,7 +456,7 @@ class Action(object):
                 i = i + 1
             if not argument.found:
                 if argument.name in argRename:
-                    argName = argRename(argument.name)
+                    argName = argRename[argument.name]
                 else:
                     argName = argument.name
                 if argName in kwargs:
