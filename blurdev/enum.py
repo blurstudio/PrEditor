@@ -241,6 +241,9 @@ class Enum(object):
     def __ne__(self, value):
         return not self.__eq__(value)
 
+    def __nonzero__(self):
+        return bool(int(self))
+
     def __or__(self, other):
         o = other
         if isinstance(other, Enum):
