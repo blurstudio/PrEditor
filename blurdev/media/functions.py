@@ -275,12 +275,28 @@ def imageSequenceInfo(path, osystem=None):
         flags = re.I
     # Look for ScXXX or SXXXX.XX to include in the prefix. This prevents problems with incorrectly
     # identifying a shot number as a image sequence. Thanks willc.
-    regex = re.compile(
-        r'(?P<pre>^.+?(?:Sc\d{3}_S\d{4}\.\d{2})?\D*)(?P<frame>\d+)(?P<post>\D*\.[A-Za-z0-9]+?$)',
-        flags=flags,
-    )
+
+    # match seq/shot format used by studio
+    seqShotPattern = r'(?:Sc\d{3}_S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?'
+    # grab all digits for the frame number
+    framePattern = r'(?P<frame>\d+)?'
+    # match anything after our frame (that isn't a digit), and include a file extension
+    # Frame number will be expected to be the LAST digits that appear before the extension because
+    # of this.
+    postPattern = r'(?P<post>\D*\.[A-Za-z0-9]+?$)'
+    # Assemble the pieces of our pattern into the full match pattern for filenames
+    filePattern = r'(?P<pre>^.+?' + seqShotPattern + r')' + framePattern + postPattern
+    regex = re.compile(filePattern, flags=flags)
     path = os.path.normpath(path)
-    return regex.match(path)
+    m = regex.match(path)
+    if m and m.group('frame'):
+        return m
+    else:
+        # If we don't have a match object or a match for the frame group, we want to return None
+        # (we don't want to conisder it an imageSequence.)
+        # We could do this in our regular expression, but it would require more complicated logic,
+        # so I think this is easier to read.
+        return None
 
 
 def imageSequenceRepr(
