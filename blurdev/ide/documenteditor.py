@@ -47,6 +47,7 @@ class DocumentEditor(QsciScintilla):
         self._showSmartHighlighting = True
         self._smartHighlightingSupported = False
         QsciScintilla.__init__(self, parent)
+        self.setObjectName('DocumentEditor')
 
         # create custom properties
         self._filename = ''

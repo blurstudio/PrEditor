@@ -136,6 +136,9 @@
      </item>
      <item>
       <widget class="QPushButton" name="uiCopyResultsBTN">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Generates a report of the search settings and results.&lt;br/&gt;&lt;br/&gt;If shift is pressed a new document is opened and the results are placed inside. Otherwise the results are placed in the copy paste buffer.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
        <property name="text">
         <string>Copy Results</string>
        </property>

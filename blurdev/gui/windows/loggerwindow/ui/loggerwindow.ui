@@ -41,8 +41,6 @@
           <widget class="NewTabWidget" name="uiWorkboxTAB"/>
          </item>
         </layout>
-        <zorder>uiWorkboxTAB</zorder>
-        <zorder>uiWorkboxTAB</zorder>
        </widget>
        <widget class="QWidget" name="PDB">
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -485,25 +483,40 @@
    <property name="toolTip">
     <string>Continue</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+C</string>
+   </property>
   </action>
   <action name="uiPdbStepACT">
    <property name="text">
     <string>Step</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+S</string>
    </property>
   </action>
   <action name="uiPdbNextACT">
    <property name="text">
     <string>Next</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+N</string>
+   </property>
   </action>
   <action name="uiPdbUpACT">
    <property name="text">
     <string>Up</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+U</string>
+   </property>
   </action>
   <action name="uiPdbDownACT">
    <property name="text">
     <string>Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+D</string>
    </property>
   </action>
  </widget>

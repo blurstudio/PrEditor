@@ -289,6 +289,27 @@ class FindFilesDialog(Dialog):
         QApplication.clipboard().setText(self._resultsFileText)
 
     def copyResults(self):
+        if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
+            ide = self.parent()
+            import blurdev
+
+            if isinstance(ide, blurdev.ide.IdeEditor):
+                # Open a new document and put the find results into it.
+                window = ide.documentNew()
+                document = window.findChild(
+                    blurdev.ide.documenteditor.DocumentEditor, 'DocumentEditor'
+                )
+                if document:
+                    # Use the python lexer it provides a workable lexer for find results.
+                    document.setText(self._allResultsText)
+                    document.setLanguage('Python')
+                    ide.updateTitle()
+                    # permaHighlight is not shown unless we call processEvents so the document is visible.
+                    QApplication.instance().processEvents()
+                    # use permaHighlight to highlight the search term. This probably won't
+                    # work for regex searches
+                    document.setPermaHighlight([unicode(self.uiSearchTXT.text())])
+                    return
         QApplication.clipboard().setText(self._allResultsText)
 
     def keyPressEvent(self, event):
