@@ -237,7 +237,7 @@ class FindFilesDialog(Dialog):
         # initialize the ui from the prefs
         self.uiSearchTXT.setText(ideglobals.FILE_SEARCH_TEXT)
         self.uiBasePathTXT.setText(ideglobals.FILE_SEARCH_PATH)
-        excludes = set(os.environ['BDEV_FIND_IN_FILES_EXCLUDE'].split(','))
+        excludes = set(os.getenv('BDEV_FIND_IN_FILES_EXCLUDE', '').split(','))
         excludes.add(ideglobals.FILE_SEARCH_EXCLUDE)
         self.uiExcludeRegexDDL.clear()
         self.uiExcludeRegexDDL.addItems(sorted(excludes))
@@ -245,7 +245,7 @@ class FindFilesDialog(Dialog):
             self.uiExcludeRegexDDL.findText(ideglobals.FILE_SEARCH_EXCLUDE)
         )
 
-        ftypes = set(os.environ['BDEV_FIND_IN_FILES_EXTS'].split(','))
+        ftypes = set(os.getenv('BDEV_FIND_IN_FILES_EXTS', '').split(','))
         ftypes.add(ideglobals.FILE_SEARCH_TYPES)
         self.uiFileTypesDDL.clear()
         self.uiFileTypesDDL.addItems(sorted(ftypes))
