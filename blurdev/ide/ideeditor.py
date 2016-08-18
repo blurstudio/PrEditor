@@ -319,6 +319,8 @@ class IdeEditor(Window):
         self.syncEnvironment()
 
     def addSubWindow(self, editor):
+        import blurdev
+
         window = self.uiWindowsAREA.addSubWindow(editor)
         window.setWindowTitle(editor.windowTitle())
         window.installEventFilter(editor)
@@ -336,6 +338,7 @@ class IdeEditor(Window):
         self.duplicateAction(menu, self.uiExploreACT, editor.exploreDocument)
         self.duplicateAction(menu, self.uiConsoleACT, editor.launchConsole)
         act = menu.addAction('Show In Project Tree')
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/project_find.png')))
         act.triggered.connect(editor.selectProjectItem)
         self.duplicateAction(menu, self.uiFindInFilesACT, editor.findInFilesPath)
         menu.addSeparator()
