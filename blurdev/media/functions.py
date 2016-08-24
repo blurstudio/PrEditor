@@ -277,7 +277,7 @@ def imageSequenceInfo(path, osystem=None):
     # identifying a shot number as a image sequence. Thanks willc.
 
     # match seq/shot format used by studio
-    seqShotPattern = r'(?:Sc\d{3}_S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?'
+    seqShotPattern = r'(?:Sc\d{3}|S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?'
     # grab all digits for the frame number
     framePattern = r'(?P<frame>\d+)?'
     # match anything after our frame (that isn't a digit), and include a file extension
@@ -305,7 +305,7 @@ def imageSequenceRepr(
     """ Takes a list of files and creates a string that represents the sequence.
     Args:
         files (list): A list of files in the image sequence.
-        format (str): Used to format the output. Uses str.format() command and requires the 
+        strFormat (str): Used to format the output. Uses str.format() command and requires the 
             keys [pre, firstNum, lastNum, post]. Defaults to '{pre}[{firstNum}:{lastNum}]{post}'
         forceRepr (bool): If False and a single frame is provided, it will return just that frame.
             If True and a single frame is provided, it will return a repr with that frame as the
