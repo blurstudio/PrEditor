@@ -1900,6 +1900,7 @@ class IdeEditor(Window):
 
         # update the registry from the config set
         from blurdev.ide.ideregistry import RegistryType
+        from blurdev.XML.minidom import unescape
 
         registry = self.registry()
         registry.flush(RegistryType.GlobalOverride)
@@ -1907,7 +1908,7 @@ class IdeEditor(Window):
 
         section = globalconfig.section('Editor::Registry')
         for key, value in section.value('entries').items():
-            registry.register(RegistryType.GlobalOverride, key, value)
+            registry.register(RegistryType.GlobalOverride, key, unescape(value))
 
         # create a copy of the startup environment
         environ = copy.deepcopy(settings.startup_environ)
