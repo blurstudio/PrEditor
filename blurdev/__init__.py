@@ -211,9 +211,6 @@ def launch(
         if e.message != 'issubclass() arg 1 must be a class':
             print e.message
 
-    if iswiz:
-        modal = True
-
     if instance and hasattr(ctor, 'instance') and not modal:
         # use the instance method if requested
         widget = ctor.instance()
