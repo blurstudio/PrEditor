@@ -9,7 +9,9 @@
 #
 
 import os
+from functools import partial
 from blurdev.gui import Window
+from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from workboxwidget import WorkboxWidget
 from blurdev import prefs
 from PyQt4.QtCore import Qt
@@ -24,6 +26,7 @@ from PyQt4.QtGui import (
     QCursor,
     QInputDialog,
     QApplication,
+    QLabel,
 )
 import blurdev
 
@@ -61,6 +64,22 @@ class LoggerWindow(Window):
         # create the default workbox
         self.uiWorkboxWGT = self.addWorkbox(self.uiWorkboxTAB)
 
+        # create the pdb count widget
+        self._pdbContinue = None
+        self.uiPdbExecuteCountLBL = QLabel('x', self.uiPdbTOOLBAR)
+        self.uiPdbExecuteCountLBL.setObjectName('uiPdbExecuteCountLBL')
+        self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountLBL)
+        self.uiPdbExecuteCountDDL = DragSpinBox(self.uiPdbTOOLBAR)
+        self.uiPdbExecuteCountDDL.setObjectName('uiPdbExecuteCountDDL')
+        self.uiPdbExecuteCountDDL.setValue(1)
+        self.uiPdbExecuteCountDDL.setDefaultValue(1)
+        self.uiPdbExecuteCountDDL.setRange(1, 10000)
+        msg = (
+            'When the "next" and "step" buttons are pressed call them this many times.'
+        )
+        self.uiPdbExecuteCountDDL.setToolTip(msg)
+        self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountDDL)
+
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()
 
@@ -85,8 +104,8 @@ class LoggerWindow(Window):
         self.uiPdbModeACT.triggered.connect(self.uiConsoleTXT.setPdbMode)
 
         self.uiPdbContinueACT.triggered.connect(self.uiConsoleTXT.pdbContinue)
-        self.uiPdbStepACT.triggered.connect(self.uiConsoleTXT.pdbNext)
-        self.uiPdbNextACT.triggered.connect(self.uiConsoleTXT.pdbStep)
+        self.uiPdbStepACT.triggered.connect(partial(self.pdbRepeat, 'next'))
+        self.uiPdbNextACT.triggered.connect(partial(self.pdbRepeat, 'step'))
         self.uiPdbUpACT.triggered.connect(self.uiConsoleTXT.pdbUp)
         self.uiPdbDownACT.triggered.connect(self.uiConsoleTXT.pdbDown)
 
@@ -235,6 +254,18 @@ class LoggerWindow(Window):
             self.uiRunAllACT.setShortcut(
                 QKeySequence(Qt.Key_Enter + Qt.ControlModifier)
             )
+
+    def pdbRepeat(self, commandText):
+        # If we need to repeat the command store that info
+        value = self.uiPdbExecuteCountDDL.value()
+        if value > 1:
+            # The first request is triggered at the end of this function, so we need to store
+            # one less than requested
+            self._pdbContinue = (value - 1, commandText)
+        else:
+            self._pdbContinue = None
+        # Send the first command
+        self.uiConsoleTXT.pdbSendCommand(commandText)
 
     def pathsAboutToBeCleared(self):
         if self.uiClearLogOnRefreshACT.isChecked():
@@ -460,6 +491,8 @@ class LoggerWindow(Window):
         self.uiPdbMENU.menuAction().setVisible(state)
         self.uiPdbTOOLBAR.setVisible(state)
         self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
+        # If the user has set a stylesheet on the logger we need to refresh it
+        self.setStyleSheet(self.styleSheet())
 
     def showSdk(self):
         if not self.uiDisableSDKShortcutACT.isChecked():
@@ -516,20 +549,34 @@ class LoggerWindow(Window):
         return LoggerWindow._instance
 
     @classmethod
-    def instanceSetPdbMode(cls, mode):
+    def instanceSetPdbMode(cls, mode, msg=''):
         """ Sets the instance of LoggerWindow to pdb mode if the logger instance has been created.
         
         Args:
             mode (bool): The mode to set it to
         """
         if cls._instance:
-            if cls._instance.uiConsoleTXT.pdbMode() != mode:
-                cls._instance.uiConsoleTXT.setPdbMode(mode)
+            inst = cls._instance
+            if inst.uiConsoleTXT.pdbMode() != mode:
+                inst.uiConsoleTXT.setPdbMode(mode)
                 import blurdev.external
 
                 blurdev.external.External(
                     ['pdb', '', {'msg': 'blurdev.debug.getPdb().currentLine()'}]
                 )
+            # Pdb returns its prompt automatically. If we detect the pdb prompt and _pdbContinue
+            # is set re-run the command until it's count reaches zero.
+            if inst._pdbContinue and msg == '(Pdb) ':
+                if inst._pdbContinue[0]:
+                    count = inst._pdbContinue[0] - 1
+                    if count > 0:
+                        # Decrease the count.
+                        inst._pdbContinue = (count, inst._pdbContinue[1])
+                        # Resend the requested message
+                        inst.uiConsoleTXT.pdbSendCommand(inst._pdbContinue[1])
+                    else:
+                        # We are done refreshing so nothing to do.
+                        inst._pdbContinue = None
 
     @classmethod
     def instancePdbResult(cls, data):

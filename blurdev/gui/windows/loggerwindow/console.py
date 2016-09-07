@@ -827,9 +827,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 self.pdbModeAction.setChecked(mode)
                 self.pdbModeAction.blockSignals(False)
                 self.pdbModeAction.setEnabled(True)
+        self._pdbMode = mode
         if self.pdbUpdateVisibility:
             self.pdbUpdateVisibility(mode)
-        self._pdbMode = mode
         self.startInputLine()
         # Make sure the stylesheet recalculates for the new value
         blurdev.core.refreshStyleSheet()

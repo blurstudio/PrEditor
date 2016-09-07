@@ -176,3 +176,8 @@ ConsoleEdit[pyPdbMode="true"] {
 	selection-background-color: rgb(0, 255, 0);
 	selection-color: rgb(0, 0, 0);
 }
+
+LoggerWindow QToolButton[toolTip="Next"], LoggerWindow QToolButton[toolTip="Step"], LoggerWindow QSpinBox#uiPdbExecuteCountDDL {
+	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
+	background-color: rgb(75,65,65);
+}
