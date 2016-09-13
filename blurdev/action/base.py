@@ -497,12 +497,25 @@ class Action(object):
                     atype=argument.atype,
                     valid=argument.validValues,
                     settable=argument.settable,
+                    **argument.kwargs
                 )
                 setattr(
                     self, argument.propertyName, ad,
                 )
         for argument in arguments:
             argument.__del__()
+
+    def getDescriptors(self):
+        # This method allows easy access to all of the properties
+        # that were set as `argproperty` objects so we can easily
+        # check for the programmer defined `kwargs` property
+        # Search for 'noPickle' in FarmAction for an example usecase
+        desc = []
+        for attrName in dir(self):
+            attr = self.__getattribute__(attrName)
+            if isinstance(attr, _PropertyDescriptor):
+                desc.append(attr)
+        return desc
 
     def _sortHooks(self):
         # The order that each hook was defined is stored as an attribute
@@ -586,12 +599,13 @@ class Action(object):
 
 
 class _PropertyDescriptor(object):
-    def __init__(self, name, value, atype, valid, settable=True):
+    def __init__(self, name, value, atype, valid, settable=True, **kwargs):
         self._name = str(name)
         self._value = value
         self._atype = atype
         self._valid = valid
         self._settable = settable
+        self.kwargs = kwargs
 
     def getValue(self):
         return self._value

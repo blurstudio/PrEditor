@@ -26,6 +26,7 @@ class _Argument(object):
         settable=True,
         allowNone=False,
         defaultInstance=False,
+        **kwargs
     ):
         self._name = name
         self._defaultInstance = defaultInstance
@@ -37,6 +38,7 @@ class _Argument(object):
         self._validValues = validValues
         self._settable = settable
         self._allowNone = allowNone
+        self._kwargs = kwargs
 
     @property
     def name(self):
@@ -80,6 +82,10 @@ class _Argument(object):
     def value(self):
         return self._value
 
+    @property
+    def kwargs(self):
+        return self._kwargs
+
     @value.setter
     def value(self, value):
         if isinstance(value, self.atype):
@@ -122,9 +128,10 @@ class _Argument(object):
 
 
 class _ChildActionContainer(object):
-    def __init__(self, childClass, name, argRename=None):
+    def __init__(self, childClass, name, argRename=None, **kwargs):
         self._childClass = childClass
         self._name = name
+        self._kwargs = kwargs
         if argRename is None:
             self._argRename = {}
         else:
@@ -141,6 +148,10 @@ class _ChildActionContainer(object):
     @property
     def name(self):
         return self._name
+
+    @proprty
+    def kwargs(self):
+        return self._kwargs
 
     def __repr__(self):
         return '<{mdl}.{cls}(childClass={cc},name={name})>'.format(
@@ -194,6 +205,7 @@ class argproperty(object):
         valid=None,
         settable=True,
         defaultInstance=False,
+        **kwargs
     ):
         """Initializes the argproperty decorator.
 
@@ -226,6 +238,7 @@ class argproperty(object):
         self._settable = settable
         self._order = self.__class__.__order
         self._allowNone = allowNone
+        self._kwargs = kwargs
         self.__class__.__order += 1
 
     def __call__(self, function, nameOverride=None):
@@ -249,6 +262,7 @@ class argproperty(object):
             self._settable,
             self._allowNone,
             self._defaultInstance,
+            **self._kwargs
         )
 
         # actionArg._argproperty__order = self._order
@@ -328,7 +342,7 @@ class childaction(object):
 
     __order = 0
 
-    def __init__(self, cls, argRename=None):
+    def __init__(self, cls, argRename=None, **kwargs):
         """Initializes the childaction decorator.
 
         Args:
@@ -349,6 +363,7 @@ class childaction(object):
         else:
             self._argRename = argRename
         self._order = self.__class__.__order
+        self._kwargs = kwargs
         self.__class__.__order += 1
 
     def __call__(self, function, nameOverride=None):
@@ -358,7 +373,9 @@ class childaction(object):
             return getattr(args[0], _nameOverride)
 
         newFunction.__name__ = _nameOverride
-        container = _ChildActionContainer(self._cls, _nameOverride, self._argRename,)
+        container = _ChildActionContainer(
+            self._cls, _nameOverride, self._argRename, **self._kwargs
+        )
         container._childaction__order = self._order
         newFunction._childaction__container = container
         newFunction._childaction__order = self._order
