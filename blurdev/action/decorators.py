@@ -149,7 +149,7 @@ class _ChildActionContainer(object):
     def name(self):
         return self._name
 
-    @proprty
+    @property
     def kwargs(self):
         return self._kwargs
 
