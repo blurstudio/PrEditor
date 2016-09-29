@@ -339,8 +339,9 @@ class Core(QObject):
     def init(self):
         """ Initializes the core system
         """
-        self.initCore()
+        ret = self.initCore()
         self.initGui()
+        return ret
 
     def initCore(self):
         """Work method to initialize the core system -- breaking the initialization apart allows the
