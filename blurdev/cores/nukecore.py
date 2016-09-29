@@ -21,6 +21,14 @@ class NukeCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
+    def init(self):
+        """Overload init to prevent gui-dependant initialization from occuring here.
+
+        We will need to call initGui later (in blurnuke.nukestartup) to initialize the
+        gui-dependant stuff.
+        """
+        self.initCore()
+
     def createToolMacro(self, tool, macro=''):
         """
         Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
@@ -71,6 +79,14 @@ class NukeCore(Core):
         except RuntimeError:
             return ''
 
+    def eventFilter(self, obj, event):
+        if event.type() == event.Close and obj == self.rootWindow():
+            # Because blurdev.core.shutdown() is triggered after the window has already been destroyed,
+            # we need to capture the close event and shutdown the toolbars here in order to successfully
+            # save preferences for them.
+            self.shutdownToolbars()
+        return super(NukeCore, self).eventFilter(obj, event)
+
     def lovebar(self, parent=None):
         if parent == None:
             parent = self.rootWindow()
@@ -80,6 +96,7 @@ class NukeCore(Core):
         lovebar = ToolsLoveBar.instance(parent)
         if not hasInstance and isinstance(parent, QMainWindow):
             parent.addToolBar(Qt.TopToolBarArea, lovebar)
+            parent.installEventFilter(self)
         return lovebar
 
     def macroName(self):
@@ -104,11 +121,6 @@ class NukeCore(Core):
             toolbar.toXml(pref.root())
             child = pref.root().addNode('toolbardialog')
             child.setAttribute('visible', toolbar.isVisible())
-
-    def restoreToolbars(self):
-        super(NukeCore, self).restoreToolbars()
-        # Restore the toolbar positions if they are visible
-        # maya.cmds.windowPref(restoreMainWindowState="startupMainWindowState")
 
     def showLovebar(self, parent=None):
         self.lovebar(parent=parent).show()

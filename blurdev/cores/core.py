@@ -339,6 +339,14 @@ class Core(QObject):
     def init(self):
         """ Initializes the core system
         """
+        self.initCore()
+        self.initGui()
+
+    def initCore(self):
+        """Work method to initialize the core system -- breaking the initialization apart allows the
+        gui-dependant initialization to be delayed in applications where that is necessary by
+        overloading init().
+        """
         # register protected modules
         # do not want to affect this module during environment switching
         self.protectModule('blurdev')
@@ -389,8 +397,12 @@ class Core(QObject):
         # restore the core settings
         self.restoreSettings()
         self.connectAppSignals()
-        self.restoreToolbars()
         return output
+
+    def initGui(self):
+        """Initialize the portions of the core that require GUI initialization to have completed.
+        """
+        self.restoreToolbars()
 
     def applyEnvironmentTimeouts(self):
         """
@@ -1298,9 +1310,9 @@ class Core(QObject):
                 QApplication.instance().closeAllWindows()
                 QApplication.instance().quit()
         else:
-            # The app is probably maya or Motionbuilder, so closing all windows, and killing the app
-            # is not what we want to do. This saves prefs and closes any of the instance windows if
-            # they are active
+            # The app is probably nuke, maya or Motionbuilder, so closing all windows, and killing
+            # the app is not what we want to do. This saves prefs and closes any of the instance
+            # windows if they are active
 
             # Make sure to close the Toolbar and Lovebar
             self.shutdownToolbars()
