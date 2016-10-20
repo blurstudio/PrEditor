@@ -53,7 +53,7 @@ class FilePickerWidget(QWidget):
 
     filenameEdited = pyqtSignal(str)
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         self._correctBackground = QColor(156, 206, 156, 255)
         self._correctForeground = QColor(Qt.white)
         self._inCorrectBackground = QColor(210, 156, 156, 255)
