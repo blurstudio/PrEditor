@@ -511,8 +511,7 @@ class Action(object):
         # check for the programmer defined `kwargs` property
         # Search for 'noPickle' in FarmAction for an example usecase
         desc = []
-        for attrName in dir(self):
-            attr = self.__getattribute__(attrName)
+        for attrName, attr in self.__dict__.iteritems():
             if isinstance(attr, _PropertyDescriptor):
                 desc.append(attr)
         return desc
