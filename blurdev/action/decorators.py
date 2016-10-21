@@ -86,6 +86,10 @@ class _Argument(object):
     def kwargs(self):
         return self._kwargs
 
+    @property
+    def allowNone(self):
+        return self._allowNone
+
     @value.setter
     def value(self, value):
         if isinstance(value, self.atype):

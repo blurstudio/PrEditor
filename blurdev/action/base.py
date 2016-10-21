@@ -497,6 +497,7 @@ class Action(object):
                     atype=argument.atype,
                     valid=argument.validValues,
                     settable=argument.settable,
+                    allowNone=argument.allowNone,
                     **argument.kwargs
                 )
                 setattr(
@@ -598,12 +599,15 @@ class Action(object):
 
 
 class _PropertyDescriptor(object):
-    def __init__(self, name, value, atype, valid, settable=True, **kwargs):
+    def __init__(
+        self, name, value, atype, valid, settable=True, allowNone=False, **kwargs
+    ):
         self._name = str(name)
         self._value = value
         self._atype = atype
         self._valid = valid
         self._settable = settable
+        self._allowNone = allowNone
         self.kwargs = kwargs
 
     def getValue(self):
@@ -612,12 +616,14 @@ class _PropertyDescriptor(object):
     def setValue(self, value):
         if not self._settable:
             raise AttributeError('Attribute "{0}" is not settable.'.format(self._name))
-        if not isinstance(value, self._atype):
+
+        if not (isinstance(value, self._atype) or (value is None and self._allowNone)):
             raise TypeError(
                 'Given value must be of type {0}. "{1}" provided'.format(
                     str(self._atype), str(type(value))
                 )
             )
+
         if self._valid != None:
             if value in self._valid:
                 self._value = value
