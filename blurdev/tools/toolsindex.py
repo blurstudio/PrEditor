@@ -146,25 +146,26 @@ class ToolsIndex(QObject):
         if configFilename:
             if isinstance(configFilename, bool):
                 configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
-            envName = self.parent().legacyName()
-            envPath = self.parent().path()
-            with blurdev.ini.temporaryDefaults():
-                blurdev.ini.SetINISetting(
-                    configFilename, 'GLOBALS', 'environment', 'DEFAULT'
-                )
-                blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'version', 2.0)
-                blurdev.ini.SetINISetting(
-                    configFilename,
-                    'DEFAULT',
-                    'coderoot',
-                    os.path.join(envPath, 'maxscript', 'treegrunt'),
-                )
-                blurdev.ini.SetINISetting(
-                    configFilename,
-                    'DEFAULT',
-                    'startuppath',
-                    os.path.join(envPath, 'maxscript', 'treegrunt', 'lib'),
-                )
+            if os.path.exists(configFilename):
+                envName = self.parent().legacyName()
+                envPath = self.parent().path()
+                with blurdev.ini.temporaryDefaults():
+                    blurdev.ini.SetINISetting(
+                        configFilename, 'GLOBALS', 'environment', 'DEFAULT'
+                    )
+                    blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'version', 2.0)
+                    blurdev.ini.SetINISetting(
+                        configFilename,
+                        'DEFAULT',
+                        'coderoot',
+                        os.path.join(envPath, 'maxscript', 'treegrunt'),
+                    )
+                    blurdev.ini.SetINISetting(
+                        configFilename,
+                        'DEFAULT',
+                        'startuppath',
+                        os.path.join(envPath, 'maxscript', 'treegrunt', 'lib'),
+                    )
 
         # clear the old data & reload
         self.clear()
