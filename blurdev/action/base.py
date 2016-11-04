@@ -576,6 +576,8 @@ class Action(object):
         value = super(Action, self).__getattribute__(key)
         if isinstance(value, _PropertyDescriptor):
             return value.getValue()
+        elif hasattr(value, '_argproperty__actionArgument'):
+            return value._argproperty__actionArgument.default
         else:
             return value
 
