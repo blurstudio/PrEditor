@@ -80,6 +80,7 @@ class Action(object):
                 or if an argument value was given that is not of the correct type
                 as defined by the argument definition for the action.
         """
+        self._setupComplete = False
         self._currentApplication = None
         self.setApplicationContext()
 
@@ -122,6 +123,7 @@ class Action(object):
         self._registerChildActions(*self._args, **self._kwargs)
         self._registerApplicationMethods()
         self._sortHooks()
+        self._setupComplete = True
 
     @property
     def currentApplication(self):
@@ -576,7 +578,7 @@ class Action(object):
         value = super(Action, self).__getattribute__(key)
         if isinstance(value, _PropertyDescriptor):
             return value.getValue()
-        elif hasattr(value, '_argproperty__actionArgument'):
+        elif hasattr(value, '_argproperty__actionArgument') and self._setupComplete:
             return value._argproperty__actionArgument.default
         else:
             return value
