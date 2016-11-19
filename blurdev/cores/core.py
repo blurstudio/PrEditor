@@ -246,6 +246,46 @@ class Core(QObject):
         # enable the client keystrokes
         self._keysEnabled = True
 
+    def flashWindow(self, window=None, dwFlags=None, count=1, timeout=0, hwnd=None):
+        """ Flashes the application depending on the os.
+        
+        On Windows this calls FlashWindowEx. See this documentation.
+        http://docs.activestate.com/activepython/2.7/pywin32/win32gui__FlashWindowEx_meth.html
+        https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
+        
+        Args:
+            window (QWidget|None): This widget will be flashed. Attempts to get the hwnd from 
+                this widget. Note: This is ignored if hwnd is passed in.
+            dwFlags (win32con.FLASHW_*): A enum value used to control the flashing behavior.
+                See https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
+                details. Defaults to win32con.FLASHW_TIMERNOFG.
+            count (int): The number of times to flash the window. Defaults to 1.
+            timeout (int): The rate at which the window is to be flashed in milliseconds.
+                if zero is passed, the default cursor blink rate is used.
+        
+        Returns:
+            bool: Was anything attempted. On windows this always returns True.
+        """
+        if blurdev.settings.OS_TYPE == 'Windows':
+            from win32gui import FlashWindowEx
+
+            if dwFlags is None:
+                import win32con
+
+                dwFlags = win32con.FLASHW_TIMERNOFG
+            if hwnd is None:
+                if window is None:
+                    if self.isMfcApp():
+                        hwnd = self.hwnd()
+                    else:
+                        hwnd = self.rootWindow().winId().__int__()
+                else:
+                    hwnd = window.winId().__int__()
+
+            FlashWindowEx(hwnd, dwFlags, count, timeout)
+            return True
+        return False
+
     def runOnDccStartup(self):
         """ When starting a DCC like 3ds Max, execute this code on startup.
         
