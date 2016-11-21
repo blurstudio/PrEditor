@@ -99,6 +99,10 @@ class TempFilesContext(object):
 		keyed (bool): Enables Keyed mode.
 		defaultDir (str|None): If not None(the default) this is passed to tempfile
 			functions as the dir kwarg if that kwarg is not provided in the call.
+		crashMonitor (bool): If True(default), use multiprocessing to launch a watcher 
+			process if python is killed by some external process while inside this 
+			context this external process will remove all temp files created by the 
+			context.
 	"""
 
     def __init__(self, keyed=True, defaultDir=None, crashMonitor=True):
