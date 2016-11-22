@@ -350,6 +350,14 @@ class DocumentEditor(QsciScintilla):
             text = re.sub(r'^\W', '', unicode(text), flags=re.M)
         QApplication.clipboard().setText(text)
 
+    def copyHtml(self):
+        """ Copy's the selected text, but formats it using pygments if installed into html."""
+        text = unicode(self.selectedText())
+        from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
+
+        text = ConsoleEdit.highlightCodeHtml(text, self.language(), None)
+        QApplication.clipboard().setText(text)
+
     def detectEndLine(self, text):
         newlineN = text.indexOf('\n')
         newlineR = text.indexOf('\r')
@@ -1075,6 +1083,10 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Copy lstrip')
         act.triggered.connect(self.copyLstrip)
         act.setShortcut('Ctrl+Shift+C')
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+
+        act = menu.addAction('Copy Html')
+        act.triggered.connect(self.copyHtml)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
         act = menu.addAction('Paste')
