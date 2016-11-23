@@ -222,7 +222,7 @@ class Action(object):
         if 'maya' in _exe:
             self._currentApplication = Apps.Maya
         elif 'motionbuilder' in _exe:
-            self._currentApplicationn = Apps.MotionBuilder
+            self._currentApplication = Apps.MotionBuilder
         elif 'max' in _exe:
             self._currentApplication = Apps.Max
         elif 'xsi' in _exe:
