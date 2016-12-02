@@ -58,6 +58,23 @@ elif 'nuke' in _exe:
     except:
         pass
 
+# initialize the system for running inside Mari
+elif 'mari' in _exe:
+    from maricore import MariCore as Core
+
+    try:
+        from maricore import MariCore as Core
+    except:
+        pass
+
+## initialize the system for running inside Houdini
+# elif 'houdini' in _exe:
+# 	from houdinicore import HoudiniCore as Core
+# 	try:
+# 		from houdinicore import HoudiniCore as Core
+# 	except:
+# 		pass
+
 # initialize the system for running inside RV
 elif 'rv' in _exe:
     from rvcore import RVCore as Core
