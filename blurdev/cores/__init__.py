@@ -68,12 +68,13 @@ elif 'mari' in _exe:
         pass
 
 ## initialize the system for running inside Houdini
-# elif 'houdini' in _exe:
-# 	from houdinicore import HoudiniCore as Core
-# 	try:
-# 		from houdinicore import HoudiniCore as Core
-# 	except:
-# 		pass
+elif 'houdini' in _exe:
+    from houdinicore import HoudiniCore as Core
+
+    try:
+        from houdinicore import HoudiniCore as Core
+    except:
+        pass
 
 # initialize the system for running inside RV
 elif 'rv' in _exe:

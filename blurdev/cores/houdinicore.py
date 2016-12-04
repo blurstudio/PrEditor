@@ -28,10 +28,10 @@ class HoudiniCore(Core):
         """
         return False
 
-    # 	@property
-    # 	def headless(self):
-    # 		""" If true, no Qt gui elements should be used because python is running a QCoreApplication. """
-    # 		return (not nuke.GUI)
+    @property
+    def headless(self):
+        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        return not hou.isUIAvailable()
 
     def shouldReportException(self, exctype, value, traceback_):
         """ Allow the core to control if the Python Logger shows the ErrorDialog or a email is sent.
@@ -61,15 +61,15 @@ class HoudiniCore(Core):
         """
         return False
 
-    # 	def errorCoreText(self):
-    # 		"""
-    # 		Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-    # 		If a empty string is returned this line will not be shown in the error email.
-    # 		"""
-    # 		try:
-    # 			return '<i>Open File:</i> %s' % nuke.scriptName()
-    # 		except RuntimeError:
-    # 			return ''
+    def errorCoreText(self):
+        """
+        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
+        If a empty string is returned this line will not be shown in the error email.
+        """
+        try:
+            return '<i>Open File:</i> %s' % hou.hipFile.name()
+        except RuntimeError:
+            return ''
 
     def lovebar(self, parent=None):
         if parent == None:
@@ -137,3 +137,8 @@ class HoudiniCore(Core):
         if not hasInstance and isinstance(parent, QMainWindow):
             parent.addToolBar(Qt.TopToolBarArea, toolbar)
         return toolbar
+
+    def registerPaths(self):
+        # Overload registerPaths to avoid loading
+        # compiled libs incompatible with houdini.
+        return
