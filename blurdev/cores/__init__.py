@@ -10,9 +10,7 @@ if sys.platform == 'win32':
     _exe = os.path.basename(sys.executable).lower()
 else:
     # On linux sys.executable does not return the application that python is embedded inside
-    _exe = os.path.basename(
-        os.path.realpath('/proc/{}/exe'.format(os.getpid()))
-    ).lower()
+    _exe = os.path.basename(os.path.realpath('/proc/{}/exe'.format(os.getpid()))).lower()
 
 # initialize the system for Motion Builder
 if 'maya' in _exe:
@@ -27,7 +25,7 @@ if 'motionbuilder' in _exe:
         from motionbuildercore import MotionBuilderCore as Core
     except:
         pass
-
+    
 # initialize the system for 3d Studio Max
 elif 'max' in _exe:
     try:
@@ -36,7 +34,7 @@ elif 'max' in _exe:
         pass
 
 # initialize the system for Softimage
-elif 'xsi' in _exe:
+elif 'xsi' in _exe:		
     try:
         from softimagecore import SoftimageCore as Core
     except:
@@ -52,34 +50,32 @@ elif 'fusion' in _exe:
 # initialize the system for running inside Nuke
 elif 'nuke' in _exe:
     from nukecore import NukeCore as Core
-
     try:
         from nukecore import NukeCore as Core
     except:
-        pass
+        pass		
 
 # initialize the system for running inside Mari
 elif 'mari' in _exe:
     from maricore import MariCore as Core
-
     try:
         from maricore import MariCore as Core
     except:
-        pass
+        pass		
 
 ## initialize the system for running inside Houdini
-elif 'houdini' in _exe:
+# Houdini uses many different executables, so we'll make a list to check against
+_houdiniExecs = ['hmaster', 'hython', 'houdini', 'hescape']
+elif any(exeName in _exe for exeName in _houdiniExecs):
     from houdinicore import HoudiniCore as Core
-
     try:
         from houdinicore import HoudiniCore as Core
     except:
-        pass
+        pass		
 
 # initialize the system for running inside RV
 elif 'rv' in _exe:
     from rvcore import RVCore as Core
-
     try:
         from rvcore import RVCore as Core
     except:
