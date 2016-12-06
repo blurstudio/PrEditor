@@ -623,8 +623,8 @@ class _PropertyDescriptor(object):
 
         if not (isinstance(value, self._atype) or (value is None and self._allowNone)):
             raise TypeError(
-                'Given value must be of type {0}. "{1}" provided'.format(
-                    str(self._atype), str(type(value))
+                'Given value for {0} must be of type {1}. "{2}" provided'.format(
+                    self._name, str(self._atype), str(type(value))
                 )
             )
 
