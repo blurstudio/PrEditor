@@ -11,7 +11,7 @@ import blurdev.tools.toolheader
 import blurdev.tools.toolsindex
 
 
-# 					1			2			4			8		  16			32				64					128				256			  512	  1024, 	2048	4096,  8192
+# 					1			2			4			8		  16			32				64					128				256			  512	  1024, 	2048	4096,  8192     16384
 ToolType = enum(
     'External',
     'Trax',
@@ -27,7 +27,8 @@ ToolType = enum(
     'Shotgun',
     'RV',
     'Mari',
-    AllTools=16383,
+    'Houdini',
+    AllTools=32767,
 )
 
 
