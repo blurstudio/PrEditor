@@ -199,6 +199,8 @@ class TempFilesContext(object):
             # This is not keyed, so generate a new key each time its called
             key = len(self._tempFiles)
 
+        closeHandle = kwargs.pop('closeHandle', False)
+
         if key not in self._tempFiles:
             # If a defaultDir was provided, make sure its included
             print 'DEFAULT DIR', [self.defaultDir, kwargs]
@@ -210,6 +212,8 @@ class TempFilesContext(object):
             self._tempFiles[key] = tempFile
             if self.crashMonitor:
                 self.pipe.send(('tempFile', tempFile[1]))
+            if closeHandle:
+                os.close(tempFile[0])
         return self._tempFiles[key][1]
 
     def __enter__(self):
