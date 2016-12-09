@@ -290,12 +290,11 @@ class Core(QObject):
         """ When starting a DCC like 3ds Max, execute this code on startup.
         
         This provides a location for defining additional startup behavior when a DCC is initalized.
-        Currently it is used to check if trax should be imported on startup and if the 
-        blur3d.pipe.cinematic.api scene callbacks should be initalized.
+        Currently it is used to check if trax should be imported on startup and if the studio.internal scene callbacks should be initalized.
         
         This module is safe to call without trax or blur3d being installed.
         """
-        # Don't run blur3d.pipe callbacks in this dcc when in quiet mode(rendering) or if its
+        # Don't run studio callbacks in this dcc when in quiet mode(rendering) or if its
         # disabled by the environment variable BDEV_TRAX_ON_DCC_STARTUP.
         enableTraxOnDccStartup = os.environ.get(
             'BDEV_TRAX_ON_DCC_STARTUP', 'true'
@@ -307,9 +306,9 @@ class Core(QObject):
 
                 if trax.isValid:
                     # Initializing the pipe layer of blur3d.
-                    # On import trax.api will be imported and pipeline specific signals will be connected.
-                    # See the blur3d/pipe/cinematic/api/__init__.py for more information.
-                    import blur3d.pipe.cinematic.api
+                    # On import trax.api will be imported and studio specific signals will be connected.
+                    # See the studio/internal/__init__.py for more information.
+                    import studio.internal
             # This is to prevent errors if modules do not exist.
             except ImportError:
                 pass
