@@ -121,6 +121,33 @@ def expandvars(text, cache=None):
     return output
 
 
+def expandPath(path):
+    """Expands tilde-shortened Windows paths to full pathname.
+
+    If no shortenings were found, the expanded path is longer than the Windows
+    260-character maximum path length, or windll is not available, the input path
+    (cast to unicode) will be returned.
+    
+    Args:
+        path (str): Input path to expand, will be cast to unicode prior to expansion.
+    
+    Returns:
+        unicode: Input path with any tilde-shortenings expanded.
+    """
+    try:
+        from ctypes import windll, create_unicode_buffer
+
+        buf = create_unicode_buffer(260)
+        GetLongPathName = windll.kernel32.GetLongPathNameW
+        rv = GetLongPathName(unicode(path), buf, 260)
+        if rv == 0 or rv > 260:
+            return path
+        else:
+            return buf.value
+    except ImportError:
+        return unicode(path)
+
+
 def console(filename):
     """Starts a console window at the given path
 

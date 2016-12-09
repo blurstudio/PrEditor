@@ -1,10 +1,8 @@
 """A collection of utils for working with files."""
 
 import os
-import sys
 import shutil
 import fnmatch
-import shutil
 import threading
 
 
