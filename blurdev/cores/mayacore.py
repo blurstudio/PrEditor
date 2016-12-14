@@ -85,6 +85,17 @@ class MayaCore(Core):
         ToolsToolBar.instanceShutdown()
         ToolsLoveBar.instanceShutdown()
 
+    def shutdown(self):
+        # We are using a autorun.bat script to create 30+ doskey aliases. When Maya is shutting
+        # down it makes serveral system calls. For some reason in this environment doskey
+        # errors out or just takes a long time to run. We don't need these aliases. The batch
+        # script will skip the doskey calls if this environment variable is not a empty string.
+        varName = 'BDEV_DISABLE_AUTORUN'
+        if os.getenv(varName) is None:
+            os.environ[varName] = 'true'
+
+        super(MayaCore, self).shutdown()
+
     def toolbar(self, parent=None):
         if parent == None:
             parent = self.rootWindow()
