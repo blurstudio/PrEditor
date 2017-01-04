@@ -385,7 +385,7 @@ class LoggerWindow(Window):
             if font:
                 lexer = workbox.lexer()
                 if lexer:
-                    font = lexer.setFont(font, 0)
+                    font = lexer.setFont(font)
                 else:
                     font = workbox.setFont(font)
             font = pref.restoreProperty(

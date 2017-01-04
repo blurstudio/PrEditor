@@ -954,10 +954,9 @@ class DocumentEditor(QsciScintilla):
         self.updateColorScheme()
 
     def setLexer(self, lexer):
+        font = self.documentFont
         if lexer:
-            lexer.setFont(self.documentFont)
-        else:
-            self.setFont(self.documentFont)
+            font = lexer.font(0)
         # Backup values destroyed when we set the lexer
         marginFont = self.marginsFont()
         # 		folds = self.contractedFolds()
@@ -987,6 +986,11 @@ class DocumentEditor(QsciScintilla):
             # lexer to a lexer that doesn't define custom wordCharacters.
             wordCharacters = self.wordCharacters()
         self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters)
+
+        if lexer:
+            lexer.setFont(font)
+        else:
+            self.setFont(font)
 
     def setLineMarginWidth(self, width):
         self.setMarginWidth(self.SymbolMargin, width)
@@ -1221,6 +1225,8 @@ class DocumentEditor(QsciScintilla):
             self.setPaper(self.paperDefault)
             self.setColor(self.colorDefault)
             return
+        # Backup the lexer font. The calls to setPaper/setColor cause it to be reset.
+        font = lex.font(0)
         # Set Default lexer colors
         for i in range(128):
             lex.setPaper(self.paperDefault, i)
@@ -1266,6 +1272,8 @@ class DocumentEditor(QsciScintilla):
         self.setFoldMarginColors(*self.foldMarginColors())
         self.setMatchedBraceBackgroundColor(self.matchedBraceBackgroundColor())
         self.setMatchedBraceForegroundColor(self.matchedBraceForegroundColor())
+        # Restore the existing font
+        lex.setFont(font, 0)
 
     def updateFilename(self, filename):
         filename = str(filename)
