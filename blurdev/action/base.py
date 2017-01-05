@@ -82,7 +82,6 @@ class Action(object):
         """
         self._setupComplete = False
         self._currentApplication = None
-        self.setApplicationContext()
 
         self._preChildHooks = []
         self._postChildHooks = []
@@ -110,6 +109,8 @@ class Action(object):
         self._args = args
         self._kwargs = kwargs
         self._setArguments(dict(kwargs.get('argRename', dict())))
+
+        self.setApplicationContext()
         self._registerHooks()
         # After hooks are registered, we can determine whether the action
         # is implemented for some application context, but NOT implemented
@@ -200,7 +201,7 @@ class Action(object):
         self._postExecuteHooks = []
         self._hasContextHooks = False
 
-    def setApplicationContext(self, registerHooks=False):
+    def setApplicationContext(self, registerHooks=False, recursive=False):
         """Detects and sets the current application context.
 
         Looks to sys.executable to determine what application the action
@@ -210,7 +211,8 @@ class Action(object):
         methods will be run.
 
         Args:
-            registerHooks(bool): Force re-registration of all hooks.
+            registerHooks (bool): Force re-registration of all hooks.
+            recursive (bool): Force recursive re-registration of of all children
 
         Returns:
             N/A
@@ -237,6 +239,10 @@ class Action(object):
             self._registerHooks()
             self._registerApplicationMethods()
             self._sortHooks()
+
+        if recursive:
+            for act in self.childActions:
+                act.setApplicationContext(registerHooks, recursive)
 
     def _executePreChildHooks(self, childAction):
         for preChildHook in self._preChildHooks:
