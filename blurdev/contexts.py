@@ -34,41 +34,35 @@ def monitorForCrash(pid, conn):
 	"""
     # Note: importing inside this function can cause dll errors when running inside a DCC.
     try:
-        print 'Monitoring for a crash.'
-        basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
-        blurdev.debug.logToFile(
-            os.path.join(basepath, 'monitorForCrash.log'), useOldStd=True
-        )
-
         tempFiles = []
         tempDirs = []
-        print 'checking pid', pid, (Stone, psutil)
+        print '[monitorForCrash] Checking pid', pid, (Stone, psutil)
         while (Stone and Stone.isRunning(pid)) or psutil and psutil.pid_exists(pid):
             try:
                 if conn.poll():
                     data = conn.recv()
                     if data[0] == 'tempFile':
                         tempFiles.append(data[1])
-                        print 'adding tempFile', data[1]
+                        print '[monitorForCrash] Adding tempFile', data[1]
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'tempDir':
                         tempDirs.append(data[1])
-                        print 'adding tempDir', data[1]
+                        print '[monitorForCrash] Adding tempDir', data[1]
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'finished':
-                        print 'Parent process is done, exiting without doing anything'
+                        print '[monitorForCrash] Parent process is done, exiting without doing anything'
                         return
             except IOError as e:
                 if e.errno == 109:
                     # The pipe has been ended, assume the parent process was killed
-                    print 'IOError 109'
+                    print '[monitorForCrash] IOError 109'
                     break
             time.sleep(1)
 
-        print 'Removing tempFiles', tempFiles
-        print 'Removing tempDirs', tempDirs
+        print '[monitorForCrash] Removing tempFiles', tempFiles
+        print '[monitorForCrash] Removing tempDirs', tempDirs
         # Remove any created folders from disk and their contents
         for tempDir in tempDirs:
             shutil.rmtree(tempDir, ignore_errors=True)
@@ -78,7 +72,7 @@ def monitorForCrash(pid, conn):
                 os.remove(tempFile)
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print 'File already deleted', e.message, tempFile
+                    print '[monitorForCrash] File already deleted', e.message, tempFile
     except:
         traceback.print_exc()
         time.sleep(20)
@@ -95,6 +89,16 @@ class TempFilesContext(object):
 	Keyed mode returns the same object if one of the make functions is called twice
 	with the same key.
 	
+	Note:
+		The crashMonitor option uses multiprocessing to monitor if the main python
+		module was killed. Because of how multiprocessing works on windows, if you
+		used a script when launching python you need to make sure that the main 
+		module can be safely imported by a new Python interpreter without causing 
+		unintended side effects (such as calling TempFilesContext(crashMonitor=True)).
+		Simply put, make sure you use in your scripts(if __name__ == '__main__':)
+		See https://docs.python.org/2/library/multiprocessing.html#windows search 
+		for "Safe importing of main module" for more info.
+	
 	Args:
 		keyed (bool): Enables Keyed mode.
 		defaultDir (str|None): If not None(the default) this is passed to tempfile
@@ -103,9 +107,13 @@ class TempFilesContext(object):
 			process if python is killed by some external process while inside this 
 			context this external process will remove all temp files created by the 
 			context.
+		pythonw (bool): If True multiprocessing.set_executable will be set to 
+			pythonw.exe. If False (default) it will be set to python.exe. If False 
+			the print statements in the monitorForCrash() child process appear to 
+			be redirected back to the parent process. This is useful for debugging.
 	"""
 
-    def __init__(self, keyed=True, defaultDir=None, crashMonitor=True):
+    def __init__(self, keyed=True, defaultDir=None, crashMonitor=True, pythonw=False):
         self.keyed = keyed
         self.defaultDir = defaultDir
         self._tempDirs = {}
@@ -121,7 +129,7 @@ class TempFilesContext(object):
                 pid = os.getpid()
                 # If python is embeded in a application multiprocessing will launch a new
                 # instance of that instead of python, so force it to run python.
-                multiprocessing.set_executable(blurdev.osystem.pythonPath(pyw=True))
+                multiprocessing.set_executable(blurdev.osystem.pythonPath(pyw=pythonw))
 
                 # multiprocessing requires sys.argv so manually create it if it doesn't already exist
                 if not hasattr(sys, 'argv'):
@@ -230,7 +238,7 @@ class TempFilesContext(object):
             try:
                 os.close(tempFile[0])
             except OSError as e:
-                print 'Problem closing tempfile', e.message
+                print 'Problem closing tempfile', e, e.message
             try:
                 os.remove(tempFile[1])
             except OSError as e:
