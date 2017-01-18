@@ -67,7 +67,7 @@ class PythonCompleter(QCompleter):
                 except:
                     pass
 
-                if not object:
+                if object is None:
                     import sys
 
                     if symbol in sys.modules:
