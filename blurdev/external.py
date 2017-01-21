@@ -233,7 +233,11 @@ class External(object):
         if Stone:
             exe = 'pythonw.exe'
             daemon = False
-        multiprocessing.set_executable(os.path.join(sys.exec_prefix, exe))
+        exe = os.path.join(sys.exec_prefix, exe)
+        # Nuke's sys.exec_prefix is the root directory on windows. Should I just use pythonPath?
+        if not os.path.exists(exe):
+            exe = blurdev.osystem.pythonPath(pyw=bool(Stone))
+        multiprocessing.set_executable(exe)
         if not hasattr(sys, 'argv'):
             # multiprocessing requires sys.argv so manually create it if it doesn't already exist
             sys.argv = ['']
