@@ -229,6 +229,8 @@ class Action(object):
             self._currentApplication = Apps.Max
         elif 'xsi' in _exe:
             self._currentApplication = Apps.XSI
+        elif 'nuke' in _exe:
+            self._currentApplication = Apps.Nuke
         else:
             self._currentApplication = Apps.External
         mLocals = self._runApplicationImports()
