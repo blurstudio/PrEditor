@@ -24,7 +24,7 @@ class NukeCore(Core):
     def init(self):
         """Overload init to prevent gui-dependant initialization from occuring here.
 
-        We will need to call initGui later (in blurnuke.nukestartup) to initialize the
+        We will need to call initGui later (in dcc.nuke.nukestartup) to initialize the
         gui-dependant stuff.
         """
         self.initCore()
