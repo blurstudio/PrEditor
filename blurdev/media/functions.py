@@ -580,3 +580,10 @@ def setAppIdForIcon(source, new=None):
         out.wait()
         return out.stdout.readlines()
     return -1
+
+
+def naturalSort(l):
+    """ taken from: http://blog.codinghorror.com/sorting-for-humans-natural-sort-order/ """
+    convert = lambda text: int(text) if text.isdigit() else text.lower()
+    alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
+    return sorted(l, key=alphanum_key)
