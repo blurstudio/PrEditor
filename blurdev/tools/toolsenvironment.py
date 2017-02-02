@@ -735,6 +735,14 @@ class ToolsEnvironment(QObject):
         self.registerPath(
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
         )
+
+        # This seems like the place to add new top level folders?
+        self.registerPath(
+            os.path.join(
+                blurdev.activeEnvironment().path(), 'code', 'python', 'site-packages'
+            )
+        )
+
         # If this environment has a project make sure we load the project settings
         self.activateProject()
         # Some environment settings need to wait for the initial phase to be processed before proceeding
