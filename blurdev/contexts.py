@@ -100,7 +100,7 @@ class TempFilesContext(object):
 		for "Safe importing of main module" for more info.
 	
 	Args:
-		keyed (bool): Enables Keyed mode.
+		keyed (bool): Enables Keyed mode. Defaults to True.
 		defaultDir (str|None): If not None(the default) this is passed to tempfile
 			functions as the dir kwarg if that kwarg is not provided in the call.
 		crashMonitor (bool): If True(default), use multiprocessing to launch a watcher 
