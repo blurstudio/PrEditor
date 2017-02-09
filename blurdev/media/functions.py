@@ -277,13 +277,14 @@ def imageSequenceInfo(path, osystem=None):
     # identifying a shot number as a image sequence. Thanks willc.
 
     # match seq/shot format used by studio
+
     seqShotPattern = r'(?:Sc\d{3}|S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?'
     # grab all digits for the frame number
     framePattern = r'(?P<frame>\d+)?'
     # match anything after our frame (that isn't a digit), and include a file extension
     # Frame number will be expected to be the LAST digits that appear before the extension because
     # of this.
-    postPattern = r'(?P<post>\D*\.[A-Za-z0-9]+?$)'
+    postPattern = r'(?P<post>[^0-9/\\]*\.[A-Za-z0-9]+?$)'
     # Assemble the pieces of our pattern into the full match pattern for filenames
     filePattern = r'(?P<pre>^.+?' + seqShotPattern + r')' + framePattern + postPattern
     regex = re.compile(filePattern, flags=flags)
