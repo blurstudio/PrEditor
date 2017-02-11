@@ -284,7 +284,7 @@ def imageSequenceInfo(path, osystem=None):
     # match anything after our frame (that isn't a digit), and include a file extension
     # Frame number will be expected to be the LAST digits that appear before the extension because
     # of this.
-    postPattern = r'(?P<post>[^0-9/\\]*\.[A-Za-z0-9]+?$)'
+    postPattern = r'(?P<post>\.[A-Za-z0-9]+?$)'
     # Assemble the pieces of our pattern into the full match pattern for filenames
     filePattern = r'(?P<pre>^.+?' + seqShotPattern + r')' + framePattern + postPattern
     regex = re.compile(filePattern, flags=flags)
