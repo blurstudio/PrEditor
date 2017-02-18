@@ -588,3 +588,25 @@ def naturalSort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
+
+
+def sizeof_fmt(num, suffix='B', iec=False):
+    """ Convert the given number of bytes into the nicest MB, GB, etc value.
+    
+    Original source: http://stackoverflow.com/a/1094933 Author: Sridhar Ratnakumar
+    
+    Args:
+        num (int|long): The byte value you want to convert to a nice name.
+        suffix (str): The suffix you would like to add to the end. Defaults to 'B'.
+        iec (bool): The size label will follow "IEC prefixes". Defaults to False.
+            See "https://en.wikipedia.org/wiki/Binary_prefix#Adoption_by_IEC.2C_NIST_and_ISO"
+    
+    Returns:
+        str: A string with num converted to a nice format. For example "16.0 MB".
+    """
+    iec = 'i' if iec else ''
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s%s" % (num, unit, iec, suffix)
+        num /= 1024.0
+    return "%.1f %s%s%s" % (num, 'Y', iec, suffix)
