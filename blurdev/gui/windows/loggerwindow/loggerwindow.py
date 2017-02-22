@@ -8,13 +8,13 @@
 # 	\date		01/15/08
 #
 
-import os
+import os, time
 from functools import partial
 from blurdev.gui import Window
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from workboxwidget import WorkboxWidget
 from blurdev import prefs
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, QFileSystemWatcher, QFileInfo
 from PyQt4.QtGui import (
     QSplitter,
     QKeySequence,
@@ -27,6 +27,8 @@ from PyQt4.QtGui import (
     QInputDialog,
     QApplication,
     QLabel,
+    QFileDialog,
+    QFileIconProvider,
 )
 import blurdev
 
@@ -54,9 +56,11 @@ class LoggerWindow(Window):
 
         # create the workbox tabs
         self._currentTab = -1
+        self._reloadRequested = set()
         # Connect the tab widget signals
         self.uiWorkboxTAB.addTabClicked.connect(self.addWorkbox)
         self.uiWorkboxTAB.tabCloseRequested.connect(self.removeWorkbox)
+        self.uiWorkboxTAB.currentChanged.connect(self.currentChanged)
         self.uiWorkboxTAB.tabBar().setContextMenuPolicy(Qt.CustomContextMenu)
         self.uiWorkboxTAB.tabBar().customContextMenuRequested.connect(
             self.workboxTabRightClick
@@ -142,6 +146,10 @@ class LoggerWindow(Window):
         self.uiPdbNextACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_next.png')))
         self.uiPdbUpACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_up.png')))
         self.uiPdbDownACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_down.png')))
+
+        # Start the filesystem monitor
+        self._openFileMonitor = QFileSystemWatcher(self)
+        self._openFileMonitor.fileChanged.connect(self.linkedFileChanged)
 
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
@@ -325,9 +333,19 @@ class LoggerWindow(Window):
                 self._genPrefName('workboxTabTitle', index),
                 self.uiWorkboxTAB.tabBar().tabText(index),
             )
+
+            linkPath = ''
+            if workbox._fileMonitoringActive:
+                linkPath = workbox.filename()
+                if os.path.isfile(linkPath):
+                    workbox.save()
+                else:
+                    self.unlinkTab(index)
+
+            pref.recordProperty(self._genPrefName('workboxPath', index), linkPath)
+
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
-
         pref.recordProperty('styleSheet', self.styleSheet())
 
         pref.save()
@@ -381,6 +399,13 @@ class LoggerWindow(Window):
                     pref.restoreProperty(self._genPrefName('WorkboxText', index), '')
                 )
             )
+
+            workboxPath = pref.restoreProperty(
+                self._genPrefName('workboxPath', index), ''
+            )
+            if os.path.isfile(workboxPath):
+                self.linkTab(index, workboxPath)
+
             font = pref.restoreProperty(self._genPrefName('workboxFont', index), None)
             if font:
                 lexer = workbox.lexer()
@@ -397,6 +422,7 @@ class LoggerWindow(Window):
                 self._genPrefName('workboxTabTitle', index), 'Workbox'
             )
             self.uiWorkboxTAB.tabBar().setTabText(index, tabText)
+
         self.uiWorkboxTAB.setCurrentIndex(
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
@@ -516,6 +542,11 @@ class LoggerWindow(Window):
         menu = QMenu(self.uiWorkboxTAB.tabBar())
         act = menu.addAction('Rename')
         act.triggered.connect(self.renameTab)
+        act = menu.addAction('Link')
+        act.triggered.connect(self.linkCurrentTab)
+        act = menu.addAction('Un-Link')
+        act.triggered.connect(self.unlinkCurrentTab)
+
         menu.popup(QCursor.pos())
 
     def renameTab(self):
@@ -525,6 +556,75 @@ class LoggerWindow(Window):
             name, success = QInputDialog.getText(None, 'Rename Tab', msg, text=current)
             if success:
                 self.uiWorkboxTAB.tabBar().setTabText(self._currentTab, name)
+
+    def linkCurrentTab(self):
+        if self._currentTab != -1:
+            # get the previous path
+            pref = prefs.find('blurdev\LoggerWindow')
+            prevPath = pref.restoreProperty(
+                'linkFolder', os.path.join(os.path.expanduser('~'))
+            )
+
+            # Handle the file dialog
+            filters = "Python Files (*.py);;All Files (*.*)"
+            path = QFileDialog.getOpenFileName(self, "Link File", prevPath, filters)
+            if not path:
+                return
+            path = unicode(path)
+            pref.recordProperty('linkFolder', os.path.dirname(path))
+            pref.save()
+
+            self.linkTab(self._currentTab, path)
+
+    def linkTab(self, tabIdx, path):
+        wid = self.uiWorkboxTAB.widget(tabIdx)
+        tab = self.uiWorkboxTAB.tabBar()
+
+        wid.load(path)
+        wid.setAutoReloadOnChange(True)
+        tab.setTabText(tabIdx, os.path.basename(path))
+        tab.setTabToolTip(tabIdx, path)
+        iconprovider = QFileIconProvider()
+        tab.setTabIcon(tabIdx, iconprovider.icon(QFileInfo(path)))
+
+    def unlinkCurrentTab(self):
+        if self._currentTab != -1:
+            self.unlinkTab(self._currentTab)
+
+    def unlinkTab(self, tabIdx):
+        wid = self.uiWorkboxTAB.currentWidget()
+        tab = self.uiWorkboxTAB.tabBar()
+
+        wid.enableFileWatching(False)
+        wid.setAutoReloadOnChange(False)
+        tab.setTabToolTip(tabIdx, '')
+        tab.setTabIcon(tabIdx, QIcon())
+
+    def linkedFileChanged(self, filename):
+        for tabIndex in range(self.uiWorkboxTAB.count()):
+            workbox = self.uiWorkboxTAB.widget(tabIndex)
+            if workbox.filename() == filename:
+                self._reloadRequested.add(tabIndex)
+        newIdx = self.uiWorkboxTAB.currentIndex()
+        self.updateLink(newIdx)
+
+    def currentChanged(self):
+        newIdx = self.uiWorkboxTAB.currentIndex()
+        self.updateLink(newIdx)
+
+    def updateLink(self, tabIdx):
+        if tabIdx in self._reloadRequested:
+            fn = self.uiWorkboxTAB.currentWidget().filename()
+            if not os.path.isfile(fn):
+                self.unlinkTab(tabIdx)
+            else:
+                # Only reload the current widget if requested
+                time.sleep(0.1)  # loading the file too quickly misses any changes
+                self.uiWorkboxTAB.currentWidget().reloadChange()
+            self._reloadRequested.remove(tabIdx)
+
+    def openFileMonitor(self):
+        return self._openFileMonitor
 
     @staticmethod
     def instance(parent=None):

@@ -80,12 +80,12 @@ class DocumentEditor(QsciScintilla):
         self._markerForegroundColor = QColor(Qt.black)
         # --------------------------------------------------------------------------------
         # Requires update to QSci
-        # 		self._indicatorOutlineColor
-        # 		self._indicatorForegroundColor
-        # 		self._hotspotBackgroundColor
-        # 		self._hotspotForegroundColor
-        # 		self._whitespaceBackgroundColor
-        # 		self._whitespaceForegroundColor
+        # self._indicatorOutlineColor
+        # self._indicatorForegroundColor
+        # self._hotspotBackgroundColor
+        # self._hotspotForegroundColor
+        # self._whitespaceBackgroundColor
+        # self._whitespaceForegroundColor
         # --------------------------------------------------------------------------------
         # used to store the right click location
         self._clickPos = None
@@ -398,7 +398,7 @@ class DocumentEditor(QsciScintilla):
         # if file monitoring is enabled and we have a file name then set up the file monitoring
         window = self.window()
         self._fileMonitoringActive = False
-        if isinstance(window, IdeEditor):
+        if hasattr(window, 'openFileMonitor'):
             fm = window.openFileMonitor()
             if fm:
                 if state:
@@ -959,10 +959,10 @@ class DocumentEditor(QsciScintilla):
             font = lexer.font(0)
         # Backup values destroyed when we set the lexer
         marginFont = self.marginsFont()
-        # 		folds = self.contractedFolds()
+        # folds = self.contractedFolds()
         super(DocumentEditor, self).setLexer(lexer)
         # Restore values destroyed when we set the lexer
-        # 		self.setContractedFolds(folds)
+        # self.setContractedFolds(folds)
         self.setMarginsFont(marginFont)
         self.setMarginsBackgroundColor(self.marginsBackgroundColor())
         self.setMarginsForegroundColor(self.marginsForegroundColor())

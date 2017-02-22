@@ -44,11 +44,45 @@ class WorkboxWidget(DocumentEditor):
             '\r', '\n'
         ).rstrip() in __main__.__dict__, __main__.__dict__
 
+    def findLeadingWhitespace(self, lines):
+        # Find the first line that has text that isn't a comment
+        # We will then remove the leading whitespace from that line
+        # from all subsequent lines
+        for s in lines:
+            m = re.match('(\s*)[^#]', s)
+            if m:
+                return m.group(1)
+        return ''
+
+    def stripLeadingWhitespace(self, lines, rep):
+        newLines = []
+        for line in lines:
+            if not line:
+                newLines.append(line)
+                continue
+            if re.match('\s*#', line):
+                # Ignore comment lines
+                newLines.append('')
+            elif line.startswith(rep):
+                nl = line.replace(rep, '', 1)
+                newLines.append(nl)
+            else:
+                raise IndentationError("Prefix Stripping Failed")
+        return newLines
+
     def execSelected(self):
         text = unicode(self.selectedText()).replace('\r', '\n')
         if not text:
             line, index = self.getCursorPosition()
             text = unicode(self.text(line)).replace('\r', '\n')
+
+        stripCommon = True
+        if stripCommon:
+            lines = text.split('\n')
+            rep = self.findLeadingWhitespace(lines)
+            if rep:
+                lines = self.stripLeadingWhitespace(lines, rep)
+            text = u'\n'.join(lines)
 
         import __main__
 
