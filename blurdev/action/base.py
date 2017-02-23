@@ -220,19 +220,7 @@ class Action(object):
         Raises:
             N/A
         """
-        _exe = os.path.basename(sys.executable).lower()
-        if 'maya' in _exe:
-            self._currentApplication = Apps.Maya
-        elif 'motionbuilder' in _exe:
-            self._currentApplication = Apps.MotionBuilder
-        elif 'max' in _exe:
-            self._currentApplication = Apps.Max
-        elif 'xsi' in _exe:
-            self._currentApplication = Apps.XSI
-        elif 'nuke' in _exe:
-            self._currentApplication = Apps.Nuke
-        else:
-            self._currentApplication = Apps.External
+        self._currentApplication = self.getCurrentApplicationContext()
         mLocals = self._runApplicationImports()
         if mLocals:
             globals().update(mLocals)
@@ -245,6 +233,27 @@ class Action(object):
         if recursive:
             for act in self.childActions:
                 act.setApplicationContext(registerHooks, recursive)
+
+    @staticmethod
+    def getCurrentApplicationContext():
+        """Get the current application context by parsing the executable name.
+        
+        Returns:
+            action.constants.App: The current Application Context.
+        """
+        _exe = os.path.basename(sys.executable).lower()
+        if 'maya' in _exe:
+            return Apps.Maya
+        elif 'motionbuilder' in _exe:
+            return Apps.MotionBuilder
+        elif 'max' in _exe:
+            return Apps.Max
+        elif 'xsi' in _exe:
+            return Apps.XSI
+        elif 'nuke' in _exe:
+            return Apps.Nuke
+        else:
+            return Apps.External
 
     def _executePreChildHooks(self, childAction):
         for preChildHook in self._preChildHooks:
