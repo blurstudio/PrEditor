@@ -24,6 +24,22 @@ import blurdev.cores.application
 import blurdev.settings
 
 
+# TODO: Remove
+import logging
+import getpass
+
+logger = logging.getLogger('blurdev_cores_core.py.log')
+_handler = logging.FileHandler(
+    r'\\source\source\dev\share_all\logs\{0}_BlurdevCoresCore.py.log'.format(
+        getpass.getuser()
+    )
+)
+logger.addHandler(_handler)
+_handler = logging.StreamHandler()
+logger.addHandler(_handler)
+logger.setLevel(logging.DEBUG)
+
+
 class Core(QObject):
     """
     The Core class provides all the main shared functionality and signals that need to be distributed between different pacakges.
@@ -147,14 +163,14 @@ class Core(QObject):
         self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
     ):
         """ Creates a QMfcApp instance for the inputed plugin and window if no app is currently running
-            
+
             :param int hInstance:
             :param int hwnd:
             :param str style:
             :param QPalette palette:
             :param str stylesheet:
             :returns: bool for success
-            
+
         """
 
         # check to see if there is an application already running
@@ -248,13 +264,13 @@ class Core(QObject):
 
     def flashWindow(self, window=None, dwFlags=None, count=1, timeout=0, hwnd=None):
         """ Flashes the application depending on the os.
-        
+
         On Windows this calls FlashWindowEx. See this documentation.
         http://docs.activestate.com/activepython/2.7/pywin32/win32gui__FlashWindowEx_meth.html
         https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
-        
+
         Args:
-            window (QWidget|None): This widget will be flashed. Attempts to get the hwnd from 
+            window (QWidget|None): This widget will be flashed. Attempts to get the hwnd from
                 this widget. Note: This is ignored if hwnd is passed in.
             dwFlags (win32con.FLASHW_*): A enum value used to control the flashing behavior.
                 See https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
@@ -262,7 +278,7 @@ class Core(QObject):
             count (int): The number of times to flash the window. Defaults to 1.
             timeout (int): The rate at which the window is to be flashed in milliseconds.
                 if zero is passed, the default cursor blink rate is used.
-        
+
         Returns:
             bool: Was anything attempted. On windows this always returns True.
         """
@@ -288,10 +304,10 @@ class Core(QObject):
 
     def runOnDccStartup(self):
         """ When starting a DCC like 3ds Max, execute this code on startup.
-        
+
         This provides a location for defining additional startup behavior when a DCC is initalized.
         Currently it is used to check if trax should be imported on startup and if the studio.internal scene callbacks should be initalized.
-        
+
         This module is safe to call without trax or blur3d being installed.
         """
         # Don't run studio callbacks in this dcc when in quiet mode(rendering) or if its
@@ -356,19 +372,19 @@ class Core(QObject):
 
     def shouldReportException(self, exctype, value, traceback_):
         """ Allow the core to control if the Python Logger shows the ErrorDialog or a email is sent.
-        
-        Use this to prevent a exception from prompting the user to open the Python Logger, and 
+
+        Use this to prevent a exception from prompting the user to open the Python Logger, and
         prevent sending a error email. This is called after parent eventhandler's are called and
         the traceback will still be printed to the logger after this function is run.
-        
+
         This function returns two boolean values, the first controls if a error email should be sent.
         The second controls if the ErrorDialog should be shown.
-        
+
         Args:
             exctype (type): The Exception class.
             value : The Exception instance.
             traceback_ (traceback): The traceback object.
-        
+
         Returns:
             sendEmail: Should the exception be reported in a error email.
             showPrompt: Should the ErrorDialog be shown if the Python Logger isnt already visible.
@@ -449,7 +465,7 @@ class Core(QObject):
         Checks the current environment to see if has a timeout and if it has
         exceeded that timeout.  If so, it will reset the environment to the
         default environment.
-        
+
         """
         env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
         threshold_time = env.timeoutThreshold()
@@ -470,8 +486,8 @@ class Core(QObject):
 
     def applyStudioOverrides(self):
         """
-        Checks a studio environment override file.  If there 
-        
+        Checks a studio environment override file.  If there
+
         """
         # Checks for the studio environment override file
         override_dict = self.getEnvironmentOverride()
@@ -534,8 +550,8 @@ class Core(QObject):
 
     def mainWindowGeometry(self):
         """ QWinWidget doesn't properly center its children.
-        
-        In MFC apps this function returns the size of the main window. Note: Qt doesn't include the 
+
+        In MFC apps this function returns the size of the main window. Note: Qt doesn't include the
         titlebar so the position may be off by that ammount.
         """
         if self.headless:
@@ -638,7 +654,7 @@ class Core(QObject):
 
     def quietMode(self):
         """
-        Use this to decide if you should provide user input. 
+        Use this to decide if you should provide user input.
         """
         return False
 
@@ -918,17 +934,17 @@ class Core(QObject):
 
     def runDelayed(self, function, *args, **kargs):
         """
-        Alternative to a for loop that will not block the ui. Each item added 
-        with this method will be processed during a single application event 
-        loop. If you add 5 items with runDelayed it will process the first item, 
-        update the ui, process the second item, update the ui, etc. This is 
-        usefull if you have a large amount of items to process, but processing 
-        of a individual item does not take a long time. Also it does not need 
+        Alternative to a for loop that will not block the ui. Each item added
+        with this method will be processed during a single application event
+        loop. If you add 5 items with runDelayed it will process the first item,
+        update the ui, process the second item, update the ui, etc. This is
+        usefull if you have a large amount of items to process, but processing
+        of a individual item does not take a long time. Also it does not need
         to happen immediately.
-        
+
         :param function: The function to call when ready to process.
-        
-        Any additional arguments or keyword arguments passed to this function 
+
+        Any additional arguments or keyword arguments passed to this function
         will be passed along to the provided function
 
         | #A simplified code example of what is happening.
@@ -939,7 +955,7 @@ class Core(QObject):
         |	if queue:
         |		item = queue.pop(0)	# remove the first item in the list
         |		item()	# call the stored function
-        
+
         """
         self._runDelayed(function, False, *args, **kargs)
 
@@ -959,21 +975,21 @@ class Core(QObject):
 
     def _runDelayed(self, function, replace, *args, **kargs):
         """
-        Alternative to a for loop that will not block the ui. Each item added 
+        Alternative to a for loop that will not block the ui. Each item added
         with this method will be processed during a single application event loop.
-        If you add 5 items with runDelayed it will process the first item, update 
-        the ui, process the second item, update the ui, etc. This is usefull if 
-        you have a large amount of items to process, but processing of a 
-        individual item does not take a long time. Also it does not need to 
+        If you add 5 items with runDelayed it will process the first item, update
+        the ui, process the second item, update the ui, etc. This is usefull if
+        you have a large amount of items to process, but processing of a
+        individual item does not take a long time. Also it does not need to
         happen immediately.
-                        
+
         :param function: The function to call when ready to process.
         :param bool replace: If true, it will attempt to remove the first item in the queue with matching function, *args, **kargs
-        
-        Any additional arguments or keyword arguments passed to this function 
+
+        Any additional arguments or keyword arguments passed to this function
         will be passed along to the provided function
-        
-        
+
+
         | #A simplified code example of what is happening.
         | queue = []
         | for i in range(100): queue.append(myFunction)
@@ -982,7 +998,7 @@ class Core(QObject):
         |	if queue:
         |		item = queue.pop(0)	# remove the first item in the list
         |		item()	# call the stored function
-        
+
         """
         isProcessing = bool(self._itemQueue)
         queueItem = (function, args, kargs)
@@ -1025,7 +1041,7 @@ class Core(QObject):
     ):
         """
         Runs an inputed file in the best way this core knows how
-            
+
         :param str filename:
         :param dict scope: The scope to run the script in (ie. locals(), globals())
         :param list argv: Commands to pass to the script at run time
@@ -1168,32 +1184,31 @@ class Core(QObject):
 
     def setMaxDelayPerCycle(self, seconds):
         """
-        Run delayed will process as many items as it can within this time 
-        frame every event loop.  Seconds is a float value for seconds. If 
-        seconds is -1 it will only process 1 item per event loop. This value 
-        does not limit the cycle, it just prevents a new queue item from being 
-        called if the total time exceeds this value. If your queue items will 
+        Run delayed will process as many items as it can within this time
+        frame every event loop.  Seconds is a float value for seconds. If
+        seconds is -1 it will only process 1 item per event loop. This value
+        does not limit the cycle, it just prevents a new queue item from being
+        called if the total time exceeds this value. If your queue items will
         take almost the full time, you may want to set this value to -1.
-        
+
         """
         self._maxDelayPerCycle = seconds
 
     def sendEmail(self, sender, targets, subject, message, attachments=None):
         """
         Sends an email.
-        
+
         :param str sender: The source email address.
         :param targets: A single email string, or a list of email address(s) to send the email to.
         :param str subject: The subject of the email.
         :param str message: The body of the message. Treated as html
         :param list attachments: File paths for files to be attached.
-        
+
         """
         from email import Encoders
-        from email.MIMEText import MIMEText
-        from email.MIMEMultipart import MIMEMultipart
-        from email.MIMEBase import MIMEBase
-        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.base import MIMEBase
 
         output = MIMEMultipart()
         output['Subject'] = str(subject)
@@ -1233,10 +1248,25 @@ class Core(QObject):
                 )
                 output.attach(txt)
 
-        smtp = smtplib.SMTP()
-        smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
-        smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
-        smtp.close()
+        try:
+            import blur_mail
+
+            raw_email = blur_mail.gmail.mime_to_raw_email(output)
+            blur_mail.gmail.send_raw(raw_email)
+
+        except:
+            import inspect
+
+            frame = inspect.stack()[1]
+            module = inspect.getmodule(frame[0])
+
+            logger.exception(
+                'Module {0} @ {1} failed to send email\n{2}\n{3}\n{4}\n{5}'.format(
+                    module.__name__, module.__file__, sender, targets, subject, message
+                )
+            )
+
+            raise
 
     def setObjectName(self, objectName):
         if objectName != self.objectName():
@@ -1247,12 +1277,12 @@ class Core(QObject):
 
     def readStyleSheet(self, stylesheet='', path=None):
         """ Returns the contents of the requested stylesheet.
-        
+
         Args:
-            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css shipped 
+            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css shipped
                 with blurdev. Ignored if path is provided.
             path (str): Return the contents of this file path.
-        
+
         Returns:
             str: The contents of stylesheet or blank if stylesheet was not found.
             valid: A stylesheet was found and loaded.
@@ -1274,7 +1304,7 @@ class Core(QObject):
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet.  If given None, it will remove the 
+            path to any stylesheet.  If given None, it will remove the
             stylesheet.
         """
         app = QApplication.instance()
@@ -1335,7 +1365,7 @@ class Core(QObject):
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
 
     def quitQtOnShutdown(self):
-        """ If true is returned, all windows will be closed and QApplication.instance().quit() will be 
+        """ If true is returned, all windows will be closed and QApplication.instance().quit() will be
         called. This can be overridden in cores to prevent shutdown.
         """
         return True
@@ -1367,7 +1397,7 @@ class Core(QObject):
 
     def shutdownToolbars(self):
         """ Closes the toolbars and save their prefs if they are used
-        
+
         This is abstracted from shutdown, so specific cores can control how they shutdown
         """
         from blurdev.tools.toolstoolbar import ToolsToolBarDialog
@@ -1425,9 +1455,9 @@ class Core(QObject):
 
     def uuid(self):
         """ Application specific unique identifier
-        
+
         Returns:
-            None: 
+            None:
         """
         return None
 
