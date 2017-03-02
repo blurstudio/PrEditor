@@ -30,8 +30,8 @@ import getpass
 
 logger = logging.getLogger('blurdev_cores_core.py.log')
 _handler = logging.FileHandler(
-    r'\\source\source\dev\share_all\logs\{0}_BlurdevCoresCore.py.log'.format(
-        getpass.getuser()
+    os.path.join(
+        blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR']), 'blurdevCoresCore.log'
     )
 )
 logger.addHandler(_handler)
