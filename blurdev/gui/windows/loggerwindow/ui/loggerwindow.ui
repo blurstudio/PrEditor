@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>530</width>
-    <height>215</height>
+    <width>649</width>
+    <height>277</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -66,7 +66,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>530</width>
+     <width>649</width>
      <height>21</height>
     </rect>
    </property>
@@ -107,8 +107,10 @@
     <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
+    <addaction name="uiCopyTabsToSpacesACT"/>
     <addaction name="uiWordWrapACT"/>
     <addaction name="uiEditorVerticalACT"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -517,6 +519,14 @@
    </property>
    <property name="shortcut">
     <string>Alt+D</string>
+   </property>
+  </action>
+  <action name="uiCopyTabsToSpacesACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Convert Tabs to Spaces on Copy</string>
    </property>
   </action>
  </widget>

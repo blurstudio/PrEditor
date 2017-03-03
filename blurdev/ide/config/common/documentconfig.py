@@ -37,6 +37,7 @@ class DocumentConfig(ConfigSectionWidget):
             'indentationsUseTabs', self.uiIndentationsUseTabsCHK.isChecked()
         )
         section.setValue('tabIndents', self.uiTabIndentsCHK.isChecked())
+        section.setValue('copyIndentsAsSpaces', self.uiCopyTabsToSpacesCHK.isChecked())
         section.setValue('tabWidth', self.uiTabWidthSPN.value())
         section.setValue('caretLineVisible', self.uiCaretLineVisibleCHK.isChecked())
         section.setValue('showWhitespaces', self.uiShowWhitespacesCHK.isChecked())
@@ -62,6 +63,7 @@ class DocumentConfig(ConfigSectionWidget):
         self.uiAutoCompleteCHK.setChecked(section.value('autoComplete'))
         self.uiIndentationsUseTabsCHK.setChecked(section.value('indentationsUseTabs'))
         self.uiTabIndentsCHK.setChecked(section.value('tabIndents'))
+        self.uiCopyTabsToSpacesCHK.setChecked(section.value('copyIndentsAsSpaces'))
         self.uiTabWidthSPN.setValue(section.value('tabWidth'))
         self.uiCaretLineVisibleCHK.setChecked(section.value('caretLineVisible'))
         self.uiShowWhitespacesCHK.setChecked(section.value('showWhitespaces'))
@@ -95,6 +97,7 @@ def registerSections(configSet):
         'autoCompleteThreshold': 3,
         'indentationsUseTabs': True,
         'tabIndents': True,
+        'copyIndentsAsSpaces': False,
         'tabWidth': 4,
         'caretLineVisible': False,
         'showWhitespaces': False,

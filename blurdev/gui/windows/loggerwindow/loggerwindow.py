@@ -115,6 +115,7 @@ class LoggerWindow(Window):
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
+        self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiSdkBrowserACT.triggered.connect(self.showSdk)
@@ -189,7 +190,6 @@ class LoggerWindow(Window):
         workbox.setConsole(self.uiConsoleTXT)
         workbox.setMinimumHeight(1)
         index = tabWidget.addTab(workbox, title)
-        self.uiIndentationsTabsACT.toggled.connect(workbox.setIndentationsUseTabs)
         workbox.setLanguage('Python')
         workbox.setShowSmartHighlighting(True)
         # update the lexer
@@ -199,6 +199,8 @@ class LoggerWindow(Window):
             # If only one tab is visible, don't show the close tab button
             tabWidget.setTabsClosable(tabWidget.count() != 1)
         tabWidget.setCurrentIndex(index)
+        workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+        workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -303,6 +305,9 @@ class LoggerWindow(Window):
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
         pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
         pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
+        pref.recordProperty(
+            'copyIndentsAsSpaces', self.uiCopyTabsToSpacesACT.isChecked()
+        )
         pref.recordProperty('hintingEnabled', self.uiAutoCompleteEnabledACT.isChecked())
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
         pref.recordProperty(
@@ -366,6 +371,9 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setSizes(sizes)
         self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
+        self.uiCopyTabsToSpacesACT.setChecked(
+            pref.restoreProperty('copyIndentsAsSpaces', False)
+        )
         self.uiAutoCompleteEnabledACT.setChecked(
             pref.restoreProperty('hintingEnabled', True)
         )
@@ -507,6 +515,12 @@ class LoggerWindow(Window):
         super(LoggerWindow, self).showEvent(event)
         self.restoreToolbars()
         self.updateIndentationsUseTabs()
+        self.updateCopyIndentsAsSpaces()
+
+    def updateCopyIndentsAsSpaces(self):
+        for index in range(self.uiWorkboxTAB.count()):
+            tab = self.uiWorkboxTAB.widget(index)
+            tab.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
 
     def updateIndentationsUseTabs(self):
         for index in range(self.uiWorkboxTAB.count()):

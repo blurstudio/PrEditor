@@ -19,6 +19,10 @@ from PyQt4.QtGui import (
     QInputDialog,
     QMessageBox,
     QColor,
+    QMenu,
+    QCursor,
+    QIcon,
+    QAction,
 )
 
 import blurdev
@@ -120,6 +124,14 @@ class DocumentEditor(QsciScintilla):
         # goto the line
         if lineno:
             self.setCursorPosition(lineno, 0)
+
+        # We have to re-create the copy shortcut so we can use our implementation
+        self.uiCopyACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/copy.png')), 'Copy', self
+        )
+        self.uiCopyACT.setShortcut('Ctrl+C')
+        self.uiCopyACT.triggered.connect(self.copy)
+        self.addAction(self.uiCopyACT)
 
     def autoFormat(self):
         try:
@@ -313,6 +325,17 @@ class DocumentEditor(QsciScintilla):
         self.endUndoAction()
         return True
 
+    def copy(self):
+        """ Copies the selected text.
+        
+        If copyIndentsAsSpaces and self.indentationsUseTabs() is True it will convert any indents
+        to spaces before copying the text.
+        """
+        if self.copyIndentsAsSpaces and self.indentationsUseTabs():
+            self.copySpaceIndentation()
+        else:
+            super(DocumentEditor, self).copy()
+
     def copyFilenameToClipboard(self):
         QApplication.clipboard().setText(self._filename)
 
@@ -349,6 +372,30 @@ class DocumentEditor(QsciScintilla):
         while len(re.findall(r'^\W', text, flags=re.M)) == count:
             text = re.sub(r'^\W', '', unicode(text), flags=re.M)
         QApplication.clipboard().setText(text)
+
+    def copySpaceIndentation(self):
+        """ Copy the selected text with any tab indents converted to space indents. 
+        
+        If indentationsUseTabs is False it will just copy the text
+        """
+        # Backup the current indent pref then make indent use tabs
+        if not self.indentationsUseTabs():
+            super(DocumentEditor, self).copy()
+            return
+        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+        try:
+            # Convert tabs to spaces and Copy the selected text
+            self.setIndentationsUseTabs(False)
+            self.indentSelection()
+            self.unindentSelection()
+            text = unicode(self.selectedText())
+            QApplication.clipboard().setText(text)
+        finally:
+            # Restore the text to the pre-copy state
+            self.setIndentationsUseTabs(True)
+            self.undo()
+            self.undo()
+            self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
 
     def copyHtml(self):
         """ Copy's the selected text, but formats it using pygments if installed into html."""
@@ -625,6 +672,7 @@ class DocumentEditor(QsciScintilla):
         self.setAutoIndent(section.value('autoIndent'))
         self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
         self.setTabIndents(section.value('tabIndents'))
+        self.copyIndentsAsSpaces = section.value('copyIndentsAsSpaces')
         self.setTabWidth(section.value('tabWidth'))
         self.setCaretLineVisible(section.value('caretLineVisible'))
         self.setShowWhitespaces(section.value('showWhitespaces'))
@@ -1044,7 +1092,6 @@ class DocumentEditor(QsciScintilla):
 
     def showMenu(self):
         import blurdev
-        from PyQt4.QtGui import QMenu, QCursor, QIcon
 
         menu = QMenu(self)
         self._clickPos = QCursor.pos()
@@ -1625,6 +1672,8 @@ class DocumentEditor(QsciScintilla):
     pyEdgeColor = pyqtProperty(QColor, edgeColor, setEdgeColor)
     documentFont = pyqtPropertyInit('_documentFont', _defaultFont)
     pyMarginsFont = pyqtProperty(QFont, marginsFont, setMarginsFont)
+
+    copyIndentsAsSpaces = pyqtPropertyInit('_copyIndentsAsSpaces', False)
 
     # These colors are purely defined in DocumentEditor so we can use pyqtPropertyInit
     braceBadForeground = pyqtPropertyInit('_braceBadForeground', QColor(255, 255, 255))
