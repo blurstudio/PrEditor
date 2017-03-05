@@ -379,10 +379,11 @@ class DocumentEditor(QsciScintilla):
         If indentationsUseTabs is False it will just copy the text
         """
         # Backup the current indent pref then make indent use tabs
-        if not self.indentationsUseTabs():
+        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+        if not self.indentationsUseTabs() or lineFrom == lineTo:
+            # If we are only copying one line there is no need to convert the indent to spaces
             super(DocumentEditor, self).copy()
             return
-        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
         try:
             # Convert tabs to spaces and Copy the selected text
             self.setIndentationsUseTabs(False)
