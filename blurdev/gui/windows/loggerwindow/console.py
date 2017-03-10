@@ -132,6 +132,7 @@ emailformat = """
         <br><br>
         <hr/>
         <span class="footer">
+            <p>%(datestamp)s</p>
             <p>You have received this notification because you have either subscribed to it, or are involved in it.<br/>
             To change your notification preferences, go into trax and change your options settings.
             </p>
@@ -578,13 +579,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         subject, message = ConsoleEdit.buildErrorMessage(error, subject, information)
         try:
-            # MCH 06/17/15: TODO: remove hard coded email address
-            blurdev.core.sendEmail(
-                'thePipe@blur.com',
-                emails,
-                subject,
-                emailformat % {'subject': subject, 'body': message},
+            sender = blurdev.core.emailAddressMd5Hash(subject)
+            # Prevent gmail from ... "trimming" the entire email contents due to each message
+            # being almost identical.
+            datestamp = QDateTime.currentDateTime().toString(
+                'MMM dd, yyyy @ h:mm:zzz ap'
             )
+            msg = emailformat % {
+                'subject': subject,
+                'body': message,
+                'datestamp': datestamp,
+            }
+            blurdev.core.sendEmail(sender, emails, subject, msg)
         except socket.error:
             # Unable to send error email. It is assumed you don't have a valid email addres.
             pass

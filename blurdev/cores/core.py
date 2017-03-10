@@ -1179,16 +1179,41 @@ class Core(QObject):
         """
         self._maxDelayPerCycle = seconds
 
-    def sendEmail(self, sender, targets, subject, message, attachments=None):
+    def emailAddressMd5Hash(self, text, address=None):
+        """ Turns the text into a md5 string and inserts it in the address.
+        
+        This is useful for controlling how messages are threaded into conversations on gmail.
+        
+        Args:
+            text (str): This text will be converted into a md5 hash.
+            address (str or None): The md5 hash will be inserted using str.format on the "hash" key.
+                If None, it will use the value stored in the BDEV_ERROR_EMAIL environment variable.
+        
+        Returns:
+            str: The formatted address.
         """
-        Sends an email.
+        import hashlib
 
-        :param str sender: The source email address.
-        :param targets: A single email string, or a list of email address(s) to send the email to.
-        :param str subject: The subject of the email.
-        :param str message: The body of the message. Treated as html
-        :param list attachments: File paths for files to be attached.
+        m = hashlib.md5()
+        m.update(text)
+        if address is None:
+            address = os.environ.get('BDEV_ERROR_EMAIL')
+        return address.format(hash=m.hexdigest())
 
+    def sendEmail(
+        self, sender, targets, subject, message, attachments=None, refId=None
+    ):
+        """ Sends an email.
+
+        Args:
+            sender (str): The source email address.
+            targets (str or list): A single email string, or a list of email address(s) to send 
+                the email to.
+            subject (str): The subject of the email.
+            message (str): The body of the message. Treated as html
+            attachments (list or None): File paths for files to be attached.
+            refId (str or None): If not None "X-Entity-Ref-ID" is added to the header with this
+                value. For gmail passing a empty string appears to be the same as passing real data.
         """
         from email import Encoders
         from email.mime.text import MIMEText
@@ -1198,6 +1223,8 @@ class Core(QObject):
         output = MIMEMultipart()
         output['Subject'] = str(subject)
         output['From'] = str(sender)
+        if refId is not None:
+            output['X-Entity-Ref-ID'] = refId
 
         # convert to string
         if isinstance(targets, (tuple, list)):
