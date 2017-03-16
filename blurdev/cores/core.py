@@ -1262,8 +1262,8 @@ class Core(QObject):
 
         try:
             # TODO: Environment compatibility
-            smtp = smtplib.SMTP('smtp-relay.gmail.com')
-            smtp.starttls()
+            smtp = smtplib.SMTP('mail.blur.com')
+            # smtp.starttls()
             # smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
             smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))
             smtp.close()
