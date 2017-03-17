@@ -1262,7 +1262,7 @@ class Core(QObject):
 
         try:
             # TODO: Environment compatibility
-            smtp = smtplib.SMTP('mail.blur.com', timeout=0.1)
+            smtp = smtplib.SMTP('mail.blur.com', timeout=1)
             # smtp.starttls()
             # smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
             smtp.sendmail(str(sender), output['To'].split(','), str(output.as_string()))

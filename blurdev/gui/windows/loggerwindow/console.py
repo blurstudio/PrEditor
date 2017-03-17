@@ -33,6 +33,9 @@ from blurdev.tools import ToolsEnvironment
 import blurdev.gui.windows.loggerwindow
 from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
 
+
+import smtplib
+
 SafeOutput = None
 
 
@@ -594,8 +597,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         except socket.error:
             # Unable to send error email. It is assumed you don't have a valid email addres.
             pass
-        except ImportError as e:
-            print 'Could not import blur_mail, error email not sent:', str(e)
+        except smtplib.SMTPException as e:
+            print 'Error connecting to smtp server', e
+            print 'email not sent'
 
     def executeCommand(self):
         """ executes the current line of code """
