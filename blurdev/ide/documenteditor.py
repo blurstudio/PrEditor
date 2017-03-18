@@ -378,25 +378,13 @@ class DocumentEditor(QsciScintilla):
         
         If indentationsUseTabs is False it will just copy the text
         """
-        # Backup the current indent pref then make indent use tabs
-        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        if not self.indentationsUseTabs() or lineFrom == lineTo:
-            # If we are only copying one line there is no need to convert the indent to spaces
-            super(DocumentEditor, self).copy()
-            return
-        try:
-            # Convert tabs to spaces and Copy the selected text
-            self.setIndentationsUseTabs(False)
-            self.indentSelection()
-            self.unindentSelection()
-            text = unicode(self.selectedText())
-            QApplication.clipboard().setText(text)
-        finally:
-            # Restore the text to the pre-copy state
-            self.setIndentationsUseTabs(True)
-            self.undo()
-            self.undo()
-            self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
+        text = unicode(self.selectedText())
+
+        def replacement(match):
+            return match.group().replace('\t', ' ' * 4)
+
+        ret = re.sub('^\t+', replacement, text, flags=re.M)
+        QApplication.clipboard().setText(ret)
 
     def copyHtml(self):
         """ Copy's the selected text, but formats it using pygments if installed into html."""
@@ -681,6 +669,7 @@ class DocumentEditor(QsciScintilla):
         self.setIndentationGuides(section.value('showIndentations'))
         self.setEolVisibility(section.value('showEol'))
         self.setShowSmartHighlighting(section.value('smartHighlighting'))
+        self.setBackspaceUnindents(section.value('backspaceUnindents'))
 
         if section.value('showLimitColumn'):
             self.setEdgeMode(self.EdgeLine)

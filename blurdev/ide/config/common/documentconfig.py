@@ -48,6 +48,7 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('convertEol', self.uiEndlineConvertCHK.isChecked())
         section.setValue('openFileMonitor', self.uiOpenFileMonitorCHK.isChecked())
         section.setValue('smartHighlighting', self.uiSmartHighlightingCHK.isChecked())
+        section.setValue('backspaceUnindents', self.uiBackspaceUnindentsCHK.isChecked())
 
     def refreshUi(self):
         """ refrshes the ui with the latest data settings """
@@ -74,6 +75,7 @@ class DocumentConfig(ConfigSectionWidget):
         )
         self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
         self.uiSmartHighlightingCHK.setChecked(section.value('smartHighlighting'))
+        self.uiBackspaceUnindentsCHK.setChecked(section.value('backspaceUnindents'))
 
 
 def registerSections(configSet):
@@ -106,6 +108,7 @@ def registerSections(configSet):
         'limitColumn': 100,
         'openFileMonitor': True,
         'smartHighlighting': True,
+        'backspaceUnindents': True,
     }
 
     # register the section to the configset

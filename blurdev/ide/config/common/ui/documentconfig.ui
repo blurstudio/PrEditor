@@ -108,6 +108,13 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="0">
+         <widget class="QCheckBox" name="uiBackspaceUnindentsCHK">
+          <property name="text">
+           <string>Backspace Unindents</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>
