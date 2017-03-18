@@ -381,7 +381,7 @@ class DocumentEditor(QsciScintilla):
         text = unicode(self.selectedText())
 
         def replacement(match):
-            return match.group().replace('\t', ' ' * 4)
+            return match.group().replace('\t', ' ' * self.tabWidth())
 
         ret = re.sub('^\t+', replacement, text, flags=re.M)
         QApplication.clipboard().setText(ret)
