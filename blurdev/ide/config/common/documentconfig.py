@@ -22,9 +22,7 @@ class DocumentConfig(ConfigSectionWidget):
         blurdev.gui.loadUi(__file__, self)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """ records the latest ui settings to the data """
         section = self.section()
 
         # record section values
@@ -52,9 +50,7 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('smartHighlighting', self.uiSmartHighlightingCHK.isChecked())
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """ refrshes the ui with the latest data settings """
         section = self.section()
 
         # restore section values
@@ -81,9 +77,9 @@ class DocumentConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """ registers one or many new sections to the config system
+        Args:
+            configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section
