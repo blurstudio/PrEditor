@@ -105,6 +105,11 @@ LoggerWindow QToolButton, IdeEditor QToolButton {
 	padding: 0.75ex 0.75ex;
 }
 
+LoggerWindow QToolButton:checked, LoggerWindow QMenu::icon:checked {
+	/* Give the selected debug button a easier to identify color */
+    background-color: rgb(128,128,128);
+}
+
 LoggerWindow QPushButton, IdeEditor QPushButton {
 	min-height: 20px;
 	min-width: 50px;
