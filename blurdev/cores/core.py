@@ -502,6 +502,8 @@ class Core(QObject):
         return self._headless
 
     def hwnd(self):
+        if self.objectName() == 'assfreezer':
+            return int(self.rootWindow().winId())
         return self._hwnd
 
     def ideeditor(self, parent=None):
