@@ -217,6 +217,29 @@ def imageMagick(source, destination, exe='convert', flags=''):
     return False
 
 
+def escapeForGlob(text):
+    """ Glob treats [] as escapes or number ranges, replaces these with escape characters. 
+    
+    http://stackoverflow.com/a/2595162 We have to escape any additional [ or ] or glob 
+    will not find any matches.
+    
+    Args:
+        text (str): The text to escape
+    
+    Returns:
+        str: The output text
+    """
+
+    def replaceText(match):
+        return '[{}]'.format(match.group(0))
+
+    checks = [
+        '(?<!\[)\[(?![\]\[])',  # [ but not [[]
+        '(?<![\]\[])\](?!\])',  # ] but not []]
+    ]
+    return re.sub('|'.join(checks), replaceText, text)
+
+
 def imageSequenceFromFileName(fileName):
     r"""
     Gets a list of files that belong to the same image sequence as the 
@@ -244,7 +267,8 @@ def imageSequenceFromFileName(fileName):
     if match:
         import glob
 
-        files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
+        path = '%s*%s' % (match.group('pre'), match.group('post'))
+        files = glob.glob(escapeForGlob(path))
         regex = re.compile(
             r'%s(\d+)%s' % (re.escape(match.group('pre')), match.group('post')),
             flags=flags,
@@ -375,11 +399,11 @@ def imageSequenceForRepr(fileName):
 
         start = int(match.group('start'))
         end = int(match.group('end'))
-        files = glob.glob('%s*%s' % (match.group('pre'), match.group('post')))
+        path = '%s*%s' % (match.group('pre'), match.group('post'))
+        files = glob.glob(escapeForGlob(path))
+        pre = re.escape(match.group('pre'))
         regex = re.compile(
-            r'%s(?P<frame>\d+)%s'
-            % (match.group('pre').replace('\\', '\\\\'), match.group('post')),
-            flags=flags,
+            r'%s(?P<frame>\d+)%s' % (pre, match.group('post')), flags=flags
         )
         # Filter the results of the glob and return them in the image sequence order
         out = {}
@@ -500,7 +524,7 @@ def spoolText(**kwargs):
     Build a spool string for .msg server parsing. Any passed in keyword 
     arguments are converted to perl dictionary keys::
     
-       spoolText(action='symlink', data={'linkname':r'c:\test.txt', 'target':r'c:\test2.test'}, info={'user':'mikeh'}, additonal=5)
+       spoolText(action='symlink', data={'linkname':r'c:\test.txt', 'target':r'c:\test2.test'}, info={'user':'mikeh'}, additional=5)
        
     """
 
