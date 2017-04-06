@@ -67,6 +67,9 @@ class Action(object):
                 this action's execute hook. This argument must be provided as
                 a keyword argument.  Default is False.
 
+            parentAction(Action): A reference to the parent action. This is only
+                set if this action is a child action.  Defaults to None otherwise
+
         Returns:
             N/A
 
@@ -92,6 +95,8 @@ class Action(object):
         self._postExecuteHooks = []
 
         self._childrenFirst = bool(kwargs.get('childrenFirst', False))
+        self._parentAction = kwargs.get('parentAction', None)
+
         self._childActions = []
         # This will be used to determine whether any execute has been
         # defined for the action.  This will give us the ability to know
@@ -132,6 +137,11 @@ class Action(object):
         return self._currentApplication
 
     @property
+    def parentAction(self):
+        """This action's parent if this action is a childaction"""
+        return self._parentAction
+
+    @property
     def childActions(self):
         """The action's child actions."""
         return self._childActions
@@ -148,8 +158,11 @@ class Action(object):
         Raises:
             TypeError: A child action was given that is not of class `Action`.
         """
-        if [c for c in list(children) if not isinstance(c, Action)]:
-            raise TypeError('Child actions must be of type Action.')
+
+        for c in list(children):
+            if not isinstance(c, Action):
+                raise TypeError('Child actions must be of type Action.')
+            c._parentAction = self
         self._childActions.extend(list(children))
 
     def addPostExecuteHooks(self, hooks):
@@ -337,7 +350,9 @@ class Action(object):
         childActions = sorted(childActions, key=lambda c: c._childaction__order,)
         for container in childActions:
             cls = container.childClass
-            childAction = cls(*args, argRename=container.argRename, **kwargs)
+            childAction = cls(
+                *args, argRename=container.argRename, parentAction=self, **kwargs
+            )
             setattr(self, container.name, childAction)
             self._childActions.append(childAction)
 
@@ -465,6 +480,7 @@ class Action(object):
         # hierarchy.
         i = 0
         for argument in arguments:
+            argument.parent = self
             if args:
                 try:
                     argument.value = args[i]
@@ -515,6 +531,7 @@ class Action(object):
                     value=argument.value,
                     atype=argument.atype,
                     valid=argument.validValues,
+                    parent=self,
                     settable=argument.settable,
                     allowNone=argument.allowNone,
                     **argument.kwargs
@@ -621,12 +638,21 @@ class Action(object):
 
 class _PropertyDescriptor(object):
     def __init__(
-        self, name, value, atype, valid, settable=True, allowNone=False, **kwargs
+        self,
+        name,
+        value,
+        atype,
+        valid,
+        parent,
+        settable=True,
+        allowNone=False,
+        **kwargs
     ):
         self._name = str(name)
         self._value = value
         self._atype = atype
         self._valid = valid
+        self._parent = parent
         self._settable = settable
         self._allowNone = allowNone
         self.kwargs = kwargs
@@ -636,12 +662,19 @@ class _PropertyDescriptor(object):
 
     def setValue(self, value):
         if not self._settable:
-            raise AttributeError('Attribute "{0}" is not settable.'.format(self._name))
+            raise AttributeError(
+                'Attribute "{0}.{1}" is not settable.'.format(
+                    type(self._parent).__name__, self._name,
+                )
+            )
 
         if not (isinstance(value, self._atype) or (value is None and self._allowNone)):
             raise TypeError(
-                'Given value for {0} must be of type {1}. "{2}" provided'.format(
-                    self._name, str(self._atype), str(type(value))
+                'Given value for {0}.{1} must be of type {2}. "{3}" provided'.format(
+                    type(self._parent).__name__,
+                    self._name,
+                    str(self._atype),
+                    str(type(value)),
                 )
             )
 
@@ -650,8 +683,10 @@ class _PropertyDescriptor(object):
                 self._value = value
             else:
                 raise ValueError(
-                    'Given value is invalid, valid values are: {0}'.format(
-                        ', '.join([str(s) for s in self._valid])
+                    'Given value for {0}.{1} is invalid. Valid values are: {2}'.format(
+                        type(self._parent).__name__,
+                        self._name,
+                        ', '.join([str(s) for s in self._valid]),
                     )
                 )
         self._value = value

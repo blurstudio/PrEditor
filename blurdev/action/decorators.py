@@ -39,6 +39,15 @@ class _Argument(object):
         self._settable = settable
         self._allowNone = allowNone
         self._kwargs = kwargs
+        self._parent = None
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        self._parent = value
 
     @property
     def name(self):
@@ -97,7 +106,8 @@ class _Argument(object):
                 if value in self.validValues:
                     self._value = value
                 else:
-                    msg = 'Valid arguments for {name} are: {valid}'.format(
+                    msg = 'Valid arguments for {cls}.{name} are: {valid}'.format(
+                        cls=type(self.parent).__name__,
                         name=self.name,
                         valid=', '.join([str(v) for v in self.validValues]),
                     )
@@ -108,9 +118,13 @@ class _Argument(object):
             self._value = value
         else:
             msg = (
-                'Given value for argument {name} is not the correct type.\n'
+                'Given value for argument {cls}.{name} is not the correct type.\n'
                 'Expected: {exp}\nGot: {got}\nWith Value: {value}'.format(
-                    name=self.name, got=type(value), exp=self.atype, value=value,
+                    cls=type(self.parent).__name__,
+                    name=self.name,
+                    got=type(value),
+                    exp=self.atype,
+                    value=value,
                 )
             )
             raise ArgumentTypeIncorrectError(msg)
