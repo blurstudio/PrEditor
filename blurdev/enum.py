@@ -400,6 +400,10 @@ class EnumGroup(object):
             setattr(cls, cls._labelToVarName(e.label), e)
         for n, e in kwargs.iteritems():
             setattr(cls, n, e)
+        # reset All and Nothing -- this is necessary so that All is regenerated
+        # and so that Nothing is not included when finding the member Enums.
+        cls.All = 0
+        cls.Nothing = 0
         cls.__init_enums__()
 
     @classmethod
@@ -451,28 +455,38 @@ class EnumGroup(object):
         raise ValueError('No enumerators exist with the given label.')
 
     @classmethod
-    def fromValue(cls, value, default=None):
+    def fromValue(cls, value, default=None, allowComposite=False):
         """Gets an enumerator based on the given value.
-
+        
         If a default is provided and is not None, that value will be returned
         in the event that the given label does not exist in the EnumGroup.  If
         no default is provided, a ValueError is raised.
-
+        
         Args:
-            value(int): The value to look up.
-            default(*): The default value to return if the label is not found.
-
+            value (int): The value to look up.
+            default (*): The default value to return if the label is not found.
+            allowComposite (bool, optional): If True a composite enums will be
+                created when provided a value that is the sum of multiple enum
+                values.  Otherwise, a ValueError will be raised.  Defaults to
+                False.
+        
+        Returns:
+            Enum
+        
         Raises:
             ValueError: Raised if default is None and the given label does not
                 exist in the EnumGroup.
-
-        Returns:
-            Enum
         """
         value = int(value)
+        composite = None
         for e in cls._ENUMERATORS:
-            if int(e) == value:
+            eVal = int(e)
+            if eVal == value:
                 return e
+            if allowComposite and eVal & value:
+                composite = e if composite is None else (composite | e)
+        if composite is not None and int(composite) == value:
+            return composite
         if default is not None:
             return default
         raise ValueError('No enumerators exist with the given value.')
