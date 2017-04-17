@@ -1,3 +1,4 @@
+# pylint: disable=protected-access, invalid-name, too-few-public-methods, line-too-long
 import sys
 
 from .constants import Apps, App
@@ -56,9 +57,18 @@ class _Argument(object):
     @property
     def default(self):
         if self._defaultInstance:
-            return self._atype()
+            atype = self._atype[0] if isinstance(self._atype, tuple) else self._atype
+            if isinstance(atype, type):
+                return atype()
+            else:
+                msg = 'Invalid leading argument type for {cls}.{name}: {tpe}'.format(
+                    cls=type(self.parent).__name__, name=self.name, tpe=atype,
+                )
+                raise TypeError(msg)
         elif isinstance(self._default, _ArgNoDefault):
-            msg = 'Required argument {name} not provided.'.format(name=self.name)
+            msg = 'Required argument {cls}.{name} not provided'.format(
+                cls=type(self.parent).__name__, name=self.name,
+            )
             raise ArgumentHasNoDefaultError(msg)
         else:
             return self._default
@@ -146,7 +156,8 @@ class _Argument(object):
 
 
 class _ChildActionContainer(object):
-    def __init__(self, childClass, name, argRename=None, **kwargs):
+    def __init__(self, childClass, name, order, argRename=None, **kwargs):
+        self._childaction__order = order
         self._childClass = childClass
         self._name = name
         self._kwargs = kwargs
@@ -237,7 +248,7 @@ class argproperty(object):
             allowNone(bool): Whether to allow None as the value for this argument. Default to False
             valid(list): A list of values accepted by the argument.
             settable(bool): Whether the argument is settable.  Default is False.
-            defaultInstance(bool): If True, the default value is built directly from atype upon 
+            defaultInstance(bool): If True, the default value is built directly from atype upon
                 argument instantiation. This option will override the default value and also
                 indicates that the argument being defined is optional. Not specifying a default for
                 the argument and having defaultInstance==False will imply that it is a required argument.
@@ -249,7 +260,7 @@ class argproperty(object):
             N/A
         """
         self._name = name
-        self._atype = atype
+        self._atype = tuple(atype) if isinstance(atype, (list, tuple)) else (atype,)
         self._default = default
         self._defaultInstance = defaultInstance
         self._validValues = valid
@@ -265,20 +276,20 @@ class argproperty(object):
         def newFunction(*args):
             return getattr(args[0], '_{property}'.format(property=nameOverride))
 
-        if self._name:
-            name = self._name
-        else:
-            name = _nameOverride
+        name = self._name if self._name else _nameOverride
         newFunction.__name__ = name
+
+        filteredAtypes = tuple(i for i in self._atype if i is not None)
+        allowNone = self._allowNone or (None in self._atype) or self._default is None
 
         actionArg = _Argument(
             name,
-            self._atype,
+            filteredAtypes,
             self._default,
             _nameOverride,
             self._validValues,
             self._settable,
-            self._allowNone,
+            allowNone,
             self._defaultInstance,
             **self._kwargs
         )
@@ -392,9 +403,8 @@ class childaction(object):
 
         newFunction.__name__ = _nameOverride
         container = _ChildActionContainer(
-            self._cls, _nameOverride, self._argRename, **self._kwargs
+            self._cls, _nameOverride, self._order, self._argRename, **self._kwargs
         )
-        container._childaction__order = self._order
         newFunction._childaction__container = container
         newFunction._childaction__order = self._order
         return newFunction
