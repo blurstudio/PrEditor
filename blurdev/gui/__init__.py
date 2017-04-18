@@ -85,6 +85,73 @@ def randomSplashScreen(toolname='default'):
     return None
 
 
+def readCSS(path, translateUrls=True, cwd=None):
+    """Loads a CSS file from the path specified, and optionally translates paths
+    and replaces relative paths.
+
+    Args:
+        path (str): Path to the CSS file to read.
+        translateUrls (bool, optional): If True, URLs in the CSS file will be
+            translated for the current OS using trax.api.data.Mapping.translatePath().
+            Defaults to True.
+        cwd (None, optional): If specified, relative paths in the CSS file will
+            be made absolute with cwd as the base directory.  Otherwise relative
+            paths will be left untouched.  Defaults to None.
+
+    Returns:
+        str: The contents of the CSS file after the requested path modifications
+            have been performed.
+    """
+    if translateUrls:
+        try:
+            from trax.api.data import Mapping
+        except ImportError:
+            translateUrls = False
+    import re
+
+    if not os.path.isfile(path):
+        raise IOError('Specified CSS file ({}) not found.'.format(path))
+    with open(path) as f:
+        css = f.read()
+
+    if cwd:
+        if translateUrls:
+            # if cwd is specified and we're translating paths, translate it
+            cwd = Mapping.translatePath(cwd)
+        if not os.path.exists(cwd):
+            # if cwd does not exist, we will ignore it.
+            cwd = None
+    if translateUrls or cwd:
+        # if translation or custom CWD are enabled, we'll substitute accordingly
+        def _replace(match, translate=translateUrls, cwd=cwd):
+            ret = r'url({})'
+            url = match.group(1)
+            if translate or cwd:
+                if url.startswith(':/'):
+                    # it's a resource path.  Do nothing.
+                    pass
+                elif re.match(r'^(?:[a-zA-Z]:(?:\\|/)|/).*', url):
+                    # it's an absolute path.  Translate it.
+                    if translate:
+                        url = Mapping.translatePath(url)
+                else:
+                    # it should be a relative path.
+                    if translate:
+                        # if path translation is enabled, translate the path
+                        # (this should really just be switching slash dir
+                        # like os.path.normpath at this point, but we'll call
+                        # translatePath in case it needs to do more in the future.)
+                        url = Mapping.translatePath(url)
+                    if cwd:
+                        # if we have a custom cwd, join it now.
+                        url = os.path.join(cwd, url)
+            return ret.format(url)
+
+        # iterate over url matches with our replacement function.
+        css = re.sub(r'url\((.+?)\)', _replace, css)
+    return css
+
+
 def compPixmap(imageData):
     """
     Composites the given pixmaps or image paths into a single pixmap. It takes a list of lists containing a image path or a pixmap and
