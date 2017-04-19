@@ -145,6 +145,8 @@ def readCSS(path, translateUrls=True, cwd=None):
                     if cwd:
                         # if we have a custom cwd, join it now.
                         url = os.path.join(cwd, url)
+                # Qt don't play with no backslashes.
+                url = url.replace('\\', '/')
             return ret.format(url)
 
         # iterate over url matches with our replacement function.
