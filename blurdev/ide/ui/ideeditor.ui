@@ -180,12 +180,20 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuAdvanced_Copy">
+     <property name="title">
+      <string>Advanced Copy</string>
+     </property>
+     <addaction name="uiCopyLstripACT"/>
+     <addaction name="uiCopyHtmlACT"/>
+     <addaction name="uiCopySpaceIndentationACT"/>
+    </widget>
     <addaction name="uiUndoACT"/>
     <addaction name="uiRedoACT"/>
     <addaction name="separator"/>
     <addaction name="uiCutACT"/>
     <addaction name="uiCopyACT"/>
-    <addaction name="uiCopyLstripACT"/>
+    <addaction name="menuAdvanced_Copy"/>
     <addaction name="uiPasteACT"/>
     <addaction name="separator"/>
     <addaction name="uiSelectAllACT"/>
@@ -900,6 +908,25 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="uiCopySpaceIndentationACT">
+   <property name="text">
+    <string>Copy Tabs to Spaces</string>
+   </property>
+   <property name="toolTip">
+    <string>Copies the selected text, but replaces any leading tabs with spaces.</string>
+   </property>
+   <property name="whatsThis">
+    <string>Copies the selected text, but replaces any leading tabs with spaces.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Space</string>
+   </property>
+  </action>
+  <action name="uiCopyHtmlACT">
+   <property name="text">
+    <string>Copy Html</string>
    </property>
   </action>
  </widget>

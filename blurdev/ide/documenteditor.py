@@ -125,13 +125,29 @@ class DocumentEditor(QsciScintilla):
         if lineno:
             self.setCursorPosition(lineno, 0)
 
+        # Create shortcuts
+        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
+
         # We have to re-create the copy shortcut so we can use our implementation
-        self.uiCopyACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/copy.png')), 'Copy', self
-        )
+        self.uiCopyACT = QAction(icon, 'Copy', self)
         self.uiCopyACT.setShortcut('Ctrl+C')
         self.uiCopyACT.triggered.connect(self.copy)
         self.addAction(self.uiCopyACT)
+
+        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        self.uiCopyLstripACT = QAction(iconlstrip, 'Copy lstrip', self)
+        self.uiCopyLstripACT.setShortcut('Ctrl+Shift+C')
+        self.uiCopyLstripACT.triggered.connect(self.copyLstrip)
+        self.addAction(self.uiCopyLstripACT)
+
+        self.uiCopyHtmlACT = QAction(icon, 'Copy Html', self)
+        self.uiCopyHtmlACT.triggered.connect(self.copyHtml)
+        self.addAction(self.uiCopyHtmlACT)
+
+        self.uiCopySpaceIndentationACT = QAction(icon, 'Copy Tabs to Spaces', self)
+        self.uiCopySpaceIndentationACT.setShortcut('Ctrl+Shift+Space')
+        self.uiCopySpaceIndentationACT.triggered.connect(self.copySpaceIndentation)
+        self.addAction(self.uiCopySpaceIndentationACT)
 
     def autoFormat(self):
         try:
@@ -1121,14 +1137,11 @@ class DocumentEditor(QsciScintilla):
         act.setShortcut('Ctrl+C')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
-        act = menu.addAction('Copy lstrip')
-        act.triggered.connect(self.copyLstrip)
-        act.setShortcut('Ctrl+Shift+C')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        copyMenu = menu.addMenu('Advanced Copy')
 
-        act = menu.addAction('Copy Html')
-        act.triggered.connect(self.copyHtml)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        copyMenu.addAction(self.uiCopyLstripACT)
+        copyMenu.addAction(self.uiCopyHtmlACT)
+        copyMenu.addAction(self.uiCopySpaceIndentationACT)
 
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
