@@ -32,6 +32,7 @@ from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 from blurdev.tools import ToolsEnvironment
 import blurdev.gui.windows.loggerwindow
 from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
+from blurdev.contexts import ErrorReport
 
 
 import smtplib
@@ -56,13 +57,13 @@ if blurdev.core.objectName() == 'softimage':
     except ImportError:
         pass
 
-additionalInfoHtml = """<br><h3>Information</h3>
+additionalInfoHtml = """<br><h3>ErrorReport: %(title)s</h3>
 <br>
 <div style="background:white;padding:5 10 5 10;border:1px black solid"><pre><code>
 %(info)s
 </code></pre></div>"""
 
-additionalInfoTextile = """h3. Information
+additionalInfoTextile = """h3. ErrorReport: %(title)s
 
 <pre><code class="Python">
 %(info)s
@@ -193,6 +194,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             sys.stderr = ErrorLog(self)
             self._errorLog = sys.stderr
             sys.excepthook = ConsoleEdit.excepthook
+            # Enable ErrorReport reporting.
+            ErrorReport.enabled = True
 
         # create the highlighter
         highlight = CodeHighlighter(self)
@@ -396,10 +399,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     # The messagebox was closed, so reset the tracking variable.
                     ConsoleEdit._errorPrompted = False
 
+            # TODO: remove additionalInfo once ErrorReport has replaced it
             ConsoleEdit.clearAdditionalInfo()
+            # Even if we don't use the ErrorReport functions we need to clear them so they don't
+            # end up being sent in some other error email.
+            ErrorReport.clearReports()
 
-    @staticmethod
-    def buildErrorMessage(error, subject=None, information=None, format='html'):
+    @classmethod
+    def buildErrorMessage(cls, error, subject=None, information=None, format='html'):
         """
         Generates a email of the traceback, and useful information provided by the class if available.
         
@@ -502,21 +509,31 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 infoList[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
 
         if format == 'html':
-            errorstr = ConsoleEdit.highlightCodeHtml(unicode(error), 'pytb', 'default')
+            errorstr = cls.highlightCodeHtml(unicode(error), 'pytb', 'default')
         else:
             errorstr = unicode(error)
         minfo['error'] = errorstr
 
-        # append any passed in body text
+        # append any passed in body text, and any ErrorReport text.
+        # TODO: Remove additionalInfo once ErrorReport replaces it.
         minfo['additionalinfo'] = ''
-        for info in (information, ConsoleEdit.additionalInfo()):
+        infos = [
+            (None, information),
+            (None, cls.additionalInfo()),
+        ] + ErrorReport.generateReport()
+        for title, info in infos:
             if info is not None:
                 if format == 'html':
-                    addinfo = additionalInfoHtml % {
-                        'info': unicode(info).replace('\n', '<br>')
+                    formatData = {
+                        'info': unicode(info).replace('\n', '<br>'),
+                        'title': title,
                     }
+                    addinfo = additionalInfoHtml % formatData
                 elif format == 'textile':
-                    addinfo = additionalInfoTextile % {'info': unicode(info)}
+                    addinfo = additionalInfoTextile % {
+                        'info': unicode(info),
+                        'title': title,
+                    }
                 else:
                     addinfo = unicode(info)
                 minfo['additionalinfo'] += addinfo
@@ -937,6 +954,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             pass
 
     # These methods are used to insert extra data into error reports when debugging hard to reproduce errors.
+    # TODO: remove additionalInfo methods once ErrorReport has replaced it
     @classmethod
     def additionalInfo(cls):
         return cls._additionalInfo
