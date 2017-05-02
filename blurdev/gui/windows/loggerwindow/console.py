@@ -157,7 +157,6 @@ class ErrorLog(QObject, Win32ComFix):
 
 
 class ConsoleEdit(QTextEdit, Win32ComFix):
-    _additionalInfo = None
     _excepthook = None
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
@@ -399,8 +398,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     # The messagebox was closed, so reset the tracking variable.
                     ConsoleEdit._errorPrompted = False
 
-            # TODO: remove additionalInfo once ErrorReport has replaced it
-            ConsoleEdit.clearAdditionalInfo()
             # Even if we don't use the ErrorReport functions we need to clear them so they don't
             # end up being sent in some other error email.
             ErrorReport.clearReports()
@@ -515,12 +512,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         minfo['error'] = errorstr
 
         # append any passed in body text, and any ErrorReport text.
-        # TODO: Remove additionalInfo once ErrorReport replaces it.
         minfo['additionalinfo'] = ''
-        infos = [
-            (None, information),
-            (None, cls.additionalInfo()),
-        ] + ErrorReport.generateReport()
+        infos = [(None, information)] + ErrorReport.generateReport()
         for title, info in infos:
             if info is not None:
                 if format == 'html':
@@ -952,23 +945,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 sys.__stdout__.write(msg)
         except:
             pass
-
-    # These methods are used to insert extra data into error reports when debugging hard to reproduce errors.
-    # TODO: remove additionalInfo methods once ErrorReport has replaced it
-    @classmethod
-    def additionalInfo(cls):
-        return cls._additionalInfo
-
-    @classmethod
-    def clearAdditionalInfo(cls):
-        cls.setAdditionalInfo(None)
-
-    def resetAdditionalInfo(self):
-        ConsoleEdit.clearAdditionalInfo()
-
-    @classmethod
-    def setAdditionalInfo(cls, info):
-        cls._additionalInfo = info
 
     # These properties are used by the stylesheet to style various items.
     pyPdbMode = pyqtProperty(bool, pdbMode, setPdbMode)
