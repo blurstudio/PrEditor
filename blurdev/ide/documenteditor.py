@@ -1139,9 +1139,22 @@ class DocumentEditor(QsciScintilla):
 
         copyMenu = menu.addMenu('Advanced Copy')
 
-        copyMenu.addAction(self.uiCopyLstripACT)
-        copyMenu.addAction(self.uiCopyHtmlACT)
-        copyMenu.addAction(self.uiCopySpaceIndentationACT)
+        # Note: I cant use the actions defined above because they end up getting garbage collected
+        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
+        act.setShortcut('Ctrl+Shift+C')
+        act.triggered.connect(self.copyLstrip)
+        copyMenu.addAction(act)
+
+        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
+        act = QAction(icon, 'Copy Html', copyMenu)
+        act.triggered.connect(self.copyHtml)
+        copyMenu.addAction(act)
+
+        act = QAction(icon, 'Copy Tabs to Spaces', copyMenu)
+        act.setShortcut('Ctrl+Shift+Space')
+        act.triggered.connect(self.copySpaceIndentation)
+        copyMenu.addAction(act)
 
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
