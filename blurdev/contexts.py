@@ -32,7 +32,7 @@ except ImportError:
 
 def monitorForCrash(pid, conn):
     """ Multiprocessing function used to clean up temp files if the parent process is killed.
-	"""
+    """
     # Note: importing inside this function can cause dll errors when running inside a DCC.
     try:
         tempFiles = []
@@ -82,37 +82,37 @@ def monitorForCrash(pid, conn):
 
 class TempFilesContext(object):
     """ Context to create multiple temp files and directories that will be removed.
-	
-	This class is used to manage generation of multiple temp files and directories.
-	The files and directories created by makeTempDirectory and makeTempFile will
-	be removed once this contex exits. 
-	
-	Keyed mode returns the same object if one of the make functions is called twice
-	with the same key.
-	
-	Note:
-		The crashMonitor option uses multiprocessing to monitor if the main python
-		module was killed. Because of how multiprocessing works on windows, if you
-		used a script when launching python you need to make sure that the main 
-		module can be safely imported by a new Python interpreter without causing 
-		unintended side effects (such as calling TempFilesContext(crashMonitor=True)).
-		Simply put, make sure you use in your scripts(if __name__ == '__main__':)
-		See https://docs.python.org/2/library/multiprocessing.html#windows search 
-		for "Safe importing of main module" for more info.
-	
-	Args:
-		keyed (bool): Enables Keyed mode. Defaults to True.
-		defaultDir (str|None): If not None(the default) this is passed to tempfile
-			functions as the dir kwarg if that kwarg is not provided in the call.
-		crashMonitor (bool): If True(default), use multiprocessing to launch a watcher 
-			process if python is killed by some external process while inside this 
-			context this external process will remove all temp files created by the 
-			context.
-		pythonw (bool): If True multiprocessing.set_executable will be set to 
-			pythonw.exe. If False (default) it will be set to python.exe. If False 
-			the print statements in the monitorForCrash() child process appear to 
-			be redirected back to the parent process. This is useful for debugging.
-	"""
+    
+    This class is used to manage generation of multiple temp files and directories.
+    The files and directories created by makeTempDirectory and makeTempFile will
+    be removed once this contex exits. 
+    
+    Keyed mode returns the same object if one of the make functions is called twice
+    with the same key.
+    
+    Note:
+        The crashMonitor option uses multiprocessing to monitor if the main python
+        module was killed. Because of how multiprocessing works on windows, if you
+        used a script when launching python you need to make sure that the main 
+        module can be safely imported by a new Python interpreter without causing 
+        unintended side effects (such as calling TempFilesContext(crashMonitor=True)).
+        Simply put, make sure you use in your scripts(if __name__ == '__main__':)
+        See https://docs.python.org/2/library/multiprocessing.html#windows search 
+        for "Safe importing of main module" for more info.
+    
+    Args:
+        keyed (bool): Enables Keyed mode. Defaults to True.
+        defaultDir (str|None): If not None(the default) this is passed to tempfile
+            functions as the dir kwarg if that kwarg is not provided in the call.
+        crashMonitor (bool): If True(default), use multiprocessing to launch a watcher 
+            process if python is killed by some external process while inside this 
+            context this external process will remove all temp files created by the 
+            context.
+        pythonw (bool): If True multiprocessing.set_executable will be set to 
+            pythonw.exe. If False (default) it will be set to python.exe. If False 
+            the print statements in the monitorForCrash() child process appear to 
+            be redirected back to the parent process. This is useful for debugging.
+    """
 
     def __init__(self, keyed=True, defaultDir=None, crashMonitor=True, pythonw=False):
         self.keyed = keyed
@@ -150,22 +150,22 @@ class TempFilesContext(object):
 
     def makeTempDirectory(self, *args, **kwargs):
         """ Creates a temporary directory and returns its file path.
-		
-		This directory and all of its contents are removed on exit.
-		args and kwargs are passed to tempfile.NamedTemporaryFile after the 
-		"key" kwarg has been removed. If dir is not provided in kwargs and 
-		self.defaultDir is set, it will be added to kwargs.
-		
-		Args:
-			key(str): If in keyed mode only one directory will be created
-				for any key value. Any future calls to this function with
-				the same key will return the same directory. If keyed is
-				False, this will always return a new directory name. The
-				default key is 'default'.
-		
-		Returns:
-			str: The full path to the temporary directory.
-		"""
+        
+        This directory and all of its contents are removed on exit.
+        args and kwargs are passed to tempfile.NamedTemporaryFile after the 
+        "key" kwarg has been removed. If dir is not provided in kwargs and 
+        self.defaultDir is set, it will be added to kwargs.
+        
+        Args:
+            key(str): If in keyed mode only one directory will be created
+                for any key value. Any future calls to this function with
+                the same key will return the same directory. If keyed is
+                False, this will always return a new directory name. The
+                default key is 'default'.
+        
+        Returns:
+            str: The full path to the temporary directory.
+        """
         if self.keyed:
             key = kwargs.pop('key', 'default')
         else:
@@ -186,22 +186,22 @@ class TempFilesContext(object):
 
     def makeTempFile(self, *args, **kwargs):
         """ Creates a tempfile using tempfile.mkstemp and returns the path to the file.
-		
-		This file will only be valid till the context exits.
-		args and kwargs are passed to tempfile.mkstemp after the "key" kwarg has been 
-		removed. If dir is not provided in kwargs and self.defaultDir is set, it will 
-		be added to kwargs.
-		
-		Args:
-			key(str): If in keyed mode only one directory will be created
-				for any key value. Any future calls to this function with
-				the same key will return the same directory. If keyed is
-				False, this will always return a new directory name. The
-				default key is 'default'.
-		
-		Returns:
-			str: the full path to the temporary file.
-		"""
+        
+        This file will only be valid till the context exits.
+        args and kwargs are passed to tempfile.mkstemp after the "key" kwarg has been 
+        removed. If dir is not provided in kwargs and self.defaultDir is set, it will 
+        be added to kwargs.
+        
+        Args:
+            key(str): If in keyed mode only one directory will be created
+                for any key value. Any future calls to this function with
+                the same key will return the same directory. If keyed is
+                False, this will always return a new directory name. The
+                default key is 'default'.
+        
+        Returns:
+            str: the full path to the temporary file.
+        """
         if self.keyed:
             key = kwargs.pop('key', 'default')
         else:
@@ -255,55 +255,55 @@ class TempFilesContext(object):
 class ErrorReport(object):
     """ Allows you to provide additional debug info if a error happens in this context.
 
-	The blurdev Python Logger can send a error email when any python error is raised. Sometimes
-	just a traceback does not provide enough information to debug the traceback. This class allows
-	you to provide additional information to the error report only if it is generated. For example
-	if your treegrunt environment does not have a email setup, or the current debug level is not
-	set to Disabled. 
+    The blurdev Python Logger can send a error email when any python error is raised. Sometimes
+    just a traceback does not provide enough information to debug the traceback. This class allows
+    you to provide additional information to the error report only if it is generated. For example
+    if your treegrunt environment does not have a email setup, or the current debug level is not
+    set to Disabled. 
 
-	ErrorReport can be used as a with context, or as a function decorator.
+    ErrorReport can be used as a with context, or as a function decorator.
 
-	Examples:
-		This example shows a class using both the with context and a decorated method.
-		
-		from blurdev.contexts import ErrorReport
-		class Test(object):
-			def __init__(self):
-				self.value = None
-			def errorInfo(self):
-				# The text returned by this function will be included in the error email
-				return 'Info about the Test class: {}'.format(self.value)
-			def doStuff(self):
-				with ErrorReport(self.errorInfo, 'Test.doStuff'):
-					self.value = 'doStuff'
-					raise RuntimeError("BILL")
-			@ErrorReport(errorInfo, 'Test.doMoreStuff')
-			def doMoreStuff(self):
-				self.value = 'doMoreStuff'
-				raise RuntimeError("BOB")
+    Examples:
+        This example shows a class using both the with context and a decorated method.
+        
+        from blurdev.contexts import ErrorReport
+        class Test(object):
+            def __init__(self):
+                self.value = None
+            def errorInfo(self):
+                # The text returned by this function will be included in the error email
+                return 'Info about the Test class: {}'.format(self.value)
+            def doStuff(self):
+                with ErrorReport(self.errorInfo, 'Test.doStuff'):
+                    self.value = 'doStuff'
+                    raise RuntimeError("BILL")
+            @ErrorReport(errorInfo, 'Test.doMoreStuff')
+            def doMoreStuff(self):
+                self.value = 'doMoreStuff'
+                raise RuntimeError("BOB")
 
-	Using this class does not initialize the Python Logger, so you don't need to worry if your class 
-	is running headless and not use this class. However unless you set up your own error reporting
-	system the callbacks will not be called and nothing will be reported.
-	
-	If you want to set up your own error reporting system you need to set 
-	`ErrorReport.enabled = True`. Then you will need to call ErrorReport.clearReports() any time 
-	excepthook is called. This prevents a buildup of all error reports any time a exception occurs. 
-	It should always be in place when you set enabled == True to prevent wasting memory. Calling
-	ErrorReport.generateReport() will return the info you should include in your report. Calling
-	generateReport is optional, but must be called before calling clearReports.
+    Using this class does not initialize the Python Logger, so you don't need to worry if your class 
+    is running headless and not use this class. However unless you set up your own error reporting
+    system the callbacks will not be called and nothing will be reported.
+    
+    If you want to set up your own error reporting system you need to set 
+    `ErrorReport.enabled = True`. Then you will need to call ErrorReport.clearReports() any time 
+    excepthook is called. This prevents a buildup of all error reports any time a exception occurs. 
+    It should always be in place when you set enabled == True to prevent wasting memory. Calling
+    ErrorReport.generateReport() will return the info you should include in your report. Calling
+    generateReport is optional, but must be called before calling clearReports.
 
-	Args:
-		callback (function): If a exception happens this function is called and its returned value
-			is added to the error email if sent. No arguments are passed to this function and it
-			is expected to only return a string.
-		title (str, optional): This short string is added to the title of the ErrorReport.
+    Args:
+        callback (function): If a exception happens this function is called and its returned value
+            is added to the error email if sent. No arguments are passed to this function and it
+            is expected to only return a string.
+        title (str, optional): This short string is added to the title of the ErrorReport.
 
-	Attributes:
-		enabled (bool): If False(the default), then all callbacks are cleared even if there is a
-			exception. This is used to prevent these functions from leaking memory if there isn't
-			a excepthook calling clearReports.
-	"""
+    Attributes:
+        enabled (bool): If False(the default), then all callbacks are cleared even if there is a
+            exception. This is used to prevent these functions from leaking memory if there isn't
+            a excepthook calling clearReports.
+    """
 
     __reports__ = []
     enabled = False
@@ -338,24 +338,24 @@ class ErrorReport(object):
     def clearReports(cls):
         """ Removes all of the currently stored callbacks.
 
-		This should be called after all error reporting is finished, or if a error happened and
-		there is nothing to report it. If you set cls.enabled to True, something in excepthook
-		should call this to prevent keeping refrences to functions from staying in memory.
-		"""
+        This should be called after all error reporting is finished, or if a error happened and
+        there is nothing to report it. If you set cls.enabled to True, something in excepthook
+        should call this to prevent keeping refrences to functions from staying in memory.
+        """
         cls.__reports__ = []
 
     @classmethod
     def generateReport(cls, fmt='{result}'):
         """ Executes and returns all of the currently stored callbacks.
-		
-		Args:
-			ftm (str, Optional): The results of the callbacks will be inserted into this string
-				using str.format into {results}.
-		
-		Returns:
-			list: A list of tuples for all active ErrorReport classes. The tuples contain two 
-			strings; the title string, and result of the passed in callback function.
-		"""
+        
+        Args:
+            ftm (str, Optional): The results of the callbacks will be inserted into this string
+                using str.format into {results}.
+        
+        Returns:
+            list: A list of tuples for all active ErrorReport classes. The tuples contain two 
+            strings; the title string, and result of the passed in callback function.
+        """
         ret = []
         for title, callback in cls.__reports__:
             result = callback()
