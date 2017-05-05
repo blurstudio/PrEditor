@@ -436,6 +436,34 @@ def printCallingFunction(compact=False):
     return output
 
 
+def mroDump(obj, nice=True, joinString='\n'):
+    """ Formats inspect.getmro into text.
+    
+    For the given class object or instance of a class, use inspect to return the Method 
+    Resolution Order.
+    
+    Args:
+        obj (object): The object to return the mro of. This can be a class object or instance.1
+        nice (bool): Returns the same module names as help(object) if True, otherwise repr(object).
+        joinString (str, optional): The repr of each class is joined by this string.
+    
+    Returns:
+        str: A string showing the Method Resolution Order of the given object.
+    """
+    import inspect
+    import pydoc
+
+    # getmro requires a class, turn instances into a class
+    if not inspect.isclass(obj):
+        obj = type(obj)
+    classes = inspect.getmro(obj)
+    if nice:
+        ret = [pydoc.classname(x, obj.__module__) for x in (classes)]
+    else:
+        ret = [repr(x) for x in (classes)]
+    return joinString.join(ret)
+
+
 def recycleGui(cls, *args, **kwargs):
     """ Closes the last gui of the provided class, suppressing any errors and returns a new instance of the class.
     :param cls: the class of the object to create
