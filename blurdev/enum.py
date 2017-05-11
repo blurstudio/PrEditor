@@ -248,7 +248,13 @@ class Enum(object):
         o = other
         if isinstance(other, Enum):
             o = int(other)
-        value = int(self) | o
+        # No need to return a CompositeEnum if one of these is Nothing
+        if o == 0:
+            return self
+        v = int(self)
+        if v == 0:
+            return other
+        value = v | o
         label = '{0} {1}'.format(str(self), str(other))
         name = '{0}_{1}'.format(str(self), str(other))
 
