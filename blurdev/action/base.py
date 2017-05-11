@@ -1,3 +1,4 @@
+# pylint: disable=protected-access
 import inspect
 import os.path
 import sys
@@ -12,7 +13,7 @@ from .decorators import argproperty, childaction
 class _ActionMeta(type):
     def __new__(meta, name, bases, dct):
         """
-        This metaclass makes the class-variable implementation of the 
+        This metaclass makes the class-variable implementation of the
         argproperty() and childaction() decorators work.
 
         If using the class-variable style, the properties are instances of the
@@ -85,6 +86,7 @@ class Action(object):
         """
         self._setupComplete = False
         self._currentApplication = None
+        self._executeContext = None
 
         self._preChildHooks = []
         self._postChildHooks = []
@@ -130,6 +132,14 @@ class Action(object):
         self._registerApplicationMethods()
         self._sortHooks()
         self._setupComplete = True
+
+    @property
+    def executeContext(self):
+        return self._executeContext
+
+    @executeContext.setter
+    def executeContext(self, value):
+        self._executeContext = value
 
     @property
     def currentApplication(self):
@@ -234,9 +244,7 @@ class Action(object):
             N/A
         """
         self._currentApplication = self.getCurrentApplicationContext()
-        mLocals = self._runApplicationImports()
-        if mLocals:
-            globals().update(mLocals)
+        self._runApplicationImports()
         if registerHooks:
             self._clearHooks()
             self._registerHooks()
@@ -250,7 +258,7 @@ class Action(object):
     @staticmethod
     def getCurrentApplicationContext():
         """Get the current application context by parsing the executable name.
-        
+
         Returns:
             action.constants.App: The current Application Context.
         """
@@ -322,7 +330,7 @@ class Action(object):
                 supportedApp = getattr(method, '_applicationmethod__appMethodApp')
                 currentApp = self.currentApplication
                 mName = getattr(method, '_applicationmethod__appMethodName')
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     appMethods[mName] = method
                 elif mName not in appMethods:
                     appMethods[mName] = self._unimplementedApplicationMethod
@@ -370,11 +378,11 @@ class Action(object):
                 continue
             elif hasattr(method, '_prechildhook__actionPreChildHook'):
                 supportedApp = method._prechildhook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._preChildHooks.append(method)
             elif hasattr(method, '_postchildhook__actionPostChildHook'):
                 supportedApp = method._postchildhook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._postChildHooks.append(method)
             elif hasattr(method, '_executehook__actionExecuteHook'):
                 # Regardless of whether we have an execute hook defined
@@ -385,29 +393,30 @@ class Action(object):
                 # current context.
                 self._hasExecuteHook = True
                 supportedApp = method._executehook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._executeHook = method
             elif hasattr(method, '_preexecutehook__actionPreExecuteHook'):
                 supportedApp = method._preexecutehook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._preExecuteHooks.append(method)
             elif hasattr(method, '_postexecutehook__actionPostExecuteHook'):
                 supportedApp = method._postexecutehook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._postExecuteHooks.append(method)
             elif hasattr(method, '_enterhook__actionEnterHook'):
                 self._hasContextHooks = True
                 supportedApp = method._enterhook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._enterHook = method
             elif hasattr(method, '_exithook__actionExitHook'):
                 self._hasContextHooks = True
                 supportedApp = method._exithook__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     self._exitHook = method
 
     def _runApplicationImports(self):
         currentApp = self.currentApplication
+        stack = inspect.stack()
         for attr in dir(self):
             try:
                 method = getattr(self, attr)
@@ -417,22 +426,28 @@ class Action(object):
                 continue
             elif hasattr(method, '_applicationimporter__actionAppImporter'):
                 supportedApp = method._applicationimporter__supportedApp
-                if supportedApp == Apps.All or supportedApp == currentApp:
+                if supportedApp & currentApp:
                     method()
                     mLocals = method._locals
-                    updates = dict()
-                    # We need to see what modules and/or classes were imported
-                    # in the importer method.  Collect a list of all modules
-                    # registered to sys.modules and return those.
-                    for key, value in mLocals.iteritems():
-                        if inspect.ismodule(value) or inspect.isclass(value):
-                            if key == 'cls' or key == 'self':
-                                continue
-                            updates[key] = value
-                    return updates
-        return dict()
+                    for r in ['cls', 'self']:
+                        mLocals.pop(r, None)
+                    # Grab the current stack trace, and search up through it for
+                    # a frame that contains type(self)
+                    # That's the frame where we will insert the imported modules
+                    #
+                    # This will break if you subclass an action that runs and uses
+                    # an applicationimport. The namespace of the subclass will be
+                    # populated, but the namespace of the base class *won't*
+                    for s in stack:
+                        globSpace = s[0].f_globals
+                        namedClass = globSpace.get(type(self).__name__)
+                        if namedClass == type(self):
+                            globSpace.update(mLocals)
+                            break
 
-    def _setArguments(self, argRename=dict()):
+    def _setArguments(self, argRename=None):
+        if argRename is None:
+            argRename = {}
         args = self._args
         kwargs = self._kwargs
         arguments = []
@@ -587,7 +602,13 @@ class Action(object):
         )
 
     def __call__(self, *args, **kwargs):
-        return self._execute(*args, **kwargs)
+        if hasattr(self._executeContext, '__enter__') and hasattr(
+            self._executeContext, '__exit__'
+        ):
+            with self._executeContext(self, *args, **kwargs):
+                return self._execute(*args, **kwargs)
+        else:
+            return self._execute(*args, **kwargs)
 
     def __enter__(self):
         if not self._enterHook and not self._exitHook:
