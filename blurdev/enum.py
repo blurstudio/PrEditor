@@ -23,7 +23,7 @@ class _MetaEnumGroup(type):
 
     def __call__(self, number):
         number = int(number)
-        e = None
+        e = self.Nothing
         for enum in self._ENUMERATORS:
             if enum & number:
                 if e:
@@ -349,6 +349,14 @@ class EnumGroup(object):
         suitList = list(Suits)
         
         if Suits.Hearts & Suits.All:
+            print "This is true!"
+
+    You can also pass a int value as a index lookup. If you pass a int value it
+    will return the object by its index. This means you can not lookup composite
+    Enum objects as 3 returns the third index which in the above example is Diamonds.
+    
+    Example:
+        if Suits.Diamonds == Suits[3]:
             print "This is true!"
 
     An EnumGroup can also act as a factory for composite Enum objects.
