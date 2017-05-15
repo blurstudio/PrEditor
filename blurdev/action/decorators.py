@@ -74,6 +74,12 @@ class _Argument(object):
             return self._default
 
     @property
+    def required(self):
+        if self._defaultInstance:
+            return False
+        return isinstance(self._default, _ArgNoDefault)
+
+    @property
     def found(self):
         return self._found
 
