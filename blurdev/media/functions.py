@@ -528,9 +528,17 @@ def spoolText(**kwargs):
        
     """
 
+    def toPerlString(value):
+        if isinstance(value, basestring):
+            return "'%s'" % (value.replace("'", r"\'"))
+        return str(value)
+
     def createLink(key, value):
         if isinstance(value, basestring):
-            value = "'%s'" % (value.replace("'", r"\'"))
+            value = toPerlString(value)
+        if isinstance(value, (list, tuple)):
+            value = [toPerlString(v) for v in value]
+            value = '[\n\t\t\t%s\n\t\t]' % ',\n\t\t\t'.join(value)
         if isinstance(value, dict):
             data = []
             for k, v in value.items():
