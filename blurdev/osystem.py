@@ -564,7 +564,7 @@ def username():
 # --------------------------------------------------------------------------------
 # 								Read registy values
 # --------------------------------------------------------------------------------
-def getRegKey(registry, key, architecture=None):
+def getRegKey(registry, key, architecture=None, write=False):
     """ Returns a _winreg hkey or none.
     
     Args:
@@ -586,8 +586,11 @@ def getRegKey(registry, key, architecture=None):
         sam = _winreg.KEY_WOW64_64KEY
     else:
         sam = 0
+    access = _winreg.KEY_READ
+    if write:
+        access = _winreg.KEY_WRITE
     try:
-        regKey = _winreg.OpenKey(aReg, key, 0, _winreg.KEY_READ | sam)
+        regKey = _winreg.OpenKey(aReg, key, 0, access | sam)
     except WindowsError:
         pass
     return regKey
@@ -657,3 +660,62 @@ def registryValue(registry, key, value_name, architecture=None):
 
         return _winreg.QueryValueEx(regKey, value_name)
     return '', 0
+
+
+def setRegistryValue(
+    registry, key, value_name, value, valueType=None, architecture=None, notify=None
+):
+    """ Stores a value in the registry for the provided registy key's name.
+    
+    Args:
+        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        value_name (str): The name of the value to read. To read the '(Default)' key pass a 
+            empty string.
+        value: The value to store in the registry.
+        valueType (str or int or None): The Type of the data being stored. If a string is passed
+            in it must be listed in https://docs.python.org/2/library/_winreg.html#value-types.
+            See blurdev.osystem.registryValue's second return value.
+        architecture (int or None): 32 or 64 bit. If None use system default. Defaults to None
+        notify (bool or None): Defaults to None. If None and the key appears to be editing the 
+            environment it will default to True. Sends a message to the system telling them the 
+            environment has changed. This allows applications, such as the shell, to pick up 
+            your updates.
+    Returns:
+        bool: It was able to store the registry value.
+    """
+    try:
+        import _winreg
+
+        aReg = _winreg.ConnectRegistry(None, getattr(_winreg, registry))
+        _winreg.CreateKey(aReg, key)
+        regKey = getRegKey(registry, key, architecture=architecture, write=True)
+        if isinstance(valueType, basestring):
+            valueType = getattr(_winreg, valueType)
+        # Store the value in the registry
+        _winreg.SetValueEx(regKey, value_name, 0, valueType, value)
+        # Auto-detect if we should notify the system that the environment has changed.
+        if notify is None:
+            if registry == 'HKEY_LOCAL_MACHINE':
+                if (
+                    key.lower()
+                    == r'system\currentcontrolset\control\session manager\environment'
+                ):
+                    notify = True
+            elif registry == 'HKEY_CURRENT_USER':
+                if key.lower() == r'environment':
+                    notify = True
+        if notify:
+            try:
+                # notify the system about the changes
+                import win32gui
+                import win32con
+
+                win32gui.SendMessage(
+                    win32con.HWND_BROADCAST, win32con.WM_SETTINGCHANGE, 0, 'Environment'
+                )
+            except ImportError:
+                pass
+        return True
+    except WindowsError:
+        return False
