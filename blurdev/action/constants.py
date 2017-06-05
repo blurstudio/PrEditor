@@ -16,13 +16,13 @@ class App(Enum):
 
 
 class Apps(EnumGroup):
-    Maya = App(label='maya')
-    Max = App(label='max')
-    XSI = App(label='xsi')
-    MotionBuilder = App(label='motionbuilder')
-    Fusion = App(label='fusion')
-    Nuke = App(label='nuke')
-    External = App(label='external')
+    Maya = App(label='maya', traxName='Maya')
+    Max = App(label='max', traxName='3ds Max')
+    XSI = App(label='xsi', traxName='XSI')
+    MotionBuilder = App(label='motionbuilder', traxName='MotionBuilder')
+    Fusion = App(label='fusion', traxName='Fusion')
+    Nuke = App(label='nuke', traxName='Nuke')
+    External = App(label='external', traxName='')
 
 
 # =============================================================================
