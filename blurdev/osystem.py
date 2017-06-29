@@ -711,8 +711,15 @@ def setRegistryValue(
                 import win32gui
                 import win32con
 
-                win32gui.SendMessage(
-                    win32con.HWND_BROADCAST, win32con.WM_SETTINGCHANGE, 0, 'Environment'
+                # Use SendMessageTimeout to avoid hanging if applications fail
+                # to respond to the broadcast.
+                win32gui.SendMessageTimeout(
+                    win32con.HWND_BROADCAST,
+                    win32con.WM_SETTINGCHANGE,
+                    0,
+                    'Environment',
+                    win32con.SMTO_ABORTIFHUNG,
+                    1000,
                 )
             except ImportError:
                 pass
