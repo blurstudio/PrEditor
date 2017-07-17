@@ -64,6 +64,7 @@ class DocumentEditor(QsciScintilla):
         self._lastSearchDirection = self.SearchDirection.First
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
+        self._enableFontResizing = True
         # TODO: figure out how to query these values
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
