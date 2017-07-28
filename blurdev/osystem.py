@@ -388,19 +388,61 @@ def shell(command, basepath='', persistent=False):
     return success
 
 
-def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=None):
+def subprocessEnvironment(env=None):
+    """ Returns a copy of the environment that will restore a new python instance to current state.
+    
+    Provides a environment dict that can be passed to subprocess.Popen that will restore the
+    current treegrunt environment settings, and blurdev stylesheet.
+
+    Args:
+        env (dict, Optional): The base dictionary that is modified with blurdev variables.
+            if None(default) it will be populated with a copy of os.environ.
+
+    Returns:
+        dict: A list of environment variables to be passed to subprocess's env argument.
     """
-    Runs the filename in a shell with proper commands given, or passes 
-    the command to the shell. (CMD in windows) the current platform
-    
-    :param filename: path to the file to execute
-    :type filename: str
-    :param debugLevel: debug level
-    :type debugLevel: :data:`blurdev.debug.DebugLevel`
-    :param basePath: working directory where the command should be called
-                     from.  If omitted, the current working directory is used.
-    :type basePath: str
-    
+    if env is None:
+        env = os.environ.copy()
+    actEnv = blurdev.activeEnvironment()
+    if actEnv.path():
+        env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
+        email = actEnv.emailOnError()
+        if email:
+            env['BLURDEV_ERROR_EMAIL'] = str(email[0])
+        env['BDEV_ENVIRONMENT_OFFLINE'] = repr(actEnv.isOffline())
+        env['BDEV_ENVIRONMENT_DEVEL'] = repr(actEnv.isDevelopment())
+        env['BDEV_ENVIRONMENT_ENVIRON_FILE'] = str(actEnv.sourceFile())
+
+    # Sets the stylesheet env variable so that launched applications can use it.
+    stylesheet = blurdev.core.styleSheet()
+    if stylesheet:
+        env['BDEV_STYLESHEET'] = str(stylesheet)
+    return env
+
+
+def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=None):
+    """ Runs the filename.
+
+    Runs the filename in a shell with proper commands given, or passes the command to the shell.
+    (CMD in windows) the current platform
+
+    Args:
+        filename (str): path to the file to execute
+        debugLevel (blurdev.debug.DebugLevel or None, optional): If not None(default), override
+            for the current value of blurdev.debug.debugLevel(). If DebugLevel.High, a persistent
+            terminal will be opened allowing you see the output in case of a crash.
+        basePath (str, optional): working directory where the command should be called
+            from.  If None(default), the current working directory is used.
+        cmd (str or list or None, optional): This will be passed to subprocess if defined. 
+            You can use a couple of % formatting keywords. "%(filepath)s" will be filled with
+            filename. "%(basepath)s" will be filled with basePath.
+        architecture (int or None, optional): 32 or 64 bit. If None use system default.
+            Defaults to None
+
+    Returns:
+        bool or subprocess.Popen: In most cases it should return a Popen object. However if it
+            can't run filename for some reason it will return False. On Windows if it has to
+            resort to calling os.startfile it will return the state of that command.
     """
     # determine the debug level
     debug = blurdev.debug
@@ -423,9 +465,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
     # strip out the information we need
     ext = os.path.splitext(filename)[1]
     if cmd is None:
-        if filename.startswith('http://'):
-            cmd = expandvars(os.environ.get('BDEV_CMD_WEB', ''))
-        elif ext in (".py", ".pyw"):
+        if ext in (".py", ".pyw"):
             cmd = (
                 pythonPath(pyw=ext == ".pyw", architecture=architecture)
                 + ' "%(filepath)s"'
@@ -435,38 +475,34 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
 
     options = {'filepath': filename, 'basepath': basePath}
 
-    # build the environment to pass along
-    env = None
-    env = os.environ.copy()
-    actEnv = blurdev.activeEnvironment()
-    envPath = actEnv.path()
-    if envPath:
-        env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
-        email = actEnv.emailOnError()
-        if email:
-            env['BLURDEV_ERROR_EMAIL'] = str(email[0])
-        env['BDEV_ENVIRONMENT_OFFLINE'] = repr(actEnv.isOffline())
-        env['BDEV_ENVIRONMENT_DEVEL'] = repr(actEnv.isDevelopment())
-        env['BDEV_ENVIRONMENT_ENVIRON_FILE'] = str(actEnv.sourceFile())
+    def formatCmd(cmd, options, prefix=None):
+        if isinstance(cmd, list):
+            if prefix:
+                cmd = prefix + cmd
+            # Do a string format on all items in the list in case they are present.
+            return [c % options for c in cmd]
+        if prefix:
+            cmd = ' '.join(prefix) + ' ' + cmd
+        return cmd % options
 
-    # Sets the stylesheet env variable so that launched applications can use it.
-    stylesheet = blurdev.core.styleSheet()
-    if stylesheet:
-        env['BDEV_STYLESHEET'] = str(stylesheet)
+    # Pass along the current env and blurdev settings
+    env = subprocessEnvironment()
 
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:
         # run it in debug mode for windows
         if settings.OS_TYPE == 'Windows':
-            # make sure .pyw files are opened with python.exe, not pythonw.exe so we can actually debug problems.
             if ext == '.pyw':
-                cmd = (
-                    pythonPath(pyw=False, architecture=architecture) + ' "%(filepath)s"'
-                )
+                # make sure .pyw files are opened with python.exe, not pythonw.exe so we can
+                # actually debug problems.
+                if isinstance(cmd, list):
+                    cmd[0] = cmd[0].replace('pythonw.exe', 'python.exe', 1)
+                else:
+                    cmd = cmd.replace('pythonw.exe', 'python.exe', 1)
             if cmd:
-                success = subprocess.Popen(
-                    'cmd.exe /k %s' % cmd % options, env=env, cwd=basePath
-                )
+                # NOTE: cmd.exe ignores anything after a newline character.
+                cmd = formatCmd(cmd, options, prefix=['cmd.exe', '/k'])
+                success = subprocess.Popen(cmd, env=env, cwd=basePath)
             else:
                 success = subprocess.Popen(
                     'cmd.exe /k "%s"' % filename, env=env, cwd=basePath
@@ -491,8 +527,11 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
             # write a temp shell command
             tempfilename = os.path.join(temppath, 'debug.sh')
             tempfile = open(tempfilename, 'w')
-            tempfile.write('echo "running command: %s"\n' % (cmd % options))
-            tempfile.write(cmd % options)
+            cmd = formatCmd(cmd, options)
+            if isinstance(cmd, list):
+                cmd = ' '.join(cmd)
+            tempfile.write('echo "running command: %s"\n' % cmd)
+            tempfile.write(cmd)
             tempfile.close()
 
             # make sure the system can run the file
@@ -511,7 +550,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
         if settings.OS_TYPE == 'Windows':
             if cmd:
                 success = subprocess.Popen(
-                    cmd % options, shell=True, cwd=basePath, env=env
+                    formatCmd(cmd, options), shell=True, cwd=basePath, env=env
                 )
             else:
                 success = subprocess.Popen(
@@ -526,7 +565,7 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
         # in other platforms, we'll use subprocess.Popen
         else:
             if cmd:
-                success = subprocess.Popen(cmd % options, env=env, shell=True)
+                success = subprocess.Popen(formatCmd(cmd, options), env=env, shell=True)
             else:
                 # If the provided file is marked as executable just run it.
                 if os.access(filename, os.X_OK):
@@ -535,7 +574,9 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
                     cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
                     if not cmd:
                         return False
-                    success = subprocess.Popen(cmd % options, env=env, shell=True)
+                    success = subprocess.Popen(
+                        formatCmd(cmd, options), env=env, shell=True
+                    )
     return success
 
 

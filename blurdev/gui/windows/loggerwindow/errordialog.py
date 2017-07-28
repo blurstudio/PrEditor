@@ -50,20 +50,13 @@ class ErrorDialog(Dialog):
     def submitRequest(self):
         from console import ConsoleEdit
 
-        toolPath = os.path.join(
-            blurdev.activeEnvironment().path(),
-            'code',
-            'python',
-            'tools',
-            'RequestPimp',
-            'main.pyw',
-        )
+        toolPath = blurdev.findTool('RequestPimp').sourcefile()
 
         if 'python' in sys.executable:
             python_exe = sys.executable
         else:
             if sys.platform == 'win32':
-                python_exe = r'C:\python27\pythonw.exe'
+                python_exe = blurdev.osystem.pythonPath(pyw=True)
             else:
                 python_exe = r'/usr/bin/pythonw'
 
@@ -71,18 +64,17 @@ class ErrorDialog(Dialog):
             self.traceback_msg, format='textile'
         )
         subject = self.traceback_msg.split('\n')[-2]
-        process = subprocess.Popen(
-            [
-                python_exe,
-                toolPath,
-                '--project',
-                'pipeline',
-                '--subject',
-                subject,
-                '--additional-info',
-                body,
-            ]
-        )
+        cmd = [
+            python_exe,
+            toolPath,
+            '--project',
+            'pipeline',
+            '--subject',
+            subject,
+            '--additional-info',
+            body,
+        ]
+        process = subprocess.Popen(cmd, env=blurdev.osystem.subprocessEnvironment())
         self.requestPimpPID = process.pid
         QTimer.singleShot(1000, self.waitForRequestPimp)
         self.setCursor(Qt.WaitCursor)
