@@ -1089,7 +1089,7 @@ class DocumentEditor(QsciScintilla):
                 self.selectionChanged.connect(self.updateHighlighter)
                 self._smartHighlightingSupported = True
             else:
-                self.setHighlightedKeywords(self.lexer(), '')
+                self.setHighlightedKeywords(lexer, '')
 
     def setShowWhitespaces(self, state):
         if state:
@@ -1366,9 +1366,9 @@ class DocumentEditor(QsciScintilla):
         if selectedText != lexer.highlightedKeywords:
             if selectedText:
                 validator = self.selectionValidator
-                if hasattr(self.lexer(), 'selectionValidator'):
+                if hasattr(lexer, 'selectionValidator'):
                     # If a lexer has defined its own selectionValidator use that instead
-                    validator = self.lexer().selectionValidator
+                    validator = lexer.selectionValidator
                 # Does the text contain a non allowed word?
                 if not validator.findall(selectedText) == []:
                     return
@@ -1424,7 +1424,12 @@ class DocumentEditor(QsciScintilla):
         self.updateColorScheme()
         self._highlightedKeywords = keywords
         lexer.highlightedKeywords = ' '.join(self._permaHighlight + [unicode(keywords)])
+
+        vScroll = self.verticalScrollBar().value()
         self.setLexer(lexer)
+        # HACK: Sort of fixes the scroll issue when using smartHighlighting. Repaint causes jumping
+        self.repaint()
+        self.verticalScrollBar().setValue(vScroll)
 
     def indentSelection(self, all=False):
         if all:
