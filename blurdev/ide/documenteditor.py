@@ -1425,11 +1425,13 @@ class DocumentEditor(QsciScintilla):
         self._highlightedKeywords = keywords
         lexer.highlightedKeywords = ' '.join(self._permaHighlight + [unicode(keywords)])
 
-        vScroll = self.verticalScrollBar().value()
+        # Clearing the lexer before re-setting the lexer seems to fix the scroll/jump issue
+        # when using smartHighlighting near the end of the document.
+        self.setLexer(None)
         self.setLexer(lexer)
-        # HACK: Sort of fixes the scroll issue when using smartHighlighting. Repaint causes jumping
+        # repaint appears to fix the problem with text being squashed when smartHighlighting
+        # is activated by clicking and draging to select text.
         self.repaint()
-        self.verticalScrollBar().setValue(vScroll)
 
     def indentSelection(self, all=False):
         if all:
