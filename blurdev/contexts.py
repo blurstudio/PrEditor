@@ -90,6 +90,12 @@ class TempFilesContext(object):
     Keyed mode returns the same object if one of the make functions is called twice
     with the same key.
     
+    If the environment variable "BDEV_KEEP_TEMPFILESCONTEXT" is set to "true", then
+    the temp files and directories will not be removed when the context exits. This
+    forces crashMonitor to False, and must be set before the Context is created. When
+    the context exits, it will print a list of all temp directories and files that
+    were created and not deleted.
+    
     Note:
         The crashMonitor option uses multiprocessing to monitor if the main python
         module was killed. Because of how multiprocessing works on windows, if you
@@ -119,7 +125,10 @@ class TempFilesContext(object):
         self.defaultDir = defaultDir
         self._tempDirs = {}
         self._tempFiles = {}
-        self.crashMonitor = crashMonitor
+        self.keepTempFiles = (
+            os.getenv('BDEV_KEEP_TEMPFILESCONTEXT', 'false').lower() == 'true'
+        )
+        self.crashMonitor = crashMonitor if not self.keepTempFiles else False
 
         if self.crashMonitor:
             if Stone or psutil:
@@ -229,6 +238,15 @@ class TempFilesContext(object):
         return self
 
     def __exit__(self, *args):
+        if self.keepTempFiles:
+            from pprint import pprint
+
+            print 'BDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.'
+            print '--- Orphaned Directories:'
+            pprint(self._tempDirs)
+            print '--- Orphaned Files:'
+            pprint(self._tempFiles)
+            return
         # Remove any created folders from disk and their contents
         for tempDir in self._tempDirs.values():
             shutil.rmtree(tempDir)
