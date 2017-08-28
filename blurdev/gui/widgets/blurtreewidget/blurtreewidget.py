@@ -854,6 +854,23 @@ class BlurTreeWidget(LockableTreeWidget):
         if result and menu.actions():
             menu.popup(cursorPos)
 
+    def startDrag(self, supportedActions, tree=None):
+        """
+            :remarks	Overloaded. If you add this function to the delegate you can override the startDrag for drag events.
+            :param		DropActions	- QFlags<DropAction> an OR combination of DropAction values
+            :return		<QMimeData>
+        """
+        name = self.identifierName('startDrag')
+        if self._delegate and hasattr(self._delegate, name):
+            funct = getattr(self._delegate, name)
+            if 'tree' in funct.func_code.co_varnames:
+                data = funct(supportedActions, self)
+            else:
+                data = funct(supportedActions)
+        else:
+            data = super(BlurTreeWidget, self).startDrag(supportedActions)
+        return data
+
     def treeWidth(self):
         """
             :remarks	Calculates the width of the tree's contents
