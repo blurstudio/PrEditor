@@ -84,6 +84,17 @@
 # |			'text/uri-list',
 # |			'application/x-qabstractitemmodeldatalist']
 # |
+# | def startDrag(self, supportedActions, tree=None):
+# |		mimeData = tree.mimeData(tree.selectedItems())
+# |
+# |		# create the drag
+# |		drag = QDrag(tree)
+# |		drag.setMimeData(mimeData)
+# |
+# |		# drag.setPixmap(QPixmap(<path>))
+# |		drag.setHotSpot(QPoint(10,10))
+# |		drag.exec_()
+# |
 # |	def recordPrefs( self ):
 # |		from trax.gui import prefs
 # |		pref = prefs.find( 'Test_Widget_View' )
@@ -854,7 +865,7 @@ class BlurTreeWidget(LockableTreeWidget):
         if result and menu.actions():
             menu.popup(cursorPos)
 
-    def startDrag(self, supportedActions, tree=None):
+    def startDrag(self, supportedActions):
         """
             :remarks	Overloaded. If you add this function to the delegate you can override the startDrag for drag events.
             :param		DropActions	- QFlags<DropAction> an OR combination of DropAction values
@@ -863,10 +874,7 @@ class BlurTreeWidget(LockableTreeWidget):
         name = self.identifierName('startDrag')
         if self._delegate and hasattr(self._delegate, name):
             funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                data = funct(supportedActions, self)
-            else:
-                data = funct(supportedActions)
+            data = funct(supportedActions, self)
         else:
             data = super(BlurTreeWidget, self).startDrag(supportedActions)
         return data
