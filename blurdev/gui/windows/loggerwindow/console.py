@@ -710,6 +710,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         self.insertPlainText(newText)
 
+    def isatty(self):
+        """ Return True if the stream is interactive (i.e., connected to a terminal/tty device). """
+        # This method is required for pytest to run in a DCC. Returns False so the output does not
+        # contain cursor control characters that disrupt the visual display of the output.
+        return False
+
     def lastError(self):
         try:
             return ''.join(
