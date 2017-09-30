@@ -767,3 +767,129 @@ def setRegistryValue(
         return True
     except WindowsError:
         return False
+
+
+def canonicalWinPath(path):
+    """Expands and normalizes a Windows path as much as possible.
+
+    Removes internal relative paths, expands variables, and normalizes
+    seperators and case.
+
+    Args:
+        path (str): The path to normalize
+
+    Returns:
+        str: The normalized path.
+    """
+    return os.path.normpath(blurdev.osystem.expandPath(os.path.expandvars(path)))
+
+
+def getEnvironmentRegKey(machine=False):
+    """Get the Registry Path and Key for the environment, either of the current
+    user or the system.
+
+    Args:
+        machine (bool, optional): If True, the system Environment location will
+            be returned.  Otherwise, the Environment location for the current
+            user will be returned.  Defaults to False.
+
+    Returns:
+        tuple: Returns a tuple of two strings (registry path, key).
+    """
+    registry = 'HKEY_CURRENT_USER'
+    key = r'Environment'
+    # Replace {PATH} with the existing path variable.
+    if machine:
+        registry = 'HKEY_LOCAL_MACHINE'
+        key = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
+    return registry, key
+
+
+def processPath(path, cb, sep=';'):
+    """A little helper function for prcoessing paths.  Use a cb function to
+    process each path seperated by the specified separator.
+
+    Args:
+        path (str): The path value to process
+        cb (callable): The callback to call to process each path.  This is expected to take a
+            string (path) as input, and return a string or None.
+        sep (str, optional): The OS's seperator for joinging paths in an environment variable.
+
+    Returns:
+        str: The updated and recombined path value.
+    """
+    paths = path.split(sep)
+    retPaths = []
+    for path in paths:
+        outPath = cb(path)
+        if outPath:
+            retPaths.append(outPath)
+    return sep.join(retPaths)
+
+
+def pathReplace(inputPath, replace, replaceWith, normalize=False, useRegex=False):
+    """Replace instances of a path in the inputPath with a replacement path.
+
+    Args:
+        inputPath (str): The path to replace values in.
+        replace (str): The value to be replaced
+        replaceWith (str): The value to replace with
+        normalize (bool, optional): If True, the replacement path will be
+            normalized before being inserted.
+        useRegex (bool, optional): If True, the replacement will be treated as a
+            regex replacement.
+
+    Returns:
+        str: The updated path, with values replaced and recombined.
+    """
+    # we'll perform comparisons on normalized paths, so normalize the string
+    # to be replaced
+    import re
+
+    if not useRegex:
+        replace = canonicalWinPath(replace)
+
+    def _replFn(path):
+        if useRegex:
+            return re.sub(replace, replaceWith, path)
+        if canonicalWinPath(path) == replace:
+            if normalize:
+                # normalize the replacement if the normalize flag is set
+                return canonicalWinPath(replaceWith)
+            # otherwise use the value as passed.
+            return replaceWith
+        return path
+
+    return processPath(inputPath, _replFn)
+
+
+def getEnvironmentPath(machine=False):
+    """Get the PATH variable for either the User or System Environment.
+
+    Args:
+        machine (bool, optional): If True, the system Environment PATH will
+            be returned.  Otherwise, the Environment PATH for the current user
+            will be returned.  Defaults to False.
+
+    Returns:
+        str: The value of the PATH.
+    """
+    registry, key = getEnvironmentRegKey(machine)
+    return blurdev.osystem.registryValue(registry, key, 'PATH')[0]
+
+
+def setEnvironmentPath(value_name, value, system=True, varType=None):
+    """ Method to easily set the path variable using the registry.
+
+    Args:
+        path (str): The new value for the PATH variable.
+        system (bool): If True(default) Set the system variable, otherwise set the user variable.
+
+    Returns:
+        If it was able to set the path environment variable.
+    """
+    import _winreg
+
+    registry, key = getEnvironmentRegKey(system)
+    varType = varType if varType is not None else _winreg.REG_EXPAND_SZ
+    return setRegistryValue(registry, key, value_name, value, valueType=varType)
