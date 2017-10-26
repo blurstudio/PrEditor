@@ -14,7 +14,7 @@ from blurdev.gui import Window
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from workboxwidget import WorkboxWidget
 from blurdev import prefs
-from PyQt4.QtCore import Qt, QFileSystemWatcher, QFileInfo
+from PyQt4.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
 from PyQt4.QtGui import (
     QSplitter,
     QKeySequence,
@@ -36,8 +36,8 @@ import blurdev
 class LoggerWindow(Window):
     _instance = None
 
-    def __init__(self, parent):
-        Window.__init__(self, parent)
+    def __init__(self, parent, runWorkbox=False):
+        Window.__init__(self, parent=parent)
         self.aboutToClearPathsEnabled = False
 
         import blurdev.gui
@@ -176,6 +176,13 @@ class LoggerWindow(Window):
                 blurdev.osystem.getPointerSize(),
             )
         )
+
+        # Run the current workbox after the LoggerWindow is shown.
+        if runWorkbox:
+            # By using two singleShot timers, we can show and draw the LoggerWindow,
+            # then call execAll. This makes it easier to see what code you are running
+            # before it has finished running completely.
+            QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -641,12 +648,12 @@ class LoggerWindow(Window):
         return self._openFileMonitor
 
     @staticmethod
-    def instance(parent=None):
+    def instance(parent=None, runWorkbox=False):
         # create the instance for the logger
         if not LoggerWindow._instance:
 
             # create the logger instance
-            inst = LoggerWindow(parent)
+            inst = LoggerWindow(parent, runWorkbox=runWorkbox)
 
             # RV has a Unique window structure. It makes more sense to not parent a singleton
             # window than to parent it to a specific top level window.
