@@ -11,9 +11,8 @@ from blurdev.cores.core import Core
 # Because the python working directory is the root of the motion builder install
 # we have to explicitly add the qt dll paths so any dll's that were not loaded by
 # qt itself are properly found when loaded later when they are dynamically loaded.
-os.environ['path'] = ';'.join(
-    (os.path.split(sys.executable)[0], os.environ.get('path', ''))
-)
+x64dir = os.path.dirname(sys.executable)
+os.environ['path'] = ';'.join((x64dir, os.environ.get('path', '')))
 
 
 class MotionBuilderCore(Core):
@@ -24,6 +23,10 @@ class MotionBuilderCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'motionbuilder'
         super(MotionBuilderCore, self).__init__(*args, **kargs)
+        # The Qt dlls in the motion builder directory cause problems for other dcc's
+        # so, we need to remove the directory from the PATH environment variable.
+        # See blurdev.osystem.subprocessEnvironment() for more details.
+        self._removeFromPATHEnv.add(x64dir)
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
         # Shutdown blurdev when Motion builder closes

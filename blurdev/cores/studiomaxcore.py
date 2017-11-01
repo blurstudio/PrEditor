@@ -49,6 +49,15 @@ class StudiomaxCore(Core):
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
 
+        # The Qt dlls in the studiomax directory cause problems for other dcc's
+        # so, we need to remove the directory from the PATH environment variable.
+        # See blurdev.osystem.subprocessEnvironment() for more details.
+        maxRoot = mxs.pathConfig.resolvePathSymbols('$max')
+        self._removeFromPATHEnv.add(maxRoot)
+        self._removeFromPATHEnv.add(
+            os.path.join(maxRoot, 'python', 'lib', 'site-packages', 'pywin32_system32')
+        )
+
     def addLibraryPaths(self, app):
         if sys.platform != 'win32':
             return

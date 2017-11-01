@@ -16,6 +16,7 @@ way.
 """
 
 import os
+import sys
 import subprocess
 
 from PyQt4.QtCore import QProcess
@@ -199,8 +200,6 @@ def createShortcut(
             if not os.path.exists(path):
                 os.makedirs(path)
         if not target:
-            import sys
-
             target = sys.executable
         if not startin:
             startin = os.path.split(args)[0]
@@ -417,6 +416,20 @@ def subprocessEnvironment(env=None):
     stylesheet = blurdev.core.styleSheet()
     if stylesheet:
         env['BDEV_STYLESHEET'] = str(stylesheet)
+
+    # Some DCC's require inserting or appending path variables. When using subprocess
+    # these path variables may cause problems with the target application. This allows
+    # removing those path variables from the environment being passed to subprocess.
+    path = env.get('PATH')
+    normalize = lambda i: os.path.normpath(os.path.normcase(i))
+    removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
+    if path:
+        paths = [x for x in path.split(';') if normalize(x) not in removePaths]
+        path = ';'.join(paths)
+        # subprocess does not accept unicode in python 2
+        if sys.version_info[0] == 2 and isinstance(path, unicode):
+            path = path.encode('utf8')
+        env['PATH'] = path
     return env
 
 

@@ -108,6 +108,8 @@ class Core(QObject):
         self._stylesheet = None
         self._headless = False
         self._useAppUserModelID = None
+        # Paths in this variable will be removed in blurdev.osystem.subprocessEnvironment
+        self._removeFromPATHEnv = set()
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
