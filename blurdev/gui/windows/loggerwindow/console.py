@@ -1,26 +1,20 @@
 """ LoggerWindow class is an overloaded python interpreter for blurdev
 
 """
-
 import re
 import __main__
 import os
 import sys
 import sip
 import traceback
-import socket
-import getpass
-import platform
-from abc import ABCMeta
 
-from PyQt4.QtCore import QObject, QPoint, QDateTime, Qt, pyqtProperty, QStringList
+from PyQt4.QtCore import QObject, QPoint, Qt, pyqtProperty, QStringList
 from PyQt4.QtGui import (
     QTextEdit,
     QApplication,
     QTextCursor,
     QTextDocument,
     QTextCharFormat,
-    QMessageBox,
     QColor,
     QAction,
 )
@@ -29,13 +23,10 @@ import blurdev
 from blurdev import debug
 from .completer import PythonCompleter
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
-from blurdev.tools import ToolsEnvironment
-import blurdev.gui.windows.loggerwindow
 from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
+import blurdev.gui.windows.loggerwindow
 from blurdev.contexts import ErrorReport
 
-
-import smtplib
 
 SafeOutput = None
 
@@ -57,93 +48,46 @@ if blurdev.core.objectName() == 'softimage':
     except ImportError:
         pass
 
-additionalInfoHtml = """<br><h3>ErrorReport: %(title)s</h3>
-<br>
-<div style="background:white;padding:5 10 5 10;border:1px black solid"><pre><code>
-%(info)s
-</code></pre></div>"""
 
-additionalInfoTextile = """h3. ErrorReport: %(title)s
+class ConsoleExceptHook(debug.BlurExcepthook):
+    def handleLogger(
+        self, exctype, value, traceback_, sendEmail, showPrompt, emails, tracebackMsg
+    ):
+        if showPrompt:
+            # If the logger is not visible, prompt the user to show it.
+            inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
+            if sip.isdeleted(inst):
+                # If the LoggerWindow has been deleted in c++ we can't prompt the user or show the
+                # the exception. Just print the exception so debugging from the console is easier.
+                print '[LoggerWindow] The LoggerWindow PyQt4 object has been deleted.'
+                print tracebackMsg
+            else:
+                if (
+                    not inst.isVisible()
+                    and not blurdev.core.quietMode()
+                    and not ConsoleEdit._errorPrompted
+                ):
+                    # This is used to ensure we only ever show a single error prompt. In special cases this
+                    # messagebox was showing multiple times, which is very annoying to the user.
+                    # This is not needed for normal Qt event loops, but if some other system (c++, threading)
+                    # raises multiple errors that get processed outside the standard qt event loop.
+                    ConsoleEdit._errorPrompted = True
+                    errorDialog = ErrorDialog(blurdev.core.rootWindow())
+                    errorDialog.setText(tracebackMsg)
+                    errorDialog.exec_()
 
-<pre><code class="Python">
-%(info)s
-</code></pre>"""
+                    # The messagebox was closed, so reset the tracking variable.
+                    ConsoleEdit._errorPrompted = False
 
-infoListItemHtml = "<li><b>%(key)s:</b> %(value)s</li>"
-
-messageBodyHtml = """<ul>
-%(infoList)s
-</ul>
-<br>
-<h3>Traceback Printout</h3>
-<br>
-%(error)s
-%(additionalinfo)s"""
-
-infoListItemTextile = "* *%(key)s:* %(value)s"
-
-messageBodyTextile = """%(infoList)s
-
-h3. Traceback Printout
-
-<pre><code class="Python">
-%(error)s</code></pre>
-
-%(additionalinfo)s"""
-
-infoListItemPlain = "%(key)s: %(value)s"
-
-messageBodyPlain = """%(infoList)s
-
-Traceback Printout
-
-%(error)s
-
-%(additionalinfo)s"""
-
-emailformat = """
-<html>
-    <head>
-        <style>
-            body {
-                font-family: Verdana, sans-serif;
-                font-size: 12px;
-                color:#484848;
-                background:lightGray;
-            }
-            h1, h2, h3 { font-family: "Trebuchet MS", Verdana, sans-serif; margin: 0px; }
-            h1 { font-size: 1.2em; }
-            h2, h3 { font-size: 1.1em; }
-            a, a:link, a:visited { color: #2A5685;}
-            a:hover, a:active { color: #c61a1a; }
-            a.wiki-anchor { display: none; }
-            hr {
-                width: 100%%;
-                height: 1px;
-                background: gray;
-                border: 0;
-            }
-            .footer {
-                font-size: 0.9em;
-                font-style: italic;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>%(subject)s</h1>
-        <br>
-        %(body)s
-        <br><br>
-        <hr/>
-        <span class="footer">
-            <p>%(datestamp)s</p>
-            <p>You have received this notification because you have either subscribed to it, or are involved in it.<br/>
-            To change your notification preferences, go into trax and change your options settings.
-            </p>
-        </span>
-    </body>
-</html>
-"""
+    def __call__(self, exctype, value, traceback_):
+        self.callBaseEHook(exctype, value, traceback_)
+        sendEmail, showPrompt, emails, tracebackMsg = self.sendExceptEmail(
+            exctype, value, traceback_
+        )
+        self.handleLogger(
+            exctype, value, traceback_, sendEmail, showPrompt, emails, tracebackMsg
+        )
+        ErrorReport.clearReports()
 
 
 class ErrorLog(QObject, Win32ComFix):
@@ -157,7 +101,6 @@ class ErrorLog(QObject, Win32ComFix):
 
 
 class ConsoleEdit(QTextEdit, Win32ComFix):
-    _excepthook = None
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
     # the color error messages are displayed in, can be set by stylesheets
@@ -172,12 +115,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # create the completer
         self.setCompleter(PythonCompleter(self))
 
-        # sys.__stdout__ and sys.__excepthook__ don't work if some third party has implemented their
+        # sys.__stdout__ doesn't work if some third party has implemented their
         # own override. Use these to backup the current logger so the logger displays output, but
         # application specific consoles also get the info.
         self.stdout = None
         self.stderr = None
-        ConsoleEdit._excepthook = None
         self._errorLog = None
         # overload the sys logger (if we are not on a high debugging level)
         if (
@@ -187,14 +129,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # Store the current outputs
             self.stdout = sys.stdout
             self.stderr = sys.stderr
-            ConsoleEdit._excepthook = sys.excepthook
             # insert our own outputs
             sys.stdout = self
             sys.stderr = ErrorLog(self)
             self._errorLog = sys.stderr
-            sys.excepthook = ConsoleEdit.excepthook
-            # Enable ErrorReport reporting.
-            ErrorReport.enabled = True
+            debug.installBlurExcepthook(ConsoleExceptHook)
 
         # create the highlighter
         highlight = CodeHighlighter(self)
@@ -279,337 +218,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def setForegroundColor(self, color):
         self._foregroundColor = color
-
-    @staticmethod
-    def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
-
-        try:
-            from pygments import highlight
-            from pygments.lexers import get_lexer_by_name
-            from pygments.formatters import HtmlFormatter
-        except Exception, e:
-            print 'Could not import pygments, using old html formatting', str(e)
-            htmlTemplate = """<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>
-%(code)s
-</code></pre></div>"""
-            return htmlTemplate % {'code': code.replace('\n', '<br>')}
-
-        lexer = lexer or 'python'
-        style = style or 'colorful'
-        defstyles = 'overflow:auto;width:auto;'
-        if not divstyles:
-            divstyles = (
-                'border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;'
-            )
-
-        formatter = HtmlFormatter(
-            style=style,
-            linenos=False,
-            noclasses=True,
-            cssclass='',
-            cssstyles=defstyles + divstyles,
-            prestyles='margin: 0',
-        )
-        html = highlight(code, get_lexer_by_name(lexer), formatter)
-        if linenos:
-            html = ConsoleEdit.insert_line_numbers(html)
-        return html
-
-    @staticmethod
-    def insert_line_numbers(html):
-        match = re.search('(<pre[^>]*>)(.*)(</pre>)', html, re.DOTALL)
-        if not match:
-            return html
-
-        pre_open = match.group(1)
-        pre = match.group(2)
-        pre_close = match.group(3)
-
-        html = html.replace(pre_close, '</pre></td></tr></table>')
-        numbers = range(1, pre.count('\n') + 1)
-        format = '%' + str(len(str(numbers[-1]))) + 'i'
-        lines = '\n'.join(format % i for i in numbers)
-        html = html.replace(
-            pre_open,
-            '<table><tr><td>' + pre_open + lines + '</pre></td><td>' + pre_open,
-        )
-        return html
-
-    @staticmethod
-    def excepthook(exctype, value, traceback_):
-        """
-        Logger Console excepthook. Re-implemented from sys.excepthook.  Catches
-        all unhandled exceptions so that the user may be prompted that an error
-        has occurred and can automatically show the Console view.		
-        
-        """
-        # Print a new line before the traceback is printed. This ensures that the first line is not
-        # printed on a prompt, and also provides seperation between tracebacks that makes it easier
-        # to identify which traceback you are looking at when multiple tracebacks are received.
-        print ''
-        # Call the base implementation.  This generaly prints the traceback to stderr.
-        if ConsoleEdit._excepthook:
-            try:
-                ConsoleEdit._excepthook(exctype, value, traceback_)
-            except TypeError:
-                # If the ConsoleEdit is no longer valid because it has been c++ garbage collected
-                sys.__excepthook__(exctype, value, traceback_)
-        else:
-            sys.__excepthook__(exctype, value, traceback_)
-
-        # Check if this traceback should be ignored. Some software like Nuke use exceptions to signal
-        # that special things have happened. Like the user canceled the open file dialog. We don't
-        # want to prompt the user to open the Python Logger for these types of errors. We also don't
-        # want to receive emails or redmine tickets for it. This allows the core to ignore exceptions
-        sendEmail, showPrompt = blurdev.core.shouldReportException(
-            exctype, value, traceback_
-        )
-
-        traceback_msg = ''.join(traceback.format_exception(exctype, value, traceback_))
-        if sendEmail:
-            # Email the error traceback.
-            emails = ToolsEnvironment.activeEnvironment().emailOnError()
-            if emails:
-                ConsoleEdit.emailError(emails, traceback_msg)
-
-        if showPrompt:
-            # If the logger is not visible, prompt the user to show it.
-            inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
-            if sip.isdeleted(inst):
-                # If the LoggerWindow has been deleted in c++ we can't prompt the user or show the
-                # the exception. Just print the exception so debugging from the console is easier.
-                print '[LoggerWindow] The LoggerWindow PyQt4 object has been deleted.'
-                print traceback_msg
-            else:
-                if (
-                    not inst.isVisible()
-                    and not blurdev.core.quietMode()
-                    and not ConsoleEdit._errorPrompted
-                ):
-                    # This is used to ensure we only ever show a single error prompt. In special cases this
-                    # messagebox was showing multiple times, which is very annoying to the user.
-                    # This is not needed for normal Qt event loops, but if some other system (c++, threading)
-                    # raises multiple errors that get processed outside the standard qt event loop.
-                    ConsoleEdit._errorPrompted = True
-                    errorDialog = ErrorDialog(blurdev.core.rootWindow())
-                    errorDialog.setText(traceback_msg)
-                    errorDialog.exec_()
-
-                    # The messagebox was closed, so reset the tracking variable.
-                    ConsoleEdit._errorPrompted = False
-
-            # Even if we don't use the ErrorReport functions we need to clear them so they don't
-            # end up being sent in some other error email.
-            ErrorReport.clearReports()
-
-    @classmethod
-    def buildErrorMessage(cls, error, subject=None, information=None, format='html'):
-        """
-        Generates a email of the traceback, and useful information provided by the class if available.
-        
-            If the erroring class provides the following method, any text it returns will be included in the message under Additional Information
-            |	def errorLog(self):
-            |		return '[Additional text to include in email]'
-
-        :param error: The error message to pass along
-        :param information: if provided this string is included under the Information header of the provided email
-        """
-        if not error:
-            return
-
-        # get current user
-        username = getpass.getuser()
-        if not username:
-            username = 'Anonymous'
-
-        # get current host
-        try:
-            host = socket.gethostname()
-        except:
-            host = 'Unknown'
-
-        # Build the message
-        envName = blurdev.activeEnvironment().objectName()
-        minfo = {}
-        from collections import OrderedDict
-
-        infoList = OrderedDict()
-        infoList['username'] = username
-        infoList['hostname'] = host
-        infoList['date'] = QDateTime.currentDateTime().toString(
-            'MMM dd, yyyy @ h:mm ap'
-        )
-        infoList['python version'] = sys.version.replace('\n', '')
-        infoList['platform'] = platform.platform()
-        infoList['executable'] = sys.executable
-        # Include Assburner job info if available
-        jobKey = os.environ.get('AB_JOBID')
-        if jobKey:
-            infoList['assburner job id'] = jobKey
-        burnDir = os.environ.get('AB_BURNDIR')
-        if burnDir:
-            infoList['assburner burn dir'] = burnDir
-        burnFile = os.environ.get('AB_BURNFILE')
-        if burnFile:
-            infoList['assburner burn file'] = burnFile
-
-        infoList['blurdev core'] = blurdev.core.objectName()
-        infoList['blurdev env'] = '%s: %s' % (
-            envName,
-            blurdev.activeEnvironment().path(),
-        )
-
-        # notify where the error came from
-        window = QApplication.activeWindow()
-        className = ''
-
-        # use the root application
-        if window.__class__.__name__ == 'LoggerWindow':
-            window = window.parent()
-        elif window.__class__.__name__ == 'ErrorDialog':
-            window = window.parent()
-
-        if window:
-            infoList['window'] = '%s (from %s Class)' % (
-                window.objectName(),
-                window.__class__.__name__,
-            )
-            className = '[W:%s]' % window.__class__.__name__
-
-        # Build the brief & subject information
-        if not subject:
-            subject = error.split('\n')[-2]
-            # Limit the subject line to less than 400 characters excluding the filter info. This
-            # prevents especially long subjects like those generated by a sql error.
-            if len(subject) > 400:
-                subject = '{} ...'.format(subject[:400])
-        if envName:
-            envName = '[E:%s]' % envName
-
-        subject = '[Python Error][U:%s][C:%s]%s%s %s' % (
-            username,
-            blurdev.core.objectName(),
-            envName,
-            className,
-            subject,
-        )
-
-        coreMsg = blurdev.core.errorCoreText()
-
-        if coreMsg:
-            infoList['blurdev.core Message'] = coreMsg
-
-        # Load in any aditional error info from the environment variables
-        prefix = 'BDEV_EMAILINFO_'
-        for key in sorted(os.environ):
-            if key.startswith(prefix):
-                infoList[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
-
-        if format == 'html':
-            errorstr = cls.highlightCodeHtml(unicode(error), 'pytb', 'default')
-        else:
-            errorstr = unicode(error)
-        minfo['error'] = errorstr
-
-        # append any passed in body text, and any ErrorReport text.
-        minfo['additionalinfo'] = ''
-        infos = [(None, information)] + ErrorReport.generateReport()
-        for title, info in infos:
-            if info is not None:
-                if format == 'html':
-                    formatData = {
-                        'info': unicode(info).replace('\n', '<br>'),
-                        'title': title,
-                    }
-                    addinfo = additionalInfoHtml % formatData
-                elif format == 'textile':
-                    addinfo = additionalInfoTextile % {
-                        'info': unicode(info),
-                        'title': title,
-                    }
-                else:
-                    addinfo = unicode(info)
-                minfo['additionalinfo'] += addinfo
-
-        # append extra stuff
-        if hasattr(sys, 'last_traceback'):
-            tb = sys.last_traceback
-            if tb:
-                frame = tb.tb_frame
-                if frame:
-                    module = frame.f_locals.get('self')
-                    if module:
-                        if hasattr(module, 'errorLog'):
-                            try:
-                                errorlog = module.errorLog()
-                            except Exception, e:
-                                modulename = frame.f_globals.get('__name__')
-                                if not modulename:
-                                    modulename = 'module'
-                                errorlog = '%s.errorLog() generated an error: %s' % (
-                                    modulename,
-                                    str(e),
-                                )
-                            if format == 'html':
-                                addinfo = additionalInfoHtml % {
-                                    'info': unicode(errorlog).replace('\n', '<br>')
-                                }
-                            elif format == 'textile':
-                                addinfo = additionalInfoTextile % {
-                                    'info': unicode(errorlog)
-                                }
-                            else:
-                                addinfo = unicode(errorlog)
-                            minfo['additionalinfo'] += addinfo
-
-        def joinInfoList(formatter):
-            return '\n'.join(
-                [
-                    formatter % {'key': key, 'value': value}
-                    for key, value in infoList.iteritems()
-                ]
-            )
-
-        if format == 'html':
-            minfo['infoList'] = joinInfoList(infoListItemHtml)
-            message = messageBodyHtml % minfo
-        elif format == 'textile':
-            minfo['infoList'] = joinInfoList(infoListItemTextile)
-            message = messageBodyTextile % minfo
-        else:
-            minfo['infoList'] = joinInfoList(infoListItemPlain)
-            message = messageBodyPlain % minfo
-        return subject, message
-
-    @staticmethod
-    def emailError(emails, error, subject=None, information=None):
-        if not error:
-            return
-
-        # do not email when debugging
-        if debug.debugLevel():
-            return
-
-        subject, message = ConsoleEdit.buildErrorMessage(error, subject, information)
-        try:
-            sender = blurdev.core.emailAddressMd5Hash(subject)
-            # Prevent gmail from ... "trimming" the entire email contents due to each message
-            # being almost identical.
-            datestamp = QDateTime.currentDateTime().toString(
-                'MMM dd, yyyy @ h:mm:zzz ap'
-            )
-            msg = emailformat % {
-                'subject': subject,
-                'body': message,
-                'datestamp': datestamp,
-            }
-            blurdev.core.sendEmail(sender, emails, subject, msg)
-        except socket.error:
-            # Unable to send error email. It is assumed you don't have a valid email addres.
-            pass
-        except smtplib.SMTPException as e:
-            print 'Error connecting to smtp server', e
-            print 'email not sent'
 
     def executeCommand(self):
         """ executes the current line of code """

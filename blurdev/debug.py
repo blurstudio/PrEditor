@@ -31,14 +31,16 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 
 import os
 import sys
-import datetime
 import time
 import weakref
+import datetime
+import traceback
 
 from PyQt4.QtCore import Qt, QString
-from PyQt4.QtGui import QMessageBox
 
 import blurdev
+from blurdev.contexts import ErrorReport
+
 from .enum import enum
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
@@ -187,6 +189,81 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
             datetime.datetime.today(),
             sys.version,
         )
+
+
+# --------------------------------------------------------------------------------
+
+
+class BlurExcepthook(object):
+    ''' A class that stacks blur's excepthook code on top of whatever excepthook already exists
+        Catches all unhandled exceptions and sends an email detailing the exception
+
+    Arguments:
+        ehook (callable): A callable exception hook compatible with sys.excepthook
+    '''
+
+    def __init__(self, ehook):
+        # If the passed hook is another BlurExcepthook, wrap the origial sys.__excepthook__
+        self.ehook = sys.__excepthook__ if isinstance(ehook, BlurExcepthook) else ehook
+
+    def callBaseEHook(self, exctype, value, traceback_):
+        ''' Call the base excepthook implementation.
+        This generaly prints the traceback to stderr.
+        '''
+        # Print a new line before the traceback is printed. This ensures that the first line is not
+        # printed on a prompt, and also provides seperation between tracebacks that makes it easier
+        # to identify which traceback you are looking at when multiple tracebacks are received.
+        print ''
+        if self.ehook:
+            try:
+                self.ehook(exctype, value, traceback_)
+            except TypeError:
+                # If self.ehook is no longer valid
+                sys.__excepthook__(exctype, value, traceback_)
+        else:
+            sys.__excepthook__(exctype, value, traceback_)
+
+    @staticmethod
+    def sendExceptEmail(exctype, value, traceback_):
+        ''' Send an email for the exception '''
+        # Check if this traceback should be ignored. Some software like Nuke use exceptions to signal
+        # that special things have happened. Like the user canceled the open file dialog. We don't
+        # want to prompt the user to open the Python Logger for these types of errors. We also don't
+        # want to receive emails or redmine tickets for it. This allows the core to ignore exceptions
+        sendEmail, showPrompt = blurdev.core.shouldReportException(
+            exctype, value, traceback_
+        )
+
+        tracebackMsg = ''.join(traceback.format_exception(exctype, value, traceback_))
+        emails = []
+        if sendEmail:
+            # Email the error traceback.
+            from blurdev.tools import ToolsEnvironment
+            from blurdev.utils.errorEmail import emailError
+
+            emails = ToolsEnvironment.activeEnvironment().emailOnError()
+            if emails:
+                emailError(emails, tracebackMsg)
+
+        return sendEmail, showPrompt, emails, tracebackMsg  # for subclassing
+
+    def __call__(self, exctype, value, traceback_):
+        self.callBaseEHook(exctype, value, traceback_)
+        self.sendExceptEmail(exctype, value, traceback_)
+        ErrorReport.clearReports()
+
+
+def installBlurExcepthook(hook):
+    ''' Install the blur excepthook, and return the previous one
+    
+    Arguments:
+        hook (callable): A callable that takes, and wraps the previous
+            excepthook
+    '''
+    ErrorReport.enabled = True
+    bak = sys.excepthook
+    sys.excepthook = hook(bak)
+    return bak
 
 
 # --------------------------------------------------------------------------------
@@ -498,6 +575,8 @@ def showErrorReport(
     message='There were errors that occurred.  Click the Details button for more info.',
 ):
     if not errorsReported():
+        from PyQt4.QtGui import QMessageBox
+
         QMessageBox.critical(None, subject, message)
     else:
         from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog

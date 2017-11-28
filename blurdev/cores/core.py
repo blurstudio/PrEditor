@@ -1237,7 +1237,7 @@ class Core(QObject):
             output['To'] = str(targets)
 
         output['Date'] = str(
-            QDateTime.currentDateTime().toString('ddd, d MMM yyyy hh:mm:ss')
+            QDateTime.currentDateTime().toUTC().toString('ddd, d MMM yyyy hh:mm:ss')
         )
         output['Content-type'] = 'Multipart/mixed'
         output.preamble = 'This is a multi-part message in MIME format.'
