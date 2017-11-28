@@ -202,9 +202,9 @@ class BlurExcepthook(object):
         ehook (callable): A callable exception hook compatible with sys.excepthook
     '''
 
-    def __init__(self, ehook):
-        # If the passed hook is another BlurExcepthook, wrap the origial sys.__excepthook__
-        self.ehook = sys.__excepthook__ if isinstance(ehook, BlurExcepthook) else ehook
+    def __init__(self, ehook=None):
+        # fall back on system default excepthook
+        self.ehook = sys.__excepthook__ if ehook is None else ehook
 
     def callBaseEHook(self, exctype, value, traceback_):
         ''' Call the base excepthook implementation.
@@ -252,18 +252,20 @@ class BlurExcepthook(object):
         self.sendExceptEmail(exctype, value, traceback_)
         ErrorReport.clearReports()
 
+    @classmethod
+    def install(cls, noOverride=False):
+        ''' Install the blur excepthook, and return the previous one
+        Arguments:
+            noOverride (bool): If we've already installed a BlurExcepthook,
+                don't override it if noOverride is True
+        '''
+        ErrorReport.enabled = True
+        bak = sys.excepthook
 
-def installBlurExcepthook(hook):
-    ''' Install the blur excepthook, and return the previous one
-    
-    Arguments:
-        hook (callable): A callable that takes, and wraps the previous
-            excepthook
-    '''
-    ErrorReport.enabled = True
-    bak = sys.excepthook
-    sys.excepthook = hook(bak)
-    return bak
+        if not isinstance(bak, BlurExcepthook) or not noOverride:
+            sys.excepthook = cls(bak)
+
+        return bak
 
 
 # --------------------------------------------------------------------------------

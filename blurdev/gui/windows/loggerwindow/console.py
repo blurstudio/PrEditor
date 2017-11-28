@@ -133,7 +133,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             sys.stdout = self
             sys.stderr = ErrorLog(self)
             self._errorLog = sys.stderr
-            debug.installBlurExcepthook(ConsoleExceptHook)
+            ConsoleExceptHook.install()
 
         # create the highlighter
         highlight = CodeHighlighter(self)
