@@ -1,8 +1,8 @@
 <plugins>
 	<!-- standard widgets -->
-	<plugin module="blurdev.gui"						 		class="Dialog" 				container="True"/>
-	<plugin module="blurdev.gui"						 		class="Window" 				container="True"/>
-	<plugin module="blurdev.gui.widgets.accordianwidget" 		class="AccordianWidget" 	container="True"/>
+	<plugin module="blurdev.gui"						 		class="Dialog" 			container="True"/>
+	<plugin module="blurdev.gui"						 		class="Window" 			container="True"/>
+	<plugin module="blurdev.gui.widgets.accordianwidget" 		class="AccordianWidget" container="True"/>
 	<plugin module="blurdev.gui.widgets.newtabwidget" 			class="NewTabWidget" 	container="True"/>
 	<plugin module="blurdev.gui.widgets.filepickerwidget" 		class="FilePickerWidget"/>
 	<plugin module="blurdev.ide.documenteditor" 				class="DocumentEditor"/>
@@ -22,4 +22,5 @@
 	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragDoubleSpinBox"/>
 	<plugin module="blurdev.gui.widgets.richtexteditor" 		class="RichTextEditorView"/>
 	<plugin module="blurdev.gui.widgets.richtexteditor"			class="RichTextEditor"/>
+	<plugin module="blurdev.gui.widgets.panzoomgraphicsview"	class="PanZoomGraphicsView"/>
 </plugins>
