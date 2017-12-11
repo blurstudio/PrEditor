@@ -53,8 +53,11 @@ def logUsage(info):
             raise
         else:
             # If redmine commits fail, allow code to continue.
+            from blurdev.utils.errorEmail import emailError
+
             console = blurdev.core.logger().console()
             error = ''.join(console.lastError())
             emails = blurdev.tools.ToolsEnvironment.activeEnvironment().emailOnError()
-            console.emailError(emails, error)
+            emailError(emails, error)
+
     return False
