@@ -48,7 +48,7 @@ class ErrorDialog(Dialog):
         self.close()
 
     def submitRequest(self):
-        from console import ConsoleEdit
+        from blurdev.utils.errorEmail import buildErrorMessage
 
         toolPath = blurdev.findTool('RequestPimp').sourcefile()
 
@@ -60,9 +60,7 @@ class ErrorDialog(Dialog):
             else:
                 python_exe = r'/usr/bin/pythonw'
 
-        longsubject, body = ConsoleEdit.buildErrorMessage(
-            self.traceback_msg, format='textile'
-        )
+        longsubject, body = buildErrorMessage(self.traceback_msg, fmt='textile')
         subject = self.traceback_msg.split('\n')[-2]
         cmd = [
             python_exe,
