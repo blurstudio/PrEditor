@@ -49,7 +49,7 @@ def packagePath(path, outputfile):
     """
     from blurdev import debug
     import os
-    from PyQt4.QtCore import QProcess
+    from Qt.QtCore import QProcess
 
     zipexe = os.get('BDEV_APP_ZIP')
     if not zipexe:

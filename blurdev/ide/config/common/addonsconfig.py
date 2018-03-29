@@ -11,8 +11,9 @@
 import os
 import blurdev
 
-from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QTreeWidgetItem
+from Qt import QtCompat
+from Qt.QtCore import QSize, Qt
+from Qt.QtWidgets import QTreeWidgetItem
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
 
@@ -26,8 +27,8 @@ class AddonsConfig(ConfigSectionWidget):
 
         # update the header stretch factors
         header = self.uiAddonsTREE.header()
-        header.setResizeMode(0, header.Stretch)
-        header.setResizeMode(1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
 
     def recordUi(self):
         """

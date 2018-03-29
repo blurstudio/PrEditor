@@ -10,14 +10,15 @@
 
 import os
 
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui import QMenu, QIcon, QApplication
+from Qt.QtCore import Signal
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QApplication, QMenu
 
 from blurdev.ide.addons.svn import svnops
 
 
 class SvnActionMenu(QMenu):
-    refreshRequested = pyqtSignal()
+    refreshRequested = Signal()
 
     def __init__(self, parent, mode, filepath):
         super(SvnActionMenu, self).__init__(parent)

@@ -9,8 +9,8 @@
 # 	\date		11/12/08
 #
 
-from PyQt4.QtCore import pyqtProperty, QRegExp
-from PyQt4.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
+from Qt.QtCore import QRegExp
+from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 
 
 class CodeHighlighter(QSyntaxHighlighter):
@@ -85,7 +85,7 @@ class CodeHighlighter(QSyntaxHighlighter):
         """
             \remarks	Highlights a text group with an expression and format
             
-            \param		text		<str> || <QString>		text to highlight
+            \param		text		<str>					text to highlight
             \param		expr		<QRegExp>				search parameter
             \param		format		<QTextCharFormat>		formatting rule
             \param		offset		<int>					number of characters to offset by when highlighting
@@ -98,7 +98,7 @@ class CodeHighlighter(QSyntaxHighlighter):
         # highlight all the given matches to the expression in the text
         while pos != -1:
             pos = expr.pos(offset)
-            length = expr.cap(offset).length()
+            length = len(expr.cap(offset))
 
             # use the last character if desired
             if includeLast:

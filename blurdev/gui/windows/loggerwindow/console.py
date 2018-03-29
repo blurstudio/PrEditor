@@ -1,6 +1,9 @@
 """ LoggerWindow class is an overloaded python interpreter for blurdev
 
 """
+
+from builtins import str as text
+from future.utils import iteritems
 import re
 import __main__
 import os
@@ -8,16 +11,9 @@ import sys
 import sip
 import traceback
 
-from PyQt4.QtCore import QObject, QPoint, Qt, pyqtProperty, QStringList
-from PyQt4.QtGui import (
-    QTextEdit,
-    QApplication,
-    QTextCursor,
-    QTextDocument,
-    QTextCharFormat,
-    QColor,
-    QAction,
-)
+from Qt.QtCore import QDateTime, QObject, QPoint, Qt, Property
+from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
+from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
 import blurdev
 from blurdev import debug
@@ -59,8 +55,8 @@ class ConsoleExceptHook(debug.BlurExcepthook):
             if sip.isdeleted(inst):
                 # If the LoggerWindow has been deleted in c++ we can't prompt the user or show the
                 # the exception. Just print the exception so debugging from the console is easier.
-                print '[LoggerWindow] The LoggerWindow PyQt4 object has been deleted.'
-                print tracebackMsg
+                print('[LoggerWindow] The LoggerWindow PyQt4 object has been deleted.')
+                print(tracebackMsg)
             else:
                 if (
                     not inst.isVisible()
@@ -226,9 +222,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         p = '{prompt}(.*)'.format(
             prompt=self.prompt().replace('(', '\(').replace(')', '\)')
         )
-        results = re.search(p, unicode(block))
+        results = re.search(p, block)
         if results:
-            commandText = unicode(results.groups()[0])
+            commandText = results.groups()[0]
             # if the cursor position is at the end of the line
             if self.textCursor().atEnd():
                 # insert a new line
@@ -255,13 +251,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
                     # print the resulting commands
                     if cmdresult is not None:
-                        if isinstance(cmdresult, QStringList):
-                            output = u'PyQt4.QtCore.QStringList('
-                            output += unicode([unicode(i) for i in cmdresult])
-                            output += u')'
-                            self.write(unicode(output))
-                        else:
-                            self.write(unicode(cmdresult))
+                        # When writing to additional stdout's not including a new line makes
+                        # the output not match the formatting you get inside the console.
+                        self.write(u'{}\n'.format(cmdresult))
+                        # NOTE: I am using u'' above so unicode strings in python 2 don't get
+                        # converted to str objects.
 
                     self.startInputLine()
 
@@ -312,7 +306,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         exp = re.compile(
             '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
         )
-        newText = unicode(text).encode('utf-8')
+        newText = text.encode('utf-8')
         for each in exp.findall(newText):
             newText = newText.replace(each, '?')
 
@@ -361,7 +355,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # otherwise, ignore the event for completion events
         elif event.key() in (Qt.Key_Tab, Qt.Key_Backtab):
-            self.insertCompletion(completer.currentCompletion())
+            if not completer.popup().isVisible():
+                # The completer does not get updated if its not visible while typing.
+                # We are about to complete the text using it so ensure its updated.
+                completer.refreshList(scope=__main__.__dict__)
+                completer.popup().setCurrentIndex(
+                    completer.completionModel().index(0, 0)
+                )
+            # Insert the correct text and clear the completion model
+            index = completer.popup().currentIndex()
+            self.insertCompletion(index.data(Qt.DisplayRole))
             completer.clear()
 
         elif event.key() == Qt.Key_Escape and completer.popup().isVisible():
@@ -428,7 +431,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             cursor.movePosition(QTextCursor.Start)
         else:
             # Otherwise just move it to the start of the line
-            block = unicode(cursor.block().text()).split()
+            block = cursor.block().text().split()
             cursor.movePosition(QTextCursor.StartOfBlock, mode)
         # move the cursor to the end of the prompt.
         cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
@@ -505,7 +508,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.setCurrentCharFormat(charFormat)
 
             inputstr = self.prompt()
-            if unicode(self.textCursor().block().text()):
+            if self.textCursor().block().text():
                 inputstr = '\n' + inputstr
 
             self.insertPlainText(inputstr)
@@ -561,10 +564,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             pass
 
     # These properties are used by the stylesheet to style various items.
-    pyPdbMode = pyqtProperty(bool, pdbMode, setPdbMode)
-    pyErrorMessageColor = pyqtProperty(QColor, errorMessageColor, setErrorMessageColor)
-    pyForegroundColor = pyqtProperty(QColor, foregroundColor, setForegroundColor)
-    pyStdoutColor = pyqtProperty(QColor, stdoutColor, setStdoutColor)
-    pyCommentColor = pyqtProperty(QColor, commentColor, setCommentColor)
-    pyKeywordColor = pyqtProperty(QColor, keywordColor, setKeywordColor)
-    pyStringColor = pyqtProperty(QColor, stringColor, setStringColor)
+    pyPdbMode = Property(bool, pdbMode, setPdbMode)
+    pyErrorMessageColor = Property(QColor, errorMessageColor, setErrorMessageColor)
+    pyForegroundColor = Property(QColor, foregroundColor, setForegroundColor)
+    pyStdoutColor = Property(QColor, stdoutColor, setStdoutColor)
+    pyCommentColor = Property(QColor, commentColor, setCommentColor)
+    pyKeywordColor = Property(QColor, keywordColor, setKeywordColor)
+    pyStringColor = Property(QColor, stringColor, setStringColor)

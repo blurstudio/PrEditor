@@ -48,7 +48,6 @@ class IdeAddonModule(object):
             sys.path.append(os.path.normcase(self._path))
 
         # import the module
-        print 'loading addon', self._name
         try:
             __import__(self._name)
             sys.modules[self._name].init()
@@ -82,8 +81,6 @@ class IdeAddonModule(object):
 
                     addon.setStatus(status)
                     addon.setErrors('\n'.join(errors))
-
-                    print 'Addon', addon.name(), 'loaded: ', result
 
     def path(self):
         return self._path

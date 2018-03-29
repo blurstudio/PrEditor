@@ -8,8 +8,8 @@
 #   :date       09/24/12
 #
 
-from PyQt4.QtCore import Qt, pyqtSignal
-from PyQt4.QtGui import QTabBar, QLineEdit
+from Qt.QtCore import Qt, Signal
+from Qt.QtWidgets import QLineEdit, QTabBar
 
 
 class EscapeLineEdit(QLineEdit):
@@ -20,7 +20,7 @@ class EscapeLineEdit(QLineEdit):
         :param		selected	<QWidget>		If True the text will be selected. Default: True
     """
 
-    editingCanceled = pyqtSignal()
+    editingCanceled = Signal()
 
     def __init__(self, text='', parent=None, selected=True):
         super(EscapeLineEdit, self).__init__(parent)

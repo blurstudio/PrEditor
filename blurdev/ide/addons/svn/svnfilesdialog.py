@@ -12,8 +12,9 @@ import pysvn
 import os.path
 
 from blurdev.gui import Dialog
-from PyQt4.QtCore import QFileInfo, QVariant, Qt
-from PyQt4.QtGui import QFileIconProvider, QTreeWidgetItem, QMessageBox
+from Qt import QtCompat
+from Qt.QtCore import QFileInfo, Qt
+from Qt.QtWidgets import QFileIconProvider, QMessageBox, QTreeWidgetItem
 
 from blurdev.gui import Dialog
 from threads import DataCollectionThread
@@ -46,7 +47,9 @@ class SvnFilesDialog(Dialog):
         # update the header
         header = self.uiFilesTREE.header()
         for i in range(self.uiFilesTREE.columnCount() - 1):
-            header.setResizeMode(i, header.ResizeToContents)
+            QtCompat.QHeaderView.setSectionResizeMode(
+                header, i, header.ResizeToContents
+            )
 
         # define custom properties
         self._filepath = ''
@@ -80,7 +83,7 @@ class SvnFilesDialog(Dialog):
         for i in range(self.uiFilesTREE.topLevelItemCount()):
             item = self.uiFilesTREE.topLevelItem(i)
             if item.checkState(0) == Qt.Checked:
-                filepath = str(item.data(0, Qt.UserRole).toString())
+                filepath = item.data(0, Qt.UserRole)
                 if filepath:
                     filepaths.append(filepath)
         return filepaths
@@ -133,7 +136,7 @@ class SvnFilesDialog(Dialog):
                     str(result.text_status),
                 ]
             )
-            item.setData(0, Qt.UserRole, QVariant(result.path))
+            item.setData(0, Qt.UserRole, result.path)
             item.setCheckState(0, Qt.Checked)
 
             # set the fg/bg colors based on status
@@ -189,7 +192,7 @@ class SvnFilesDialog(Dialog):
         count = 0
         for i in range(self.uiFilesTREE.topLevelItemCount()):
             item = self.uiFilesTREE.topLevelItem(i)
-            if item.data(0, Qt.UserRole).toString():
+            if item.data(0, Qt.UserRole):
                 item.setCheckState(0, state)
                 count += 1
 
@@ -203,10 +206,7 @@ class SvnFilesDialog(Dialog):
         checked = 0
         for i in range(self.uiFilesTREE.topLevelItemCount()):
             item = self.uiFilesTREE.topLevelItem(i)
-            if (
-                item.data(0, Qt.UserRole).toString()
-                and item.checkState(0) == Qt.Checked
-            ):
+            if item.data(0, Qt.UserRole) and item.checkState(0) == Qt.Checked:
                 checked += 1
 
         # select all

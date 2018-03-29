@@ -8,8 +8,8 @@
 # 	:date		01/24/11
 #
 
-from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QWidget, QTreeWidgetItem, QItemDelegate
+from Qt.QtCore import QSize, Qt
+from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem, QWidget
 
 
 class LayerDelegate(QItemDelegate):
@@ -17,7 +17,7 @@ class LayerDelegate(QItemDelegate):
         QItemDelegate.__init__(self, parent)
 
         import blurdev
-        from PyQt4.QtGui import QPixmap
+        from Qt.QtGui import QPixmap
 
         self._checkedMap = QPixmap(
             blurdev.resourcePath('img/preview/visible.png')
@@ -45,8 +45,8 @@ class LayerDelegate(QItemDelegate):
             :param		index	<QModelIndex>
             :return		<QWidget> editor
         """
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QLineEdit
+        from Qt.QtCore import Qt
+        from Qt.QtWidgets import QLineEdit
 
         # clear out the old editor
         self.clearEditor()
@@ -63,7 +63,7 @@ class LayerDelegate(QItemDelegate):
     def drawCheck(self, painter, option, rect, state):
         """ overloaded QItemDelegate.drawCheck method to handle the drawing of the checkbox to paint the pixmaps """
         if rect.isValid():
-            from PyQt4.QtCore import Qt
+            from Qt.QtCore import Qt
 
             if state == Qt.Checked:
                 painter.drawPixmap(rect.x(), rect.y(), self.checkedMap())
@@ -91,7 +91,7 @@ class LayerItem(QTreeWidgetItem):
         if layer.isVisible():
             checked = Qt.Checked
 
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
         import blurdev
         from previewlayers import LayerType
 
@@ -119,7 +119,7 @@ class LayersWidget(QWidget):
 
         blurdev.gui.loadUi(__file__, self)
 
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         self.setWindowFlags(Qt.Tool)
 
@@ -133,7 +133,7 @@ class LayersWidget(QWidget):
         self.uiLayerTREE.setColumnCount(len(columns))
 
         # load icons
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         self.uiNewCanvasLayerBTN.setIcon(
             QIcon(blurdev.resourcePath('img/preview/add.png'))
@@ -255,7 +255,7 @@ class LayersWidget(QWidget):
         self.refresh()
 
     def updateLayer(self, item):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         layer = item.layer()
         layer.setVisible(item.checkState(0) == Qt.Checked)

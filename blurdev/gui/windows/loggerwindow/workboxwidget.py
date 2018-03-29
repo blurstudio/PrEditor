@@ -8,10 +8,10 @@
 # 	\date		03/17/11
 #
 
-from PyQt4.QtGui import QTextEdit
-from PyQt4.QtCore import QEvent, Qt
+from Qt.QtWidgets import QTextEdit
+from Qt.QtCore import QEvent, Qt
 from blurdev.ide.documenteditor import DocumentEditor
-from PyQt4.QtGui import QApplication
+from Qt.QtWidgets import QApplication
 import blurdev, re
 
 
@@ -40,9 +40,11 @@ class WorkboxWidget(DocumentEditor):
         """
         import __main__
 
-        exec unicode(self.text()).replace(
-            '\r', '\n'
-        ).rstrip() in __main__.__dict__, __main__.__dict__
+        exec (
+            self.text().replace('\r', '\n').rstrip(),
+            __main__.__dict__,
+            __main__.__dict__,
+        )
 
     def findLeadingWhitespace(self, lines):
         # Find the first line that has text that isn't a comment
@@ -71,10 +73,10 @@ class WorkboxWidget(DocumentEditor):
         return newLines
 
     def execSelected(self):
-        text = unicode(self.selectedText()).replace('\r', '\n')
+        text = self.selectedText().replace('\r', '\n')
         if not text:
             line, index = self.getCursorPosition()
-            text = unicode(self.text(line)).replace('\r', '\n')
+            text = self.text(line).replace('\r', '\n')
 
         stripCommon = True
         if stripCommon:
@@ -86,7 +88,7 @@ class WorkboxWidget(DocumentEditor):
 
         import __main__
 
-        exec text in __main__.__dict__, __main__.__dict__
+        exec (text, __main__.__dict__, __main__.__dict__)
 
     def keyPressEvent(self, event):
         if self._software == 'softimage':
@@ -104,7 +106,8 @@ class WorkboxWidget(DocumentEditor):
         Use this to set up shortcuts when the DocumentEditor is not being used in the IdeEditor.
         """
         from blurdev.ide.finddialog import FindDialog
-        from PyQt4.QtGui import QAction, QIcon
+        from Qt.QtGui import QIcon
+        from Qt.QtWidgets import QAction
 
         self.uiFindACT = QAction(
             QIcon(blurdev.resourcePath('img/ide/find.png')), 'Find...', self

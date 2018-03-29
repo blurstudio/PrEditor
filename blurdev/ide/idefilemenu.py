@@ -10,8 +10,9 @@
 
 import os.path
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QMenu, QIcon, QApplication
+from Qt.QtCore import Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QApplication, QMenu, QMessageBox
 
 import blurdev
 
@@ -29,6 +30,7 @@ class IdeFileMenu(QMenu):
         # define properties
         self._filepath = filepath
         self._projectMode = projectMode
+        self._isfile = os.path.isfile(self._filepath)
 
         # define the menu
         self.defineMenu()
@@ -37,8 +39,6 @@ class IdeFileMenu(QMenu):
         ide = self.ide()
         projectMode = self.projectMode()
         filepath = self.filepath()
-
-        isfile = os.path.isfile(filepath)
 
         # add the new from wizard action from the ide
         self.addAction(ide.uiNewFromWizardACT)
@@ -61,7 +61,7 @@ class IdeFileMenu(QMenu):
         # create the launch console action
         self.addAction(ide.uiConsoleACT)
 
-        if not isfile:
+        if not self.isfile():
             # create the find in files action
             act = self.addAction('Find in Files...')
             act.setObjectName('uiFindInFilesACT')
@@ -78,7 +78,7 @@ class IdeFileMenu(QMenu):
         sep = self.addSeparator()
         sep.setObjectName('uiEditSEP')
 
-        if isfile:
+        if self.isfile():
             # create the open action
             act = self.addAction('Edit')
             act.setObjectName('uiEditACT')
@@ -122,24 +122,18 @@ class IdeFileMenu(QMenu):
             funct(self)
 
     def removeFilepath(self):
-        from PyQt4.QtGui import QMessageBox as msg
-
-        if (
-            msg.question(
-                self,
-                'Removing Filepath',
-                'Are you sure you want to remove this from the filesystem?  This is not undoable.',
-                msg.Yes | msg.No,
-            )
-            == msg.Yes
-        ):
+        msg = 'Are you sure you want to remove this from the filesystem?  This is not undoable.'
+        req = QMessageBox.question(
+            self, 'Removing Filepath', msg, QMessageBox.Yes | QMessageBox.No
+        )
+        if req == QMessageBox.Yes:
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
             import os, shutil
 
             fpath = self.filepath()
 
-            if os.path.isfile(fpath):
+            if self.isfile():
                 os.remove(fpath)
             else:
                 shutil.rmtree(fpath)
@@ -157,7 +151,7 @@ class IdeFileMenu(QMenu):
         return self.parent()
 
     def isfile(self):
-        return os.path.isfile(self._filepath)
+        return self._isfile
 
     def projectMode(self):
         return self._projectMode

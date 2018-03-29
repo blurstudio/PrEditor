@@ -8,7 +8,7 @@
 # 	\date		06/01/11
 #
 
-from PyQt4.QtGui import QWizardPage
+from Qt.QtWidgets import QWizardPage
 
 
 class MergeTypeWizardPage(QWizardPage):

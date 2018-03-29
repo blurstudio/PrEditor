@@ -8,7 +8,7 @@
 # 	\date		09/27/10
 #
 
-from PyQt4.QtWinMigrate import QWinWidget
+from Qt.QtWinMigrate import QWinWidget
 
 # have to wrap in a python class or the memory management will not work properly for QWinWidgets
 class WinWidget(QWinWidget):

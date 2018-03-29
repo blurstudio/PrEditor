@@ -8,10 +8,11 @@
 #   :date       05/07/15
 #
 
-from PyQt4.QtCore import Qt, QRectF, QSize
-from PyQt4.QtGui import QTextDocument, QStyle, QAbstractTextDocumentLayout, QPalette
-from griddelegate import GridDelegate
-from blurdev.gui import pyqtPropertyInit
+from Qt.QtCore import QRectF, QSize, Qt
+from Qt.QtGui import QAbstractTextDocumentLayout, QPalette, QTextDocument
+from Qt.QtWidgets import QStyle
+from .griddelegate import GridDelegate
+from blurdev.gui import QtPropertyInit
 
 
 class HTMLItemDelegate(GridDelegate):
@@ -63,5 +64,5 @@ class HTMLItemDelegate(GridDelegate):
         doc.setTextWidth(option.rect.width())
         return QSize(doc.idealWidth(), doc.size().height())
 
-    staticSizeHint = pyqtPropertyInit('_staticSizeHint', QSize())
-    useStaticSizeHint = pyqtPropertyInit('_useStaticSizeHint', False)
+    staticSizeHint = QtPropertyInit('_staticSizeHint', QSize())
+    useStaticSizeHint = QtPropertyInit('_useStaticSizeHint', False)

@@ -11,9 +11,12 @@
 import sys
 import re
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except:
+    from ConfigParser import ConfigParser
 
-import PyQt4.Qsci
+from Qt import Qsci
 
 
 class MethodDescriptor(object):
@@ -23,7 +26,7 @@ class MethodDescriptor(object):
         try:
             self.expr = re.compile(expr, re.DOTALL | re.MULTILINE)
         except:
-            print 'error generating expression', expr
+            print('error generating expression', expr)
             self.expr = None
 
     def search(self, text, startpos=-1):
@@ -100,20 +103,23 @@ class Language(object):
                         __import__(self._lexerModule)
                         module = sys.modules.get(self._lexerModule)
                     except:
-                        print '[blurdev.ide.lexers.Language.createLexer() Error] Could not import %s module' % self._lexerModule
+                        print(
+                            '[blurdev.ide.lexers.Language.createLexer() Error] Could not import %s module'
+                            % self._lexerModule
+                        )
                         self._lexerClass = None
                         return None
 
             # otherwise, its in the Qsci module
             else:
-                module = PyQt4.Qsci
+                module = Qsci
 
             # retrieve the lexer class
             self._lexerClass = module.__dict__.get(self._lexerClassName)
             if not self._lexerClass:
-                print '[blurdev.ide.lexers.Language.createLexer() Error] No %s class in %s' % (
-                    self._lexerClassName,
-                    module.__name__,
+                print(
+                    '[blurdev.ide.lexers.Language.createLexer() Error] No %s class in %s'
+                    % (self._lexerClassName, module.__name__)
                 )
 
         return self._lexerClass
@@ -134,7 +140,7 @@ class Language(object):
         parser.add_section('GLOBALS')
         parser.set('GLOBALS', 'name', self.name())
         parser.set('GLOBALS', 'filetypes', ';'.join(self.fileTypes()))
-        # quotes are to preserve spaces which ConfigParser strips out
+        # quotes are to preserve spaces which configparser strips out
         parser.set('GLOBALS', 'linecomment', '"{}"'.format(self.lineComment()))
 
         parser.add_section('LEXER')

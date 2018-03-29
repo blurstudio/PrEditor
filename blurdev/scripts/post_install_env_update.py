@@ -6,7 +6,7 @@ def updateEnvirons():
         codeRootPath = os.path.abspath(
             os.path.join(env.path(), 'maxscript', 'treegrunt')
         )
-        print 'Processing:', env.path(), codeRootPath
+        print('Processing:', env.path(), codeRootPath)
         if os.path.exists(codeRootPath):
             blurdev.ini.SetINISetting(
                 blurdev.ini.configFile, env.legacyName(), 'codeRoot', codeRootPath
@@ -26,10 +26,10 @@ def updateEnvirons():
             blurdev.ini.configFile,
             'GLOBALS',
             'environment',
-            unicode(blurdev.tools.ToolsEnvironment.defaultEnvironment().objectName()),
+            blurdev.tools.ToolsEnvironment.defaultEnvironment().objectName(),
         )
 
 
 if __name__ == '__main__':
-    print 'Updating', blurdev.ini.configFile
+    print('Updating', blurdev.ini.configFile)
     updateEnvirons()

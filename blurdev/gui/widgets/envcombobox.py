@@ -1,14 +1,15 @@
-from PyQt4.QtGui import QComboBox, QColor, QBrush, QStyledItemDelegate
-from PyQt4.QtCore import pyqtProperty, Qt
+from Qt.QtGui import QBrush, QColor
+from Qt.QtWidgets import QComboBox, QStyledItemDelegate
+from Qt.QtCore import Qt, Property
 import blurdev
 
 
 class EnvComboBoxDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         parent = self.parent()
-        if parent and index.data(parent.DefaultEnvRole).toPyObject() == True:
+        if parent and index.data(parent.DefaultEnvRole) == True:
             self.initStyleOption(option, index)
-            brush = index.data(Qt.BackgroundRole).toPyObject()
+            brush = index.data(Qt.BackgroundRole)
             if not brush:
                 brush = QBrush()
             brush.setColor(parent.defaultEnvBackground)
@@ -64,8 +65,8 @@ class EnvComboBox(QComboBox):
         model = self.model()
         for row in range(model.rowCount()):
             index = model.index(row, 0)
-            if index.data(self.DefaultEnvRole).toPyObject() == True:
-                return index.data(Qt.DisplayRole).toPyObject()
+            if index.data(self.DefaultEnvRole) == True:
+                return index.data(Qt.DisplayRole)
         return None
 
     def setDefaultEnv(self, name):
@@ -81,7 +82,7 @@ class EnvComboBox(QComboBox):
         model = self.model()
         for row in range(model.rowCount()):
             index = model.index(row, 0)
-            if index.data(Qt.DisplayRole).toPyObject() == name:
+            if index.data(Qt.DisplayRole) == name:
                 model.setData(index, True, self.DefaultEnvRole)
             else:
                 model.setData(index, False, self.DefaultEnvRole)
@@ -96,7 +97,7 @@ class EnvComboBox(QComboBox):
             self.setStyleSheet('/**/')
         self.setStyleSheet(sheet)
 
-    @pyqtProperty(bool)
+    @Property(bool)
     def defaultActive(self):
         return self._defaultActive
 
@@ -104,7 +105,7 @@ class EnvComboBox(QComboBox):
     def defaultActive(self, color):
         self._defaultActive = color
 
-    @pyqtProperty(QColor)
+    @Property(QColor)
     def defaultEnvColor(self):
         return self._defaultEnvColor
 
@@ -112,7 +113,7 @@ class EnvComboBox(QComboBox):
     def defaultEnvColor(self, color):
         self._defaultEnvColor = color
 
-    @pyqtProperty(QColor)
+    @Property(QColor)
     def defaultEnvBackground(self):
         return self._defaultEnvBackground
 

@@ -8,12 +8,13 @@
 # 	\date		03/14/11
 #
 
-from PyQt4.QtCore import pyqtSignal
+from Qt import QtCompat
+from Qt.QtCore import Signal
 from blurdev.gui import Dialog
 
 
 class MultiProgressDialog(Dialog):
-    closed = pyqtSignal()
+    closed = Signal()
 
     _instance = None
 
@@ -34,8 +35,8 @@ class MultiProgressDialog(Dialog):
         # create the columns
         self.uiProgressTREE.setColumnCount(2)
         header = self.uiProgressTREE.header()
-        header.setResizeMode(0, header.Stretch)
-        header.setResizeMode(1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
 
         # create connections
         self.uiProgressTREE.currentItemChanged.connect(self.updateOptions)
@@ -66,8 +67,8 @@ class MultiProgressDialog(Dialog):
     def applyOverrideCursor(self):
         # make sure we restore the override the cursor
         if not self._overriddenCursor:
-            from PyQt4.QtCore import Qt
-            from PyQt4.QtGui import QApplication
+            from Qt.QtCore import Qt
+            from Qt.QtWidgets import QApplication
 
             QApplication.setOverrideCursor(Qt.WaitCursor)
             self._overriddenCursor = True
@@ -90,14 +91,14 @@ class MultiProgressDialog(Dialog):
     def clearOverrideCursor(self):
         # make sure we restore the override the cursor
         if self._overriddenCursor:
-            from PyQt4.QtGui import QApplication
+            from Qt.QtWidgets import QApplication
 
             QApplication.restoreOverrideCursor()
             self._overriddenCursor = False
 
     def closeEvent(self, event):
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QApplication
+        from Qt.QtCore import Qt
+        from Qt.QtWidgets import QApplication
 
         if not QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
             if not (self._errored or self._shutdown):
@@ -166,7 +167,7 @@ class MultiProgressDialog(Dialog):
     def show(self):
         Dialog.show(self)
 
-        from PyQt4.QtGui import QApplication
+        from Qt.QtWidgets import QApplication
 
         QApplication.processEvents()
 
@@ -179,7 +180,7 @@ class MultiProgressDialog(Dialog):
             return
 
         # we need to force the events to process to check if the user pressed the cancel button since this is not multi-threaded
-        from PyQt4.QtGui import QApplication
+        from Qt.QtWidgets import QApplication
 
         QApplication.processEvents()
 
@@ -263,7 +264,7 @@ class MultiProgressDialog(Dialog):
             inst.closed.connect(MultiProgressDialog.clearInstance)
 
             MultiProgressDialog._instance = inst
-            from PyQt4.QtCore import Qt
+            from Qt.QtCore import Qt
 
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
 

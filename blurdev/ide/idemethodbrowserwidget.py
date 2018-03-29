@@ -8,8 +8,10 @@
 # 	\date		05/16/11
 #
 
-from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QTreeWidgetItem, QPalette, QIcon, QWidget, QVBoxLayout
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QIcon, QPalette
+from Qt.QtWidgets import QTreeWidgetItem, QVBoxLayout, QWidget
+from Qt import QtCompat
 
 import blurdev
 import os.path
@@ -32,14 +34,14 @@ class IdeMethodBrowserWidget(QWidget):
         self._ide = ide
 
         # set the icons
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         self.uiRefreshBTN.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
 
         # setup the stretching
         header = self.uiMethodTREE.header()
-        header.setResizeMode(0, header.Stretch)
-        header.setResizeMode(1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
 
         # create connections
         ide.currentDocumentChanged.connect(self.refresh)
@@ -185,7 +187,7 @@ class IdeMethodBrowserWidget(QWidget):
         self.refresh()
 
     def updateSorting(self):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         if self.uiSortedCHK.isChecked():
             self.uiMethodTREE.sortByColumn(0, Qt.AscendingOrder)

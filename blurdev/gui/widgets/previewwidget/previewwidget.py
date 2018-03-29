@@ -8,7 +8,7 @@
 # 	:date		01/21/11
 #
 
-from PyQt4.QtGui import QWidget
+from Qt.QtWidgets import QWidget
 
 
 class PreviewWidget(QWidget):
@@ -17,7 +17,7 @@ class PreviewWidget(QWidget):
         QWidget.__init__(self, parent)
 
         # create the QGraphicsView
-        from PyQt4.QtGui import QGraphicsView, QVBoxLayout
+        from Qt.QtWidgets import QGraphicsView, QVBoxLayout
 
         self._view = QGraphicsView(self)
 

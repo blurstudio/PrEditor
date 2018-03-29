@@ -12,7 +12,7 @@
 
 import copy
 
-from PyQt4.QtGui import QWidget, QDialog
+from Qt.QtWidgets import QDialog, QWidget
 from blurdev.decorators import abstractmethod
 
 

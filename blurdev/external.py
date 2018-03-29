@@ -1,10 +1,11 @@
+from past.builtins import basestring
 import os
 import sys
 import time
 import multiprocessing
 from multiprocessing import Process, Pipe
 import blurdev
-from PyQt4.QtCore import QTimer
+from Qt.QtCore import QTimer
 from blurdev.protocols import BaseProtocolHandler, InvalidHandler
 
 try:
@@ -132,7 +133,7 @@ class External(object):
             or not isinstance(command, basestring)
             or not isinstance(params, dict)
         ):
-            print 'Invalid data', [name, command, params]
+            print('Invalid data', [name, command, params])
             msg = "Please provide valid command handler arguments. Example: ['handlerName', 'handlerCommand', {'keyword', 'args'}]"
             self.send(InvalidHandler(msg))
             return
@@ -197,7 +198,9 @@ class External(object):
             instance.exitMonitorPid = exitMonitorPid
             instance.checkIfOrphaned = True
         elif exitMonitorPid and Stone == None:
-            print 'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
+            print(
+                'blur.Stone is not installed, so this will not close automatically, or properly save prefs'
+            )
         blurdev.core.setObjectName('multiprocessing')
         # Notes: studiomax: max crashes if app.quitOnLastWindowClosed is False.
         # 		fusion:if True, closing any window/dialog will cause qt to close and python to exit
@@ -252,7 +255,7 @@ class External(object):
         kwargs = {'compid': compid}
         kwargs['childPipe'] = self._childPipe
         kwargs['exitMonitorPid'] = pid
-        kwargs['parentCore'] = unicode(blurdev.core.objectName())
+        kwargs['parentCore'] = blurdev.core.objectName()
         self.childProcess = Process(target=External.launch, args=(hwnd,), kwargs=kwargs)
         self.childProcess.daemon = daemon
         self.childProcess.start()
@@ -318,8 +321,10 @@ class External(object):
             self.exitMonitorPid, self.exitMonitorProcessName
         ):
             args = {'app': self.parentCore.capitalize()}
-            print '{app} is no longer running, shutting down blurdev and saving prefs'.format(
-                **args
+            print(
+                '{app} is no longer running, shutting down blurdev and saving prefs'.format(
+                    **args
+                )
             )
             if 'python.exe' in sys.executable.lower():
                 time.sleep(1)

@@ -5,7 +5,6 @@ import tempfile
 import errno
 import time
 import blurdev
-from types import MethodType
 
 # Note: If a different version of python is launched importing pre-compiled modules
 # could cause a exception. For example, MotionBuilder 2016 has python 2.7.6 embeded,
@@ -37,33 +36,35 @@ def monitorForCrash(pid, conn):
     try:
         tempFiles = []
         tempDirs = []
-        print '[monitorForCrash] Checking pid', pid, (Stone, psutil)
+        print ('[monitorForCrash] Checking pid', pid, (Stone, psutil))
         while (Stone and Stone.isRunning(pid)) or psutil and psutil.pid_exists(pid):
             try:
                 if conn.poll():
                     data = conn.recv()
                     if data[0] == 'tempFile':
                         tempFiles.append(data[1])
-                        print '[monitorForCrash] Adding tempFile', data[1]
+                        print ('[monitorForCrash] Adding tempFile', data[1])
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'tempDir':
                         tempDirs.append(data[1])
-                        print '[monitorForCrash] Adding tempDir', data[1]
+                        print ('[monitorForCrash] Adding tempDir', data[1])
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'finished':
-                        print '[monitorForCrash] Parent process is done, exiting without doing anything'
+                        print (
+                            '[monitorForCrash] Parent process is done, exiting without doing anything'
+                        )
                         return
             except IOError as e:
                 if e.errno == 109:
                     # The pipe has been ended, assume the parent process was killed
-                    print '[monitorForCrash] IOError 109'
+                    print ('[monitorForCrash] IOError 109')
                     break
             time.sleep(1)
 
-        print '[monitorForCrash] Removing tempFiles', tempFiles
-        print '[monitorForCrash] Removing tempDirs', tempDirs
+        print ('[monitorForCrash] Removing tempFiles', tempFiles)
+        print ('[monitorForCrash] Removing tempDirs', tempDirs)
         # Remove any created folders from disk and their contents
         for tempDir in tempDirs:
             shutil.rmtree(tempDir, ignore_errors=True)
@@ -73,7 +74,11 @@ def monitorForCrash(pid, conn):
                 os.remove(tempFile)
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print '[monitorForCrash] File already deleted', e.message, tempFile
+                    print (
+                        '[monitorForCrash] File already deleted',
+                        e.message,
+                        tempFile,
+                    )
     except:
         traceback.print_exc()
         time.sleep(20)
@@ -82,11 +87,11 @@ def monitorForCrash(pid, conn):
 
 class TempFilesContext(object):
     """ Context to create multiple temp files and directories that will be removed.
-    
+
     This class is used to manage generation of multiple temp files and directories.
     The files and directories created by makeTempDirectory and makeTempFile will
     be removed once this contex exits. 
-    
+
     Keyed mode returns the same object if one of the make functions is called twice
     with the same key.
     
@@ -105,7 +110,7 @@ class TempFilesContext(object):
         Simply put, make sure you use in your scripts(if __name__ == '__main__':)
         See https://docs.python.org/2/library/multiprocessing.html#windows search 
         for "Safe importing of main module" for more info.
-    
+
     Args:
         keyed (bool): Enables Keyed mode. Defaults to True.
         defaultDir (str|None): If not None(the default) this is passed to tempfile
@@ -238,13 +243,15 @@ class TempFilesContext(object):
         return self
 
     def __exit__(self, *args):
+        # If using the environment variable to keep files around, print some useful debug info
+        # and exit without removing the files.
         if self.keepTempFiles:
             from pprint import pprint
 
-            print 'BDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.'
-            print '--- Orphaned Directories:'
+            print ('\nBDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.')
+            print ('--- Orphaned Directories:')
             pprint(self._tempDirs)
-            print '--- Orphaned Files:'
+            print ('--- Orphaned Files:')
             pprint(self._tempFiles)
             return
         # Remove any created folders from disk and their contents
@@ -257,7 +264,7 @@ class TempFilesContext(object):
             try:
                 os.close(tempFile[0])
             except OSError as e:
-                print 'Problem closing tempfile', e, e.message
+                print ('Problem closing tempfile', e, e.message)
             try:
                 os.remove(tempFile[1])
             except OSError as e:
@@ -333,7 +340,7 @@ class ErrorReport(object):
     def __call__(self, funct):
         def wrapper(wrappedSelf, *args, **kwargs):
             unbound = self._callback
-            self._callback = MethodType(self._callback, wrappedSelf, type(wrappedSelf))
+            self._callback = self._callback.__get__(wrappedSelf)
             try:
                 with self:
                     return funct(wrappedSelf, *args, **kwargs)

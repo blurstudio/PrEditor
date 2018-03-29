@@ -6,7 +6,7 @@ Defines some deocrators that are commonly useful
 
 import traceback
 from blurdev import debug
-from PyQt4.QtCore import QObject, QTimer
+from Qt.QtCore import QObject, QTimer
 import sip
 
 

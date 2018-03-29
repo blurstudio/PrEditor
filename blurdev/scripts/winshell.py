@@ -27,6 +27,7 @@ http://www.opensource.org/licenses/mit-license.php
 
 __VERSION__ = "0.2"
 
+from past.builtins import basestring
 import os
 import sys
 
@@ -159,7 +160,7 @@ def _file_operation(
         (hWnd or 0, operation, source_path, target_path, flags, None, None)
     )
     if result <> 0:
-        raise x_winshell, result
+        raise x_winshell(result)
     elif n_aborted:
         raise x_winshell, "%d operations were aborted by the user" % n_aborted
 
@@ -441,20 +442,20 @@ def structured_storage(filename):
 
 if __name__ == '__main__':
     try:
-        print 'Desktop =>', desktop()
-        print 'Common Desktop =>', desktop(1)
-        print 'Application Data =>', application_data()
-        print 'Common Application Data =>', application_data(1)
-        print 'Bookmarks =>', bookmarks()
-        print 'Common Bookmarks =>', bookmarks(1)
-        print 'Start Menu =>', start_menu()
-        print 'Common Start Menu =>', start_menu(1)
-        print 'Programs =>', programs()
-        print 'Common Programs =>', programs(1)
-        print 'Startup =>', startup()
-        print 'Common Startup =>', startup(1)
-        print 'My Documents =>', my_documents()
-        print 'Recent =>', recent()
-        print 'SendTo =>', sendto()
+        print('Desktop =>', desktop())
+        print('Common Desktop =>', desktop(1))
+        print('Application Data =>', application_data())
+        print('Common Application Data =>', application_data(1))
+        print('Bookmarks =>', bookmarks())
+        print('Common Bookmarks =>', bookmarks(1))
+        print('Start Menu =>', start_menu())
+        print('Common Start Menu =>', start_menu(1))
+        print('Programs =>', programs())
+        print('Common Programs =>', programs(1))
+        print('Startup =>', startup())
+        print('Common Startup =>', startup(1))
+        print('My Documents =>', my_documents())
+        print('Recent =>', recent())
+        print('SendTo =>', sendto())
     finally:
         raw_input("Press enter...")

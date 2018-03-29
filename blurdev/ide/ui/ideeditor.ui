@@ -252,7 +252,6 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="uiSdkBrowserACT"/>
     <addaction name="uiHelpAssistantACT"/>
     <addaction name="separator"/>
     <addaction name="uiBlurDevSiteACT"/>
@@ -493,7 +492,7 @@
     <string>Find in Files...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+F</string>
+    <string>Ctrl+Shift+F</string>
    </property>
   </action>
   <action name="uiGotoACT">
@@ -535,14 +534,6 @@
    </property>
    <property name="shortcut">
     <string>Shift+F1</string>
-   </property>
-  </action>
-  <action name="uiSdkBrowserACT">
-   <property name="text">
-    <string>SDK Help</string>
-   </property>
-   <property name="shortcut">
-    <string>F1</string>
    </property>
   </action>
   <action name="uiCleanPathsACT">
@@ -601,7 +592,7 @@
     <string>Open Favorites...</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+F</string>
+    <string>Ctrl+Alt+F</string>
    </property>
   </action>
   <action name="uiTreegruntACT">

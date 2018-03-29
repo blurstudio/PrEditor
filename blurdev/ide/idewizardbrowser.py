@@ -23,12 +23,12 @@ class IdeWizardBrowser(Dialog):
         # import the wizards
         import wizards
 
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         folder = QIcon(blurdev.resourcePath('img/folder.png'))
 
-        from PyQt4.QtCore import Qt, QSize
-        from PyQt4.QtGui import QTreeWidgetItem
+        from Qt.QtCore import QSize, Qt
+        from Qt.QtWidgets import QTreeWidgetItem
 
         for lang in wizards.wizardLanguages():
             item = QTreeWidgetItem([lang])
@@ -38,7 +38,6 @@ class IdeWizardBrowser(Dialog):
             for grp in wizards.wizardGroups(lang):
                 gitem = QTreeWidgetItem([grp])
                 gitem.setSizeHint(0, QSize(250, 23))
-                print blurdev.resourcePath('img/%s.png' % grp)
                 gitem.setIcon(
                     0, QIcon(blurdev.resourcePath('img/%s.png' % grp.lower()))
                 )
@@ -65,11 +64,11 @@ class IdeWizardBrowser(Dialog):
         items = self.uiWizardsVIEW.scene().selectedItems()
         if items:
             item = items[0]
-            from PyQt4.QtCore import Qt
+            from Qt.QtCore import Qt
 
-            import wizards
+            from . import wizards
 
-            return wizards.find(item.data(Qt.UserRole).toString())
+            return wizards.find(item.data(Qt.UserRole))
         return None
 
     def refreshDescription(self):
@@ -88,8 +87,8 @@ class IdeWizardBrowser(Dialog):
         if not (item and item.parent()):
             return
 
-        import wizards
-        from PyQt4.QtCore import Qt
+        from . import wizards
+        from Qt.QtCore import Qt
 
         templs = wizards.wizards(item.parent().text(0), item.text(0))
         for templ in templs:

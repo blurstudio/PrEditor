@@ -99,7 +99,9 @@ class PdbInput(PdbBase):
             hasData, data = external.checkPipe()
         else:
             if not isAlive:
-                print '**************** Lost Connection to pdb logger, exiting pdb via continue ****************'
+                print(
+                    '**************** Lost Connection to pdb logger, exiting pdb via continue ****************'
+                )
                 out = 'continue'
             else:
                 if data[0] == 'pdb':

@@ -48,7 +48,7 @@ def logUsage(info):
         useLog = import_module(useLogClass)
         useLog.logEvent(info)
         return True
-    except Exception, e:
+    except Exception as e:
         if _debug.debugLevel() >= _debug.DebugLevel.High:
             raise
         else:

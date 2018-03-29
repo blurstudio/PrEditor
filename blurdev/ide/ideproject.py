@@ -8,8 +8,11 @@
 # 	\date		08/19/10
 #
 
+from builtins import str as text
 import os
-from PyQt4.QtGui import QTreeWidgetItem, QItemDelegate, QPixmap
+from Qt.QtGui import QPixmap
+from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem
+from Qt import QtCompat
 
 import blurdev.ide.config.common
 import blurdev.ide.config.project
@@ -69,7 +72,7 @@ class IdeProjectItem(QTreeWidgetItem):
         self._overlay = None
 
         # set the default icon
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
         import blurdev
 
         self.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
@@ -99,7 +102,7 @@ class IdeProjectItem(QTreeWidgetItem):
         return self._filePath
 
     def fileInfo(self):
-        from PyQt4.QtCore import QFileInfo
+        from Qt.QtCore import QFileInfo
 
         if self.isFileSystem():
             return QFileInfo(self.filePath())
@@ -112,7 +115,7 @@ class IdeProjectItem(QTreeWidgetItem):
         return self._group
 
     def isFile(self):
-        from PyQt4.QtCore import QFileInfo
+        from Qt.QtCore import QFileInfo
 
         return QFileInfo(self.filePath()).isFile()
 
@@ -155,25 +158,20 @@ class IdeProjectItem(QTreeWidgetItem):
         files = []
 
         import os
-        from PyQt4.QtCore import QFileInfo, QDir
+        from Qt.QtCore import QDir, QFileInfo
 
-        path = str(self.filePath())
+        path = self.filePath()
         # Check for a invalid path and notify the user by updating the text of the folder.
         try:
             dirs = os.listdir(path)
         except WindowsError:
-            text = unicode(self.text(0))
-            if not text.endswith('(Invalid Path)'):
-                self.setText(0, '%s (Invalid Path)' % text)
+            txt = self.text(0)
+            if not txt.endswith('(Invalid Path)'):
+                self.setText(0, '%s (Invalid Path)' % txt)
             dirs = []
         # if .* is provided add all files
         allFiles = '.*' in fileTypes
         for d in dirs:
-            try:
-                # Max likes to create dump files with non unicode names. Do not show them or a warning about them.
-                unicode(d)
-            except UnicodeDecodeError:
-                continue
             # ignore directories in the exclude group
             if d in exclude:
                 continue
@@ -190,11 +188,11 @@ class IdeProjectItem(QTreeWidgetItem):
                 folders.append(fpath)
 
         # sort the data alphabetically
-        folders.sort(key=str.lower)
-        files.sort(key=str.lower)
+        folders.sort(key=text.lower)
+        files.sort(key=text.lower)
 
         # load the icon provider
-        from PyQt4.QtGui import QFileIconProvider
+        from Qt.QtWidgets import QFileIconProvider
 
         iconprovider = QFileIconProvider()
 
@@ -264,7 +262,7 @@ class IdeProjectItem(QTreeWidgetItem):
             for i in range(self.topLevelItemCount()):
                 output += self.recordOpenState(self.topLevelItem(i))
         else:
-            text = str(item.text(0))
+            text = item.text(0)
             if item.isExpanded():
                 output.append(key + text)
             key += text + '::'
@@ -304,7 +302,7 @@ class IdeProjectItem(QTreeWidgetItem):
             for i in range(self.topLevelItemCount()):
                 self.restoreOpenState(openState, self.topLevelItem(i))
         else:
-            text = str(item.text(0))
+            text = item.text(0)
             itemkey = key + text
             if itemkey in openState:
                 item.setExpanded(True)
@@ -350,10 +348,10 @@ class IdeProjectItem(QTreeWidgetItem):
     def createFolderItem(
         folder, iconprovider=None, fileTypes=[], exclude=[], overlayFinder=None
     ):
-        from PyQt4.QtCore import QFileInfo, QDir
+        from Qt.QtCore import QDir, QFileInfo
 
         if not iconprovider:
-            from PyQt4.QtGui import QFileIconProvider
+            from Qt.QtWidgets import QFileIconProvider
 
             iconprovider = QFileIconProvider()
 
@@ -376,11 +374,11 @@ class IdeProjectItem(QTreeWidgetItem):
 
     @staticmethod
     def createFileItem(filename, iconprovider=None, overlayFinder=None):
-        from PyQt4.QtCore import QFileInfo
+        from Qt.QtCore import QFileInfo
         import os.path
 
         if not iconprovider:
-            from PyQt4.QtGui import QFileIconProvider
+            from Qt.QtWidgets import QFileIconProvider
 
             iconprovider = QFileIconProvider()
 
@@ -428,7 +426,7 @@ class IdeProject(IdeProjectItem):
         IdeProjectItem.__init__(self)
 
         # initialize the project item
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         import blurdev
 
@@ -503,9 +501,7 @@ class IdeProject(IdeProjectItem):
 
     def saveAs(self, filename=''):
         if not filename:
-            from PyQt4.QtGui import QFileDialog
-
-            filename = QFileDialog.getSaveFileName(self, 'Save File as...')
+            filename, _ = QtCompat.QFileDialog.getSaveFileName(self, 'Save File as...')
 
         if filename:
             filename = str(filename)

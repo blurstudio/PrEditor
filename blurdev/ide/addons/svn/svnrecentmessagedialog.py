@@ -8,8 +8,8 @@
 # 	\date		06/02/11
 #
 
-from PyQt4.QtCore import Qt, QSize, QVariant
-from PyQt4.QtGui import QTreeWidgetItem
+from Qt.QtCore import QSize, Qt
+from Qt.QtWidgets import QTreeWidgetItem
 
 from blurdev.gui import Dialog
 
@@ -28,7 +28,7 @@ class SvnRecentMessageDialog(Dialog):
         # load the options
         for msg in svnconfig.RECENT_MESSAGES:
             item = QTreeWidgetItem([msg.split('\n')[0]])
-            item.setData(0, Qt.UserRole, QVariant(msg))
+            item.setData(0, Qt.UserRole, msg)
             item.setSizeHint(0, QSize(120, 18))
             self.uiMessageTREE.addTopLevelItem(item)
 
@@ -38,7 +38,7 @@ class SvnRecentMessageDialog(Dialog):
     def currentMessage(self):
         item = self.uiMessageTREE.currentItem()
         if item:
-            return str(item.data(0, Qt.UserRole).toString())
+            return item.data(0, Qt.UserRole)
         return ''
 
     # define static methods

@@ -1,0 +1,22 @@
+<html>
+<head/>
+<body>
+	<h1>blurdev</h1>
+	<hr>
+	<h2>blurdev Site variables:</h2>
+	<p><span style=" font-style:italic;">These variables should be defined at a user or system level to configure blurdev.</span></p>
+	<p><span style=" font-weight:bold;">BDEV_INCLUDE_*:</span> Contains a path that is inserted at index zero of sys.path. This is done in reverse alphabetical order.</p>
+	<p><span style=" font-weight:bold;">BDEV_PATH_PREFS:</span> This environment variable points to where per-computer user prefs are stored.</p>
+	<p></p>
+	<h2>blurdev Temp variables:</h2>
+	<p><span style=" font-style:italic;">These variables should not be defined all the time.</span></p>
+	<p><span style=" font-weight:bold;">BDEV_DISABLE_AUTORUN:</span> Set to "true" to disable the autorun.bat script used at blur. If this is not set when Maya shuts down, maya takes minutes to close. Maya uses several subprocess calls when closing and for some reason the doskey calls in the script take much longer than normal.</p>
+	<p><span style=" font-weight:bold;">BDEV_STYLESHEET:</span> Used to override the stylesheet when initalizing blurdev.</p>
+	<p><span style=" font-weight:bold;">BDEV_TOOL_ENVIRONMENT:</span> Forces blurdev to initialize with this treegrunt environment name. When saving prefs, this environment name change will not be saved. This is mostly used to ensure that launching a subprocess or farm job happens on the same treegrunt environment.</p>
+	<p></p>
+	<h1>trax</h1>
+	<hr>
+	<p><span style=" font-weight:bold;">BDEV_INCLUDE_TRAX:</span> A special BDEV_INCLUDE_* environment variable that specifies where trax can be imported from. It should contain the path to the folder containing the trax module. It is used by the blurpath system to ensure the correct build is imported. It can also be used to make testing development easier by pointing to your local checkout.</p>
+	<p><span style=" font-weight:bold;">TRAXDEVPATH:</span> Adds trax widgets to QtDesigner. It should contain the path to the folder containing the trax module.</p>
+</body>
+</html>

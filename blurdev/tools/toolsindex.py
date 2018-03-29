@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os
 import re
 
-from PyQt4.QtCore import QObject
+from Qt.QtCore import QObject
 
 import blurdev
 import blurdev.tools.toolscategory
@@ -204,7 +204,7 @@ class ToolsIndex(QObject):
                     categories.add(categoryId)
                 node.setAttribute('category', categoryId)
             else:
-                print 'Error loading tool: ', toolPath
+                print('Error loading tool: ', toolPath)
 
         def processLegacyXmlFiles(script, node, categoryId, xmls):
             """ If a matching xml file exists add its contents to the index """
@@ -258,7 +258,7 @@ class ToolsIndex(QObject):
                 toolIndex.setAttribute('name', 'LegacyStudiomax::%s' % toolId)
                 toolIndex.setAttribute('src', script)
                 toolIndex.setAttribute('type', 'LegacyStudiomax')
-                toolIndex.setAttribute('icon', 'icon24.bmp')
+                toolIndex.setAttribute('icon', 'icon.png')
                 processLegacyXmlFiles(script, toolIndex, categoryId, xmls)
 
             # add python legacy tools
@@ -280,7 +280,7 @@ class ToolsIndex(QObject):
                     if typ == 'LegacyExternal':
                         toolIndex.setAttribute('icon', 'img/icon.png')
                     else:
-                        toolIndex.setAttribute('icon', 'icon24.bmp')
+                        toolIndex.setAttribute('icon', 'icon.png')
                     processLegacyXmlFiles(script, toolIndex, categoryId, xmls)
 
             # add link support

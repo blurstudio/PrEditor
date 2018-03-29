@@ -9,8 +9,9 @@
 # 	:date		01/22/09
 #
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+from Qt.QtCore import Qt, QRect
+from Qt.QtGui import QCursor, QPalette
+from Qt.QtWidgets import QItemDelegate, QMenu
 
 
 class ComboCheckBoxDelegate(QItemDelegate):
@@ -20,35 +21,31 @@ class ComboCheckBoxDelegate(QItemDelegate):
         self._multiHint = ''
         self._changed = False
         combobox.setContextMenuPolicy(Qt.CustomContextMenu)
-        combobox.connect(combobox, SIGNAL('activated(int)'), self.toggleCheckState)
-        combobox.connect(combobox, SIGNAL('currentIndexChanged(int)'), self.updateText)
-        combobox.connect(
-            combobox,
-            SIGNAL('customContextMenuRequested(const QPoint &)'),
-            self.showMenu,
-        )
+        combobox.activated.connect(self.toggleCheckState)
+        combobox.currentIndexChanged.connect(self.updateText)
+        combobox.customContextMenuRequested.connect(self.showMenu)
         combobox.setEditable(True)
         combobox.setInsertPolicy(QComboBox.NoInsert)
 
     def checkAll(self):
         combobox = self.parent()
         for index in range(combobox.count()):
-            combobox.setItemData(index, QVariant(Qt.Checked))
+            combobox.setItemData(index, int(Qt.Checked))
         self.updateText()
 
     def checkInvert(self):
         combobox = self.parent()
         for index in range(combobox.count()):
-            if combobox.itemData(index) == QVariant(Qt.Checked):
-                combobox.setItemData(index, QVariant(Qt.Unchecked))
+            if combobox.itemData(index) == int(Qt.Checked):
+                combobox.setItemData(index, int(Qt.Unchecked))
             else:
-                combobox.setItemData(index, QVariant(Qt.Checked))
+                combobox.setItemData(index, int(Qt.Checked))
         self.updateText()
 
     def checkNone(self):
         combobox = self.parent()
         for index in range(combobox.count()):
-            combobox.setItemData(index, QVariant(Qt.Unchecked))
+            combobox.setItemData(index, int(Qt.Unchecked))
         self.updateText()
 
     def checkedIndexes(self):
@@ -59,11 +56,11 @@ class ComboCheckBoxDelegate(QItemDelegate):
         return indexes
 
     def itemCheckState(self, index):
-        return self.parent().itemData(index).toInt()[0]
+        return self.parent().itemData(index)
 
     def paint(self, painter, option, index):
-        state, success = index.model().data(index, Qt.UserRole).toInt()
-        text = index.model().data(index, Qt.DisplayRole).toString()
+        state = index.model().data(index, Qt.UserRole)
+        text = index.model().data(index, Qt.DisplayRole)
         rect = option.rect
         self.drawDisplay(
             painter,
@@ -85,9 +82,9 @@ class ComboCheckBoxDelegate(QItemDelegate):
         combobox = self.parent()
         for index in range(combobox.count()):
             if index in indexes:
-                combobox.setItemData(index, QVariant(Qt.Checked))
+                combobox.setItemData(index, int(Qt.Checked))
             else:
-                combobox.setItemData(index, QVariant(Qt.Unchecked))
+                combobox.setItemData(index, int(Qt.Unchecked))
         combobox.blockSignals(True)
         if indexes:
             combobox.setCurrentIndex(indexes[-1])
@@ -100,20 +97,16 @@ class ComboCheckBoxDelegate(QItemDelegate):
         self._hint = hint
 
     def setItemCheckState(self, index, state):
-        self.parent().setItemData(index, QVariant(state))
+        self.parent().setItemData(index, int(state))
 
     def setMultiHint(self, multiHint):
         self._multiHint = multiHint
 
     def showMenu(self):
         menu = QMenu(self.parent())
-        menu.connect(menu.addAction('Check All'), SIGNAL('triggered()'), self.checkAll)
-        menu.connect(
-            menu.addAction('Check Invert'), SIGNAL('triggered()'), self.checkInvert
-        )
-        menu.connect(
-            menu.addAction('Check None'), SIGNAL('triggered()'), self.checkNone
-        )
+        menu.addAction('Check All', self.checkAll)
+        menu.addAction('Check Invert', self.checkInvert)
+        menu.addAction('Check None', self.checkNone)
         menu.popup(QCursor.pos())
 
     def toggleCheckState(self, index):
@@ -124,7 +117,7 @@ class ComboCheckBoxDelegate(QItemDelegate):
         # Keep the pop up visible after toggling a state
         self.parent().showPopup()
         self._changed = True
-        self.parent().emit(SIGNAL('currentIndexesChanged()'))
+        self.parent().currentIndexesChanged()
         self.updateText()
 
     def updateText(self):
@@ -158,7 +151,7 @@ class ComboCheckBoxDelegate(QItemDelegate):
 #                          SAMPLE USAGE
 # --------------------------------------------------------------------------------
 # from blurdev.gui.delegates.combocheckboxdelegate import ComboCheckBoxDelegate
-# from PyQt4.QtGui import QDialog, QComboBox, QVBoxLayout, QPushButton, QHBoxLayout
+# from Qt.QtGui import QDialog, QComboBox, QVBoxLayout, QPushButton, QHBoxLayout
 #
 # class MyDialog( QDialog ):
 #    def __init__( self, parent ):
@@ -205,7 +198,7 @@ class ComboCheckBoxDelegate(QItemDelegate):
 #
 #    def printItems( self ):
 #        for index in self.combobox.itemDelegate().checkedIndexes():
-#            print self.combobox.itemText(index)
+#            print(self.combobox.itemText(index))
 #
 # import blurdev
 # MyDialog(blurdev.core.rootWindow()).show()

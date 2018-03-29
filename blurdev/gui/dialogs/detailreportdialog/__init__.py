@@ -8,4 +8,4 @@
 # 	\date		03/11/11
 #
 
-from detailreportdialog import DetailReportDialog
+from .detailreportdialog import DetailReportDialog

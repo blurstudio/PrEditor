@@ -10,27 +10,18 @@
 
 import os.path
 
-from PyQt4.QtCore import pyqtProperty, Qt, QFile, pyqtSignal, QTextCodec
-from PyQt4.Qsci import QsciScintilla
-from PyQt4.QtGui import (
-    QApplication,
-    QFont,
-    QFileDialog,
-    QInputDialog,
-    QMessageBox,
-    QColor,
-    QMenu,
-    QCursor,
-    QIcon,
-    QAction,
-)
+from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal
+from Qt.Qsci import QsciScintilla
+from Qt.QtGui import QColor, QFont, QIcon
+from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction
+from Qt import QtCompat
 
 import blurdev
 from blurdev.enum import enum
 from blurdev.ide import lang
-from blurdev.gui import pyqtPropertyInit
+from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
-from ideeditor import IdeEditor
+from .ideeditor import IdeEditor
 import time, re
 
 
@@ -40,10 +31,10 @@ class DocumentEditor(QsciScintilla):
     _defaultFont = QFont()
     _defaultFont.fromString('Courier New,9,-1,5,50,0,0,0,1,0')
 
-    fontsChanged = pyqtSignal(
+    fontsChanged = Signal(
         QFont, QFont
     )  # emits the font size change (font size, margin font size)
-    documentSaved = pyqtSignal(
+    documentSaved = Signal(
         QsciScintilla, object
     )  # (DocumentEditor, filename) emitted when ever the document is saved.
 
@@ -65,7 +56,6 @@ class DocumentEditor(QsciScintilla):
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
         self._enableFontResizing = True
-        # TODO: figure out how to query these values
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
         self._foldMarginForegroundColor = QColor(Qt.white)
@@ -83,14 +73,6 @@ class DocumentEditor(QsciScintilla):
         self._indentationGuidesForegroundColor = QColor(Qt.black)
         self._markerBackgroundColor = QColor(Qt.white)
         self._markerForegroundColor = QColor(Qt.black)
-        # --------------------------------------------------------------------------------
-        # Requires update to QSci
-        # self._indicatorOutlineColor
-        # self._indicatorForegroundColor
-        # self._hotspotBackgroundColor
-        # self._hotspotForegroundColor
-        # self._whitespaceBackgroundColor
-        # self._whitespaceForegroundColor
         # --------------------------------------------------------------------------------
         # used to store the right click location
         self._clickPos = None
@@ -110,6 +92,9 @@ class DocumentEditor(QsciScintilla):
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.setAcceptDrops(False)
+        # Not supported by older builds of QsciScintilla
+        if hasattr(self, 'setTabDrawMode'):
+            self.setTabDrawMode(QsciScintilla.TabStrikeOut)
 
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
@@ -172,7 +157,7 @@ class DocumentEditor(QsciScintilla):
             return
         options = autopep8.parse_args([''])
         options.max_line_length = self.edgeColumn()
-        fixed = autopep8.fix_code(unicode(self.text()), options=options)
+        fixed = autopep8.fix_code(self.text(), options=options)
         self.beginUndoAction()
         startline, startcol, endline, endcol = self.getSelection()
         self.selectAll()
@@ -245,7 +230,7 @@ class DocumentEditor(QsciScintilla):
         language = lang.byName(self._language)
         if not language:
             QMessageBox.critical(
-                None,
+                self,
                 'No Language Defined',
                 'There is no language defined for this editor.',
             )
@@ -255,10 +240,10 @@ class DocumentEditor(QsciScintilla):
         comment = language.lineComment()
         if not comment:
             QMessageBox.critical(
-                None,
+                self,
                 'No Line Comment Defined',
                 'There is no line comment symbol defined for the "%s" language.'
-                % (self._language),
+                % self._language,
             )
             return '', False
         return comment, True
@@ -357,7 +342,7 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(self._filename)
 
     def copyLineReference(self):
-        from PyQt4.QtGui import QCursor
+        from Qt.QtGui import QCursor
 
         sel = self.getSelection()
         # Note: getSelection is 0 based like all good code
@@ -385,9 +370,9 @@ class DocumentEditor(QsciScintilla):
         start, s, end, e = self.getSelection()
         count = end - start + 1
         self.setSelection(start, 0, end, e)
-        text = unicode(self.selectedText())
+        text = self.selectedText()
         while len(re.findall(r'^\W', text, flags=re.M)) == count:
-            text = re.sub(r'^\W', '', unicode(text), flags=re.M)
+            text = re.sub(r'^\W', '', text, flags=re.M)
         QApplication.clipboard().setText(text)
 
     def copySpaceIndentation(self):
@@ -395,7 +380,7 @@ class DocumentEditor(QsciScintilla):
         
         If indentationsUseTabs is False it will just copy the text
         """
-        text = unicode(self.selectedText())
+        text = self.selectedText()
 
         def replacement(match):
             return match.group().replace('\t', ' ' * self.tabWidth())
@@ -405,15 +390,15 @@ class DocumentEditor(QsciScintilla):
 
     def copyHtml(self):
         """ Copy's the selected text, but formats it using pygments if installed into html."""
-        text = unicode(self.selectedText())
+        text = self.selectedText()
         from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
 
         text = ConsoleEdit.highlightCodeHtml(text, self.language(), None)
         QApplication.clipboard().setText(text)
 
     def detectEndLine(self, text):
-        newlineN = text.indexOf('\n')
-        newlineR = text.indexOf('\r')
+        newlineN = text.find('\n')
+        newlineR = text.find('\r')
         if newlineN != -1 and newlineR != -1:
             if newlineN == newlineR + 1:
                 # CR LF Windows
@@ -440,7 +425,7 @@ class DocumentEditor(QsciScintilla):
             text=' '.join(self.permaHighlight()),
         )
         if success:
-            self.setPermaHighlight(unicode(text).split(' '))
+            self.setPermaHighlight(text.split(' '))
 
     def enableFileWatching(self, state):
         """
@@ -462,10 +447,10 @@ class DocumentEditor(QsciScintilla):
         return self._fileMonitoringActive
 
     def disableTitleUpdate(self):
-        self.SCN_MODIFIED.disconnect(self.refreshTitle)
+        self.modificationChanged.connect(self.refreshTitle)
 
     def enableTitleUpdate(self):
-        self.SCN_MODIFIED.connect(self.refreshTitle)
+        self.modificationChanged.connect(self.refreshTitle)
 
     def eventFilter(self, object, event):
         if event.type() == event.Close and not self.checkForSave():
@@ -485,7 +470,7 @@ class DocumentEditor(QsciScintilla):
             osystem.explore(path)
         else:
             QMessageBox.critical(
-                None, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
+                self, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
             )
 
     def exec_(self):
@@ -563,7 +548,7 @@ class DocumentEditor(QsciScintilla):
             for descriptor in descriptors:
                 result = descriptor.search(docText)
                 while result:
-                    name = unicode(result.group('name'))
+                    name = result.group('name')
                     if name.startswith(text):
                         self.findNext(name, 0)
                         return
@@ -595,7 +580,7 @@ class DocumentEditor(QsciScintilla):
             f.open(QFile.ReadOnly)
             text = f.readAll()
             self._textCodec = QTextCodec.codecForUtfText(
-                text, QTextCodec.codecForName('System')
+                text, QTextCodec.codecForName('UTF-8')
             )
             self.setText(self._textCodec.toUnicode(text))
             f.close()
@@ -642,23 +627,25 @@ class DocumentEditor(QsciScintilla):
 
     def findTextNotFound(self, text):
         try:
+            # If a number was typed in, ask the user if they wanted to goto that line number.
             line = int(text)
+            msg = 'Search string "%s" was not found. \nIt looks like a line number, would you like to goto line %i?'
             result = QMessageBox.critical(
-                None,
+                self,
                 'No Text Found',
-                'Search string "%s" was not found. \nIt looks like a line number, would you like to goto line %i?'
-                % (text, line),
+                msg % (text, line),
                 buttons=(QMessageBox.Yes | QMessageBox.No),
+                defaultButton=QMessageBox.Yes,
             )
             if result == QMessageBox.Yes:
                 self.goToLine(line)
-        except:
+        except ValueError:
             QMessageBox.critical(
-                None, 'No Text Found', 'Search string "%s" was not found.' % text
+                self, 'No Text Found', 'Search string "%s" was not found.' % text
             )
 
     def keyPressEvent(self, event):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         if event.key() == Qt.Key_Backtab:
             self.unindentSelection()
@@ -667,7 +654,7 @@ class DocumentEditor(QsciScintilla):
 
     def initSettings(self):
         # grab the document settings config set
-        from PyQt4.QtGui import QFont, QFontMetrics, QColor
+        from Qt.QtGui import QColor, QFont, QFontMetrics
 
         configSet = IdeEditor.documentConfigSet()
 
@@ -752,7 +739,7 @@ class DocumentEditor(QsciScintilla):
 
     def paste(self):
         text = QApplication.clipboard().text()
-        if text.indexOf('\n') == -1 and text.indexOf('\r') == -1:
+        if text.find('\n') == -1 and text.find('\r') == -1:
             return super(DocumentEditor, self).paste()
 
         def repForMode(mode):
@@ -781,10 +768,6 @@ class DocumentEditor(QsciScintilla):
             self.setHighlightedKeywords(lexer, self._highlightedKeywords)
         else:
             raise TypeError('PermaHighlight is not supported by this lexer.')
-
-    def redo(self):
-        super(DocumentEditor, self).redo()
-        self.refreshTitle()
 
     def refreshToolTip(self):
         # TODO: This will proably be removed once I add a user interface to additionalFilenames.
@@ -928,7 +911,7 @@ class DocumentEditor(QsciScintilla):
                 if isinstance(window, IdeEditor):
                     if window.lastSavedFilename():
                         filename = os.path.split(window.lastSavedFilename())[0]
-            filename = QFileDialog.getSaveFileName(
+            filename, extFilter = QtCompat.QFileDialog.getSaveFileName(
                 self.window(), 'Save File as...', filename
             )
 
@@ -1006,7 +989,6 @@ class DocumentEditor(QsciScintilla):
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
-        self.updateColorScheme()
 
     def setLexer(self, lexer):
         font = self.documentFont
@@ -1014,10 +996,10 @@ class DocumentEditor(QsciScintilla):
             font = lexer.font(0)
         # Backup values destroyed when we set the lexer
         marginFont = self.marginsFont()
-        # folds = self.contractedFolds()
+        folds = self.contractedFolds()
         super(DocumentEditor, self).setLexer(lexer)
         # Restore values destroyed when we set the lexer
-        # self.setContractedFolds(folds)
+        self.setContractedFolds(folds)
         self.setMarginsFont(marginFont)
         self.setMarginsBackgroundColor(self.marginsBackgroundColor())
         self.setMarginsForegroundColor(self.marginsForegroundColor())
@@ -1040,7 +1022,7 @@ class DocumentEditor(QsciScintilla):
             # This ensures the lexer's wordCharacters are used if switching from a wordCharactersOverride
             # lexer to a lexer that doesn't define custom wordCharacters.
             wordCharacters = self.wordCharacters()
-        self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters)
+        self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters.encode('utf8'))
 
         if lexer:
             lexer.setFont(font)
@@ -1099,6 +1081,8 @@ class DocumentEditor(QsciScintilla):
 
     def showMenu(self):
         import blurdev
+        from Qt.QtGui import QCursor, QIcon
+        from Qt.QtWidgets import QMenu
 
         menu = QMenu(self)
         self._clickPos = QCursor.pos()
@@ -1262,9 +1246,6 @@ class DocumentEditor(QsciScintilla):
         self.endUndoAction()
 
     def toggleFolding(self):
-        from PyQt4.QtGui import QApplication
-        from PyQt4.QtCore import Qt
-
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
 
     def toUpper(self):
@@ -1275,10 +1256,6 @@ class DocumentEditor(QsciScintilla):
         self.insert(text)
         self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
         self.endUndoAction()
-
-    def undo(self):
-        super(DocumentEditor, self).undo()
-        self.refreshTitle()
 
     def updateColorScheme(self):
         """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
@@ -1423,7 +1400,7 @@ class DocumentEditor(QsciScintilla):
         """
         self.updateColorScheme()
         self._highlightedKeywords = keywords
-        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [unicode(keywords)])
+        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [keywords])
 
         # Clearing the lexer before re-setting the lexer seems to fix the scroll/jump issue
         # when using smartHighlighting near the end of the document.
@@ -1476,8 +1453,13 @@ class DocumentEditor(QsciScintilla):
             lexer = self.lexer()
             if lexer:
                 font = lexer.font(0)
-
-            if event.delta() > 0:
+            try:
+                # Qt5 support
+                delta = event.angleDelta().y()
+            except:
+                # Qt4 support
+                delta = event.delta()
+            if delta > 0:
                 font.setPointSize(font.pointSize() + 1)
                 marginsFont.setPointSize(marginsFont.pointSize() + 1)
             else:
@@ -1498,54 +1480,54 @@ class DocumentEditor(QsciScintilla):
             super(DocumentEditor, self).wheelEvent(event)
 
     # expose properties for the designer
-    pyLanguage = pyqtProperty("QString", language, setLanguage)
-    pyLineMarginWidth = pyqtProperty("int", lineMarginWidth, setLineMarginWidth)
-    pyShowLineNumbers = pyqtProperty("bool", showLineNumbers, setShowLineNumbers)
-    pyShowFolding = pyqtProperty("bool", showFolding, setShowFolding)
-    pyShowSmartHighlighting = pyqtProperty(
+    pyLanguage = Property("QString", language, setLanguage)
+    pyLineMarginWidth = Property("int", lineMarginWidth, setLineMarginWidth)
+    pyShowLineNumbers = Property("bool", showLineNumbers, setShowLineNumbers)
+    pyShowFolding = Property("bool", showFolding, setShowFolding)
+    pyShowSmartHighlighting = Property(
         "bool", showSmartHighlighting, setShowSmartHighlighting
     )
-    pySmartHighlightingRegEx = pyqtProperty(
+    pySmartHighlightingRegEx = Property(
         "QString", smartHighlightingRegEx, setSmartHighlightingRegEx
     )
 
-    pyAutoCompletionCaseSensitivity = pyqtProperty(
+    pyAutoCompletionCaseSensitivity = Property(
         "bool",
         QsciScintilla.autoCompletionCaseSensitivity,
         QsciScintilla.setAutoCompletionCaseSensitivity,
     )
-    pyAutoCompletionReplaceWord = pyqtProperty(
+    pyAutoCompletionReplaceWord = Property(
         "bool",
         QsciScintilla.autoCompletionReplaceWord,
         QsciScintilla.setAutoCompletionReplaceWord,
     )
-    pyAutoCompletionShowSingle = pyqtProperty(
+    pyAutoCompletionShowSingle = Property(
         "bool",
         QsciScintilla.autoCompletionShowSingle,
         QsciScintilla.setAutoCompletionShowSingle,
     )
-    pyAutoCompletionThreshold = pyqtProperty(
+    pyAutoCompletionThreshold = Property(
         "int",
         QsciScintilla.autoCompletionThreshold,
         QsciScintilla.setAutoCompletionThreshold,
     )
-    pyAutoIndent = pyqtProperty(
+    pyAutoIndent = Property(
         "bool", QsciScintilla.autoIndent, QsciScintilla.setAutoIndent
     )
-    pyBackspaceUnindents = pyqtProperty(
+    pyBackspaceUnindents = Property(
         "bool", QsciScintilla.backspaceUnindents, QsciScintilla.setBackspaceUnindents
     )
-    pyIndentationGuides = pyqtProperty(
+    pyIndentationGuides = Property(
         "bool", QsciScintilla.indentationGuides, QsciScintilla.setIndentationGuides
     )
-    pyIndentationsUseTabs = pyqtProperty(
+    pyIndentationsUseTabs = Property(
         "bool", QsciScintilla.indentationsUseTabs, QsciScintilla.setIndentationsUseTabs
     )
-    pyTabIndents = pyqtProperty(
+    pyTabIndents = Property(
         "bool", QsciScintilla.tabIndents, QsciScintilla.setTabIndents
     )
-    pyUtf8 = pyqtProperty("bool", QsciScintilla.isUtf8, QsciScintilla.setUtf8)
-    pyWhitespaceVisibility = pyqtProperty(
+    pyUtf8 = Property("bool", QsciScintilla.isUtf8, QsciScintilla.setUtf8)
+    pyWhitespaceVisibility = Property(
         "bool",
         QsciScintilla.whitespaceVisibility,
         QsciScintilla.setWhitespaceVisibility,
@@ -1554,15 +1536,15 @@ class DocumentEditor(QsciScintilla):
     # Color Setters required because QSci doesn't expose getters.
     # --------------------------------------------------------------------------------
     def edgeColor(self):
-        """ This is subclassed so we can create a pyqtProperty of it"""
+        """ This is subclassed so we can create a Property of it"""
         return super(DocumentEditor, self).edgeColor()
 
     def setEdgeColor(self, color):
-        """ This is subclassed so we can create a pyqtProperty of it"""
+        """ This is subclassed so we can create a Property of it"""
         super(DocumentEditor, self).setEdgeColor(color)
 
-    # Because foreground and background must be set together, this cant use pyqtPropertyInit
-    @pyqtProperty(QColor)
+    # Because foreground and background must be set together, this cant use QtPropertyInit
+    @Property(QColor)
     def foldMarginsBackgroundColor(self):
         return self._foldMarginBackgroundColor
 
@@ -1571,7 +1553,7 @@ class DocumentEditor(QsciScintilla):
         self._foldMarginBackgroundColor = color
         self.setFoldMarginColors(self._foldMarginForegroundColor, color)
 
-    @pyqtProperty(QColor)
+    @Property(QColor)
     def foldMarginsForegroundColor(self):
         return self._foldMarginForegroundColor
 
@@ -1651,93 +1633,87 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).setUnmatchedBraceForegroundColor(color)
 
     # Handle Stylesheet colors for properties that are built into QsciScintilla but dont have getters.
-    pyMarginsBackgroundColor = pyqtProperty(
+    pyMarginsBackgroundColor = Property(
         QColor, marginsBackgroundColor, setMarginsBackgroundColor
     )
-    pyMarginsForegroundColor = pyqtProperty(
+    pyMarginsForegroundColor = Property(
         QColor, marginsForegroundColor, setMarginsForegroundColor
     )
-    pyMatchedBraceBackgroundColor = pyqtProperty(
+    pyMatchedBraceBackgroundColor = Property(
         QColor, matchedBraceBackgroundColor, setMatchedBraceBackgroundColor
     )
-    pyMatchedBraceForegroundColor = pyqtProperty(
+    pyMatchedBraceForegroundColor = Property(
         QColor, matchedBraceForegroundColor, setMatchedBraceForegroundColor
     )
-    pyCaretBackgroundColor = pyqtProperty(
+    pyCaretBackgroundColor = Property(
         QColor, caretBackgroundColor, setCaretLineBackgroundColor
     )
-    pyCaretForegroundColor = pyqtProperty(
+    pyCaretForegroundColor = Property(
         QColor, caretForegroundColor, setCaretForegroundColor
     )
-    pySelectionBackgroundColor = pyqtProperty(
+    pySelectionBackgroundColor = Property(
         QColor, selectionBackgroundColor, setSelectionBackgroundColor
     )
-    pySelectionForegroundColor = pyqtProperty(
+    pySelectionForegroundColor = Property(
         QColor, selectionForegroundColor, setSelectionForegroundColor
     )
-    pyIndentationGuidesBackgroundColor = pyqtProperty(
+    pyIndentationGuidesBackgroundColor = Property(
         QColor, indentationGuidesBackgroundColor, setIndentationGuidesBackgroundColor
     )
-    pyIndentationGuidesForegroundColor = pyqtProperty(
+    pyIndentationGuidesForegroundColor = Property(
         QColor, indentationGuidesForegroundColor, setIndentationGuidesForegroundColor
     )
-    pyMarkerBackgroundColor = pyqtProperty(
+    pyMarkerBackgroundColor = Property(
         QColor, markerBackgroundColor, setMarkerBackgroundColor
     )
-    pyMarkerForegroundColor = pyqtProperty(
+    pyMarkerForegroundColor = Property(
         QColor, markerForegroundColor, setMarkerForegroundColor
     )
-    pyUnmatchedBraceBackgroundColor = pyqtProperty(
+    pyUnmatchedBraceBackgroundColor = Property(
         QColor, unmatchedBraceBackgroundColor, setUnmatchedBraceBackgroundColor
     )
-    pyUnmatchedBraceForegroundColor = pyqtProperty(
+    pyUnmatchedBraceForegroundColor = Property(
         QColor, unmatchedBraceForegroundColor, setUnmatchedBraceForegroundColor
     )
-    pyEdgeColor = pyqtProperty(QColor, edgeColor, setEdgeColor)
-    documentFont = pyqtPropertyInit('_documentFont', _defaultFont)
-    pyMarginsFont = pyqtProperty(QFont, marginsFont, setMarginsFont)
+    pyEdgeColor = Property(QColor, edgeColor, setEdgeColor)
+    documentFont = QtPropertyInit('_documentFont', _defaultFont)
+    pyMarginsFont = Property(QFont, marginsFont, setMarginsFont)
 
-    copyIndentsAsSpaces = pyqtPropertyInit('_copyIndentsAsSpaces', False)
+    copyIndentsAsSpaces = QtPropertyInit('_copyIndentsAsSpaces', False)
 
-    # These colors are purely defined in DocumentEditor so we can use pyqtPropertyInit
-    braceBadForeground = pyqtPropertyInit('_braceBadForeground', QColor(255, 255, 255))
-    braceBadBackground = pyqtPropertyInit('_braceBadBackground', QColor(100, 60, 60))
+    # These colors are purely defined in DocumentEditor so we can use QtPropertyInit
+    braceBadForeground = QtPropertyInit('_braceBadForeground', QColor(255, 255, 255))
+    braceBadBackground = QtPropertyInit('_braceBadBackground', QColor(100, 60, 60))
 
-    colorDefault = pyqtPropertyInit('_colorDefault', QColor())
-    colorComment = pyqtPropertyInit('_colorComment', QColor(0, 127, 0))
-    colorNumber = pyqtPropertyInit('_colorNumber', QColor(0, 127, 127))
-    colorString = pyqtPropertyInit('_colorString', QColor(127, 0, 127))
-    colorKeyword = pyqtPropertyInit('_colorKeyword', QColor(0, 0, 127))
-    colorTripleQuotedString = pyqtPropertyInit(
+    colorDefault = QtPropertyInit('_colorDefault', QColor())
+    colorComment = QtPropertyInit('_colorComment', QColor(0, 127, 0))
+    colorNumber = QtPropertyInit('_colorNumber', QColor(0, 127, 127))
+    colorString = QtPropertyInit('_colorString', QColor(127, 0, 127))
+    colorKeyword = QtPropertyInit('_colorKeyword', QColor(0, 0, 127))
+    colorTripleQuotedString = QtPropertyInit(
         '_colorTripleQuotedString', QColor(127, 0, 0)
     )
-    colorMethod = pyqtPropertyInit('_colorMethod', QColor(0, 0, 255))
-    colorFunction = pyqtPropertyInit('_colorFunction', QColor(0, 127, 127))
-    colorOperator = pyqtPropertyInit('_colorOperator', QColor(0, 0, 0))
-    colorIdentifier = pyqtPropertyInit('_colorIdentifier', QColor(0, 0, 0))
-    colorCommentBlock = pyqtPropertyInit('_colorCommentBlock', QColor(127, 127, 127))
-    colorUnclosedString = pyqtPropertyInit('_colorUnclosedString', QColor(0, 0, 0))
-    colorSmartHighlight = pyqtPropertyInit('_colorSmartHighlight', QColor(64, 112, 144))
-    colorDecorator = pyqtPropertyInit('_colorDecorator', QColor(128, 80, 0))
+    colorMethod = QtPropertyInit('_colorMethod', QColor(0, 0, 255))
+    colorFunction = QtPropertyInit('_colorFunction', QColor(0, 127, 127))
+    colorOperator = QtPropertyInit('_colorOperator', QColor(0, 0, 0))
+    colorIdentifier = QtPropertyInit('_colorIdentifier', QColor(0, 0, 0))
+    colorCommentBlock = QtPropertyInit('_colorCommentBlock', QColor(127, 127, 127))
+    colorUnclosedString = QtPropertyInit('_colorUnclosedString', QColor(0, 0, 0))
+    colorSmartHighlight = QtPropertyInit('_colorSmartHighlight', QColor(64, 112, 144))
+    colorDecorator = QtPropertyInit('_colorDecorator', QColor(128, 80, 0))
 
     _defaultPaper = QColor(255, 255, 255)
-    paperDefault = pyqtPropertyInit('_paperDefault', _defaultPaper)
-    paperComment = pyqtPropertyInit('_paperComment', _defaultPaper)
-    paperNumber = pyqtPropertyInit('_paperNumber', _defaultPaper)
-    paperString = pyqtPropertyInit('_paperString', _defaultPaper)
-    paperKeyword = pyqtPropertyInit('_paperKeyword', _defaultPaper)
-    paperTripleQuotedString = pyqtPropertyInit(
-        '_paperTripleQuotedString', _defaultPaper
-    )
-    paperMethod = pyqtPropertyInit('_paperMethod', _defaultPaper)
-    paperFunction = pyqtPropertyInit('_paperFunction', _defaultPaper)
-    paperOperator = pyqtPropertyInit('_paperOperator', _defaultPaper)
-    paperIdentifier = pyqtPropertyInit('_paperIdentifier', _defaultPaper)
-    paperCommentBlock = pyqtPropertyInit('_paperCommentBlock', _defaultPaper)
-    paperUnclosedString = pyqtPropertyInit(
-        '_paperUnclosedString', QColor(224, 192, 224)
-    )
-    paperSmartHighlight = pyqtPropertyInit(
-        '_paperSmartHighlight', QColor(155, 255, 155)
-    )
-    paperDecorator = pyqtPropertyInit('_paperDecorator', _defaultPaper)
+    paperDefault = QtPropertyInit('_paperDefault', _defaultPaper)
+    paperComment = QtPropertyInit('_paperComment', _defaultPaper)
+    paperNumber = QtPropertyInit('_paperNumber', _defaultPaper)
+    paperString = QtPropertyInit('_paperString', _defaultPaper)
+    paperKeyword = QtPropertyInit('_paperKeyword', _defaultPaper)
+    paperTripleQuotedString = QtPropertyInit('_paperTripleQuotedString', _defaultPaper)
+    paperMethod = QtPropertyInit('_paperMethod', _defaultPaper)
+    paperFunction = QtPropertyInit('_paperFunction', _defaultPaper)
+    paperOperator = QtPropertyInit('_paperOperator', _defaultPaper)
+    paperIdentifier = QtPropertyInit('_paperIdentifier', _defaultPaper)
+    paperCommentBlock = QtPropertyInit('_paperCommentBlock', _defaultPaper)
+    paperUnclosedString = QtPropertyInit('_paperUnclosedString', QColor(224, 192, 224))
+    paperSmartHighlight = QtPropertyInit('_paperSmartHighlight', QColor(155, 255, 155))
+    paperDecorator = QtPropertyInit('_paperDecorator', _defaultPaper)

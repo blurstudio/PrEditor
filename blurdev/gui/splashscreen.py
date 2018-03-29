@@ -2,8 +2,9 @@ import os
 import glob
 import random
 
-from PyQt4.QtGui import QPixmap, QSplashScreen
-from PyQt4.QtCore import Qt
+from Qt.QtGui import QPixmap
+from Qt.QtWidgets import QSplashScreen
+from Qt.QtCore import Qt
 
 SPLASH_DIR = os.environ.get('BDEV_SPLASHSCREEN_SOURCE_DIR')
 

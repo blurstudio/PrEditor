@@ -11,7 +11,7 @@
 import pysvn
 import traceback
 
-from PyQt4.QtCore import QThread, pyqtSignal
+from Qt.QtCore import QThread, Signal
 
 import blurdev
 
@@ -106,7 +106,7 @@ class ActionThread(QThread):
                     to manage various SVN actions that will need to occur
     """
 
-    updated = pyqtSignal(str, str, str, int)
+    updated = Signal(str, str, str, int)
 
     def __init__(self):
         super(ActionThread, self).__init__()

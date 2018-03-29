@@ -14,6 +14,7 @@ from blurdev.gui import Dialog
 from blurdev.ide.ideproject import IdeProjectItem
 
 from blurdev import osystem
+from Qt import QtCompat
 
 
 class IdeProjectDialog(Dialog):
@@ -40,7 +41,7 @@ class IdeProjectDialog(Dialog):
         # check to see if we are saving to a new location
         if os.path.normcase(self._project.filename()) != os.path.normcase(filename):
             if not os.path.exists(path):
-                from PyQt4.QtGui import QMessageBox
+                from Qt.QtWidgets import QMessageBox
 
                 QMessageBox.critical(
                     None,
@@ -51,7 +52,7 @@ class IdeProjectDialog(Dialog):
                 return False
 
             if os.path.exists(filename):
-                from PyQt4.QtGui import QMessageBox
+                from Qt.QtWidgets import QMessageBox
 
                 results = QMessageBox.question(
                     None,
@@ -81,9 +82,7 @@ class IdeProjectDialog(Dialog):
             item.addChild(child)
 
     def addFile(self):
-        from PyQt4.QtGui import QFileDialog
-
-        filename = QFileDialog.getOpenFileName(
+        filename, _ = QtCompat.QFileDialog.getOpenFileName(
             self, 'Select File', '', 'All Files (*.*)'
         )
 
@@ -146,7 +145,8 @@ class IdeProjectDialog(Dialog):
         self.uiProjectTREE.addTopLevelItem(self._project)
 
     def showMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        from Qt.QtGui import QCursor
+        from Qt.QtWidgets import QMenu
 
         menu = QMenu(self)
         menu.addAction('Add Folder...').triggered.connect(self.addItem)

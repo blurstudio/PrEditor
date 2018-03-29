@@ -15,7 +15,7 @@ import blurdev
 from blurdev import osystem, settings
 import subprocess
 
-from PyQt4.QtGui import QFileDialog, QInputDialog, QLineEdit, QMessageBox
+from Qt.QtWidgets import QFileDialog, QInputDialog, QLineEdit, QMessageBox
 
 
 def add(filepath):

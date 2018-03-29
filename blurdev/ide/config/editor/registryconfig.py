@@ -11,16 +11,16 @@
 import os
 import blurdev
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import (
-    QTreeWidgetItem,
-    QIcon,
+from Qt.QtCore import Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import (
     QDialog,
-    QLineEdit,
     QDialogButtonBox,
     QHBoxLayout,
-    QVBoxLayout,
+    QLineEdit,
     QMessageBox,
+    QTreeWidgetItem,
+    QVBoxLayout,
 )
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget

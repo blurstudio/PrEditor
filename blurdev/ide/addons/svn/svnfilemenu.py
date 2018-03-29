@@ -9,7 +9,7 @@
 #
 
 import os
-from PyQt4.QtGui import QMenu
+from Qt.QtWidgets import QMenu
 
 from blurdev.ide.idefilemenu import IdeFileMenu
 from blurdev.ide.addons.svn import svnops
@@ -20,7 +20,8 @@ class SvnFileMenu(IdeFileMenu):
         super(SvnFileMenu, self).defineMenu()
 
         # add the svn commands support
-        from PyQt4.QtGui import QAction, QIcon
+        from Qt.QtGui import QIcon
+        from Qt.QtWidgets import QAction
         from blurdev.ide.addons import svn
 
         # define the SVN commands before the explore action

@@ -1,5 +1,6 @@
-from PyQt4.QtCore import QPoint, Qt, QEvent, pyqtProperty
-from PyQt4.QtGui import QSpinBox, QDoubleSpinBox, QCursor, QMouseEvent, QApplication
+from Qt.QtCore import QEvent, QPoint, Qt, Property
+from Qt.QtGui import QCursor, QMouseEvent
+from Qt.QtWidgets import QApplication, QDoubleSpinBox, QSpinBox
 
 
 class _DragSpin(object):
@@ -195,15 +196,15 @@ class _DragSpin(object):
     def getSlowDivisor(self):
         return self._slowDivisor
 
-    dragSensitivity = pyqtProperty('int', getDragSensitivity, setDragSensitivity)
-    startSensitivity = pyqtProperty('int', getStartSensitivity, setStartSensitivity)
-    cursorLock = pyqtProperty('bool', getCursorLock, setCursorLock)
-    wrapBoundary = pyqtProperty('int', getWrapBoundary, setWrapBoundary)
-    dragCursor = pyqtProperty('int', getDragCursor, setDragCursor)
-    fastModifier = pyqtProperty(Qt.KeyboardModifier, getFastModifier, setFastModifier)
-    slowModifier = pyqtProperty(Qt.KeyboardModifier, getSlowModifier, setSlowModifier)
-    fastMultiplier = pyqtProperty('int', getFastMultiplier, setFastMultiplier)
-    slowDivisor = pyqtProperty('int', getSlowDivisor, setSlowDivisor)
+    dragSensitivity = Property('int', getDragSensitivity, setDragSensitivity)
+    startSensitivity = Property('int', getStartSensitivity, setStartSensitivity)
+    cursorLock = Property('bool', getCursorLock, setCursorLock)
+    wrapBoundary = Property('int', getWrapBoundary, setWrapBoundary)
+    dragCursor = Property('int', getDragCursor, setDragCursor)
+    fastModifier = Property(Qt.KeyboardModifier, getFastModifier, setFastModifier)
+    slowModifier = Property(Qt.KeyboardModifier, getSlowModifier, setSlowModifier)
+    fastMultiplier = Property('int', getFastMultiplier, setFastMultiplier)
+    slowDivisor = Property('int', getSlowDivisor, setSlowDivisor)
 
 
 class DragSpinBox(_DragSpin, QSpinBox):
@@ -223,7 +224,7 @@ class DragSpinBox(_DragSpin, QSpinBox):
     def setDefaultValue(self, val):
         self._defaultValue = val
 
-    defaultValue = pyqtProperty('int', getDefaultValue, setDefaultValue)
+    defaultValue = Property('int', getDefaultValue, setDefaultValue)
 
 
 class DragDoubleSpinBox(_DragSpin, QDoubleSpinBox):
@@ -243,11 +244,11 @@ class DragDoubleSpinBox(_DragSpin, QDoubleSpinBox):
     def setDefaultValue(self, val):
         self._defaultValue = val
 
-    defaultValue = pyqtProperty('double', getDefaultValue, setDefaultValue)
+    defaultValue = Property('double', getDefaultValue, setDefaultValue)
 
 
 if __name__ == "__main__":
-    from PyQt4.QtGui import QWidget, QApplication, QHBoxLayout
+    from Qt.QtWidgets import QApplication, QHBoxLayout, QWidget
     import sys
 
     app = QApplication(sys.argv)

@@ -8,8 +8,8 @@
 # 	\date		12/05/08
 #
 
-from PyQt4.QtGui import QDialog
-from PyQt4.QtCore import Qt
+from Qt.QtWidgets import QDialog
+from Qt.QtCore import Qt
 
 
 class Dialog(QDialog):
@@ -33,13 +33,15 @@ class Dialog(QDialog):
             blurdev.core.aboutToClearPaths.connect(cls._instance.shutdown)
         return cls._instance
 
-    def __init__(self, parent=None, flags=Qt.WindowMinMaxButtonsHint):
+    def __init__(
+        self, parent=None, flags=Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint
+    ):
         import blurdev
 
         # if there is no root, create
         if not parent:
             if blurdev.core.isMfcApp():
-                from winwidget import WinWidget
+                from .winwidget import WinWidget
 
                 parent = WinWidget.newInstance(blurdev.core.hwnd())
             else:
@@ -89,7 +91,7 @@ class Dialog(QDialog):
         # attempt to set the dialog icon
         import os
         import sys
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         try:
             path = blurdev.relativePath(
@@ -100,6 +102,19 @@ class Dialog(QDialog):
                 self.setWindowIcon(QIcon(path))
         except (AttributeError, KeyError):
             pass
+
+    def _shouldDisableAccelerators(self, old, now):
+        """ Used to enable typing in DCC's that require it(Max 2018).
+
+        Args:
+            old (QWidget or None): The QWidget that lost focus.
+            new (QWidget or None): The QWidget that gained focus.
+
+        Returns:
+            bool: If accelerators should be disabled.
+        """
+        # By default we always want to disable accelerators.
+        return True
 
     def closeEvent(self, event):
         # ensure this object gets deleted
@@ -113,7 +128,7 @@ class Dialog(QDialog):
 
         # uncache the win widget if necessary
         if wwidget:
-            from winwidget import WinWidget
+            from .winwidget import WinWidget
 
             WinWidget.uncache(wwidget)
 

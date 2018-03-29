@@ -3,8 +3,8 @@ import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
 import hou
-from PyQt4.QtGui import QMainWindow, QApplication
-from PyQt4.QtCore import Qt
+from Qt.QtWidgets import QApplication, QMainWindow
+from Qt.QtCore import Qt
 
 
 class HoudiniCore(Core):
@@ -20,6 +20,10 @@ class HoudiniCore(Core):
         # Shutdown blurdev when Houdini closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
+
+    def addLibraryPaths(self, app):
+        """ There is no need to add library paths for houdini """
+        return
 
     def createToolMacro(self, tool, macro=''):
         """

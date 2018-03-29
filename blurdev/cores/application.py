@@ -1,14 +1,14 @@
-from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import pyqtSignal, QCoreApplication
+from Qt.QtWidgets import QApplication
+from Qt.QtCore import QCoreApplication, Signal
 
 
 class CoreApplication(QCoreApplication):
     # Does not get called, but exists incase a script tries to connect to it.
-    sessionEnding = pyqtSignal()
+    sessionEnding = Signal()
 
 
 class Application(QApplication):
-    sessionEnding = pyqtSignal()
+    sessionEnding = Signal()
 
     def __init__(self, args):
         super(Application, self).__init__(args)

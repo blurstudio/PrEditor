@@ -1,7 +1,7 @@
 import blurdev, subprocess, os, sys
 from blurdev.gui import Dialog
-from PyQt4.QtCore import Qt, QTimer
-from PyQt4.QtGui import QPixmap
+from Qt.QtCore import QTimer, Qt
+from Qt.QtGui import QPixmap
 
 
 class ErrorDialog(Dialog):
@@ -88,7 +88,7 @@ class ErrorDialog(Dialog):
         except ImportError:
             QTimer.singleShot(5000, self.close)
             return
-        from PyQt4.QtGui import QMessageBox
+        from Qt.QtWidgets import QMessageBox
 
         def handleGet(handle, args):
             if win32gui.IsWindowVisible(handle) and win32gui.IsWindowEnabled(handle):

@@ -9,16 +9,9 @@
 #
 
 import blurdev
-from PyQt4.QtCore import Qt, QDate
-from PyQt4.QtGui import (
-    QDateEdit,
-    QToolButton,
-    QStyle,
-    QStyleOptionSpinBox,
-    QIcon,
-    QPixmap,
-    QLineEdit,
-)
+from Qt.QtCore import QDate, Qt
+from Qt.QtGui import QIcon, QPixmap
+from Qt.QtWidgets import QDateEdit, QLineEdit, QStyle, QStyleOptionSpinBox, QToolButton
 
 
 class ClearableDateEdit(QDateEdit):

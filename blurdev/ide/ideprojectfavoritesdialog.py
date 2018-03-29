@@ -11,6 +11,7 @@
 import os
 from blurdev.gui import Dialog
 from blurdev import osystem
+from Qt import QtCompat
 
 
 class IdeProjectFavoritesDialog(Dialog):
@@ -26,16 +27,13 @@ class IdeProjectFavoritesDialog(Dialog):
         self.refresh()
 
     def addFavorite(self):
-        from PyQt4.QtGui import QFileDialog
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
-        filename = str(
-            QFileDialog.getOpenFileName(
-                self,
-                'Blur IDE Project',
-                osystem.expandvars(os.environ.get('BDEV_PATH_PROJECT', '')),
-                'Blur IDE Projects (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
-            )
+        filename, _ = QtCompat.QFileDialog.getOpenFileName(
+            self,
+            'Blur IDE Project',
+            osystem.expandvars(os.environ.get('BDEV_PATH_PROJECT', '')),
+            'Blur IDE Projects (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
         )
 
         from ideproject import IdeProject
@@ -49,11 +47,11 @@ class IdeProjectFavoritesDialog(Dialog):
         if not item:
             return None
 
-        from ideproject import IdeProject
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QMessageBox
+        from .ideproject import IdeProject
+        from Qt.QtCore import Qt
+        from Qt.QtWidgets import QMessageBox
 
-        filename = str(item.data(0, Qt.UserRole).toString())
+        filename = item.data(0, Qt.UserRole)
         if not os.path.exists(filename):
             QMessageBox.critical(
                 self,
@@ -69,11 +67,12 @@ class IdeProjectFavoritesDialog(Dialog):
         self.uiFavoriteTREE.setUpdatesEnabled(False)
         self.uiFavoriteTREE.clear()
 
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QTreeWidgetItem, QIcon
+        from Qt.QtCore import Qt
+        from Qt.QtGui import QIcon
+        from Qt.QtWidgets import QTreeWidgetItem
 
         import os.path
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
         filenames = IdeProject.Favorites
         filenames.sort()
@@ -83,7 +82,7 @@ class IdeProjectFavoritesDialog(Dialog):
         favicon = QIcon(blurdev.resourcePath('img/favorite.png'))
 
         for filename in filenames:
-            name = os.path.basename(str(filename)).split('.')[0]
+            name = os.path.basename(filename).split('.')[0]
             item = QTreeWidgetItem([name])
             item.setToolTip(
                 0, '<b>%s Project</b><hr><small>%s</small>' % (name, filename)
@@ -100,14 +99,15 @@ class IdeProjectFavoritesDialog(Dialog):
         if not item:
             return
 
-        from ideproject import IdeProject
-        from PyQt4.QtCore import Qt
+        from .ideproject import IdeProject
+        from Qt.QtCore import Qt
 
-        IdeProject.Favorites.remove(str(item.data(0, Qt.UserRole).toString()))
+        IdeProject.Favorites.remove(item.data(0, Qt.UserRole))
         self.refresh()
 
     def showMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        from Qt.QtGui import QCursor
+        from Qt.QtWidgets import QMenu
 
         menu = QMenu(self)
         menu.addAction('Add Favorite...').triggered.connect(self.addFavorite)

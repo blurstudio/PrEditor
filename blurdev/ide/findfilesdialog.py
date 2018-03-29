@@ -8,19 +8,21 @@
 # 	\date		04/22/11
 #
 
+from builtins import str as text
 import os
 import re
 
 from blurdev.gui import Dialog
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication, QVBoxLayout, QTextEdit
-from PyQt4.QtCore import pyqtSignal, QThread, QTimer, Qt, QVariant, QString
+from Qt.QtCore import QThread, QTimer, Qt, Signal
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QApplication, QTextEdit, QTreeWidgetItem, QVBoxLayout
 
 from blurdev.ide import ideglobals
 from blurdev.gui.widgets.pyularwidget import PyularDialog
 
 
 class FindFilesThread(QThread):
-    textFound = pyqtSignal(str, str, int)  # filename, line, lineno
+    textFound = Signal(str, str, int)  # filename, line, lineno
 
     def __init__(self, parent):
         QThread.__init__(self, parent)
@@ -66,7 +68,7 @@ class FindFilesThread(QThread):
     def run(self):
         # create expressions
         exprs = [
-            re.compile(unicode(os.path.splitext(ftype)[0]).replace('*', '[^\.]*'))
+            re.compile(os.path.splitext(ftype)[0].replace('*', '[^\.]*'))
             for ftype in self._filetypes.split(';')
         ]
         filetypes = set(
@@ -101,15 +103,18 @@ class FindFilesThread(QThread):
                             filename = os.path.join(path, file)
 
                             # Ignore any files that matach the provided exclude regex
-                            if self._excludeRegex and re.findall(
-                                self._excludeRegex, filename
-                            ):
+                            reResults = re.findall(self._excludeRegex, filename)
+                            if self._excludeRegex and reResults:
+                                self._output.append(
+                                    '		Matched Exclude Regex: {}'.format(reResults)
+                                )
                                 continue
                             # make sure we have the proper file type
-                            if not (
-                                self._findall
-                                or os.path.splitext(filename)[1] in filetypes
-                            ):
+                            ext = os.path.splitext(filename)[1]
+                            if not (self._findall or ext in filetypes):
+                                self._output.append(
+                                    '		Ignoring File Extension: {}'.format(ext)
+                                )
                                 continue
 
                             # make sure the filename matches the expression
@@ -117,13 +122,13 @@ class FindFilesThread(QThread):
                                 if expr.match(filename):
                                     self.searchFile(filename)
                                     break
-                        except Exception, e:
+                        except Exception as e:
                             self._errors.append({"exception": e, "file": file})
                             self._output.append(
                                 "	------ Error Reading file: %s Exception: %s"
                                 % (filename, repr(e))
                             )
-        except Exception, e:
+        except Exception as e:
             self._errors.append({"exception": e})
             self._output.append("------ Error looping over dirs: %s" % repr(e))
 
@@ -133,7 +138,7 @@ class FindFilesThread(QThread):
     def searchFile(self, filename):
         # look for the text within the lines
         try:
-            f = open(filename, 'r')
+            f = open(filename, 'rU')
         except:
             return
 
@@ -163,7 +168,7 @@ class FindFilesThread(QThread):
                         self._results[filename] = [(lineno + 1, line.strip())]
                     else:
                         self._results[filename].append((lineno + 1, line.strip()))
-            except Exception, e:
+            except Exception as e:
                 self._errors.append(
                     {
                         "exception": e,
@@ -178,7 +183,7 @@ class FindFilesThread(QThread):
                 )
 
     def setSearchText(self, text):
-        self._searchText = unicode(text)
+        self._searchText = text
 
     def setBasePath(self, basepath):
         self._basepath = basepath
@@ -214,7 +219,7 @@ class FindFilesOutputDialog(Dialog):
 class FindFilesDialog(Dialog):
     _instance = None
 
-    fileDoubleClicked = pyqtSignal(str, int)
+    fileDoubleClicked = Signal(str, int)
 
     def __init__(self, parent=None):
         super(FindFilesDialog, self).__init__(parent)
@@ -280,10 +285,10 @@ class FindFilesDialog(Dialog):
         Dialog.closeEvent(self, event)
 
         # set the properties in the prefs module
-        ideglobals.FILE_SEARCH_TEXT = unicode(self.uiSearchTXT.text())
-        ideglobals.FILE_SEARCH_TYPES = unicode(self.uiFileTypesDDL.currentText())
-        ideglobals.FILE_SEARCH_PATH = unicode(self.uiBasePathTXT.text())
-        ideglobals.FILE_SEARCH_EXCLUDE = unicode(self.uiExcludeRegexDDL.currentText())
+        ideglobals.FILE_SEARCH_TEXT = self.uiSearchTXT.text()
+        ideglobals.FILE_SEARCH_TYPES = self.uiFileTypesDDL.currentText()
+        ideglobals.FILE_SEARCH_PATH = self.uiBasePathTXT.text()
+        ideglobals.FILE_SEARCH_EXCLUDE = self.uiExcludeRegexDDL.currentText()
 
     def copyFilenames(self):
         QApplication.clipboard().setText(self._resultsFileText)
@@ -308,7 +313,7 @@ class FindFilesDialog(Dialog):
                     QApplication.instance().processEvents()
                     # use permaHighlight to highlight the search term. This probably won't
                     # work for regex searches
-                    document.setPermaHighlight([unicode(self.uiSearchTXT.text())])
+                    document.setPermaHighlight([self.uiSearchTXT.text()])
                     return
         QApplication.clipboard().setText(self._allResultsText)
 
@@ -321,16 +326,16 @@ class FindFilesDialog(Dialog):
 
     def loadFile(self, item):
         if item.parent():
-            filename = unicode(item.parent().data(0, Qt.UserRole).toString())
-            lineno = item.data(0, Qt.UserRole).toInt()[0]
+            filename = item.parent().data(0, Qt.UserRole)
+            lineno = item.data(0, Qt.UserRole)
         else:
-            filename = unicode(item.data(0, Qt.UserRole).toString())
+            filename = item.data(0, Qt.UserRole)
             lineno = 0
 
         self.fileDoubleClicked.emit(filename, lineno)
 
     def pickFolder(self):
-        from PyQt4.QtGui import QFileDialog
+        from Qt.QtWidgets import QFileDialog
 
         path = QFileDialog.getExistingDirectory(
             self, directory=self.uiBasePathTXT.text()
@@ -345,8 +350,6 @@ class FindFilesDialog(Dialog):
                 output += self.recordOpenState(self.uiResultsTREE.topLevelItem(i))
         else:
             text = item.text(0)
-            if not isinstance(key, QString):
-                key = QString(key)
             if item.isExpanded():
                 output.append(key + text)
             key += text + '::'
@@ -394,13 +397,13 @@ class FindFilesDialog(Dialog):
             self._allResultsText += '%s\n' % filename
             self._resultsFileText += '%s\n' % filename
             item = QTreeWidgetItem(['from "%s"' % filename])
-            item.setData(0, Qt.UserRole, QVariant(filename))
-            item.setData(1, Qt.UserRole, QVariant(0))
+            item.setData(0, Qt.UserRole, filename)
+            item.setData(1, Qt.UserRole, 0)
 
             for lineno, line in lines:
                 self._allResultsText += '\t%06i: %s\n' % (lineno, line)
                 lineitem = QTreeWidgetItem(['%06i: %s' % (lineno, line)])
-                lineitem.setData(0, Qt.UserRole, QVariant(lineno))
+                lineitem.setData(0, Qt.UserRole, lineno)
                 item.addChild(lineitem)
 
             self.uiResultsTREE.addTopLevelItem(item)
@@ -419,8 +422,6 @@ class FindFilesDialog(Dialog):
                 self.restoreOpenState(openState, self.uiResultsTREE.topLevelItem(i))
         else:
             text = item.text(0)
-            if not isinstance(key, QString):
-                key = QString(key)
             itemkey = key + text
             if itemkey in openState:
                 item.setExpanded(True)
@@ -441,10 +442,10 @@ class FindFilesDialog(Dialog):
 
     def search(self):
         # verify the basepath exists
-        basepaths = unicode(self.uiBasePathTXT.text())
+        basepaths = self.uiBasePathTXT.text()
         for basepath in basepaths.split(';'):
             if not os.path.exists(basepath):
-                from PyQt4.QtGui import QMessageBox
+                from Qt.QtWidgets import QMessageBox
 
                 QMessageBox.critical(
                     self,
@@ -462,12 +463,10 @@ class FindFilesDialog(Dialog):
         self.refreshFeedbackLabel(0, 0, 0)
 
         # set the search options
-        self._searchThread.setSearchText(unicode(self.uiSearchTXT.text()))
+        self._searchThread.setSearchText(self.uiSearchTXT.text())
         self._searchThread.setBasePath(basepaths)
-        self._searchThread.setFileTypes(unicode(self.uiFileTypesDDL.currentText()))
-        self._searchThread.setExcludeRegex(
-            unicode(self.uiExcludeRegexDDL.currentText())
-        )
+        self._searchThread.setFileTypes(self.uiFileTypesDDL.currentText())
+        self._searchThread.setExcludeRegex(self.uiExcludeRegexDDL.currentText())
         self._searchThread.setUseRegex(self.uiRegexCHK.isChecked())
 
         # start the search thrad
@@ -516,7 +515,7 @@ class FindFilesDialog(Dialog):
     @staticmethod
     def instance(parent=None):
         if not FindFilesDialog._instance:
-            from PyQt4.QtCore import Qt
+            from Qt.QtCore import Qt
 
             FindFilesDialog._instance = FindFilesDialog(parent)
             FindFilesDialog._instance.setAttribute(Qt.WA_DeleteOnClose, False)

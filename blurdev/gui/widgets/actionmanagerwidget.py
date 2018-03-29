@@ -8,8 +8,10 @@
 #   :date       06/22/11
 #
 
-from PyQt4.QtCore import Qt, pyqtSignal, QSize
-from PyQt4.QtGui import QTreeWidget, QAction, QKeySequence, QTreeWidgetItem
+from Qt import QtCompat
+from Qt.QtCore import QSize, Qt, Signal
+from Qt.QtGui import QKeySequence
+from Qt.QtWidgets import QAction, QTreeWidget, QTreeWidgetItem
 
 
 class ActionItem(QTreeWidgetItem):
@@ -39,7 +41,7 @@ class ActionItem(QTreeWidgetItem):
 
 
 class ActionManagerWidget(QTreeWidget):
-    committed = pyqtSignal()
+    committed = Signal()
 
     def __init__(self, parent):
         # initialize the super class
@@ -53,8 +55,8 @@ class ActionManagerWidget(QTreeWidget):
 
         # setup the resizing mode
         header = self.header()
-        header.setResizeMode(0, header.Stretch)
-        header.setResizeMode(1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
         header.setStretchLastSection(False)
 
     def commit(self):
@@ -94,7 +96,7 @@ class ActionManagerWidget(QTreeWidget):
     @staticmethod
     def editActions(actions):
         from blurdev.gui import Dialog
-        from PyQt4.QtGui import QVBoxLayout, QDialogButtonBox
+        from Qt.QtWidgets import QDialogButtonBox, QVBoxLayout
 
         # create the main dialog
         dlg = Dialog()

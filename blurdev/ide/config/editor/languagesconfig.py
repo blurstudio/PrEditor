@@ -12,8 +12,10 @@ import os
 import blurdev
 from blurdev.ide import lang
 
-from PyQt4.QtCore import QSize, Qt
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QMessageBox
+from Qt import QtCompat
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QMessageBox, QTreeWidgetItem
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
 
@@ -39,10 +41,10 @@ class LanguagesConfig(ConfigSectionWidget):
         blurdev.gui.loadUi(__file__, self)
 
         header = self.uiLanguageTREE.header()
-        header.setResizeMode(0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
 
         header = self.uiUserLanguageTREE.header()
-        header.setResizeMode(0, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.Stretch)
 
         # update the icons
         self.uiAddBTN.setIcon(QIcon(blurdev.resourcePath('img/add.png')))

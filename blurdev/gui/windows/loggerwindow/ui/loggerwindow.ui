@@ -82,6 +82,8 @@
     <addaction name="separator"/>
     <addaction name="uiGotoErrorACT"/>
     <addaction name="uiResetPathsACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiResetWarningFiltersACT"/>
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
@@ -116,8 +118,8 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="uiSdkBrowserACT"/>
-    <addaction name="uiDisableSDKShortcutACT"/>
+    <addaction name="uiEnvironmentVarsACT"/>
+    <addaction name="uiAboutBlurdevACT"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
     <property name="title">
@@ -335,14 +337,6 @@
     <string>Clear the import paths</string>
    </property>
   </action>
-  <action name="uiSdkBrowserACT">
-   <property name="text">
-    <string>SDK Help</string>
-   </property>
-   <property name="shortcut">
-    <string>F1</string>
-   </property>
-  </action>
   <action name="uiRunLineACT">
    <property name="text">
     <string>Run Line...</string>
@@ -445,14 +439,6 @@
     <string>Clear Log on Environment Refresh</string>
    </property>
   </action>
-  <action name="uiDisableSDKShortcutACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Disable SDK shortcut</string>
-   </property>
-  </action>
   <action name="uiPdbModeACT">
    <property name="checkable">
     <bool>true</bool>
@@ -527,6 +513,24 @@
    </property>
    <property name="text">
     <string>Convert Tabs to Spaces on Copy</string>
+   </property>
+  </action>
+  <action name="uiResetWarningFiltersACT">
+   <property name="text">
+    <string>Reset Warning Filters</string>
+   </property>
+   <property name="toolTip">
+    <string>Clears all warning filters so you see all warnings.</string>
+   </property>
+  </action>
+  <action name="uiAboutBlurdevACT">
+   <property name="text">
+    <string>About blurdev</string>
+   </property>
+  </action>
+  <action name="uiEnvironmentVarsACT">
+   <property name="text">
+    <string>Environment Variables...</string>
    </property>
   </action>
  </widget>

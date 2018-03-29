@@ -8,8 +8,9 @@
 # 	:date		12/06/10
 #
 
-from PyQt4.QtGui import QTreeWidget, QTreeWidgetItem, QHeaderView
-from PyQt4.QtCore import QSize, Qt, QTimer
+from Qt import QtCompat
+from Qt.QtWidgets import QHeaderView, QTreeWidget, QTreeWidgetItem
+from Qt.QtCore import QSize, QTimer, Qt
 import blurdev
 import sip
 
@@ -48,14 +49,14 @@ class LockableTreeWidget(QTreeWidget):
         self.header().sectionResized.connect(self.updateSectionWidth)
 
     def _createLockedView(self, alignment, span):
-        from PyQt4.QtGui import QTreeView
+        from Qt.QtWidgets import QTreeView
 
         # create the view
         view = QTreeView(self)
         view.setModel(self.model())
         view.setItemDelegate(self.itemDelegate())
         view.setFocusPolicy(Qt.NoFocus)
-        view.header().setResizeMode(view.header().Fixed)
+        QtCompat.QHeaderView.setSectionResizeMode(view.header(), view.header().Fixed)
         view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         view.setHorizontalScrollMode(self.horizontalScrollMode())
@@ -161,7 +162,7 @@ class LockableTreeWidget(QTreeWidget):
         self._enableAutoHeight = state
 
     def initFontMetric(self, font):
-        from PyQt4.QtGui import QFontMetrics
+        from Qt.QtGui import QFontMetrics
 
         self._metric = QFontMetrics(font)
 

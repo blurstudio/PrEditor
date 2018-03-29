@@ -33,7 +33,7 @@ class SvnCopyDialog(Dialog):
         source = self.source()
         target = self.target()
 
-        from PyQt4.QtGui import QMessageBox as msg
+        from Qt.QtWidgets import QMessageBox as msg
 
         if not (source and target):
             msg.critical(

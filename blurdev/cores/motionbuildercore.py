@@ -1,6 +1,6 @@
 import os
 import sys
-from PyQt4.QtGui import QApplication
+from Qt.QtWidgets import QApplication
 import pyfbsdk
 
 import blurdev.tools.tool
@@ -44,6 +44,10 @@ class MotionBuilderCore(Core):
                 window = window.parent()
         return window
 
+    def addLibraryPaths(self, app):
+        """ There is no need to add library paths for motion builder """
+        return
+
     def createSystemMenu(self):
         """
         Builds our menu for motion builder to launch treegrunt, logger, etc.
@@ -55,19 +59,11 @@ class MotionBuilderCore(Core):
 
             if name == "Treegrunt":
                 blurdev.core.showTreegrunt()
-            elif name == "New Script":
-                blurdev.core.newScript()
-            elif name == "Open Script":
-                blurdev.core.openScript()
-            elif name == "Run Script":
-                blurdev.core.runScript()
-            elif name == "Show IDE":
-                blurdev.core.showIdeEditor()
-            elif name == "Python Logger":
+            elif name == "Show Logger...":
                 blurdev.core.showLogger()
-            elif name == "Show Toolbar":
+            elif name == "Show Toolbar...":
                 blurdev.core.showToolbar()
-            elif name == "Show Lovebar":
+            elif name == "Show Lovebar...":
                 blurdev.core.showLovebar()
 
         mgr = pyfbsdk.FBMenuManager()
@@ -85,17 +81,11 @@ class MotionBuilderCore(Core):
         mgr.InsertLast('Blur', 'Treegrunt')
         # -------
         mgr.InsertLast('Blur', '')  # Seperator
-        mgr.InsertLast('Blur', 'New Script')
-        mgr.InsertLast('Blur', 'Open Script')
-        mgr.InsertLast('Blur', 'Run Script')
+        mgr.InsertLast('Blur', 'Show Logger...')
         # -------
         mgr.InsertLast('Blur', '')  # Seperator
-        mgr.InsertLast('Blur', 'Show IDE')
-        mgr.InsertLast('Blur', 'Python Logger')
-        # -------
-        mgr.InsertLast('Blur', '')  # Seperator
-        mgr.InsertLast('Blur', 'Show Toolbar')
-        mgr.InsertLast('Blur', 'Show Lovebar')
+        mgr.InsertLast('Blur', 'Show Toolbar...')
+        mgr.InsertLast('Blur', 'Show Lovebar...')
 
     def macroName(self):
         """

@@ -9,7 +9,7 @@
 # 	\date		03/31/10
 #
 
-from PyQt4.QtGui import QGraphicsRectItem
+from Qt.QtWidgets import QGraphicsRectItem
 
 # -------------------------------------------------------------------------------------------------------------
 
@@ -22,7 +22,7 @@ class ThumbnailGroup(QGraphicsRectItem):
         self._sortData = text
 
     def paint(self, painter, option, widget):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         # initialize the painter
         painter.setRenderHint(painter.Antialiasing)

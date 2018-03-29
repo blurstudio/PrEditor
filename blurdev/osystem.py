@@ -18,8 +18,9 @@ way.
 import os
 import sys
 import subprocess
+from builtins import str as text
 
-from PyQt4.QtCore import QProcess
+from Qt.QtCore import QProcess
 
 import blurdev
 from . import settings
@@ -112,7 +113,9 @@ def expandvars(text, cache=None):
                 cache[key] = value
                 value = expandvars(value, cache)
             else:
-                print 'WARNING! %s environ variable contains a circular dependency' % key
+                print(
+                    'WARNING! %s environ variable contains a circular dependency' % key
+                )
                 value = cache[key]
         else:
             value = repl
@@ -128,10 +131,10 @@ def expandPath(path):
     If no shortenings were found, the expanded path is longer than the Windows
     260-character maximum path length, or windll is not available, the input path
     (cast to unicode) will be returned.
-    
+
     Args:
         path (str): Input path to expand, will be cast to unicode prior to expansion.
-    
+
     Returns:
         unicode: Input path with any tilde-shortenings expanded.
     """
@@ -140,13 +143,13 @@ def expandPath(path):
 
         buf = create_unicode_buffer(260)
         GetLongPathName = windll.kernel32.GetLongPathNameW
-        rv = GetLongPathName(unicode(path), buf, 260)
+        rv = GetLongPathName(text(path), buf, 260)
         if rv == 0 or rv > 260:
             return path
         else:
             return buf.value
     except ImportError:
-        return unicode(path)
+        return text(path)
 
 
 def console(filename):
@@ -172,31 +175,43 @@ def console(filename):
 
 
 def createShortcut(
-    title, args, startin=None, target=None, icon=None, path=None, description=''
+    title,
+    args,
+    startin=None,
+    target=None,
+    icon=None,
+    path=None,
+    description='',
+    common=1,
 ):
     """Creates a shortcut. 
-        
+
     Windows: If icon is provided it looks for a .ico file with the same name 
     as the provided icon.  If it can't find a .ico file it will attempt to 
     create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick 
     should be installed to the 32bit program files 
     (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
     32Bit Windows: C:\Program Files\ImageMagick)
-    
-    :param title: the title for the shortcut
-    :param args: argument string to pass to target command
-    :param startin: path where the shortcut should run target command
-    :param target: the target for the shortcut
-    :param icon: path to the icon the shortcut should use
-    :param path: path where the shortcut should be created
-    :param description: helpful description for the shortcut
-                    
+
+    Args:
+        title (str): the title for the shortcut
+        args (str): argument string to pass to target command
+        startin (str, optional): path where the shortcut should run target command.
+        target (str or None, optional): the target for the shortcut. If None(default)
+            this will default to sys.executable.
+        icon (str or None, optional): path to the icon the shortcut should use
+        path (str, or None, optional): path where the shortcut should be created. If
+            None(default) this will default to the desktop.
+        description (str, optional): helpful description for the shortcut
+        common (int): If auto generating the path, this controls which desktop the path
+            is generated for. 1(default) is the public shared desktop, while 0 is the
+            users desktop.
     """
     if settings.OS_TYPE == 'Windows':
         from . import scripts
 
         if not path:
-            path = scripts.winshell.desktop(1)
+            path = scripts.winshell.desktop(common)
             if not os.path.exists(path):
                 os.makedirs(path)
         if not target:
@@ -243,7 +258,6 @@ def createShortcut(
         # shows 259 characters in the description, so we limit the description to 259 characters.
         description = description[:259]
 
-        print shortcut, '---', target, '---', args, '---', startin, '---', icon, '---', description
         if icon:
             scripts.winshell.CreateShortcut(
                 shortcut,
@@ -266,17 +280,17 @@ def createShortcut(
 
 def explore(filename, dirFallback=False):
     """ Launches the provided filename in the prefered editor for the specific platform.
-    
+
     Args:
         filename (str): The filepath to explore to.
         dirFallback (bool): If True, and the file path does not exist, explore to the deepest
             folder that does exist.
-    
+
     Returns:
         bool: If it was able to explore the filename.
     """
     # pull the filpath from the inputed filename
-    fpath = os.path.normpath(unicode(filename))
+    fpath = os.path.normpath(filename)
 
     if dirFallback:
         # If the provided filename does not exist, recursively check each parent folder for
@@ -304,12 +318,12 @@ def explore(filename, dirFallback=False):
 
 def forOS(windows=None, linux=None, mac=None):
     """ Use this function to return a specific value for the OS blurdev is currently running on.
-    
+
     Args:
         windows: Value returned if running on Windows. Defaults to None.
         linux: Value returned if running on Linux. Defaults to None.
         mac: Value returned if running on MacOS. Defaults to None.
-    
+
     Returns:
         The value provided for the current OS or None.
     """
@@ -323,7 +337,7 @@ def forOS(windows=None, linux=None, mac=None):
 
 def programFilesPath(path=''):
     """ Returns the path to 32bit program files on windows.
-    
+
         :param path: this string is appended to the path
     """
     if getPointerSize() == 64:
@@ -427,7 +441,7 @@ def subprocessEnvironment(env=None):
         paths = [x for x in path.split(';') if normalize(x) not in removePaths]
         path = ';'.join(paths)
         # subprocess does not accept unicode in python 2
-        if sys.version_info[0] == 2 and isinstance(path, unicode):
+        if sys.version_info[0] == 2 and isinstance(path, text):
             path = path.encode('utf8')
         env['PATH'] = path
     return env
@@ -654,9 +668,9 @@ def listRegKeyValues(registry, key, architecture=None):
     """ Returns a list of child keys and their values as tuples.
     
     Each tuple contains 3 items.
-        - A string that identifies the value name
-        - An object that holds the value data, and whose type depends on the underlying registry type
-        - An integer that identifies the type of the value data (see table in docs for _winreg.SetValueEx)
+        A string that identifies the value name
+        An object that holds the value data, and whose type depends on the underlying registry type
+        An integer that identifies the type of the value data (see table in docs for _winreg.SetValueEx)
     
     Args:
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example

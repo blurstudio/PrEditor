@@ -1,8 +1,9 @@
 import os
 import webbrowser
 
-from PyQt4.QtGui import QIcon, QAction, QToolBar, QMenu, QCursor, QHBoxLayout, QPixmap
-from PyQt4.QtCore import QSize, Qt, QRect
+from Qt.QtGui import QCursor, QIcon, QPixmap
+from Qt.QtWidgets import QAction, QHBoxLayout, QMenu, QToolBar
+from Qt.QtCore import QRect, QSize, Qt
 
 import blurdev
 from ..gui import Dialog
@@ -28,9 +29,7 @@ class LovebarAction(QAction):
     def documentation(self):
         url_template = os.environ.get('BDEV_USER_GUIDE_URL')
         if url_template:
-            webbrowser.open(
-                url_template % str(self._tool.displayName().replace(' ', '_'))
-            )
+            webbrowser.open(url_template % self._tool.displayName().replace(' ', '_'))
 
     def explore(self):
         os.startfile(self._tool._path)
@@ -98,13 +97,13 @@ class ToolsLoveBar(QToolBar):
         data = event.mimeData()
 
         # Accept tool item drag/drop events.
-        if str(data.text()).startswith('Tool'):
+        if data.text().startswith('Tool'):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
         """ Handle the drop event for this item. """
         data = event.mimeData()
-        text = str(data.text())
+        text = data.text()
 
         # Add a tool item.
         if text.startswith('Tool'):

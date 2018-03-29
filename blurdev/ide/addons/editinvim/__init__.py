@@ -13,24 +13,22 @@ import os
 import subprocess
 from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.idefilemenu import IdeFileMenu
-from PyQt4.QtGui import QIcon, QAction
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QAction
 
 
 class EditInVimAddon(IdeAddon):
     def activate(self, ide):
-        print 'Activating editInVim'
         # create any additional activation code that you would
         # need for the ide editor
         self.path = None
         IdeFileMenu.additionalItems.append(self.createEditInVim)
 
     def deactivate(self, ide):
-        print 'deactivate editInVim'
         # create any additional deactivation code that you would
         # need for the ide editor
         funcs = IdeFileMenu.additionalItems
         if self.createEditInVim in funcs:
-            print 'Removing editInVim'
             funcs.remove(self.createEditInVim)
         return True
 

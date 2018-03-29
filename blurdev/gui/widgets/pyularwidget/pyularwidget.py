@@ -8,10 +8,15 @@
 #   :date       11/11/11
 #
 
-import PyQt4.uic, os.path, re, sys, blurdev
+from builtins import str as text
+import sys
+import re
+import os.path
+import blurdev
 
-from PyQt4.QtGui import QWidget, QIcon, QVBoxLayout
-from regexrefdialog import RegexRefDialog
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QVBoxLayout, QWidget
+from .regexrefdialog import RegexRefDialog
 
 
 class PyularDialog(blurdev.gui.Dialog):
@@ -65,11 +70,9 @@ class PyularWidget(QWidget):
         super(PyularWidget, self).__init__(parent)
 
         # load the ui
-        uifile = os.path.join(
-            os.path.dirname(__file__),
-            'ui/%s.ui' % os.path.basename(__file__).split('.')[0],
-        )
-        PyQt4.uic.loadUi(uifile, self)
+        import blurdev.gui
+
+        blurdev.gui.loadUi(__file__, self)
 
         self.uiHelpBTN.setIcon(QIcon(blurdev.resourcePath('img/blurdev.png')))
         self.flags = 0
@@ -106,7 +109,7 @@ class PyularWidget(QWidget):
         """
         self.flags = 0
         out = set()
-        for item in list(unicode(self.uiFlagsTXT.text()).upper()):
+        for item in list(self.uiFlagsTXT.text().upper()):
             if item in ['I', 'L', 'M', 'S', 'U', 'X']:
                 self.flags |= getattr(re, item)
                 out.add(item)
@@ -114,8 +117,8 @@ class PyularWidget(QWidget):
         self.processResults()
 
     def processResults(self):
-        pattern = unicode(self.uiExpressionTXT.text())
-        text = unicode(self.uiStringTXT.toPlainText())
+        pattern = self.uiExpressionTXT.text()
+        text = self.uiStringTXT.toPlainText()
         typeIndex = self.uiSearchTypeDDL.currentIndex()
         count = self.uiCountSPN.value()
         # start to build the code string that will be populated later in the code.
@@ -185,7 +188,7 @@ class PyularWidget(QWidget):
                 )
                 self.uiCodeTXT.setText(code)
             else:  # Sub
-                replace = unicode(self.uiReplaceTXT.text())
+                replace = self.uiReplaceTXT.text()
                 results = regex.sub(replace, text, count=count)
                 self.uiResultsTXT.setText(results)
                 if sys.version_info.major < 2 or sys.version_info.minor < 7:
@@ -195,7 +198,7 @@ class PyularWidget(QWidget):
                 )
                 self.uiCodeTXT.setText(code)
                 return
-        except Exception, e:
+        except Exception as e:
             results = []
             self.uiErrorLBL.setVisible(True)
             self.uiErrorLBL.setText(str(e))

@@ -1,4 +1,4 @@
-from PyQt4.QtCore import QObject
+from Qt.QtCore import QObject
 
 import blurdev.tools.toolsindex
 

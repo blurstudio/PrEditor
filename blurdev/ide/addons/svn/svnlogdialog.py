@@ -11,8 +11,10 @@
 import pysvn
 import datetime
 
-from PyQt4.QtCore import QSize, Qt
-from PyQt4.QtGui import QTreeWidgetItem, QMessageBox, QIcon, QInputDialog
+from Qt import QtCompat
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QInputDialog, QMessageBox, QTreeWidgetItem
 
 from blurdev.gui import Dialog
 
@@ -82,15 +84,15 @@ class SvnLogDialog(Dialog):
         self._url = ''
 
         header = self.uiLogTREE.header()
-        header.setResizeMode(0, header.ResizeToContents)
-        header.setResizeMode(1, header.ResizeToContents)
-        header.setResizeMode(2, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 2, header.ResizeToContents)
 
         header = self.uiActionTREE.header()
-        header.setResizeMode(0, header.ResizeToContents)
-        header.setResizeMode(1, header.ResizeToContents)
-        header.setResizeMode(2, header.Stretch)
-        header.setResizeMode(3, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 2, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 3, header.ResizeToContents)
 
         # create the query thread
         from threads import LogThread
@@ -142,7 +144,6 @@ class SvnLogDialog(Dialog):
             path = str(path)
 
         url = pysvn.Client().root_url_from_path(self._url)
-        print url + str(path)
         svnops.compare(
             url + str(path),
             items[0].entry().revision.number,
@@ -224,7 +225,8 @@ class SvnLogDialog(Dialog):
         self.uiLogTREE.blockSignals(False)
 
     def showMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        from Qt.QtGui import QCursor
+        from Qt.QtWidgets import QMenu
 
         menu = QMenu(self)
 

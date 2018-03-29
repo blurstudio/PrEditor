@@ -13,7 +13,8 @@ import os
 import subprocess
 from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.idefilemenu import IdeFileMenu
-from PyQt4.QtGui import QIcon, QAction, QMenu
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QAction, QMenu
 
 
 class TortoiseMenusAddon(IdeAddon):
@@ -24,12 +25,10 @@ class TortoiseMenusAddon(IdeAddon):
         ide.editorCreated.connect(self.editorCreated)
 
     def deactivate(self, ide):
-        print 'deactivate Tortoise'
         # create any additional deactivation code that you would
         # need for the ide editor
         funcs = IdeFileMenu.additionalItems
         if self.createTortoiseMenus in funcs:
-            print 'Removing Tortoise'
             funcs.remove(self.createTortoiseMenus)
         return True
 
@@ -92,7 +91,6 @@ class TortoiseMenusAddon(IdeAddon):
         parent = editor.parent()
         if parent and parent.inherits('QMdiSubWindow'):
             menu = parent.systemMenu()
-            print 'Editor', editor.filename()
             self.createTortoiseMenus(menu, editor.filename())
 
     def setIconPath(self, act, node):

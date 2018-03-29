@@ -8,6 +8,6 @@
 # 	\date		12/07/08
 #
 
-from workboxwidget import WorkboxWidget
-from console import ConsoleEdit
-from loggerwindow import LoggerWindow
+from .workboxwidget import WorkboxWidget
+from .console import ConsoleEdit
+from .loggerwindow import LoggerWindow

@@ -8,7 +8,7 @@
 #	\date		05/23/11
 #
 
-from PyQt4.QtGui import QItemDelegate
+from Qt.QtWidgets import QItemDelegate
 
 class FilesystemDelegate( QItemDelegate ):
     def __init__( self, parent ):

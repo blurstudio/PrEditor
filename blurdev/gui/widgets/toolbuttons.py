@@ -1,9 +1,5 @@
-from PyQt4.QtGui import (
-    QApplication,
-    QMovie,
-    QToolButton,
-    QIcon,
-)
+from Qt.QtGui import QIcon, QMovie
+from Qt.QtWidgets import QApplication, QToolButton
 
 # =============================================================================
 # CLASSES

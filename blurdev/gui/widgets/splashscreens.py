@@ -1,8 +1,5 @@
-from PyQt4.QtGui import (
-    QSplashScreen,
-    QApplication,
-    QMovie,
-)
+from Qt.QtGui import QMovie
+from Qt.QtWidgets import QApplication, QSplashScreen
 
 # =============================================================================
 # CLASSES

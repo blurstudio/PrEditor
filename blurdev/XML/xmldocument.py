@@ -11,8 +11,7 @@
 import os
 import xml.dom.minidom
 
-from xmlelement import XMLElement
-from PyQt4.QtCore import QString
+from .xmlelement import XMLElement
 
 
 class XMLDocument(XMLElement):
@@ -45,13 +44,12 @@ class XMLDocument(XMLElement):
 
         """
         success = False
-        fileName = unicode(fileName)
         if os.path.exists(fileName):
             try:
                 newObject = xml.dom.minidom.parse(fileName)
-            except Exception, e:
-                print 'Unable to parse filename!!!!', fileName
-                print e
+            except Exception as e:
+                print('Unable to parse filename!!!!', fileName)
+                print(e)
                 return False
 
             if newObject:
@@ -63,10 +61,6 @@ class XMLDocument(XMLElement):
 
     def parse(self, xmlString):
         success = False
-        if isinstance(xmlString, QString):
-            xmlString = unicode(xmlString)
-        else:
-            xmlString = xmlString.encode('utf-8')
         if xmlString:
             tempObject = xml.dom.minidom.parseString(xmlString)
             if tempObject:
@@ -124,9 +118,9 @@ class XMLDocument(XMLElement):
                 else:
                     text = self.toxml(encoding=None)
             except:
-                print 'Encoding error while saving XML'
+                print('Encoding error while saving XML')
                 if showDialog:
-                    from PyQt4.QtGui import QMessageBox
+                    from Qt.QtWidgets import QMessageBox
 
                     QMessageBox.critical(
                         None,
@@ -139,7 +133,7 @@ class XMLDocument(XMLElement):
             f.close()
             return True
         if showDialog:
-            from PyQt4.QtGui import QMessageBox
+            from Qt.QtWidgets import QMessageBox
 
             QMessageBox.warning(
                 None,
@@ -149,18 +143,15 @@ class XMLDocument(XMLElement):
         return False
 
     def toxml(self, encoding='utf-8'):
-        if encoding == 'utf-8':
-            return unicode(self._object.toxml('utf-8'), 'utf-8')
-        else:
-            return self._object.toxml('utf-8')
+        return self._object.toxml(encoding)
 
     def toprettyxml(self, *args, **kw):
         return self._object.toprettyxml(*args, **kw)
 
     @staticmethod
     def formatXml(xmltext, indented=4):
-        from PyQt4.QtXml import QDomDocument
+        from Qt.QtXml import QDomDocument
 
         doc = QDomDocument()
-        doc.setContent(QString(xmltext))
-        return unicode(doc.toString(indented))
+        doc.setContent(xmltext)
+        return doc.toString(indented)

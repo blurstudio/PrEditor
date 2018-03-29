@@ -8,9 +8,10 @@
 # 	\date		08/19/10
 #
 
+from future.utils import iteritems
+from builtins import str as text
 import re
-from PyQt4.Qsci import QsciLexerCustom
-from PyQt4.QtCore import QString
+from Qt.Qsci import QsciLexerCustom
 
 import sys
 
@@ -44,15 +45,15 @@ class MaxscriptLexer(QsciLexerCustom):
             7: 'SmartHighlight',
         }
 
-        for key, value in self._styles.iteritems():
+        for key, value in iteritems(self._styles):
             setattr(self, value, key)
 
     def description(self, style):
         return self._styles.get(style, '')
 
     def defaultColor(self, style):
-        from PyQt4.QtGui import QColor
-        from PyQt4.QtCore import Qt
+        from Qt.QtGui import QColor
+        from Qt.QtCore import Qt
 
         if style in (self.Comment, self.CommentLine):
             return QColor(40, 160, 40)
@@ -70,7 +71,7 @@ class MaxscriptLexer(QsciLexerCustom):
 
     def defaultPaper(self, style):
         if style == self.SmartHighlight:
-            from PyQt4.QtGui import QColor
+            from Qt.QtGui import QColor
 
             # Set the highlight color for this lexer
             return QColor(155, 255, 155)
@@ -93,16 +94,12 @@ class MaxscriptLexer(QsciLexerCustom):
         # process the length of the chunk
         if py26orNewer:
             if isinstance(chunk, bytearray):
-                chunk = unicode(QString(chunk))
-        isQString = isinstance(chunk, QString)
+                chunk = chunk.decode('utf8')
         length = len(chunk)
 
         # check to see if our last state was a block comment
         if lastState == self.Comment:
-            if isQString:
-                pos = chunk.indexOf('*/')
-            else:
-                pos = chunk.find('*/')
+            pos = chunk.find('*/')
             if pos != -1:
                 self.setStyling(pos + 2, self.Comment)
                 return self.processChunk(chunk[pos + 2 :], self.Default, keywords)
@@ -114,22 +111,13 @@ class MaxscriptLexer(QsciLexerCustom):
         elif lastState == self.String:
             # remove special case backslashes
             while r'\\' in chunk:
-                if isQString:
-                    chunk.replace(r'\\', '||')
-                else:
-                    chunk = chunk.replace(r'\\', '||')
+                chunk = chunk.replace(r'\\', '||')
 
             # remove special case strings
             while r'\"' in chunk:
-                if isQString:
-                    chunk.replace(r'\"', r"\'")
-                else:
-                    chunk = chunk.replace(r'\"', r"\'")
+                chunk = chunk.replace(r'\"', r"\'")
 
-            if isQString:
-                pos = chunk.indexOf('"')
-            else:
-                pos = chunk.find('"')
+            pos = chunk.find('"')
             if pos != -1:
                 self.setStyling(pos + 1, self.String)
                 return self.processChunk(chunk[pos + 1 :], self.Default, keywords)
@@ -139,14 +127,9 @@ class MaxscriptLexer(QsciLexerCustom):
 
         # otherwise, process a default chunk
         else:
-            if isQString:
-                blockpos = chunk.indexOf('/*')
-                linepos = chunk.indexOf('--')
-                strpos = chunk.indexOf('"')
-            else:
-                blockpos = chunk.find('/*')
-                linepos = chunk.find('--')
-                strpos = chunk.find('"')
+            blockpos = chunk.find('/*')
+            linepos = chunk.find('--')
+            strpos = chunk.find('"')
             order = [blockpos, linepos, strpos]
             order.sort()
 
@@ -215,7 +198,7 @@ class MaxscriptLexer(QsciLexerCustom):
             end = editor.length()
 
         # define commonly used methods
-        from PyQt4.Qsci import QsciScintilla
+        from Qt.Qsci import QsciScintilla
 
         SCI = editor.SendScintilla
         SETFOLDLEVEL = QsciScintilla.SCI_SETFOLDLEVEL
@@ -228,7 +211,7 @@ class MaxscriptLexer(QsciLexerCustom):
                 source = bytearray(end - start)
                 editor.SendScintilla(editor.SCI_GETTEXTRANGE, start, end, source)
             else:
-                source = unicode(editor.text()).encode('utf-8')[start:end]
+                source = text(editor.text()).encode('utf-8')[start:end]
 
         if not source:
             return
@@ -246,7 +229,7 @@ class MaxscriptLexer(QsciLexerCustom):
         self.startStyling(start, 0x1F)
 
         # cache objects used by processChunk that do not need updated every time it is called
-        self.hlkwords = set(unicode(self.keywords(self.SmartHighlight)).lower().split())
+        self.hlkwords = set(text(self.keywords(self.SmartHighlight)).lower().split())
         self.chunkRegex = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
         kwrds = set(MS_KEYWORDS.split())
 

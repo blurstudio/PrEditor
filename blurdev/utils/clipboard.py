@@ -13,7 +13,6 @@ def setText(text):
     """Sets the current clipboard text."""
     if not WIN32:
         return
-    text = unicode(text)
     win32clipboard.OpenClipboard()
     win32clipboard.EmptyClipboard()
     win32clipboard.SetClipboardText(text)

@@ -11,16 +11,17 @@
 import os
 import blurdev
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import (
-    QTreeWidgetItem,
+from Qt import QtCompat
+from Qt.QtCore import Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import (
     QDialog,
-    QLineEdit,
-    QHBoxLayout,
-    QVBoxLayout,
     QDialogButtonBox,
+    QHBoxLayout,
+    QLineEdit,
     QMessageBox,
-    QIcon,
+    QTreeWidgetItem,
+    QVBoxLayout,
 )
 
 from blurdev import settings
@@ -87,10 +88,10 @@ class EnvironmentConfig(ConfigSectionWidget):
 
         # update the header items
         header = self.uiSystemTREE.header()
-        header.setResizeMode(0, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.ResizeToContents)
 
         header = self.uiEditorTREE.header()
-        header.setResizeMode(0, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.ResizeToContents)
 
         # create icons
         self.uiAddBTN.setIcon(QIcon(blurdev.resourcePath('img/add.png')))

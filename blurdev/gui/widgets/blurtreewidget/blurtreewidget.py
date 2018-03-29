@@ -14,7 +14,7 @@
 # 	:date		03/05/11
 #
 #:Example view, the BlurTreeWidget is added in the UI file
-# |from PyQt4.QtGui import QWidget
+# |from Qt.QtGui import QWidget
 # |
 # |class TestWidgetView( QWidget ):
 # |	def __init__( self, parent ):
@@ -40,7 +40,7 @@
 # |		QWidget.closeEvent( self, event )
 # |
 # |	def createEditor( self, parent, option, index, tree=None ):
-# |		from PyQt4.QtGui import QComboBox
+# |		from Qt.QtGui import QComboBox
 # |		editor = QComboBox( parent )
 # |		return editor
 # |
@@ -63,7 +63,7 @@
 # |			model.setData(index, editor.currentText())
 # |
 # |	def dropEvent(self, event, tree=None):
-# |		print 'Drop Event', self.uiTREE.indexAt(event.pos()).column()
+# |		print('Drop Event', self.uiTREE.indexAt(event.pos()).column())
 # |		super(BlurTreeWidget, self.uiTREE).dropEvent(event)
 # |
 # |	def headerMenu( self, menu, tree=None ):
@@ -71,11 +71,11 @@
 # |		return True
 # |
 # |	def mimeData(self, items, tree=None):
-# |		from PyQt4.QtCore import QMimeData
+# |		from Qt.QtCore import QMimeData
 # |		data = QMimeData()
 # |		text = []
 # |		for item in items:
-# |			text.append(unicode(item.text(0)))
+# |			text.append(item.text(0))
 # |		data.setText(';'.join(text))
 # |		return data
 # |
@@ -115,14 +115,14 @@
 # |			super(BlurTreeWidget, tree).wheelEvent(event)
 # |		event.ignore()
 
-from PyQt4.QtCore import pyqtProperty, Qt, pyqtSlot, pyqtSignal
-from PyQt4.QtGui import (
-    QItemDelegate,
-    QTreeWidget,
-    QCursor,
-    QMenu,
-    QIcon,
+from builtins import str as text
+from Qt.QtCore import Qt, Property, Signal, Slot
+from Qt.QtGui import QCursor, QIcon
+from Qt.QtWidgets import (
     QApplication,
+    QItemDelegate,
+    QMenu,
+    QTreeWidget,
     QTreeWidgetItemIterator,
 )
 import blurdev
@@ -132,8 +132,8 @@ from blurdev.decorators import pendingdeprecation
 
 
 class BlurTreeWidget(LockableTreeWidget):
-    columnShown = pyqtSignal(int)
-    columnsAllShown = pyqtSignal()
+    columnShown = Signal(int)
+    columnsAllShown = Signal()
 
     def __init__(self, parent=None):
         # initialize the super class
@@ -173,7 +173,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self._columnIndex = []
         headerItem = self.headerItem()
         for column in range(headerItem.columnCount()):
-            self._columnIndex.append(unicode(headerItem.text(column)))
+            self._columnIndex.append(headerItem.text(column))
         self._indexBuilt = True
 
     def closeTearOffMenu(self):
@@ -187,8 +187,6 @@ class BlurTreeWidget(LockableTreeWidget):
         """
         if not self._indexBuilt:
             self.buildColumnIndex()
-        if type(label) != str:
-            label = unicode(label)
         if label in self._columnIndex:
             return self._columnIndex.index(label)
         return None
@@ -207,7 +205,7 @@ class BlurTreeWidget(LockableTreeWidget):
         header = self.header()
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
-            order.update({unicode(headerItem.text(column)): header.visualIndex(column)})
+            order.update({headerItem.text(column): header.visualIndex(column)})
         return order
 
     def columnVisibility(self):
@@ -215,7 +213,7 @@ class BlurTreeWidget(LockableTreeWidget):
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
             visibility.update(
-                {unicode(headerItem.text(column)): not self.isColumnHidden(column)}
+                {headerItem.text(column): not self.isColumnHidden(column)}
             )
         return visibility
 
@@ -223,7 +221,7 @@ class BlurTreeWidget(LockableTreeWidget):
         widths = {}
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
-            widths.update({unicode(headerItem.text(column)): self.columnWidth(column)})
+            widths.update({headerItem.text(column): self.columnWidth(column)})
         return widths
 
     def connectHeaderMenu(self, view=None):
@@ -349,12 +347,12 @@ class BlurTreeWidget(LockableTreeWidget):
         return self._hideableColumns
 
     def hideableColumnsArray(self):
-        from PyQt4.QtCore import QByteArray
+        from Qt.QtCore import QByteArray
 
         textItems = []
         items = self.hideableColumns()
         for item in items:
-            textItems.append(unicode(item))
+            textItems.append(text(item))
         return QByteArray(','.join(textItems))
 
     def identifier(self):
@@ -479,9 +477,7 @@ class BlurTreeWidget(LockableTreeWidget):
         if not result:
             if filter:
                 text = item.text(column)
-                if (not contains and text == filter) or (
-                    contains and filter in unicode(text)
-                ):
+                if (not contains and text == filter) or (contains and filter in text):
                     item.setExpanded(state)
                     self.itemExpandAllChildren(item, state)
                     return True
@@ -542,7 +538,7 @@ class BlurTreeWidget(LockableTreeWidget):
         if self._identifier:
             names.append(self._identifier)
         elif self.objectName():
-            names.append(unicode(self.objectName()))
+            names.append(self.objectName())
         return '-'.join(names)
 
     def recordOpenState(self, item=None, key=''):
@@ -551,7 +547,7 @@ class BlurTreeWidget(LockableTreeWidget):
             for i in range(self.topLevelItemCount()):
                 output += self.recordOpenState(self.topLevelItem(i))
         else:
-            text = unicode(item.text(0))
+            text = item.text(0)
             if item.isExpanded():
                 output.append(key + text)
             key += text + '::'
@@ -626,12 +622,12 @@ class BlurTreeWidget(LockableTreeWidget):
                     header.moveSection(header.visualIndex(column), index)
                     break
             else:
-                print 'Failed to find item', name, index
+                print('Failed to find item', name, index)
 
     def restoreColumnVisibility(self, visibility):
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
-            key = unicode(headerItem.text(column))
+            key = headerItem.text(column)
             if key in visibility:
                 if visibility[key]:
                     self.showColumn(column)
@@ -643,7 +639,7 @@ class BlurTreeWidget(LockableTreeWidget):
     def restoreColumnWidths(self, widths):
         headerItem = self.headerItem()
         for column in range(self.columnCount()):
-            key = unicode(headerItem.text(column))
+            key = headerItem.text(column)
             if key in widths:
                 self.setColumnWidth(column, widths[key])
             else:
@@ -654,7 +650,7 @@ class BlurTreeWidget(LockableTreeWidget):
             for i in range(self.topLevelItemCount()):
                 self.restoreOpenState(openState, self.topLevelItem(i))
         else:
-            text = unicode(item.text(0))
+            text = item.text(0)
             itemkey = key + text
             if itemkey in openState:
                 item.setExpanded(True)
@@ -802,7 +798,7 @@ class BlurTreeWidget(LockableTreeWidget):
     def showColumnControls(self):
         return self._showColumnControls
 
-    @pyqtSlot()
+    @Slot()
     def showHeaderMenu(self):
         """
             :remarks	Shows the header menu if the header menu is enabled. It populates the menu with column visiblity if this is enabled.
@@ -821,7 +817,7 @@ class BlurTreeWidget(LockableTreeWidget):
             hideable = self.hideableColumns()
             for column in range(self.columnCount()):
                 if hideable[column]:
-                    text = unicode(header.text(column))
+                    text = header.text(column)
                     state = self.isColumnHidden(column)
                     action = self._columnsMenu.addAction(text)
                     action.setCheckable(True)
@@ -904,7 +900,7 @@ class BlurTreeWidget(LockableTreeWidget):
                     hidden.append(column)
             self.showAllColumns()
             for action in self._columnsMenu.actions():
-                name = unicode(action.text())
+                name = action.text()
                 if name != self._showAllColumnsText and not action.isSeparator():
                     for column in range(self.columnCount()):
                         if header.text(column) == name:
@@ -942,19 +938,13 @@ class BlurTreeWidget(LockableTreeWidget):
                 return
         super(BlurTreeWidget, self).wheelEvent(event)
 
-    pyEnableColumnHideMenu = pyqtProperty(
-        'bool', userCanHideColumns, setUserCanHideColumns
-    )
-    pyShowColumnControls = pyqtProperty(
-        'bool', showColumnControls, setShowColumnControls
-    )
-    pyHideableColumns = pyqtProperty(
+    pyEnableColumnHideMenu = Property('bool', userCanHideColumns, setUserCanHideColumns)
+    pyShowColumnControls = Property('bool', showColumnControls, setShowColumnControls)
+    pyHideableColumns = Property(
         'QByteArray', hideableColumnsArray, setHideableColumnsArray
     )
-    pySaveColumnWidths = pyqtProperty('bool', saveColumnWidths, setSaveColumnWidths)
-    pySaveVisualIndex = pyqtProperty('bool', saveColumnOrder, setSaveColumnOrder)
+    pySaveColumnWidths = Property('bool', saveColumnWidths, setSaveColumnWidths)
+    pySaveVisualIndex = Property('bool', saveColumnOrder, setSaveColumnOrder)
 
-    pyEnableGradiated = pyqtProperty('bool', isGradiated, setGradiated)
-    pyEnableGridDelegate = pyqtProperty(
-        'bool', isGridDelegateEnabled, enableGridDelegate
-    )
+    pyEnableGradiated = Property('bool', isGradiated, setGradiated)
+    pyEnableGridDelegate = Property('bool', isGridDelegateEnabled, enableGridDelegate)

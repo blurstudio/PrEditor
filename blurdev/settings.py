@@ -3,7 +3,11 @@
 import copy
 import os
 import sys
-import ConfigParser
+
+try:
+    import configparser
+except:
+    import ConfigParser as configparser
 
 # define the default environment variables
 OS_TYPE = ''
@@ -18,18 +22,29 @@ _currentEnv = ''
 _inited = False
 defaults = {}
 
+
+def environStr(value):
+    if sys.version_info[0] > 2:
+        # Python 3 requires a unicode value. aka str(), which these values already are
+        return value
+    # Python 2 requires str object, not unicode
+    return value.encode('utf8')
+
+
 # load the default environment from the settings INI
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read(os.path.dirname(__file__) + '/resource/settings.ini')
 for option in config.options(OS_TYPE):
     if option not in os.environ:
         value = config.get(OS_TYPE, option)
         if value == 'None':
             value = ''
-        os.environ[option.upper()] = str(value)
+        # In python2.7 on windows you can't pass unicode values to subprocess.Popen's env argument.
+        # This is the reason we are calling str()
+        os.environ[environStr(option.upper())] = environStr(value)
 
 # store the blurdev path in the environment
-os.environ['BDEV_PATH'] = str(os.path.dirname(__file__))
+os.environ['BDEV_PATH'] = environStr(os.path.dirname(__file__))
 
 # setup defaults
 os.environ.setdefault('BDEV_PARAM_BLURQT', '1')
@@ -115,19 +130,22 @@ def init():
                     )
 
     # register default paths
-    for key in os.environ.keys():
+    for key in sorted(os.environ.keys(), reverse=True):
         if key.startswith('BDEV_INCLUDE_'):
+            path = os.environ[key]
+            if not path:
+                # If set to a empty value, don't register the path
+                continue
             if key == 'BDEV_INCLUDE_TRAX':
-                path = os.environ[key]
                 # check if trax is installed, if not then register the offline trax classes
                 if not os.path.isfile(r'%s\trax\__init__.py' % path):
                     registerPath(r'%s\traxoffline' % os.path.split(__file__)[0])
                     continue
-            registerPath(os.environ[key])
+            registerPath(path)
 
 
 def normalizePath(path):
-    path = os.path.abspath(unicode(path))
+    path = os.path.abspath(path)
     # use lowercase for windows since we don't want duplicates - in other
     # operating systems, the path is case-sensitive
     if OS_TYPE == 'Windows':
@@ -138,7 +156,7 @@ def normalizePath(path):
 def registerVariable(key, value):
     """ Add the key value pair to both the current os.environ, and the startup_environ
     """
-    value = str(value)
+    value = environStr(value)
     os.environ[key] = value
     startup_environ[key] = value
 

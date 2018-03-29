@@ -11,8 +11,9 @@
 import os
 import blurdev
 
-from PyQt4.QtCore import QSize, Qt
-from PyQt4.QtGui import QIcon, QTreeWidgetItem, QMessageBox, QInputDialog
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QInputDialog, QMessageBox, QTreeWidgetItem
 
 from blurdev import template
 
@@ -173,7 +174,7 @@ class TemplatesConfig(ConfigSectionWidget):
 
         # save the file
         f = open(filename, 'w')
-        f.write(unicode(self.uiTemplateTXT.toPlainText()))
+        f.write(self.uiTemplateTXT.toPlainText())
         f.close()
 
         # refresh the ide

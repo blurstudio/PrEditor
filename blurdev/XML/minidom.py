@@ -9,6 +9,8 @@ Importing this module applies the suggested patch dynamically.
   http://www.w3.org/TR/2000/WD-xml-c14n-20000119.html#charescaping
 """
 
+from builtins import str as text
+from future.utils import iteritems
 import xml.dom.minidom
 
 escape_dict = {
@@ -23,13 +25,14 @@ escape_dict = {
 
 
 def escape(data, entities={}):
-    for k, v in escape_dict.iteritems():
+    data = text(data)
+    for k, v in iteritems(escape_dict):
         data = data.replace(k, v)
     return data
 
 
 def unescape(data, entities={}):
-    for k, v in escape_dict.iteritems():
+    for k, v in iteritems(escape_dict):
         if k == '&':
             continue
         data = data.replace(v, k)
@@ -70,9 +73,4 @@ def writexml(self, writer, indent="", addindent="", newl=""):
         writer.write("/>%s" % (newl))
 
 
-# For an introduction to overriding instance methods, see
-#   http://irrepupavel.com/documents/python/instancemethod/
-instancemethod = type(xml.dom.minidom.Element.writexml)
-xml.dom.minidom.Element.writexml = instancemethod(
-    writexml, None, xml.dom.minidom.Element
-)
+xml.dom.minidom.Element.writexml = writexml

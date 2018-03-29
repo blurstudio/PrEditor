@@ -24,7 +24,7 @@ class ShortcutsConfig(ConfigSectionWidget):
         widget.setActionsWidget(blurdev.core.ideeditor())
 
         # set the layout
-        from PyQt4.QtGui import QVBoxLayout
+        from Qt.QtWidgets import QVBoxLayout
 
         layout = QVBoxLayout()
         layout.addWidget(widget)

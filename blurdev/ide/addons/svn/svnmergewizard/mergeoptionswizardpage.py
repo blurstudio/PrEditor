@@ -10,7 +10,7 @@
 
 import pysvn
 
-from PyQt4.QtGui import QWizardPage
+from Qt.QtWidgets import QWizardPage
 
 
 class MergeOptionsWizardPage(QWizardPage):

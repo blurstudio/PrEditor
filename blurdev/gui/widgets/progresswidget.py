@@ -9,18 +9,18 @@
 # 	:date		01/06/09
 #
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtCore import QEventLoop
+from Qt.QtCore import Qt
+from Qt.QtCore import QEventLoop
 
-from PyQt4.QtGui import QColor
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QMovie
-from PyQt4.QtGui import QPalette
-from PyQt4.QtGui import QPainter
-from PyQt4.QtGui import QPixmap
-from PyQt4.QtGui import QProgressBar
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QWidget
+from Qt.QtGui import QColor
+from Qt.QtWidgets import QLabel
+from Qt.QtGui import QMovie
+from Qt.QtGui import QPalette
+from Qt.QtGui import QPainter
+from Qt.QtGui import QPixmap
+from Qt.QtWidgets import QProgressBar
+from Qt.QtWidgets import QVBoxLayout
+from Qt.QtWidgets import QWidget
 
 
 class ProgressSection:
@@ -257,7 +257,7 @@ class ProgressWidget(QWidget):
             self._primaryProgress.hide()
             self._secondaryProgress.hide()
 
-            from PyQt4.QtGui import QApplication
+            from Qt.QtWidgets import QApplication
 
             QApplication.instance().processEvents(QEventLoop.ExcludeUserInputEvents)
 

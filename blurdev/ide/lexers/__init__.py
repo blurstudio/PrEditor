@@ -11,7 +11,7 @@
 # -----------------------------------------------------------------------------
 # create default mappings
 
-# from PyQt4.Qsci import *
+# from Qt.Qsci import *
 #
 ## create default mappings
 # register( 'Batch',		('.bat',),										QsciLexerBatch )

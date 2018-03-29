@@ -22,7 +22,7 @@ def copyArchive(src, dst):
 
 def printArchive(src):
     archive = ABCArchive.fromFile(src)
-    print archive.toString()
+    print(archive.toString())
     del archive
 
 

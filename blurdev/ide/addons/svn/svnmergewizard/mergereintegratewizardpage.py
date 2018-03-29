@@ -12,7 +12,7 @@ import pysvn
 
 from blurdev.ide.addons.svn import svnconfig
 
-from PyQt4.QtGui import QWizardPage
+from Qt.QtWidgets import QWizardPage
 
 
 class MergeReintegrateWizardPage(QWizardPage):

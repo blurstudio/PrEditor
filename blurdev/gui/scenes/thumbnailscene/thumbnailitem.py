@@ -9,7 +9,7 @@
 # 	\date		03/31/10
 #
 
-from PyQt4.QtGui import QGraphicsRectItem
+from Qt.QtWidgets import QGraphicsRectItem
 from blurdev.enum import enum
 
 ThumbnailHighlightMode = enum('Boxed', 'Text', 'Grayscale')
@@ -52,7 +52,7 @@ class ThumbnailItem(QGraphicsRectItem):
         return self._highlightMode
 
     def paint(self, painter, option, widget):
-        from PyQt4.QtCore import Qt, QRect
+        from Qt.QtCore import QRect, Qt
 
         # draw the thumbnail
         scene = self.scene()
@@ -98,14 +98,14 @@ class ThumbnailItem(QGraphicsRectItem):
         return self._mimeText
 
     def mouseDoubleClickEvent(self, event):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         QGraphicsRectItem.mouseDoubleClickEvent(self, event)
         if event.button() == Qt.LeftButton:
             self.scene().itemDoubleClicked.emit(self)
 
     def mousePressEvent(self, event):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         # emit the menu request signal
         if event.button() == Qt.RightButton:
@@ -116,8 +116,8 @@ class ThumbnailItem(QGraphicsRectItem):
             QGraphicsRectItem.mousePressEvent(self, event)
 
             if self.dragEnabled():
-                from PyQt4.QtCore import QMimeData, QPoint
-                from PyQt4.QtGui import QDrag
+                from Qt.QtCore import QMimeData, QPoint
+                from Qt.QtGui import QDrag
                 import blurdev
 
                 # create the mimedata
@@ -174,8 +174,8 @@ class ThumbnailItem(QGraphicsRectItem):
 
     def thumbnail(self):
         if not (self._thumbnail):
-            from PyQt4.QtCore import Qt
-            from PyQt4.QtGui import QPixmap
+            from Qt.QtCore import Qt
+            from Qt.QtGui import QPixmap
 
             import blurdev
 

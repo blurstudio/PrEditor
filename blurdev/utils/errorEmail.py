@@ -209,7 +209,7 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
     if blurdev.core.headless:
         window = None
     else:
-        from PyQt4.QtGui import QApplication
+        from Qt.QtWidgets import QApplication
 
         window = QApplication.activeWindow()
     className = ''

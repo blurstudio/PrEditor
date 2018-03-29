@@ -38,13 +38,13 @@ class AbstractPreviewLayer:
         return self._layerType
 
     def loadFrom(self, filename):
-        print 'loading from: ', filename
+        print('loading from: ', filename)
 
     def name(self):
         return self._name
 
     def pixmap(self):
-        from PyQt4.QtGui import QPixmap
+        from Qt.QtGui import QPixmap
 
         return QPixmap()
 
@@ -52,7 +52,7 @@ class AbstractPreviewLayer:
         return False
 
     def saveTo(self, filename):
-        print 'saving to: ', filename
+        print('saving to: ', filename)
 
     def scene(self):
         return self._scene
@@ -83,8 +83,9 @@ class CanvasLayer(AbstractPreviewLayer):
     def __init__(self, scene, name):
         AbstractPreviewLayer.__init__(self, LayerType.Canvas, scene, name)
 
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QPixmap, QColor, QGraphicsPixmapItem
+        from Qt.QtCore import Qt
+        from Qt.QtGui import QColor, QPixmap
+        from Qt.QtWidgets import QGraphicsPixmapItem
 
         # create the canvas
         self._canvas = QPixmap(scene.canvasSize())
@@ -118,7 +119,7 @@ class CanvasLayer(AbstractPreviewLayer):
         self.refresh()
 
     def loadFrom(self, filename):
-        from PyQt4.QtGui import QPixmap
+        from Qt.QtGui import QPixmap
 
         pixmap = QPixmap(filename)
 
@@ -161,7 +162,7 @@ class CanvasLayer(AbstractPreviewLayer):
 
         # handle drawing
         if mode & (InteractionMode.Pencil | InteractionMode.Brush):
-            from PyQt4.QtGui import QPen, QPainter
+            from Qt.QtGui import QPainter, QPen
 
             self._canvasPainter = QPainter()
             self._canvasPainter.begin(self._canvas)
@@ -188,8 +189,9 @@ class MediaLayer(AbstractPreviewLayer):
     def __init__(self, scene, name):
         AbstractPreviewLayer.__init__(self, LayerType.Media, scene, name)
 
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QPixmap, QColor, QGraphicsPixmapItem
+        from Qt.QtCore import Qt
+        from Qt.QtGui import QColor, QPixmap
+        from Qt.QtWidgets import QGraphicsPixmapItem
 
         self._filename = ''
         self._mediaItem = None
@@ -204,7 +206,7 @@ class MediaLayer(AbstractPreviewLayer):
         return self._filename
 
     def pixmap(self):
-        from PyQt4.QtGui import QGraphicsPixmapItem
+        from Qt.QtWidgets import QGraphicsPixmapItem
 
         if isinstance(self._mediaItem, QGraphicsPixmapItem):
             return self._mediaItem.pixmap()
@@ -226,14 +228,15 @@ class MediaLayer(AbstractPreviewLayer):
 
         # create the movie widget item
         if media.isMovie(filename):
-            print 'create movie widget item'
+            print('create movie widget item')
 
         elif media.isImageSequence(filename):
-            print 'create image sequence item'
+            print('create image sequence item')
 
         else:
-            from PyQt4.QtCore import Qt
-            from PyQt4.QtGui import QPixmap, QGraphicsPixmapItem, QMessageBox, QImage
+            from Qt.QtCore import Qt
+            from Qt.QtGui import QImage, QPixmap
+            from Qt.QtWidgets import QGraphicsPixmapItem, QMessageBox
 
             pixmap = QPixmap(filename)
 
@@ -271,13 +274,13 @@ class TextLayer(AbstractPreviewLayer):
     def __init__(self, scene, name):
         AbstractPreviewLayer.__init__(self, LayerType.Text, scene, name)
 
-        from PyQt4.QtGui import QGraphicsSimpleTextItem
+        from Qt.QtWidgets import QGraphicsSimpleTextItem
 
         self._textItem = QGraphicsSimpleTextItem()
         scene.addItem(self._textItem)
 
     def activate(self, state):
-        from PyQt4.QtGui import QGraphicsItem
+        from Qt.QtWidgets import QGraphicsItem
 
         if state:
             self._textItem.setFlags(

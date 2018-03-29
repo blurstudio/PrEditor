@@ -4,4 +4,4 @@ applications for trax usage
 
 """
 
-from functions import *
+from .functions import *

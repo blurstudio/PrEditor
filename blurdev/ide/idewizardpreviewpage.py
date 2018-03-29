@@ -8,8 +8,9 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QWizardPage, QTreeWidgetItem, QColor
+from Qt.QtCore import Qt
+from Qt.QtGui import QColor
+from Qt.QtWidgets import QTreeWidgetItem, QWizardPage
 
 
 class ComponentItem(QTreeWidgetItem):
@@ -17,8 +18,8 @@ class ComponentItem(QTreeWidgetItem):
         name = page.formatText(xml.attribute('name'))
         QTreeWidgetItem.__init__(self, [name])
 
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QIcon
+        from Qt.QtCore import Qt
+        from Qt.QtGui import QIcon
         import blurdev
 
         self.setIcon(0, QIcon(blurdev.resourcePath('img/%s.png' % xml.nodeName)))
@@ -53,7 +54,7 @@ class ComponentItem(QTreeWidgetItem):
             self.child(i).refreshChecked(inherit, state)
 
     def create(self, path):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         if not self.checkState(0) == Qt.Checked:
             return
@@ -69,7 +70,7 @@ class ComponentItem(QTreeWidgetItem):
                 try:
                     os.mkdir(newpath)
                 except:
-                    print 'Could not create folder: ', newpath
+                    print('Could not create folder: ', newpath)
                     return
 
         # copy a file
@@ -77,7 +78,7 @@ class ComponentItem(QTreeWidgetItem):
             try:
                 shutil.copyfile(self._copyFrom, newpath)
             except:
-                print 'Error copying file from: ', self._copyFrom, ' to: ', newpath
+                print('Error copying file from: ', self._copyFrom, ' to: ', newpath)
 
         # create from a template
         elif self._templateFrom:
@@ -127,7 +128,7 @@ class IdeWizardPreviewPage(QWizardPage):
         return template.formatText(text, self._options)
 
     def initializePage(self):
-        from PyQt4.QtCore import QDir
+        from Qt.QtCore import QDir
 
         self.uiRootPATH.setFilePath(QDir.currentPath())
 
@@ -136,7 +137,7 @@ class IdeWizardPreviewPage(QWizardPage):
 
         # generate a dictionary of options based on the fields
         field = self.field('options')
-        foptions = self.field('options').toPyObject()
+        foptions = self.field('options')
         if not type(foptions) == dict:
             foptions = {}
 
@@ -148,7 +149,7 @@ class IdeWizardPreviewPage(QWizardPage):
 
         doc = XMLDocument()
 
-        field = str(self.field('components').toString())
+        field = str(self.field('components'))
         if not field:
             field = 'default'
 
@@ -171,8 +172,8 @@ class IdeWizardPreviewPage(QWizardPage):
 
     def refreshChecked(self, item):
         self.uiComponentsTREE.blockSignals(True)
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QApplication
+        from Qt.QtCore import Qt
+        from Qt.QtWidgets import QApplication
 
         item.refreshChecked(
             inherit=QApplication.instance().keyboardModifiers() == Qt.ShiftModifier
@@ -180,7 +181,7 @@ class IdeWizardPreviewPage(QWizardPage):
         self.uiComponentsTREE.blockSignals(False)
 
     def renameCurrentItem(self):
-        from PyQt4.QtGui import QInputDialog, QLineEdit
+        from Qt.QtWidgets import QInputDialog, QLineEdit
 
         item = self.uiComponentsTREE.currentItem()
         if not item:
@@ -198,7 +199,8 @@ class IdeWizardPreviewPage(QWizardPage):
         return blurdev.relativePath(self._moduleFile, relpath)
 
     def showMenu(self):
-        from PyQt4.QtGui import QMenu, QCursor
+        from Qt.QtGui import QCursor
+        from Qt.QtWidgets import QMenu
 
         item = self.uiComponentsTREE.currentItem()
         if not item:
@@ -210,7 +212,7 @@ class IdeWizardPreviewPage(QWizardPage):
 
     def validatePage(self):
         if not self.uiRootPATH.isResolved():
-            from PyQt4.QtGui import QMessageBox
+            from Qt.QtWidgets import QMessageBox
 
             QMessageBox.critical(
                 None,

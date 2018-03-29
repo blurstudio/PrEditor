@@ -1,7 +1,7 @@
 import os
 import re
 
-from PyQt4.QtCore import QObject
+from Qt.QtCore import QObject
 
 
 HEADER_HTML = """

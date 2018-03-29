@@ -18,15 +18,15 @@ import types
 import re
 import weakref
 
-from PyQt4.QtGui import (
-    QMainWindow,
-    QDialog,
-    QVBoxLayout,
+from Qt.QtWidgets import (
     QApplication,
-    QMessageBox,
+    QDialog,
     QDockWidget,
+    QMainWindow,
+    QMessageBox,
+    QVBoxLayout,
 )
-from PyQt4.QtCore import Qt
+from Qt.QtCore import Qt, QDateTime
 
 # TODO: It is probably unnecessary to import most of these subpackages in the root package.
 import blurdev.version
@@ -41,7 +41,7 @@ import blurdev.tools
 import blurdev.ini
 
 
-installPath = os.path.split(__file__)[0]
+installPath = os.path.dirname(__file__)
 """Stores the full filepath of the blurdev installation directory."""
 
 application = None  # create a managed QApplication
@@ -65,22 +65,31 @@ been deleted.
 """
 
 
-def activeEnvironment():
+def activeEnvironment(coreName=None):
+    """ Returns the current active Tools Environment as part of the blurdev.tools system.
+
+    Args:
+        coreName (str or None, optional): If None(default) it will return the currently
+            active treegrunt environment for this instance of python. Otherwise it will
+            return the treegrunt environment stored in prefs for coreName.
     """
-    Returns the current active Tools Environment as part of the 
-    :mod:`blurdev.tools` system.
-    
-    """
+    if coreName is not None:
+        # Update the saved preference so the next time the core is loaded it will
+        # use the requested environment if the environment is valid.
+        pref = blurdev.prefs.find('blurdev/core', reload=True, coreName=coreName)
+        envName = pref.restoreProperty('environment')
+        return blurdev.tools.ToolsEnvironment.findEnvironment(envName)
     return blurdev.tools.ToolsEnvironment.activeEnvironment()
 
 
 def bindMethod(object, name, method):
     """
     Properly binds a new python method to an existing C++ object as a 
-    dirty alternative to sub-classing when not possible.
-    
+    dirty alternative to sub-classing when not possible. Object must
+    be a instance, not a class.
     """
-    object.__dict__[name] = types.MethodType(method.im_func, object, object.__class__)
+    # Passing (method.__func__, object) should work in python 2 and 3.
+    object.__dict__[name] = types.MethodType(method.__func__, object)
 
 
 def ensureWindowIsVisible(widget):
@@ -229,7 +238,8 @@ def launch(
                     kwargs = {}
                 widget = ctor(*args, **kwargs)
             else:
-                widget = ctor(None)
+                global core
+                widget = ctor(core.rootWindow())
             return widget
 
         try:
@@ -251,7 +261,7 @@ def launch(
 
             dlg = Dialog(None)
         layout = QVBoxLayout()
-        layout.setMargin(0)
+        layout.setContentsMargins(0, 0, 0, 0)
         dlg.setLayout(layout)
         layout.addWidget(widget)
         dlg.setWindowTitle(widget.windowTitle())
@@ -293,9 +303,7 @@ def quickReload(modulename):
     based on the imported module.
     
     """
-    expr = re.compile(
-        unicode(modulename).replace('.', '\.').replace('*', '[A-Za-z0-9_]*')
-    )
+    expr = re.compile(modulename.replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
 
     # reload longer chains first
     keys = sys.modules.keys()
@@ -305,12 +313,11 @@ def quickReload(modulename):
     for key in keys:
         module = sys.modules[key]
         if expr.match(key) and module != None:
-            print 'reloading', key
+            print('reloading', key)
             reload(module)
 
 
 def packageForPath(path):
-    path = unicode(path)
     splt = os.path.normpath(path).split(os.path.sep)
     index = 1
 
@@ -359,7 +366,7 @@ def relativePath(path, additional=''):
     :param additional: Additional folder/file path appended to the path.
     :return str: The modified path
     """
-    return os.path.join(os.path.split(unicode(path))[0], additional)
+    return os.path.join(os.path.dirname(path), additional)
 
 
 def resetWindowPos():
@@ -413,8 +420,39 @@ def runTool(toolId, macro=""):
         )
 
 
-def setActiveEnvironment(env):
-    return blurdev.tools.ToolsEnvironment.findEnvironment(env).setActive()
+def setActiveEnvironment(envName, coreName=None):
+    """ Set the active treegrunt environment to this name.
+
+    Args:
+        envName (str): The name of a valid treegrunt environment. Case sensitive.
+        coreName (str or None, optional): Update the saved environment preference for the
+            given coreName. Ignored if coreName matches the current coreName. This change
+            will take effect the next time that core is loaded as long as some other
+            instance of python doesn't update it after this call.
+
+    Returns:
+        bool: The environment was changed successfully. Returns False if the current
+            environment is already envName, or if envName is not a valid environment.
+    """
+    env = blurdev.tools.ToolsEnvironment.findEnvironment(envName)
+    if coreName is not None and coreName is not blurdev.core.objectName():
+        # There is no need to update the environment this way if its the current environment.
+        if not env.isEmpty():
+            # Update the saved preference so the next time the core is loaded it will
+            # use the requested environment if the environment is valid.
+            pref = blurdev.prefs.find('blurdev/core', reload=True, coreName=coreName)
+            if pref.restoreProperty('environment') == envName:
+                # If the environment is already set to this, do not reset the timestamp
+                return False
+            pref.recordProperty('environment', envName)
+            pref.recordProperty(
+                'environment_set_timestamp', QDateTime.currentDateTime()
+            )
+            pref.save()
+            return True
+        # not a valid treegrunt environment
+        return False
+    return env.setActive()
 
 
 def setAppUserModelID(appId, prefix='Blur'):
@@ -457,7 +495,7 @@ def signalInspector(item, prefix='----', ignore=[]):
     will persist for the life of the object.
     
     :param item: QObject to inspect signals on.
-    :type item: :class:`PyQt4.QtCore.QObject`
+    :type item: :class:`Qt.QtCore.QObject`
     :param prefix: The prefix to display when a signal is emitted.
     :param ignore: A list of signal names to ignore
     :type ignore: list
@@ -466,7 +504,7 @@ def signalInspector(item, prefix='----', ignore=[]):
 
     def create(attr):
         def handler(*args, **kwargs):
-            print prefix, 'Signal:', attr, 'ARGS:', args, kwargs
+            print(prefix, 'Signal:', attr, 'ARGS:', args, kwargs)
 
         return handler
 
@@ -475,7 +513,7 @@ def signalInspector(item, prefix='----', ignore=[]):
             type(getattr(item, attr)).__name__ == 'pyqtBoundSignal'
             and not attr in ignore
         ):
-            print attr
+            print(attr)
             getattr(item, attr).connect(create(attr))
 
 

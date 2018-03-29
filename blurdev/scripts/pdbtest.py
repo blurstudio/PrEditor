@@ -1,5 +1,5 @@
 # import pdb
-# from PyQt4 import QtCore
+# from Qt import QtCore
 #
 #
 # import blurdev.external
@@ -18,23 +18,23 @@
 # mypdb = pdb.Pdb(stdout=myStdOut)
 #
 # def test():
-# 	print 'before'
+# 	print('before')
 # 	QtCore.pyqtRemoveInputHook()
 # 	mypdb.set_trace()
 ##	QtCore.pyqtRestoreInputHook()
-# 	print 'after'
+# 	print('after')
 
 
 def stuff():
     for i in range(100):
-        print i
+        print(i)
 
 
 import blurdev
 
-print 'starting test'
+print('starting test')
 
 blurdev.debug.set_trace()
 stuff()
 
-print 'ending test'
+print('ending test')

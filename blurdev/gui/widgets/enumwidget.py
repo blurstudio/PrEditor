@@ -10,10 +10,11 @@
 # 	:date		04/14/10
 #
 
+from builtins import str as text
 import re
 
-from PyQt4.QtCore import pyqtSignal, pyqtProperty, Qt, QString
-from PyQt4.QtGui import QWidget, QCheckBox, QGridLayout
+from Qt.QtCore import Qt, Property, Signal
+from Qt.QtWidgets import QCheckBox, QGridLayout, QWidget
 from blurdev.gui import Dialog
 from blurdev.enum import EnumGroup, Enum
 
@@ -24,7 +25,7 @@ class EnumWidgetEnum(EnumGroup):
 
 class EnumWidget(QWidget):
 
-    valueChanged = pyqtSignal(int)
+    valueChanged = Signal(int)
 
     def __init__(self, parent, enumType=None, columnCount=1, value=0):
         """
@@ -101,10 +102,10 @@ class EnumWidget(QWidget):
         for child in self.findChildren(QCheckBox):
             if child.isChecked():
                 if isinstance(self._enumType, EnumGroup):
-                    value |= self._enumType[unicode(child.objectName())]
+                    value |= self._enumType[child.objectName()]
                 else:
                     # TODO: remove once blurdev.enum.enum is no longer used
-                    value |= self._enumType.value(unicode(child.objectName()))
+                    value |= self._enumType.value(child.objectName())
 
         self._value = value
         self.valueChanged.emit(value)
@@ -118,7 +119,7 @@ class EnumWidget(QWidget):
         self._enumType = enumType
         self.recalculateGrid()
 
-    @pyqtProperty('QStringList')
+    @Property('QStringList')
     def enumTypeList(self):
         if self._enumType == None:
             return []
@@ -128,12 +129,11 @@ class EnumWidget(QWidget):
     def enumTypeList(self, values):
         enumType = EnumWidgetEnum.copy(self._enumTypeListName)
         for i, name in enumerate(values):
-            name = unicode(name)
             setattr(enumType, name, Enum())
         enumType.__init_enums__()
         self.setEnumType(enumType)
 
-    @pyqtProperty(QString)
+    @Property(str)
     def enumTypeListName(self):
         return self._enumTypeListName
 
@@ -149,10 +149,10 @@ class EnumWidget(QWidget):
         self.blockSignals(True)
         for child in self.findChildren(QCheckBox):
             if isinstance(self._enumType, EnumGroup):
-                enumVal = self._enumType[unicode(child.objectName())]
+                enumVal = self._enumType[child.objectName()]
             else:
                 # TODO: remove once blurdev.enum.enum is no longer used
-                enumVal = self._enumType.value(unicode(child.objectName()))
+                enumVal = self._enumType.value(child.objectName())
             child.setChecked((value & enumVal) == enumVal)
         self.blockSignals(False)
         self.recalculateValue()
@@ -161,5 +161,5 @@ class EnumWidget(QWidget):
         """ returns the current value state for this widget """
         return self._value
 
-    pyColumnCount = pyqtProperty('int', columnCount, setColumnCount)
-    pyEnumValue = pyqtProperty('int', value, setValue)
+    pyColumnCount = Property('int', columnCount, setColumnCount)
+    pyEnumValue = Property('int', value, setValue)

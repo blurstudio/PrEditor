@@ -13,7 +13,7 @@ import glob
 import os.path
 import sys
 
-from PyQt4.QtCore import QObject, pyqtSignal
+from Qt.QtCore import QObject, Signal
 
 
 class ConfigSection(object):
@@ -79,7 +79,7 @@ class ConfigSection(object):
 
 
 class ConfigSet(QObject):
-    settingsChanged = pyqtSignal()
+    settingsChanged = Signal()
 
     def __init__(self, prefname=''):
         super(ConfigSet, self).__init__()
@@ -114,7 +114,7 @@ class ConfigSet(QObject):
                 try:
                     __import__(configmodname)
                 except:
-                    print 'could not import %s' % configmodname
+                    print('could not import %s' % configmodname)
                     continue
 
                 configmod = sys.modules.get(configmodname)

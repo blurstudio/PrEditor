@@ -1,3 +1,5 @@
+from past.builtins import xrange
+from future.utils import iteritems, with_metaclass
 import abc
 import re
 import sys
@@ -84,7 +86,7 @@ class _MetaEnumGroup(type):
             except AttributeError:
                 descriptions[e.number] = ''
         oldEnum = enum(**kwargs)
-        for number, desc in descriptions.iteritems():
+        for number, desc in iteritems(descriptions):
             oldEnum.setDescription(number, desc)
         # Try and return the attribute from the old-style enum.
         try:
@@ -98,7 +100,7 @@ class _MetaEnumGroup(type):
 # =============================================================================
 
 
-class Enum(object):
+class Enum(with_metaclass(abc.ABCMeta, object)):
     """A basic enumerator class.
 
     Enumerators are named values that act as identifiers.  Typically, a
@@ -121,10 +123,10 @@ class Enum(object):
         mySuits = Suits.Hearts | Suits.Spades
         
         if Suits.Hearts & mySuits:
-            print "This is true!"
+            print("This is true!")
         
         if Suits.Clubs & mySuits:
-            print "This is false!"
+            print("This is false!")
 
     Attributes:
         name: The name of the enumerator.
@@ -133,7 +135,6 @@ class Enum(object):
         labelIndex: The enumerator's index within its parent EnumGroup.
     """
 
-    __metaclass__ = abc.ABCMeta
     _CREATIONORDER = 0
 
     def __init__(self, number=None, label=None, **kwargs):
@@ -214,6 +215,9 @@ class Enum(object):
             return -1
         return self.number - value.number
 
+    def __lt__(self, value):
+        return self.__cmp__(value) < 0
+
     def __eq__(self, value):
         if value == None:
             return False
@@ -233,7 +237,7 @@ class Enum(object):
         return self.number
 
     def __int__(self):
-        return self.number
+        return self.number or 0
 
     def __invert__(self):
         return ~int(self)
@@ -268,9 +272,9 @@ class Enum(object):
         # the other enum if it's an Enum object.  This
         # will make the composite enum isinstance check true
         # against both.
-        self.__class__.register(CompositeEnum)
+        type(self).register(CompositeEnum)
         if isinstance(other, Enum):
-            other.__class__.register(CompositeEnum)
+            type(other).register(CompositeEnum)
         return CompositeEnum(value, label, name)
 
     def __rand__(self, other):
@@ -294,8 +298,7 @@ class Enum(object):
     def __str__(self):
         if self.name:
             return self.name
-        else:
-            return self.label
+        return self.label or ''
 
     def __xor__(self, other):
         if isinstance(other, Enum):
@@ -312,7 +315,7 @@ class Enum(object):
 # =============================================================================
 
 
-class EnumGroup(object):
+class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     """A container class for collecting, organizing, and accessing Enums.
 
     An EnumGroup class is a container for Enum objects.  It provides
@@ -349,7 +352,7 @@ class EnumGroup(object):
         suitList = list(Suits)
         
         if Suits.Hearts & Suits.All:
-            print "This is true!"
+            print("This is true!")
 
     You can also pass a int value as a index lookup. If you pass a int value it
     will return the object by its index. This means you can not lookup composite
@@ -368,16 +371,15 @@ class EnumGroup(object):
         comp = Suits(3)
 
         if Suits.Hearts & comp:
-            print "This is true!"
+            print("This is true!")
 
         if Suits.Clubs & comp:
-            print "This is false!"
+            print("This is false!")
 
     Attributes:
         All: The sum of all members.
     """
 
-    __metaclass__ = _MetaEnumGroup
     _ENUMERATORS = None
     _copyCount = 1
     All = 0
@@ -566,7 +568,7 @@ class EnumGroup(object):
         enums = []
 
         orderedEnums = sorted(
-            [(k, v) for k, v in cls.__dict__.iteritems() if isinstance(v, Enum)],
+            [(k, v) for k, v in iteritems(cls.__dict__) if isinstance(v, Enum)],
             key=lambda i: i[1]._creationOrder,
         )
         for name, value in orderedEnums:
@@ -661,6 +663,14 @@ class Incrementer(object):
         self.count += self.increment
         return ret
 
+    def __repr__(self):
+        return '{}.{}(start={}, increment={}, pre={!r})'.format(
+            self.__module__, type(self).__name__, self.count, self.increment, self.pre
+        )
+
+    def __str__(self):
+        return str(self.count)
+
 
 # =============================================================================
 
@@ -684,8 +694,6 @@ class enum(object):
         'Blue'
     """
 
-    INDICES = xrange(sys.maxint)  # indices constant to use for looping
-
     def __call__(self, key):
         return self.value(key)
 
@@ -693,7 +701,7 @@ class enum(object):
         if key == '__name__':
             return 'enum'
         else:
-            raise AttributeError, key
+            raise AttributeError(key)
 
     def __init__(self, *args, **kwds):
         """ Takes the provided arguments adds them as properties of this object. For each argument you
@@ -716,7 +724,7 @@ class enum(object):
             7
         """
         super(enum, self).__init__()
-        self._keys = list(args) + kwds.keys()
+        self._keys = list(args) + list(kwds.keys())
         self._compound = kwds.keys()
         self._descr = {}
         key = 1

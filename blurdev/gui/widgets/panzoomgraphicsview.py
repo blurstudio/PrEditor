@@ -1,6 +1,7 @@
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QGraphicsView, QAction, QMenu, QApplication, QMouseEvent
-from blurdev.gui import pyqtPropertyInit
+from Qt.QtCore import Qt
+from Qt.QtGui import QMouseEvent
+from Qt.QtWidgets import QGraphicsView, QMenu, QApplication, QAction
+from blurdev.gui import QtPropertyInit
 
 
 class PanZoomGraphicsView(QGraphicsView):
@@ -197,6 +198,6 @@ class PanZoomGraphicsView(QGraphicsView):
         """
         return QApplication.instance().keyboardModifiers() in self.zoomModifiers
 
-    panKeys = pyqtPropertyInit('_panKey', [Qt.Key_Space])
-    panMouseButton = pyqtPropertyInit('_panMouseButton', Qt.MidButton)
-    zoomModifiers = pyqtPropertyInit('_zoomModifiers', [Qt.AltModifier])
+    panKeys = QtPropertyInit('_panKey', [Qt.Key_Space])
+    panMouseButton = QtPropertyInit('_panMouseButton', Qt.MidButton)
+    zoomModifiers = QtPropertyInit('_zoomModifiers', [Qt.AltModifier])

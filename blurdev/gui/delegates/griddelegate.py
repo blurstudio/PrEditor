@@ -13,17 +13,13 @@
 # 	\date		11/18/09
 #
 
-from PyQt4.QtCore import Qt, QRectF, QLine
-from PyQt4.QtGui import (
-    QColor,
+from Qt.QtCore import Qt, QRectF, QLineF
+from Qt.QtGui import QColor, QPen, QTextDocument, QLinearGradient, QBrush
+from Qt.QtWidgets import (
     QStyledItemDelegate,
-    QPen,
-    QLineEdit,
-    QTextDocument,
-    QLinearGradient,
-    QBrush,
     QApplication,
     QStyleOptionButton,
+    QLineEdit,
 )
 
 
@@ -62,7 +58,7 @@ class GridDelegate(QStyledItemDelegate):
         checkboxStyle = QStyleOptionButton()
         checkboxStyle.rect = option.rect
         rect = style.subElementRect(style.SE_CheckBoxIndicator, checkboxStyle, widget)
-        state = index.model().data(index, Qt.CheckStateRole).toInt()[0]
+        state = index.model().data(index, Qt.CheckStateRole)
         return rect, state
 
     def clearEditor(self):
@@ -140,7 +136,7 @@ class GridDelegate(QStyledItemDelegate):
         # add the column line
         if self.showColumnBorders():
             lines.append(
-                QLine(
+                QLineF(
                     style.rect.right(),
                     style.rect.y(),
                     style.rect.right(),
@@ -152,11 +148,11 @@ class GridDelegate(QStyledItemDelegate):
         if not ((self.showTree() and self.showColumnBorders()) or index.column()):
             x = 0
         elif not index.column() and x:
-            lines.append(QLine(x, style.rect.y(), x, style.rect.bottom()))
+            lines.append(QLineF(x, style.rect.y(), x, style.rect.bottom()))
         # add the bottom line
         if self.showBottomBorder():
             lines.append(
-                QLine(x, style.rect.bottom(), style.rect.right(), style.rect.bottom())
+                QLineF(x, style.rect.bottom(), style.rect.right(), style.rect.bottom())
             )
         painter.drawLines(lines)
 

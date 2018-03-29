@@ -11,36 +11,33 @@
 import os
 import copy
 
-from PyQt4.QtCore import (
-    pyqtSignal,
+from Qt.QtCore import (
     QDir,
     QFileInfo,
+    QFileSystemWatcher,
     QMimeData,
     QProcess,
     QRect,
     QSize,
     QUrl,
     Qt,
-    QFileSystemWatcher,
+    Signal,
 )
-
-from PyQt4.QtGui import (
+from Qt.QtGui import QCursor, QFont, QIcon
+from Qt.QtWidgets import (
     QAction,
     QApplication,
     QComboBox,
-    QCursor,
-    QFileDialog,
     QFileSystemModel,
-    QFont,
-    QIcon,
     QInputDialog,
+    QLabel,
     QListWidget,
     QMenu,
     QMessageBox,
-    QTreeWidgetItem,
     QToolBar,
-    QLabel,
+    QTreeWidgetItem,
 )
+from Qt import QtCompat
 
 from blurdev.gui import Window
 from blurdev.gui.dialogs.configdialog import ConfigSet
@@ -51,14 +48,15 @@ from blurdev import osystem, settings
 
 
 class IdeEditor(Window):
-    documentTitleChanged = pyqtSignal()
+    documentTitleChanged = Signal()
     # currentProjectChanged should be IdeProject or None.
     # Blur's Qt now is more strict on types being passed through signals.
     # this can be changed back to IdeProject, if None can no longer be passed in. Probubly a empty IdeProject in its place.
-    currentProjectChanged = pyqtSignal(object)
-    currentDocumentChanged = pyqtSignal()
-    settingsRecorded = pyqtSignal()
-    editorCreated = pyqtSignal(object)  # emitted when ever a subWindow is added
+    currentProjectChanged = Signal(object)
+    currentDocumentChanged = Signal()
+    settingsRecorded = Signal()
+    editorCreated = Signal(object)  # emitted when ever a subWindow is added
+    ideClosing = Signal()  # emitted when the IDE is about to close
 
     _instance = None
 
@@ -172,8 +170,8 @@ class IdeEditor(Window):
             self.uiExplorerTREE.header(),
         ):
             header.setStretchLastSection(False)
-            header.setMovable(False)
-            header.setResizeMode(header.ResizeToContents)
+            QtCompat.QHeaderView.setSectionsMovable(header, False)
+            QtCompat.QHeaderView.setSectionResizeMode(header, header.ResizeToContents)
 
         # create connections
         self.uiProjectTREE.itemActivated.connect(self.editItem)
@@ -286,7 +284,6 @@ class IdeEditor(Window):
 
         # connect help menu
         self.uiHelpAssistantACT.triggered.connect(self.showAssistant)
-        self.uiSdkBrowserACT.triggered.connect(self.showSdkBrowser)
         self.uiBlurDevSiteACT.triggered.connect(self.showBlurDevSite)
 
         # connect debug menu
@@ -360,7 +357,7 @@ class IdeEditor(Window):
 
     def browserTabChanged(self, currentTab):
         if currentTab == 2:
-            if unicode(self.uiExplorerTREE.model().rootPath()) == '.':
+            if self.uiExplorerTREE.model().rootPath() == '.':
                 self.uiExplorerTREE.model().setRootPath('')
         elif currentTab == 3:
             self.uiMethodBrowserWGT.refresh()
@@ -384,11 +381,11 @@ class IdeEditor(Window):
         import os
 
         if os.path.isfile(path):
-            path = os.path.split(unicode(path))[0]
+            path = os.path.split(path)[0]
 
         text, accepted = QInputDialog.getText(self, 'New Folder Name', '')
         if accepted:
-            folder = os.path.join(path, unicode(text))
+            folder = os.path.join(path, text)
             try:
                 os.mkdir(folder)
             except:
@@ -415,13 +412,13 @@ class IdeEditor(Window):
             if item:
                 path = item.filePath()
                 if path:
-                    path = os.path.split(unicode(path))[0]
+                    path = os.path.split(path)[0]
         else:
-            path = unicode(
-                self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
+            path = self.uiExplorerTREE.model().filePath(
+                self.uiExplorerTREE.currentIndex()
             )
             if path:
-                path = os.path.split(unicode(path))[0]
+                path = os.path.split(path)[0]
 
         return os.path.normpath(path)
 
@@ -448,8 +445,8 @@ class IdeEditor(Window):
 
         # load an explorer file
         elif self.uiBrowserTAB.currentIndex() == 2:
-            filename = unicode(
-                self.uiExplorerTREE.model().filePath(self.uiExplorerTREE.currentIndex())
+            filename = self.uiExplorerTREE.model().filePath(
+                self.uiExplorerTREE.currentIndex()
             )
 
         return filename
@@ -469,6 +466,7 @@ class IdeEditor(Window):
 
         if closedown:
             self.recordSettings()
+            self.ideClosing.emit()
             Window.closeEvent(self, event)
         else:
             event.ignore()
@@ -500,7 +498,7 @@ class IdeEditor(Window):
     def documentCloseAllExcept(self, current=None):
         """
             \Remarks	Closes all open subWindows except the current window or the passed in window. If no window is passed in it will take the current window.
-            \param		current		<PyQt4.QtGui.QMdiSubWindow> || None
+            \param		current		<Qt.QtGui.QMdiSubWindow> || None
         """
         if not current:
             current = self.uiWindowsAREA.activeSubWindow()
@@ -719,14 +717,14 @@ class IdeEditor(Window):
         lastsave = self._lastSavedFilename
         if lastsave:
             lastsave = os.path.split(lastsave)[0]
-        filename = QFileDialog.getOpenFileName(
+        filename, _ = QtCompat.QFileDialog.getOpenFileName(
             self, 'Open file...', lastsave, lang.filetypes()
         )
         if filename:
             self.load(filename)
 
     def documentOpenRecentTriggered(self, action):
-        filename = unicode(action.data().toString())
+        filename = action.data()
         if filename:
             self.load(filename)
 
@@ -783,7 +781,7 @@ class IdeEditor(Window):
             event.acceptProposedAction()
 
         # allow drag & drop events for tools
-        if unicode(event.mimeData().text()).startswith('Tool::'):
+        if event.mimeData().text().startswith('Tool::'):
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event):
@@ -792,7 +790,7 @@ class IdeEditor(Window):
             event.acceptProposedAction()
 
         # allow drag & drop events for tools
-        if unicode(event.mimeData().text()).startswith('Tool::'):
+        if event.mimeData().text().startswith('Tool::'):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
@@ -801,7 +799,7 @@ class IdeEditor(Window):
 
             urls = event.mimeData().urls()
             for url in urls:
-                text = unicode(url.toString())
+                text = url.toString()
                 if text.startswith('file://'):
                     # striping off only 2 slashes preserves linux functionality
                     filename = text.replace('file://', '')
@@ -819,7 +817,7 @@ class IdeEditor(Window):
 
         # drop a tool
         else:
-            text = unicode(event.mimeData().text())
+            text = event.mimeData().text()
             if text.startswith('Tool::'):
                 import blurdev
 
@@ -879,7 +877,7 @@ class IdeEditor(Window):
             self.currentDocumentChanged.emit()
 
     def editItem(self):
-        filename = unicode(self.currentFilePath())
+        filename = self.currentFilePath()
 
         # load the file
         if filename:
@@ -960,7 +958,6 @@ class IdeEditor(Window):
         return self._lastSavedFilename
 
     def load(self, filename, lineno=0, useRegistry=True):
-        filename = unicode(filename)
         normalized = os.path.normcase(os.path.abspath(filename))
 
         if not QFileInfo(filename).isFile():
@@ -993,13 +990,6 @@ class IdeEditor(Window):
             # run a method on the filename
             elif cmd:
                 cmd(filename)
-                return True
-
-            # hardcoded support for sdk files
-            elif ext == '.sdk':
-                import blurdev
-
-                blurdev.core.sdkBrowser().showSdk(filename)
                 return True
 
             # hardcoded support for blurproj files
@@ -1037,7 +1027,7 @@ class IdeEditor(Window):
     def projectFindInFiles(self):
         import os.path
 
-        filepath = unicode(self.currentFilePath())
+        filepath = self.currentFilePath()
         if os.path.isfile(filepath):
             filepath = os.path.dirname(filepath)
 
@@ -1093,7 +1083,7 @@ class IdeEditor(Window):
         item.load()
 
     def projectOpen(self):
-        filename = QFileDialog.getOpenFileName(
+        filename, _ = QtCompat.QFileDialog.getOpenFileName(
             self,
             'Blur IDE Project',
             '',
@@ -1111,14 +1101,14 @@ class IdeEditor(Window):
     def documentOpenItem(self):
         import os.path
 
-        path = unicode(self.currentFilePath())
+        path = self.currentFilePath()
         if os.path.isfile(path):
             self.load(path)
 
     def documentExploreItem(self):
         import os
 
-        path = unicode(self.currentFilePath())
+        path = self.currentFilePath()
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
@@ -1181,7 +1171,7 @@ class IdeEditor(Window):
             'toolbarVisibility',
             dict(
                 [
-                    (unicode(toolbar.windowTitle()), toolbar.isVisible())
+                    (toolbar.windowTitle(), toolbar.isVisible())
                     for toolbar in self.findChildren(QToolBar)
                 ]
             ),
@@ -1199,13 +1189,11 @@ class IdeEditor(Window):
         pref.recordProperty('windowStateSave', self.saveState())
 
         pref.recordProperty('MidiViewMode', self.uiWindowsAREA.viewMode())
-        openFiles = [
-            unicode(doc.filename()) for doc in self.documents() if doc.filename()
-        ]
+        openFiles = [doc.filename() for doc in self.documents() if doc.filename()]
         pref.recordProperty('openFiles', openFiles)
         pref.recordProperty(
             'currentDocument',
-            unicode(self.currentDocument().filename())
+            self.currentDocument().filename()
             if openFiles and self.currentDocument()
             else '',
         )
@@ -1252,7 +1240,7 @@ class IdeEditor(Window):
 
         for window in self.uiWindowsAREA.subWindowList():
             self.uiOpenTREE.addTopLevelItem(
-                QTreeWidgetItem([unicode(window.windowTitle()).strip('*')])
+                QTreeWidgetItem([window.windowTitle().strip('*')])
             )
 
         self.uiOpenTREE.blockSignals(False)
@@ -1331,7 +1319,7 @@ class IdeEditor(Window):
         # restore toolbar visibility
         tbarvis = pref.restoreProperty('toolbarVisibility', {})
         for tbar in self.findChildren(QToolBar):
-            tbar.setVisible(tbarvis.get(unicode(tbar.windowTitle()), True))
+            tbar.setVisible(tbarvis.get(tbar.windowTitle(), True))
 
         # restore the run level
         text = pref.restoreProperty('selectedRunLevel', None)
@@ -1422,14 +1410,14 @@ class IdeEditor(Window):
     def runSelected(self):
         project = self.currentProject()
         if project:
-            selected = unicode(self.uiCommandDDL.currentText())
+            selected = self.uiCommandDDL.currentText()
             commandList = project.commandList()
             if not selected in commandList:
                 return False
             command = commandList[selected][1]
             if self.uiCommandArgsACT.isVisible():
                 argumentList = project.argumentList()
-                key = unicode(self.uiCommandArgsDDL.currentText())
+                key = self.uiCommandArgsDDL.currentText()
                 if key != 'No Args' and key in argumentList:
                     arguments = argumentList[key][1]
                     command += arguments
@@ -1510,7 +1498,6 @@ class IdeEditor(Window):
         else:
             if partial:
                 key = sorted(partial, reverse=True)[0]
-                print 'partial', partial[key], key
                 output = partial[key]
         if output:
             self.uiProjectTREE.clearSelection()
@@ -1650,10 +1637,11 @@ class IdeEditor(Window):
             QIcon(blurdev.resourcePath('img/ide/goto_def.png'))
         )
 
-        self.uiSdkBrowserACT.setIcon(QIcon(blurdev.resourcePath('img/ide/sdk.png')))
         self.uiHelpAssistantACT.setIcon(QIcon(blurdev.resourcePath('img/ide/qt.png')))
         self.uiDesignerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/qt.png')))
         self.uiBlurDevSiteACT.setIcon(QIcon(blurdev.resourcePath('img/ide/help.png')))
+
+        self.uiAboutACT.setIcon(QIcon(blurdev.resourcePath('img/info.png')))
 
     def setupToolbars(self):
         # create the main toolbar
@@ -1757,7 +1745,9 @@ class IdeEditor(Window):
         )
 
     def showBlurDevSite(self):
-        osystem.startfile('http://blur-dev.googlecode.com')
+        import webbrowser
+
+        webbrowser.open('https://sourceforge.net/projects/blur-dev/')
 
     def showMenu(self, projectMode=True):
         menu = self._fileMenuClass(self, self.currentFilePath(), projectMode)
@@ -1779,19 +1769,12 @@ class IdeEditor(Window):
 
         dlg = blurdev.core.pyular(self)
         searchText = self.searchText()
-        print 'Show pyular', searchText, QApplication.keyboardModifiers().__int__()
         if searchText:
             if QApplication.keyboardModifiers() & Qt.AltModifier:
                 dlg.setTestString(searchText)
             elif QApplication.keyboardModifiers() & Qt.ShiftModifier:
                 dlg.setExpression(searchText)
         dlg.show()
-
-    def showSdkBrowser(self):
-        import blurdev
-
-        if not blurdev.core.logger().uiDisableSDKShortcutACT.isChecked():
-            blurdev.core.sdkBrowser().show()
 
     def showSearchDialog(self):
         self._searchDialog.search(self.searchText())
@@ -2025,24 +2008,24 @@ class IdeEditor(Window):
             self.setWindowTitle(
                 '%s | %s - [%s] - %s'
                 % (
-                    unicode(blurdev.core.objectName()).capitalize(),
+                    blurdev.core.objectName().capitalize(),
                     projtext,
                     path,
                     version.toString(),
                 )
             )
+            self.uiLanguageDDL.blockSignals(True)
             self.uiLanguageDDL.setCurrentLanguage(document.language())
+            self.uiLanguageDDL.blockSignals(False)
             document.updateSelectionInfo()
         else:
             self.setWindowTitle(
                 '%s | %s - %s'
-                % (
-                    unicode(blurdev.core.objectName()).capitalize(),
-                    projtext,
-                    version.toString(),
-                )
+                % (blurdev.core.objectName().capitalize(), projtext, version.toString())
             )
+            self.uiLanguageDDL.blockSignals(True)
             self.uiLanguageDDL.setCurrentLanguage('')
+            self.uiLanguageDDL.blockSignals(False)
             self.uiCursorInfoLBL.setText('')
 
     def updateSettings(self):

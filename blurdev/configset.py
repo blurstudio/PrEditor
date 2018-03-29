@@ -8,7 +8,7 @@
 # 	\date		04/20/10
 #
 
-from PyQt4.QtCore import QObject
+from Qt.QtCore import QObject
 
 
 class ConfigSetItem(QObject):
@@ -89,7 +89,7 @@ class ConfigSet(QObject):
                 try:
                     __import__(configmodule)
                 except:
-                    print 'could not import %s' % configmodule
+                    print('could not import %s' % configmodule)
                     continue
 
                 mod = sys.modules.get(configmodule)

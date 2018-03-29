@@ -8,26 +8,26 @@
 # 	\date		04/09/10
 #
 
+from builtins import str as text
 import xml.dom.minidom
 
 # Load the monkey patched version to fix a known bug http://bugs.python.org/issue5752
 import blurdev.XML.minidom
 from blurdev.XML.minidom import escape, unescape
 
-from PyQt4.QtCore import (
-    QRect,
-    QRectF,
-    QPoint,
-    QPointF,
-    QSize,
-    QSizeF,
+from Qt.QtCore import (
+    QByteArray,
     QDate,
     QDateTime,
-    QString,
-    QByteArray,
+    QPoint,
+    QPointF,
+    QRect,
+    QRectF,
+    QSize,
+    QSizeF,
     Qt,
 )
-from PyQt4.QtGui import QColor, QFont
+from Qt.QtGui import QColor, QFont
 
 
 class XMLElement:
@@ -55,6 +55,7 @@ class XMLElement:
         """ initialize the class with an <xml.dom.minidom.Element> instance """
         if object == None:
             object = xml.dom.minidom.Element(None)
+            object.ownerDocument = None
         self._object = object
         self.__file__ = filename
         # Used to allow saving empty attributes.
@@ -114,9 +115,6 @@ class XMLElement:
     def recordValue(self, value):
 
         # Convert Qt basics to python basics where possible
-        if type(value) == QString:
-            value = unicode(value)
-
         valtype = type(value)
 
         # Record a list of properties
@@ -244,7 +242,7 @@ class XMLElement:
 
         # Restore a string
         elif valtype in ('str', 'unicode', 'QString'):
-            value = unicode(self.attribute('value'))
+            value = self.attribute('value')
 
         elif valtype == 'ViewMode':
             # If treated as a basic value would return fail
@@ -252,7 +250,9 @@ class XMLElement:
 
         # Restore a QByteArray (Experimental)
         elif valtype == 'QByteArray':
-            value = QByteArray.fromPercentEncoding(self.attribute('value', ''))
+            value = QByteArray.fromPercentEncoding(
+                self.attribute('value', '').encode('utf8')
+            )
 
         # Restore a Qt.CheckState
         elif valtype == 'CheckState':
@@ -302,13 +302,9 @@ class XMLElement:
     def attribute(self, attr, fail=''):
         """Gets the attribute value of the element by the given attribute id
         :param attr: Name of the atribute you want to recover.
-        :param fail: If the atribute does not exist return this.
+        :param fail: If the attribute does not exist return this.
         """
-        out = unicode(self._object.getAttribute(attr))
-        out = unescape(out)
-        if out:
-            return out
-        return fail
+        return unescape(self._object.getAttribute(attr)) or fail
 
     def attributeDict(self):
         """
@@ -423,7 +419,7 @@ class XMLElement:
         return []
 
     def findColor(self, name, fail=None):
-        from PyQt4.QtGui import QColor
+        from Qt.QtGui import QColor
 
         element = self.findChild(name)
         if element:
@@ -462,12 +458,12 @@ class XMLElement:
         return self._findPoint(name, QPointF, float)
 
     def findRect(self, name):
-        from PyQt4.QtCore import QRect
+        from Qt.QtCore import QRect
 
         return self._findRect(name, QRect, int)
 
     def findRectF(self, name):
-        from PyQt4.QtCore import QRectF
+        from Qt.QtCore import QRectF
 
         return self._findRect(name, QRectF, float)
 
@@ -519,7 +515,6 @@ class XMLElement:
 
         """
         if self._object and (val != '' or self.allowEmptyAttrs):
-            val = unicode(val)
             val = escape(val)
             self._object.setAttribute(attr, val)
             return True
@@ -576,12 +571,12 @@ class XMLElement:
             # find existing text node & update
             for child in self._object.childNodes:
                 if isinstance(child, xml.dom.minidom.Text):
-                    child.data = unicode(val)
+                    child.data = text(val)
                     return True
 
             # create new text node
-            text = self._document().createTextNode(unicode(val))
-            self._object.appendChild(text)
+            txt = self._document().createTextNode(text(val))
+            self._object.appendChild(txt)
             return True
         return False
 

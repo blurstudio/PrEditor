@@ -8,6 +8,8 @@
 #   :date       01/12/15
 #
 
+from future.utils import iteritems
+from past.builtins import basestring
 import sys as _sys
 import os as _os
 import subprocess as _subprocess
@@ -67,7 +69,7 @@ class BaseProtocolHandler(object):
             return cls(command, params)
 
     def run(self):
-        print self.name, self.command, self.params
+        print(self.name, self.command, self.params)
 
 
 class TreegruntHandler(BaseProtocolHandler):
@@ -101,7 +103,8 @@ class WriteStdOutputHandler(BaseProtocolHandler):
     """ Writes the msg param to the requested output
     
     Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys counterparts.
-    print calls print. You must pass the parameter 'msg' as a string, this will be written to the 
+    print(calls print. You must pass the parameter 'msg' as a string, this will be written to the 
+)
     requested output. You can optionally pass a boolean to 'pdb', if the instance of the
     LoggerWindow exists it will enable or disable pdb mode on it.
     
@@ -151,7 +154,7 @@ class WriteStdOutputHandler(BaseProtocolHandler):
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
             data = {}
-            for key, value in self.params.iteritems():
+            for key, value in iteritems(self.params):
                 if isinstance(value, basestring):
                     success, value = self.unwrapMessage(value, wrapper)
                 data[key] = value
@@ -162,7 +165,7 @@ class WriteStdOutputHandler(BaseProtocolHandler):
         elif self.command == 'stderr':
             _sys.stderr.write(msg)
         elif self.command == 'print':
-            print msg
+            print(msg)
         if pdbMode == False:
             # disable pdbMode after the message was written because the message often contains the
             # (pdb) prompt.

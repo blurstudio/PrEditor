@@ -8,8 +8,8 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.Qsci import QsciLexerCPP
-from PyQt4.QtGui import QColor
+from Qt.Qsci import QsciLexerCPP
+from Qt.QtGui import QColor
 
 
 class CppLexer(QsciLexerCPP):

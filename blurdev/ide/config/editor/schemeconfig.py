@@ -12,8 +12,10 @@ import os
 import re
 import blurdev
 
-from PyQt4.QtCore import QSize
-from PyQt4.QtGui import QColor, QFont, QApplication, QTreeWidgetItem, QColorDialog
+from Qt import QtCompat
+from Qt.QtCore import QSize
+from Qt.QtGui import QColor, QFont
+from Qt.QtWidgets import QApplication, QColorDialog, QTreeWidgetItem
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
 
@@ -49,8 +51,11 @@ class SchemeConfig(ConfigSectionWidget):
 
         # initialize the sizing
         for tree in (self.uiApplicationColorTREE, self.uiPageColorTREE):
-            tree.header().setResizeMode(0, tree.header().ResizeToContents)
-            tree.header().setResizeMode(1, tree.header().Stretch)
+            header = tree.header()
+            QtCompat.QHeaderView.setSectionResizeMode(
+                header, 0, header.ResizeToContents
+            )
+            QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.Stretch)
             tree.setColumnWidth(0, 40)
             tree.installEventFilter(self)
 

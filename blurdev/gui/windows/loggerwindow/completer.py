@@ -10,14 +10,9 @@
 
 import inspect
 
-from PyQt4.QtCore import pyqtSignal, SIGNAL, Qt
-from PyQt4.QtGui import (
-    QStringListModel,
-    QToolTip,
-    QCursor,
-    QCompleter,
-    QMessageBox as msg,
-)
+from Qt.QtCore import Qt, QStringListModel
+from Qt.QtGui import QCursor
+from Qt.QtWidgets import QCompleter, QMessageBox, QToolTip
 
 
 class PythonCompleter(QCompleter):
@@ -27,18 +22,12 @@ class PythonCompleter(QCompleter):
         # use the python model for information
         self.setModel(QStringListModel())
 
-        self._currentText = ''
         self._enabled = True
 
         # update this completer
         self.setWidget(widget)
         self.setCompletionMode(QCompleter.PopupCompletion)
         self.setCaseSensitivity(Qt.CaseSensitive)
-
-        self.connect(self, SIGNAL('highlighted(const QString &)'), self.setCurrentText)
-
-    def currentCompletion(self):
-        return self._currentText
 
     def currentObject(self, scope=None, docMode=False):
         if self._enabled:
@@ -48,7 +37,7 @@ class PythonCompleter(QCompleter):
                 return (None, '')
 
             word = word.rstrip('(')
-            split = unicode(word).split('.')
+            split = word.split('.')
 
             # make sure there is more than 1 item for this symbol
             if len(split) > 1 or docMode:
@@ -117,22 +106,19 @@ class PythonCompleter(QCompleter):
             if docs:
                 QToolTip.showText(pos, docs)
 
-    def setCurrentText(self, text):
-        self._currentText = text
-
     def setEnabled(self, state):
         self._enabled = state
 
     def textUnderCursor(self, useParens=False):
         """ pulls out the text underneath the cursor of this items widget """
-        from PyQt4.QtGui import QTextCursor
+        from Qt.QtGui import QTextCursor
 
         cursor = self.widget().textCursor()
         cursor.select(QTextCursor.WordUnderCursor)
 
         # grab the selected word
         word = cursor.selectedText()
-        block = unicode(cursor.block().text())
+        block = cursor.block().text()
 
         # lookup previous words using '.'
         pos = cursor.position() - cursor.block().position() - len(word) - 1

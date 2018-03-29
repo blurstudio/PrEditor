@@ -9,23 +9,22 @@
 #
 
 # used in painting, faster to do global import
-from PyQt4.QtCore import Qt, pyqtSlot, pyqtProperty, pyqtSignal, QPoint, QRect
-from PyQt4.QtGui import (
-    QPainter,
+from Qt.QtCore import QPoint, QRect, Qt, Property, Signal, Slot
+from Qt.QtGui import (
     QColor,
-    QWidget,
-    QLinearGradient,
-    QPushButton,
     QConicalGradient,
+    QLinearGradient,
+    QPainter,
     QRadialGradient,
 )
+from Qt.QtWidgets import QPushButton, QWidget
 
 
 class ColorPickerWidget(QWidget):
     BarWidth = 15
 
-    colorChanged = pyqtSignal(QColor)
-    editingFinished = pyqtSignal()
+    colorChanged = Signal(QColor)
+    editingFinished = Signal()
 
     def __init__(self, parent):
         # initialize the super class
@@ -253,7 +252,7 @@ class ColorPickerWidget(QWidget):
 
         self.repaint()
 
-    @pyqtSlot(QColor)
+    @Slot(QColor)
     def setColor(self, color):
         self._alpha = color.alpha()
         self._hue = color.hue()
@@ -308,19 +307,19 @@ class ColorPickerWidget(QWidget):
 
         self.repaint()
 
-    @pyqtSlot(bool)
+    @Slot(bool)
     def setShowAlpha(self, state):
         self._showAlpha = state
 
     def showAlpha(self):
         return self._showAlpha
 
-    pyShowAlpha = pyqtProperty('bool', showAlpha, setShowAlpha)
+    pyShowAlpha = Property('bool', showAlpha, setShowAlpha)
 
 
 class ColorPickerButton(QPushButton):
-    colorPicked = pyqtSignal(QColor)
-    colorChanged = pyqtSignal(QColor)
+    colorPicked = Signal(QColor)
+    colorChanged = Signal(QColor)
 
     def __init__(self, parent):
         QPushButton.__init__(self, parent)
@@ -403,7 +402,7 @@ def test():
 
     dlg = Dialog()
     dlg.setWindowTitle('Color Test')
-    from PyQt4.QtGui import QVBoxLayout
+    from Qt.QtWidgets import QVBoxLayout
 
     layout = QVBoxLayout()
     layout.addWidget(ColorPickerWidget(dlg))
@@ -413,7 +412,7 @@ def test():
 
 
 if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
+    from Qt.QtWidgets import QApplication
 
     app = QApplication([])
     app.setStyle('Plastique')

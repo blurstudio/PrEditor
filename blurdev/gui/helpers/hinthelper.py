@@ -3,15 +3,15 @@ The HintHelper class helps provide a constant tool tip to widgets
 
 """
 
-from PyQt4.QtGui import (
-    QLabel,
+from Qt.QtWidgets import (
     QComboBox,
+    QLabel,
     QLineEdit,
-    QTextEdit,
     QPlainTextEdit,
+    QTextEdit,
     QTreeWidget,
 )
-from PyQt4.QtCore import Qt
+from Qt.QtCore import Qt
 
 
 class HintHelper(QLabel):

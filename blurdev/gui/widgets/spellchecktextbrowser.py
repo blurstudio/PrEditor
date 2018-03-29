@@ -9,7 +9,7 @@
 #
 
 from blurdev.gui.highlighters.spellinghighlighter import SpellingHighlighter
-from PyQt4.QtGui import QTextBrowser
+from Qt.QtWidgets import QTextBrowser
 
 
 class SpellCheckTextBrowser(QTextBrowser):

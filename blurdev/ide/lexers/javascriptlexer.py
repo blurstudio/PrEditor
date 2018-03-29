@@ -8,8 +8,8 @@
 # 	\date		08/19/10
 #
 
-from PyQt4.Qsci import QsciLexerJavaScript
-from PyQt4.QtGui import QColor
+from Qt.Qsci import QsciLexerJavaScript
+from Qt.QtGui import QColor
 
 
 class JavaScriptLexer(QsciLexerJavaScript):

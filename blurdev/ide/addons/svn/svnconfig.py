@@ -8,7 +8,7 @@
 # 	\date		05/17/11
 #
 
-from PyQt4.QtGui import QColor
+from Qt.QtGui import QColor
 
 # global settings
 CURRENT_URL = ''

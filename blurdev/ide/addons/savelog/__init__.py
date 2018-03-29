@@ -8,10 +8,11 @@
 #   :date       08/12/14
 #
 
+import os
+import logging
 import blurdev
 from blurdev import prefs
 from blurdev.ide.ideaddon import IdeAddon
-import __main__, os, logging
 from logging.handlers import RotatingFileHandler
 
 
@@ -39,6 +40,7 @@ class SaveLogAddon(IdeAddon):
             document.documentSaved.connect(self.documentSaved)
         ide.editorCreated.connect(self.editorCreated)
         ide.settingsRecorded.connect(self.recordSettings)
+        ide.ideClosing.connect(self.ideIsClosing)
 
     def deactivate(self, ide):
         for document in ide.documents():
@@ -47,6 +49,11 @@ class SaveLogAddon(IdeAddon):
         # remove the menu actions
         ide.uiToolsMENU.removeAction(self.uiSeparator)
         ide.uiToolsMENU.removeAction(self.uiSaveLogMENU.menuAction())
+        # Document that the plugin was deactivated.
+        if self.enabled:
+            self.logger.info(
+                '--- SaveLogAddon deactivated Pid: {} ---'.format(os.getpid())
+            )
         return True
 
     def browseLogFile(self):
@@ -72,6 +79,11 @@ class SaveLogAddon(IdeAddon):
         for h in self.logger.handlers:
             h.setFormatter(formatter)
         self.logger.addHandler(handler)
+        # Document that the plugin was created.
+        if self.enabled:
+            self.logger.info(
+                '--- SaveLogAddon activated   Pid: {} ---'.format(os.getpid())
+            )
 
     def documentSaved(self, document, filename):
         if self.enabled:
@@ -85,8 +97,14 @@ class SaveLogAddon(IdeAddon):
 
         dlg = savelogdialog.SaveLogDialog(self.ide)
         if dlg.exec_():
-            print 'Updating'
             self.restoreSettings()
+
+    def ideIsClosing(self):
+        # Document that the plugin was deactivated.
+        if self.enabled:
+            self.logger.info(
+                '--- SaveLogAddon IDE Closed  Pid: {} ---'.format(os.getpid())
+            )
 
     def recordSettings(self):
         pref = prefs.find('ide/addons/savelog', coreName='blurdev', reload=True)

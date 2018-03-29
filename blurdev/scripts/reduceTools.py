@@ -9,6 +9,7 @@
 #   :date       07/12/12
 #
 
+from __future__ import print_function
 import os, glob, re
 from blurdev.XML import XMLDocument
 
@@ -37,13 +38,13 @@ def reducePath(path, rootPath, dest=None):
     """
         Process recursively a folder """
     path = os.path.abspath(path)
-    print 'Processing Path:', path
+    print('Processing Path:', end='')
     rootPath = os.path.abspath(rootPath)
     common = os.path.commonprefix([path, rootPath])
     if os.path.isdir(path):
         fileNames = glob.glob(path + '/*/__meta__.xml')
         for file in fileNames:
-            print '	FileName:', file
+            print('	FileName:', file)
             # update the xml
             doc = XMLDocument()
             doc.load(file)
@@ -53,17 +54,17 @@ def reducePath(path, rootPath, dest=None):
                 'displayName',
                 splitOnCaps(os.path.normpath(file).split(os.path.sep)[-2]),
             )
-            print "	Name:", splitOnCaps(os.path.normpath(file).split(os.path.sep)[-2])
+            print("	Name:", splitOnCaps(os.path.normpath(file).split(os.path.sep)[-2]))
             setValueForNode(root, 'category', pathToAddress(path, common))
-            print "	Group", pathToAddress(path, common)
+            print("	Group", pathToAddress(path, common))
             doc.save(file)
             # Svn Move the folder to the destination
             if dest and pysvn:
                 client = pysvn.Client()
                 src = os.path.split(file)[0]
-                print '	Src:', src
+                print('	Src:', src)
                 d = os.path.join(dest, os.path.split(src)[1])
-                print '	Dest:', d
+                print('	Dest:', d)
                 client.move(src, d)
         for dir in os.listdir(path):
             folder = os.path.join(path, dir)

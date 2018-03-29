@@ -12,8 +12,10 @@ import os.path
 import datetime
 import pysvn
 
-from PyQt4.QtCore import Qt, QVariant
-from PyQt4.QtGui import QTreeWidgetItem, QIcon, QApplication, QCursor
+from Qt import QtCompat
+from Qt.QtCore import Qt
+from Qt.QtGui import QCursor, QIcon
+from Qt.QtWidgets import QApplication, QTreeWidgetItem
 
 import blurdev
 from blurdev.gui import Dialog
@@ -179,7 +181,9 @@ class SvnRepoBrowserDialog(Dialog):
 
         header = self.uiDetailsTREE.header()
         for i in range(self.uiDetailsTREE.columnCount() - 1):
-            header.setResizeMode(i, header.ResizeToContents)
+            QtCompat.QHeaderView.setSectionResizeMode(
+                header, i, header.ResizeToContents
+            )
 
         self.uiDetailsTREE.sortByColumn(0, Qt.AscendingOrder)
 

@@ -11,7 +11,16 @@
 if __name__ == '__main__':
     import sys
 
-    print (sys.version)
+    print(sys.version)
+
+    # --------------------------------------------------------------------------------
+    # Setup the correct build environment to allow importing of Qt.py
+    import blurpath
+
+    # Setup the PATH env variable, sys.path and QT_PREFERRED_BINDING to the correct values
+    blurpath.installPathsForSoftware('python', '')
+    # --------------------------------------------------------------------------------
+
     from blur.build import *
     import blur.build
     import sys, os
@@ -48,7 +57,7 @@ if __name__ == '__main__':
     f.write('!define MUI_PRODUCT "%s"\n' % product)
     f.write(
         '!define MUI_VERSION "v%i.%02i.%i"\n'
-        % (version.major(), version.minor(), version.currentBuild())
+        % (version.major(), version.minor(), GetRevision(path))
     )
     f.write('!define INSTALL_VERSION "v%i.%02i"\n' % (version.major(), version.minor()))
     f.write('!define PYTHON_VERSION "%s"\n' % dictionary['version'])
@@ -63,9 +72,9 @@ if __name__ == '__main__':
         import trax
 
         if trax.isValid:
-            print '**************************************************'
-            print '*             Exporting trax data                *'
-            print '**************************************************'
+            print('**************************************************')
+            print('*             Exporting trax data                *')
+            print('**************************************************')
             import blurdev.traxoffline.trax
 
             blurdev.traxoffline.trax.api.data.createRoleList(
@@ -78,9 +87,9 @@ if __name__ == '__main__':
                 r'%s\traxoffline\trax\api\data\source\departments.xml' % path
             )
         # Create a offline copy of settings.ini and update any paths that may not exist offline
-        print '**************************************************'
-        print '*            Updating settings.ini               *'
-        print '**************************************************'
+        print('**************************************************')
+        print('*            Updating settings.ini               *')
+        print('**************************************************')
         srcPath = r'%s\resource\settings.ini' % path
         destPath = r'%s\installers\resource\settings.ini' % path
         import shutil
@@ -128,9 +137,9 @@ if __name__ == '__main__':
         )
         # 		blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_TRAX_ON_DCC_STARTUP', r'false', useConfigParser=True)
         # remove non blur specific includes in tools_environments.xml
-        print '**************************************************'
-        print '*          Updating tools environments           *'
-        print '**************************************************'
+        print('**************************************************')
+        print('*          Updating tools environments           *')
+        print('**************************************************')
         doc = blurdev.XML.XMLDocument()
         envXML = os.path.join(path, 'resource', 'tools_environments.xml')
         destXML = os.path.join(path, 'installers', 'resource', 'tools_environments.xml')
@@ -140,16 +149,18 @@ if __name__ == '__main__':
             if child.name().lower() == 'include':
                 aPath = os.path.abspath(child.attribute('loc'))
                 if aPath.startswith(r'\\source'):
-                    print '  Removing network path', child.name(), aPath
+                    print('  Removing network path', child.name(), aPath)
                     child.remove()
             if child.name().lower() == 'environment':
-                print '  Removing existing environment.', child.name(), child.attribute(
-                    'loc'
+                print(
+                    '  Removing existing environment.',
+                    child.name(),
+                    child.attribute('loc'),
                 )
                 child.remove()
         # Add the offline environment
         # <environment	name="Blur Offline" loc="c:/blur/dev/offline" default="True" legacyName="Offline" offline="True"/>
-        print '  Adding the offline environment'
+        print('  Adding the offline environment')
         child = root.addNode('environment')
         child.setAttribute('name', 'Blur Offline')
         child.setAttribute('loc', 'c:/blur/dev/offline')
@@ -215,7 +226,7 @@ if __name__ == '__main__':
 
         if dictionary['silent'] == '1':
             # Silent install
-            print 'Silently installing: ', filename
+            print('Silently installing: ', filename)
             os.system('%s /S' % filename)
         else:
             os.startfile(filename)
@@ -225,5 +236,5 @@ if __name__ == '__main__':
 
         for output in paths.split('|'):
             copyTo = template.formatText(output, {'filename': outFile})
-            print '*** Copying file to "%s"' % copyTo
+            print('*** Copying file to "%s"' % copyTo)
             shutil.copyfile(filename, copyTo)

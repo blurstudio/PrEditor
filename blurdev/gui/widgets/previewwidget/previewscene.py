@@ -8,20 +8,22 @@
 # 	:date		01/21/11
 #
 
-from PyQt4.QtCore import pyqtSignal, QSize
-from PyQt4.QtGui import QGraphicsScene, QColor
+from Qt.QtCore import QSize, Signal
+from Qt.QtGui import QColor
+from Qt.QtWidgets import QGraphicsScene
+from Qt import QtCompat
 from blurdev.enum import enum
-from previewlayers import *
+from .previewlayers import *
 
 InteractionMode = enum('Navigate', 'Pencil', 'Brush', 'Selection')
 
 
 class PreviewScene(QGraphicsScene):
-    activeLayerChanged = pyqtSignal()
-    canvasSizeChanged = pyqtSignal(QSize)
-    interactionModeChanged = pyqtSignal(int)
-    layersChanged = pyqtSignal()
-    layerRemoved = pyqtSignal(object)
+    activeLayerChanged = Signal()
+    canvasSizeChanged = Signal(QSize)
+    interactionModeChanged = Signal(int)
+    layersChanged = Signal()
+    layerRemoved = Signal(object)
 
     def __init__(self, view):
         # initialize the super class
@@ -84,10 +86,9 @@ class PreviewScene(QGraphicsScene):
 
     def createMediaLayer(self, name='Media Layer', filename='', autoResizeCanvas=False):
         if not filename:
-            from PyQt4.QtGui import QFileDialog
             from blurdev import media
 
-            filename = QFileDialog.getOpenFileName(
+            filename, _ = QtCompat.QFileDialog.getOpenFileName(
                 self._previewWidget, 'Select Media File', '', media.fileTypes()
             )
 
@@ -154,7 +155,7 @@ class PreviewScene(QGraphicsScene):
         return self._foregroundColor
 
     def flattenedPixmap(self):
-        from PyQt4.QtGui import QPixmap, QPainter
+        from Qt.QtGui import QPainter, QPixmap
 
         # create an output image
         output = QPixmap(self.canvasSize())
@@ -207,8 +208,8 @@ class PreviewScene(QGraphicsScene):
             layer.stopEditing(event)
 
     def pen(self):
-        from PyQt4.QtCore import Qt
-        from PyQt4.QtGui import QRadialGradient, QPen, QBrush
+        from Qt.QtCore import Qt
+        from Qt.QtGui import QBrush, QPen, QRadialGradient
 
         pen = QPen()
         pen.setColor(self.foregroundColor())
@@ -290,7 +291,7 @@ class PreviewScene(QGraphicsScene):
         self._canvasSize = size
         self.setSceneRect(0, 0, size.width(), size.height())
 
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         self._previewWidget.fitInView(
             0, 0, size.width(), size.height(), Qt.KeepAspectRatio

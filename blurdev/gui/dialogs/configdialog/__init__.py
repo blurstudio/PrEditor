@@ -8,6 +8,6 @@
 # 	\date		04/20/10
 #
 
-from configdialog import ConfigDialog
-from configsectionwidget import ConfigSectionWidget
-from configset import ConfigSet
+from .configdialog import ConfigDialog
+from .configsectionwidget import ConfigSectionWidget
+from .configset import ConfigSet

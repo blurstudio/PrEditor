@@ -9,7 +9,7 @@
 # 	\date		11/12/08
 #
 
-from PyQt4.QtGui import QSyntaxHighlighter
+from Qt.QtGui import QSyntaxHighlighter
 
 
 class Highlighter(QSyntaxHighlighter):
@@ -29,7 +29,7 @@ class Highlighter(QSyntaxHighlighter):
 
     def commentFormat(self):
         """ returns the comments QTextCharFormat for this highlighter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
+        from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()
         format.setForeground(QColor(0, 206, 52))
@@ -44,7 +44,7 @@ class Highlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         """ highlights the inputed text block based on the rules of this code highlighter """
         if not self.isConsoleMode() or str(text).startswith('>>>'):
-            from PyQt4.QtCore import QRegExp
+            from Qt.QtCore import QRegExp
 
             # format the keywords
             format = self.keywordFormat()
@@ -83,7 +83,7 @@ class Highlighter(QSyntaxHighlighter):
         # highlight all the given matches to the expression in the text
         while pos != -1:
             pos = expr.pos(offset)
-            length = expr.cap(offset).length()
+            length = len(expr.cap(offset))
 
             # use the last character if desired
             if includeLast:
@@ -100,7 +100,7 @@ class Highlighter(QSyntaxHighlighter):
 
     def keywordFormat(self):
         """ returns the keywords QTextCharFormat for this highlighter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
+        from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()
         format.setForeground(QColor(17, 154, 255))
@@ -152,7 +152,7 @@ class Highlighter(QSyntaxHighlighter):
 
     def stringFormat(self):
         """ returns the keywords QTextCharFormat for this highligter """
-        from PyQt4.QtGui import QTextCharFormat, QColor
+        from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()
         format.setForeground(QColor(255, 128, 0))

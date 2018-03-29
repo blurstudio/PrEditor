@@ -8,7 +8,7 @@
 # 	:date		01/21/11
 #
 
-from PyQt4.QtGui import QWidget
+from Qt.QtWidgets import QWidget
 
 
 class ToolsWidget(QWidget):
@@ -29,7 +29,7 @@ class ToolsWidget(QWidget):
         self._layersWidget = LayersWidget(self, scene)
 
         # set the icons
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
 
         self.uiNavigateModeBTN.setIcon(
             QIcon(blurdev.resourcePath('img/preview/navigate.png'))

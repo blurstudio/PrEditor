@@ -11,8 +11,10 @@
 import sip
 import pysvn
 
-from PyQt4.QtCore import QThread, pyqtSignal, Qt
-from PyQt4.QtGui import QTreeWidgetItem, QColor
+from Qt import QtCompat
+from Qt.QtCore import QThread, Qt
+from Qt.QtGui import QColor
+from Qt.QtWidgets import QTreeWidgetItem
 
 from blurdev.gui import Dialog
 
@@ -31,10 +33,10 @@ class SvnActionDialog(Dialog):
 
         # update the header
         header = self.uiLogTREE.header()
-        header.setResizeMode(0, header.ResizeToContents)
-        header.setResizeMode(1, header.ResizeToContents)
-        header.setResizeMode(2, header.ResizeToContents)
-        header.setResizeMode(3, header.Stretch)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 0, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 2, header.ResizeToContents)
+        QtCompat.QHeaderView.setSectionResizeMode(header, 3, header.Stretch)
 
         # define custom properties
         self._currthread = -1

@@ -9,8 +9,9 @@
 # 	\author		Blur Studio
 # 	\date		11/12/08
 #
-from PyQt4.QtGui import QSyntaxHighlighter, QMenu, QCursor
-from PyQt4.QtCore import QString
+from builtins import str as text
+from Qt.QtGui import QCursor, QSyntaxHighlighter
+from Qt.QtWidgets import QMenu
 
 # import the enchant library
 enchant = None
@@ -74,7 +75,7 @@ class SpellingHighlighter(QSyntaxHighlighter):
                     else:
                         menu.addAction('No Suguestions')
                     return menu
-            except Exception, e:
+            except Exception as e:
                 # provide information about what word caused the error.
                 e.args = e.args + ('Enchant check error on word:"%s"' % word,)
                 raise e
@@ -97,8 +98,8 @@ class SpellingHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         """ highlights the inputed text block based on the rules of this code highlighter """
         if self.isActive() and self._dictionary:
-            from PyQt4.QtCore import QRegExp, Qt
-            from PyQt4.QtGui import QTextCharFormat, QColor
+            from Qt.QtCore import QRegExp, Qt
+            from Qt.QtGui import QColor, QTextCharFormat
 
             # create the format
             format = QTextCharFormat()
@@ -108,15 +109,12 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
             # create the regexp
             expr = QRegExp(r'\S+\w')
-            # pyenchant has no concept of QStrings so convert to unicode to prevent encoding errors.
-            if isinstance(text, QString):
-                text = unicode(text)
             pos = expr.indexIn(text, 0)
 
             # highlight all the given matches to the expression in the text
             while pos != -1:
                 pos = expr.pos()
-                length = expr.cap().length()
+                length = len(expr.cap())
 
                 # extract the text chunk for highlighting
                 chunk = text[pos : pos + length]
@@ -147,7 +145,7 @@ class SpellingHighlighter(QSyntaxHighlighter):
     def test():
 
         from blurdev.gui import Dialog
-        from PyQt4.QtGui import QTextEdit, QVBoxLayout
+        from Qt.QtWidgets import QTextEdit, QVBoxLayout
 
         dlg = Dialog()
         dlg.setWindowTitle('Spell Check Test')

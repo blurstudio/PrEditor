@@ -1,6 +1,7 @@
-from PyQt4.QtCore import Qt, QObject, QPoint, QEvent
-from PyQt4.QtCore import pyqtSignal as Signal
-from PyQt4.QtGui import QApplication, QCursor, QMouseEvent
+from Qt.QtCore import QEvent, QObject, QPoint, Qt
+from Qt.QtCore import Signal
+from Qt.QtGui import QCursor, QMouseEvent
+from Qt.QtWidgets import QApplication
 
 
 class DragFilter(QObject):

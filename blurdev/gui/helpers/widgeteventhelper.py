@@ -11,7 +11,7 @@
 # 	\date		04/15/10
 #
 
-from PyQt4.QtCore import QObject
+from Qt.QtCore import QObject
 
 
 class WidgetEventHelper(QObject):

@@ -12,8 +12,9 @@ import pysvn
 import os.path
 
 from blurdev.gui import Dialog
-from PyQt4.QtCore import QThread, QFileInfo, QVariant, Qt
-from PyQt4.QtGui import QFileIconProvider, QTreeWidgetItem, QMessageBox
+from Qt import QtCompat
+from Qt.QtCore import QFileInfo, QThread, Qt
+from Qt.QtWidgets import QFileIconProvider, QMessageBox, QTreeWidgetItem
 
 from blurdev.ide.addons.svn import svnconfig
 from blurdev.ide.addons.svn import svnops
@@ -37,7 +38,9 @@ class SvnCommitDialog(Dialog):
         # update the header
         header = self.uiChangeTREE.header()
         for i in range(self.uiChangeTREE.columnCount() - 1):
-            header.setResizeMode(i, header.ResizeToContents)
+            QtCompat.QHeaderView.setSectionResizeMode(
+                header, i, header.ResizeToContents
+            )
 
         # create temp item
         item = QTreeWidgetItem(['Loading...'])
@@ -81,7 +84,7 @@ class SvnCommitDialog(Dialog):
         for i in range(self.uiChangeTREE.topLevelItemCount()):
             item = self.uiChangeTREE.topLevelItem(i)
             if item.checkState(0) == Qt.Checked:
-                filepath = str(item.data(0, Qt.UserRole).toString())
+                filepath = item.data(0, Qt.UserRole)
                 if item.text(2) == 'unversioned':
                     nonversioned.append(filepath)
                 filepaths.append(filepath)
@@ -187,7 +190,7 @@ class SvnCommitDialog(Dialog):
                     str(result.text_status),
                 ]
             )
-            item.setData(0, Qt.UserRole, QVariant(result.path))
+            item.setData(0, Qt.UserRole, result.path)
 
             # check if this status should be checked
             if data['commit_checked']:
@@ -234,12 +237,10 @@ class SvnCommitDialog(Dialog):
     def showMenu(self):
         item = self.uiChangeTREE.currentItem()
         if item:
-            from PyQt4.QtGui import QCursor
+            from Qt.QtGui import QCursor
             from svnactionmenu import SvnActionMenu
 
-            menu = SvnActionMenu(
-                self, 'commit', str(item.data(0, Qt.UserRole).toString())
-            )
+            menu = SvnActionMenu(self, 'commit', item.data(0, Qt.UserRole))
             menu.exec_(QCursor.pos())
 
     def updateInfo(self):

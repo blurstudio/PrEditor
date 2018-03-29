@@ -8,4 +8,4 @@
 # 	:date		04/20/10
 #
 
-from filepickerwidget import FilePickerWidget
+from .filepickerwidget import FilePickerWidget

@@ -8,8 +8,8 @@
 # 	\date		12/05/08
 #
 
-from PyQt4.QtGui import QDockWidget
-from PyQt4.QtCore import Qt
+from Qt.QtWidgets import QDockWidget
+from Qt.QtCore import Qt
 
 
 class DockWidget(QDockWidget):
@@ -75,6 +75,19 @@ class DockWidget(QDockWidget):
         # If this value is set to True the DockWidget will listen for blurdev.core.aboutToClearPaths and
         # call shutdown on the DockWidget.
         self.aboutToClearPathsEnabled = True
+
+    def _shouldDisableAccelerators(self, old, now):
+        """ Used to enable typing in DCC's that require it(Max 2018).
+
+        Args:
+            old (QWidget or None): The QWidget that lost focus.
+            new (QWidget or None): The QWidget that gained focus.
+
+        Returns:
+            bool: If accelerators should be disabled.
+        """
+        # By default we always want to disable accelerators.
+        return True
 
     def closeEvent(self, event):
         super(DockWidget, self).closeEvent(event)

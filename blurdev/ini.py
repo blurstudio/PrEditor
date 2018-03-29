@@ -5,7 +5,24 @@ Also has functions for accessing & setting INI information.
 
 """
 
-import ConfigParser
+from future.utils import iteritems
+from past.builtins import basestring
+from builtins import str as text
+
+_configParserKwargs = dict()
+try:
+    import configparser
+
+    # strict=False: Something in our current workflow is writing duplicate options in
+    # ini files. So for now when using the new configparser module we have to set its
+    # strict value to False so it doesn't error out when reading those files.
+    # interpolation=None: By default configparser expands %(key)s values with
+    # environment variables. It raises exceptions if it finds % that don't match that.
+    # This causes problems with render elements so we disable it.
+    _configParserKwargs = dict(strict=False, interpolation=None)
+except:
+    import ConfigParser as configparser
+
 import sys
 import os
 from contextlib import contextmanager
@@ -34,8 +51,8 @@ def GetINISetting(inFileName, inSection="", inKey=""):
     if os.path.isfile(inFileName):
         tParser = ToolParserClass()
         tParser.read(inFileName)
-        inSection = unicode(inSection)
-        inKey = unicode(inKey)
+        inSection = text(inSection)
+        inKey = text(inKey)
         if inSection:
             if tParser.has_section(inSection):
                 if inKey:
@@ -67,19 +84,19 @@ def SetINISetting(
         inSection (str): Name of the section the value is stored
         inKey (str): Name of the key to store the value
         inValue: The value to store
-        useConfigParser (bool): Use the ToolParserClass or ConfigParser class
+        useConfigParser (bool): Use the ToolParserClass or configparser class
         writeDefault (bool): If using ToolParserClass, should it write the DEFAULT section
         
     Returns:
         bool: IF it was able to save the ini setting to file.
     """
     if useConfigParser:
-        tParser = ConfigParser.ConfigParser()
+        tParser = configparser.ConfigParser(**_configParserKwargs)
     else:
         tParser = ToolParserClass(writeDefault=writeDefault)
-    inSection = unicode(inSection)
-    inKey = unicode(inKey)
-    inValue = unicode(inValue)
+    inSection = text(inSection)
+    inKey = text(inKey)
+    inValue = text(inValue)
 
     if os.path.isfile(inFileName):
         tParser.read(inFileName)
@@ -107,8 +124,8 @@ def DelINISetting(inFileName, inSection, inKey=""):
     if os.path.isfile(inFileName):
         tParser = ToolParserClass()
         tParser.read(inFileName)
-        inSection = unicode(inSection)
-        inKey = unicode(inKey)
+        inSection = text(inSection)
+        inKey = text(inKey)
 
         if tParser.has_section(inSection):
             if inKey:
@@ -156,7 +173,7 @@ class SectionClass(object):
         """
         if not attrKey.startswith('_'):
             return self.GetProperty(attrKey)
-        raise AttributeError, attrKey
+        raise AttributeError(attrKey)
 
     def __setattr__(self, attrKey, attrValue):
         """ Overloaded the set attribute for this class to run the SetProperty function for the given attribute
@@ -164,7 +181,7 @@ class SectionClass(object):
         if not attrKey.startswith('_'):
             self.SetProperty(attrKey, attrValue)
         else:
-            raise AttributeError, attrKey
+            raise AttributeError(attrKey)
 
     def __init__(self, sectionName):
         """ Class initialization.  Set the sectionName for the class instance to the given variable *required*
@@ -214,10 +231,10 @@ class SectionClass(object):
         if not parser.has_section(self._sectionName):
             parser.add_section(self._sectionName)
 
-        for tKey, tValue in self._properties.iteritems():
+        for tKey, tValue in iteritems(self._properties):
             # only save the value if its diffrent or not pressent in the default section
-            if self.GetProperty(tKey) != unicode(tValue):
-                parser.set(self._sectionName, tKey, unicode(tValue))
+            if self.GetProperty(tKey) != tValue:
+                parser.set(self._sectionName, tKey, tValue)
         return True
 
     def SetName(self, sectionName):
@@ -229,12 +246,12 @@ class SectionClass(object):
         """ Sets the property and value for the INI part based on the inputed values.  ** The inputed
             propName is converted to lowercase **
         """
-        propName = unicode(propName).lower()
+        propName = propName.lower()
         self._properties[propName] = propValue
         return True
 
 
-class ToolParserClass(ConfigParser.ConfigParser):
+class ToolParserClass(configparser.ConfigParser):
     """ Provides an easy way to create and manage tool related config files.
     """
 
@@ -247,10 +264,10 @@ class ToolParserClass(ConfigParser.ConfigParser):
         """
         if not attrKey.startswith('_'):
             return self.GetSection(attrKey)
-        raise AttributeError, attrKey
+        raise AttributeError(attrKey)
 
     def __init__(self, toolID='', location='', writeDefault=True):
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self, **_configParserKwargs)
         self._toolID = toolID
         self._location = location
         self._sectionClasses = []
@@ -320,8 +337,8 @@ class ToolParserClass(ConfigParser.ConfigParser):
             try:
                 self.read(fileName)
             except (
-                ConfigParser.MissingSectionHeaderError,
-                ConfigParser.ParsingError,
+                configparser.MissingSectionHeaderError,
+                configparser.ParsingError,
                 UnicodeError,
             ):
                 if fileName == configFile:
@@ -332,13 +349,15 @@ class ToolParserClass(ConfigParser.ConfigParser):
                         try:
                             self.read(fileName)
                         except (
-                            ConfigParser.MissingSectionHeaderError,
-                            ConfigParser.ParsingError,
+                            configparser.MissingSectionHeaderError,
+                            configparser.ParsingError,
                             UnicodeError,
                         ):
                             # The backup is corrupted there is nothing else we can do automatically.
-                            print 'The backup config file for "{fileName}" is corrupted. Unable to load blurdev config.'.format(
-                                fileName=fileName
+                            print(
+                                'The backup config file for "{fileName}" is corrupted. Unable to load blurdev config.'.format(
+                                    fileName=fileName
+                                )
                             )
                             return False
             self._sectionClasses = []
@@ -352,8 +371,8 @@ class ToolParserClass(ConfigParser.ConfigParser):
 
     def read(self, filenames):
         try:
-            read_ok = ConfigParser.ConfigParser.read(self, filenames)
-        except ConfigParser.MissingSectionHeaderError:
+            read_ok = configparser.ConfigParser.read(self, filenames)
+        except configparser.MissingSectionHeaderError:
             # Attempt to read the file using a specific encoding.
             read_ok = []
             if isinstance(filenames, basestring):
@@ -406,8 +425,7 @@ class ToolParserClass(ConfigParser.ConfigParser):
                     for (key, value) in sorted(self._sections[section].items()):
                         if key != "__name__":
                             fp.write(
-                                "%s = %s\n"
-                                % (key, unicode(value).replace('\n', '\n\t'))
+                                "%s = %s\n" % (key, text(value).replace('\n', '\n\t'))
                             )
                     fp.write("\n")
                 elif section in environments:
@@ -420,8 +438,7 @@ class ToolParserClass(ConfigParser.ConfigParser):
                     ):
                         if key != "__name__":
                             fp.write(
-                                "%s = %s\n"
-                                % (key, unicode(value).replace('\n', '\n\t'))
+                                "%s = %s\n" % (key, text(value).replace('\n', '\n\t'))
                             )
                     fp.write("\n")
         for section in sorted(self._sections):
@@ -429,9 +446,7 @@ class ToolParserClass(ConfigParser.ConfigParser):
                 fp.write("[%s]\n" % section)
                 for (key, value) in sorted(self._sections[section].items()):
                     if key != "__name__":
-                        fp.write(
-                            "%s = %s\n" % (key, unicode(value).replace('\n', '\n\t'))
-                        )
+                        fp.write("%s = %s\n" % (key, text(value).replace('\n', '\n\t')))
                 fp.write("\n")
 
 
@@ -631,14 +646,14 @@ def LoadConfigData():
         blurConfigFile.Load(configFile)
 
         TEMPORARY_TOOLS_ENV = blurdev.tools.TEMPORARY_TOOLS_ENV
-        activeEnvironment = unicode(blurdev.activeEnvironment().legacyName())
+        activeEnvironment = blurdev.activeEnvironment().legacyName()
 
         for tSection in blurConfigFile.GetSections():
             if tSection.GetName().lower() != 'globals':
                 environments[tSection.GetName()] = tSection
 
         tDefaultSection = SectionClass('DEFAULT')
-        for tKey, tValue in blurConfigFile.defaults().iteritems():
+        for tKey, tValue in iteritems(blurConfigFile.defaults()):
             tDefaultSection.SetProperty(tKey, tValue)
         environments['default'] = tDefaultSection
 
@@ -667,7 +682,7 @@ def RestoreConfig(fileName, msg=None):
     path = os.environ.get('BDEV_CONFIG_INI_BACKUP')
     if path and os.path.exists(path):
         if msg:
-            print msg.format(fileName=fileName)
+            print(msg.format(fileName=fileName))
         import shutil
 
         shutil.copy2(path, fileName)

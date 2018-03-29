@@ -18,7 +18,7 @@ plugindef = """##
 #	\\date		12/07/08
 #
 
-from PyQt4.QtDesigner 	import QPyDesignerCustomWidgetPlugin
+from Qt.QtDesigner 	import QPyDesignerCustomWidgetPlugin
 
 class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
     def __init__( self, parent = None ):
@@ -46,7 +46,7 @@ class %(class)sPlugin( QPyDesignerCustomWidgetPlugin ):
         return "%(group)s"
     
     def icon( self ):
-        from PyQt4.QtGui import QIcon
+        from Qt.QtGui import QIcon
         return QIcon( "%(icon)s" )
     
     def toolTip( self ):
@@ -109,7 +109,7 @@ def init():
             try:
                 __import__( fullname )
             except:
-                print 'Error loading %s' % fullname
+                print('Error loading %s' % fullname)
 
 def loadPlugins( filename, importPath = '' ):
     from blurdev.XML import XMLDocument

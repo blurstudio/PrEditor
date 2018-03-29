@@ -19,6 +19,7 @@ Max documentation for editing dso properties:
 
 """
 
+from past.builtins import long
 from win32com.client import Dispatch as _Dispatch
 from blurdev.enum import enum as _enum
 

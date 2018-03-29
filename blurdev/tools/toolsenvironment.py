@@ -14,11 +14,18 @@ import sys
 import re
 import datetime
 
-from PyQt4.QtCore import QObject, pyqtSignal, QDateTime
+from Qt.QtCore import QDateTime, QObject
 
 import blurdev
 import blurdev.tools.toolsindex
-import blur.Projects
+
+try:
+    from blur.Projects import customize
+except ImportError:
+    # If blur.Projects is not importable, rather than except, create a dummy decorator to
+    # replace it.
+    def customize(func):
+        return func
 
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
@@ -168,19 +175,19 @@ class ToolsEnvironment(QObject):
 
         return True
 
-    @blur.Projects.customize
+    @customize
     def activateProject(self):
         pass
 
-    @blur.Projects.customize
+    @customize
     def deactivateProject(self):
         pass
 
-    @blur.Projects.customize
+    @customize
     def constructProjectForApplication(self, app):
         return None
 
-    @blur.Projects.customize
+    @customize
     def destructProjectForApplication(self, app):
         return None
 
@@ -260,10 +267,10 @@ class ToolsEnvironment(QObject):
                 'w': 'weeks',
             }
             d = {}
-            print 'TIMEOUT', self._timeout
+            print('TIMEOUT', self._timeout)
             for arg in self._timeout.split(':'):
                 m = re.match(r'(?P<num>\d+)(?P<type>[dmhsw])', arg, re.I)
-                print arg, m
+                print(arg, m)
                 if not m:
                     continue
                 gd = m.groupdict()
@@ -278,10 +285,10 @@ class ToolsEnvironment(QObject):
             return None
         now = QDateTime.currentDateTime()
         try:
-            print 'TIMEOUT', self._timeout
+            print('TIMEOUT', self._timeout)
             for arg in self._timeout.split(':'):
                 m = re.match(r'(?P<num>\d+)(?P<type>[dmhsw])', arg, re.I)
-                print arg, m
+                print(arg, m)
                 if not m:
                     continue
                 gd = m.groupdict()
@@ -373,7 +380,7 @@ class ToolsEnvironment(QObject):
             self.registerPaths()
 
             # set the legacy environment active
-            blurdev.ini.SetActiveEnvironment(unicode(self.legacyName()))
+            blurdev.ini.SetActiveEnvironment(self.legacyName())
 
             # emit the environment activateion change signal
             if not silent:
@@ -586,7 +593,7 @@ class ToolsEnvironment(QObject):
         """
         # Find the environmet by name.
         for env in ToolsEnvironment.environments:
-            if unicode(env.objectName()) == unicode(name):
+            if env.objectName() == name:
                 return env
         # If the environment was not found by name, find it by path if one was provided.
         if path:

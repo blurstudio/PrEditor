@@ -1,7 +1,7 @@
 import os
 import sys
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QApplication, QMainWindow
+from Qt.QtCore import Qt
+from Qt.QtWidgets import QApplication, QMainWindow
 import maya.cmds
 
 import blurdev.tools.tool

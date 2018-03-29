@@ -9,8 +9,8 @@
 #
 
 import re
-from PyQt4.Qsci import QsciLexerCPP
-from PyQt4.QtGui import QColor
+from Qt.Qsci import QsciLexerCPP
+from Qt.QtGui import QColor
 
 MU_KEYWORDS = """
 method string Color use require module for_each let global function nil void

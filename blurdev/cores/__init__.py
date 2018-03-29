@@ -20,74 +20,74 @@ _houdiniExecs = ['hmaster', 'hython', 'houdini', 'hescape']
 # initialize the system for Motion Builder
 if 'maya' in _exe:
     try:
-        from mayacore import MayaCore as Core
+        from .mayacore import MayaCore as Core
     except:
         pass
 
 # initialize the system for Motion Builder
 if 'motionbuilder' in _exe:
     try:
-        from motionbuildercore import MotionBuilderCore as Core
+        from .motionbuildercore import MotionBuilderCore as Core
     except:
         pass
 
 # initialize the system for 3d Studio Max
 elif 'max' in _exe:
     try:
-        from studiomaxcore import StudiomaxCore as Core
+        from .studiomaxcore import StudiomaxCore as Core
     except:
         pass
 
 # initialize the system for Softimage
 elif 'xsi' in _exe:
     try:
-        from softimagecore import SoftimageCore as Core
+        from .softimagecore import SoftimageCore as Core
     except:
         pass
 
 # initialize the system for running inside Fusion
 elif 'fusion' in _exe:
     try:
-        from fusioncore import FusionCore as Core
+        from .fusioncore import FusionCore as Core
     except:
         pass
 
 # initialize the system for running inside Nuke
 elif 'nuke' in _exe:
-    from nukecore import NukeCore as Core
+    from .nukecore import NukeCore as Core
 
     try:
-        from nukecore import NukeCore as Core
+        from .nukecore import NukeCore as Core
     except:
         pass
 
 # initialize the system for running inside Mari
 elif 'mari' in _exe:
-    from maricore import MariCore as Core
+    from .maricore import MariCore as Core
 
     try:
-        from maricore import MariCore as Core
+        from .maricore import MariCore as Core
     except:
         pass
 
 ## initialize the system for running inside Houdini
 elif any(exeName in _exe for exeName in _houdiniExecs):
-    from houdinicore import HoudiniCore as Core
+    from .houdinicore import HoudiniCore as Core
 
     try:
-        from houdinicore import HoudiniCore as Core
+        from .houdinicore import HoudiniCore as Core
     except:
         pass
 
 # initialize the system for running inside RV
 elif 'rv' in _exe:
-    from rvcore import RVCore as Core
+    from .rvcore import RVCore as Core
 
     try:
-        from rvcore import RVCore as Core
+        from .rvcore import RVCore as Core
     except:
         pass
 
 if Core is None:
     # import the default core
-    from core import Core
+    from .core import Core

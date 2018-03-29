@@ -12,21 +12,23 @@ import os
 import glob
 import random
 
-from PyQt4.QtCore import pyqtProperty
-from PyQt4.QtGui import QPixmap, QSplashScreen
+import Qt
+from Qt.QtCore import Property
+from Qt.QtGui import QPixmap
+from Qt.QtWidgets import QSplashScreen
 
-from window import Window
-from dialog import Dialog
-from dockwidget import DockWidget
-from wizard import Wizard
+from .window import Window
+from .dialog import Dialog
+from .dockwidget import DockWidget
+from .wizard import Wizard
 from functools import partial
 
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
-def pyqtPropertyInit(name, default, callback=None):
-    """Initializes a default pyqtProperty value with a usable getter and setter.
+def QtPropertyInit(name, default, callback=None):
+    """Initializes a default Property value with a usable getter and setter.
     
     You can optionally pass a function that will get called any time the property
     is set. If using the same callback for multiple properties, you may want to 
@@ -39,16 +41,16 @@ def pyqtPropertyInit(name, default, callback=None):
             def __init__(self, *args, **kwargs):
                 super(TestClass, self).__init__(*args, **kwargs)
 
-            stdoutColor = pyqtPropertyInit('_stdoutColor', QColor(0, 0, 255))
-            pyForegroundColor = pyqtPropertyInit('_pyForegroundColor', QColor(0, 0, 255))
+            stdoutColor = QtPropertyInit('_stdoutColor', QColor(0, 0, 255))
+            pyForegroundColor = QtPropertyInit('_pyForegroundColor', QColor(0, 0, 255))
 
     Args:
         name(str): The name of internal attribute to store to and lookup from.
-        default: The property's default value.  This will also define the pyqtProperty type.
+        default: The property's default value.  This will also define the Property type.
         callback(callable): If provided this function is called when the property is set.
 
     Returns:
-        pyqtProperty
+        Property
     """
 
     def _getattrDefault(default, self, attrName):
@@ -66,9 +68,25 @@ def pyqtPropertyInit(name, default, callback=None):
 
     ga = partial(_getattrDefault, default)
     sa = partial(_setattrCallback, callback, name)
-    return pyqtProperty(
+    return Property(
         default.__class__, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)),
     )
+
+
+# --------------------------------------------------------------------------------
+# pyqtPropertyInit is being removed. I'm leaving a version of it for PyQt4 to make migrating
+# easier. This function will not be available in PyQt5 to encourage migrating to QtPropertyInit.
+if Qt.__binding__ == 'PyQt4':
+
+    def pyqtPropertyInit(name, default, callback=None):
+        import warnings
+
+        msg = "Use blurdev.gui.QtPropertyInit instead of blurdev.gui.pyqtPropertyInit. It is only valid for PyQt4"
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        return QtPropertyInit(name, default, callback=callback)
+
+
+# --------------------------------------------------------------------------------
 
 
 def randomSplashScreen(toolname='default'):
@@ -168,7 +186,7 @@ def compPixmap(imageData):
             [map, [4,2]]]
     map = compPixmap(data)
     """
-    from PyQt4.QtGui import QPainter, QPixmap
+    from Qt.QtGui import QPainter
 
     if isinstance(imageData[0][0], QPixmap):
         map = imageData[0][0]
@@ -196,12 +214,16 @@ def compPixmap(imageData):
 
 
 def loadUi(filename, widget, uiname=''):
+    """ use's Qt's uic loader to load dynamic interafces onto the inputed widget
+
+    Args:
+        filename (str): The python filename. Its basename will be split off, and a
+            ui folder will be added. The file ext will be changed to .ui
+        widget (QWidget): The basewidget the ui file will be loaded onto.
+        uiname (str, optional): Used instead of the basename. This is useful if
+            filename is not the same as the ui file you want to load.
     """
-        \remarks	use's Qt's uic loader to load dynamic interafces onto the inputed widget
-        \param		filename	<str>
-        \param		widget		<QWidget>
-    """
-    import PyQt4.uic
+    from Qt import QtCompat
     import os.path
 
     # first, inherit the palette of the parent
@@ -211,7 +233,7 @@ def loadUi(filename, widget, uiname=''):
     if not uiname:
         uiname = os.path.basename(filename).split('.')[0]
 
-    PyQt4.uic.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
+    QtCompat.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
 
 
 def findPixmap(filename, thumbSize=None):
@@ -221,8 +243,8 @@ def findPixmap(filename, thumbSize=None):
         \param		filename	<str>
         \param		thumbSize	<QSize>		size to scale the item to if desired (will affect the search key)
     """
-    from PyQt4.QtCore import Qt
-    from PyQt4.QtGui import QPixmapCache, QPixmap
+    from Qt.QtCore import Qt
+    from Qt.QtGui import QPixmapCache, QPixmap
 
     # create the thumbnail size
     if thumbSize:
@@ -280,7 +302,8 @@ def connectLogger(
     :return : The created QAction
     """
     import blurdev
-    from PyQt4.QtGui import QAction, QKeySequence
+    from Qt.QtGui import QKeySequence
+    from Qt.QtWidgets import QAction
 
     if start:
         blurdev.core.logger(parent)

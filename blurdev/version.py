@@ -4,8 +4,8 @@
 import os
 import re
 
-_major = 1  # User defined major version
-_minor = 10  # User defined minor version
+_major = 2  # User defined major version
+_minor = 1  # User defined minor version
 
 # Load build version from file
 _currentBuild = 0

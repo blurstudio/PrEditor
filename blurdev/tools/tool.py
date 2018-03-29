@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
+from past.builtins import basestring
 import os
 
-from PyQt4.QtCore import QObject, Qt
-from PyQt4.QtGui import QApplication
+from Qt.QtCore import QObject, Qt
+from Qt.QtWidgets import QApplication
 
 import blurdev
 from ..enum import enum
@@ -124,18 +125,12 @@ class Tool(QObject):
 
     def image(self, replace=None):
         """ Returns a QImage of the icon including any alpha channel """
-        from PyQt4.QtGui import QImage
+        from Qt.QtGui import QImage
 
         iconName = self.icon()
         if isinstance(replace, (tuple, list)):
             iconName = iconName.replace(replace[0], replace[1])
-        ret = QImage(iconName)
-        isBmp = os.path.splitext(iconName)[-1] == '.bmp'
-        if isBmp:
-            alpha = QImage(iconName.replace('.bmp', '_a.bmp'))
-            if not alpha.isNull():
-                ret.setAlphaChannel(alpha)
-        return ret
+        return QImage(iconName)
 
     def isFavorite(self):
         return self._favorite

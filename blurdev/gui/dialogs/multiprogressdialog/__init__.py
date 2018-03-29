@@ -8,5 +8,5 @@
 # 	\date		03/14/11
 #
 
-from multiprogressdialog import MultiProgressDialog
-from progresssection import ProgressSection
+from .multiprogressdialog import MultiProgressDialog
+from .progresssection import ProgressSection

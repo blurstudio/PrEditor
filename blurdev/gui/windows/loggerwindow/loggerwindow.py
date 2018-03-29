@@ -8,28 +8,32 @@
 # 	\date		01/15/08
 #
 
-import os, time
+import os
+import re
+import sys
+import time
+import warnings
 from functools import partial
-from blurdev.gui import Window
+from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
-from workboxwidget import WorkboxWidget
+from .workboxwidget import WorkboxWidget
 from blurdev import prefs
-from PyQt4.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
-from PyQt4.QtGui import (
-    QSplitter,
-    QKeySequence,
-    QIcon,
-    QColor,
-    QWidget,
-    QMessageBox,
-    QMenu,
-    QCursor,
-    QInputDialog,
+from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
+from Qt.QtGui import QColor, QCursor, QIcon, QKeySequence
+from Qt.QtWidgets import (
     QApplication,
-    QLabel,
     QFileDialog,
     QFileIconProvider,
+    QInputDialog,
+    QLabel,
+    QMenu,
+    QMessageBox,
+    QSplitter,
+    QWidget,
+    QTextBrowser,
+    QVBoxLayout,
 )
+from Qt import QtCompat
 import blurdev
 
 
@@ -118,11 +122,13 @@ class LoggerWindow(Window):
         self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
-        self.uiSdkBrowserACT.triggered.connect(self.showSdk)
+        self.uiResetWarningFiltersACT.triggered.connect(warnings.resetwarnings)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
+        self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
+        self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
@@ -138,6 +144,7 @@ class LoggerWindow(Window):
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(blurdev.resourcePath('img/savesettings.png'))
         )
+        self.uiAboutBlurdevACT.setIcon(QIcon(blurdev.resourcePath('img/info.png')))
         self.uiCloseLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
 
         self.uiPdbContinueACT.setIcon(
@@ -162,8 +169,6 @@ class LoggerWindow(Window):
         self.restorePrefs()
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
-        import sys, platform
-
         loggerName = QApplication.instance().translate(
             'PythonLoggerWindow', 'Python Logger'
         )
@@ -249,9 +254,7 @@ class LoggerWindow(Window):
 
     def gotoError(self):
         text = self.uiConsoleTXT.textCursor().selectedText()
-        import re
-
-        results = re.match('[ \t]*File "([^"]+)", line (\d+)', unicode(text))
+        results = re.match('[ \t]*File "([^"]+)", line (\d+)', text)
         if results:
             from blurdev.ide import IdeEditor
 
@@ -323,9 +326,6 @@ class LoggerWindow(Window):
         pref.recordProperty(
             'clearBeforeEnvRefresh', self.uiClearLogOnRefreshACT.isChecked()
         )
-        pref.recordProperty(
-            'disableSdkShortcut', self.uiDisableSDKShortcutACT.isChecked()
-        )
         pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
 
@@ -394,9 +394,6 @@ class LoggerWindow(Window):
         )
         self.uiClearLogOnRefreshACT.setChecked(
             pref.restoreProperty('clearBeforeEnvRefresh', False)
-        )
-        self.uiDisableSDKShortcutACT.setChecked(
-            pref.restoreProperty('disableSdkShortcut', False)
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
         font = pref.restoreProperty('consoleFont', None)
@@ -518,6 +515,49 @@ class LoggerWindow(Window):
         else:
             self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
 
+    def showAbout(self):
+        from Qt import __binding__, __binding_version__, __version__ as qtpyVersion
+
+        msg = [
+            'blurdev: {}'.format(blurdev.version.toString()),
+            '    {}'.format(os.path.dirname(blurdev.__file__)),
+        ]
+        # When trax is imported it creates this env var for error reporting.
+        # We don't want to inport trax to generate version info, but show it if possible.
+        if os.getenv('BDEV_EMAILINFO_TRAX_VERSION'):
+            msg.append('trax: {}'.format(os.getenv('BDEV_EMAILINFO_TRAX_VERSION')))
+            if 'trax' in sys.modules:
+                import trax
+
+                msg.append('    {}'.format(os.path.dirname(trax.__file__)))
+
+        msg.append('{qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__))
+        msg.append('Qt.py: {}'.format(qtpyVersion))
+
+        try:
+            # QtSiteConfig is optional
+            import QtSiteConfig
+
+            msg.append('QtSiteConfig: {}'.format(QtSiteConfig.__version__))
+        except (ImportError, AttributeError):
+            pass
+
+        msg = '\n'.join(msg)
+        QMessageBox.information(self, 'About blurdev', msg)
+
+    def showEnvironmentVars(self):
+        from blurdev.gui import Dialog
+
+        dlg = Dialog(blurdev.core.logger())
+        lyt = QVBoxLayout(dlg)
+        lbl = QTextBrowser(dlg)
+        lyt.addWidget(lbl)
+        dlg.setWindowTitle('Blurdev Environment Variable Help')
+        with open(blurdev.resourcePath('environment_variables.html')) as f:
+            lbl.setText(f.read().replace('\n', ''))
+        dlg.setMinimumSize(600, 400)
+        dlg.show()
+
     def showEvent(self, event):
         super(LoggerWindow, self).showEvent(event)
         self.restoreToolbars()
@@ -540,10 +580,6 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
         # If the user has set a stylesheet on the logger we need to refresh it
         self.setStyleSheet(self.styleSheet())
-
-    def showSdk(self):
-        if not self.uiDisableSDKShortcutACT.isChecked():
-            blurdev.core.sdkBrowser().show()
 
     def shutdown(self):
         # close out of the ide system
@@ -588,10 +624,11 @@ class LoggerWindow(Window):
 
             # Handle the file dialog
             filters = "Python Files (*.py);;All Files (*.*)"
-            path = QFileDialog.getOpenFileName(self, "Link File", prevPath, filters)
+            path, _ = QtCompat.QFileDialog.getOpenFileName(
+                self, "Link File", prevPath, filters
+            )
             if not path:
                 return
-            path = unicode(path)
             pref.recordProperty('linkFolder', os.path.dirname(path))
             pref.save()
 

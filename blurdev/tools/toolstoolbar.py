@@ -1,5 +1,6 @@
-from PyQt4.QtCore import Qt, QSize
-from PyQt4.QtGui import QAction, QToolBar, QIcon, QMenu, QCursor, QHBoxLayout, QPixmap
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QCursor, QIcon, QPixmap
+from Qt.QtWidgets import QAction, QHBoxLayout, QMenu, QToolBar
 
 import blurdev
 from ..gui import Dialog
@@ -63,13 +64,13 @@ class ToolsToolBar(QToolBar):
         data = event.mimeData()
 
         # accept tool item drag/drop events
-        if str(data.text()).startswith('Tool'):
+        if data.text().startswith('Tool'):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
         """ handle the drop event for this item """
         data = event.mimeData()
-        text = str(data.text())
+        text = data.text()
 
         # add a tool item
         if text.startswith('Tool'):

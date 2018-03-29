@@ -8,8 +8,10 @@
 # 	:date		07/09/10
 #
 
-from PyQt4.QtGui import QTextEdit, QDropEvent
-from PyQt4.QtCore import QString, Qt, QMimeData
+from builtins import str as text
+from Qt.QtGui import QDropEvent
+from Qt.QtWidgets import QTextEdit
+from Qt.QtCore import QMimeData, Qt
 import cgi
 
 
@@ -18,11 +20,11 @@ class DragDropTestWidget(QTextEdit):
         super(DragDropTestWidget, self).__init__(parent)
         self.excludeFormats = set(
             [
-                QString('text/plain'),
-                QString('text/uri-list'),
-                QString('text/html'),
-                QString('text/uri-lis'),
-                QString('application/x-color'),
+                'text/plain',
+                'text/uri-list',
+                'text/html',
+                'text/uri-lis',
+                'application/x-color',
             ]
         )
         # a cached instance of the last drop QMimeData
@@ -37,11 +39,11 @@ class DragDropTestWidget(QTextEdit):
         if isinstance(event, QDropEvent):
             html.append(
                 '<h1>Drop Event</h1><small><b>source:</b></small> %s'
-                % cgi.escape(unicode(event.source()))
+                % cgi.escape(event.source())
             )
             html.append(
                 '<small><b>proposed action:</b></small> %s'
-                % cgi.escape(unicode(event.proposedAction()))
+                % cgi.escape(event.proposedAction())
             )
             possibleActions = event.possibleActions().__int__()
             html.append('<small><b>possible actions:</b></small> %i' % possibleActions)
@@ -74,11 +76,11 @@ class DragDropTestWidget(QTextEdit):
         html.append('<small><b>has text:</b></small> %r' % data.hasText())
         html.append('<small><b>has urls:</b></small> %r' % data.hasUrls())
         html.append('<br>')
-        html.append('<small><b>text:</b></small> %s' % cgi.escape(unicode(data.text())))
-        html.append('<small><b>html:</b></small> %s' % cgi.escape(unicode(data.html())))
+        html.append('<small><b>text:</b></small> %s' % cgi.escape(data.text()))
+        html.append('<small><b>html:</b></small> %s' % cgi.escape(data.html()))
         html.append(
             '<small><b>urls:</b></small><br> %s'
-            % '<br>'.join([cgi.escape(unicode(url.toString())) for url in data.urls()])
+            % '<br>'.join([cgi.escape(url.toString()) for url in data.urls()])
         )
         html.append('<small><b>Additional Formats:</b></small>')
         for f in data.formats():
@@ -108,7 +110,7 @@ class DragDropTestWidget(QTextEdit):
     @staticmethod
     def runTest():
         from blurdev.gui import Dialog
-        from PyQt4.QtGui import QVBoxLayout
+        from Qt.QtWidgets import QVBoxLayout
 
         dlg = Dialog()
         dlg.setWindowTitle('Drag Drop Test')

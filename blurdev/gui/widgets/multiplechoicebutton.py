@@ -8,9 +8,8 @@
 # 	:date		03/28/11
 #
 
-from PyQt4.QtCore import pyqtSignal, QLine, pyqtProperty, Qt, QRect, QSize
-from PyQt4.QtGui import (
-    QAbstractButton,
+from Qt.QtCore import Signal, QLineF, Property, Qt, QRect, QSize
+from Qt.QtGui import (
     QPainter,
     QColor,
     QPalette,
@@ -19,11 +18,12 @@ from PyQt4.QtGui import (
     QBrush,
     QCursor,
 )
+from Qt.QtWidgets import QAbstractButton
 
 
 class MultipleChoiceButton(QAbstractButton):
-    currentChoiceChanged = pyqtSignal(str)  # emitted when the current choice is changed
-    currentValueChanged = pyqtSignal(
+    currentChoiceChanged = Signal(str)  # emitted when the current choice is changed
+    currentValueChanged = Signal(
         int
     )  # emitted when the current choice is changed, only if an enum instance is provided for the system
 
@@ -150,7 +150,7 @@ class MultipleChoiceButton(QAbstractButton):
             found = False
 
             for i in range(count - 1):
-                lines.append(QLine(currx + bw, y, currx + bw, h))
+                lines.append(QLineF(currx + bw, y, currx + bw, h))
 
                 # see if the current button is part of the choices
                 if self._choices[i] == currchoice:
@@ -245,6 +245,6 @@ class MultipleChoiceButton(QAbstractButton):
     def setCornerRadius(self, cornerRadius):
         self._cornerRadius = cornerRadius
 
-    pyCornerRadius = pyqtProperty('int', cornerRadius, setCornerRadius)
-    pyCurrentChoice = pyqtProperty('QString', currentChoice, setCurrentChoice)
-    pyChoices = pyqtProperty('QStringList', choices, setChoices)
+    pyCornerRadius = Property('int', cornerRadius, setCornerRadius)
+    pyCurrentChoice = Property('QString', currentChoice, setCurrentChoice)
+    pyChoices = Property('QStringList', choices, setChoices)

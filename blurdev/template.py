@@ -10,6 +10,7 @@
 
 import os
 import glob
+from builtins import str as text
 
 from blurdev import osystem
 
@@ -106,7 +107,7 @@ def fromFile(filename, options={}):
         data = f.read()
         f.close()
     except:
-        print 'Error opening file', filename
+        print('Error opening file', filename)
         return ''
 
     return formatText(data, options)
@@ -119,7 +120,7 @@ def formatFile(input, output, options={}):
         data = f.read()
         f.close()
     except:
-        print 'Error opening file from: ', input
+        print('Error opening file from: ', input)
         return False
 
     if data:
@@ -135,18 +136,16 @@ def formatFile(input, output, options={}):
     return False
 
 
-def formatText(text, options={}):
-    text = unicode(text)
-
+def formatText(txt, options={}):
     import re
 
     # replace the document indent with preferenced spacing
-    text = text.replace('[  ]', os.environ.get('BDEV_DOCUMENT_INDENT', '    '))
+    txt = txt.replace('[  ]', os.environ.get('BDEV_DOCUMENT_INDENT', '    '))
 
     # process templates
-    results = re.findall('\[([a-zA-Z:_-]+)\]', text)
+    results = re.findall('\[([a-zA-Z:_-]+)\]', txt)
 
-    from PyQt4.QtCore import QDate, QDateTime
+    from Qt.QtCore import QDate, QDateTime
 
     for result in results:
         force = False
@@ -234,13 +233,13 @@ def formatText(text, options={}):
             force = True
 
         if repl or force:
-            text = text.replace('[%s]' % result, unicode(repl))
+            txt = txt.replace('[%s]' % result, text(repl))
 
     # replace placeholder []'s
-    text = text.replace('\[', '[').replace('\]', ']')
+    txt = txt.replace('\[', '[').replace('\]', ']')
 
     # process code snippets
-    results = re.findall('{!.*(?=!})!}', text)
+    results = re.findall('{!.*(?=!})!}', txt)
     for result in results:
         c = result.replace('{!', '').replace('!}', '').strip()
         try:
@@ -248,6 +247,6 @@ def formatText(text, options={}):
         except:
             ctext = c
 
-        text = text.replace(result, ctext)
+        txt = txt.replace(result, ctext)
 
-    return text
+    return txt

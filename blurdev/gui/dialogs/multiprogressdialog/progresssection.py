@@ -8,14 +8,14 @@
 # 	\date		03/14/11
 #
 
-from PyQt4.QtGui import QTreeWidgetItem
+from Qt.QtWidgets import QTreeWidgetItem
 
 
 class ProgressSection(QTreeWidgetItem):
     def __init__(self, name, count=100, value=-1, allowsCancel=False):
         QTreeWidgetItem.__init__(self, [name])
 
-        from PyQt4.QtCore import Qt, QSize
+        from Qt.QtCore import QSize, Qt
 
         self.setTextAlignment(1, Qt.AlignRight | Qt.AlignVCenter)
         self.setSizeHint(1, QSize(20, 18))
@@ -70,7 +70,7 @@ class ProgressSection(QTreeWidgetItem):
         return float(self._value + 1) / self._count
 
     def refreshLook(self):
-        from PyQt4.QtGui import QColor
+        from Qt.QtGui import QColor
 
         # set the error look
         if self._errorText:

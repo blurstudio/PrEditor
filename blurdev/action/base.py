@@ -1,4 +1,6 @@
 # pylint: disable=protected-access
+
+from future.utils import iteritems, with_metaclass
 import inspect
 import os.path
 import sys
@@ -27,19 +29,17 @@ class _ActionMeta(type):
 
         """
         d = {}
-        for k, v in dct.iteritems():
+        for k, v in iteritems(dct):
             if isinstance(v, (argproperty, childaction)):
                 d[k] = v(None, nameOverride=k)
         dct.update(d)
         return super(_ActionMeta, meta).__new__(meta, name, bases, dct)
 
 
-class Action(object):
+class Action(with_metaclass(_ActionMeta, object)):
     """An abstract base class that is the core of the action framework.  All
     concrete actions are derived from this class.
     """
-
-    __metaclass__ = _ActionMeta
 
     def __new__(cls, *args, **kwargs):
         if cls is Action:
@@ -334,7 +334,7 @@ class Action(object):
                     appMethods[mName] = method
                 elif mName not in appMethods:
                     appMethods[mName] = self._unimplementedApplicationMethod
-        for mName, method in appMethods.iteritems():
+        for mName, method in iteritems(appMethods):
             setattr(self, mName, method)
 
     def _registerChildActions(self, *args, **kwargs):
@@ -563,7 +563,7 @@ class Action(object):
         # check for the programmer defined `kwargs` property
         # Search for 'noPickle' in FarmAction for an example usecase
         desc = []
-        for attrName, attr in self.__dict__.iteritems():
+        for attrName, attr in iteritems(self.__dict__):
             if isinstance(attr, _PropertyDescriptor):
                 desc.append(attr)
         return desc

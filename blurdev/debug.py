@@ -29,6 +29,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
    
 """
 
+from past.builtins import basestring
 import os
 import sys
 import time
@@ -36,7 +37,7 @@ import weakref
 import datetime
 import traceback
 
-from PyQt4.QtCore import Qt, QString
+from Qt.QtCore import Qt
 
 import blurdev
 from blurdev.contexts import ErrorReport
@@ -185,9 +186,9 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
         sys.stderr = FileLogger(sys.stderr, path, useOldStd, clearLog=clearLog)
     if stdout:
         sys.stdout = FileLogger(sys.stdout, path, useOldStd, clearLog=clearLog)
-        print '--------- Date: %s Version: %s ---------' % (
-            datetime.datetime.today(),
-            sys.version,
+        print(
+            '--------- Date: %s Version: %s ---------'
+            % (datetime.datetime.today(), sys.version)
         )
 
 
@@ -213,7 +214,7 @@ class BlurExcepthook(object):
         # Print a new line before the traceback is printed. This ensures that the first line is not
         # printed on a prompt, and also provides seperation between tracebacks that makes it easier
         # to identify which traceback you are looking at when multiple tracebacks are received.
-        print ''
+        print('')
         if self.ehook:
             try:
                 self.ehook(exctype, value, traceback_)
@@ -355,36 +356,38 @@ def clearErrorReport():
     _errorReport = []
 
 
-def debugMsg(msg, level=2):
-    """
-    Prints out a debug message to the stdout if the inputed level is 
+def debugMsg(msg, level=2, fmt=None):
+    """Prints out a debug message to the stdout if the inputed level is
     greater than or equal to the current debugging level
     
-    :param msg: message to output
-    :param level: debugLevel
-    :type msg: str
-    :type level: :data:`DebugLevel`
-    
+    Args:
+        msg (str): message to output
+        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
+            Defaults to DebugLevel.Mid.
+        fmt (str or None, optional): msg is formatted with this string. Fills in {level}
+            and {msg} args. If None, a default string is used.
     """
     if level <= debugLevel():
+        if fmt is None:
+            fmt = 'DEBUG ({level}) : {msg}'
         if callable(msg):
             msg = msg()
-        print 'DEBUG (%s) : %s' % (DebugLevel.keyByValue(level), msg)
+        print(fmt.format(level=DebugLevel.keyByValue(level), msg=msg))
 
 
-def debugObject(object, msg, level=2):
-    """
-    Uses :func:`debugMsg` to output to the stdout a debug message 
+def debugObject(object, msg, level=2, fmt=None):
+    """ Uses :func:`debugMsg` to output to the stdout a debug message
     including the reference of where the object calling the method is located.
 
-    :param object: the object to include in the output message
-    :param msg: message to output
-    :param level: debugLevel
-    :type msg: str
-    :type level: :data:`DebugLevel`
-    
+    Args:
+        object (object): the object to include in the output message.
+        msg (str): message to output
+        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
+            Defaults to DebugLevel.Mid.
+        fmt (str or None, optional): msg is formatted with this string. Fills in {level}
+            and {msg} args. If None, a default string is used.
     """
-    debugMsg(lambda: debugObjectString(object, msg), level)
+    debugMsg(lambda: debugObjectString(object, msg), level, fmt=fmt)
 
 
 def debugObjectString(object, msg):
@@ -413,27 +416,23 @@ def debugObjectString(object, msg):
 
 
 def debugStubMethod(object, msg, level=2):
-    """
-    Uses :func:`debugObject` to display that a stub method has not 
-    been provided functionality.
+    """ Uses :func:`debugObject` to display that a stub method has not been provided functionality.
 
-    :param object: the object to include in the output message
-    :param msg: message to output
-    :param level: debugLevel
-    :type msg: str
-    :type level: :data:`DebugLevel`
+    Args:
+        object (object): the object to include in the output message
+        msg (str): message to output
+        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
+            Defaults to DebugLevel.Mid.
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
 
 
 def debugVirtualMethod(cls, object):
-    """
-    Uses :func:`debugObject` to display that a virtual function has not 
-    been overloaded
+    """ Uses :func:`debugObject` to display that a virtual function has not been overloaded
 
-    :param cls: the class object where the "virtual" method is defined
-    :param object: the "virtual" method include in the output message
-    
+    Args:
+        cls: the class object where the "virtual" method is defined
+        object: the "virtual" method include in the output message
     """
     debugObject(
         object, 'Virtual method has not been overloaded from %s class' % cls.__name__
@@ -450,36 +449,36 @@ def emailList():
 
 
 def errorsReported():
-    """
-    Returns whether or not the error report is empty
+    """ Returns whether or not the error report is empty
 
-    :rtype: bool
-    
+    Returns:
+        bool:
     """
     return len(_errorReport) > 0
 
 
 def isDebugLevel(level):
-    """
-    Checks to see if the current debug level greater than or equal to 
-    the inputed level
+    """ Checks to see if the current debug level greater than or equal to the inputed level
 
-    :param level: debugLevel
-    :type level: :data:`DebugLevel`
-    :rtype: bool
-    
+    Args:
+        level (blurdev.debug.DebugLevel):
+
+    Returns
+        bool: the current debug level is greater than or equal to level
     """
-    if isinstance(level, (basestring, QString)):
+    if isinstance(level, basestring):
         level = DebugLevel.value(str(level))
     return level <= debugLevel()
 
 
 def printCallingFunction(compact=False):
-    """
-    Prints and returns info about the calling function
+    """ Prints and returns info about the calling function
 
-    :param compact: If set to True, prints a more compact printout
-    
+    Args:
+        compact (bool): If set to True, prints a more compact printout
+
+    Returns:
+        str: Info on the calling function.
     """
     import inspect
 
@@ -487,7 +486,7 @@ def printCallingFunction(compact=False):
     try:
         parent = current.f_back
     except:
-        print 'No Calling function found'
+        print('No Calling function found')
         return
     currentInfo = inspect.getframeinfo(current)
     parentInfo = inspect.getframeinfo(parent)
@@ -511,7 +510,7 @@ def printCallingFunction(compact=False):
         output.append("    Line: '%i'" % parentInfo[1])
         output.append("    Context: '%s'" % context)
         output = '\n'.join(output)
-    print output
+    print(output)
     return output
 
 
@@ -544,11 +543,16 @@ def mroDump(obj, nice=True, joinString='\n'):
 
 
 def recycleGui(cls, *args, **kwargs):
-    """ Closes the last gui of the provided class, suppressing any errors and returns a new instance of the class.
-    :param cls: the class of the object to create
-    :param *args: additional arguments passed to the class
-    :param **kwargs: additional keyword arguments passed to the class
-    :returns: A new instance of the class
+    """ Closes the last gui of the provided class, suppressing any errors and returns
+    a new instance of the class.
+
+    Args:
+        cls (class): the class of the object to create
+        *args: additional arguments passed to the class
+        **kwargs: additional keyword arguments passed to the class
+
+    Returns:
+        A new instance of the class
     """
     try:
         recycleGui._stored_().close()
@@ -560,13 +564,12 @@ def recycleGui(cls, *args, **kwargs):
 
 
 def reportError(msg, debugLevel=1):
-    """
-    Adds the inputed message to the debug report
+    """ Adds the inputed message to the debug report
 
-    :param level: debugLevel
-    :type msg: str
-    :type level: :data:`DebugLevel`
-
+    Args:
+        msg (str): the message to add to the debug report.
+        debugLevel (blurdev.debug.DebugLevel, optional): Only adds msg to the debug report
+            if debugLevel is this level or higher. Defaults to DebugLevel.Low.
     """
     if isDebugLevel(debugLevel):
         _errorReport.append(str(msg))
@@ -577,7 +580,7 @@ def showErrorReport(
     message='There were errors that occurred.  Click the Details button for more info.',
 ):
     if not errorsReported():
-        from PyQt4.QtGui import QMessageBox
+        from Qt.QtWidgets import QMessageBox
 
         QMessageBox.critical(None, subject, message)
     else:
@@ -590,12 +593,13 @@ def showErrorReport(
 
 
 def setDebugLevel(level):
-    """
-    Sets the debug level for the blurdev system module
+    """ Sets the debug level for the blurdev system module
 
-    :param level: debugLevel
-    :type level: :data:`DebugLevel`
+    Args:
+        level (blurdev.debug.DebugLevel): Value to set the debug level to.
 
+    Returns:
+        bool: The debug level was changed.
     """
     global _currentLevel
 
@@ -607,7 +611,7 @@ def setDebugLevel(level):
         return True
 
     # check for the debug value if a string is passed in
-    if isinstance(level, (basestring, QString)):
+    if isinstance(level, basestring):
         level = DebugLevel.value(str(level))
 
     # assign the debug flag

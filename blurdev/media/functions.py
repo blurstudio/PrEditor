@@ -1,3 +1,4 @@
+from past.builtins import basestring
 import os
 import subprocess
 import re
@@ -104,15 +105,14 @@ def convertImageToBase64(image, ext=None):
         IOError: The provided file path does not exist.
         ValueError: A QImage was provided but ext was not specified.
     """
-    from PyQt4.QtCore import QByteArray, QBuffer, QString
+    from Qt.QtCore import QBuffer, QByteArray
 
-    if isinstance(image, (basestring, QString)):
-        image = unicode(image)
+    if isinstance(image, basestring):
         if not os.path.exists(image):
             raise IOError('Image path does not exist.')
         if not ext:
             ext = os.path.splitext(image)[-1].replace('.', '')
-        from PyQt4.QtGui import QImage
+        from Qt.QtGui import QImage
 
         image = QImage(image)
     else:
@@ -127,7 +127,7 @@ def convertImageToBase64(image, ext=None):
     success = image.save(buf, ext)
     if not success:
         raise IOError('{ext} image format is not supported.'.format(ext=ext))
-    rawData = unicode(QString.fromLatin1(array.toBase64().data()))
+    rawData = array.toBase64().data()
     return 'data:image/{ext};base64,{data}'.format(ext=ext, data=rawData)
 
 
@@ -388,7 +388,6 @@ def imageSequenceForRepr(fileName):
     flags = 0
     if blurdev.settings.OS_TYPE == 'Windows':
         flags = re.I
-    fileName = unicode(fileName)
     filter = re.compile(
         r'(?P<pre>^.+?)\[(?P<start>\d+)(?P<separator>[^\da-zA-Z]?)(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)',
         flags=flags,
@@ -606,7 +605,6 @@ def setAppIdForIcon(source, new=None):
         cmd = '"%s" "%s"' % (appId, source)
         if new:
             cmd += ' %s' % new
-        print cmd
         out = subprocess.Popen(
             cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
         )

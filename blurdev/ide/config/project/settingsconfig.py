@@ -12,7 +12,9 @@ import os
 import blurdev
 from blurdev import osystem
 
-from PyQt4.QtGui import QMessageBox, QFileDialog, QMenu, QCursor, QIcon, QTreeWidgetItem
+from Qt.QtGui import QCursor, QIcon
+from Qt.QtWidgets import QMenu, QMessageBox, QTreeWidgetItem
+from Qt import QtCompat
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
 from blurdev.ide.ideprojectitemdialog import IdeProjectItemDialog
 from blurdev.ide.ideproject import IdeProjectItem, IdeProject
@@ -83,7 +85,7 @@ class SettingsConfig(ConfigSectionWidget):
         self.uiProjectTREE.customContextMenuRequested.connect(self.showMenu)
 
     def addProjectArgument(self):
-        from PyQt4.QtGui import QInputDialog
+        from Qt.QtWidgets import QInputDialog
 
         name = QInputDialog.getText(
             self,
@@ -93,11 +95,11 @@ class SettingsConfig(ConfigSectionWidget):
         )
         if name[1]:
             argList = self._project.argumentList()
-            argList.update({unicode(name[0]): (len(argList), '')})
+            argList.update({name[0]: (len(argList), '')})
             self.refreshArgumentList()
 
     def addProjectCommand(self):
-        from PyQt4.QtGui import QInputDialog
+        from Qt.QtWidgets import QInputDialog
 
         name = QInputDialog.getText(
             self,
@@ -107,7 +109,7 @@ class SettingsConfig(ConfigSectionWidget):
         )
         if name[1]:
             cmdList = self._project.commandList()
-            cmdList.update({unicode(name[0]): (len(cmdList), '')})
+            cmdList.update({name[0]: (len(cmdList), '')})
             self.refreshCommandList()
 
     def addItem(self):
@@ -121,7 +123,7 @@ class SettingsConfig(ConfigSectionWidget):
             item.addChild(child)
 
     def addFile(self):
-        filename = QFileDialog.getOpenFileName(
+        filename, _ = QtCompat.QFileDialog.getOpenFileName(
             self, 'Select File', '', 'All Files (*.*)'
         )
 
@@ -144,7 +146,7 @@ class SettingsConfig(ConfigSectionWidget):
     def editProjectArgument(self):
         item = self.uiArgumentTREE.currentItem()
         if item:
-            name = unicode(item.text(0))
+            name = item.text(0)
             argList = self._project.argumentList()
             if name in argList:
                 self.uiArgumentNameTXT.setText(name)
@@ -161,7 +163,7 @@ class SettingsConfig(ConfigSectionWidget):
     def editProjectCommand(self):
         item = self.uiCommandTREE.currentItem()
         if item:
-            name = unicode(item.text(0))
+            name = item.text(0)
             cmdList = self._project.commandList()
             if name in cmdList:
                 self.uiCommandNameTXT.setText(name)
@@ -271,14 +273,14 @@ class SettingsConfig(ConfigSectionWidget):
         argList = {}
         for index in range(self.uiArgumentTREE.topLevelItemCount()):
             item = self.uiArgumentTREE.topLevelItem(index)
-            argList.update({unicode(item.text(0)): [index, unicode(item.text(1))]})
+            argList.update({item.text(0): [index, item.text(1)]})
         self._project.setArgumentList(argList)
 
         # get the changes to the commandList
         cmdList = {}
         for index in range(self.uiCommandTREE.topLevelItemCount()):
             item = self.uiCommandTREE.topLevelItem(index)
-            cmdList.update({unicode(item.text(0)): [index, unicode(item.text(1))]})
+            cmdList.update({item.text(0): [index, item.text(1)]})
         self._project.setCommandList(cmdList)
 
         # record this project as the saved project
@@ -325,12 +327,7 @@ class SettingsConfig(ConfigSectionWidget):
         if key and key in argList:
             data = argList.pop(key)
             argList.update(
-                {
-                    unicode(self.uiArgumentNameTXT.text()): [
-                        data[0],
-                        unicode(self.uiArgumentCmdTXT.text()),
-                    ]
-                }
+                {self.uiArgumentNameTXT.text(): [data[0], self.uiArgumentCmdTXT.text()]}
             )
         self.refreshArgumentList()
 
@@ -340,12 +337,7 @@ class SettingsConfig(ConfigSectionWidget):
         if key and key in cmdList:
             data = cmdList.pop(key)
             cmdList.update(
-                {
-                    unicode(self.uiCommandNameTXT.text()): [
-                        data[0],
-                        unicode(self.uiCommandCmdTXT.text()),
-                    ]
-                }
+                {self.uiCommandNameTXT.text(): [data[0], self.uiCommandCmdTXT.text()]}
             )
         self.refreshCommandList()
 

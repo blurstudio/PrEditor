@@ -1,10 +1,10 @@
-from PyQt4.QtCore import QSize, pyqtSignal
-from PyQt4.QtGui import QTabBar, QTabWidget, QPushButton
+from Qt.QtCore import QSize, Signal
+from Qt.QtWidgets import QPushButton, QTabBar, QTabWidget
 
 # This class is pulled from this example
 # http://stackoverflow.com/a/20098415
 class TabBarPlus(QTabBar):
-    plusClicked = pyqtSignal()
+    plusClicked = Signal()
 
     def __init__(self, parent=None):
         super(TabBarPlus, self).__init__(parent)
@@ -48,7 +48,7 @@ class TabBarPlus(QTabBar):
 
 
 class NewTabWidget(QTabWidget):
-    addTabClicked = pyqtSignal()
+    addTabClicked = Signal()
 
     def __init__(self, parent=None):
         super(NewTabWidget, self).__init__(parent)

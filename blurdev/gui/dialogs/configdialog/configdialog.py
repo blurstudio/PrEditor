@@ -9,15 +9,15 @@
 #
 
 from blurdev.gui import Dialog
-from PyQt4.QtGui import QTreeWidgetItem
+from Qt.QtWidgets import QTreeWidgetItem
 
 
 class ConfigSectionItem(QTreeWidgetItem):
     def __init__(self, section):
         QTreeWidgetItem.__init__(self, [section.name()])
 
-        from PyQt4.QtCore import QSize
-        from PyQt4.QtGui import QIcon
+        from Qt.QtCore import QSize
+        from Qt.QtGui import QIcon
 
         # store the config set item
         self._section = section
@@ -114,8 +114,9 @@ class ConfigDialog(Dialog):
 
         import blurdev
 
-        from PyQt4.QtCore import QSize
-        from PyQt4.QtGui import QTreeWidgetItem, QIcon
+        from Qt.QtCore import QSize
+        from Qt.QtGui import QIcon
+        from Qt.QtWidgets import QTreeWidgetItem
 
         self.uiPluginsTREE.blockSignals(True)
         self.uiPluginsTREE.setUpdatesEnabled(False)

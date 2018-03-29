@@ -7,13 +7,13 @@
 #   \author     Blur Studio
 #   \date       04/03/12
 #
-from PyQt4.QtCore import pyqtSignal, QString, QSize
-from PyQt4.QtGui import QComboBox
+from Qt.QtCore import QSize, Signal
+from Qt.QtWidgets import QComboBox
 from blurdev.ide import lang
 
 
 class LanguageComboBox(QComboBox):
-    currentLanguageChanged = pyqtSignal(QString)
+    currentLanguageChanged = Signal(str)
 
     def __init__(self, parent):
         QComboBox.__init__(self, parent)

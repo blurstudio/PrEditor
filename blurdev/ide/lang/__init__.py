@@ -11,7 +11,7 @@
 import glob
 import os.path
 
-from language import Language
+from .language import Language
 
 _plugins = {}
 
@@ -71,7 +71,7 @@ def loadPlugins(path, custom=False):
             plugin.setCustom(custom)
             _plugins[plugin.name()] = plugin
         else:
-            print '[blurdev.ide.lang Error] Could not import %s' % file
+            print('[blurdev.ide.lang Error] Could not import %s' % file)
 
 
 def refresh():

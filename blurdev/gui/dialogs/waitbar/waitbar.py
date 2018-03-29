@@ -9,7 +9,8 @@
 #
 
 import blurdev
-from PyQt4.QtGui import QMovie, QLabel, QDialog, QHBoxLayout
+from Qt.QtGui import QMovie
+from Qt.QtWidgets import QDialog, QHBoxLayout, QLabel
 
 
 class WaitBar(QDialog):

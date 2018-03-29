@@ -36,7 +36,7 @@ class FindReplaceDialog(Dialog):
         self.uiSearchTXT.selectAll()
 
     def eventFilter(self, object, event):
-        from PyQt4.QtCore import QEvent, Qt
+        from Qt.QtCore import QEvent, Qt
 
         if event.type() == QEvent.KeyPress:
             if (

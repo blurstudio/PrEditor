@@ -3,7 +3,7 @@ import sys
 import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
-from PyQt4.QtGui import QApplication
+from Qt.QtWidgets import QApplication
 
 
 class RVCore(Core):
@@ -23,7 +23,7 @@ class RVCore(Core):
             app.addLibraryPath(r'/usr/lib64/qt4/plugins')
             # TODO: Use the following code to dynamicly look up this path. It must be run externally
             # from RV or it will return the wrong path.
-            # 			from PyQt4.QtCore import QLibraryInfo
+            # 			from Qt.QtCore import QLibraryInfo
             # 			QLibraryInfo.location( QLibraryInfo.PluginsPath)
             return
         super(RVCore, self).addLibraryPaths(app)

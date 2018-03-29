@@ -23,6 +23,7 @@ def has_key(x, y):
 
 
 try:
+    from builtins import str as text
     import htmlentitydefs
     import urlparse
     import HTMLParser
@@ -320,12 +321,9 @@ class _html2text(HTMLParser.HTMLParser):
         self.outtextlist = (
             []
         )  # empty list to store output characters before they are  "joined"
-        try:
-            self.outtext = unicode()
-        except NameError:  # Python3
-            self.outtext = str()
+        self.outtext = u''
         self.quiet = 0
-        self.p_p = 0  # number of newline character to print before next output
+        self.p_p = 0  # number of newline character to print(before next output)
         self.outcount = 0
         self.start = 1
         self.space = 0

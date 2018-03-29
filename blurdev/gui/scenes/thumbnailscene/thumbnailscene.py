@@ -9,25 +9,25 @@
 # 	\date		03/31/10
 #
 
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui import QGraphicsScene
-from thumbnailitem import ThumbnailItem
+from Qt.QtCore import Signal
+from Qt.QtWidgets import QGraphicsScene
+from .thumbnailitem import ThumbnailItem
 
 # -------------------------------------------------------------------------------------------------------------
 
 
 class ThumbnailScene(QGraphicsScene):
-    itemDoubleClicked = pyqtSignal(ThumbnailItem)
-    itemMenuRequested = pyqtSignal(ThumbnailItem)
+    itemDoubleClicked = Signal(ThumbnailItem)
+    itemMenuRequested = Signal(ThumbnailItem)
 
     def __init__(self, view=None):
         QGraphicsScene.__init__(self)
 
-        from PyQt4.QtCore import Qt, QRect, QSize
-        from PyQt4.QtGui import QBrush
+        from Qt.QtCore import QRect, QSize, Qt
+        from Qt.QtGui import QBrush
 
         # set default parameters
-        from PyQt4.QtGui import QColor
+        from Qt.QtGui import QColor
 
         self.setBackgroundBrush(QColor(120, 120, 120))
 
@@ -49,14 +49,14 @@ class ThumbnailScene(QGraphicsScene):
         self._captionHeight = 24
 
     def addThumbGroup(self, name):
-        from thumbnailgroup import ThumbnailGroup
+        from .thumbnailgroup import ThumbnailGroup
 
         output = ThumbnailGroup(name)
         self.addItem(output)
         return output
 
     def addThumbnail(self, filename):
-        from thumbnailitem import ThumbnailItem
+        from .thumbnailitem import ThumbnailItem
 
         newitem = ThumbnailItem(filename)
         self.addItem(newitem)
@@ -72,7 +72,7 @@ class ThumbnailScene(QGraphicsScene):
         return self._cellPadding
 
     def eventFilter(self, object, event):
-        from PyQt4.QtCore import QEvent
+        from Qt.QtCore import QEvent
 
         # handle the resize events
         if event.type() == QEvent.Resize:
@@ -95,7 +95,7 @@ class ThumbnailScene(QGraphicsScene):
         return self._layoutDirection
 
     def keyPressEvent(self, event):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         # select the item to the left
         if event.key() == Qt.Key_Left:
@@ -194,7 +194,7 @@ class ThumbnailScene(QGraphicsScene):
             QGraphicsScene.keyReleaseEvent(self, event)
 
     def recalculateFromView(self, view, force=False):
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         rect = view.rect()
         if self.layoutDirection() == Qt.Vertical:
@@ -205,8 +205,8 @@ class ThumbnailScene(QGraphicsScene):
         self.recalculate(rect, force)
 
     def recalculate(self, rect, force=False):
-        from PyQt4.QtCore import Qt
-        from thumbnailitem import ThumbnailItem
+        from Qt.QtCore import Qt
+        from .thumbnailitem import ThumbnailItem
 
         # figure out if this needs to be recalculated based on the change
         if self.layoutDirection() == Qt.Vertical and not (
@@ -337,14 +337,14 @@ class ThumbnailScene(QGraphicsScene):
         self._cellPadding = padding
 
     def setHighlightBrush(self, brush):
-        from PyQt4.QtGui import QBrush
+        from Qt.QtGui import QBrush
 
         self._highlightBrush = QBrush(brush)
 
     def setLayoutDirection(self, direction):
         self._layoutDirection = direction
 
-        from PyQt4.QtCore import Qt
+        from Qt.QtCore import Qt
 
         if direction == Qt.Vertical:
             for view in self.views():
@@ -363,8 +363,8 @@ class ThumbnailScene(QGraphicsScene):
 
     def setThumbnailSize(self, size):
         if size != self._thumbnailSize:
-            from PyQt4.QtCore import Qt
-            from thumbnailitem import ThumbnailItem
+            from Qt.QtCore import Qt
+            from .thumbnailitem import ThumbnailItem
 
             self._thumbnailSize = size
             for item in self.items():

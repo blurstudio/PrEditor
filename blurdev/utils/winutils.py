@@ -27,8 +27,8 @@ def bringWindowToFrontIfExists(window_name):
             win32gui.ShowWindow(handle, win32con.SW_SHOWNORMAL)
             win32gui.ShowWindow(handle, win32con.SW_RESTORE)
             win32gui.SetForegroundWindow(handle)
-        except Exception, e:
-            print str(e)  # Microsoft sucks
+        except Exception as e:
+            print(e)  # Microsoft sucks
         else:
             worked = True
     return worked
