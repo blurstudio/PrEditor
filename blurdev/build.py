@@ -57,7 +57,7 @@ if __name__ == '__main__':
     f.write('!define MUI_PRODUCT "%s"\n' % product)
     f.write(
         '!define MUI_VERSION "v%i.%02i.%i"\n'
-        % (version.major(), version.minor(), GetRevision(path))
+        % (version.major(), version.minor(), int(GetRevision(path)))
     )
     f.write('!define INSTALL_VERSION "v%i.%02i"\n' % (version.major(), version.minor()))
     f.write('!define PYTHON_VERSION "%s"\n' % dictionary['version'])
