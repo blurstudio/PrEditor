@@ -5,7 +5,7 @@ import os
 import re
 
 _major = 2  # User defined major version
-_minor = 1  # User defined minor version
+_minor = 2  # User defined minor version
 
 # Load build version from file
 _currentBuild = 0
