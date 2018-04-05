@@ -444,6 +444,12 @@ def subprocessEnvironment(env=None):
         if sys.version_info[0] == 2 and isinstance(path, text):
             path = path.encode('utf8')
         env['PATH'] = path
+
+    # This environment variable needs to be set on most dcc's to allow them to import
+    # the correct trax using blurpath. Removing this resets the subprocess to its
+    # default method of finding trax.
+    if 'BDEV_INCLUDE_TRAX' in env:
+        del env['BDEV_INCLUDE_TRAX']
     return env
 
 
