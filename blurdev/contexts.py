@@ -36,35 +36,35 @@ def monitorForCrash(pid, conn):
     try:
         tempFiles = []
         tempDirs = []
-        print ('[monitorForCrash] Checking pid', pid, (Stone, psutil))
+        print('[monitorForCrash] Checking pid', pid, (Stone, psutil))
         while (Stone and Stone.isRunning(pid)) or psutil and psutil.pid_exists(pid):
             try:
                 if conn.poll():
                     data = conn.recv()
                     if data[0] == 'tempFile':
                         tempFiles.append(data[1])
-                        print ('[monitorForCrash] Adding tempFile', data[1])
+                        print('[monitorForCrash] Adding tempFile', data[1])
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'tempDir':
                         tempDirs.append(data[1])
-                        print ('[monitorForCrash] Adding tempDir', data[1])
+                        print('[monitorForCrash] Adding tempDir', data[1])
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'finished':
-                        print (
+                        print(
                             '[monitorForCrash] Parent process is done, exiting without doing anything'
                         )
                         return
             except IOError as e:
                 if e.errno == 109:
                     # The pipe has been ended, assume the parent process was killed
-                    print ('[monitorForCrash] IOError 109')
+                    print('[monitorForCrash] IOError 109')
                     break
             time.sleep(1)
 
-        print ('[monitorForCrash] Removing tempFiles', tempFiles)
-        print ('[monitorForCrash] Removing tempDirs', tempDirs)
+        print('[monitorForCrash] Removing tempFiles', tempFiles)
+        print('[monitorForCrash] Removing tempDirs', tempDirs)
         # Remove any created folders from disk and their contents
         for tempDir in tempDirs:
             shutil.rmtree(tempDir, ignore_errors=True)
@@ -74,11 +74,7 @@ def monitorForCrash(pid, conn):
                 os.remove(tempFile)
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print (
-                        '[monitorForCrash] File already deleted',
-                        e.message,
-                        tempFile,
-                    )
+                    print('[monitorForCrash] File already deleted', e.message, tempFile)
     except:
         traceback.print_exc()
         time.sleep(20)
@@ -160,7 +156,7 @@ class TempFilesContext(object):
                     sys.argv = argv
             else:
                 self.crashMonitor = False
-                print 'blur.Stone or psutil not installed crashMonitor disabled.'
+                print('blur.Stone or psutil not installed crashMonitor disabled.')
 
     def makeTempDirectory(self, *args, **kwargs):
         """ Creates a temporary directory and returns its file path.
@@ -190,7 +186,7 @@ class TempFilesContext(object):
             # If a defaultDir was provided, make sure its included
             if self.defaultDir is not None and 'dir' not in kwargs:
                 kwargs['dir'] = self.defaultDir
-                print 'makeTempDirectory adding defaultDir', self.defaultDir
+                print('makeTempDirectory adding defaultDir {}'.format(self.defaultDir))
 
             tempDir = tempfile.mkdtemp(*args, **kwargs)
             self._tempDirs[key] = tempDir
@@ -226,10 +222,10 @@ class TempFilesContext(object):
 
         if key not in self._tempFiles:
             # If a defaultDir was provided, make sure its included
-            print 'DEFAULT DIR', [self.defaultDir, kwargs]
+            print('DEFAULT DIR {}'.format([self.defaultDir, kwargs]))
             if self.defaultDir is not None and 'dir' not in kwargs:
                 kwargs['dir'] = self.defaultDir
-                print 'makeTempFile adding defaultDir', self.defaultDir
+                print('makeTempFile adding defaultDir {}'.format(self.defaultDir))
 
             tempFile = tempfile.mkstemp(*args, **kwargs)
             self._tempFiles[key] = tempFile
@@ -248,10 +244,10 @@ class TempFilesContext(object):
         if self.keepTempFiles:
             from pprint import pprint
 
-            print ('\nBDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.')
-            print ('--- Orphaned Directories:')
+            print('\nBDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.')
+            print('--- Orphaned Directories:')
             pprint(self._tempDirs)
-            print ('--- Orphaned Files:')
+            print('--- Orphaned Files:')
             pprint(self._tempFiles)
             return
         # Remove any created folders from disk and their contents
@@ -260,16 +256,16 @@ class TempFilesContext(object):
         self._tempDirs = {}
         # Remove any created temp files
         for tempFile in self._tempFiles.values():
-            print tempFile
+            print(tempFile)
             try:
                 os.close(tempFile[0])
             except OSError as e:
-                print ('Problem closing tempfile', e, e.message)
+                print('Problem closing tempfile', e, e.message)
             try:
                 os.remove(tempFile[1])
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print 'File already deleted', e.message
+                    print('File already deleted {}'.format(e.message))
         self._tempFiles = {}
         if self.crashMonitor:
             # Tell the crashMonitor that the temp files have been deleted and it can just exit
