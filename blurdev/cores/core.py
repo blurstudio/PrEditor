@@ -1239,13 +1239,13 @@ class Core(QObject):
             refId (str or None): If not None "X-Entity-Ref-ID" is added to the header with this
                 value. For gmail passing a empty string appears to be the same as passing real data.
         """
-        from email import Encoders
-
         try:
+            from email import Encoders
             from email.MIMEText import MIMEText
             from email.MIMEMultipart import MIMEMultipart
             from email.MIMEBase import MIMEBase
         except:
+            from email import encoders
             from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
             from email.mime.base import MIMEBase
