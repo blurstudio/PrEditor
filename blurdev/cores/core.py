@@ -876,7 +876,21 @@ class Core(QObject):
 
         return pref
 
-    def restoreToolbars(self):
+    def restoreToolbars(self, maxVersion=None):
+        """
+        Studiomax toolbars up to and including Max2016 have Dialog-based tool/lovebars and other DCC's including Max2018 are QToolbar-based.
+        
+        Max2016 Dialog toolbar "icons" are saved by calling ToolbarDialog.toXml(), which adds a toolbardialog child and
+        then passes the toolbardialog child to Toolbar.toXml().
+
+        Toolbar.toXml() adds another toolbardialog child and then adds "icons" to the nested toolbardialog child.
+        
+        As a result, this method needs to know which (if any) Max version is running and if it's Max2018+, look in the
+        nested toolbardialog child for "icons" because that's where Max2016 saved them.
+        
+            Args:
+                maxVersion (int): Autodesk Studiomax version
+        """
         if self.headless:
             # If running headless, do not try to create gui elements
             return
@@ -884,7 +898,11 @@ class Core(QObject):
         # restore the toolbar
         child = pref.root().findChild('toolbardialog')
         if child:
-            self.toolbar().fromXml(pref.root())
+            if maxVersion and (maxVersion >= 20):
+                nestedToolbardialogChild = pref.root().findChild('toolbardialog')
+                self.toolbar().fromXml(nestedToolbardialogChild)
+            else:
+                self.toolbar().fromXml(pref.root())
         pref = blurdev.prefs.find('tools/Lovebar', coreName=self.objectName())
         if pref.restoreProperty('isVisible'):
             self.showLovebar(parent=self.rootWindow())
