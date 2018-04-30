@@ -125,6 +125,9 @@ class Core(QObject):
         # the parent fusion process. Otherwise this will be None
         self.fusionApp = None
 
+        # Cache the Raven client (for logging / error handling) once instantiated
+        self._ravenClient = None
+
         # create the connection to the environment activiation signal
         self.environmentActivated.connect(self.registerPaths)
         self.environmentActivated.connect(self.recordSettings)
@@ -296,6 +299,30 @@ class Core(QObject):
             FlashWindowEx(hwnd, dwFlags, count, timeout)
             return True
         return False
+
+    def ravenClient(self, install_sys_hook=False, **kwargs):
+        """Return the current raven Client instance.  If raven is not importable
+        return None.
+        
+        Returns:
+            raven.Client: The current raven client instance.
+        
+        Args:
+            install_sys_hook (bool, optional): Override the default value of
+                install_sys_hook since we have our own ExceptHook for now.
+            **kwargs: Any additional raven Client() kwargs will be passed along.
+        """
+        kwargs['install_sys_hook'] = install_sys_hook
+        if not self._ravenClient:
+            try:
+                from raven import Client
+            except ImportError:
+                # if raven is not importable, we won't be able to return a
+                # Client instance.
+                return None
+            else:
+                self._ravenClient = Client(**kwargs)
+        return self._ravenClient
 
     def runOnDccStartup(self):
         """ When starting a DCC like 3ds Max, execute this code on startup.

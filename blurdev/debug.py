@@ -30,16 +30,20 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 """
 
 from past.builtins import basestring
+import datetime
+import getpass
 import os
+import platform
+import string
 import sys
 import time
-import weakref
-import datetime
 import traceback
+import weakref
 
 from Qt.QtCore import Qt
 
 import blurdev
+import blurdev.debug
 from blurdev.contexts import ErrorReport
 
 from .enum import enum
@@ -248,9 +252,58 @@ class BlurExcepthook(object):
 
         return sendEmail, showPrompt, emails, tracebackMsg  # for subclassing
 
+    @staticmethod
+    def sendRavenEvent(exctype, value, traceback_):
+        """Attempt to emit a raven event for the provided exception.
+
+        Fail silently if raven is not importable or does not have a valid DSN.
+        """
+        client = blurdev.core.ravenClient()
+        if client is None:
+            # if we didn't get a raven Client instance, we won't be able to send
+            # the exception event.
+            return
+        # store tags
+        tags = {
+            'environment_name': blurdev.activeEnvironment().objectName(),
+            'core_name': blurdev.core.objectName(),
+            'platform': platform.platform(),
+            'os_name': os.name,
+            'executable': sys.executable,
+            'debug_level': blurdev.debug.DebugLevel.labelByValue(
+                blurdev.debug.debugLevel()
+            ),
+            'host_class': platform.node().strip(string.digits),
+        }
+        user = {'username': getpass.getuser()}
+        # store extra information
+        extra = {'environment_path': blurdev.activeEnvironment().path()}
+        jobKey = os.environ.get('AB_JOBID')
+        if jobKey:
+            extra['assburner job id'] = jobKey
+        burnDir = os.environ.get('AB_BURNDIR')
+        if burnDir:
+            extra['assburner burn dir'] = burnDir
+        burnFile = os.environ.get('AB_BURNFILE')
+        if burnFile:
+            extra['assburner burn file'] = burnFile
+        # grab the BDEV debug information stored for error emails.
+        prefix = 'BDEV_EMAILINFO_'
+        for key in sorted(os.environ):
+            if key.startswith(prefix):
+                extra[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
+        # grab any additional infos
+        errorReports = ErrorReport.generateReport()
+        if errorReports:
+            extra['additionalinfo'] = errorReports
+        # store data into the expected dictionary keys
+        excdata = {'tags': tags, 'user': user, 'extra': extra}
+        client.captureException(exc_info=(exctype, value, traceback_), data=excdata)
+
     def __call__(self, exctype, value, traceback_):
         self.callBaseEHook(exctype, value, traceback_)
         self.sendExceptEmail(exctype, value, traceback_)
+        self.sendRavenEvent(exctype, value, traceback_)
         ErrorReport.clearReports()
 
     @classmethod

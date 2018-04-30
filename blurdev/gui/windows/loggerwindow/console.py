@@ -77,6 +77,7 @@ class ConsoleExceptHook(debug.BlurExcepthook):
 
     def __call__(self, exctype, value, traceback_):
         self.callBaseEHook(exctype, value, traceback_)
+        self.sendRavenEvent(exctype, value, traceback_)
         sendEmail, showPrompt, emails, tracebackMsg = self.sendExceptEmail(
             exctype, value, traceback_
         )
