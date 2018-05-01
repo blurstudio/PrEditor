@@ -262,6 +262,13 @@ class LoggerWindow(Window):
             filename, lineno = results.groups()
             IdeEditor.instance().load(filename, int(lineno))
 
+    def keyPressEvent(self, event):
+        # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
+        if event.modifiers() & (Qt.AltModifier | Qt.ControlModifier | Qt.ShiftModifier):
+            pass
+        else:
+            super(LoggerWindow, self).keyPressEvent(event)
+
     def overrideKeyboardShortcuts(self):
         """
             \remarks	If a specific software has limitations preventing keyboard shortcuts from working, they can be overidden here
