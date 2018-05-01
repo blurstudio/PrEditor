@@ -401,37 +401,23 @@ QComboBox#uiEnvironmentDDL[defaultActive="true"] {
 }
 /* End Treegrunt Environment Combo Box Style */
 
-/* Generic re-usable colors that can be accessed by custom qproperty's */
-QWidget {
-	qproperty-correctBackground: rgba(0, 100, 0);
-	qproperty-correctForeground: rgb(225,255,225);
-	qproperty-inCorrectBackground: rgba(128, 0, 0);
-	qproperty-inCorrectForeground: rgb(255, 225, 225);
-	/* predefined colornames that can be used to ensure the color is visible in a specific stylesheet */
-	qproperty-colorWhite: black;
-	qproperty-colorBlack: rgb(200,200,200);
-	qproperty-colorCyan: cyan;
-	qproperty-colorDarkCyan: darkCyan;
-	qproperty-colorRed: red;
-	qproperty-colorDarkRed: darkRed;
-	qproperty-colorMagenta: magenta;
-	qproperty-colorDarkMagenta: darkMagenta;
-	qproperty-colorGreen: green;
-	qproperty-colorDarkGreen: #00A400;
-	qproperty-colorYellow: yellow;
-	qproperty-colorDarkYellow: #AAAA00;
-	qproperty-colorBlue: blue;
-	qproperty-colorDarkBlue: darkBlue;
-	qproperty-colorGray: gray;
-	qproperty-colorDarkGray: darkGray;
-	qproperty-colorLightGray: lightGray;
-}
+/* 	Generic re-usable colors that can be accessed by custom qproperty's.
+	Due to speed issues, these should only be added for widget classes
+	that actually implement them.
+*/
 
 FilePickerWidget {
 	qproperty-correctBackground: rgba(0, 100, 0, 100);
 	qproperty-correctForeground: rgb(225,255,225);
 	qproperty-inCorrectBackground: rgba(128, 0, 0, 100);
 	qproperty-inCorrectForeground: rgb(255, 225, 225);
+}
+
+QCWidget, MaxVersionDialog {
+	/* For the LucyQC and Max Version tools */
+	qproperty-colorDarkGreen: #00A400;
+	qproperty-colorDarkYellow: #AAAA00;
+	qproperty-colorBlack: rgb(200,200,200);
 }
 
 ConsoleEdit {
@@ -443,6 +429,7 @@ ConsoleEdit {
 	qproperty-pyStringColor: rgb(153, 204, 153);
 	background-color: rgb(80, 80, 80);
 }
+
 DocumentEditor {
 	qproperty-pyMarginsForegroundColor: rgb(100, 180, 180);
 	qproperty-pyMarginsBackgroundColor: rgb(45, 45, 45);
