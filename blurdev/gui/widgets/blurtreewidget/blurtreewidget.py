@@ -116,6 +116,7 @@
 # |		event.ignore()
 
 from builtins import str as text
+from Qt import QtCompat
 from Qt.QtCore import Qt, Property, Signal, Slot
 from Qt.QtGui import QCursor, QIcon
 from Qt.QtWidgets import (
@@ -836,7 +837,8 @@ class BlurTreeWidget(LockableTreeWidget):
             action.triggered.connect(self.resizeColumnsToContents)
             action = menu.addAction('Resize to fit window')
             action.triggered.connect(self.resizeColumnsToWindow)
-            if self.header().isMovable():
+            if QtCompat.QHeaderView.sectionsMovable(self.header()):
+                # if self.header().isMovable():
                 menu.addSeparator()
                 action = menu.addAction('Reset column order')
                 action.triggered.connect(self.resetColumnOrder)
