@@ -133,6 +133,45 @@ class Core(QObject):
         self.environmentActivated.connect(self.recordSettings)
         self.debugLevelChanged.connect(self.recordSettings)
 
+    def aboutBlurdev(self):
+        """ Useful info about blurdev and its dependencies as a string.
+        """
+        from Qt import __binding__, __binding_version__, __version__ as qtpyVersion
+
+        msg = [
+            'blurdev: {}'.format(blurdev.version.toString()),
+            '    {}'.format(os.path.dirname(blurdev.__file__)),
+        ]
+        # When trax is imported it creates this env var for error reporting.
+        # We don't want to inport trax to generate version info, but show it if possible.
+        if os.getenv('BDEV_EMAILINFO_TRAX_VERSION'):
+            msg.append('trax: {}'.format(os.getenv('BDEV_EMAILINFO_TRAX_VERSION')))
+            if 'trax' in sys.modules:
+                import trax
+                from trax.api.data import Database, User
+                import getpass
+
+                msg.append('    {}'.format(os.path.dirname(trax.__file__)))
+                msg.append('    Usernames:')
+                msg.append('        os: {}'.format(getpass.getuser()))
+                msg.append('        trax: {}'.format(User.currentUser().username()))
+                msg.append(
+                    '        db: {}'.format(Database.current().connection().userName())
+                )
+
+        msg.append('{qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__))
+        msg.append('Qt.py: {}'.format(qtpyVersion))
+
+        try:
+            # QtSiteConfig is optional
+            import QtSiteConfig
+
+            msg.append('QtSiteConfig: {}'.format(QtSiteConfig.__version__))
+        except (ImportError, AttributeError):
+            pass
+
+        return '\n'.join(msg)
+
     def activeWindow(self):
         if QApplication.instance():
             return QApplication.instance().activeWindow()
