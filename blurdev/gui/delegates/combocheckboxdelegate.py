@@ -11,7 +11,7 @@
 
 from Qt.QtCore import Qt, QRect
 from Qt.QtGui import QCursor, QPalette
-from Qt.QtWidgets import QItemDelegate, QMenu
+from Qt.QtWidgets import QItemDelegate, QMenu, QComboBox
 
 
 class ComboCheckBoxDelegate(QItemDelegate):
