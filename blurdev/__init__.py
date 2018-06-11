@@ -64,6 +64,12 @@ object. This is for debugging, and there is no guarantee that the object has not
 been deleted.
 """
 
+# To show a splashscreen as soon as possible, the blurdev.protocols system
+# may store a splashscreen here. This will be None unless the protocol
+# system sets it, and it will be cleared the first time blurdev.launch
+# is called. blurdev.gui.splashscreen.randomSplashScreen checks this value
+protocolSplash = None
+
 
 def activeEnvironment(coreName=None):
     """ Returns the current active Tools Environment as part of the blurdev.tools system.
@@ -195,6 +201,7 @@ def launch(
     :param dockWidgetArea: If ctor is a QDockWidget
     """
     global lastLaunched
+    global protocolSplash
     # create the app if necessary
     app = None
     from blurdev.cores.core import Core
@@ -247,6 +254,12 @@ def launch(
         except TypeError:
             # If url arguments are passed in that the tool doesn't accept, remove them.
             widget = launchWidget(ctor, args, oldkwargs)
+
+    # Attach the protocolSplash.finish to the widget we are creating and
+    # remove the reference so we don't keep using it.
+    if protocolSplash is not None:
+        protocolSplash.finish(widget)
+        protocolSplash = None
 
     if splash:
         splash.finish(widget)

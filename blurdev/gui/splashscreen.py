@@ -5,6 +5,7 @@ import random
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QSplashScreen
 from Qt.QtCore import Qt
+import blurdev
 
 SPLASH_DIR = os.environ.get('BDEV_SPLASHSCREEN_SOURCE_DIR')
 
@@ -40,6 +41,11 @@ def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
         QSplashScreen: If a image was picked a QSplashScreen will be returned. Otherwise
             None will be returned.
     """
+    # If protocolSplash is not None, then a splashscreen has already been shown.
+    # Creating a new splashscreen causes a flicker of the splashscreen.
+    if blurdev.protocolSplash is not None:
+        return None
+
     splash_dir = getSplashScreenDirectory(toolname)
     # Fallback to the default splashscreens if the requested toolname folder does not exist
     if allowDefault and not os.path.exists(splash_dir):

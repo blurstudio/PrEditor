@@ -76,6 +76,12 @@ class TreegruntHandler(BaseProtocolHandler):
     name = 'treegrunt'
 
     def run(self):
+        # This is going to take a while, show the splashscreen to
+        # entertain the user while they wait for the index to load
+        from blurdev.gui.splashscreen import randomSplashScreen
+
+        _blurdev.protocolSplash = randomSplashScreen(self.command)
+
         tool = _blurdev.findTool(self.command)
         if not tool.isNull():
             _os.environ['BDEV_URL_ARGS'] = _cPickle.dumps(self.params)
@@ -187,6 +193,38 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
         cmd_split = self.command.split('/')
         if len(cmd_split) > 1:
             self.command = cmd_split[0]
+
+        # Support Light payload urls
+        if 'event_log_entry_id' in params:
+            for cmd in cmd_split:
+                # Light Payload urls don't include useful info like what server
+                # the request was made from, so light Payload shotgun urls require
+                # a hostname argument passed.
+                # Example Action Menu url column:
+                # 	blurdev://shotgun/shotgunmultiedit/sg_url=mysite.shotgunstudio.com/
+                if cmd.startswith('sg_url='):
+                    logId = int(params['event_log_entry_id'])
+                    hostname = cmd.replace('sg_url=', '')
+
+                    # This is going to take a while, show the splashscreen to
+                    # entertain the user while they wait for a shotgun select
+                    from blurdev.gui.splashscreen import randomSplashScreen
+
+                    _blurdev.protocolSplash = randomSplashScreen(self.command)
+
+                    import blursg
+
+                    with blursg.loadConfigContext(hostname=hostname):
+                        ret = blursg.sg().find_one(
+                            'EventLogEntry', [['id', 'is', logId]], ['meta']
+                        )
+                        params = ret['meta']['ami_payload']
+
+                    # Make it easy to see info about the payload in the log file. The
+                    print(params)
+
+                    # Nothing else to do
+                    break
 
         new_params = {}
         new_params['command'] = command
