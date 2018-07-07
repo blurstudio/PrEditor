@@ -361,6 +361,19 @@ class Core(QObject):
                 return None
             else:
                 self._ravenClient = Client(**kwargs)
+
+            # if Raven failed to initialize a logging handler, add a basic
+            # StreamHandler to prevent errors in logging.
+            loggers = (
+                self._ravenClient.logger,
+                self._ravenClient.error_logger,
+                self._ravenClient.uncaught_logger,
+            )
+            for l in loggers:
+                if not len(l.handlers):
+                    import logging
+
+                    l.addHandler(logging.StreamHandler())
         return self._ravenClient
 
     def runOnDccStartup(self):
