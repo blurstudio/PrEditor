@@ -31,15 +31,11 @@ class RVCore(Core):
         # screening_room-1.65.rvpkg is loaded and if you load the Shotgun Browser, or
         # are forced to log into shotgun. This can cause RV to crash, assuming it's
         # msvc(Visual Studio) compiler doesn't match RV.
-        # To prevent this you must install the correct msvc compiled pyqt4.dll file
-        # into RV's existing libraryPath, and never add the global plugin path.
-        # 'C:/Program Files/Shotgun/RV-6.2.7/plugins/Qt/designer/pyqt4.dll' This is
-        # where I had to add the correct msvc compile of pyqt4.dll. We are currently
-        # installing all of our Qt4 qt dlls and PyQt4 python module inside the RV
-        # install directory.
+        # To prevent this you must never add the global plugin path to
+        # QApplication.libraryPaths().
         # If using blur.Stone, make sure to set 'LIBSTONE_QT_LIBRARY_PATH' = 'false'
         # in the environment before importing blur.Stone (blurdev imports blur.Stone)
-        # To replicate this I am opening the Image Loader 3 tool then using the
+        # To replicate the crash I am opening the Image Loader 3 tool then using the
         # Launch Shotgun... menu to open the shotgun browser. RV will then crash.
 
         # NOTE: DO NOT CALL SUPER for this reason on windows.
