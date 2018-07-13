@@ -14,19 +14,35 @@ class RVCore(Core):
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'rv'
         super(RVCore, self).__init__(*args, **kargs)
-        # TODO: Shutdown blurdev when RV closes
+        # Shutdown blurdev when RV closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
     def addLibraryPaths(self, app):
         if sys.platform == 'linux2':
             app.addLibraryPath(r'/usr/lib64/qt4/plugins')
-            # TODO: Use the following code to dynamicly look up this path. It must be run externally
-            # from RV or it will return the wrong path.
+            # TODO: Use the following code to dynamicly look up this path. It must be
+            # run externally from RV or it will return the wrong path.
             # 			from Qt.QtCore import QLibraryInfo
             # 			QLibraryInfo.location( QLibraryInfo.PluginsPath)
             return
-        super(RVCore, self).addLibraryPaths(app)
+        # NOTE: If the system has the global pyqt4.dll file installed (Most likely in
+        # "C:\Windows\System32\blur64\designer\pyqt4.dll") RV will load it when
+        # screening_room-1.65.rvpkg is loaded and if you load the Shotgun Browser, or
+        # are forced to log into shotgun. This can cause RV to crash, assuming it's
+        # msvc(Visual Studio) compiler doesn't match RV.
+        # To prevent this you must install the correct msvc compiled pyqt4.dll file
+        # into RV's existing libraryPath, and never add the global plugin path.
+        # 'C:/Program Files/Shotgun/RV-6.2.7/plugins/Qt/designer/pyqt4.dll' This is
+        # where I had to add the correct msvc compile of pyqt4.dll. We are currently
+        # installing all of our Qt4 qt dlls and PyQt4 python module inside the RV
+        # install directory.
+        # If using blur.Stone, make sure to set 'LIBSTONE_QT_LIBRARY_PATH' = 'false'
+        # in the environment before importing blur.Stone (blurdev imports blur.Stone)
+        # To replicate this I am opening the Image Loader 3 tool then using the
+        # Launch Shotgun... menu to open the shotgun browser. RV will then crash.
+
+        # NOTE: DO NOT CALL SUPER for this reason on windows.
 
     def createToolMacro(self, tool, macro=''):
         """
