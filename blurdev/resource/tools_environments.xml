@@ -4,6 +4,5 @@
     <include loc="c:/blur/common/user_environments.xml"/>
     <include loc="//source/source/dev/share_all/studio_environments.xml"/>
 	<!-- load studio standard environments -->
-	<!-- TODO: Revert loc to "\\source\production" once the studio has been updated and we merge the qt4-5 branch to the trunk. -->
-    <environment default="True" emailOnError="errors@blur.com" loc="\\source\source\dev\share_all\qt5_prod" name="Production" keychain="\\source\production\keychain"/>
+    <environment default="True" emailOnError="errors@blur.com" loc="\\source\production" name="Production" keychain="\\source\production\keychain"/>
 </tools_environments>
