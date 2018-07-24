@@ -737,7 +737,14 @@ def registryValue(registry, key, value_name, architecture=None):
 
 
 def setRegistryValue(
-    registry, key, value_name, value, valueType=None, architecture=None, notify=None
+    registry,
+    key,
+    value_name,
+    value,
+    valueType=None,
+    architecture=None,
+    notify=None,
+    overwrite=True,
 ):
     """ Stores a value in the registry for the provided registy key's name.
     
@@ -755,12 +762,19 @@ def setRegistryValue(
             environment it will default to True. Sends a message to the system telling them the 
             environment has changed. This allows applications, such as the shell, to pick up 
             your updates.
+        overwrite (bool): Defaults to True which will write the key, even if the key already exists,
+            when set to False, the value will only be written when the key doesn't already exist
     Returns:
         bool: It was able to store the registry value.
     """
     try:
         import _winreg
 
+        regKey = getRegKey(registry, key, architecture=architecture)
+        if (not overwrite) and regKey:
+            # regKey already exists and overwrite is False,
+            # don't do anything and return False
+            return False
         aReg = _winreg.ConnectRegistry(None, getattr(_winreg, registry))
         _winreg.CreateKey(aReg, key)
         regKey = getRegKey(registry, key, architecture=architecture, write=True)
