@@ -88,7 +88,30 @@ class WorkboxWidget(DocumentEditor):
 
         import __main__
 
-        exec (text, __main__.__dict__, __main__.__dict__)
+        # https://stackoverflow.com/a/29456463
+        # If you want to get the result of the code, you have to call eval
+        # however eval does not accept multiple statements. For that you need
+        # exec which has no Return.
+        try:
+            compiled = compile(text, "<WorkboxWidget>", 'eval')
+        except:
+            exec (text, __main__.__dict__, __main__.__dict__)
+        else:
+            ret = eval(compiled, __main__.__dict__, __main__.__dict__)
+            ret = repr(ret)
+            self.console().startOutputLine()
+            print(self.truncate_middle(ret, 100))
+
+    def truncate_middle(self, s, n, sep=' ... '):
+        # https://www.xormedia.com/string-truncate-middle-with-ellipsis/
+        if len(s) <= n:
+            # string is already short-enough
+            return s
+        # half of the size, minus the seperator
+        n_2 = int(n) / 2 - len(sep)
+        # whatever's left
+        n_1 = n - n_2 - len(sep)
+        return '{0}{1}{2}'.format(s[:n_1], sep, s[-n_2:])
 
     def keyPressEvent(self, event):
         if self._software == 'softimage':

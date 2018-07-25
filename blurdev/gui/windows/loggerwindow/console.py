@@ -145,10 +145,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self._commentColor = QColor(0, 206, 52)
         self._keywordColor = QColor(17, 154, 255)
         self._stringColor = QColor(255, 128, 0)
+        self._resultColor = QColor(128, 128, 128)
         # These variables are used to enable pdb mode. This is a special mode used by the logger if
         # it is launched externally via getPdb, set_trace, or post_mortem in blurdev.debug.
         self._pdbPrompt = '(Pdb) '
         self._consolePrompt = '>>> '
+        # Note: Changing _outputPrompt may require updating resource\lang\python.xml
+        # If still using a #
+        self._outputPrompt = '#Result: '
         self._pdbMode = False
         # if populated when setPdbMode is called, this action will be enabled and its check state
         # will match the current pdbMode.
@@ -220,9 +224,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """ executes the current line of code """
         # grab the command from the line
         block = self.textCursor().block().text()
-        p = '{prompt}(.*)'.format(
-            prompt=self.prompt().replace('(', '\(').replace(')', '\)')
-        )
+        p = '{prompt}(.*)'.format(prompt=re.escape(self.prompt()))
         results = re.search(p, block)
         if results:
             commandText = results.groups()[0]
@@ -243,12 +245,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 else:
                     # evaluate the command
                     cmdresult = None
+                    # https://stackoverflow.com/a/29456463
+                    # If you want to get the result of the code, you have to call eval
+                    # however eval does not accept multiple statements. For that you need
+                    # exec which has no Return.
                     try:
-                        cmdresult = eval(
-                            commandText, __main__.__dict__, __main__.__dict__
-                        )
+                        compiled = compile(commandText, "<ConsoleEdit>", 'eval')
                     except:
-                        exec (commandText) in __main__.__dict__, __main__.__dict__
+                        exec (commandText, __main__.__dict__, __main__.__dict__)
+                    else:
+                        cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
 
                     # print the resulting commands
                     if cmdresult is not None:
@@ -438,6 +444,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
         self.setTextCursor(cursor)
 
+    def outputPrompt(self):
+        """ The prompt used to output a result.
+        """
+        return self._outputPrompt
+
     def pdbContinue(self):
         self.pdbSendCommand('continue')
 
@@ -484,6 +495,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             return self._pdbPrompt
         return self._consolePrompt
 
+    def resultColor(self):
+        return self._resultColor
+
+    def setResultColor(self, color):
+        self._resultColor = color
+
     def setCompleter(self, completer):
         """ sets the completer instance for this widget """
         if completer:
@@ -500,19 +517,32 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def startInputLine(self):
         """ create a new command prompt line """
+        self.startPrompt(self.prompt())
+
+    def startPrompt(self, prompt):
+        """ create a new command prompt line with the given prompt
+
+        Args:
+            prompt(str): The prompt to start the line with. If this prompt
+                is already the only text on the last line this function does nothing.
+        """
         self.moveCursor(QTextCursor.End)
 
         # if this is not already a new line
-        if self.textCursor().block().text() != self.prompt():
+        if self.textCursor().block().text() != prompt:
             charFormat = QTextCharFormat()
             charFormat.setForeground(self.foregroundColor())
             self.setCurrentCharFormat(charFormat)
 
-            inputstr = self.prompt()
+            inputstr = prompt
             if self.textCursor().block().text():
                 inputstr = '\n' + inputstr
 
             self.insertPlainText(inputstr)
+
+    def startOutputLine(self):
+        """ Create a new line to show output text. """
+        self.startPrompt(self._outputPrompt)
 
     def stdoutColor(self):
         return self._stdoutColor
@@ -572,3 +602,4 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     pyCommentColor = Property(QColor, commentColor, setCommentColor)
     pyKeywordColor = Property(QColor, keywordColor, setKeywordColor)
     pyStringColor = Property(QColor, stringColor, setStringColor)
+    pyResultColor = Property(QColor, resultColor, setResultColor)

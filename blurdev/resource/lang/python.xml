@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <code language="Python" ext=".py;.pys;.pyw">
 	<comments>
-		<comment value="#[^\n]*"/>
+		<comment value="#(?!Result: )[^\n]*"/>
 	</comments>
 	<strings>
 		<str value="'"/>

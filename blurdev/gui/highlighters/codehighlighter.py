@@ -9,6 +9,7 @@
 # 	\date		11/12/08
 #
 
+import re
 from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 
@@ -26,6 +27,7 @@ class CodeHighlighter(QSyntaxHighlighter):
         self._commentColor = QColor(0, 206, 52)
         self._keywordColor = QColor(17, 154, 255)
         self._stringColor = QColor(255, 128, 0)
+        self._resultColor = QColor(125, 128, 128)
 
         # setup the font
         font = widget.font()
@@ -61,6 +63,16 @@ class CodeHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         """ highlights the inputed text block based on the rules of this code highlighter """
         if not self.isConsoleMode() or str(text).startswith('>>>'):
+            # format the result lines
+            format = self.resultFormat()
+            parent = self.parent()
+            if parent and hasattr(parent, 'outputPrompt'):
+                self.highlightText(
+                    text,
+                    QRegExp('%s[^\\n]*' % re.escape(parent.outputPrompt())),
+                    format,
+                )
+
             # format the keywords
             format = self.keywordFormat()
             for kwd in self._keywords:
@@ -133,6 +145,26 @@ class CodeHighlighter(QSyntaxHighlighter):
         format.setForeground(self.keywordColor())
 
         return format
+
+    def resultColor(self):
+        # pull the color from the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'resultColor'):
+            return parent.resultColor()
+        return self._resultColor
+
+    def setResultColor(self, color):
+        # set the color for the parent if possible because this doesn't support stylesheets
+        parent = self.parent()
+        if parent and hasattr(parent, 'setResultColor'):
+            parent.setResultColor(color)
+        self._resultColor = color
+
+    def resultFormat(self):
+        """ returns the result QTextCharFormat for this highlighter """
+        fmt = QTextCharFormat()
+        fmt.setForeground(self.resultColor())
+        return fmt
 
     def setConsoleMode(self, state=False):
         """ sets the highlighter to only apply to console strings (lines starting with >>>) """
