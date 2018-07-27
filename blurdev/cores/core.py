@@ -315,7 +315,9 @@ class Core(QObject):
             count (int): The number of times to flash the window. Defaults to 1.
             timeout (int): The rate at which the window is to be flashed in milliseconds.
                 if zero is passed, the default cursor blink rate is used.
-        
+            hwnd (int or None): Flash this hwnd. If None(default) it will flash window if
+                provided, otherwise it will flash blurdev.core.rootWindow().
+
         Returns:
             bool: Was anything attempted. On windows this always returns True.
         """
