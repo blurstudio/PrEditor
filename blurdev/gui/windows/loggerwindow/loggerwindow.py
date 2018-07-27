@@ -130,6 +130,7 @@ class LoggerWindow(Window):
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
         self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
+        self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
@@ -366,6 +367,7 @@ class LoggerWindow(Window):
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
         pref.recordProperty('styleSheet', self.styleSheet())
+        pref.recordProperty('flashTime', self.uiConsoleTXT.flashTime)
 
         pref.save()
 
@@ -447,6 +449,7 @@ class LoggerWindow(Window):
         )
 
         self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
+        self.uiConsoleTXT.flashTime = pref.restoreProperty('flashTime', 1.0)
 
         self.restoreToolbars()
 
@@ -510,6 +513,13 @@ class LoggerWindow(Window):
         from blurdev import debug
 
         debug.setDebugLevel(debug.DebugLevel.Mid)
+
+    def setFlashWindowInterval(self):
+        value = self.uiConsoleTXT.flashTime
+        msg = 'If running code in the logger takes X seconds or longer,\nthe window will flash if it is not in focus.\nSetting the value to zero will disable flashing.'
+        value, success = QInputDialog.getDouble(None, 'Set flash window', msg, value)
+        if success:
+            self.uiConsoleTXT.flashTime = value
 
     def setHighDebug(self):
         from blurdev import debug

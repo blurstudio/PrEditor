@@ -9,6 +9,7 @@ import __main__
 import os
 import sys
 import sip
+import time
 import traceback
 
 from Qt.QtCore import QDateTime, QObject, QPoint, Qt, Property
@@ -162,6 +163,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         self._firstShow = True
 
+        # When executing code, that takes longer than this seconds, flash the window
+        self.flashTime = 1.0
+
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
         self.uiClearToLastPromptACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Backspace)
@@ -220,6 +224,27 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     def setForegroundColor(self, color):
         self._foregroundColor = color
 
+    def executeString(self, commandText, filename='<ConsoleEdit>'):
+        cmdresult = None
+        # https://stackoverflow.com/a/29456463
+        # If you want to get the result of the code, you have to call eval
+        # however eval does not accept multiple statements. For that you need
+        # exec which has no Return.
+        wasEval = False
+        startTime = time.time()
+        try:
+            compiled = compile(commandText, filename, 'eval')
+        except:
+            exec (commandText, __main__.__dict__, __main__.__dict__)
+        else:
+            cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
+            wasEval = True
+        # Provide user feedback when running long code execution.
+        delta = time.time() - startTime
+        if self.flashTime and delta >= self.flashTime:
+            blurdev.core.flashWindow()
+        return cmdresult, wasEval
+
     def executeCommand(self):
         """ executes the current line of code """
         # grab the command from the line
@@ -244,17 +269,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                         self.insertPlainText(commandText)
                 else:
                     # evaluate the command
-                    cmdresult = None
-                    # https://stackoverflow.com/a/29456463
-                    # If you want to get the result of the code, you have to call eval
-                    # however eval does not accept multiple statements. For that you need
-                    # exec which has no Return.
-                    try:
-                        compiled = compile(commandText, "<ConsoleEdit>", 'eval')
-                    except:
-                        exec (commandText, __main__.__dict__, __main__.__dict__)
-                    else:
-                        cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
+                    cmdresult, wasEval = self.executeString(commandText)
 
                     # print the resulting commands
                     if cmdresult is not None:

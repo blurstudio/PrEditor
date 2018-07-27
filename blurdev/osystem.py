@@ -24,6 +24,7 @@ from Qt.QtCore import QProcess
 
 import blurdev
 from . import settings
+from blurdev.enum import Enum, EnumGroup
 
 
 def getPointerSize():
@@ -633,6 +634,35 @@ def username():
     except getpass.GetPassWarning:
         pass
     return ''
+
+
+class FlashTime(Enum):
+    pass
+
+
+class FlashTimes(EnumGroup):
+    """ Windows arguments for blurdev.core.flashWindow().
+
+    https://docs.microsoft.com/en-us/windows/desktop/api/winuser/ns-winuser-flashwinfo
+    """
+
+    FLASHW_STOP = FlashTime(
+        0,
+        description='Stop flashing. The system restores the window to its original state.',
+    )
+    FLASHW_CAPTION = FlashTime(0x00000001, description='Flash the window caption.')
+    FLASHW_TRAY = FlashTime(0x00000002, description='Flash the taskbar button.')
+    FLASHW_ALL = FlashTime(
+        0x00000003,
+        description='Flash both the window caption and taskbar button. This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags.',
+    )
+    FLASHW_TIMER = FlashTime(
+        0x00000004, description='Flash continuously, until the FLASHW_STOP flag is set.'
+    )
+    FLASHW_TIMERNOFG = FlashTime(
+        0x0000000C,
+        description='Flash continuously until the window comes to the foreground.',
+    )
 
 
 # --------------------------------------------------------------------------------

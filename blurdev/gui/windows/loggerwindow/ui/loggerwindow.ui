@@ -113,6 +113,7 @@
     <addaction name="uiWordWrapACT"/>
     <addaction name="uiEditorVerticalACT"/>
     <addaction name="separator"/>
+    <addaction name="uiSetFlashWindowIntervalACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -531,6 +532,14 @@
   <action name="uiEnvironmentVarsACT">
    <property name="text">
     <string>Environment Variables...</string>
+   </property>
+  </action>
+  <action name="uiSetFlashWindowIntervalACT">
+   <property name="text">
+    <string>Set flash window interval...</string>
+   </property>
+   <property name="toolTip">
+    <string>If executing code takes longer than this many seconds, flash the main window of the application.</string>
    </property>
   </action>
  </widget>

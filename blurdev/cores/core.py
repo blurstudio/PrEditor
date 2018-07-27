@@ -309,9 +309,9 @@ class Core(QObject):
         Args:
             window (QWidget|None): This widget will be flashed. Attempts to get the hwnd from 
                 this widget. Note: This is ignored if hwnd is passed in.
-            dwFlags (win32con.FLASHW_*): A enum value used to control the flashing behavior.
-                See https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
-                details. Defaults to win32con.FLASHW_TIMERNOFG.
+            dwFlags (blurdev.osystem.FlashTimes): A enum value used to control the flashing
+                behavior. See https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
+                for more details. Defaults to FLASHW_TIMERNOFG.
             count (int): The number of times to flash the window. Defaults to 1.
             timeout (int): The rate at which the window is to be flashed in milliseconds.
                 if zero is passed, the default cursor blink rate is used.
@@ -320,12 +320,10 @@ class Core(QObject):
             bool: Was anything attempted. On windows this always returns True.
         """
         if blurdev.settings.OS_TYPE == 'Windows':
-            from win32gui import FlashWindowEx
+            import ctypes
 
             if dwFlags is None:
-                import win32con
-
-                dwFlags = win32con.FLASHW_TIMERNOFG
+                dwFlags = blurdev.osystem.FlashTimes.FLASHW_TIMERNOFG
             if hwnd is None:
                 if window is None:
                     if self.isMfcApp():
@@ -335,7 +333,7 @@ class Core(QObject):
                 else:
                     hwnd = window.winId().__int__()
 
-            FlashWindowEx(hwnd, dwFlags, count, timeout)
+            ctypes.windll.user32.FlashWindow(hwnd, int(dwFlags), count, timeout)
             return True
         return False
 

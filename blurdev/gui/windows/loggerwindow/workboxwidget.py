@@ -86,18 +86,8 @@ class WorkboxWidget(DocumentEditor):
                 lines = self.stripLeadingWhitespace(lines, rep)
             text = u'\n'.join(lines)
 
-        import __main__
-
-        # https://stackoverflow.com/a/29456463
-        # If you want to get the result of the code, you have to call eval
-        # however eval does not accept multiple statements. For that you need
-        # exec which has no Return.
-        try:
-            compiled = compile(text, "<WorkboxWidget>", 'eval')
-        except:
-            exec (text, __main__.__dict__, __main__.__dict__)
-        else:
-            ret = eval(compiled, __main__.__dict__, __main__.__dict__)
+        ret, wasEval = self.console().executeString(text, filename='<WorkboxWidget>')
+        if wasEval:
             ret = repr(ret)
             self.console().startOutputLine()
             print(self.truncate_middle(ret, 100))
