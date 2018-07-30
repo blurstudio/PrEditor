@@ -235,7 +235,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         try:
             compiled = compile(commandText, filename, 'eval')
         except:
-            exec (commandText, __main__.__dict__, __main__.__dict__)
+            compiled = compile(commandText, filename, 'exec')
+            exec (compiled, __main__.__dict__, __main__.__dict__)
         else:
             cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
             wasEval = True
