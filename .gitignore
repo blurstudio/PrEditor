@@ -1,0 +1,79 @@
+*.pyc
+*.pyo
+*.rej
+*.*.swp
+.DS_Store
+
+# /
+/.project
+/.pydevproject
+/build.txt
+/requirements.txt
+/blur-blurdev.egg-info/
+/build/
+/dist/
+
+# /blurdev
+/blurdev/version.txt
+/blurdev/hash.txt
+
+# /action/
+
+# /gui/dialogs/waitbar/
+
+# /gui/widgets/richtexteditor/
+
+# /gui/widgets/richtexteditor/ui/
+
+# /gui/widgets/richtexteditor/ui/images/
+
+# /gui/widgets/richtexteditorwidget/
+
+# /ide/addons/savelog/
+
+# /ide/addons/savelog/ui/
+
+# /ide/addons/tortoisemenus/
+
+# /ide/addons/tortoisemenus/img/
+
+# /installers/
+/installers/svnrev.nsi
+/installers/autogen.nsi
+
+# /installers/bin/
+/installers/bin/*.exe
+
+# /installers/bin/offline/
+/installers/bin/offline/*.exe
+
+# /installers/resource/
+/installers/resource/settings.ini
+/installers/resource/tools_environments.xml
+
+# /lang/
+
+# /resource/stylesheet/
+
+# /traxoffline/
+
+# /traxoffline/trax/
+
+# /traxoffline/trax/api/
+
+# /traxoffline/trax/api/data/
+
+# /traxoffline/trax/api/data/source/
+/traxoffline/trax/api/data/source/approvalTypes.xml
+/traxoffline/trax/api/data/source/departments.xml
+/traxoffline/trax/api/data/source/roles.xml
+
+# /traxoffline/trax/gui/
+
+# /traxoffline/trax/gui/dialogs/
+
+# /traxoffline/trax/gui/dialogs/infodialog/
+
+# /traxoffline/trax/gui/dialogs/infodialog/ui/
+
+# /traxoffline/trax/gui/widgets/
