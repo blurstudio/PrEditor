@@ -1,0 +1,24 @@
+include blurdev/version.txt
+include blurdev/hash.txt
+
+graft blurdev/lang
+graft blurdev/resource
+graft blurdev/runtimes
+graft blurdev/traxoffline/trax/api/data/source
+
+recursive-include blurdev/gui/widgets/richtexteditor/ui *.qrc
+recursive-include blurdev/gui/windows/sdkwindow *.css
+recursive-include blurdev/ide/wizards/environmentwizard/templ *.blurproj
+recursive-include blurdev/ide/wizards/toolwizard/templ *.blurproj
+recursive-include blurdev/traxoffline/trax/gui/dialogs/infodialog/ui *.ui
+
+recursive-include blurdev/gui *.ui
+recursive-include blurdev/gui *.png
+recursive-include blurdev/gui *.bmp
+
+recursive-include blurdev/ide *.png
+recursive-include blurdev/ide *.ui
+recursive-include blurdev/ide *.ini
+recursive-include blurdev/ide *.xml
+recursive-include blurdev/ide *.txt
+recursive-include blurdev/ide *.pytempl
