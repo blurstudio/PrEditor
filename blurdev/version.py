@@ -3,25 +3,22 @@
 
 import os
 import re
+import sys
 
-_major = 2  # User defined major version
-_minor = 2  # User defined minor version
+# Temporary until a blur-utils package is made
+_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, r'\\source\production\code\python\lib')
+import blurutils.version
 
-# Load build version from file
-_currentBuild = 0
-filename = os.path.split(__file__)[0] + '/build.txt'
-if os.path.exists(filename):
-    f = open(filename, 'r')
-    _currentBuild = int(f.read())
-    f.close()
+_version = blurutils.version.Version(_dir)
 
 
 def major():
-    return _major
+    return _version.major()
 
 
 def minor():
-    return _minor
+    return _version.minor()
 
 
 def current(asDict=False):
@@ -41,7 +38,7 @@ def current(asDict=False):
 
 
 def currentBuild():
-    return _currentBuild
+    return _version.currentBuild()
 
 
 def fromString(version, asDict=False):
