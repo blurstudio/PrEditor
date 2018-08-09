@@ -6,10 +6,15 @@ import re
 import sys
 
 # Temporary until a blur-utils package is made
-_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, r'\\source\production\code\python\lib')
+import platform
+
+if 'Linux' == platform.system():
+    sys.path.insert(0, r'/mnt/source/code/python/lib/')
+else:
+    sys.path.insert(0, r'\\source\production\code\python\lib')
 import blurutils.version
 
+_dir = os.path.dirname(os.path.abspath(__file__))
 _version = blurutils.version.Version(_dir)
 
 

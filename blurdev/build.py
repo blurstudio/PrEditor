@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     from blur.build import *
     import blur.build
-    import sys, os
+    import sys, os, platform
     from blurdev import template
 
     product = sys.argv[1]
@@ -37,7 +37,10 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     # Temporary until a blur-utils package is made
-    sys.path.insert(0, r'\\source\production\code\python\lib')
+    if 'Linux' == platform.system():
+        sys.path.insert(0, r'/mnt/source/code/python/lib/')
+    else:
+        sys.path.insert(0, r'\\source\production\code\python\lib')
     import blurutils.version
 
     version = blurutils.version.Version(path)
