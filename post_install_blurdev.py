@@ -117,7 +117,7 @@ def update_settings_ini():
     st = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%c')
     config = configparser.ConfigParser()
     config.sections()
-    config.read(r'c:\blurdev_test\software.ini')
+    config.read(r'c:\blur\software.ini')
 
     # if it does not exist, add blurdev section
     if not config.has_section('blurdev'):
@@ -146,7 +146,7 @@ def update_settings_ini():
     )
     config.set('blurdev', 'version', version.versionString())
 
-    with open(r'c:\blurdev_test\software.ini', 'w') as configfile:
+    with open(r'c:\blur\software.ini', 'w') as configfile:
         config.write(configfile)
 
 
