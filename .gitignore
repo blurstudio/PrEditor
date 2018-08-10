@@ -12,6 +12,8 @@
 /blur_blurdev.egg-info/
 /build/
 /dist/
+/docs/
+/venv/
 
 # /blurdev
 /blurdev/version.txt
