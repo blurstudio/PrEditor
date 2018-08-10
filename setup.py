@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 from codecs import open
-from os import path
+import os
 import re
 import subprocess
 from setuptools.command.install import install
@@ -15,11 +15,11 @@ else:
     sys.path.insert(0, r'\\source\production\code\python\lib')
 import blurutils.version
 
-_dir = path.dirname(path.abspath(__file__))
+_dir = os.path.dirname(os.path.abspath(__file__))
 version = blurutils.version.Version(os.path.join(_dir, 'blurdev'))
 
 # Get the long description from the README file
-with open(path.join(_dir, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(_dir, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
