@@ -9,17 +9,13 @@ from blurdev import version
 
 
 def post_install():
-    python_exe = blurdev.osystem.pythonPath(pyw=True)
-    here = os.path.abspath(os.path.dirname(__file__))
-    module_name = os.path.basename(here)
-    print "module_name: %s" % module_name
-    if module_name.endswith('_test'):
-        module_name = 'blurdev'
+    python_exe = blurdev.osystem.pythonPath(pyw=True, architecture=64)
+    module_name = 'blurdev'
     path = os.path.join(
         os.path.dirname(python_exe), 'Lib', 'site-packages', module_name
     )
 
-    # create trax windows desktop shortcut with createShortcut(),
+    # create windows desktop shortcut with createShortcut(),
     # which also sets System.AppUserModel.ID, continue on fail
     print "Creating Treegrunt Windows desktop shortcut"
     blurdev.osystem.createShortcut(
@@ -55,8 +51,6 @@ def post_install():
         stderr=subprocess.PIPE,
     )
     output = proc.stdout.read().strip()
-    print "output: %s" % output
-    print "proc.returncode: %s" % str(proc.returncode)
     if ('' != output) or (0 < proc.returncode):
         print 'Icon cache clear failed'
 
@@ -144,7 +138,7 @@ def update_settings_ini():
         '%s %s %s %s:%s:%s %s'
         % (day_of_week, month, day_of_month, hour, minute, seconds, year),
     )
-    config.set('blurdev', 'version', version.versionString())
+    config.set('blurdev', 'version', version.toString(prepend_v=False))
 
     with open(r'c:\blur\software.ini', 'w') as configfile:
         config.write(configfile)
@@ -181,7 +175,7 @@ def updateEnvirons():
 
 if __name__ == '__main__':
     print ('Running post-install script')
-    # post_install()
+    post_install()
     print ('Updating', 'c:/blurdev/settings.ini')
     update_settings_ini()
     print ('Updating', blurdev.ini.configFile)

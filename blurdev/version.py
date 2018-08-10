@@ -74,10 +74,10 @@ def fromString(version, asDict=False):
     raise ValueError('Invalid version string: {}'.format(version))
 
 
-def toString(version=None):
+def toString(version=None, prepend_v=True):
     # return the current version information for this system
     if version is None:
-        vstr = versionString(major(), minor(), currentBuild())
+        vstr = versionString(major(), minor(), currentBuild(), prepend_v=prepend_v)
         return vstr
 
     # return the version string for a float
@@ -88,5 +88,8 @@ def toString(version=None):
         return versionString(maj, min, build)
 
 
-def versionString(major, minor, build):
-    return 'v%i.%02i.%i' % (major, minor, build)
+def versionString(major, minor, build, prepend_v=True):
+    version_string = '%i.%i.%i' % (major, minor, build)
+    if prepend_v:
+        version_string = 'v%s' % version_string
+    return version_string
