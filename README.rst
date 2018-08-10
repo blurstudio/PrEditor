@@ -5,6 +5,8 @@ Blurdev (c) Blur Studio
 Blurdev is the central python package for most python packages and modules 
 created at Blur.
 
+------------
+
 Requirements
 ------------
 ========== ==== =======
@@ -13,11 +15,15 @@ Qt         4.2+ Open Source edition of the Qt programming libraries for GUI
 PyQt       4+   Open Source python modules for accessing Qt libraries
 ========== ==== =======
 
+------------
+
 Building
 ------------
 ::
 
     $ python setup.py bdist_wheel
+
+------------
 
 Installation
 ------------
