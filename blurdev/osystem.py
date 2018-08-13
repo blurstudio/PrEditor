@@ -223,11 +223,17 @@ def createShortcut(
             pathName, ext = os.path.splitext(icon)
             if not ext == '.ico':
                 icon = pathName + '.ico'
-            # calculate the path to copy the icon to
-            outPath = r'%s\blur\icons' % os.getenv('appdata')
+            # Calculate the path to copy the icon to
+            # On Win7/10 use 'ProgramData' for 'All Users' or the 'Public' user
+            # https://www.microsoft.com/en-us/wdsi/help/folder-variables
+            envVar = 'APPDATA'
+            if 0 == common:
+                envVar = 'ProgramData'
+            iconImagePath = os.getenv(envVar)
+            outPath = os.path.join(iconImagePath, 'blur', 'icons')
             if not os.path.exists(outPath):
                 os.makedirs(outPath)
-            outIcon = os.path.abspath('%s\%s.ico' % (outPath, title))
+            outIcon = os.path.abspath(r'%s\%s.ico' % (outPath, title))
             if os.path.exists(icon):
                 import shutil
 
