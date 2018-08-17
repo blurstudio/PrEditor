@@ -412,7 +412,8 @@ def subprocessEnvironment(env=None):
     """ Returns a copy of the environment that will restore a new python instance to current state.
     
     Provides a environment dict that can be passed to subprocess.Popen that will restore the
-    current treegrunt environment settings, and blurdev stylesheet.
+    current treegrunt environment settings, and blurdev stylesheet. It also resets any
+    environment variables set by a dcc that may cause problems when running a subprocess.
 
     Args:
         env (dict, Optional): The base dictionary that is modified with blurdev variables.
@@ -444,6 +445,16 @@ def subprocessEnvironment(env=None):
     path = env.get('PATH')
     normalize = lambda i: os.path.normpath(os.path.normcase(i))
     removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
+
+    # blurpath records any paths it adds to the PATH variable. Remove them from
+    # any subprocess launches.
+    try:
+        import blurpath
+
+        removePaths.update([normalize(x) for x in blurpath.addedToPathEnv])
+    except (ImportError, AttributeError):
+        pass
+
     if path:
         paths = [x for x in path.split(';') if normalize(x) not in removePaths]
         path = ';'.join(paths)
@@ -457,6 +468,14 @@ def subprocessEnvironment(env=None):
     # default method of finding trax.
     if 'BDEV_INCLUDE_TRAX' in env:
         del env['BDEV_INCLUDE_TRAX']
+
+    # By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common" to
+    # QApplication.libraryPaths(), setting this env var to a invalid path disables that.
+    # Leaving this set likely will cause the subprocess to not be configured correctly.
+    # The subprocess should be responsible for setting this variable
+    if 'LIBSTONE_QT_LIBRARY_PATH' in env:
+        del env['LIBSTONE_QT_LIBRARY_PATH']
+
     return env
 
 
