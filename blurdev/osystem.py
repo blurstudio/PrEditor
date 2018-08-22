@@ -427,12 +427,6 @@ def subprocessEnvironment(env=None):
     actEnv = blurdev.activeEnvironment()
     if actEnv.path():
         env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
-        email = actEnv.emailOnError()
-        if email:
-            env['BLURDEV_ERROR_EMAIL'] = str(email[0])
-        env['BDEV_ENVIRONMENT_OFFLINE'] = repr(actEnv.isOffline())
-        env['BDEV_ENVIRONMENT_DEVEL'] = repr(actEnv.isDevelopment())
-        env['BDEV_ENVIRONMENT_ENVIRON_FILE'] = str(actEnv.sourceFile())
 
     # Sets the stylesheet env variable so that launched applications can use it.
     stylesheet = blurdev.core.styleSheet()
