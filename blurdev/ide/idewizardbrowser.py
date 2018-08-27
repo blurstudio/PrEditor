@@ -8,27 +8,26 @@
 # 	\date		08/19/10
 #
 
+from Qt.QtCore import QSize, Qt
+from Qt.QtGui import QIcon
+from Qt.QtWidgets import QTreeWidgetItem
+import blurdev
+import blurdev.gui
 from blurdev.gui import Dialog
 
 
 class IdeWizardBrowser(Dialog):
     def __init__(self, parent):
-        Dialog.__init__(self, parent)
+        super(IdeWizardBrowser, self).__init__(parent)
 
         # load the ui
-        import blurdev.gui
-
         blurdev.gui.loadUi(__file__, self)
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide/newwizard.png')))
 
         # import the wizards
         import wizards
 
-        from Qt.QtGui import QIcon
-
         folder = QIcon(blurdev.resourcePath('img/folder.png'))
-
-        from Qt.QtCore import QSize, Qt
-        from Qt.QtWidgets import QTreeWidgetItem
 
         for lang in wizards.wizardLanguages():
             item = QTreeWidgetItem([lang])
@@ -64,8 +63,6 @@ class IdeWizardBrowser(Dialog):
         items = self.uiWizardsVIEW.scene().selectedItems()
         if items:
             item = items[0]
-            from Qt.QtCore import Qt
-
             from . import wizards
 
             return wizards.find(item.data(Qt.UserRole))
@@ -88,7 +85,6 @@ class IdeWizardBrowser(Dialog):
             return
 
         from . import wizards
-        from Qt.QtCore import Qt
 
         templs = wizards.wizards(item.parent().text(0), item.text(0))
         for templ in templs:
@@ -107,8 +103,6 @@ class IdeWizardBrowser(Dialog):
 
     @staticmethod
     def createFromWizard():
-        import blurdev
-
         if IdeWizardBrowser(blurdev.core.activeWindow()).exec_():
             return True
         return False
