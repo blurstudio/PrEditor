@@ -370,22 +370,31 @@ class DocumentEditor(QsciScintilla):
         start, s, end, e = self.getSelection()
         count = end - start + 1
         self.setSelection(start, 0, end, e)
-        text = self.selectedText()
-        while len(re.findall(r'^\W', text, flags=re.M)) == count:
-            text = re.sub(r'^\W', '', text, flags=re.M)
-        QApplication.clipboard().setText(text)
+        txt = self.selectedText()
+
+        def replacement(match):
+            return re.sub('[ \t]', '', match.group(), count=1)
+
+        # NOTE: Don't use re.M, it does not support mac line endings.
+        regex = re.compile('(?:^|\r\n?|\n)[ \t]')
+        while len(regex.findall(txt)) == count:
+            # We found the same number of leading whitespace as lines of text.
+            # This means that it all has leading whitespace that needs removed.
+            txt = regex.sub(replacement, txt)
+        QApplication.clipboard().setText(txt)
 
     def copySpaceIndentation(self):
         """ Copy the selected text with any tab indents converted to space indents. 
         
         If indentationsUseTabs is False it will just copy the text
         """
-        text = self.selectedText()
+        txt = self.selectedText()
 
         def replacement(match):
             return match.group().replace('\t', ' ' * self.tabWidth())
 
-        ret = re.sub('^\t+', replacement, text, flags=re.M)
+        # NOTE: Don't use re.M, it does not support mac line endings.
+        ret = re.sub('(?:^|\r\n?|\n)\t+', replacement, txt)
         QApplication.clipboard().setText(ret)
 
     def copyHtml(self):

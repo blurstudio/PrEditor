@@ -38,13 +38,8 @@ class WorkboxWidget(DocumentEditor):
         """
             \remarks	reimplement the DocumentEditor.exec_ method to run this code without saving
         """
-        import __main__
-
-        exec (
-            self.text().replace('\r', '\n').rstrip(),
-            __main__.__dict__,
-            __main__.__dict__,
-        )
+        txt = self.toUnixLineEndings(self.text()).rstrip()
+        self.console().executeString(txt, filename='<WorkboxWidget>')
 
     def findLeadingWhitespace(self, lines):
         # Find the first line that has text that isn't a comment
@@ -73,20 +68,22 @@ class WorkboxWidget(DocumentEditor):
         return newLines
 
     def execSelected(self):
-        text = self.selectedText().replace('\r', '\n')
-        if not text:
+        txt = self.selectedText()
+        if not txt:
             line, index = self.getCursorPosition()
-            text = self.text(line).replace('\r', '\n')
+            txt = self.text(line)
+
+        txt = self.toUnixLineEndings(txt)
 
         stripCommon = True
         if stripCommon:
-            lines = text.split('\n')
+            lines = txt.split('\n')
             rep = self.findLeadingWhitespace(lines)
             if rep:
                 lines = self.stripLeadingWhitespace(lines, rep)
-            text = u'\n'.join(lines)
+            txt = u'\n'.join(lines)
 
-        ret, wasEval = self.console().executeString(text, filename='<WorkboxWidget>')
+        ret, wasEval = self.console().executeString(txt, filename='<WorkboxSelection>')
         if wasEval:
             ret = repr(ret)
             self.console().startOutputLine()
@@ -187,9 +184,9 @@ class WorkboxWidget(DocumentEditor):
             not self._searchDialog.isVisible()
             and not self._searchFlags & self.SearchOptions.QRegExp
         ):
-            text = self.selectedText()
-            if text:
-                self._searchText = text
+            txt = self.selectedText()
+            if txt:
+                self._searchText = txt
         return self._searchText
 
     def selectedText(self):
@@ -201,5 +198,11 @@ class WorkboxWidget(DocumentEditor):
     def setSearchFlags(self, flags):
         self._searchFlags = flags
 
-    def setSearchText(self, text):
-        self._searchText = text
+    def setSearchText(self, txt):
+        self._searchText = txt
+
+    @classmethod
+    def toUnixLineEndings(cls, txt):
+        """ Replaces all windows and then mac line endings with unix line endings.
+        """
+        return txt.replace('\r\n', '\n').replace('\r', '\n')
