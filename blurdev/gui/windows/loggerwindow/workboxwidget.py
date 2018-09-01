@@ -68,11 +68,16 @@ class WorkboxWidget(DocumentEditor):
         return newLines
 
     def execSelected(self):
+        # Get the first line number of the selection so we can report correct line numbers.
+        # If text is selected use it, otherwise use the text of the current line.
         txt = self.selectedText()
-        if not txt:
+        if txt:
+            line, s, end, e = self.getSelection()
+        else:
             line, index = self.getCursorPosition()
             txt = self.text(line)
 
+        # Get rid of pesky \r's
         txt = self.toUnixLineEndings(txt)
 
         stripCommon = True
@@ -83,8 +88,13 @@ class WorkboxWidget(DocumentEditor):
                 lines = self.stripLeadingWhitespace(lines, rep)
             txt = u'\n'.join(lines)
 
+        # Make workbox line numbers match the workbox line numbers.
+        txt = '\n' * line + txt
+
+        # execute the code
         ret, wasEval = self.console().executeString(txt, filename='<WorkboxSelection>')
         if wasEval:
+            # If the selected code was a statement print the result of the statement.
             ret = repr(ret)
             self.console().startOutputLine()
             print(self.truncate_middle(ret, 100))
