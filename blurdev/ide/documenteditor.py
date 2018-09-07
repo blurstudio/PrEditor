@@ -379,9 +379,9 @@ class DocumentEditor(QsciScintilla):
     def copyHtml(self):
         """ Copy's the selected text, but formats it using pygments if installed into html."""
         text = self.selectedText()
-        from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
+        from blurdev.utils.errorEmail import highlightCodeHtml
 
-        text = ConsoleEdit.highlightCodeHtml(text, self.language(), None)
+        text = highlightCodeHtml(text, self.language(), None)
         QApplication.clipboard().setText(text)
 
     def detectEndLine(self, text):
