@@ -8,8 +8,9 @@
 # 	\date		03/17/11
 #
 
-from Qt.QtWidgets import QTextEdit
+from Qt.QtWidgets import QTextEdit, QAction
 from Qt.QtCore import QEvent, Qt
+from Qt.QtGui import QIcon
 from blurdev.ide.documenteditor import DocumentEditor
 from Qt.QtWidgets import QApplication
 import blurdev, re
@@ -17,19 +18,19 @@ import blurdev, re
 
 class WorkboxWidget(DocumentEditor):
     def __init__(self, parent, console=None):
-        # initialize the super class
-        DocumentEditor.__init__(self, parent)
-
         self._console = console
         self._searchFlags = 0
         self._searchText = ''
         self._searchDialog = None
+
+        # initialize the super class
+        super(WorkboxWidget, self).__init__(parent)
+
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         import blurdev
 
         self._software = blurdev.core.objectName()
         self.regex = re.compile('\s+$')
-        self.initShortcuts()
 
     def console(self):
         return self._console
@@ -126,46 +127,25 @@ class WorkboxWidget(DocumentEditor):
         Use this to set up shortcuts when the DocumentEditor is not being used in the IdeEditor.
         """
         from blurdev.ide.finddialog import FindDialog
-        from Qt.QtGui import QIcon
-        from Qt.QtWidgets import QAction
 
+        super(WorkboxWidget, self).initShortcuts()
         self.uiFindACT = QAction(
             QIcon(blurdev.resourcePath('img/ide/find.png')), 'Find...', self
         )
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
+
         self.uiFindPrevACT = QAction(
             QIcon(blurdev.resourcePath('img/ide/findprev.png')), 'Find Prev', self
         )
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
+
         self.uiFindNextACT = QAction(
             QIcon(blurdev.resourcePath('img/ide/findnext.png')), 'Find Next', self
         )
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
-
-        self.uiCommentAddACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_add.png')), 'Comment Add', self
-        )
-        self.uiCommentAddACT.setShortcut("Alt+3")
-        self.addAction(self.uiCommentAddACT)
-
-        self.uiCommentRemoveACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_remove.png')),
-            'Comment Remove',
-            self,
-        )
-        self.uiCommentRemoveACT.setShortcut("Alt+#")
-        self.addAction(self.uiCommentRemoveACT)
-
-        self.uiCommentToggleACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')),
-            'Comment Toggle',
-            self,
-        )
-        self.uiCommentToggleACT.setShortcut("Ctrl+Alt+3")
-        self.addAction(self.uiCommentToggleACT)
 
         # create the search dialog and connect actions
         self._searchDialog = FindDialog(self)
@@ -179,9 +159,6 @@ class WorkboxWidget(DocumentEditor):
         self.uiFindNextACT.triggered.connect(
             lambda: self.findNext(self.searchText(), self.searchFlags())
         )
-        self.uiCommentAddACT.triggered.connect(self.commentAdd)
-        self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
-        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
 
     def searchFlags(self):
         return self._searchFlags
