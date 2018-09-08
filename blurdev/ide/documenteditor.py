@@ -56,7 +56,6 @@ class DocumentEditor(QsciScintilla):
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
         self._enableFontResizing = True
-        self._shortcutsInitialized = False
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
         self._foldMarginForegroundColor = QColor(Qt.white)
@@ -111,6 +110,37 @@ class DocumentEditor(QsciScintilla):
         # goto the line
         if lineno:
             self.setCursorPosition(lineno, 0)
+
+        # Create shortcuts
+        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
+
+        # We have to re-create the copy shortcut so we can use our implementation
+        self.uiCopyACT = QAction(icon, 'Copy', self)
+        self.uiCopyACT.setShortcut('Ctrl+C')
+        self.uiCopyACT.triggered.connect(self.copy)
+        self.addAction(self.uiCopyACT)
+
+        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        self.uiCopyLstripACT = QAction(iconlstrip, 'Copy lstrip', self)
+        self.uiCopyLstripACT.setShortcut('Ctrl+Shift+C')
+        self.uiCopyLstripACT.triggered.connect(self.copyLstrip)
+        self.addAction(self.uiCopyLstripACT)
+
+        self.uiCopyHtmlACT = QAction(icon, 'Copy Html', self)
+        self.uiCopyHtmlACT.triggered.connect(self.copyHtml)
+        self.addAction(self.uiCopyHtmlACT)
+
+        self.uiCopySpaceIndentationACT = QAction(icon, 'Copy Tabs to Spaces', self)
+        self.uiCopySpaceIndentationACT.setShortcut('Ctrl+Shift+Space')
+        self.uiCopySpaceIndentationACT.triggered.connect(self.copySpaceIndentation)
+        self.addAction(self.uiCopySpaceIndentationACT)
+
+        # Update keyboard shortcuts that come with QsciScintilla
+        commands = self.standardCommands()
+        # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to comment
+        command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
+        if command is not None:
+            command.setKey(0)
 
     def autoFormat(self):
         try:
@@ -683,67 +713,6 @@ class DocumentEditor(QsciScintilla):
         self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
         self._enableFontResizing = scheme.value('document_EnableFontResize')
 
-    def initShortcuts(self):
-        """
-        Use this to set up shortcuts when the DocumentEditor is not being used in the IdeEditor.
-        """
-        # Update keyboard shortcuts that come with QsciScintilla
-        commands = self.standardCommands()
-        # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to comment
-        command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
-        if command is not None:
-            command.setKey(0)
-
-        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
-
-        # We have to re-create the copy shortcut so we can use our implementation
-        self.uiCopyACT = QAction(icon, 'Copy', self)
-        self.uiCopyACT.setShortcut('Ctrl+C')
-        self.uiCopyACT.triggered.connect(self.copy)
-        self.addAction(self.uiCopyACT)
-
-        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
-        self.uiCopyLstripACT = QAction(iconlstrip, 'Copy lstrip', self)
-        self.uiCopyLstripACT.setShortcut('Ctrl+Shift+C')
-        self.uiCopyLstripACT.triggered.connect(self.copyLstrip)
-        self.addAction(self.uiCopyLstripACT)
-
-        self.uiCopyHtmlACT = QAction(icon, 'Copy Html', self)
-        self.uiCopyHtmlACT.triggered.connect(self.copyHtml)
-        self.addAction(self.uiCopyHtmlACT)
-
-        self.uiCopySpaceIndentationACT = QAction(icon, 'Copy Tabs to Spaces', self)
-        self.uiCopySpaceIndentationACT.setShortcut('Ctrl+Shift+Space')
-        self.uiCopySpaceIndentationACT.triggered.connect(self.copySpaceIndentation)
-        self.addAction(self.uiCopySpaceIndentationACT)
-
-        self.uiCommentAddACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_add.png')), 'Comment Add', self
-        )
-        self.uiCommentAddACT.setShortcut("Alt+3")
-        self.addAction(self.uiCommentAddACT)
-
-        self.uiCommentRemoveACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_remove.png')),
-            'Comment Remove',
-            self,
-        )
-        self.uiCommentRemoveACT.setShortcut("Alt+#")
-        self.addAction(self.uiCommentRemoveACT)
-
-        self.uiCommentToggleACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')),
-            'Comment Toggle',
-            self,
-        )
-        self.uiCommentToggleACT.setShortcut("Ctrl+/")
-        self.addAction(self.uiCommentToggleACT)
-
-        # create the search dialog and connect actions
-        self.uiCommentAddACT.triggered.connect(self.commentAdd)
-        self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
-        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
-
     def markerNext(self):
         line, index = self.getCursorPosition()
         newline = self.markerFindNext(line + 1, self.marginMarkerMask(1))
@@ -1164,13 +1133,29 @@ class DocumentEditor(QsciScintilla):
         act.setShortcut('Ctrl+X')
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
 
-        menu.addAction(self.uiCopyACT)
+        act = menu.addAction('Copy')
+        act.triggered.connect(self.copy)
+        act.setShortcut('Ctrl+C')
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
         copyMenu = menu.addMenu('Advanced Copy')
 
-        copyMenu.addAction(self.uiCopyLstripACT)
-        copyMenu.addAction(self.uiCopyHtmlACT)
-        copyMenu.addAction(self.uiCopySpaceIndentationACT)
+        # Note: I cant use the actions defined above because they end up getting garbage collected
+        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
+        act.setShortcut('Ctrl+Shift+C')
+        act.triggered.connect(self.copyLstrip)
+        copyMenu.addAction(act)
+
+        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
+        act = QAction(icon, 'Copy Html', copyMenu)
+        act.triggered.connect(self.copyHtml)
+        copyMenu.addAction(act)
+
+        act = QAction(icon, 'Copy Tabs to Spaces', copyMenu)
+        act.setShortcut('Ctrl+Shift+Space')
+        act.triggered.connect(self.copySpaceIndentation)
+        copyMenu.addAction(act)
 
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
@@ -1185,9 +1170,20 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
-        menu.addAction(self.uiCommentAddACT)
-        menu.addAction(self.uiCommentRemoveACT)
-        menu.addAction(self.uiCommentToggleACT)
+        act = menu.addAction('Comment Add')
+        act.triggered.connect(self.commentAdd)
+        act.setShortcut("Alt+3")
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_add.png')))
+
+        act = menu.addAction('Comment Remove')
+        act.triggered.connect(self.commentRemove)
+        act.setShortcut("Alt+#")
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_remove.png')))
+
+        act = menu.addAction('Comment Toggle')
+        act.triggered.connect(self.commentToggle)
+        act.setShortcut("Ctrl+/")
+        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')))
 
         menu.addSeparator()
 
@@ -1242,12 +1238,6 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).showEvent(event)
         # Update the colorScheme after the stylesheet has been fully loaded.
         self.updateColorScheme()
-        # Create shortcuts
-        if not self._shortcutsInitialized:
-            # The QActions created in initShortcuts get garbage collected if this
-            # is done in the __init__ function.
-            self.initShortcuts()
-            self._shortcutsInitialized = True
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle

@@ -31,6 +31,7 @@ class WorkboxWidget(DocumentEditor):
 
         self._software = blurdev.core.objectName()
         self.regex = re.compile('\s+$')
+        self.initShortcuts()
 
     def console(self):
         return self._console
@@ -128,7 +129,6 @@ class WorkboxWidget(DocumentEditor):
         """
         from blurdev.ide.finddialog import FindDialog
 
-        super(WorkboxWidget, self).initShortcuts()
         self.uiFindACT = QAction(
             QIcon(blurdev.resourcePath('img/ide/find.png')), 'Find...', self
         )
@@ -146,6 +146,31 @@ class WorkboxWidget(DocumentEditor):
         )
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
+
+        self.uiCommentAddACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_add.png')), 'Comment Add', self
+        )
+        self.uiCommentAddACT.setShortcut("Alt+3")
+        self.uiCommentAddACT.triggered.connect(self.commentAdd)
+        self.addAction(self.uiCommentAddACT)
+
+        self.uiCommentRemoveACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_remove.png')),
+            'Comment Remove',
+            self,
+        )
+        self.uiCommentRemoveACT.setShortcut("Alt+#")
+        self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
+        self.addAction(self.uiCommentRemoveACT)
+
+        self.uiCommentToggleACT = QAction(
+            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')),
+            'Comment Toggle',
+            self,
+        )
+        self.uiCommentToggleACT.setShortcut("Ctrl+/")
+        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
+        self.addAction(self.uiCommentToggleACT)
 
         # create the search dialog and connect actions
         self._searchDialog = FindDialog(self)
