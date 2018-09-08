@@ -817,7 +817,7 @@
     <string>Comment Toggle</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+3</string>
+    <string>Ctrl+/</string>
    </property>
   </action>
   <action name="uiSmartHighlightingACT">

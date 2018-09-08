@@ -56,6 +56,7 @@ class DocumentEditor(QsciScintilla):
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
         self._enableFontResizing = True
+        self._shortcutsInitialized = False
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
         self._foldMarginForegroundColor = QColor(Qt.white)
@@ -110,9 +111,6 @@ class DocumentEditor(QsciScintilla):
         # goto the line
         if lineno:
             self.setCursorPosition(lineno, 0)
-
-        # Create shortcuts
-        self.initShortcuts()
 
     def autoFormat(self):
         try:
@@ -1244,6 +1242,12 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).showEvent(event)
         # Update the colorScheme after the stylesheet has been fully loaded.
         self.updateColorScheme()
+        # Create shortcuts
+        if not self._shortcutsInitialized:
+            # The QActions created in initShortcuts get garbage collected if this
+            # is done in the __init__ function.
+            self.initShortcuts()
+            self._shortcutsInitialized = True
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
