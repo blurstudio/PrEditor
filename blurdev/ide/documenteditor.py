@@ -753,6 +753,18 @@ class DocumentEditor(QsciScintilla):
     def marginsFont(self):
         return self._marginsFont
 
+    def multipleSelection(self):
+        """ Returns if multiple selection is enabled. """
+        return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
+
+    def multipleSelectionAdditionalSelectionTyping(self):
+        """ Returns if multiple selection allows additional typing. """
+        return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
+
+    def multipleSelectionMultiPaste(self):
+        """ Paste into all multiple selections. """
+        return self.SendScintilla(self.SCI_GETMULTIPASTE)
+
     def paste(self):
         text = QApplication.clipboard().text()
         if text.find('\n') == -1 and text.find('\r') == -1:
@@ -1051,6 +1063,39 @@ class DocumentEditor(QsciScintilla):
     def setMarginsFont(self, font):
         super(DocumentEditor, self).setMarginsFont(font)
         self._marginsFont = font
+
+    def setMultipleSelection(self, state):
+        """ Enables or disables multiple selection
+
+        Args:
+            state (bool): Enable or disable multiple selection. When multiple
+                selection is disabled, it is not possible to select multiple
+                ranges by holding down the Ctrl key while dragging with the
+                mouse.
+        """
+        self.SendScintilla(self.SCI_SETMULTIPLESELECTION, state)
+
+    def setMultipleSelectionAdditionalSelectionTyping(self, state):
+        """ Enables or disables multiple selection allows additional typing.
+
+        Args:
+            state (bool): Whether typing, new line, cursor left/right/up/down,
+                backspace, delete, home, and end work with multiple selections
+                simultaneously. Also allows selection and word and line
+                deletion commands.
+        """
+        self.SendScintilla(self.SCI_SETADDITIONALSELECTIONTYPING, state)
+
+    def setMultipleSelectionMultiPaste(self, state):
+        """ Enables or disables multiple selection allows additional typing.
+
+        Args:
+            state (int): When pasting into multiple selections, the pasted text
+            can go into just the main selection with self.SC_MULTIPASTE_ONCE or
+            into each selection with self.SC_MULTIPASTE_EACH.
+            self.SC_MULTIPASTE_ONCE is the default.
+        """
+        self.SendScintilla(self.SCI_SETMULTIPASTE, state)
 
     def setSmartHighlightingRegEx(
         self, exp='[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
