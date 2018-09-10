@@ -18,6 +18,7 @@
 # /blurdev
 /blurdev/version.txt
 /blurdev/hash.txt
+/blurdev/build.txt
 
 # /action/
 
@@ -40,18 +41,21 @@
 # /ide/addons/tortoisemenus/img/
 
 # /installers/
-/installers/svnrev.nsi
-/installers/autogen.nsi
+/blurdev/installers/autogen.nsi
+/blurdev/installers/installer.nsi
+/blurdev/installers/svnrev.nsi
+/blurdev/installers/svnrev-template.nsi
+/blurdev/installers/version-template.txt
 
 # /installers/bin/
-/installers/bin/*.exe
+/blurdev/installers/bin/*.exe
 
 # /installers/bin/offline/
-/installers/bin/offline/*.exe
+/blurdev/installers/bin/offline/*.exe
 
 # /installers/resource/
-/installers/resource/settings.ini
-/installers/resource/tools_environments.xml
+/blurdev/installers/resource/settings.ini
+/blurdev/installers/resource/tools_environments.xml
 
 # /lang/
 
@@ -66,9 +70,9 @@
 # /traxoffline/trax/api/data/
 
 # /traxoffline/trax/api/data/source/
-/traxoffline/trax/api/data/source/approvalTypes.xml
-/traxoffline/trax/api/data/source/departments.xml
-/traxoffline/trax/api/data/source/roles.xml
+/blurdev/traxoffline/trax/api/data/source/approvalTypes.xml
+/blurdev/traxoffline/trax/api/data/source/departments.xml
+/blurdev/traxoffline/trax/api/data/source/roles.xml
 
 # /traxoffline/trax/gui/
 
