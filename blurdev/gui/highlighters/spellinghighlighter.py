@@ -11,17 +11,17 @@
 #
 from builtins import str as text
 from Qt.QtGui import QCursor, QSyntaxHighlighter
-from Qt.QtWidgets import QMenu
+from Qt.QtWidgets import QMenu, QAction
+from blurdev import debug
+import string
 
-# import the enchant library
-enchant = None
+# import aspell library
+aspell = None
 try:
-    import enchant
+    import aspell
 except:
-    from blurdev import debug
-
     debug.debugMsg(
-        '[blurdev.gui.highlighters.spellinghighlighter] - pyenchant library could not be found'
+        '[blurdev.gui.highlighters.spellinghighlighter] - python aspell module could not be found'
     )
 
 
@@ -31,7 +31,14 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
         # define custom properties
         self._active = False
-        self._dictionary = None
+        self._speller = None
+        if aspell:
+            try:
+                self._speller = aspell.Speller()
+            except:
+                debug.debugMsg(
+                    '[blurdev.gui.highlighters.spellinghighlighter] - python aspell dictionary could not be found'
+                )
 
         # set the dictionary language
         self.setLanguage(language)
@@ -59,16 +66,19 @@ class SpellingHighlighter(QSyntaxHighlighter):
         act.triggered.connect(update)
 
     def spellCheckMenu(self, parent, pos=None):
-        if self.isValid() and self._active:
+        if self.isValid() and self.isActive():
             if pos:
                 word = self.wordAt(pos)
             else:
                 word = self.currentWord()
             try:
                 # Spell checker will error if a blank string is passed in.
-                if word and not self._dictionary.check(word):
+                if word and not (
+                    any(letter in string.digits for letter in word)
+                    or self._speller.check(word)
+                ):
                     menu = QMenu(word, parent)
-                    items = self._dictionary.suggest(word)
+                    items = self._speller.suggest(word)
                     if items:
                         for item in items:
                             self.createMenuAction(menu, item, pos)
@@ -77,14 +87,26 @@ class SpellingHighlighter(QSyntaxHighlighter):
                     return menu
             except Exception as e:
                 # provide information about what word caused the error.
-                e.args = e.args + ('Enchant check error on word:"%s"' % word,)
+                e.args = e.args + ('asppell check error on word:"%s"' % word,)
                 raise e
         return None
+
+    def addWordToDict(self, word):
+        self._speller.addtoPersonal(word)
+        self._speller.saveAllwords()
+        self.rehighlight()
 
     def createStandardSpellCheckMenu(self, event):
         menu = self.parent().createStandardContextMenu(event.globalPos())
         sm = self.spellCheckMenu(menu, event.globalPos())
         if sm:
+            # Build menu from bottom -> top
+            word = self.wordAt(event.globalPos())
+            menu.insertSeparator(menu.actions()[0])
+            qaction = QAction('Add %s to dictionary' % word, self.parent())
+            qaction.triggered.connect(lambda: self.addWordToDict(word))
+            addmenu = menu.insertAction(menu.actions()[0], qaction)
+            qaction.setObjectName('uiSpellCheckAddWordACT')
             menu.insertMenu(menu.actions()[0], sm)
         return menu
 
@@ -93,11 +115,11 @@ class SpellingHighlighter(QSyntaxHighlighter):
         return self._active
 
     def isValid(self):
-        return enchant != None
+        return aspell != None and self._speller != None
 
     def highlightBlock(self, text):
         """ highlights the inputed text block based on the rules of this code highlighter """
-        if self.isActive() and self._dictionary:
+        if self.isValid() and self.isActive():
             from Qt.QtCore import QRegExp, Qt
             from Qt.QtGui import QColor, QTextCharFormat
 
@@ -110,7 +132,6 @@ class SpellingHighlighter(QSyntaxHighlighter):
             # create the regexp
             expr = QRegExp(r'\S+\w')
             pos = expr.indexIn(text, 0)
-
             # highlight all the given matches to the expression in the text
             while pos != -1:
                 pos = expr.pos()
@@ -119,7 +140,10 @@ class SpellingHighlighter(QSyntaxHighlighter):
                 # extract the text chunk for highlighting
                 chunk = text[pos : pos + length]
 
-                if not self._dictionary.check(chunk):
+                if not (
+                    any(letter in string.digits for letter in chunk)
+                    or self._speller.check(chunk)
+                ):
                     # set the formatting
                     self.setFormat(pos, length, format)
 
@@ -134,11 +158,11 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
     def setLanguage(self, lang):
         """ sets the language of the highlighter by loading """
-        if enchant:
-            self._dictionary = enchant.Dict(lang)
+        if self.isValid():
+            self._speller.setConfigKey("lang", lang)
             return True
         else:
-            self._dictionary = None
+            self._speller = None
             return False
 
     @staticmethod

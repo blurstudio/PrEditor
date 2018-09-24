@@ -19,10 +19,11 @@ HTML_TEMPLATE = """
             <br><small>version | %(version)s</small>
         </p>
         <p align="center"><b>credits</b>
-        <table padding="10" spacing="10">
-            <tr><td colspan="3"><hr/></tr>
+        <hr/><table padding="10" spacing="10">
+            <tr><td colspan="3"></tr>
             %(credits)s
         </table>
+        <br>
         <hr/>
         <p>
             The blurdev IDE is an editing system designed and developed at Blur Studio in Venice, CA, 2010.  The
@@ -52,6 +53,7 @@ class IdeAboutDialog(Dialog):
             ('Mike Hendricks', 'mikeh@blur.com', 'Lead Developer'),
             ('Brendan Abel', 'brendana@blur.com', 'Developer'),
             ('Matt Newell', 'newellm@blur.com', 'Qt/PyQt Support'),
+            ('Liam Fernandez', 'liam@blur.com', 'Developer'),
         ]
 
         # create the about html
