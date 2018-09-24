@@ -103,6 +103,7 @@
      <string>&amp;Options</string>
     </property>
     <addaction name="uiAutoCompleteEnabledACT"/>
+    <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="separator"/>
     <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
@@ -540,6 +541,14 @@
    </property>
    <property name="toolTip">
     <string>If executing code takes longer than this many seconds, flash the main window of the application.</string>
+   </property>
+  </action>
+  <action name="uiSpellCheckEnabledACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use Spell-Check</string>
    </property>
   </action>
  </widget>

@@ -118,6 +118,7 @@ class LoggerWindow(Window):
         self.uiPdbDownACT.triggered.connect(self.uiConsoleTXT.pdbDown)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
+        self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
         self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
@@ -168,6 +169,7 @@ class LoggerWindow(Window):
 
         # calling setLanguage resets this value to False
         self.restorePrefs()
+
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
         loggerName = QApplication.instance().translate(
@@ -327,6 +329,9 @@ class LoggerWindow(Window):
             'copyIndentsAsSpaces', self.uiCopyTabsToSpacesACT.isChecked()
         )
         pref.recordProperty('hintingEnabled', self.uiAutoCompleteEnabledACT.isChecked())
+        pref.recordProperty(
+            'spellCheckEnabled', self.uiSpellCheckEnabledACT.isChecked()
+        )
         pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
         pref.recordProperty(
             'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
@@ -392,6 +397,10 @@ class LoggerWindow(Window):
         )
         self.uiAutoCompleteEnabledACT.setChecked(
             pref.restoreProperty('hintingEnabled', True)
+        )
+        self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
+        self.uiSpellCheckEnabledACT.setChecked(
+            pref.restoreProperty('spellCheckEnabled', False)
         )
         self.uiConsoleTXT.completer().setEnabled(
             self.uiAutoCompleteEnabledACT.isChecked()
@@ -484,6 +493,27 @@ class LoggerWindow(Window):
                 tab.setAutoCompletionSource(tab.AcsAll)
             else:
                 tab.setAutoCompletionSource(tab.AcsNone)
+
+    def setSpellCheckEnabled(self, state):
+        aspell = None
+        try:
+            import aspell
+        except Exception as e:
+            if self.isVisible():
+                # Only show warning if Logger is visible and also disable
+                self.uiSpellCheckEnabledACT.setDisabled(True)
+                QMessageBox.warning(self, "Spell-Check", "{}".format(e))
+
+        if aspell:
+            try:
+                speller = aspell.Speller()
+                for index in range(self.uiWorkboxTAB.count()):
+                    self.uiWorkboxTAB.widget(index).setSpellCheckEnabled(state)
+            except Exception as e:
+                if self.isVisible():
+                    # Only show warning if Logger is visible and also disable
+                    self.uiSpellCheckEnabledACT.setCheckable(False)
+                    QMessageBox.warning(self, "Spell-Check", "{}".format(e))
 
     def setClearBeforeRunning(self, state):
         if state:

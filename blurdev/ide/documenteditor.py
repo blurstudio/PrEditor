@@ -11,7 +11,7 @@
 import os.path
 
 from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal
-from Qt.Qsci import QsciScintilla
+from Qt.Qsci import QsciScintilla, QsciLexer, QsciLexerCustom
 from Qt.QtGui import QColor, QFont, QIcon
 from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction
 from Qt import QtCompat
@@ -22,7 +22,16 @@ from blurdev.ide import lang
 from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
 from .ideeditor import IdeEditor
-import time, re
+import re
+import string
+import time
+
+aspell = None
+try:
+    import aspell
+except ImportError:
+    if not aspell:
+        print "Could not import aspell"
 
 
 class DocumentEditor(QsciScintilla):
@@ -43,6 +52,9 @@ class DocumentEditor(QsciScintilla):
         self._smartHighlightingSupported = False
         QsciScintilla.__init__(self, parent)
         self.setObjectName('DocumentEditor')
+        self._speller = None
+        self.initialSpellCheckComplete = False
+        self.initSpellCheck()
 
         # create custom properties
         self._filename = ''
@@ -101,16 +113,6 @@ class DocumentEditor(QsciScintilla):
         self.selectionChanged.connect(self.updateSelectionInfo)
         blurdev.core.styleSheetChanged.connect(self.updateColorScheme)
 
-        # load the file
-        if filename:
-            self.load(filename)
-        else:
-            self.refreshTitle()
-
-        # goto the line
-        if lineno:
-            self.setCursorPosition(lineno, 0)
-
         # Create shortcuts
         icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
 
@@ -141,6 +143,19 @@ class DocumentEditor(QsciScintilla):
         command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
         if command is not None:
             command.setKey(0)
+
+        # load the file
+        if filename:
+            self.load(filename)
+        else:
+            self.refreshTitle()
+            self.setLanguage('Plain Text')
+            self.spellCheck(0, len(self.text()))
+            self.initialSpellCheckComplete = True
+
+        # goto the line
+        if lineno:
+            self.setCursorPosition(lineno, 0)
 
     def autoFormat(self):
         try:
@@ -590,6 +605,7 @@ class DocumentEditor(QsciScintilla):
         return self.marginWidth(self.SymbolMargin)
 
     def load(self, filename):
+        self.initialSpellCheckComplete = False
         filename = str(filename)
         if filename and os.path.exists(filename):
             f = QFile(filename)
@@ -690,6 +706,7 @@ class DocumentEditor(QsciScintilla):
         self.setEolVisibility(section.value('showEol'))
         self.setShowSmartHighlighting(section.value('smartHighlighting'))
         self.setBackspaceUnindents(section.value('backspaceUnindents'))
+        enableSpellCheck = section.value('spellCheck')
 
         if section.value('showLimitColumn'):
             self.setEdgeMode(self.EdgeLine)
@@ -712,6 +729,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginsFont(self.marginsFont())
         self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
         self._enableFontResizing = scheme.value('document_EnableFontResize')
+        self.setSpellCheckEnabled(enableSpellCheck)
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -905,6 +923,11 @@ class DocumentEditor(QsciScintilla):
 
         return count
 
+    def setText(self, text):
+        super(DocumentEditor, self).setText(text)
+        self.spellCheck(0, len(self.text()))
+        self.initialSpellCheckComplete = True
+
     def refreshTitle(self):
         try:
             parent = self.parent()
@@ -1017,6 +1040,44 @@ class DocumentEditor(QsciScintilla):
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
+
+        # Add language keywords to aspell session dictionary
+        keywords = ''
+        if self._speller and self.lexer() and self._language:
+            language = lang.byName(self._language)
+            lexer = language.createLexer()
+            maxEnumIntList = {
+                key
+                for colorName, keys in language.lexerColorTypes().items()
+                for key in keys
+            }
+            if set([]) == maxEnumIntList:
+                # max() needs a non-empty list and the SQL lexer returns an empty set([])
+                maxEnumIntList = set([0])
+            maxInt = max(maxEnumIntList)
+            while maxInt >= 0:
+                lexerKeywords = self.lexer().keywords(maxInt)
+                if lexerKeywords:
+                    keywords = keywords + ' ' + lexerKeywords
+                maxInt -= 1
+            self._speller.clearSession()
+
+            if not keywords:
+                keywords = ''
+
+            for keyword in keywords.split():
+                # Split along whitespace
+                # Convert '-' to '_' because aspell doesn't process words with '-'
+                keyword = keyword.replace('-', '_')
+                # Strip '_' because aspell doesn't process words with '_'
+                keyword = keyword.strip('_')
+                # Remove non-alpha chars because aspell doesn't process words with non-alpha chars
+                keyword = ''.join(i for i in keyword if i.isalpha())
+                for word in keyword.split('_'):
+                    # Split along '_' because aspell doesn't process words with '_'
+                    if '' != word:
+                        self._speller.addtoSession(word)
+            self.spellCheck(0, len(self.text()))
 
     def setLexer(self, lexer):
         font = self.documentFont
@@ -1140,6 +1201,137 @@ class DocumentEditor(QsciScintilla):
         else:
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
 
+    def spellCheckEnabled(self):
+        if self._speller:
+            return True
+        else:
+            return False
+
+    def setSpellCheckEnabled(self, state):
+        if state:
+            if aspell:
+                self._speller = None
+                try:
+                    self._speller = aspell.Speller()
+                except:
+                    pass
+                if self._speller:
+                    self.initSpellCheck()
+                    self.SCN_MODIFIED.connect(self.onTextModified)
+                    if self.initialSpellCheckComplete:
+                        self.spellCheck(0, len(self.text()))
+        else:
+            self._speller = None
+            try:
+                self.SCN_MODIFIED.disconnect(self.onTextModified)
+            except TypeError:
+                pass
+            # Remove indicator
+            self.SendScintilla(
+                QsciScintilla.SCI_SETINDICATORCURRENT, self.spellCheckIndicatorNumber
+            )
+            self.SendScintilla(
+                QsciScintilla.SCI_INDICATORCLEARRANGE, 0, len(self.text())
+            )
+
+    def initSpellCheck(self):
+        self.chunkRE = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
+        self.camelCaseRE = re.compile(
+            '.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)'
+        )
+        # https://www.scintilla.org/ScintillaDox.html#SCI_INDICSETSTYLE
+        # https://qscintilla.com/indicators/
+        self.spellCheckIndicatorNumber = 31
+        self.indicatorDefine(
+            QsciScintilla.SquiggleLowIndicator, self.spellCheckIndicatorNumber
+        )
+        self.SendScintilla(
+            QsciScintilla.SCI_SETINDICATORCURRENT, self.spellCheckIndicatorNumber
+        )
+        self.setIndicatorForegroundColor(
+            QColor(255, 0, 0), self.spellCheckIndicatorNumber
+        )
+        self.pos = None
+        self.anchor = None
+
+    def camelCaseSplit(self, identifier):
+        return [m.group(0) for m in self.camelCaseRE.finditer(identifier)]
+
+    def addWordToDict(self, word):
+        self._speller.addtoPersonal(word)
+        self._speller.saveAllwords()
+        self.spellCheck(0, len(self.text()))
+        self.pos += len(word)
+        self.SendScintilla(self.SCI_GOTOPOS, self.pos)
+
+    def correctSpelling(self, action):
+        self.SendScintilla(self.SCI_GOTOPOS, self.pos)
+        self.SendScintilla(self.SCI_SETANCHOR, self.anchor)
+        self.beginUndoAction()
+        self.SendScintilla(self.SCI_REPLACESEL, action.text())
+        self.endUndoAction()
+
+    def spellCheck(self, startPos, lengthText):
+        if self._speller:
+            start = startPos
+            for match in self.chunkRE.finditer(self.text(startPos, lengthText)):
+                # To-do: test if match.start()/end() is optimal
+                space, result = tuple(match.groups())
+                start += len(space)
+                for word in self.camelCaseSplit(result):
+                    lengthWord = len(word)
+                    if any(
+                        letter in string.digits for letter in word
+                    ) or self._speller.check(word):
+                        self.SendScintilla(
+                            QsciScintilla.SCI_SETINDICATORCURRENT,
+                            self.spellCheckIndicatorNumber,
+                        )
+                        self.SendScintilla(
+                            QsciScintilla.SCI_INDICATORCLEARRANGE, start, lengthWord
+                        )
+                    else:
+                        self.SendScintilla(
+                            QsciScintilla.SCI_SETINDICATORCURRENT,
+                            self.spellCheckIndicatorNumber,
+                        )
+                        self.SendScintilla(
+                            QsciScintilla.SCI_INDICATORFILLRANGE, start, lengthWord
+                        )
+                    start += lengthWord
+
+    def onTextModified(
+        self,
+        pos,
+        mtype,
+        text,
+        length,
+        linesAdded,
+        line,
+        foldNow,
+        foldPrev,
+        token,
+        annotationLinesAdded,
+    ):
+        if (
+            self._speller
+            and self.initialSpellCheckComplete
+            and (
+                (mtype & self.SC_MOD_INSERTTEXT) == self.SC_MOD_INSERTTEXT
+                or (mtype & self.SC_MOD_DELETETEXT) == self.SC_MOD_DELETETEXT
+            )
+        ):
+            # Only spell-check if text was inserted/deleted
+            line = self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
+            numberOfLinesToCheck = line + linesAdded
+            while line <= numberOfLinesToCheck:
+                # If more than 1 line was inserted/deleted, check additional lines
+                self.spellCheck(
+                    self.SendScintilla(self.SCI_POSITIONFROMLINE, line),
+                    self.SendScintilla(self.SCI_GETLINEENDPOSITION, line),
+                )
+                line += 1
+
     def showMenu(self):
         import blurdev
         from Qt.QtGui import QCursor, QIcon
@@ -1147,6 +1339,53 @@ class DocumentEditor(QsciScintilla):
 
         menu = QMenu(self)
         self._clickPos = QCursor.pos()
+
+        if self._speller and self.initialSpellCheckComplete:
+            # Get the word under the mouse and split the word if camelCase
+            point = self.mapFromGlobal(self._clickPos)
+            x = point.x()
+            y = point.y()
+            wordUnderMouse = self.wordAtPoint(point)
+            positionMouse = self.SendScintilla(self.SCI_POSITIONFROMPOINT, x, y)
+            wordStartPosition = self.SendScintilla(
+                self.SCI_WORDSTARTPOSITION, positionMouse, True
+            )
+            results = self.chunkRE.findall(
+                self.text(wordStartPosition, wordStartPosition + len(wordUnderMouse))
+            )
+
+            for space, wordChunk in results:
+                camelCaseWords = self.camelCaseSplit(wordChunk)
+                lengthSpace = len(space)
+                for word in camelCaseWords:
+                    lengthWord = len(word)
+                    # Calcualate the actual word start position accounting for any non-alpha chars
+                    # word_new_start_position = wordStartPosition + lengthSpace
+                    if (
+                        wordStartPosition + lengthSpace <= positionMouse
+                        and wordStartPosition + lengthSpace + lengthWord > positionMouse
+                        and not any(letter in string.digits for letter in word)
+                        and not self._speller.check(word)
+                    ):
+                        spellCheckMenuShown = True
+                        # For camelCase words, get the exact word under the mouse
+                        self.pos = wordStartPosition + lengthSpace
+                        self.anchor = wordStartPosition + lengthSpace + lengthWord
+                        # Add spelling suggestions to menu
+                        submenu = menu.addMenu(word)
+                        submenu.setObjectName('uiSpellCheckMENU')
+                        wordSuggestionList = self._speller.suggest(word)
+                        for wordSuggestion in wordSuggestionList:
+                            act = submenu.addAction(wordSuggestion)
+                        submenu.triggered.connect(self.correctSpelling)
+                        addmenu = menu.addAction('Add %s to dictionary' % word)
+                        addmenu.triggered.connect(lambda: self.addWordToDict(word))
+                        addmenu.setObjectName('uiSpellCheckAddWordACT')
+                        menu.addSeparator()
+                        break
+                    else:
+                        wordStartPosition += lengthWord
+                wordStartPosition += lengthSpace
 
         act = menu.addAction('Find in Files...')
         act.triggered.connect(self.findInFiles)

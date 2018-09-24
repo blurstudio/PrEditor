@@ -12,6 +12,7 @@ import os
 import blurdev
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
+from Qt.QtWidgets import QMessageBox
 
 
 class DocumentConfig(ConfigSectionWidget):
@@ -20,11 +21,24 @@ class DocumentConfig(ConfigSectionWidget):
         import blurdev.gui
 
         blurdev.gui.loadUi(__file__, self)
+        self.uiSpellCheckCHK.clicked.connect(self.spellCheckClicked)
+
+    def spellCheckClicked(self, clicked):
+        aspell = None
+        try:
+            import aspell
+        except:
+            pass
+        if aspell:
+            try:
+                speller = aspell.Speller()
+            except Exception as e:
+                self.uiSpellCheckCHK.setCheckable(False)
+                QMessageBox.warning(self, "Spell-Check", "{}".format(e))
 
     def recordUi(self):
         """ records the latest ui settings to the data """
         section = self.section()
-
         # record section values
         section.setValue('autoIndent', self.uiAutoIndentCHK.isChecked())
         section.setValue(
@@ -47,13 +61,13 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('eolMode', self.uiEndlineModeDDL.currentText())
         section.setValue('convertEol', self.uiEndlineConvertCHK.isChecked())
         section.setValue('openFileMonitor', self.uiOpenFileMonitorCHK.isChecked())
+        section.setValue('spellCheck', self.uiSpellCheckCHK.isChecked())
         section.setValue('smartHighlighting', self.uiSmartHighlightingCHK.isChecked())
         section.setValue('backspaceUnindents', self.uiBackspaceUnindentsCHK.isChecked())
 
     def refreshUi(self):
         """ refrshes the ui with the latest data settings """
         section = self.section()
-
         # restore section values
         self.uiAutoIndentCHK.setChecked(section.value('autoIndent'))
         self.uiAutoCompleteThresholdSPN.setValue(section.value('autoCompleteThreshold'))
@@ -74,6 +88,12 @@ class DocumentConfig(ConfigSectionWidget):
             self.uiEndlineModeDDL.findText(section.value('eolMode'))
         )
         self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
+        try:
+            import aspell
+
+            self.uiSpellCheckCHK.setChecked(section.value('spellCheck'))
+        except:
+            self.uiSpellCheckCHK.setDisabled(True)
         self.uiSmartHighlightingCHK.setChecked(section.value('smartHighlighting'))
         self.uiBackspaceUnindentsCHK.setChecked(section.value('backspaceUnindents'))
 
@@ -108,6 +128,7 @@ def registerSections(configSet):
         'limitColumn': 100,
         'openFileMonitor': True,
         'smartHighlighting': True,
+        'spellCheck': False,
         'backspaceUnindents': True,
     }
 
