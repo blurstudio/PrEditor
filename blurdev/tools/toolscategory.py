@@ -8,10 +8,12 @@ class ToolsCategory(QObject):
     """ Creates the ToolsCategory class for grouping tools together
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, name=None):
         QObject.__init__(self, parent)
         self._toolTypeLoaded = False
         self._toolType = 0
+        if name is not None:
+            self.setObjectName(name)
 
     def addTool(self, tool):
         """ adds the tool to the cache
@@ -54,8 +56,29 @@ class ToolsCategory(QObject):
                 self._toolType |= cat.toolType()
         return self._toolType
 
-    @staticmethod
-    def fromIndex(index, parent, xml):
+    @classmethod
+    def fromIndex(cls, index, parent, xml=None, name=None, children={}):
+        # TODO: remove /*
+        if name is None:
+            return cls._fromIndexXML(index, parent, xml)
+        return cls._fromIndexJson(index, parent, name, children)
+
+    @classmethod
+    def _fromIndexJson(cls, index, parent, name, children={}):
+        # TODO: remove */
+        output = cls(parent, name)
+
+        # cache the category
+        index.cacheCategory(output)
+
+        # load the child categories
+        for childName in children:
+            cls._fromIndexJson(index, output, childName, children[childName])
+        return output
+
+    # TODO: remove /*
+    @classmethod
+    def _fromIndexXML(cls, index, parent, xml):
         output = ToolsCategory(parent)
 
         # load the information
@@ -69,3 +92,5 @@ class ToolsCategory(QObject):
             ToolsCategory.fromIndex(index, output, child)
 
         return output
+
+    # TODO: remove */

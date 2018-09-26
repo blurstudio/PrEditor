@@ -348,35 +348,74 @@ class ToolsIndex(QObject):
             and (showDisabled or not tool.disabled())
         ]
 
-    def filename(self):
+    def filename(self, forceJson=False):
         """ returns the filename for this index
         """
+        jsonFilename = self.environment().relativePath('code/tools.json')
+        # TODO: remove /*
+        if forceJson or os.path.exists(jsonFilename):
+            # TODO: remove */
+            return jsonFilename
+        # TODO: remove /*
         return self.environment().relativePath('code/tools.xml')
+        # TODO: remove */
 
     def load(self):
         """ loads the current index from the system
         """
         if not self._loaded:
-            self._loaded = True
-            doc = blurdev.XML.XMLDocument()
-
             filename = self.filename()
-            if doc.load(filename):
-                root = doc.root()
+            # TODO: remove /*
+            if filename.endswith('.json'):
+                # TODO: remove */
+                self._loadJson(filename)
+            # TODO: remove /*
+            else:
+                self._loadXML(filename)
 
-                # load categories
-                categories = root.findChild('categories')
-                if categories:
-                    for xml in categories.children():
-                        blurdev.tools.toolscategory.ToolsCategory.fromIndex(
-                            self, self, xml
-                        )
+    def _loadJson(self, filename):
+        # TODO: remove */
+        from blurdev.tools.toolscategory import ToolsCategory
+        from blurdev.tools.tool import Tool
 
-                # load tools
-                tools = root.findChild('tools')
-                if tools:
-                    for xml in tools.children():
-                        blurdev.tools.tool.Tool.fromIndex(self, xml)
+        print('Loading json')
+        self._loaded = True
+        with open(filename) as f:
+            indexJson = json.load(f)
+
+        # load categories
+        categories = indexJson.get('categories', {})
+        for topLevelCategory in categories:
+            ToolsCategory.fromIndex(
+                self, self, name=topLevelCategory, children=categories[topLevelCategory]
+            )
+
+        # load tools
+        tools = indexJson.get('tools', [])
+        for tool in tools:
+            Tool.fromIndex(self, tool)
+
+    # TODO: remove /*
+    def _loadXML(self, filename):
+        self._loaded = True
+        doc = blurdev.XML.XMLDocument()
+
+        if doc.load(filename):
+            root = doc.root()
+
+            # load categories
+            categories = root.findChild('categories')
+            if categories:
+                for xml in categories.children():
+                    blurdev.tools.toolscategory.ToolsCategory.fromIndex(self, self, xml)
+
+            # load tools
+            tools = root.findChild('tools')
+            if tools:
+                for xml in tools.children():
+                    blurdev.tools.tool.Tool.fromIndex(self, xml)
+
+    # TODO: remove */
 
     def loadFavorites(self):
         if not self._favoritesLoaded:

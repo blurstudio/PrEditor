@@ -243,13 +243,67 @@ class Tool(QObject):
     def wikiPage(self):
         return self._wikiPage
 
-    @staticmethod
-    def fromIndex(index, xml):
-        """ creates a new tool record based on the inputed xml information for the given index
-            :param index: <ToolsIndex>
-            :param xml: <blurdev.XML.XMLElement>
+    @classmethod
+    def fromIndex(cls, index, data):
+        """ Creates a new tool record based on the provided information for the given index
+
+        Args:
+            index (ToolsIndex):
+            xml (blurdev.XML.XMLElement):
+
+        Returns:
+            Tool: The created tool record.
         """
+        # TODO: remove /*
+        if not isinstance(data, dict):
+            return cls._fromIndexXML(index, data)
+        return cls._fromIndexJson(index, data)
+
+    @classmethod
+    def _fromIndexJson(cls, index, data):
+        print '_fromIndexJson'
+        # TODO: remove */
+        output = cls()
+
+        # The code name of the tool
+        output.setObjectName(data['name'])
+        # The folder containing the tool
+        path = data['path']
+        output.setPath(index.environment().relativePath(path))
+        # The file that starts the tool
+        output.setSourcefile(output.relativePath(data['src']))
+
+        # The nice display name or the code name if its not defined
+        output.setDisplayName(data.get('displayName', output.objectName()))
+
+        output.setToolType(ToolType.fromString(data.get('types', 'AllTools')))
+        output.setToolTip(data.get('tooltip', ''))
+        output.setVersion(data.get('version', 1.0))
+        output.setIcon(data.get('icon', ''))
+        output.setWikiPage(data.get('wiki', ''))
+        output.setUrl(data.get('url', ''))
+        output.setDisabled(data.get('disabled', False))
+        output.setUsagestatsEnabled(data.get('usagestats', True))
+        output.setArchitecture(data.get('architecture'))
+        output.setRedistributable(data.get('redistributable', True))
+
+        # Add the tool to the category or index
+        category = index.findCategory(data.get('category'))
+        if category:
+            category.addTool(output)
+        else:
+            output.setParent(index)
+
+        # cache the tool in the index
+        index.cacheTool(output)
+
+        return output
+
+    # TODO: remove /*
+    @classmethod
+    def _fromIndexXML(cls, index, xml):
         output = Tool()
+        # The code name is required
         output.setObjectName(xml.attribute('name'))
 
         # load modern tools
@@ -298,3 +352,5 @@ class Tool(QObject):
         index.cacheTool(output)
 
         return output
+
+    # TODO: remove */
