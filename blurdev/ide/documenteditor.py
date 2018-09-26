@@ -1541,7 +1541,7 @@ class DocumentEditor(QsciScintilla):
     def toLower(self):
         self.beginUndoAction()
         lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        text = self.selectedText().toLower()
+        text = self.selectedText().lower()
         self.removeSelectedText()
         self.insert(text)
         self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
@@ -1553,7 +1553,7 @@ class DocumentEditor(QsciScintilla):
     def toUpper(self):
         self.beginUndoAction()
         lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        text = self.selectedText().toUpper()
+        text = self.selectedText().upper()
         self.removeSelectedText()
         self.insert(text)
         self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
