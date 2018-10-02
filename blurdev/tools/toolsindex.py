@@ -293,21 +293,6 @@ class ToolsIndex(QObject):
                 toolIndex.setAttribute('src', link)
                 toolIndex.setAttribute('type', 'LegacyExternal')
 
-        # Look for any linked folders
-        links = glob.glob(os.path.join(path, '*.tglnk'))
-        for link in links:
-            doc = blurdev.XML.XMLDocument()
-            doc.load(link)
-            for node in doc.findChildren('TGLink', recursive=True):
-                target = node.attribute('path', '') % {
-                    'envRoot': blurdev.activeEnvironment().path()
-                }
-                if os.path.exists(target):
-                    name = node.attribute('name')
-                    self.rebuildPath(
-                        target, categories, tools, legacy, categoryId, foldername=name
-                    )
-
         # add subcategories
         subpaths = glob.glob(path + '/*/')
         for path in subpaths:
