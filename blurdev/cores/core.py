@@ -128,7 +128,7 @@ class Core(QObject):
         # Cache the Raven client (for logging / error handling) once instantiated
         self._ravenClient = None
 
-        # create the connection to the environment activiation signal
+        # create the connection to the environment activation signal
         self.environmentActivated.connect(self.registerPaths)
         self.environmentActivated.connect(self.recordSettings)
         self.debugLevelChanged.connect(self.recordSettings)
@@ -169,6 +169,10 @@ class Core(QObject):
             msg.append('QtSiteConfig: {}'.format(QtSiteConfig.__version__))
         except (ImportError, AttributeError):
             pass
+
+        # Include the python version info
+        msg.append('Python:')
+        msg.append('    {}'.format(sys.version))
 
         return '\n'.join(msg)
 
