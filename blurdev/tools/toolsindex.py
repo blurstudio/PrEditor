@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import os
 import re
+import glob
+import json
 
 from Qt.QtCore import QObject
 
@@ -90,8 +92,117 @@ class ToolsIndex(QObject):
             configFilename (str|bool): if True, save as config.ini next to filename. If a file path
                 is provided save to that file path. 
         """
-        import glob
+        # If a filename was not provided get the default
+        if not filename:
+            filename = self.filename()
 
+        # Use the old xml method for building xml
+        self._rebuildXML(filename=filename)
+
+        if configFilename:
+            if isinstance(configFilename, bool):
+                configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
+            envName = self.parent().legacyName()
+            envPath = self.parent().path()
+            with blurdev.ini.temporaryDefaults():
+                blurdev.ini.SetINISetting(
+                    configFilename, 'GLOBALS', 'environment', 'DEFAULT'
+                )
+                blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'version', 2.0)
+                blurdev.ini.SetINISetting(
+                    configFilename,
+                    'DEFAULT',
+                    'coderoot',
+                    os.path.join(envPath, 'maxscript', 'treegrunt'),
+                )
+                blurdev.ini.SetINISetting(
+                    configFilename,
+                    'DEFAULT',
+                    'startuppath',
+                    os.path.join(envPath, 'maxscript', 'treegrunt', 'lib'),
+                )
+
+        # clear the old data & reload
+        self.clear()
+        self.load()
+        self.loadFavorites()
+
+    def _rebuildJson(self, filename):
+        categories = {}
+        tools = []
+
+        # Add tools in each of the language tools folders
+        for toolFolder in glob.glob(self.environment().relativePath('code/*/tools/')):
+            self.rebuildPathJson(toolFolder, categories, tools)
+
+        # Save the output json file
+        output = dict(categories=categories, tools=tools)
+        with open(filename, 'w') as f:
+            json.dump(output, f, indent=4)
+
+    def rebuildPathJson(self, path, categories, tools, legacy=False):
+        def addToolCategory(category):
+            """ Update the categories dict to include this category
+
+            if passed 'External_Tools::Production_Tools::Proxy Tools', build this output.
+            {'External_Tools': {
+                'External_Tools::Production_Tools': {
+                    'External_Tools::Production_Tools::Proxy Tools': {}}}}
+            """
+            split = category.split('::')
+            current = categories
+            for index in range(len(split)):
+                name = '::'.join(split[: index + 1])
+                current = current.setdefault(name, {})
+
+        def getXMLData(toolPath):
+            toolPath = os.path.normpath(toolPath)
+            doc = blurdev.XML.XMLDocument()
+            if doc.load(toolPath) and doc.root():
+                xml = doc.root()
+                toolFolder = os.path.dirname(toolPath)
+                toolId = os.path.basename(toolFolder)
+                ret = dict(
+                    name=toolId,
+                    path=self.environment().stripRelativePath(toolFolder),
+                    src=xml.findProperty('src'),
+                )
+
+                def getPropertyFromXML(retKey, propertyKey=None):
+                    if propertyKey is None:
+                        propertyKey = retKey
+                    value = xml.findProperty(propertyKey)
+                    if value:
+                        ret[retKey] = value
+                        return value
+
+                category = getPropertyFromXML('category')
+                if category:
+                    addToolCategory(category)
+                getPropertyFromXML('disabled')
+                getPropertyFromXML('displayName')
+                getPropertyFromXML('icon')
+                getPropertyFromXML('tooltip', 'toolTip')
+                getPropertyFromXML('wiki')
+
+                types = xml.attribute('type')
+                if types:
+                    ret['types'] = types
+                version = xml.attribute('version')
+                if version:
+                    ret['version'] = version
+                return ret
+
+        if not legacy:
+            paths = glob.glob(os.path.join(path, '*', '__meta__.xml'))
+            for toolPath in paths:
+                toolInfo = getXMLData(toolPath)
+                if toolInfo:
+                    tools.append(toolInfo)
+
+    def _rebuildXML(self, filename):
+        """ Legacy way to store the ToolsIndex. Use _rebuildJson instead
+        """
         doc = blurdev.XML.XMLDocument()
         root = doc.addNode('index')
 
@@ -137,39 +248,8 @@ class ToolsIndex(QObject):
 
         addChildren(categoriesNode, parent)
 
-        # If a filename was not provided get the default
-        if not filename:
-            filename = self.filename()
         # save the index file
         doc.save(filename)
-
-        if configFilename:
-            if isinstance(configFilename, bool):
-                configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
-            envName = self.parent().legacyName()
-            envPath = self.parent().path()
-            with blurdev.ini.temporaryDefaults():
-                blurdev.ini.SetINISetting(
-                    configFilename, 'GLOBALS', 'environment', 'DEFAULT'
-                )
-                blurdev.ini.SetINISetting(configFilename, 'GLOBALS', 'version', 2.0)
-                blurdev.ini.SetINISetting(
-                    configFilename,
-                    'DEFAULT',
-                    'coderoot',
-                    os.path.join(envPath, 'maxscript', 'treegrunt'),
-                )
-                blurdev.ini.SetINISetting(
-                    configFilename,
-                    'DEFAULT',
-                    'startuppath',
-                    os.path.join(envPath, 'maxscript', 'treegrunt', 'lib'),
-                )
-
-        # clear the old data & reload
-        self.clear()
-        self.load()
-        self.loadFavorites()
 
     def rebuildPath(
         self,
@@ -188,7 +268,6 @@ class ToolsIndex(QObject):
             :param legacy: bool
             :param parentCategoryId: str
         """
-        import glob
 
         def copyXmlData(toolPath, node, categoryId):
             """ Copys the contents of the metadata xml file into the tools index. """
@@ -236,6 +315,7 @@ class ToolsIndex(QObject):
                 toolIndex = tools.addNode('tool')
                 toolIndex.setAttribute('name', toolId)
                 toolIndex.setAttribute('category', categoryId)
+                # NOTE: renamed to path in json file.
                 toolIndex.setAttribute(
                     'loc', self.environment().stripRelativePath(toolPath)
                 )
