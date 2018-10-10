@@ -191,12 +191,12 @@ class Tool(QObject):
     def setPath(self, path):
         self._path = str(path).replace(
             str(self.objectName()).lower(), self.objectName()
-        )  # ensure that the tool id is properly formated since it is case sensitive
+        )  # ensure that the tool id is properly formatted since it is case sensitive
 
     def setSourcefile(self, sourcefile):
         self._sourcefile = str(sourcefile).replace(
             str(self.objectName()).lower(), self.objectName()
-        )  # ensure that the tool id is properly formated since it is case sensitive
+        )  # ensure that the tool id is properly formatted since it is case sensitive
 
     def setToolTip(self, tip):
         self._toolTip = tip
@@ -261,7 +261,6 @@ class Tool(QObject):
 
     @classmethod
     def _fromIndexJson(cls, index, data):
-        print '_fromIndexJson'
         # TODO: remove */
         output = cls()
 
@@ -273,9 +272,7 @@ class Tool(QObject):
         # The file that starts the tool
         output.setSourcefile(output.relativePath(data['src']))
 
-        # The nice display name or the code name if its not defined
-        output.setDisplayName(data.get('displayName', output.objectName()))
-
+        output.setDisplayName(data.get('displayName', ''))
         output.setToolType(ToolType.fromString(data.get('types', 'AllTools')))
         output.setToolTip(data.get('tooltip', ''))
         output.setVersion(data.get('version', 1.0))
@@ -314,6 +311,8 @@ class Tool(QObject):
             # load legacy tools
             output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))
             filename = xml.attribute('src')
+            # NOTE: This has been broken and I'm not fixing it because it is going away.
+            # "bsi1.bat.remapDrives_win7_resource" incorrectly becomes "bsi1_resource"
             output.setPath(
                 os.path.split(filename)[0]
                 + '/%s_resource' % os.path.basename(filename).split('.')[0]
