@@ -339,10 +339,13 @@ class ToolsIndex(QObject):
         """ returns all the tools that are favorited and linked
         """
         self.loadFavorites()
+        showDisabled = blurdev.activeEnvironment().showDisabledTools
         return [
             tool
             for tool in self._toolCache.values()
-            if tool.isFavorite() and tool.favoriteGroup() == None
+            if tool.isFavorite()
+            and tool.favoriteGroup() == None
+            and (showDisabled or not tool.disabled())
         ]
 
     def filename(self):
