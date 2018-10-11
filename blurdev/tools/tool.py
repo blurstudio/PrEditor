@@ -267,10 +267,16 @@ class Tool(QObject):
         # The code name of the tool
         output.setObjectName(data['name'])
         # The folder containing the tool
-        path = data['path']
+        path = index.environment().relativePath(data['path'])
+        src = data['src']
+        # If this is a legacy tool, we need to build the path differently.
+        if data.get('legacy', False):
+            srcBase = os.path.splitext(os.path.basename(src))[0]
+            path = os.path.join(path, '{}_resource'.format(srcBase))
         output.setPath(index.environment().relativePath(path))
-        # The file that starts the tool
-        output.setSourcefile(output.relativePath(data['src']))
+        # The file that starts the tool. To handle legacy and modern tool structures.
+        # (legacy needs ../ to get out of the _resource folder)
+        output.setSourcefile(os.path.join(path, src))
 
         output.setDisplayName(data.get('displayName', ''))
         output.setToolType(ToolType.fromString(data.get('types', 'AllTools')))

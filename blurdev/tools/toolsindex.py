@@ -11,6 +11,7 @@ import blurdev
 import blurdev.tools.toolscategory
 import blurdev.tools.tool
 import blurdev.tools.toolsfavoritegroup
+from collections import OrderedDict
 
 
 class ToolsIndex(QObject):
@@ -95,9 +96,13 @@ class ToolsIndex(QObject):
         # If a filename was not provided get the default
         if not filename:
             filename = self.filename()
+        xmlFilename = '{}.xml'.format(os.path.splitext(filename)[0])
+        jsonFilename = '{}.json'.format(os.path.splitext(filename)[0])
 
-        # Use the old xml method for building xml
-        self._rebuildXML(filename=filename)
+        # Use the old xml method for building xml to preserve backwards compatibility
+        self._rebuildXML(filename=xmlFilename)
+        # Build the new file so updated blurdev's can use it.
+        self._rebuildJson(filename=jsonFilename)
 
         if configFilename:
             if isinstance(configFilename, bool):
@@ -131,16 +136,33 @@ class ToolsIndex(QObject):
         categories = {}
         tools = []
 
-        # Add tools in each of the language tools folders
+        # Add tools in each of the programming language tools folders
         for toolFolder in glob.glob(self.environment().relativePath('code/*/tools/')):
             self.rebuildPathJson(toolFolder, categories, tools)
 
+        # Add tools in the legacy tool folder
+        for path in glob.glob(
+            self.environment().relativePath('maxscript/treegrunt/main/*/')
+        ):
+            self.rebuildPathJson(path, categories, tools, True)
+
         # Save the output json file
-        output = dict(categories=categories, tools=tools)
+        # Use OrderedDict to build this so the json is saved consistently.
+        output = OrderedDict(categories=categories)
+        output['tools'] = tools
         with open(filename, 'w') as f:
             json.dump(output, f, indent=4)
 
-    def rebuildPathJson(self, path, categories, tools, legacy=False):
+    def rebuildPathJson(
+        self, path, categories, tools, legacy=False, parentCategoryId=None
+    ):
+
+        foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
+        if parentCategoryId:
+            categoryId = parentCategoryId + '::' + foldername
+        else:
+            categoryId = foldername
+
         def addToolCategory(category):
             """ Update the categories dict to include this category
 
@@ -155,6 +177,33 @@ class ToolsIndex(QObject):
                 name = '::'.join(split[: index + 1])
                 current = current.setdefault(name, {})
 
+        def loadProperties(xml, data):
+            def getPropertyFromXML(retKey, propertyKey=None):
+                if propertyKey is None:
+                    propertyKey = retKey
+                value = xml.findProperty(propertyKey)
+                if value:
+                    data[retKey] = value
+                    return value
+
+            category = getPropertyFromXML('category')
+            if category:
+                addToolCategory(category)
+            getPropertyFromXML('src')
+            getPropertyFromXML('disabled')
+            getPropertyFromXML('displayName')
+            getPropertyFromXML('icon')
+            getPropertyFromXML('tooltip', 'toolTip')
+            getPropertyFromXML('wiki')
+
+            types = xml.attribute('type')
+            if types:
+                data['types'] = types
+            version = xml.attribute('version')
+            if version:
+                data['version'] = version
+            return data
+
         def getXMLData(toolPath):
             toolPath = os.path.normpath(toolPath)
             doc = blurdev.XML.XMLDocument()
@@ -162,35 +211,10 @@ class ToolsIndex(QObject):
                 xml = doc.root()
                 toolFolder = os.path.dirname(toolPath)
                 toolId = os.path.basename(toolFolder)
-                ret = dict(
-                    name=toolId,
-                    path=self.environment().stripRelativePath(toolFolder),
-                    src=xml.findProperty('src'),
+                ret = OrderedDict(
+                    name=toolId, path=self.environment().stripRelativePath(toolFolder),
                 )
-
-                def getPropertyFromXML(retKey, propertyKey=None):
-                    if propertyKey is None:
-                        propertyKey = retKey
-                    value = xml.findProperty(propertyKey)
-                    if value:
-                        ret[retKey] = value
-                        return value
-
-                category = getPropertyFromXML('category')
-                if category:
-                    addToolCategory(category)
-                getPropertyFromXML('disabled')
-                getPropertyFromXML('displayName')
-                getPropertyFromXML('icon')
-                getPropertyFromXML('tooltip', 'toolTip')
-                getPropertyFromXML('wiki')
-
-                types = xml.attribute('type')
-                if types:
-                    ret['types'] = types
-                version = xml.attribute('version')
-                if version:
-                    ret['version'] = version
+                ret = loadProperties(xml, ret)
                 return ret
 
         if not legacy:
@@ -199,6 +223,65 @@ class ToolsIndex(QObject):
                 toolInfo = getXMLData(toolPath)
                 if toolInfo:
                     tools.append(toolInfo)
+        else:
+            paths = glob.glob(os.path.join(path, '*.*'))
+            xmls = set([p for p in paths if os.path.splitext(p)[-1] == '.xml'])
+            for toolPath in paths:
+                basename, ext = os.path.splitext(toolPath)
+                # Don't worry about case in file extension checks
+                ext = ext.lower()
+                if ext not in ('.ms', '.mse', '.mcr', '.py', '.pyw', '.lnk'):
+                    # Not a valid file extension
+                    continue
+
+                ret = OrderedDict(
+                    legacy=True,  # We have to handle the path of legacy tools differently
+                    icon='icon.png',
+                    src=os.path.join('..', os.path.basename(toolPath)),
+                    path=self.environment().stripRelativePath(
+                        os.path.dirname(toolPath)
+                    ),
+                    category=categoryId,
+                )
+                toolId = os.path.splitext(os.path.basename(toolPath))[0]
+                # Automatically populate legacy settings based on file extension
+                if ext in ('.ms', '.mse', '.mcr'):
+                    toolId = 'LegacyStudiomax::{}'.format(toolId)
+                    ret['types'] = 'LegacyStudiomax'
+                elif ext in ('.py', '.pyw'):
+                    ret['types'] = (
+                        'LegacyExternal'
+                        if 'External_Tools' in toolPath
+                        else 'LegacySoftimage'
+                    )
+                    toolId = '{}::{}'.format(ret['types'], toolId)
+                    if ret['types'] == 'LegacyExternal':
+                        ret['icon'] = 'img/icon.png'
+                elif ext == '.lnk':
+                    toolId = 'LegacyExternal::{}'.format(toolId)
+                    ret['types'] = 'LegacyExternal'
+
+                ret['name'] = toolId
+                # Update with data in the tool's xml file if found
+                xmlPath = '{}.xml'.format(basename)
+                if xmlPath in xmls:
+                    doc = blurdev.XML.XMLDocument()
+                    if doc.load(xmlPath) and doc.root():
+                        xml = doc.root()
+                        ret = loadProperties(xml, ret)
+                # Always store the toolCategory
+                if ret['category']:
+                    addToolCategory(ret['category'])
+                tools.append(ret)
+
+        # add subcategories
+        subpaths = glob.glob(path + '/*/')
+        for path in subpaths:
+            # isResource = os.path.split(path)[0].endswith('_resource')
+            # isMeta = path + '__meta__.xml' in processed
+            # if not (isResource or isMeta):
+            if not os.path.split(path)[0].endswith('_resource'):
+                self.rebuildPathJson(path, categories, tools, legacy, categoryId)
 
     def _rebuildXML(self, filename):
         """ Legacy way to store the ToolsIndex. Use _rebuildJson instead
@@ -443,7 +526,6 @@ class ToolsIndex(QObject):
         from blurdev.tools.toolscategory import ToolsCategory
         from blurdev.tools.tool import Tool
 
-        print('Loading json')
         self._loaded = True
         with open(filename) as f:
             indexJson = json.load(f)
