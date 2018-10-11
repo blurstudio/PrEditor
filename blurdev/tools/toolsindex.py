@@ -3,7 +3,13 @@ from __future__ import absolute_import
 import os
 import re
 import glob
-import json
+
+try:
+    # simplejson parses json faster than python 2.7's json module.
+    # Use it if its installed.
+    import simplejson as json
+except ImportError:
+    import json
 
 from Qt.QtCore import QObject
 
