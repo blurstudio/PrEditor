@@ -109,6 +109,12 @@ class Core(QObject):
         self._headless = False
         self._useAppUserModelID = None
         self._rootWindow = None
+        # By default treegrunt and external core's will launch treegrunt tools in a
+        # subprocess. However blurdev\runtimes\run_tool.pyw needs to use the coreName
+        # of treegrunt to load the correct prefs, but launching a subprocess just
+        # makes the final launching of the tool take longer.
+        # Skip this by setting to True
+        self.launchExternalInProcess = False
 
         # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom stylesheets
         # it will automatically add this to the start of that stylesheet. This makes it so we
@@ -1194,7 +1200,10 @@ class Core(QObject):
             # run a python file
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
-                if self.objectName() in ('external', 'treegrunt'):
+                if not self.launchExternalInProcess and self.objectName() in (
+                    'external',
+                    'treegrunt',
+                ):
                     self.runStandalone(filename, architecture=architecture)
                 else:
                     # create a local copy of the sys variables as they stand right now

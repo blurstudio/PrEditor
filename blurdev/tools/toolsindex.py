@@ -508,24 +508,32 @@ class ToolsIndex(QObject):
         return self.environment().relativePath('code/tools.xml')
         # TODO: remove */
 
-    def load(self):
-        """ loads the current index from the system
+    def load(self, toolId=None):
+        """ loads the current index from the system.
+
+        Args:
+            toolId (str or None, optional): If provided, then only the tool
+                who's name matches this string will be added to the index.
+                This allows us to speed up one off tool lookups. If used,
+                then the tools index will not be cached.
         """
         if not self._loaded:
             filename = self.filename()
             # TODO: remove /*
             if filename.endswith('.json'):
                 # TODO: remove */
-                self._loadJson(filename)
+                self._loadJson(filename, toolId=toolId)
             # TODO: remove /*
             else:
                 self._loadXML(filename)
 
-    def _loadJson(self, filename):
+    def _loadJson(self, filename, toolId=None):
         # TODO: remove */
         from blurdev.tools.toolscategory import ToolsCategory
         from blurdev.tools.tool import Tool
 
+        # Setting _loaded to True, makes sure that when each Tool object we
+        # create does not end triggering a call to load()
         self._loaded = True
         with open(filename) as f:
             indexJson = json.load(f)
@@ -539,8 +547,14 @@ class ToolsIndex(QObject):
 
         # load tools
         tools = indexJson.get('tools', [])
+        loadAllTools = toolId is None
         for tool in tools:
+            if not loadAllTools and tool['name'] != toolId:
+                continue
             Tool.fromIndex(self, tool)
+        # If a toolId was passed in, we should not consider the tools index loaded.
+        # This would make it impossible to access any other tools
+        self._loaded = loadAllTools
 
     # TODO: remove /*
     def _loadXML(self, filename):
@@ -589,7 +603,7 @@ class ToolsIndex(QObject):
     def findTool(self, name):
         """ returns the tool based on the inputed name, returning the default option if no tool is found
         """
-        self.load()
+        self.load(name)
         return self._toolCache.get(str(name), blurdev.tools.tool.Tool())
 
     def findToolsByCategory(self, name):
