@@ -264,19 +264,24 @@ class Tool(QObject):
         # TODO: remove */
         output = cls()
 
+        # NOTE: Not using os.path is intentional. Those functions are slower
+        # than simple string formatting/replacing and the index is structured
+        # enough that it shouldn't cause problems. The focus is on speed.
+
         # The code name of the tool
         output.setObjectName(data['name'])
         # The folder containing the tool
-        path = index.environment().relativePath(data['path'])
+        path = '{}/{}'.format(index.environment().path(), data['path'])
         src = data['src']
         # If this is a legacy tool, we need to build the path differently.
         if data.get('legacy', False):
-            srcBase = os.path.splitext(os.path.basename(src))[0]
-            path = os.path.join(path, '{}_resource'.format(srcBase))
-        output.setPath(index.environment().relativePath(path))
+            srcBase = src.replace('\\', '/').rsplit('/', 1)[-1].rsplit('.', 1)[0]
+            # srcBase = os.path.splitext(os.path.basename(src))[0]
+            path = '{}/{}_resource'.format(path, srcBase)
+        output.setPath(path)
         # The file that starts the tool. To handle legacy and modern tool structures.
         # (legacy needs ../ to get out of the _resource folder)
-        output.setSourcefile(os.path.join(path, src))
+        output.setSourcefile('{}/{}'.format(path, src))
 
         output.setDisplayName(data.get('displayName', ''))
         output.setToolType(ToolType.fromString(data.get('types', 'AllTools')))
