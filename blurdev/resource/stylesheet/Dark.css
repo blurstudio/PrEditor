@@ -1,495 +1,114 @@
-
-/*
-
-Color			|Highlighted		|Description
---------------------------------------------------------------
-				|					|
-rgb(15,15,15)	|rgb(13,14,15)		|Disabled
-				|					|
-rgb(35,35,35)	|rgb(30,32,35)		|General Widget Background
-rgb(215,215,215)|rgb(183,198,215)	|General Widget Foreground
-				|					|
-rgb(80,80,80)	|rgb(68,74,80)		|Editing Widget Background
-rgb(95,95,95)	|rgb(81,88,95)		|Editing Widget Background Gradient
-rgb(200,200,200)|					|Editing Widget Foreground
-				|					|
-rgb(110,110,110)|rgb(94,101,110)	|Editing Widget Alternate Background
-				|					|
-rgb(65,65,65)	|rgb(55,60,65)		|Button Background
-rgb(50,50,50)	|rgb(43,47,51)		|Button Background Gradient
-rgb(40,40,40)	|rgb(34,37,40)		|
-				|					|
-rgb(50,150,255)	|					|General Highlight Background
-rgb(40,119,204)	|					|General Highlight Gradient
-				|					|
-
-
-*/
-
-/*Application Defaults*/
-QMainWindow, QDialog { 
-	background-color: rgb(35,35,35); 
-	color: rgb(215,215,215);
-}
-
 QWidget {
-	background-color: rgb(35,35,35); 
-	color: rgb(215,215,215);
+  background-color: rgb(60, 60, 63);
+  color: rgb(202, 202, 202);
 }
 
 QWidget:disabled {
-	color: rgb(90,90,90);
+  color: rgb(88, 91, 94);
 }
-
-QGroupBox {
-	font-weight: bold;
-}
-
-QGroupBox::title {
-	color: yellow;
-}
-
-QGroupBox::title:disabled {
-	color: rgb(90,90,90);
-}
-
-
-/*Menus and Actions*/
-QMenuBar {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(95,95,95), stop:1 rgb(80,80,80));
-}
-
-QMenu {
-	border-style: solid;
-	border-color: rgb(40,40,40);
-	border-width: 1px;
-}
-
-QMenuBar::item {
-}
-
-QMenuBar::item:selected {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(81,88,95), stop:1 rgb(68,74,80));
-}
-
-QMenuBar::item:hover {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(81,88,95), stop:1 rgb(68,74,80));
-	border-style: solid;
-	border-color: rgb(215,215,215);
-	border-width: 1px;		
-	border-radius: 2px;
-}
-
-
-QMenu {
-	background-color: rgb(110,110,110);
-}
-
-QMenu::separator {
-	background-color: rgb(215,215,215);
-	
-}
-
-QMenu::icon {
-    border: 2px inset transparent;
-}
-
-QMenu::icon:checked {
-    background-color: rgb(50,150,255);
-    border: 2px inset rgb(50,150,255);
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    bottom: 2px;
-    left: 2px;
-}
-
-
-QToolBar::separator {
-	background-color: rgb(215,215,215);
-}
-
-QMenu::item {
-	padding: 4px 24px;
-}
-
-QMenu::item:disabled {
-	color: rgb(80,80,80);
-}
-
-QMenu::item:enabled:selected {
-	background-color: rgb(94,101,110);
-}
-
-QMenu::item:enabled:hover {
-	background-color: rgb(94,101,110);
-}
-
-/*ScrollBars*/
-QScrollBar {
-    background: rgb(70,70,70);
-    border-radius: 6px;
-}       
-QScrollBar::add-page, QScrollBar::sub-page  {
-    background: rgb(70,70,70);
-}
-QScrollBar::add-page:hover, QScrollBar::sub-page:hover {
-    background: rgb(110,110,110);
-}
-QScrollBar:vertical  {
-	width: 20px;
-    margin: 20px 2px 20px 2px;
-    border: 1px solid rgb(35, 35, 35);
-	border-radius: 5px;
-}
-QScrollBar:horizontal  {
-	height: 20px;
-    margin: 2px 20px 2px 20px;
-	border: 1px solid rgb(35, 35, 35);
-	border-radius: 5px;
-}
-QScrollBar::handle{
-    background:  rgb(35,35,35);
-    border-radius: 3px;
-}
-QScrollBar::handle:horizontal  {
-    margin: 3px 3px 3px 3px; 
-	min-width: 20px;
-}
-QScrollBar::handle:vertical  {
-    margin: 3px 3px 3px 3px; 
-	min-height: 20px;
-}
-QScrollBar::sub-line, QScrollBar::add-line {
-    background: rgb(60,60,60);
-    height: 16px;
-    width: 16px;
-	subcontrol-origin: margin;
-	border-radius: 0px;
-}
-QScrollBar::sub-line:hover, QScrollBar::add-line:hover  {
-    background: rgb(80,80,80);
-}
-QScrollBar::sub-line:vertical {
-    subcontrol-position: top center;
-	background-image: url(K:/library/icons/arrow-090-small.png);
-}
-QScrollBar::add-line:vertical  {
-    subcontrol-position: bottom center;
-	background-image: url(K:/library/icons/arrow-270-small.png);
-}
-QScrollBar::sub-line:horizontal {
-    subcontrol-position: center left;
-	background-image: url(K:/library/icons/arrow-180-small.png);
-}
-QScrollBar::add-line:horizontal {
-    subcontrol-position: center right;
-	background-image: url(K:/library/icons/arrow-000-small.png);
-}
-QAbstractScrollArea::corner {
-	background: rgb(35,35,35);
-}
-
-/*QSliders*/
-/*QSlider {
-	border-radius: 3px;
-	padding: 3px;
-}*/
-
-
-QSlider::handle {
-	background: rgb( 0, 0, 0);
-	border: 1px solid rgb(70, 70, 70);
-	height: 10px;
-	width: 10px;
-}
-QSlider::handle:horizontal {
-	margin: -4px 0;
-}
-QSlider::handle:vertical {
-	margin: 0 -4px;
-}
-/*QSlider::groove {
-	background: rgb(70, 70, 70);
-	position: absolute;
-	border: 1px solid rgb(35, 35, 35);
-	border-radius: 2px;
-}
-QSlider::groove:horizontal {
-	top: 4px; 
-	bottom: 4px;
-}
-QSlider::groove:vertical {
-	left: 4px; 
-	right: 4px;
-}*/
-
-/*QSlider::sub-page {
-	background-color: rgb( 0, 255, 0);
-}
-QSlider::add-page {
-	background-color: rgb( 0, 255, 255);
-}*/
-
-/*Buttons*/
-
-QPushButton {
-	padding: 1.25ex;
-}
-
-QToolButton {
-	padding: 0.75ex 0.75ex;
-}
-
-QPushButton, QCheckBox, QRadioButton, QLabel {
-}
-
 
 QPushButton, QToolButton {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(65,65,65), stop:1 rgb(50,50,50));
-	border-style:  solid;
-	border-color: rgb(15,15,15);
-	border-width: 1px;
-	border-radius: 2px;
+  background-color: rgb(70, 70, 73);
 }
 
-QPushButton:disabled, QToolButton:disabled {
-	background-color: rgb(40,40,40);
-	color: rgb(15,15,15);
+QFrame {
+  background-color: rgb(78, 81, 84);
+  alternate-background-color: rgb(70, 70, 73);
 }
 
-QPushButton:checked, QToolButton:checked {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(40,119,204), stop:1 rgb(50,150,255));
+QFrame::item:disabled, QFrame::section:disabled {
+  color: rgb(52, 52, 54);
 }
 
-QPushButton:checked:hover, QToolButton:checked:hover {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(40,119,204), stop:1 rgb(50,150,255));
+QLabel, QToolBox {
+  background: none;
 }
 
-QPushButton:hover, QToolButton:hover {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(55,60,65), stop:1 rgb(43,47,51));
-	border-left-style:  none;
-	border-right-style: none;
-	border-top-style: solid;
-	border-bottom-style: solid;
-	border-color: rgb(50,150,255);
-	border-width: 1px;
+QScrollBar {
+  background-color: rgb(60, 60, 63);
+  border-radius: 2px;
 }
 
-QToolButton:hover {
-	border-style: solid;
-	border-width: 1px;
+QScrollBar:horizontal {
+  padding: 0 16px 0 16px;
+}
+
+QScrollBar:vertical {
+  padding: 16px 0 16px 0;
+}
+
+QScrollBar::handle, QScrollBar::add-line, QScrollBar::sub-line {
+  background-color: rgb(78, 81, 84);
+  border-radius: 2px;
+  border: 1px solid rgb(33, 33, 36);
+}
+
+QScrollBar::handle:horizontal, QScrollBar::add-line, QScrollBar::sub-line {
+  background: qlineargradient(y1:0, y2:1, stop:0 rgb(78, 81, 84), stop:1 rgb(60, 60, 63));
+}
+
+QScrollBar::handle:vertical {
+  background: qlineargradient(x1:0, x2:1, stop:0 rgb(78, 81, 84), stop:1 rgb(70, 70, 73));
+}
+
+QScrollBar::handle:active, QScrollBar::add-line:active, QScrollBar::sub-line:active {
+  background-color: rgb(88, 91, 94);
+}
+
+QScrollBar::handle:horizontal {
+  min-width: 16px;
+}
+
+QScrollBar::handle:vertical {
+  min-height: 16px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line{
+  width: 8px;
+  height: 8px;
+  padding: 3px;
+}
+
+QScrollBar::add-line:horizontal {
+  subcontrol-position: right;
+}
+
+QScrollBar::sub-line:horizontal {
+  subcontrol-position: left;
+}
+QScrollBar::add-line:vertical {
+  subcontrol-position: bottom;
+}
+
+QScrollBar::sub-line:vertical {
+  subcontrol-position: top;
+}
+
+QScrollBar::up-arrow, QScrollBar::down-arrow, QScrollBar::left-arrow, QScrollBar::right-arrow {
+  width: 0;
+  height: 0;
+  border: 4px solid rgba(78, 81, 84, 0);
+}
+
+QScrollBar::up-arrow {
+  border-bottom-color: rgb(202, 202, 202);
+  border-top-width: 0;
+}
+
+QScrollBar::down-arrow {
+  border-top-color: rgb(202, 202, 202);
+  border-bottom-width: 0;
+}
+
+QScrollBar::left-arrow {
+  border-right-color: rgb(202, 202, 202);
+  border-left-width: 0;
+}
+
+QScrollBar::right-arrow {
+  border-left-color: rgb(202, 202, 202);
+  border-right-width: 0;
 }
 
 
-QPushButton:pressed, QToolButton:pressed {
 
-}
-
-QPushButton:disabled, QToolButton:disabled {
-	background-color: rgb(40,40,40);
-	color: rgb(15,15,15);
-	selection-background-color: rgb(60,60,60);
-	selection-color: rgb(15,15,15);
-}
-
-/*Editing Widgets*/
-QListView, 
-QTableView, 
-QTreeView, 
-QComboBox, 
-QLineEdit, 
-QTextEdit, 
-QPlainTextEdit, 
-QAbstractSpinBox,
-QSlider::sub-page,
-QSlider::add-page {
-	background-color: rgb(80,80,80); 
-	color: rgb(200,200,200); 
-}
-
-QListView:disabled, 
-QTableView:disabled, 
-QTreeView:disabled, 
-QComboBox:disabled, 
-QLineEdit:disabled, 
-QTextEdit:disabled, 
-QPlainTextEdit:disabled, 
-QAbstractSpinBox:disabled {
-	background-color: rgb(40,40,40);
-	color: rgb(90,90,90);
-	selection-background-color: rgb(60,60,60);
-	selection-color: rgb(15,15,15);
-
-}
-
-
-QListView, QTableView, QTreeView { 
-	alternate-background-color: rgb(95,95,95); 
-}
-
-QListView:disabled, QTableView:disabled, QTreeView:disabled { 
-	alternate-background-color: rgb(55,55,55); 
-}
-
-QHeaderView {
-}
-
-QComboBox QAbstractItemView { 
-	background-color: rgb(80,80,80); 
-	color: rgb(200,200,200); 
-}
-
-
-
-QMessageBox QPushButton, QProgressDialog QPushButton {
-	min-height: 20px;
-	min-width: 50px;
-	padding: 3px;
-}
-
-/*
-QTabBar::tab {
-	padding: 3px 10px;
-}
-
-QTabBar::tab {
-	background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-									  stop:0 rgb(95,95,95), stop:1 rgb(80,80,80));
-}
-*/
-
-QTabBar::tab:selected, QTabBar::tab:hover {
-    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
-                                stop: 0 rgb(100, 100, 100),
-                                stop: 0.8 rgb(40, 40, 40));
- }
-
-/*Blur widgets*/
-HintHelper {
-	background-color: rgba(0,0,0,0);
-	color: rgb(150,150,150);
-}
-
-QMessageBox#uiPythonErrorMBOX QPushButton {
-	min-width: 90px;
-}
-
-/* Start Treegrunt Environment Combo Box Style*/
-QComboBox#uiEnvironmentDDL, QComboBox#uiEnvironmentDDL QListView::item {
-	/* Default color of the default items in the popup via the "QComboBox#uiEnvironmentDDL" selector */
-	qproperty-defaultEnvBackground: rgb(0, 200, 0, 150);
-	qproperty-defaultEnvColor: rgb(215,215,215);
-	/* All other popup items are styled via the "QComboBox#uiEnvironmentDDL QListView::item" 
-	selector. It is also used to style the combo box via the "QComboBox#uiEnvironmentDDL" selector */
-	background: rgb(200, 131, 0, 150);
-}
-QComboBox#uiEnvironmentDDL QListView::item:selected {
-	/* Style the selected item in the popup */
-	background: rgb(0, 0, 255);
-}
-/* Used to style the background color of the combo box when using the defaultEnv */
-QComboBox#uiEnvironmentDDL[defaultActive="true"] {
-	background: rgb(0, 200, 0, 150);
-}
-/* End Treegrunt Environment Combo Box Style */
-
-/* 	Generic re-usable colors that can be accessed by custom qproperty's.
-	Due to speed issues, these should only be added for widget classes
-	that actually implement them.
-*/
-
-FilePickerWidget {
-	qproperty-correctBackground: rgba(0, 100, 0, 100);
-	qproperty-correctForeground: rgb(225,255,225);
-	qproperty-inCorrectBackground: rgba(128, 0, 0, 100);
-	qproperty-inCorrectForeground: rgb(255, 225, 225);
-}
-
-QCWidget, MaxVersionDialog {
-	/* For the LucyQC and Max Version tools */
-	qproperty-colorDarkGreen: #00A400;
-	qproperty-colorDarkYellow: #AAAA00;
-	qproperty-colorBlack: rgb(200,200,200);
-}
-
-ConsoleEdit {
-	qproperty-pyErrorMessageColor: #eb3f06;
-	qproperty-pyForegroundColor: rgb(160, 222, 255);
-	qproperty-pyStdoutColor: rgb(153, 204, 153);
-	qproperty-pyCommentColor: rgb(175, 175, 175);
-	qproperty-pyKeywordColor: rgb(204, 153, 204);
-	qproperty-pyStringColor: rgb(153, 204, 153);
-	qproperty-pyResultColor: rgb(145, 145, 145);
-	background-color: rgb(80, 80, 80);
-}
-
-DocumentEditor {
-	qproperty-pyMarginsForegroundColor: rgb(100, 180, 180);
-	qproperty-pyMarginsBackgroundColor: rgb(45, 45, 45);
-	qproperty-pySelectionBackgroundColor: rgb(70, 70, 70);
-	qproperty-pySelectionForegroundColor: rgb(240, 240, 240);
-	qproperty-pyCaretBackgroundColor: rgb(45, 45, 45);
-	qproperty-pyCaretForegroundColor: rgb(255, 255, 255);
-	qproperty-pyMatchedBraceBackgroundColor: rgb(60, 60, 60);
-	qproperty-pyMatchedBraceForegroundColor: rgb(240, 240, 240);
-	qproperty-pyUnmatchedBraceBackgroundColor: rgb(45, 45, 45);
-	qproperty-pyUnmatchedBraceForegroundColor: rgb(200, 180, 180);
-	qproperty-pyEdgeColor: rgb(100, 45, 45);
-
-	qproperty-pyIndentationGuidesBackgroundColor: rgb(45, 45, 45);
-	qproperty-pyIndentationGuidesForegroundColor: rgb(102, 153, 204);
-	qproperty-pyMarkerBackgroundColor: rgb(45, 255, 45);
-	qproperty-pyMarkerForegroundColor: rgb(200, 0, 200);
-	qproperty-foldMarginsBackgroundColor: rgb(35, 35, 35);
-	qproperty-foldMarginsForegroundColor: rgb(35, 35, 35);
-	qproperty-braceBadForeground: rgb(255, 255, 255);
-	qproperty-braceBadBackground: rgb(100, 60, 60);
-	
-	qproperty-colorDefault: rgb(102, 153, 204);
-	qproperty-colorComment: rgb(153, 153, 153);
-	qproperty-colorNumber: rgb(249, 145, 87);
-	qproperty-colorString: rgb(153, 204, 153);
-	qproperty-colorKeyword: rgb(204, 153, 204);
-	qproperty-colorTripleQuotedString: rgb(220, 204, 153);
-	qproperty-colorMethod: rgb(255, 204, 102);
-	qproperty-colorFunction: rgb(132, 203, 255);
-	qproperty-colorOperator: rgb(204, 204, 204);
-	qproperty-colorIdentifier: rgb(102, 153, 204);
-	qproperty-colorCommentBlock: rgb(117, 113, 94);
-	qproperty-colorUnclosedString: rgb(255, 255, 255);
-	qproperty-colorSmartHighlight: rgb(255, 255, 255);
-	qproperty-colorDecorator: rgb(240, 100, 102);
-	qproperty-paperDefault: rgb(45, 45, 45);
-	qproperty-paperComment: rgb(45, 45, 45);
-	qproperty-paperNumber: rgb(45, 45, 45);
-	qproperty-paperString: rgb(45, 45, 45);
-	qproperty-paperKeyword: rgb(45, 45, 45);
-	qproperty-paperTripleQuotedString: rgb(45, 45, 45);
-	qproperty-paperMethod: rgb(45, 45, 45);
-	qproperty-paperFunction: rgb(45, 45, 45);
-	qproperty-paperOperator: rgb(45, 45, 45);
-	qproperty-paperIdentifier: rgb(45, 45, 45);
-	qproperty-paperCommentBlock: rgb(45, 45, 45);
-	qproperty-paperUnclosedString: rgb(100, 60, 60);
-	qproperty-paperSmartHighlight: rgb(120,120, 80);
-	qproperty-paperDecorator: rgb(45, 45, 45);
-}
-
-ConsoleEdit[pyPdbMode="true"] {
-	/* Change the selection color of the console when in pdb mode */
-	selection-background-color: rgb(0, 255, 0);
-	selection-color: rgb(0, 0, 0);
-}
-
-LoggerWindow QToolButton[toolTip="Next"], LoggerWindow QToolButton[toolTip="Step"], LoggerWindow QSpinBox#uiPdbExecuteCountDDL {
-	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
-	background-color: rgb(75,65,65);
-}
