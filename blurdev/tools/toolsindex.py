@@ -588,6 +588,16 @@ class ToolsIndex(QObject):
 
     def loadFavorites(self):
         if not self._favoritesLoaded:
+            if not os.path.exists(self.filename()):
+                # If the tools index does not exist, then actually loading
+                # favorites accomplishes nothing, and if _favoritesLoaded
+                # is True, saveFavorites will end up erasing all favorites.
+                # Users tend to get annoyed by that "feature", so don't do it.
+                return
+            # For favorites to work, we need to load the entire environment
+            # index, not just each tool we are using for favorites, which is
+            # the default behavior of self.findTool, if load is not called.
+            self.load()
             self._favoritesLoaded = True
             # load favorites
             pref = blurdev.prefs.find(
