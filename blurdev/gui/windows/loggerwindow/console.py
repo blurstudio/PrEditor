@@ -141,7 +141,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # If populated, also write to this interface
         self.outputPipe = None
 
-        self._foregroundColor = QColor(Qt.black)
         self._stdoutColor = QColor(17, 154, 255)
         self._commentColor = QColor(0, 206, 52)
         self._keywordColor = QColor(17, 154, 255)
@@ -498,8 +497,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         if self.pdbUpdateVisibility:
             self.pdbUpdateVisibility(mode)
         self.startInputLine()
-        # Make sure the stylesheet recalculates for the new value
-        blurdev.core.refreshStyleSheet()
 
     def pdbSendCommand(self, commandText):
         import blurdev.external
@@ -547,7 +544,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # if this is not already a new line
         if self.textCursor().block().text() != prompt:
             charFormat = QTextCharFormat()
-            charFormat.setForeground(self.foregroundColor())
             self.setCurrentCharFormat(charFormat)
 
             inputstr = prompt
@@ -609,13 +605,3 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 sys.__stdout__.write(msg)
         except:
             pass
-
-    # These properties are used by the stylesheet to style various items.
-    pyPdbMode = Property(bool, pdbMode, setPdbMode)
-    pyErrorMessageColor = Property(QColor, errorMessageColor, setErrorMessageColor)
-    pyForegroundColor = Property(QColor, foregroundColor, setForegroundColor)
-    pyStdoutColor = Property(QColor, stdoutColor, setStdoutColor)
-    pyCommentColor = Property(QColor, commentColor, setCommentColor)
-    pyKeywordColor = Property(QColor, keywordColor, setKeywordColor)
-    pyStringColor = Property(QColor, stringColor, setStringColor)
-    pyResultColor = Property(QColor, resultColor, setResultColor)

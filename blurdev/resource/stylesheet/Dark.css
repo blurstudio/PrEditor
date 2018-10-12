@@ -3,17 +3,20 @@ QWidget {
   color: rgb(202, 202, 202);
 }
 
-QWidget:disabled {
-  color: rgb(88, 91, 94);
-}
-
-QPushButton, QToolButton {
+QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
   background-color: rgb(70, 70, 73);
 }
 
 QFrame {
-  background-color: rgb(78, 81, 84);
-  alternate-background-color: rgb(70, 70, 73);
+  alternate-background-color: rgb(60, 60, 63);
+}
+
+QWidget:disabled {
+  color: rgb(88, 91, 94);
+}
+
+QPushButton:checked, QPushButton:pressed, QToolButton:checked, QToolButton:pressed {
+  background-color: rgb(52, 52, 54);;
 }
 
 QFrame::item:disabled, QFrame::section:disabled {
@@ -109,6 +112,3 @@ QScrollBar::right-arrow {
   border-left-color: rgb(202, 202, 202);
   border-right-width: 0;
 }
-
-
-

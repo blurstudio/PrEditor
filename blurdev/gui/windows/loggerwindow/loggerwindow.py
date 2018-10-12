@@ -371,7 +371,6 @@ class LoggerWindow(Window):
 
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
-        pref.recordProperty('styleSheet', self.styleSheet())
         pref.recordProperty('flashTime', self.uiConsoleTXT.flashTime)
 
         pref.save()
@@ -456,8 +455,6 @@ class LoggerWindow(Window):
         self.uiWorkboxTAB.setCurrentIndex(
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
-
-        self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
         self.uiConsoleTXT.flashTime = pref.restoreProperty('flashTime', 1.0)
 
         self.restoreToolbars()
@@ -600,7 +597,6 @@ class LoggerWindow(Window):
         self.uiPdbTOOLBAR.setVisible(state)
         self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
         # If the user has set a stylesheet on the logger we need to refresh it
-        self.setStyleSheet(self.styleSheet())
 
     def shutdown(self):
         # close out of the ide system
