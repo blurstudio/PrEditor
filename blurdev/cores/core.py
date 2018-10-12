@@ -114,7 +114,7 @@ class Core(QObject):
         # of treegrunt to load the correct prefs, but launching a subprocess just
         # makes the final launching of the tool take longer.
         # Skip this by setting to True
-        self.launchExternalInProcess = False
+        self.launchExternalInProcess = True
 
         # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom stylesheets
         # it will automatically add this to the start of that stylesheet. This makes it so we
@@ -1200,7 +1200,7 @@ class Core(QObject):
             # run a python file
             elif ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
-                if not self.launchExternalInProcess and self.objectName() in (
+                if self.launchExternalInProcess and self.objectName() in (
                     'external',
                     'treegrunt',
                 ):
