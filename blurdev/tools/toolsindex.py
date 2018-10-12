@@ -148,7 +148,7 @@ class ToolsIndex(QObject):
 
         # Add tools in the legacy tool folder
         for path in glob.glob(
-            self.environment().relativePath('maxscript/treegrunt/main/*/')
+            self.environment().relativePath('maxscript/treeGrunt/Main/*/')
         ):
             self.rebuildPathJson(path, categories, tools, True)
 
@@ -210,6 +210,12 @@ class ToolsIndex(QObject):
                 data['version'] = version
             return data
 
+        def normalizePath(path):
+            """ Remove the environment path and normalize the paths for all os
+            """
+            relPath = os.path.relpath(path, self.environment().path())
+            return relPath.replace('\\', '/')
+
         def getXMLData(toolPath):
             toolPath = os.path.normpath(toolPath)
             doc = blurdev.XML.XMLDocument()
@@ -217,9 +223,7 @@ class ToolsIndex(QObject):
                 xml = doc.root()
                 toolFolder = os.path.dirname(toolPath)
                 toolId = os.path.basename(toolFolder)
-                ret = OrderedDict(
-                    name=toolId, path=self.environment().stripRelativePath(toolFolder),
-                )
+                ret = OrderedDict(name=toolId, path=normalizePath(toolFolder),)
                 ret = loadProperties(xml, ret)
                 return ret
 
@@ -243,10 +247,8 @@ class ToolsIndex(QObject):
                 ret = OrderedDict(
                     legacy=True,  # We have to handle the path of legacy tools differently
                     icon='icon.png',
-                    src=os.path.join('..', os.path.basename(toolPath)),
-                    path=self.environment().stripRelativePath(
-                        os.path.dirname(toolPath)
-                    ),
+                    src='../{}'.format(os.path.basename(toolPath)),
+                    path=normalizePath(os.path.dirname(toolPath)),
                     category=categoryId,
                 )
                 toolId = os.path.splitext(os.path.basename(toolPath))[0]
@@ -316,7 +318,7 @@ class ToolsIndex(QObject):
 
         # go through the legacy folders
         for path in glob.glob(
-            self.environment().relativePath('maxscript/treegrunt/main/*/')
+            self.environment().relativePath('maxscript/treeGrunt/Main/*/')
         ):
             self.rebuildPath(path, categories, tools, True)
         # process the categories into the final delivery node structure
