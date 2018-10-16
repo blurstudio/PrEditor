@@ -30,8 +30,7 @@ aspell = None
 try:
     import aspell
 except ImportError:
-    if not aspell:
-        print "Could not import aspell"
+    pass
 
 
 class DocumentEditor(QsciScintilla):
