@@ -13,6 +13,7 @@ import re
 import sys
 import time
 import warnings
+import functools
 from functools import partial
 from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
@@ -43,6 +44,7 @@ class LoggerWindow(Window):
     def __init__(self, parent, runWorkbox=False):
         Window.__init__(self, parent=parent)
         self.aboutToClearPathsEnabled = False
+        self._stylesheet = 'None'
 
         import blurdev.gui
 
@@ -88,8 +90,10 @@ class LoggerWindow(Window):
         self.uiPdbExecuteCountDDL.setToolTip(msg)
         self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountDDL)
 
-        # Store the software name so we can handle custom keyboard shortcuts bassed on software
+        # Store the software name so we can handle custom keyboard shortcuts based on software
         self._software = blurdev.core.objectName()
+
+        self._logToFilePath = None
 
         # create the connections
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
@@ -124,6 +128,7 @@ class LoggerWindow(Window):
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiResetWarningFiltersACT.triggered.connect(warnings.resetwarnings)
+        self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
@@ -169,6 +174,14 @@ class LoggerWindow(Window):
 
         # calling setLanguage resets this value to False
         self.restorePrefs()
+
+        # add stylesheet menu options.
+        for style_name in ['None'] + blurdev.core.styleSheets('logger'):
+            action = self.uiStyleMENU.addAction(style_name)
+            action.setObjectName('ui{}ACT'.format(style_name))
+            action.setCheckable(True)
+            action.setChecked(self._stylesheet == style_name)
+            action.triggered.connect(functools.partial(self.setStyleSheet, style_name))
 
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
@@ -371,6 +384,9 @@ class LoggerWindow(Window):
 
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
+        pref.recordProperty('currentStyleSheet', self._stylesheet)
+        if self._stylesheet == 'Custom':
+            pref.recordProperty('styleSheet', self.styleSheet())
         pref.recordProperty('flashTime', self.uiConsoleTXT.flashTime)
 
         pref.save()
@@ -455,6 +471,12 @@ class LoggerWindow(Window):
         self.uiWorkboxTAB.setCurrentIndex(
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
+
+        self._stylesheet = pref.restoreProperty('currentStyleSheet', 'None')
+        if self._stylesheet == 'Custom':
+            self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
+        else:
+            self.setStyleSheet(self._stylesheet)
         self.uiConsoleTXT.flashTime = pref.restoreProperty('flashTime', 1.0)
 
         self.restoreToolbars()
@@ -511,6 +533,42 @@ class LoggerWindow(Window):
                     # Only show warning if Logger is visible and also disable
                     self.uiSpellCheckEnabledACT.setCheckable(False)
                     QMessageBox.warning(self, "Spell-Check", "{}".format(e))
+
+    def setStyleSheet(self, stylesheet, recordPrefs=True):
+        """ Accepts the name of a stylesheet included with blurdev, or a full
+            path to any stylesheet.  If given None, it will remove the stylesheet.
+        """
+        sheet = None
+        if stylesheet is None or stylesheet == 'None':
+            # Remove the styleSheet
+            sheet = ''
+            self._stylesheet = 'None'
+        elif os.path.isfile(stylesheet):
+            # A path to a stylesheet was passed in
+            with open(stylesheet) as f:
+                sheet = f.read()
+            self._stylesheet = stylesheet
+        else:
+            # Try to find an installed stylesheet with the given name
+            sheet, valid = blurdev.core.readStyleSheet('logger/{}'.format(stylesheet))
+            if valid:
+                self._stylesheet = stylesheet
+            else:
+                # Assume the user passed the text of the stylesheet directly
+                sheet = stylesheet
+                self._stylesheet = 'Custom'
+
+        # Load the stylesheet
+        if sheet is not None:
+            super(LoggerWindow, self).setStyleSheet(sheet)
+            wgt = self.uiWorkboxTAB.currentWidget()
+            wgt.updateColorScheme()
+
+        # Update the style menu
+        for act in self.uiStyleMENU.actions():
+            name = act.objectName()
+            isCurrent = name == 'ui{}ACT'.format(self._stylesheet)
+            act.setChecked(isCurrent)
 
     def setClearBeforeRunning(self, state):
         if state:
@@ -596,7 +654,6 @@ class LoggerWindow(Window):
         self.uiPdbMENU.menuAction().setVisible(state)
         self.uiPdbTOOLBAR.setVisible(state)
         self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
-        # If the user has set a stylesheet on the logger we need to refresh it
 
     def shutdown(self):
         # close out of the ide system
@@ -722,6 +779,26 @@ class LoggerWindow(Window):
             LoggerWindow._instance = inst
 
         return LoggerWindow._instance
+
+    def installLogToFile(self):
+        """ All stdout/stderr output is also appended to this file.
+
+        This uses blurdev.debug.logToFile(path, useOldStd=True).
+        """
+        if self._logToFilePath is None:
+            basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
+            path = os.path.join(basepath, 'blurdevProtocol.log')
+            path, _ = QtCompat.QFileDialog.getOpenFileName(
+                self, "Log Output to File", path
+            )
+            if not path:
+                return
+            print('Output logged to: "{}"'.format(path))
+            blurdev.debug.logToFile(path, useOldStd=True)
+            self.uiLogToFileACT.setText('Output Logged to File')
+            self._logToFilePath = path
+        else:
+            print('Output logged to: "{}"'.format(self._logToFilePath))
 
     @classmethod
     def instanceSetPdbMode(cls, mode, msg=''):

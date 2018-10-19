@@ -1,6 +1,7 @@
 import sys
 import time
 import os
+import glob
 
 from Qt.QtCore import QDateTime, QEvent, QObject, QRect, Qt, Signal
 from Qt.QtWidgets import (
@@ -1515,16 +1516,24 @@ class Core(QObject):
         """
         return self._stylesheet
 
-    def styleSheets(self):
+    def styleSheets(self, subFolder=None):
         """ Returns a list of installed stylesheet names.
-        """
-        import glob
 
-        cssdir = os.path.join(
+        Args:
+            subFolder (str or None, optional): Use this to access sub-folders of
+                the stylesheet resource directory.
+
+        Returns:
+            list: A list .css file paths in the target directory.
+        """
+        components = [
             os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
             'resource',
             'stylesheet',
-        )
+        ]
+        if subFolder is not None:
+            components.append(subFolder)
+        cssdir = os.path.join(*components)
         cssfiles = glob.glob(os.path.join(cssdir, '*.css'))
         # Only return the filename without the .css extension
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]

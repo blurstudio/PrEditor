@@ -84,6 +84,8 @@
     <addaction name="uiResetPathsACT"/>
     <addaction name="separator"/>
     <addaction name="uiResetWarningFiltersACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiLogToFileACT"/>
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
@@ -102,12 +104,18 @@
     <property name="title">
      <string>&amp;Options</string>
     </property>
+    <widget class="QMenu" name="uiStyleMENU">
+     <property name="title">
+      <string>Style</string>
+     </property>
+    </widget>
     <addaction name="uiAutoCompleteEnabledACT"/>
     <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="separator"/>
-    <addaction name="uiSaveLogACT"/>
     <addaction name="uiClearLogACT"/>
     <addaction name="uiClearLogOnRefreshACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
     <addaction name="uiCopyTabsToSpacesACT"/>
@@ -549,6 +557,16 @@
    </property>
    <property name="text">
     <string>Use Spell-Check</string>
+   </property>
+  </action>
+  <action name="uiLogToFileACT">
+   <property name="text">
+    <string>Log Output to File</string>
+   </property>
+  </action>
+  <action name="actionSone">
+   <property name="text">
+    <string>None</string>
    </property>
   </action>
  </widget>

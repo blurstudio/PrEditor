@@ -1,0 +1,69 @@
+QWidget {
+	background-color: rgb(60, 60, 63);
+	color: rgb(202, 202, 202);
+}
+
+QToolButton:checked, QMenu::checked {
+	background-color: rgb(52, 52, 54);
+}
+
+ConsoleEdit {
+	background-color: rgb(70, 70, 73);
+}
+
+DocumentEditor {
+	qproperty-pyMarginsForegroundColor: rgb(100, 180, 180);
+	qproperty-pyMarginsBackgroundColor: rgb(45, 45, 45);
+	qproperty-pySelectionBackgroundColor: rgb(70, 70, 70);
+	qproperty-pySelectionForegroundColor: rgb(240, 240, 240);
+	qproperty-pyCaretBackgroundColor: rgb(45, 45, 45);
+	qproperty-pyCaretForegroundColor: rgb(255, 255, 255);
+	qproperty-pyMatchedBraceBackgroundColor: rgb(60, 60, 60);
+	qproperty-pyMatchedBraceForegroundColor: rgb(240, 240, 240);
+	qproperty-pyUnmatchedBraceBackgroundColor: rgb(45, 45, 45);
+	qproperty-pyUnmatchedBraceForegroundColor: rgb(200, 180, 180);
+	qproperty-pyEdgeColor: rgb(100, 45, 45);
+
+	qproperty-pyIndentationGuidesBackgroundColor: rgb(45, 45, 45);
+	qproperty-pyIndentationGuidesForegroundColor: rgb(102, 153, 204);
+	qproperty-pyMarkerBackgroundColor: rgb(45, 255, 45);
+	qproperty-pyMarkerForegroundColor: rgb(200, 0, 200);
+	qproperty-foldMarginsBackgroundColor: rgb(35, 35, 35);
+	qproperty-foldMarginsForegroundColor: rgb(35, 35, 35);
+	qproperty-braceBadForeground: rgb(255, 255, 255);
+	qproperty-braceBadBackground: rgb(100, 60, 60);
+
+	qproperty-colorDefault: rgb(102, 153, 204);
+	qproperty-colorComment: rgb(153, 153, 153);
+	qproperty-colorNumber: rgb(249, 145, 87);
+	qproperty-colorString: rgb(153, 204, 153);
+	qproperty-colorKeyword: rgb(204, 153, 204);
+	qproperty-colorTripleQuotedString: rgb(220, 204, 153);
+	qproperty-colorMethod: rgb(255, 204, 102);
+	qproperty-colorFunction: rgb(132, 203, 255);
+	qproperty-colorOperator: rgb(204, 204, 204);
+	qproperty-colorIdentifier: rgb(102, 153, 204);
+	qproperty-colorCommentBlock: rgb(117, 113, 94);
+	qproperty-colorUnclosedString: rgb(255, 255, 255);
+	qproperty-colorSmartHighlight: rgb(255, 255, 255);
+	qproperty-colorDecorator: rgb(240, 100, 102);
+	qproperty-paperDefault: rgb(45, 45, 45);
+	qproperty-paperComment: rgb(45, 45, 45);
+	qproperty-paperNumber: rgb(45, 45, 45);
+	qproperty-paperString: rgb(45, 45, 45);
+	qproperty-paperKeyword: rgb(45, 45, 45);
+	qproperty-paperTripleQuotedString: rgb(45, 45, 45);
+	qproperty-paperMethod: rgb(45, 45, 45);
+	qproperty-paperFunction: rgb(45, 45, 45);
+	qproperty-paperOperator: rgb(45, 45, 45);
+	qproperty-paperIdentifier: rgb(45, 45, 45);
+	qproperty-paperCommentBlock: rgb(45, 45, 45);
+	qproperty-paperUnclosedString: rgb(100, 60, 60);
+	qproperty-paperSmartHighlight: rgb(120,120, 80);
+	qproperty-paperDecorator: rgb(45, 45, 45);
+}
+
+QToolButton[toolTip="Next"], QToolButton[toolTip="Step"], QSpinBox#uiPdbExecuteCountDDL {
+	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
+	background-color: rgb(75,65,65);
+}
