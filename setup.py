@@ -10,10 +10,18 @@ import sys
 import platform
 
 if 'Linux' == platform.system():
-    sys.path.insert(0, r'/mnt/source/code/python/lib/')
+    libPath = r'/mnt/source/code/python/lib/'
 else:
-    sys.path.insert(0, r'\\source\production\code\python\lib')
-import blurutils.version
+    libPath = r'\\source\production\code\python\lib'
+if os.path.exists(os.path.join(libPath, 'blurutils')):
+    sys.path.insert(0, libPath)
+else:
+    # BlurOffline fix
+    sys.path.insert(0, r'C:\blur\dev\offline\code\python\lib')
+try:
+    import blurutils.version
+except ImportError:
+    raise
 
 _dir = os.path.dirname(os.path.abspath(__file__))
 version = blurutils.version.Version(os.path.join(_dir, 'blurdev'))

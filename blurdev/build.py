@@ -37,12 +37,21 @@ if __name__ == '__main__':
     from optparse import OptionParser
 
     # Temporary until a blur-utils package is made
-    if 'Linux' == platform.system():
-        sys.path.insert(0, r'/mnt/source/code/python/lib/')
-    else:
-        sys.path.insert(0, r'\\source\production\code\python\lib')
-    import blurutils.version
+    import platform
 
+    if 'Linux' == platform.system():
+        libPath = r'/mnt/source/code/python/lib/'
+    else:
+        libPath = r'\\source\production\code\python\lib'
+    if os.path.exists(os.path.join(libPath, 'blurutils')):
+        sys.path.insert(0, libPath)
+    else:
+        # BlurOffline fix
+        sys.path.insert(0, r'C:\blur\dev\offline\code\python\lib')
+    try:
+        import blurutils.version
+    except ImportError:
+        raise
     version = blurutils.version.Version(path)
 
     blur.build.Parser = 1
