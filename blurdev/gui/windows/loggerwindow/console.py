@@ -159,6 +159,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.pdbModeAction = None
         # Method used to update the gui when pdb mode changes
         self.pdbUpdateVisibility = None
+        # Method used to update the gui when code is executed
+        self.reportExecutionTime = None
 
         self._firstShow = True
 
@@ -243,6 +245,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         delta = time.time() - startTime
         if self.flashTime and delta >= self.flashTime:
             blurdev.core.flashWindow()
+        # Report the total time it took to execute this code.
+        if self.reportExecutionTime is not None:
+            self.reportExecutionTime(delta)
         return cmdresult, wasEval
 
     def executeCommand(self):

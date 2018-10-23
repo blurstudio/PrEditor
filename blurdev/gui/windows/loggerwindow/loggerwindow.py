@@ -54,11 +54,16 @@ class LoggerWindow(Window):
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
         self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
         self.updatePdbVisibility(False)
+        self.uiConsoleTXT.reportExecutionTime = self.reportExecutionTime
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
         )
         # If we don't disable this shortcut Qt won't respond to this classes or the ConsoleEdit's
         self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
+
+        # create the status reporting label
+        self.uiStatusLBL = QLabel(self)
+        self.uiMenuBar.setCornerWidget(self.uiStatusLBL)
 
         # create the workbox tabs
         self._currentTab = -1
@@ -328,6 +333,10 @@ class LoggerWindow(Window):
             act.setChecked(level == dlevel)
             act.blockSignals(False)
 
+    def reportExecutionTime(self, seconds):
+        """ Update status text with seconds passed in. """
+        self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
+
     def resetPaths(self):
         blurdev.activeEnvironment().resetPaths()
 
@@ -534,6 +543,15 @@ class LoggerWindow(Window):
                     self.uiSpellCheckEnabledACT.setCheckable(False)
                     QMessageBox.warning(self, "Spell-Check", "{}".format(e))
 
+    def setStatusText(self, txt):
+        """ Set the text shown in the menu corner of the menu bar.
+
+        Args:
+            txt (str): The text to show in the status text label.
+        """
+        self.uiStatusLBL.setText(txt)
+        self.uiMenuBar.adjustSize()
+
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
             path to any stylesheet.  If given None, it will remove the stylesheet.
@@ -639,6 +657,11 @@ class LoggerWindow(Window):
         self.restoreToolbars()
         self.updateIndentationsUseTabs()
         self.updateCopyIndentsAsSpaces()
+
+        # Adjust the minimum height of the label so it's text is the same as
+        # the action menu text
+        height = self.uiMenuBar.actionGeometry(self.uiFileMENU.menuAction()).height()
+        self.uiStatusLBL.setMinimumHeight(height)
 
     def updateCopyIndentsAsSpaces(self):
         for index in range(self.uiWorkboxTAB.count()):
