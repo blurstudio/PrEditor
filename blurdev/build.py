@@ -44,10 +44,10 @@ if __name__ == '__main__':
     else:
         libPath = r'\\source\production\code\python\lib'
     if os.path.exists(os.path.join(libPath, 'blurutils')):
-        sys.path.insert(0, libPath)
+        sys.path.append(libPath)
     else:
         # BlurOffline fix
-        sys.path.insert(0, r'C:\blur\dev\offline\code\python\lib')
+        sys.path.append(r'C:\blur\dev\offline\code\python\lib')
     try:
         import blurutils.version
     except ImportError:
