@@ -103,6 +103,7 @@ class IdeEditor(Window):
         self._initDocument = None
         self._initExpandedFolders = []
         self.documentMarkrerDict = {}
+        self._documentStylesheet = 'Bright'
 
         from idefilemenu import IdeFileMenu
 
@@ -744,6 +745,10 @@ class IdeEditor(Window):
         if doc:
             doc.selectToMatchingBrace()
 
+    def documentStyleSheet(self):
+        """ The stylesheet applied to open documents """
+        return self._documentStylesheet
+
     def documentToLowercase(self):
         doc = self.currentDocument()
         if doc:
@@ -1168,7 +1173,9 @@ class IdeEditor(Window):
         )
 
         pref.recordProperty('projectTreeState', self.uiProjectTREE.recordOpenState())
-        pref.recordProperty('styleSheet', self.styleSheet())
+        pref.recordProperty('currentStyleSheet', self._documentStylesheet)
+        if self._documentStylesheet == 'Custom':
+            pref.recordProperty('styleSheet', self.uiWindowsAREA.styleSheet())
 
         if blurdev.core.objectName() == 'ide':
             blurdev.core.logger().recordPrefs()
@@ -1253,11 +1260,13 @@ class IdeEditor(Window):
         pref = prefs.find('ide/interface')
 
         # load the styleSheet
-        sheet = pref.restoreProperty('styleSheet', '')
-        if sheet:
+        self._documentStylesheet = pref.restoreProperty('currentStyleSheet', 'Bright')
+        if self._documentStylesheet == 'Custom':
             from blurdev.XML.minidom import unescape
 
-            self.setStyleSheet(unescape(sheet))
+            self.setDocumentStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
+        else:
+            self.setDocumentStyleSheet(self._documentStylesheet)
 
         # load the recent files
         self._recentFiles = pref.restoreProperty('recentFiles', [])
@@ -1824,6 +1833,36 @@ class IdeEditor(Window):
 
     def setSearchFlags(self, flags):
         self._searchFlags = flags
+
+    def setDocumentStyleSheet(self, stylesheet, recordPrefs=True):
+        """ Accepts the name of a stylesheet included with blurdev, or a full
+            path to any stylesheet. If given None, it will default to Bright.
+        """
+        sheet = None
+        if stylesheet is None:
+            stylesheet = 'Bright'
+        if os.path.isfile(stylesheet):
+            # A path to a stylesheet was passed in
+            with open(stylesheet) as f:
+                sheet = f.read()
+            self._documentStylesheet = stylesheet
+        else:
+            # Try to find an installed stylesheet with the given name
+            sheet, valid = blurdev.core.readStyleSheet('logger/{}'.format(stylesheet))
+            if valid:
+                self._documentStylesheet = stylesheet
+            else:
+                # Assume the user passed the text of the stylesheet directly
+                sheet = stylesheet
+                self._documentStylesheet = 'Custom'
+
+        # Load the stylesheet
+        if sheet is not None:
+            self.uiWindowsAREA.setStyleSheet(sheet)
+            # Force the currently visible document's style to update.
+            doc = self.currentDocument()
+            if doc:
+                doc.updateColorScheme()
 
     def shutdown(self):
         # if this is the global instance, then allow it to be deleted on close

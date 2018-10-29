@@ -554,7 +554,7 @@ class LoggerWindow(Window):
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet.  If given None, it will remove the stylesheet.
+            path to any stylesheet. If given None, it will default to Bright.
         """
         sheet = None
         if stylesheet is None:
