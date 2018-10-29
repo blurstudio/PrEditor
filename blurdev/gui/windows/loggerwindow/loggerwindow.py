@@ -44,7 +44,7 @@ class LoggerWindow(Window):
     def __init__(self, parent, runWorkbox=False):
         Window.__init__(self, parent=parent)
         self.aboutToClearPathsEnabled = False
-        self._stylesheet = 'None'
+        self._stylesheet = 'Bright'
 
         import blurdev.gui
 
@@ -181,7 +181,7 @@ class LoggerWindow(Window):
         self.restorePrefs()
 
         # add stylesheet menu options.
-        for style_name in ['None'] + blurdev.core.styleSheets('logger'):
+        for style_name in blurdev.core.styleSheets('logger'):
             action = self.uiStyleMENU.addAction(style_name)
             action.setObjectName('ui{}ACT'.format(style_name))
             action.setCheckable(True)
@@ -481,7 +481,7 @@ class LoggerWindow(Window):
             pref.restoreProperty('WorkboxCurrentIndex', 0)
         )
 
-        self._stylesheet = pref.restoreProperty('currentStyleSheet', 'None')
+        self._stylesheet = pref.restoreProperty('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
             self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
         else:
@@ -557,11 +557,9 @@ class LoggerWindow(Window):
             path to any stylesheet.  If given None, it will remove the stylesheet.
         """
         sheet = None
-        if stylesheet is None or stylesheet == 'None':
-            # Remove the styleSheet
-            sheet = ''
-            self._stylesheet = 'None'
-        elif os.path.isfile(stylesheet):
+        if stylesheet is None:
+            stylesheet = 'Bright'
+        if os.path.isfile(stylesheet):
             # A path to a stylesheet was passed in
             with open(stylesheet) as f:
                 sheet = f.read()

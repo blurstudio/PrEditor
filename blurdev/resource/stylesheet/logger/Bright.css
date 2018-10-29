@@ -1,0 +1,56 @@
+DocumentEditor {
+	qproperty-pyMarginsForegroundColor: "black";
+	qproperty-pyMarginsBackgroundColor: rgb(224, 224, 224);
+	qproperty-pySelectionBackgroundColor: rgb(192, 192, 192);
+	qproperty-pySelectionForegroundColor: "black";
+	qproperty-pyCaretBackgroundColor: "white";
+	qproperty-pyCaretForegroundColor: "black";
+	qproperty-pyMatchedBraceBackgroundColor: rgb(224, 224, 224);
+	qproperty-pyMatchedBraceForegroundColor: "black";
+	qproperty-pyUnmatchedBraceBackgroundColor: "white";
+	qproperty-pyUnmatchedBraceForegroundColor: "blue";
+	qproperty-pyEdgeColor: rgb(100, 45, 45);
+
+	qproperty-pyIndentationGuidesBackgroundColor: "white";
+	qproperty-pyIndentationGuidesForegroundColor: "black";
+	qproperty-pyMarkerBackgroundColor: "white";
+	qproperty-pyMarkerForegroundColor: "black";
+	qproperty-foldMarginsBackgroundColor: rgb(224, 224, 224);
+	qproperty-foldMarginsForegroundColor: "white";
+	qproperty-braceBadForeground: "black";
+	qproperty-braceBadBackground: rgb(100, 60, 60);
+
+	qproperty-colorDefault: "black";
+	qproperty-colorComment: rgb(0, 127, 0);
+	qproperty-colorNumber: rgb(0, 127, 127);
+	qproperty-colorString: rgb(127, 0, 127);
+	qproperty-colorKeyword: rgb(0, 0, 127);
+	qproperty-colorTripleQuotedString: rgb(127, 0, 0);
+	qproperty-colorMethod: rgb(0, 0, 255);
+	qproperty-colorFunction: rgb(0, 127, 127);
+	qproperty-colorOperator: "black";
+	qproperty-colorIdentifier: "black";
+	qproperty-colorCommentBlock: rgb(127, 127, 127);
+	qproperty-colorUnclosedString: "black";
+	qproperty-colorSmartHighlight: rgb(64, 112, 144);
+	qproperty-colorDecorator: rgb(128, 80, 0);
+	qproperty-paperDefault: "white";
+	qproperty-paperComment: "white";
+	qproperty-paperNumber: "white";
+	qproperty-paperString: "white";
+	qproperty-paperKeyword: "white";
+	qproperty-paperTripleQuotedString: "white";
+	qproperty-paperMethod: "white";
+	qproperty-paperFunction: "white";
+	qproperty-paperOperator: "white";
+	qproperty-paperIdentifier: "white";
+	qproperty-paperCommentBlock: "white";
+	qproperty-paperUnclosedString: rgb(224, 192, 224);
+	qproperty-paperSmartHighlight: rgb(155, 255, 155);
+	qproperty-paperDecorator: "white";
+}
+
+QToolButton[toolTip="Next"], QToolButton[toolTip="Step"], QSpinBox#uiPdbExecuteCountDDL {
+	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
+	background-color: rgb(75,65,65);
+}
