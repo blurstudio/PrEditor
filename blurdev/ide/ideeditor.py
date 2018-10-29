@@ -39,12 +39,14 @@ from Qt.QtWidgets import (
 )
 from Qt import QtCompat
 
-from blurdev.gui import Window
+import blurdev
+from blurdev.gui import Window, loadUi
 from blurdev.gui.dialogs.configdialog import ConfigSet
 from blurdev.ide.ideproject import IdeProject, IdeProjectDelegate
 from blurdev.ide.languagecombobox import LanguageComboBox
+from blurdev.debug import DebugLevel, debugLevel, debugObject
 
-from blurdev import osystem, settings
+from blurdev import osystem, settings, version
 
 
 class IdeEditor(Window):
@@ -68,9 +70,6 @@ class IdeEditor(Window):
         self.aboutToClearPathsEnabled = False
 
         # load the ui
-        import blurdev
-        import blurdev.gui
-
         blurdev.gui.loadUi(__file__, self)
 
         # create the registry for this instance
@@ -131,10 +130,8 @@ class IdeEditor(Window):
         self._searchReplaceDialog.setAttribute(Qt.WA_DeleteOnClose, False)
 
         # create a template completer
-        from blurdev import template
-
         self._templateCompleter = QListWidget(self)
-        self._templateCompleter.addItems(template.allTemplNames())
+        self._templateCompleter.addItems(blurdev.template.allTemplNames())
         self._templateCompleter.setWindowFlags(Qt.Popup)
         self._templateCompleter.installEventFilter(self)
 
@@ -320,8 +317,6 @@ class IdeEditor(Window):
         self.syncEnvironment()
 
     def addSubWindow(self, editor):
-        import blurdev
-
         window = self.uiWindowsAREA.addSubWindow(editor)
         window.setWindowTitle(editor.windowTitle())
         window.installEventFilter(editor)
@@ -378,8 +373,6 @@ class IdeEditor(Window):
         if not path:
             return False
 
-        import os
-
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
@@ -398,13 +391,10 @@ class IdeEditor(Window):
             item.refresh()
 
     def cleanEnvironment(self):
-        import blurdev
-
         blurdev.activeEnvironment().resetPaths()
 
     def currentBasePath(self):
         path = ''
-        import os.path
 
         # load from the project
         if self.uiBrowserTAB.currentIndex() == 0:
@@ -636,8 +626,6 @@ class IdeEditor(Window):
             # the remainder of the variable key will be used as the template key.
             # bdev_templ_log_file_loc = c:\temp\test.log
             # "open(r'[log_file_loc]', 'w')" becomes "open(r'c:\temp\test.log', 'w')"
-            import os
-
             for key in os.environ:
                 key = key.lower()
                 repl = key.replace('bdev_templ_', '')
@@ -649,8 +637,6 @@ class IdeEditor(Window):
             options['filename'] = fname
 
             # include package, module info for python files
-            import os.path, blurdev
-
             if os.path.splitext(fname)[1].startswith('.py'):
                 options['package'] = blurdev.packageForPath(os.path.split(fname)[0])
                 mname = os.path.basename(fname).split('.')[0]
@@ -660,9 +646,7 @@ class IdeEditor(Window):
                 else:
                     options['module'] = ''
 
-            from blurdev import template
-
-            text = template.templ(item.text(), options)
+            text = blurdev.template.templ(item.text(), options)
             if text:
                 doc.removeSelectedText()
                 doc.insert(text)
@@ -819,8 +803,6 @@ class IdeEditor(Window):
         else:
             text = event.mimeData().text()
             if text.startswith('Tool::'):
-                import blurdev
-
                 tool = blurdev.findTool(text.replace('Tool::', '', 1))
                 if tool:
                     self.setCurrentProject(IdeProject.fromTool(tool))
@@ -881,8 +863,6 @@ class IdeEditor(Window):
 
         # load the file
         if filename:
-            import os.path
-
             if not os.path.isfile(filename):
                 return False
 
@@ -929,8 +909,6 @@ class IdeEditor(Window):
             self.load(filename, useRegistry=False)
 
         # initialize the logger
-        import blurdev
-
         blurdev.core.logger(self)
 
         # launch with a given filename
@@ -977,8 +955,6 @@ class IdeEditor(Window):
 
         # load the file based on the registry
         if useRegistry and mods != Qt.AltModifier:
-            from blurdev import osystem
-
             ext = os.path.splitext(normalized)[-1]
             cmd = self.registry().findCommand(filename)
 
@@ -1025,8 +1001,6 @@ class IdeEditor(Window):
         return data
 
     def projectFindInFiles(self):
-        import os.path
-
         filepath = self.currentFilePath()
         if os.path.isfile(filepath):
             filepath = os.path.dirname(filepath)
@@ -1099,15 +1073,11 @@ class IdeEditor(Window):
             self.uiBrowserTAB.setCurrentIndex(0)
 
     def documentOpenItem(self):
-        import os.path
-
         path = self.currentFilePath()
         if os.path.isfile(path):
             self.load(path)
 
     def documentExploreItem(self):
-        import os
-
         path = self.currentFilePath()
         if os.path.isfile(path):
             path = os.path.split(path)[0]
@@ -1151,7 +1121,6 @@ class IdeEditor(Window):
         self.settingsRecorded.emit()
 
         # save the settings
-        import blurdev
         from blurdev import prefs
 
         pref = prefs.find('ide/interface')
@@ -1220,8 +1189,6 @@ class IdeEditor(Window):
         self.refreshRecentFiles()
 
     def refreshDebugLevels(self):
-        from blurdev.debug import DebugLevel, debugLevel
-
         dlevel = debugLevel()
         for act, level in [
             (self.uiNoDebugACT, 0),
@@ -1270,15 +1237,11 @@ class IdeEditor(Window):
             self.uiFileMENU.addMenu(self._recentFileMenu)
 
     def refreshTemplateCompleter(self):
-        from blurdev import template
-
         self._templateCompleter.clear()
-        self._templateCompleter.addItems(template.allTemplNames())
+        self._templateCompleter.addItems(blurdev.template.allTemplNames())
 
     def registerTemplatePath(self, key, path):
-        from blurdev import template
-
-        template.registerPath(key, path)
+        blurdev.template.registerPath(key, path)
         self.refreshTemplateCompleter()
 
     def registry(self):
@@ -1340,9 +1303,7 @@ class IdeEditor(Window):
         try:
             self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
         except:
-            from blurdev import debug
-
-            debug.debugObject(self.restoreSettings, 'error restoring window state')
+            debugObject(self.restoreSettings, 'error restoring window state')
         states = pref.restoreProperty('windowStateSave')
         if states:
             self.restoreState(states)
@@ -1375,8 +1336,6 @@ class IdeEditor(Window):
         if not filename:
             return False
 
-        import blurdev
-
         blurdev.core.runScript(filename)
         return True
 
@@ -1384,9 +1343,6 @@ class IdeEditor(Window):
         filename = self.currentFilePath()
         if not filename:
             return False
-
-        import blurdev
-        import os, sys
 
         blurdev.core.runStandalone(
             filename,
@@ -1400,11 +1356,8 @@ class IdeEditor(Window):
         if not filename:
             return False
 
-        import blurdev
-        from blurdev import debug
-
         blurdev.core.runStandalone(
-            filename, debugLevel=debug.DebugLevel.High, basePath=self.currentBasePath()
+            filename, debugLevel=DebugLevel.High, basePath=self.currentBasePath()
         )
 
     def runSelected(self):
@@ -1510,28 +1463,18 @@ class IdeEditor(Window):
         return ret
 
     def setNoDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(None)
+        setDebugLevel(None)
 
     def setLowDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.Low)
+        setDebugLevel(DebugLevel.Low)
 
     def setMidDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.Mid)
+        setDebugLevel(DebugLevel.Mid)
 
     def setHighDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.High)
+        setDebugLevel(DebugLevel.High)
 
     def setupIcons(self):
-        import blurdev
-
         self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide.png')))
 
         self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
@@ -1765,8 +1708,6 @@ class IdeEditor(Window):
         )
 
     def showPyular(self):
-        import blurdev
-
         dlg = blurdev.core.pyular(self)
         searchText = self.searchText()
         if searchText:
@@ -1799,7 +1740,6 @@ class IdeEditor(Window):
     def setCurrentProject(self, project, silent=True):
         # check to see if we should prompt the user before changing projects
         change = True
-        import os.path
 
         if (
             not silent
@@ -1953,9 +1893,7 @@ class IdeEditor(Window):
             doc.setWrapMode(doc.WrapWord)
 
     def unregisterTemplatePath(self, key):
-        from blurdev import template
-
-        template.unregisterPath(key)
+        blurdev.template.unregisterPath(key)
         self.refreshTemplateCompleter()
 
     def updateDocumentSettings(self):
@@ -1992,9 +1930,6 @@ class IdeEditor(Window):
         configSet.save()
 
     def updateTitle(self):
-        import blurdev
-        from blurdev import version
-
         proj = self.currentProject()
         if proj:
             projtext = 'Project: %s' % proj.text(0)
@@ -2079,8 +2014,6 @@ class IdeEditor(Window):
             self.setPalette(palette)
 
             # if the ide is managing the application, then update the scheme
-            import blurdev
-
             if (
                 blurdev.application
                 and blurdev.core
@@ -2164,8 +2097,6 @@ class IdeEditor(Window):
         # create the instance for the logger
         if not IdeEditor._instance:
             # determine default parenting
-            import blurdev
-
             parent = None
             if not blurdev.core.isMfcApp():
                 parent = blurdev.core.rootWindow()
