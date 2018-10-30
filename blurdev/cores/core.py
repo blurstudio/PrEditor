@@ -1534,7 +1534,7 @@ class Core(QObject):
         if subFolder is not None:
             components.append(subFolder)
         cssdir = os.path.join(*components)
-        cssfiles = glob.glob(os.path.join(cssdir, '*.css'))
+        cssfiles = sorted(glob.glob(os.path.join(cssdir, '*.css')))
         # Only return the filename without the .css extension
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
 

@@ -296,6 +296,11 @@
     <property name="title">
      <string>&amp;Document</string>
     </property>
+    <widget class="QMenu" name="uiStyleMENU">
+     <property name="title">
+      <string>Style</string>
+     </property>
+    </widget>
     <addaction name="uiLineWrapACT"/>
     <addaction name="separator"/>
     <addaction name="uiShowCaretLineACT"/>
@@ -304,6 +309,8 @@
     <addaction name="uiShowLineNumbersACT"/>
     <addaction name="uiShowWhitespacesACT"/>
     <addaction name="uiSmartHighlightingACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiStyleMENU"/>
    </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="uiEditMENU"/>

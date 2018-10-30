@@ -13,7 +13,6 @@ import re
 import sys
 import time
 import warnings
-import functools
 from functools import partial
 from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
@@ -186,7 +185,7 @@ class LoggerWindow(Window):
             action.setObjectName('ui{}ACT'.format(style_name))
             action.setCheckable(True)
             action.setChecked(self._stylesheet == style_name)
-            action.triggered.connect(functools.partial(self.setStyleSheet, style_name))
+            action.triggered.connect(partial(self.setStyleSheet, style_name))
 
         self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()

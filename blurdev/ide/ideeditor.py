@@ -10,6 +10,7 @@
 
 import os
 import copy
+from functools import partial
 
 from Qt.QtCore import (
     QDir,
@@ -53,7 +54,7 @@ class IdeEditor(Window):
     documentTitleChanged = Signal()
     # currentProjectChanged should be IdeProject or None.
     # Blur's Qt now is more strict on types being passed through signals.
-    # this can be changed back to IdeProject, if None can no longer be passed in. Probubly a empty IdeProject in its place.
+    # this can be changed back to IdeProject, if None can no longer be passed in. Probably a empty IdeProject in its place.
     currentProjectChanged = Signal(object)
     currentDocumentChanged = Signal()
     settingsRecorded = Signal()
@@ -153,6 +154,14 @@ class IdeEditor(Window):
         self.restoreSettings()
         self.refreshRecentFiles()
         self.setupIcons()
+
+        # add stylesheet menu options.
+        for style_name in blurdev.core.styleSheets('logger'):
+            action = self.uiStyleMENU.addAction(style_name)
+            action.setObjectName('ui{}ACT'.format(style_name))
+            action.setCheckable(True)
+            action.setChecked(self._documentStylesheet == style_name)
+            action.triggered.connect(partial(self.setDocumentStyleSheet, style_name))
 
         blurdev.setAppUserModelID('BlurIDE')
 
@@ -1863,6 +1872,12 @@ class IdeEditor(Window):
             doc = self.currentDocument()
             if doc:
                 doc.updateColorScheme()
+
+        # Update the style menu
+        for act in self.uiStyleMENU.actions():
+            name = act.objectName()
+            isCurrent = name == 'ui{}ACT'.format(self._documentStylesheet)
+            act.setChecked(isCurrent)
 
     def shutdown(self):
         # if this is the global instance, then allow it to be deleted on close
