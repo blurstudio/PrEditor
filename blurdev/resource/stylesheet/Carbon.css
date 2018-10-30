@@ -1,10 +1,10 @@
 QMainWindow, QDialog, QWidget { 
-	background-color: rgb(130,130,130);
-	color: rgb(30,30,30); 
+	background-color: rgb(171,168,168);
+	color: rgb(40,40,40); 
 }
 
 QMainWindow:disabled, QDialog:disabled, QWidget:disabled {
-	color: rgb(90, 90, 90);
+	color: rgb(100, 100, 100);
 }
 
 QMenu {
@@ -13,9 +13,21 @@ QMenu {
 	border-width: 1px;
 }
 
-QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
-	background-color: rgb(140,140,140);
-	alternate-background-color: rgb(130,130,130);  
+QMenu:unchecked {
+	background-color: none;
+}
+
+QMenu:checked {
+	background-color: none;
+}
+
+QMenu:selected {
+	background-color: none;
+}
+
+QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox, QComboBox:editable {
+	background-color: rgb(181,178,178);
+	alternate-background-color: rgb(171,168,168);
 }
 
 QPushButton:checked, QPushButton:pressed, QToolButton:checked, QToolButton:pressed {

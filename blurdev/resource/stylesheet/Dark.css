@@ -3,7 +3,7 @@ QWidget {
   color: rgb(202, 202, 202);
 }
 
-QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox {
+QListView, QTableView, QTreeView, QLineEdit, QTextEdit, QPlainTextEdit, QAbstractSpinBox, QComboBox:editable {
   background-color: rgb(70, 70, 73);
 }
 
@@ -15,8 +15,8 @@ QWidget:disabled {
   color: rgb(88, 91, 94);
 }
 
-QPushButton:checked, QPushButton:pressed, QToolButton:checked, QToolButton:pressed {
-  background-color: rgb(52, 52, 54);;
+QPushButton:checked, QPushButton:pressed, QToolButton:checked, QToolButton:pressed{
+  background-color: rgb(47, 47, 49);
 }
 
 QFrame::item:disabled, QFrame::section:disabled {
@@ -111,4 +111,22 @@ QScrollBar::left-arrow {
 QScrollBar::right-arrow {
   border-left-color: rgb(202, 202, 202);
   border-right-width: 0;
+}
+
+QMenu {
+  border-style: solid;
+  border-color: rgb(25,25,25);
+  border-width: 1px;
+}
+
+QMenu:unchecked {
+  background-color: none;
+}
+
+QMenu:checked {
+  background-color: none;
+}
+
+QMenu:selected {
+  background-color: none;
 }
