@@ -17,6 +17,7 @@ way.
 
 import os
 import sys
+import types
 import subprocess
 from builtins import str as text
 
@@ -268,11 +269,14 @@ def createShortcut(
         # shows 259 characters in the description, so we limit the description to 259 characters.
         description = description[:259]
 
+        # If args is a list, convert it to a string using subprocess
+        if not isinstance(args, types.StringTypes):
+            args = subprocess.list2cmdline(args)
         if icon:
             scripts.winshell.CreateShortcut(
                 shortcut,
                 target,
-                Arguments='"%s"' % args,
+                Arguments=args,
                 StartIn=startin,
                 Icon=(icon, 0),
                 Description=description,

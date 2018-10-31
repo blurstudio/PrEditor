@@ -248,9 +248,12 @@ class Core(QObject):
     def createToolMacro(self, tool, macro=''):
         """ Method to create macros for a tool, should be overloaded per core
         """
+        # Using run_tool makes it so the desktop shortcuts launch using the same
+        # treegrunt environment used by external treegrunt.
         blurdev.osystem.createShortcut(
             tool.displayName(),
-            tool.sourcefile(),
+            (blurdev.runtime('run_tool.pyw'), tool.objectName()),
+            startin=blurdev.runtime(),
             icon=tool.icon(),
             description=tool.toolTip(),
         )

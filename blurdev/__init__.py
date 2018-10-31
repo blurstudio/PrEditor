@@ -140,8 +140,13 @@ def findTool(name, environment=''):
     return blurdev.tools.Tool()
 
 
-def runtime(filepath):
-    return os.path.join(installPath, 'runtimes', filepath)
+def runtime(*args):
+    """ Return the full path to this file in blurdev's runtime folder.
+
+    Returns:
+        The os.path.join of all the blurdev runtimes folder and any passed in args.
+    """
+    return os.path.join(installPath, 'runtimes', *args)
 
 
 def init():
