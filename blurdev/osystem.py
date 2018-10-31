@@ -256,7 +256,7 @@ def createShortcut(
                         icon = outIcon
                         cmd = [converter, 'convert', '{}.png'.format(pathName), icon]
                         proc = subprocess.Popen(cmd)
-                        ret = out.wait()
+                        ret = proc.wait()
                         if not os.path.exists(icon):
                             icon = None
                     else:
