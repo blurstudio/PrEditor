@@ -1,5 +1,4 @@
 from past.builtins import basestring
-import errno
 import os
 import subprocess
 import re
@@ -196,134 +195,12 @@ def html2textile(html, clearStyle=True):
     return html2textile.html2textile(html)
 
 
-def imageMagickVersion(architecture=64):
-    version = None
-    try:
-        version = blurdev.osystem.registryValue(
-            'HKEY_LOCAL_MACHINE',
-            r'SOFTWARE\ImageMagick\Current',
-            'Version',
-            architecture=architecture,
-        )
-        if '' is version[0]:
-            raise WindowsError
-        version = version[0]
-        version = version.rsplit('.', 1)[0]
-        version = float(version)
-    except WindowsError as e:
-        print("Can not find ImageMagick registry key: {}".format(e))
-        raise
-    except ValueError as e:
-        print("Can not process ImageMagick version: {}".format(e))
-        raise
-    return version
-
-
-def imageMagicQuantumDepth(architecture=64):
-    quantumDepth = None
-    try:
-        quantumDepth = blurdev.osystem.registryValue(
-            'HKEY_LOCAL_MACHINE',
-            r'SOFTWARE\ImageMagick\Current',
-            'QuantumDepth',
-            architecture=architecture,
-        )
-        if '' is quantumDepth[0]:
-            raise WindowsError
-        quantumDepth = quantumDepth[0]
-    except WindowsError as e:
-        print("Can not find ImageMagick QuantumDepth registry key: {}".format(e))
-    return quantumDepth
-
-
-def imageMagickHDRI(imageMagickEXE):
-    HDRI = False
-    cmd = [imageMagickEXE, '--version']
-    proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    ret = proc.wait()
-    out = proc.stdout.readlines()
-    for i in out:
-        if 'HDRI' in i:
-            HDRI = True
-    return HDRI
-
-
-def ensureImageMagickVersion(version=7, architecture=64):
-    versionFound = imageMagickVersion(architecture)
-    if versionFound < version:
-        raise RuntimeError(
-            "ImageMagick %s+ required, found %s" % (version, versionFound)
-        )
-
-
-def ensureImageMagickQuantumDepth(quantumDepth=16, architecture=64):
-    imageMagickQuantumDepth = imageMagicQuantumDepth(architecture)
-    if imageMagickQuantumDepth != quantumDepth:
-        raise RuntimeError(
-            "ImageMagick quantum depth %s required, %s found"
-            % (quantumDepth, imageMagickQuantumDepth)
-        )
-
-
-def ensureImageMagickHDRI(imageMagickEXE, ensureHDRI=True):
-    if None is not ensureHDRI:
-        HDRI = imageMagickHDRI(imageMagickEXE)
-        if HDRI != ensureHDRI:
-            if ensureHDRI:
-                raise RuntimeError("HDRI version of ImageMagick required")
-            else:
-                # This branch may not needed
-                raise RuntimeError("Non-HDRI version of ImageMagick required")
-
-
-def getImageMagickEXEHelper(architecture=64):
-    # Check/return ImageMagick EXE path
-    path = None
-    try:
-        path = blurdev.osystem.registryValue(
-            'HKEY_LOCAL_MACHINE',
-            r'SOFTWARE\ImageMagick\Current',
-            'BinPath',
-            architecture=architecture,
-        )
-        if '' is path[0]:
-            raise WindowsError
-        path = os.path.join(path[0], 'magick.exe')
-        if not os.path.isfile(path):
-            raise OSError(errno.ENOENT, path)
-    except WindowsError as e:
-        print("Can not find ImageMagick registry key: {}".format(e))
-        raise
-    return path
-
-
-def getImageMagickEXE(
-    ensureVersion=7, ensureQuantumDepth=16, ensureHDRI=None, architecture=64
-):
-    imageMagickEXE = getImageMagickEXEHelper(architecture)
-    if ensureVersion:
-        ensureImageMagickVersion(ensureVersion)
-    if ensureQuantumDepth:
-        ensureImageMagickQuantumDepth(ensureQuantumDepth)
-    if None is not ensureHDRI:
-        ensureImageMagickHDRI(imageMagickEXE, ensureHDRI)
-    return imageMagickEXE
-
-
-def imageMagick(
-    source,
-    destination,
-    exe='convert',
-    flags='',
-    ensureVersion=7,
-    ensureQuantumDepth=16,
-    ensureHDRI=None,
-    architecture=64,
-):
+def imageMagick(source, destination, exe='convert', flags=''):
     """
     Crafts then runs specified command on ImageMagick executables and waits 
-    until it finishes. This assumes Image Magic is installed. It returns True
-    if the requested exicutable exists path exists.
+    until it finishes. This assumes Image Magic is installed into 32bit 
+    program files. It returns True if the requested exicutable exists path 
+    exists.
     
     .. seealso:: 
     
@@ -331,24 +208,13 @@ def imageMagick(
           ImageMagick documentation
 
     """
-    ret = None
-    try:
-        converter = getImageMagickEXE(
-            ensureVersion=ensureVersion,
-            ensureQuantumDepth=ensureQuantumDepth,
-            ensureHDRI=ensureHDRI,
-            architecture=architecture,
-        )
-        if converter:
-            if flags:
-                cmd = [converter, exe, flags, source, destination]
-            else:
-                cmd = [converter, exe, source, destination]
-            proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            ret = proc.wait()
-    except (OSError, RuntimeError, ValueError, WindowsError) as e:
-        return False
-    return True if 0 == ret else False
+    converter = r'%s\ImageMagick\%s.exe' % (get32bitProgramFiles(), exe)
+    if os.path.exists(converter):
+        cmd = '"%s" %s "%s" "%s"' % (converter, flags, source, destination)
+        out = subprocess.Popen(cmd)
+        out.wait()
+        return True
+    return False
 
 
 def escapeForGlob(text):

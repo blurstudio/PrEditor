@@ -26,7 +26,6 @@ from Qt.QtCore import QProcess
 import blurdev
 from . import settings
 from blurdev.enum import Enum, EnumGroup
-from blurdev.media import functions
 
 
 def getPointerSize():
@@ -191,7 +190,10 @@ def createShortcut(
 
     Windows: If icon is provided it looks for a .ico file with the same name 
     as the provided icon.  If it can't find a .ico file it will attempt to 
-    create one using ImageMagick(http://www.imagemagick.org/).
+    create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick 
+    should be installed to the 32bit program files 
+    (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
+    32Bit Windows: C:\Program Files\ImageMagick)
 
     Args:
         title (str): the title for the shortcut
@@ -218,7 +220,6 @@ def createShortcut(
             target = sys.executable
         if not startin:
             startin = os.path.split(args)[0]
-        ret = None
         if icon:
             pathName, ext = os.path.splitext(icon)
             if not ext == '.ico':
@@ -248,16 +249,12 @@ def createShortcut(
                         progF = 'ProgramFiles(x86)'
                     else:
                         progF = 'programfiles'
-
-                    try:
-                        converter = functions.getImageMagickEXE()
-                    except (OSError, RuntimeError, ValueError, WindowsError) as e:
-                        icon = None
-                    if converter:
+                    converter = r'%s\ImageMagick\convert.exe' % os.getenv(progF)
+                    if os.path.exists(converter):
                         icon = outIcon
-                        cmd = [converter, 'convert', '{}.png'.format(pathName), icon]
-                        proc = subprocess.Popen(cmd)
-                        ret = proc.wait()
+                        cmd = '"%s" "%s.png" "%s"' % (converter, pathName, icon)
+                        out = subprocess.Popen(cmd)
+                        out.wait()
                         if not os.path.exists(icon):
                             icon = None
                     else:
@@ -290,7 +287,6 @@ def createShortcut(
                 Description=description,
             )
         blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
-        return ret
 
 
 def explore(filename, dirFallback=False):
