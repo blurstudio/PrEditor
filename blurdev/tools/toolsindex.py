@@ -110,7 +110,8 @@ class ToolsIndex(QObject):
         # Build the new file so updated blurdev's can use it.
         self._rebuildJson(filename=jsonFilename)
 
-        if configFilename:
+        if configFilename and blurdev.settings.OS_TYPE == 'Windows':
+            # We only use config.ini on windows systems for maxscript
             if isinstance(configFilename, bool):
                 configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
             envName = self.parent().legacyName()
