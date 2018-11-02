@@ -50,13 +50,6 @@ class ManageCorePrefsDialog(Dialog):
             self._debugLevels = levels
         return self._debugLevels
 
-    def debugLevelToIndex(self, level):
-        index = 0
-        for debugIndex, debugLevel in self.debugLevels.iteritems():
-            if level == debugLevel:
-                index = debugIndex
-        return index
-
     def setCoreDebug(self, corename, index):
         preferences = blurdev.prefs.find(
             r"blurdev\core", coreName=corename, reload=True
@@ -153,7 +146,8 @@ class ManageCorePrefsDialog(Dialog):
         """
         Sets all corenames to the selected debug level and refreshes.
         """
-        index = self.debugLevelToIndex(self.uiSetAllDebugDDL.currentText())
+        label = self.uiSetAllDebugDDL.currentText()
+        index = blurdev.debug.DebugLevel.valueByLabel(label)
         for corename in self.corenames():
             self.setCoreDebug(corename, index)
         self.refresh()
@@ -200,7 +194,8 @@ class ManageCorePrefsDialog(Dialog):
 
         # debug level column
         elif index.column() == 2:
-            level = editor.currentText()
-            model.setData(index, level)
-            item.setText(2, level)
-            self.setCoreDebug(item.text(0), self.debugLevelToIndex(level))
+            label = editor.currentText()
+            debugIndex = blurdev.debug.DebugLevel.valueByLabel(label)
+            model.setData(index, label)
+            item.setText(2, label)
+            self.setCoreDebug(item.text(0), debugIndex)
