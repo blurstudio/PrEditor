@@ -101,3 +101,7 @@ def versionString(major, minor, build, prepend_v=True):
     if prepend_v:
         version_string = 'v%s' % version_string
     return version_string
+
+
+def get_dev_number():
+    return _version.get_dev_number()
