@@ -6,14 +6,35 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
-    <height>246</height>
+    <width>550</width>
+    <height>250</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Manage Application's Treegrunt Environments</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0" colspan="4">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Any changes made will be respected the next time you launch that application.
+You should make sure to close the applications before making changes, or these changes may get overwritten.</string>
+     </property>
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QComboBox" name="uiSetAllEnvDDL">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0" colspan="4">
     <widget class="BlurTreeWidget" name="uiEnvironmentTREE">
      <property name="pyEnableGridDelegate" stdset="0">
@@ -29,10 +50,22 @@
        <string>Environment</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>Debug Level</string>
+      </property>
+     </column>
     </widget>
    </item>
-   <item row="2" column="2">
-    <widget class="QComboBox" name="uiSetAllDDL">
+   <item row="2" column="3">
+    <widget class="QPushButton" name="uiSetAllEnvBTN">
+     <property name="text">
+      <string>Set all Environments</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QComboBox" name="uiSetAllDebugDDL">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -41,10 +74,10 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="3">
-    <widget class="QPushButton" name="uiSetAllBTN">
+   <item row="3" column="3">
+    <widget class="QPushButton" name="uiSetAllDebugBTN">
      <property name="text">
-      <string>Set all Environments</string>
+      <string>Set all Debug Levels</string>
      </property>
     </widget>
    </item>
@@ -55,21 +88,17 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="4">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Any changes made will be respected the next time you launch that application.
-You should make sure to close the applications before making changes, or these changes may get overwritten.</string>
-     </property>
-     <property name="wordWrap">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1">
+   <item row="3" column="0">
     <widget class="QToolButton" name="uiAddCoreBTN">
      <property name="text">
       <string>...</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" rowspan="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
     </widget>
    </item>
@@ -85,10 +114,10 @@ You should make sure to close the applications before making changes, or these c
  <resources/>
  <connections>
   <connection>
-   <sender>uiSetAllBTN</sender>
+   <sender>uiSetAllEnvBTN</sender>
    <signal>released()</signal>
    <receiver>dialog</receiver>
-   <slot>setAll()</slot>
+   <slot>setAllEnv()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>545</x>
@@ -132,9 +161,26 @@ You should make sure to close the applications before making changes, or these c
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>uiSetAllDebugBTN</sender>
+   <signal>released()</signal>
+   <receiver>dialog</receiver>
+   <slot>setAllDebug()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>493</x>
+     <y>225</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>277</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
-  <slot>setAll()</slot>
+  <slot>setAllEnv()</slot>
+  <slot>setAllDebug()</slot>
   <slot>refresh()</slot>
   <slot>addCore()</slot>
  </slots>

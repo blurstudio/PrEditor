@@ -29,12 +29,40 @@ class ManageCorePrefsDialog(Dialog):
         self.setWindowIcon(QIcon(blurdev.resourcePath('img/treegruntedit.png')))
         self.uiRefreshBTN.setIcon(QIcon(blurdev.resourcePath('img/refresh.png')))
         self.uiAddCoreBTN.setIcon(QIcon(blurdev.resourcePath('img/add.png')))
-        self._envNames = []
         self.uiEnvironmentTREE.setDelegate(self)
+        self._envNames = list()
+        self._debugLevels = None
+
+        self.uiSetAllDebugDDL.addItems(self.debugLevels.values())
+        self.uiSetAllDebugDDL.setCurrentIndex(-1)
 
         # restore settings from last session
         self.restoreSettings()
         self.refresh()
+
+    @property
+    def debugLevels(self):
+        if not self._debugLevels:
+            levels = dict([(0, "Disabled")])
+            for label in blurdev.debug.DebugLevel.labels():
+                value = blurdev.debug.DebugLevel.valueByLabel(label)
+                levels[value] = label
+            self._debugLevels = levels
+        return self._debugLevels
+
+    def debugLevelToIndex(self, level):
+        index = 0
+        for debugIndex, debugLevel in self.debugLevels.iteritems():
+            if level == debugLevel:
+                index = debugIndex
+        return index
+
+    def setCoreDebug(self, corename, index):
+        preferences = blurdev.prefs.find(
+            r"blurdev\core", coreName=corename, reload=True
+        )
+        preferences.recordProperty("debugLevel", int(index))
+        preferences.save()
 
     def addCore(self):
         label = 'Use this to add a corename that does not currently exist. Use lowercase, no special characters or spaces. No validity checks are made.'
@@ -49,11 +77,20 @@ class ManageCorePrefsDialog(Dialog):
         super(ManageCorePrefsDialog, self).closeEvent(event)
 
     def createEditor(self, parent, option, index, tree=None):
+        #  environmnet column
         if index.column() == 1:
             editor = QComboBox(parent)
             editor.addItems(self._envNames)
             editor.setCurrentIndex(editor.findText(index.data(Qt.DisplayRole)))
             return editor
+
+        # debug level column
+        elif index.column() == 2:
+            editor = QComboBox(parent)
+            editor.addItems(self.debugLevels.values())
+            editor.setCurrentIndex(editor.findText(index.data(Qt.DisplayRole)))
+            return editor
+
         return None
 
     def corenames(self):
@@ -78,28 +115,47 @@ class ManageCorePrefsDialog(Dialog):
             # Not being updated as expected.
             if corename != blurdev.core.objectName():
                 activeEnv = blurdev.activeEnvironment(corename)
+                _prefs = blurdev.prefs.find(
+                    r"blurdev\core", coreName=corename, reload=True
+                )
+                debugLevel = _prefs.restoreProperty("debugLevel", 0)
                 if not activeEnv.isEmpty():
                     item = QTreeWidgetItem(
-                        self.uiEnvironmentTREE, [corename, activeEnv.objectName()]
+                        self.uiEnvironmentTREE,
+                        [
+                            corename,
+                            activeEnv.objectName(),
+                            self.debugLevels[debugLevel],
+                        ],
                     )
                     item.setFlags(item.flags() | Qt.ItemIsEditable)
         self.uiEnvironmentTREE.resizeColumnsToContents()
 
         # rebuild the setAll drop down and reset the env name cache
-        selected = self.uiSetAllDDL.currentText()
-        self.uiSetAllDDL.clear()
+        selected = self.uiSetAllEnvDDL.currentText()
+        self.uiSetAllEnvDDL.clear()
         self._envNames = [
             env.objectName() for env in blurdev.tools.ToolsEnvironment.environments
         ]
-        self.uiSetAllDDL.addItems(self._envNames)
-        self.uiSetAllDDL.setCurrentIndex(self.uiSetAllDDL.findText(selected))
+        self.uiSetAllEnvDDL.addItems(self._envNames)
+        self.uiSetAllEnvDDL.setCurrentIndex(self.uiSetAllEnvDDL.findText(selected))
 
-    def setAll(self):
-        """ Sets all corenames to the selected environment and refreshes.
+    def setAllEnv(self):
         """
-        envName = self.uiSetAllDDL.currentText()
+        Sets all corenames to the selected environment and refreshes.
+        """
+        envName = self.uiSetAllEnvDDL.currentText()
         for corename in self.corenames():
             blurdev.setActiveEnvironment(envName, corename)
+        self.refresh()
+
+    def setAllDebug(self):
+        """
+        Sets all corenames to the selected debug level and refreshes.
+        """
+        index = self.debugLevelToIndex(self.uiSetAllDebugDDL.currentText())
+        for corename in self.corenames():
+            self.setCoreDebug(corename, index)
         self.refresh()
 
     def setEditorData(self, editor, index, tree=None):
@@ -131,8 +187,20 @@ class ManageCorePrefsDialog(Dialog):
             self.setGeometry(geom)
 
     def setModelData(self, editor, model, index, tree=None):
-        if isinstance(editor, QComboBox):
+        if not isinstance(editor, QComboBox):
+            return
+
+        item = self.uiEnvironmentTREE.itemFromIndex(index)
+
+        # environmnet column
+        if index.column() == 1:
             model.setData(index, editor.currentText())
-            item = self.uiEnvironmentTREE.itemFromIndex(index)
             item.setText(1, editor.currentText())
             blurdev.setActiveEnvironment(editor.currentText(), item.text(0))
+
+        # debug level column
+        elif index.column() == 2:
+            level = editor.currentText()
+            model.setData(index, level)
+            item.setText(2, level)
+            self.setCoreDebug(item.text(0), self.debugLevelToIndex(level))
