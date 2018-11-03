@@ -51,9 +51,7 @@ class ManageCorePrefsDialog(Dialog):
         return self._debugLevels
 
     def setCoreDebug(self, corename, index):
-        preferences = blurdev.prefs.find(
-            r"blurdev\core", coreName=corename, reload=True
-        )
+        preferences = blurdev.prefs.find("blurdev/core", coreName=corename, reload=True)
         preferences.recordProperty("debugLevel", int(index))
         preferences.save()
 
@@ -109,7 +107,7 @@ class ManageCorePrefsDialog(Dialog):
             if corename != blurdev.core.objectName():
                 activeEnv = blurdev.activeEnvironment(corename)
                 _prefs = blurdev.prefs.find(
-                    r"blurdev\core", coreName=corename, reload=True
+                    "blurdev/core", coreName=corename, reload=True
                 )
                 debugLevel = _prefs.restoreProperty("debugLevel", 0)
                 if not activeEnv.isEmpty():
