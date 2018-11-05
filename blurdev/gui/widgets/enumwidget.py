@@ -58,6 +58,8 @@ class EnumWidget(QWidget):
         # collect the checkboxes and remove them
         for widget in self.findChildren(QCheckBox):
             self.layout().removeWidget(widget)
+            widget.setParent(None)
+            widget.deleteLater()
             widget.close()
         column = 0  # current column
         row = 0  # current row
