@@ -185,11 +185,13 @@ class ToolsIndex(QObject):
                 current = current.setdefault(name, {})
 
         def loadProperties(xml, data):
-            def getPropertyFromXML(retKey, propertyKey=None):
+            def getPropertyFromXML(retKey, propertyKey=None, cast=None):
                 if propertyKey is None:
                     propertyKey = retKey
                 value = xml.findProperty(propertyKey)
                 if value:
+                    if cast is not None:
+                        value = cast(value)
                     data[retKey] = value
                     return value
 
@@ -197,7 +199,8 @@ class ToolsIndex(QObject):
             if category:
                 addToolCategory(category)
             getPropertyFromXML('src')
-            getPropertyFromXML('disabled')
+            # Convert the xml string to a bool object
+            getPropertyFromXML('disabled', cast=lambda i: i.lower() == 'true')
             getPropertyFromXML('displayName')
             getPropertyFromXML('icon')
             getPropertyFromXML('tooltip', 'toolTip')
