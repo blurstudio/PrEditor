@@ -1276,6 +1276,16 @@ class DocumentEditor(QsciScintilla):
             for match in self.chunkRE.finditer(self.text(startPos, lengthText)):
                 # To-do: test if match.start()/end() is optimal
                 space, result = tuple(match.groups())
+                if space:
+                    # If the user inserted space between two words, that space
+                    # will still be marked as incorrect. Clear its indicator.
+                    self.SendScintilla(
+                        QsciScintilla.SCI_SETINDICATORCURRENT,
+                        self.spellCheckIndicatorNumber,
+                    )
+                    self.SendScintilla(
+                        QsciScintilla.SCI_INDICATORCLEARRANGE, start, len(space)
+                    )
                 start += len(space)
                 for word in self.camelCaseSplit(result):
                     lengthWord = len(word)
