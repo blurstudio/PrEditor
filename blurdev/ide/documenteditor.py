@@ -8,12 +8,13 @@
 # 	\date		08/19/10
 #
 
+import os
 import os.path
 
-from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal
+from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
 from Qt.Qsci import QsciScintilla, QsciLexer, QsciLexerCustom
-from Qt.QtGui import QColor, QFont, QIcon
-from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction
+from Qt.QtGui import QColor, QFont, QIcon, QCursor, QFontMetrics
+from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction, QMenu
 from Qt import QtCompat
 
 import blurdev
@@ -363,8 +364,6 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(self._filename)
 
     def copyLineReference(self):
-        from Qt.QtGui import QCursor
-
         sel = self.getSelection()
         # Note: getSelection is 0 based like all good code
         if sel[0] == -1 and self._clickPos:
@@ -489,15 +488,12 @@ class DocumentEditor(QsciScintilla):
         return False
 
     def exploreDocument(self):
-        import os
-        from blurdev import osystem
-
         path = self._filename
         if os.path.isfile(path):
             path = os.path.split(path)[0]
 
         if os.path.exists(path):
-            osystem.explore(path)
+            blurdev.osystem.explore(path)
         else:
             QMessageBox.critical(
                 self, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
@@ -505,14 +501,10 @@ class DocumentEditor(QsciScintilla):
 
     def exec_(self):
         if self.save():
-            import blurdev
-
             blurdev.core.runScript(self.filename())
 
     def execStandalone(self):
         if self.save():
-            import os
-
             os.startfile(str(self.filename()))
 
     def findInFiles(self, state=False):
@@ -596,9 +588,7 @@ class DocumentEditor(QsciScintilla):
     def launchConsole(self):
         if not self._filename:
             return False
-        from blurdev import osystem
-
-        osystem.console(self._filename)
+        blurdev.osystem.console(self._filename)
 
     def lineMarginWidth(self):
         return self.marginWidth(self.SymbolMargin)
@@ -676,8 +666,6 @@ class DocumentEditor(QsciScintilla):
             )
 
     def keyPressEvent(self, event):
-        from Qt.QtCore import Qt
-
         if event.key() == Qt.Key_Backtab:
             self.unindentSelection()
         else:
@@ -685,7 +673,6 @@ class DocumentEditor(QsciScintilla):
 
     def initSettings(self):
         # grab the document settings config set
-        from Qt.QtGui import QColor, QFont, QFontMetrics
 
         configSet = IdeEditor.documentConfigSet()
 
@@ -1342,12 +1329,8 @@ class DocumentEditor(QsciScintilla):
                 line += 1
 
     def showMenu(self):
-        import blurdev
-        from Qt.QtGui import QCursor, QIcon
-        from Qt.QtWidgets import QMenu
-
-        menu = QMenu(self)
         self._clickPos = QCursor.pos()
+        menu = QMenu(self)
 
         if self._speller and self.initialSpellCheckComplete:
             # Get the word under the mouse and split the word if camelCase
