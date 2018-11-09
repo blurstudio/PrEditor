@@ -671,6 +671,18 @@ class DocumentEditor(QsciScintilla):
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Menu:
+            # Calculate the screen coordinates of the text cursor.
+            position = self.positionFromLineIndex(*self.getCursorPosition())
+            x = self.SendScintilla(self.SCI_POINTXFROMPOSITION, 0, position)
+            y = self.SendScintilla(self.SCI_POINTYFROMPOSITION, 0, position)
+            # When using the menu key, show the right click menu at the text
+            # cursor, not the mouse cursor, it is not in the correct place.
+            self.showMenu(QPoint(x, y))
+        else:
+            return super(DocumentEditor, self).keyReleaseEvent(event)
+
     def initSettings(self):
         # grab the document settings config set
 
@@ -1328,9 +1340,10 @@ class DocumentEditor(QsciScintilla):
                 )
                 line += 1
 
-    def showMenu(self):
-        self._clickPos = QCursor.pos()
+    def showMenu(self, pos):
         menu = QMenu(self)
+        pos = self.mapToGlobal(pos)
+        self._clickPos = pos
 
         if self._speller and self.initialSpellCheckComplete:
             # Get the word under the mouse and split the word if camelCase
