@@ -11,7 +11,7 @@
 import os
 import os.path
 
-from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
+from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint, QTimer
 from Qt.Qsci import QsciScintilla, QsciLexer, QsciLexerCustom
 from Qt.QtGui import QColor, QFont, QIcon, QCursor, QFontMetrics
 from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction, QMenu
@@ -54,6 +54,7 @@ class DocumentEditor(QsciScintilla):
         self.setObjectName('DocumentEditor')
         self._speller = None
         self.initialSpellCheckComplete = False
+        self.spellCheckTimeout = 0.01
         self.initSpellCheck()
 
         # create custom properties
@@ -150,8 +151,6 @@ class DocumentEditor(QsciScintilla):
         else:
             self.refreshTitle()
             self.setLanguage('Plain Text')
-            self.spellCheck(0, len(self.text()))
-            self.initialSpellCheckComplete = True
 
         # goto the line
         if lineno:
@@ -922,9 +921,10 @@ class DocumentEditor(QsciScintilla):
         return count
 
     def setText(self, text):
+        self.blockSignals(True)
         super(DocumentEditor, self).setText(text)
-        self.spellCheck(0, len(self.text()))
-        self.initialSpellCheckComplete = True
+        self.blockSignals(False)
+        self.spellCheck(0, len(self.text()), initial=True)
 
     def refreshTitle(self):
         try:
@@ -1269,9 +1269,32 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_REPLACESEL, action.text())
         self.endUndoAction()
 
-    def spellCheck(self, startPos, lengthText):
+    def spellCheck(self, startPos, lengthText, force=False, initial=False):
+        """ Spell check some text in the document.
+
+        This function will run until self.spellCheckTimeout seconds has elapsed
+        or it finishes processing. If the spell check timed out, it will
+        automatically call spellCheck and continue processing where it left off.
+
+        Args:
+            startPos (int): The document position to start spell checking.
+            lengthText (int): The document position to stop spell checking.
+            force (bool, optional): If False(default) and this widget is not
+                visible, this function will just exit. Setting this to True
+                will force the document to spell check even if not visible.
+            initial (bool, optional): If True, set initialSpellCheckComplete
+                to True. Defaults to False.
+
+        Returns:
+            int: Returns 0 if spell check is finished. 1 if additional
+                processing is scheduled. 2 if the spell check was canceled
+                because the widget is not visible.
+        """
+        if not force and not self.isVisible():
+            return 2
         if self._speller:
             start = startPos
+            startTime = time.time()
             for match in self.chunkRE.finditer(self.text(startPos, lengthText)):
                 # To-do: test if match.start()/end() is optimal
                 space, result = tuple(match.groups())
@@ -1307,6 +1330,20 @@ class DocumentEditor(QsciScintilla):
                             QsciScintilla.SCI_INDICATORFILLRANGE, start, lengthWord
                         )
                     start += lengthWord
+                if (
+                    self.spellCheckTimeout
+                    and time.time() - startTime > self.spellCheckTimeout
+                ):
+                    QTimer.singleShot(
+                        0,
+                        lambda: self.spellCheck(
+                            start, lengthText, force=force, initial=initial
+                        ),
+                    )
+                    return 1
+        if initial:
+            self.initialSpellCheckComplete = True
+        return 0
 
     def onTextModified(
         self,
@@ -1527,6 +1564,8 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).showEvent(event)
         # Update the colorScheme after the stylesheet has been fully loaded.
         self.updateColorScheme()
+        if not self.initialSpellCheckComplete:
+            self.spellCheck(0, len(self.text()), initial=True)
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
