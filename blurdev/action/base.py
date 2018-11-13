@@ -46,7 +46,7 @@ class Action(with_metaclass(_ActionMeta, object)):
             raise NotImplementedError(
                 'The Action class may only be used as a base class.'
             )
-        return object.__new__(cls, *args, **kwargs)
+        return object.__new__(cls)
 
     def __init__(self, *args, **kwargs):
         """Initializes a new Action.
