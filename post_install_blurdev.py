@@ -155,7 +155,10 @@ def post_install():
 def update_settings_ini():
     time_in_seconds = time.time()
     st = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%c')
-    config = configparser.ConfigParser()
+    # strict=False: Something in our current workflow is writing duplicate options in
+    # ini files. So for now when using the new configparser module we have to set its
+    # strict value to False so it doesn't error out when reading those files.
+    config = configparser.ConfigParser(strict=False)
     config.sections()
     config.read(r'c:\blur\software.ini')
 
@@ -236,8 +239,8 @@ if __name__ == '__main__':
     print ('Running post-install script')
     post_install()
     print ('')
-    # print('Updating {}'.format('settings.ini'))
-    # update_settings_ini()
-    # print('')
+    print ('Updating {}'.format('settings.ini'))
+    update_settings_ini()
+    print ('')
     print ('Updating {}'.format(blurdev.ini.configFile))
     updateEnvirons()
