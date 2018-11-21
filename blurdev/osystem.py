@@ -228,7 +228,7 @@ def createShortcut(
             # On Win7/10 use 'ProgramData' for 'All Users' or the 'Public' user
             # https://www.microsoft.com/en-us/wdsi/help/folder-variables
             envVar = 'APPDATA'
-            if 0 == common:
+            if 1 == common:
                 envVar = 'ProgramData'
             iconImagePath = os.getenv(envVar)
             outPath = os.path.join(iconImagePath, 'blur', 'icons')
