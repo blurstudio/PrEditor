@@ -128,6 +128,16 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <widget class="QMenu" name="uiShortcutsMENU">
+     <property name="title">
+      <string>Desktop Shortcuts</string>
+     </property>
+     <addaction name="uiBlurIdeShortcutACT"/>
+     <addaction name="uiPythonLoggerShortcutACT"/>
+     <addaction name="uiTreegruntShortcutACT"/>
+    </widget>
+    <addaction name="uiShortcutsMENU"/>
+    <addaction name="separator"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="uiAboutBlurdevACT"/>
    </widget>
@@ -567,6 +577,21 @@
   <action name="actionSone">
    <property name="text">
     <string>None</string>
+   </property>
+  </action>
+  <action name="uiTreegruntShortcutACT">
+   <property name="text">
+    <string>Treegrunt</string>
+   </property>
+  </action>
+  <action name="uiPythonLoggerShortcutACT">
+   <property name="text">
+    <string>Python Logger</string>
+   </property>
+  </action>
+  <action name="uiBlurIdeShortcutACT">
+   <property name="text">
+    <string>Blur IDE</string>
    </property>
   </action>
  </widget>

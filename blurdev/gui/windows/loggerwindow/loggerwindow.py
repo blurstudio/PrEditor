@@ -142,6 +142,16 @@ class LoggerWindow(Window):
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
+        if blurdev.settings.OS_TYPE == 'Windows':
+            self.uiBlurIdeShortcutACT.triggered.connect(self.createShortcutBlurIDE)
+            self.uiPythonLoggerShortcutACT.triggered.connect(
+                self.createShortcutPythonLogger
+            )
+            self.uiTreegruntShortcutACT.triggered.connect(self.createShortcutTreegrunt)
+        else:
+            # We can't currently create desktop shortcuts on posix systems.
+            self.uiShortcutsMENU.menuAction().setVisible(False)
+
         self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
         self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
         self.uiOpenIdeACT.setIcon(QIcon(blurdev.resourcePath('img/ide.png')))
@@ -255,6 +265,36 @@ class LoggerWindow(Window):
 
     def closeLogger(self):
         self.close()
+
+    def createShortcut(self, function):
+        msg = (
+            'Do you want to create a public shortcut? If not it will be '
+            'created on your user desktop.'
+        )
+        result = QMessageBox.question(
+            self,
+            'Create On Public?',
+            msg,
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+        )
+        if result != QMessageBox.Cancel:
+            public = result == QMessageBox.Yes
+            function(common=int(public))
+
+    def createShortcutBlurIDE(self):
+        from blurdev.utils import shortcut
+
+        self.createShortcut(shortcut.createShortcutBlurIDE)
+
+    def createShortcutPythonLogger(self):
+        from blurdev.utils import shortcut
+
+        self.createShortcut(shortcut.createShortcutPythonLogger)
+
+    def createShortcutTreegrunt(self):
+        from blurdev.utils import shortcut
+
+        self.createShortcut(shortcut.createShortcutTreegrunt)
 
     def execAll(self):
         """
