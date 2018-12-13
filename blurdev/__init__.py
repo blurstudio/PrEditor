@@ -30,6 +30,8 @@ from Qt.QtCore import Qt, QDateTime
 
 # TODO: It is probably unnecessary to import most of these subpackages in the root package.
 import blurdev.version
+
+__version__ = blurdev.version.toString(prepend_v=False)
 import blurdev.settings
 import blurdev.enum
 import blurdev.debug
