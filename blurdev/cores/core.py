@@ -1493,12 +1493,7 @@ class Core(QObject):
                 if valid:
                     self._stylesheet = stylesheet
                 app.setStyleSheet(mergeDefaultStyleSheet(sheet))
-                path = os.path.join(
-                    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    'resource',
-                    'stylesheet',
-                    '{}.css'.format(stylesheet),
-                )
+                path = self.styleSheetPath(stylesheet)
                 if os.path.isfile(path):
                     with open(path) as f:
                         app.setStyleSheet(mergeDefaultStyleSheet(f.read()))
@@ -1513,6 +1508,19 @@ class Core(QObject):
                 self.recordSettings()
         # Notify widgets of the stylesheet change
         self.styleSheetChanged.emit(str(stylesheet))
+
+    def styleSheetPath(self, styleSheet, subFolder=None):
+        if not styleSheet or styleSheet == 'None':
+            return ''
+        components = [
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            'resource',
+            'stylesheet',
+        ]
+        if subFolder is not None:
+            components.append(subFolder)
+        components.append('{}.css'.format(styleSheet))
+        return os.path.join(*components)
 
     def styleSheet(self):
         """ Returns the name of the current stylesheet.
