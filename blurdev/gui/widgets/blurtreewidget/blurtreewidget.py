@@ -127,6 +127,7 @@ from Qt.QtWidgets import (
     QTreeWidgetItemIterator,
 )
 import blurdev
+from blurdev.gui import QtPropertyInit
 from blurdev.gui.widgets.lockabletreewidget import LockableTreeWidget
 from blurdev.gui.delegates.griddelegate import GridDelegate
 from blurdev.decorators import pendingdeprecation
@@ -582,13 +583,22 @@ class BlurTreeWidget(LockableTreeWidget):
         for column in range(self.columnCount()):
             header.moveSection(header.visualIndex(column), column)
 
+    def resizeColumnToContents(self, column):
+
+        super(BlurTreeWidget, self).resizeColumnToContents(column)
+        width = self.columnWidth(column)
+        self.setColumnWidth(column, (width + self.resizeColumnToContentsPadding))
+
     def resizeColumnsToContents(self):
         """
             :remarks	Resizes all columns to fit contents, If the header is set to stretch the last section, it will properly stretch the last column if it falls short of the view's width
+            :param      padding    <int>  amount of  extra pixel padding.
         """
+
         count = self.columnCount()
         for index in range(count):
             self.resizeColumnToContents(index)
+
         treeWidth = self.treeWidth()
         viewWidth = self.width()
         # If the tree has resized to smaller than the visible table, resize the last column to fill the remaining if this is enabled
@@ -950,3 +960,5 @@ class BlurTreeWidget(LockableTreeWidget):
 
     pyEnableGradiated = Property('bool', isGradiated, setGradiated)
     pyEnableGridDelegate = Property('bool', isGridDelegateEnabled, enableGridDelegate)
+
+    resizeColumnToContentsPadding = QtPropertyInit('_resizeColumnToContentsPadding', 0)
