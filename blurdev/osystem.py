@@ -428,6 +428,7 @@ def subprocessEnvironment(env=None):
     """
     if env is None:
         env = os.environ.copy()
+    # blurpath.resetEnvVars should be called after blurdev specific env mods
     actEnv = blurdev.activeEnvironment()
     if actEnv.path():
         env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
@@ -437,22 +438,55 @@ def subprocessEnvironment(env=None):
     if stylesheet:
         env['BDEV_STYLESHEET'] = str(stylesheet)
 
+    # By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common" to
+    # QApplication.libraryPaths(), setting this env var to a invalid path disables that.
+    # Leaving this set likely will cause the subprocess to not be configured correctly.
+    # The subprocess should be responsible for setting this variable
+    if 'LIBSTONE_QT_LIBRARY_PATH' in env:
+        del env['LIBSTONE_QT_LIBRARY_PATH']
+
+    # If PYTHONPATH is being used, attempt to reset it to the system value.
+    # Applications like maya add PYTHONPATH, and this breaks subprocesses.
+    if env.get('PYTHONPATH'):
+        if settings.OS_TYPE == 'Windows':
+            try:
+                # Store the 'PYTHONPATH' from the system registry if set
+                env['PYTHONPATH'] = getEnvironmentVariable('PYTHONPATH')
+            except WindowsError:
+                # If the registry is not set, then remove the variable
+                del env['PYTHONPATH']
+
     # Some DCC's require inserting or appending path variables. When using subprocess
     # these path variables may cause problems with the target application. This allows
     # removing those path variables from the environment being passed to subprocess.
-    path = env.get('PATH')
     normalize = lambda i: os.path.normpath(os.path.normcase(i))
     removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
 
-    # blurpath records any paths it adds to the PATH variable. Remove them from
-    # any subprocess launches.
+    # blurpath records any paths it adds to the PATH variable and other env variable
+    # modifications it makes, revert these changes.
     try:
         import blurpath
 
-        removePaths.update([normalize(x) for x in blurpath.addedToPathEnv])
-    except (ImportError, AttributeError):
+        # Restore the original environment variables stored by blurpath.
+        blurpath.resetEnvVars(env)  # blurpath v0.0.16 or newer
+    except ImportError:
         pass
+    except AttributeError:
+        # TODO: Once blurpath v0.0.16 or newer is passed out, remove the
+        # outter AttributeError except block. Its just for backwards compatibility.
+        try:
+            removePaths.update([normalize(x) for x in blurpath.addedToPathEnv])
+        except AttributeError:
+            pass
 
+        # TODO: This is now tracked by blurpath v0.0.16, remove it
+        # This environment variable needs to be set on most dcc's to allow them to import
+        # the correct trax using blurpath. Removing this resets the subprocess to its
+        # default method of finding trax.
+        if 'BDEV_INCLUDE_TRAX' in env:
+            del env['BDEV_INCLUDE_TRAX']
+
+    path = env.get('PATH')
     if path:
         paths = [x for x in path.split(';') if normalize(x) not in removePaths]
         path = ';'.join(paths)
@@ -461,18 +495,24 @@ def subprocessEnvironment(env=None):
             path = path.encode('utf8')
         env['PATH'] = path
 
-    # This environment variable needs to be set on most dcc's to allow them to import
-    # the correct trax using blurpath. Removing this resets the subprocess to its
-    # default method of finding trax.
-    if 'BDEV_INCLUDE_TRAX' in env:
-        del env['BDEV_INCLUDE_TRAX']
-
-    # By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common" to
-    # QApplication.libraryPaths(), setting this env var to a invalid path disables that.
-    # Leaving this set likely will cause the subprocess to not be configured correctly.
-    # The subprocess should be responsible for setting this variable
-    if 'LIBSTONE_QT_LIBRARY_PATH' in env:
-        del env['LIBSTONE_QT_LIBRARY_PATH']
+    # blurdev.settings.environStr does nothing in python3, so this code only needs
+    # to run in python2
+    if sys.version_info[0] < 3:
+        # subprocess explodes if it receives unicode in Python2 and in Python3,
+        # it explodes if it *doesn't* receive unicode.
+        temp = {}
+        for k, v in env.items():
+            # Attempt to remove any unicode objects. Ignore any conversion failures
+            try:
+                k = blurdev.settings.environStr(k)
+            except:
+                pass
+            try:
+                v = blurdev.settings.environStr(v)
+            except AttributeError:
+                pass
+            temp[k] = v
+        env = temp
 
     return env
 
@@ -993,3 +1033,52 @@ def setEnvironmentPath(value_name, value, system=True, varType=None):
     registry, key = getEnvironmentRegKey(system)
     varType = varType if varType is not None else _winreg.REG_EXPAND_SZ
     return setRegistryValue(registry, key, value_name, value, valueType=varType)
+
+
+def getEnvironmentVariable(value_name, system=None, default=None, architecture=None):
+    """ Returns the environment variable stored in the windows registry.
+
+    Args:
+        value_name (str): The name of the environment variable to get the value of.
+        system (bool or None, optional): If True, then only look in the system
+            environment variables. If False, then only look at the user
+            environment variables. If None(default), then return the user value
+            if set, otherwise return the system value.
+        default: If the variable is not set, return this value.
+            If None(default) then a WindowsError is raised.
+        architecture (int or None): 32 or 64 bit. If None use system default.
+            Defaults to None.
+
+    Raises:
+        WindowsError: [Error 2] is returned if the environment variable is not
+            stored in the requested registry. If you pass a default value other
+            than None this will not be raised.
+    """
+    if system is None and value_name.lower() == 'path':
+        msg = "PATH is a special environment variable, set system to True or False."
+        raise ValueError(msg)
+
+    if not system:
+        # system is None or False, so check user variables.
+        registry, key = getEnvironmentRegKey(False)
+        try:
+            return blurdev.osystem.registryValue(
+                registry, key, value_name, architecture=architecture
+            )[0]
+        except WindowsError:
+            pass
+        if system == False:
+            # If system is False, then return the default. If None, then check the system.
+            if default is None:
+                raise
+            return default
+
+    registry, key = getEnvironmentRegKey(True)
+    try:
+        return blurdev.osystem.registryValue(
+            registry, key, value_name, architecture=architecture
+        )[0]
+    except WindowsError:
+        if default is None:
+            raise
+        return default
