@@ -14,7 +14,14 @@ import os.path
 from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint, QTimer
 from Qt.Qsci import QsciScintilla, QsciLexer, QsciLexerCustom
 from Qt.QtGui import QColor, QFont, QIcon, QCursor, QFontMetrics
-from Qt.QtWidgets import QApplication, QInputDialog, QMessageBox, QAction, QMenu
+from Qt.QtWidgets import (
+    QApplication,
+    QInputDialog,
+    QMessageBox,
+    QAction,
+    QMenu,
+    QShortcut,
+)
 from Qt import QtCompat
 
 import blurdev
@@ -144,6 +151,12 @@ class DocumentEditor(QsciScintilla):
         command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
         if command is not None:
             command.setKey(0)
+
+        # Add QShortcuts
+        self.uiShowAutoCompleteSCT = QShortcut(
+            Qt.CTRL | Qt.Key_Space, self, context=Qt.WidgetShortcut
+        )
+        self.uiShowAutoCompleteSCT.activated.connect(lambda: self.showAutoComplete())
 
         # load the file
         if filename:
@@ -669,12 +682,8 @@ class DocumentEditor(QsciScintilla):
         if key == Qt.Key_Backtab:
             self.unindentSelection()
         elif key == Qt.Key_Escape:
-            # if using autoComplete toggle the autoComplete list
-            if self.autoCompletionSource() == QsciScintilla.AcsAll:
-                if self.isListActive():  # is the autoComplete list visible
-                    self.cancelList()  # Close the autoComplete list
-                else:
-                    self.autoCompleteFromAll()  # Show the autoComplete list
+            # Using QShortcut for Escape did not seem to work.
+            self.showAutoComplete(True)
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
@@ -1384,6 +1393,15 @@ class DocumentEditor(QsciScintilla):
                     self.SendScintilla(self.SCI_GETLINEENDPOSITION, line),
                 )
                 line += 1
+
+    def showAutoComplete(self, toggle=False):
+        # if using autoComplete toggle the autoComplete list
+        if self.autoCompletionSource() == QsciScintilla.AcsAll:
+            if self.isListActive():  # is the autoComplete list visible
+                if toggle:
+                    self.cancelList()  # Close the autoComplete list
+            else:
+                self.autoCompleteFromAll()  # Show the autoComplete list
 
     def showMenu(self, pos):
         menu = QMenu(self)
