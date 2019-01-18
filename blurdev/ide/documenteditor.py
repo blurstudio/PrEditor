@@ -665,8 +665,16 @@ class DocumentEditor(QsciScintilla):
             )
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Backtab:
+        key = event.key()
+        if key == Qt.Key_Backtab:
             self.unindentSelection()
+        elif key == Qt.Key_Escape:
+            # if using autoComplete toggle the autoComplete list
+            if self.autoCompletionSource() == QsciScintilla.AcsAll:
+                if self.isListActive():  # is the autoComplete list visible
+                    self.cancelList()  # Close the autoComplete list
+                else:
+                    self.autoCompleteFromAll()  # Show the autoComplete list
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
