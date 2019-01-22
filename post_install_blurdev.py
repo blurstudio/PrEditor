@@ -42,8 +42,8 @@ def post_install():
     )
 
     # Create shortcuts
-    shortcut.createShortcutTreegrunt(common=1)
-    shortcut.createShortcutBlurIDE(common=1)
+    shortcut.createShortcutTreegrunt(common=1, target=python_exe)
+    shortcut.createShortcutBlurIDE(common=1, target=python_exe)
 
     # Clear Windows icon cache, continue on fail
     ie4uinit_file_path = r'C:\Windows\system32\ie4uinit.exe'

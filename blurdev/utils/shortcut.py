@@ -8,7 +8,11 @@ __all__ = [
 
 
 def createShortcutPythonLogger(
-    path=None, name='Python Logger', description='Opens the Python Logger.', common=0,
+    path=None,
+    name='Python Logger',
+    target=None,
+    description='Opens the Python Logger.',
+    common=0,
 ):
     """ Creates a shortcut that launches the Python Logger as a standalone application.
 
@@ -24,6 +28,7 @@ def createShortcutPythonLogger(
     _blurdev.osystem.createShortcut(
         name,
         _blurdev.runtime('logger.py'),
+        target=target,
         path=path,
         icon=_blurdev.resourcePath(r'img\PythonLogger.ico'),
         description=description,
@@ -32,7 +37,7 @@ def createShortcutPythonLogger(
 
 
 def createShortcutBlurIDE(
-    path=None, name='Blur IDE', description='Opens Blur IDE.', common=0
+    path=None, name='Blur IDE', target=None, description='Opens Blur IDE.', common=0
 ):
     """ Creates a shortcut that launches the Blur IDE as a standalone application.
 
@@ -48,6 +53,7 @@ def createShortcutBlurIDE(
     _blurdev.osystem.createShortcut(
         name,
         _blurdev.runtime('ide_editor.py'),
+        target=target,
         path=path,
         icon=_blurdev.resourcePath(r'img\ide.ico'),
         description=description,
@@ -56,7 +62,11 @@ def createShortcutBlurIDE(
 
 
 def createShortcutTreegrunt(
-    path=None, name='Treegrunt', description='Opens Treegrunt tool launcher.', common=0,
+    path=None,
+    name='Treegrunt',
+    target=None,
+    description='Opens Treegrunt tool launcher.',
+    common=0,
 ):
     """ Creates a shortcut that launches Treegrunt as a standalone application.
 
@@ -72,6 +82,7 @@ def createShortcutTreegrunt(
     _blurdev.osystem.createShortcut(
         name,
         _blurdev.runtime('treegrunt.py'),
+        target=target,
         path=path,
         icon=_blurdev.resourcePath(r'img\treegrunt.ico'),
         description=description,
