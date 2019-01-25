@@ -17,6 +17,7 @@
 	<h1>trax</h1>
 	<hr>
 	<p><span style=" font-weight:bold;">BDEV_INCLUDE_TRAX:</span> A special BDEV_INCLUDE_* environment variable that specifies where trax can be imported from. It should contain the path to the <b>folder containing the trax folder</b>(for instance: C:\blur\it\python\apps). It is used by the blurpath system to ensure the correct build is imported. It can also be used to make testing development easier by pointing to your local checkout.</p>
+	<p><span style=" font-weight:bold;">TRAX_SPOOL_DIRECTORY_OVERRIDE:</span> If defined, all messages will be stored the directory of this variable. Each message filename will have a "[mapping.mount()]_" prefix added giving you a hint to which server it would have ended up on. Defining this variable effectively disables all spool messages, and gives you a way to see what each spool message would look like. If your code depends on trax.api.spool.waitForCompletion, it will never complete.</p>
 	<p><span style=" font-weight:bold;">TRAXDEVPATH:</span> Adds trax widgets to QtDesigner. It should contain the path to the folder containing the trax module. This is only used by QDesigner, nothing else.</p>
 </body>
 </html>
