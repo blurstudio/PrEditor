@@ -10,6 +10,7 @@
 
 from future.utils import iteritems
 from past.builtins import basestring
+from builtins import str as text
 import sys as _sys
 import os as _os
 import subprocess as _subprocess
@@ -219,6 +220,14 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
                             'EventLogEntry', [['id', 'is', logId]], ['meta']
                         )
                         params = ret['meta']['ami_payload']
+
+                    # For light payload items, lists of int values evaluate
+                    # differently if they only contain a single item. If its
+                    # a single item, a int is returned, otherwise a string
+                    # is returned. A string is expected, so convert.
+                    for key, value in iteritems(params):
+                        if isinstance(value, int):
+                            params[key] = text(value)
 
                     # Make it easy to see info about the payload in the log file. The
                     print(params)
