@@ -18,7 +18,9 @@ def abstractmethod(function):
 
     def newFunction(*args, **kwargs):
         debug.debugObject(
-            function, 'Abstract implementation is not implemented', debug.DebugLevel.Mid
+            function,
+            'Abstract implementation is not implemented',
+            debug.DebugLevel.High,
         )
         return function(*args, **kwargs)
 
