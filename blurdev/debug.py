@@ -158,7 +158,15 @@ class FileLogger:
         self._print = _print
         if clearLog:
             # clear the log file
-            open(logfile, 'w').close()
+            self.clear()
+
+    def clear(self, stamp=False):
+        """ Removes the contents of the log file.
+        """
+        open(self._logfile, 'w').close()
+        if stamp:
+            msg = '--------- Date: {today} Version: {version} ---------'
+            print(msg.format(today=datetime.datetime.today(), version=sys.version))
 
     def flush(self):
         self._stdhandle.flush()
@@ -189,11 +197,9 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
     if stderr:
         sys.stderr = FileLogger(sys.stderr, path, useOldStd, clearLog=clearLog)
     if stdout:
-        sys.stdout = FileLogger(sys.stdout, path, useOldStd, clearLog=clearLog)
-        print(
-            '--------- Date: %s Version: %s ---------'
-            % (datetime.datetime.today(), sys.version)
-        )
+        sys.stdout = FileLogger(sys.stdout, path, useOldStd, clearLog=False)
+        if clearLog:
+            sys.stdout.clear(stamp=True)
 
 
 # --------------------------------------------------------------------------------

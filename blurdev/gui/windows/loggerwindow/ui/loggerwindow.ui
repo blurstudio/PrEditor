@@ -86,6 +86,7 @@
     <addaction name="uiResetWarningFiltersACT"/>
     <addaction name="separator"/>
     <addaction name="uiLogToFileACT"/>
+    <addaction name="uiLogToFileClearACT"/>
    </widget>
    <widget class="QMenu" name="uiScriptingMENU">
     <property name="title">
@@ -592,6 +593,11 @@
   <action name="uiBlurIdeShortcutACT">
    <property name="text">
     <string>Blur IDE</string>
+   </property>
+  </action>
+  <action name="uiLogToFileClearACT">
+   <property name="text">
+    <string>Clear Output File</string>
    </property>
   </action>
  </widget>

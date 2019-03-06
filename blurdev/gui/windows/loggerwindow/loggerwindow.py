@@ -97,7 +97,10 @@ class LoggerWindow(Window):
         # Store the software name so we can handle custom keyboard shortcuts based on software
         self._software = blurdev.core.objectName()
 
+        # Initial configuration of the logToFile feature
         self._logToFilePath = None
+        self._stds = None
+        self.uiLogToFileClearACT.setVisible(False)
 
         # create the connections
         blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
@@ -133,6 +136,7 @@ class LoggerWindow(Window):
         self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiResetWarningFiltersACT.triggered.connect(warnings.resetwarnings)
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
+        self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
@@ -256,6 +260,12 @@ class LoggerWindow(Window):
 
     def clearLog(self):
         self.uiConsoleTXT.clear()
+
+    def clearLogToFile(self):
+        """ If installLogToFile has been called, clear the stdout.
+        """
+        if self._stds:
+            self._stds[0].clear(stamp=True)
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -853,9 +863,13 @@ class LoggerWindow(Window):
             )
             if not path:
                 return
+            path = os.path.normpath(path)
             print('Output logged to: "{}"'.format(path))
             blurdev.debug.logToFile(path, useOldStd=True)
+            # Store the std's so we can clear them later
+            self._stds = (sys.stdout, sys.stderr)
             self.uiLogToFileACT.setText('Output Logged to File')
+            self.uiLogToFileClearACT.setVisible(True)
             self._logToFilePath = path
         else:
             print('Output logged to: "{}"'.format(self._logToFilePath))
