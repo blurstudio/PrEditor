@@ -539,6 +539,8 @@ class Core(QObject):
                 output = Application([])
             self.addLibraryPaths(output)
 
+        self.updateApplicationName(output)
+
         # restore the core settings
         self.restoreSettings()
         self.connectAppSignals()
@@ -566,7 +568,7 @@ class Core(QObject):
 
         if last_timestamp < threshold_time:
             env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
-            print(
+            print (
                 'Environment timeout exceeded, Resetting to default environment:',
                 env.objectName(),
             )
@@ -1133,7 +1135,7 @@ class Core(QObject):
         """
         Runs a macro command
         """
-        print('[blurdev.cores.core.Core.runMacro] virtual method not defined')
+        print ('[blurdev.cores.core.Core.runMacro] virtual method not defined')
         return False
 
     def runStandalone(
@@ -1141,31 +1143,44 @@ class Core(QObject):
         filename,
         debugLevel=None,
         basePath='',
-        environ=None,
-        paths=None,
+        env=None,
         architecture=None,
+        tool=None,
     ):
+        if tool is not None:
+            if env is None:
+                env = blurdev.osystem.subprocessEnvironment()
+                print 'env'
+            # Pass the tool's objectName to the child process so we can update
+            # its QApplication.applicationName on import of blurdev.
+            appName = blurdev.settings.environStr(tool.objectName())
+            # This variable should be removed in the child process so it doesn't
+            # affect child subprocesses. importing blurdev will remove it.
+            env['BDEV_APPLICATION_NAME'] = appName
         blurdev.osystem.startfile(
-            filename, debugLevel, basePath, architecture=architecture
+            filename, debugLevel, basePath, architecture=architecture, env=env
         )
 
     def runScript(
-        self,
-        filename='',
-        scope=None,
-        argv=None,
-        toolType=None,
-        toolName=None,
-        architecture=None,
+        self, filename='', scope=None, argv=None, tool=None, architecture=None
     ):
-        """
-        Runs an inputed file in the best way this core knows how
-            
-        :param str filename:
-        :param dict scope: The scope to run the script in (ie. locals(), globals())
-        :param list argv: Commands to pass to the script at run time
-        :param toolType: determines the tool type for this tool
+        """ Runs an inputted file in the best way this core knows how
 
+        Args:
+            filename (str, optional): The filename of the script to run. If not provided,
+                open a QFileDialog that the user can pick a script to run.
+            scope (dict or None, optional): The scope to run the script in
+                (ie. locals(), globals()). Defaults to None.
+            argv (list or None, optional): Commands to pass to the script at run time
+            tool (blurdev.tools.Tool or None, optional): If specified, then additional
+                info is used to control how the script is run. This is used to populate
+                the BDEV_APPLICATION_NAME env variable when launching a external tool.
+            architecture (int or None, optional): 32 or 64 bit. If None use system
+                default. Defaults to None.
+
+        Returns:
+            success (bool or None): True is returned if the script was run. None is
+                returned if filename was blank and the user didn't select a file.
         """
         if not filename:
             # make sure there is a QApplication running
@@ -1194,21 +1209,16 @@ class Core(QObject):
         # run the script
         if filename and os.path.exists(filename):
             self._lastFileName = filename
-
             ext = os.path.splitext(filename)[1]
 
-            # always run legacy external tools as standalone - they can cause QApplication conflicts
-            if toolType == blurdev.tools.tool.ToolType.LegacyExternal:
-                os.startfile(filename)
-
             # run a python file
-            elif ext.startswith('.py'):
+            if ext.startswith('.py'):
                 # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
                 if self.launchExternalInProcess and self.objectName() in (
                     'external',
                     'treegrunt',
                 ):
-                    self.runStandalone(filename, architecture=architecture)
+                    self.runStandalone(filename, architecture=architecture, tool=tool)
                 else:
                     # create a local copy of the sys variables as they stand right now
                     path_bak = list(sys.path)
@@ -1230,8 +1240,7 @@ class Core(QObject):
                     # create a tool stopwatch used to debug
                     env = blurdev.activeEnvironment()
                     if env.stopwatchEnabled:
-                        if toolName == None:
-                            toolName = filename
+                        toolName = filename if tool is None else tool.displayName()
                         env.stopwatch = blurdev.debug.Stopwatch(toolName)
                     execfile(filename, scope)
                     if env.stopwatchEnabled:
@@ -1287,7 +1296,7 @@ class Core(QObject):
 
             # report an unknown format
             else:
-                print(
+                print (
                     '[blurdev.cores.core.Core.runScript] Cannot run scripts of type (*%s)'
                     % ext
                 )
@@ -1424,7 +1433,7 @@ class Core(QObject):
 
             traceback.print_exc()
 
-            print(
+            print (
                 'Module {0} @ {1} failed to send email\n{2}\n{3}\n{4}\n{5}'.format(
                     module.__name__, module.__file__, sender, targets, subject, message
                 )
@@ -1637,6 +1646,41 @@ class Core(QObject):
         key = str(moduleName)
         while key in self._protectedModules:
             self._protectedModules.remove(key)
+
+    def updateApplicationName(self, application=None, name=None):
+        """ Sets the application name based on the environment.
+
+        Args:
+            application (Qt.QtCore.QCoreApplication or Qt.QtWidgets.QApplication, optional):
+                The Qt application that should have its name set to match the
+                BDEV_APPLICATION_NAME environment variable. This env variable is
+                removed by calling this function so it is not passed to child
+                subprocesses. If None is provided, then blurdev.application is used.
+
+        Returns:
+            bool: If the application name was set. This could be because the
+                application was None.
+        """
+        if application is None:
+            application = blurdev.application
+        if application is None:
+            return False
+        # Remove the BDEV_APPLICATION_NAME variable if defined so it is not
+        # passed to child processes.
+        appName = os.environ.pop('BDEV_APPLICATION_NAME', None)
+        if name is not None:
+            # If a name was passed in, use it instead of the env variable, but still
+            # remove the env variable so it doesn't affect child subprocesses.
+            appName = name
+        if application and appName:
+            # This name can be used in filePaths, so remove the invalid separator
+            # used by older tools.
+            appName = appName.replace('::', '_')
+            # If a application name was passed, update the QApplication's
+            # application name.
+            application.setApplicationName(appName)
+            return True
+        return False
 
     def uuid(self):
         """ Application specific unique identifier

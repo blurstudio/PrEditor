@@ -88,13 +88,11 @@ class Tool(QObject):
         # run standalone
         if self.toolType() & ToolType.LegacyExternal:
             blurdev.core.runStandalone(
-                self.sourcefile(), architecture=self.architecture()
+                self.sourcefile(), architecture=self.architecture(), tool=self
             )
         else:
             blurdev.core.runScript(
-                self.sourcefile(),
-                toolName=self.displayName(),
-                architecture=self.architecture(),
+                self.sourcefile(), tool=self, architecture=self.architecture()
             )
 
         # Log what tool was used and when.

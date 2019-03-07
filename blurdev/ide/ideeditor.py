@@ -1362,12 +1362,7 @@ class IdeEditor(Window):
         if not filename:
             return False
 
-        blurdev.core.runStandalone(
-            filename,
-            basePath=self.currentBasePath(),
-            environ=os.environ,
-            paths=sys.path,
-        )
+        blurdev.core.runStandalone(filename, basePath=self.currentBasePath())
 
     def runCurrentStandaloneDebug(self):
         filename = self.currentFilePath()

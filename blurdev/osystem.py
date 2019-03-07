@@ -517,7 +517,9 @@ def subprocessEnvironment(env=None):
     return env
 
 
-def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=None):
+def startfile(
+    filename, debugLevel=None, basePath='', cmd=None, architecture=None, env=None
+):
     """ Runs the filename.
 
     Runs the filename in a shell with proper commands given, or passes the command to the shell.
@@ -535,6 +537,8 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
             filename. "%(basepath)s" will be filled with basePath.
         architecture (int or None, optional): 32 or 64 bit. If None use system default.
             Defaults to None
+        env (dict, optional): a copy of the environment variables passed to subprocess. If not
+            passed subprocessEnvironment is used.
 
     Returns:
         bool or subprocess.Popen: In most cases it should return a Popen object. However if it
@@ -583,7 +587,8 @@ def startfile(filename, debugLevel=None, basePath='', cmd=None, architecture=Non
         return cmd % options
 
     # Pass along the current env and blurdev settings
-    env = subprocessEnvironment()
+    if env is None:
+        env = subprocessEnvironment()
 
     # if the debug level is high, run the command with a shell in the background
     if ext == '.sh' or debugLevel == debug.DebugLevel.High:

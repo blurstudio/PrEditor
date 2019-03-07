@@ -410,13 +410,7 @@ class StudiomaxCore(Core):
         return super(StudiomaxCore, self).rootWindow()
 
     def runScript(
-        self,
-        filename='',
-        scope=None,
-        argv=None,
-        toolType=None,
-        toolName=None,
-        architecture=None,
+        self, filename='', scope=None, argv=None, tool=None, architecture=None
     ):
         """
         Handle maxscript script running
@@ -439,13 +433,7 @@ class StudiomaxCore(Core):
                 return mxs.filein(filename)
             return False
         return Core.runScript(
-            self,
-            filename,
-            scope,
-            argv,
-            toolType,
-            toolName=toolName,
-            architecture=architecture,
+            self, filename, scope, argv, tool=tool, architecture=architecture
         )
 
     def setSupportLegacy(self, state):
