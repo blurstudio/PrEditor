@@ -40,6 +40,9 @@
 
 # /ide/addons/tortoisemenus/img/
 
+# Other than __init__.py, these files are auto-generated
+/blurdev/gui/designer/*.py
+
 # /installers/
 /blurdev/installers/autogen.nsi
 /blurdev/installers/installer.nsi
