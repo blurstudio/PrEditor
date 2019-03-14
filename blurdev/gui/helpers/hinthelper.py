@@ -45,17 +45,9 @@ class HintHelper(QLabel):
         # update the information
         self.setText(hint)
 
-        # show the palette in gray
-        palette = self.palette()
-        color = palette.color(palette.AlternateBase).darker(125)
-
         # set the color for all the roles
-        palette.setColor(palette.WindowText, color)
-        palette.setColor(palette.Text, color)
-        self.setPalette(palette)
         parent.installEventFilter(self)
         self.move(6, 4)
-
         self.raise_()
 
     def enabled(self):
