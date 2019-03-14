@@ -21,7 +21,7 @@ def current(asDict=False):
 
 
 def currentBuild():
-    return ver.currentBuild()
+    return ver.current_build()
 
 
 def fromString(version, asDict=False):
