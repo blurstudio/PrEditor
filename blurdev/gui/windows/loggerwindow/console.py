@@ -18,6 +18,7 @@ from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
 import blurdev
 from blurdev import debug
+from blurdev.debug import BlurExcepthook
 from .completer import PythonCompleter
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
@@ -44,48 +45,6 @@ if blurdev.core.objectName() == 'softimage':
 
     except ImportError:
         pass
-
-
-class ConsoleExceptHook(debug.BlurExcepthook):
-    def handleLogger(
-        self, exctype, value, traceback_, sendEmail, showPrompt, emails, tracebackMsg
-    ):
-        if showPrompt:
-            # If the logger is not visible, prompt the user to show it.
-            inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
-            if sip.isdeleted(inst):
-                # If the LoggerWindow has been deleted in c++ we can't prompt the user or show the
-                # the exception. Just print the exception so debugging from the console is easier.
-                print('[LoggerWindow] The LoggerWindow PyQt4 object has been deleted.')
-                print(tracebackMsg)
-            else:
-                if (
-                    not inst.isVisible()
-                    and not blurdev.core.quietMode()
-                    and not ConsoleEdit._errorPrompted
-                ):
-                    # This is used to ensure we only ever show a single error prompt. In special cases this
-                    # messagebox was showing multiple times, which is very annoying to the user.
-                    # This is not needed for normal Qt event loops, but if some other system (c++, threading)
-                    # raises multiple errors that get processed outside the standard qt event loop.
-                    ConsoleEdit._errorPrompted = True
-                    errorDialog = ErrorDialog(blurdev.core.rootWindow())
-                    errorDialog.setText(tracebackMsg)
-                    errorDialog.exec_()
-
-                    # The messagebox was closed, so reset the tracking variable.
-                    ConsoleEdit._errorPrompted = False
-
-    def __call__(self, exctype, value, traceback_):
-        self.callBaseEHook(exctype, value, traceback_)
-        self.sendRavenEvent(exctype, value, traceback_)
-        sendEmail, showPrompt, emails, tracebackMsg = self.sendExceptEmail(
-            exctype, value, traceback_
-        )
-        self.handleLogger(
-            exctype, value, traceback_, sendEmail, showPrompt, emails, tracebackMsg
-        )
-        ErrorReport.clearReports()
 
 
 class ErrorLog(QObject, Win32ComFix):
@@ -131,7 +90,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             sys.stdout = self
             sys.stderr = ErrorLog(self)
             self._errorLog = sys.stderr
-            ConsoleExceptHook.install()
+            BlurExcepthook.install()
 
         # create the highlighter
         highlight = CodeHighlighter(self)

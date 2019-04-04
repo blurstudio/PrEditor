@@ -8,7 +8,6 @@
 /.project
 /.pydevproject
 /build.txt
-/requirements.txt
 /blur_blurdev.egg-info/
 /build/
 /dist/

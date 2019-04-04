@@ -132,8 +132,8 @@ class Core(QObject):
         # the parent fusion process. Otherwise this will be None
         self.fusionApp = None
 
-        # Cache the Raven client (for logging / error handling) once instantiated
-        self._ravenClient = None
+        # state of Sentry client; false if initialization failed.
+        self._sentry_enabled = None
 
         # create the connection to the environment activation signal
         self.environmentActivated.connect(self.registerPaths)
@@ -353,43 +353,6 @@ class Core(QObject):
             return True
         return False
 
-    def ravenClient(self, install_sys_hook=False, **kwargs):
-        """Return the current raven Client instance.  If raven is not importable
-        return None.
-        
-        Returns:
-            raven.Client: The current raven client instance.
-        
-        Args:
-            install_sys_hook (bool, optional): Override the default value of
-                install_sys_hook since we have our own ExceptHook for now.
-            **kwargs: Any additional raven Client() kwargs will be passed along.
-        """
-        kwargs['install_sys_hook'] = install_sys_hook
-        if not self._ravenClient:
-            try:
-                from raven import Client
-            except ImportError:
-                # if raven is not importable, we won't be able to return a
-                # Client instance.
-                return None
-            else:
-                self._ravenClient = Client(**kwargs)
-
-            # if Raven failed to initialize a logging handler, add a basic
-            # StreamHandler to prevent errors in logging.
-            loggers = (
-                self._ravenClient.logger,
-                self._ravenClient.error_logger,
-                self._ravenClient.uncaught_logger,
-            )
-            for l in loggers:
-                if not len(l.handlers):
-                    import logging
-
-                    l.addHandler(logging.StreamHandler())
-        return self._ravenClient
-
     def runOnDccStartup(self):
         """ When starting a DCC like 3ds Max, execute this code on startup.
         
@@ -459,26 +422,22 @@ class Core(QObject):
         elif not trigger in self._linkedSignals[signal]:
             self._linkedSignals[signal].append(trigger)
 
-    def shouldReportException(self, exctype, value, traceback_):
-        """ Allow the core to control if the Python Logger shows the ErrorDialog or a email is sent.
-        
-        Use this to prevent a exception from prompting the user to open the Python Logger, and 
-        prevent sending a error email. This is called after parent eventhandler's are called and
-        the traceback will still be printed to the logger after this function is run.
-        
-        This function returns two boolean values, the first controls if a error email should be sent.
-        The second controls if the ErrorDialog should be shown.
-        
-        Args:
-            exctype (type): The Exception class.
-            value : The Exception instance.
-            traceback_ (traceback): The traceback object.
-        
-        Returns:
-            sendEmail: Should the exception be reported in a error email.
-            showPrompt: Should the ErrorDialog be shown if the Python Logger isnt already visible.
+    def shouldReportException(self, exc_type, exc_value, exc_traceback):
         """
-        return True, True
+        Allow core to control how exceptions are handled. Currently being used
+        by `BlurExcepthook`, informing which excepthooks should or should not
+        be executed.
+
+        Args:
+            exc_type (type): exception type class object
+            exc_value (Exception): class instance of exception parameter
+            exc_traceback (traceback): encapsulation of call stack for exception
+
+        Returns:
+            dict: booleon values representing whether to perform excepthook
+                action, keyed to the name of the excepthook
+        """
+        return dict(email=True, prompt=True, sentry=True)
 
     def init(self):
         """ Initializes the core system
@@ -498,6 +457,9 @@ class Core(QObject):
         # we should never remove main. If we do in specific cases it will prevent external tools from
         # running if they use "if __name__ == '__main__':" as __name__ will return None
         self.protectModule('__main__')
+
+        # instaniate Sentry client for core
+        self.init_sentry()
 
         # initialize the tools environments
         blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
@@ -550,6 +512,46 @@ class Core(QObject):
         """Initialize the portions of the core that require GUI initialization to have completed.
         """
         self.restoreToolbars()
+
+    def init_sentry(self):
+        """
+        Initialize Sentry client for core.
+        """
+        if self._sentry_enabled is False or not os.environ.get("SENTRY_DSN"):
+            return
+
+        try:
+            from blurdev.utils.error import (
+                sentry_before_send_callback,
+                sentry_integrations,
+            )
+            import sentry_sdk
+
+            try:
+                sentry_sdk.init(
+                    dsn=os.environ["SENTRY_DSN"],
+                    debug=bool(os.environ.get("SENTRY_DEBUG", False)),
+                    default_integrations=False,
+                    integrations=sentry_integrations(),
+                    before_send=sentry_before_send_callback,
+                )
+
+            # supplied dsn is invalid
+            except sentry_sdk.utils.BadDsn:
+                self._sentry_enabled = False
+
+            # successful import; setting Sentry's error logger to critical to
+            # suppress issues connecting to the DSN's host
+            else:
+                import logging
+
+                sentry_logger = logging.getLogger("sentry_sdk.errors")
+                sentry_logger.setLevel(logging.CRITICAL)
+                self._sentry_enabled = True
+
+        # could not import `sentry_sdk`
+        except ImportError:
+            self._sentry_enabled = False
 
     def applyEnvironmentTimeouts(self):
         """

@@ -152,6 +152,7 @@ if __name__ == '__main__':
             useConfigParser=True,
         )
         # 		blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_TRAX_ON_DCC_STARTUP', r'false', useConfigParser=True)
+
         # remove non blur specific includes in tools_environments.xml
         print('**************************************************')
         print('*          Updating tools environments           *')

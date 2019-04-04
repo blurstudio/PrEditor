@@ -206,126 +206,169 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
 
 
 class BlurExcepthook(object):
-    ''' A class that stacks blur's excepthook code on top of whatever excepthook already exists
-        Catches all unhandled exceptions and sends an email detailing the exception
+    """
+    Blur's excepthook override allowing for granular error handling
+    customization.
+
+    Stacked atop the standard library excepthook (by default), catches any
+    unhandled exceptions and conditionally passes them to the following custom
+    excepthooks:
+
+        - *`call_base_excepthook`*
+            excepthook callable supplied at initialization; if not supplied or
+            invalid, executes standard library excepthook.
+
+        - *`send_sentry_event`*
+            reports exception to on-premise Sentry server for debug triage.
+
+        - *`send_exception_email`*
+            email notification.
+
+        - *`send_logger_error`*
+            logger console.
 
     Arguments:
-        ehook (callable): A callable exception hook compatible with sys.excepthook
-    '''
+        ehook (callable): An excepthook callable compatible with signature of
+            sys.excepthook; defaults to original startup excepthook
+    """
 
-    def __init__(self, ehook=None):
-        # fall back on system default excepthook
-        self.ehook = sys.__excepthook__ if ehook is None else ehook
+    def __init__(self, base_excepthook=None):
+        self.base_excepthook = base_excepthook or sys.__excepthook__
+        self.actions = dict(email=True, prompt=True, sentry=True)
 
-    def callBaseEHook(self, exctype, value, traceback_):
-        ''' Call the base excepthook implementation.
-        This generaly prints the traceback to stderr.
-        '''
-        # Print a new line before the traceback is printed. This ensures that the first line is not
-        # printed on a prompt, and also provides seperation between tracebacks that makes it easier
-        # to identify which traceback you are looking at when multiple tracebacks are received.
-        print('')
-        if self.ehook:
-            try:
-                self.ehook(exctype, value, traceback_)
-            except TypeError:
-                # If self.ehook is no longer valid
-                sys.__excepthook__(exctype, value, traceback_)
-        else:
-            sys.__excepthook__(exctype, value, traceback_)
-
-    @staticmethod
-    def sendExceptEmail(exctype, value, traceback_):
-        ''' Send an email for the exception '''
-        # Check if this traceback should be ignored. Some software like Nuke use exceptions to signal
-        # that special things have happened. Like the user canceled the open file dialog. We don't
-        # want to prompt the user to open the Python Logger for these types of errors. We also don't
-        # want to receive emails or redmine tickets for it. This allows the core to ignore exceptions
-        sendEmail, showPrompt = blurdev.core.shouldReportException(
-            exctype, value, traceback_
-        )
-
-        tracebackMsg = ''.join(traceback.format_exception(exctype, value, traceback_))
-        emails = []
-        if sendEmail:
-            # Email the error traceback.
-            from blurdev.tools import ToolsEnvironment
-            from blurdev.utils.errorEmail import emailError
-
-            emails = ToolsEnvironment.activeEnvironment().emailOnError()
-            if emails:
-                emailError(emails, tracebackMsg)
-
-        return sendEmail, showPrompt, emails, tracebackMsg  # for subclassing
-
-    @staticmethod
-    def sendRavenEvent(exctype, value, traceback_):
-        """Attempt to emit a raven event for the provided exception.
-
-        Fail silently if raven is not importable or does not have a valid DSN.
+    def __call__(self, *exc_info):
         """
-        client = blurdev.core.ravenClient()
-        if client is None:
-            # if we didn't get a raven Client instance, we won't be able to send
-            # the exception event.
-            return
-        # store tags
-        tags = {
-            'environment_name': blurdev.activeEnvironment().objectName(),
-            'core_name': blurdev.core.objectName(),
-            'platform': platform.platform(),
-            'os_name': os.name,
-            'executable': sys.executable,
-            'debug_level': blurdev.debug.DebugLevel.labelByValue(
-                blurdev.debug.debugLevel()
-            ),
-            'host_class': platform.node().strip(string.digits),
-        }
-        user = {'username': getpass.getuser()}
-        # store extra information
-        extra = {'environment_path': blurdev.activeEnvironment().path()}
-        jobKey = os.environ.get('AB_JOBID')
-        if jobKey:
-            extra['assburner job id'] = jobKey
-        burnDir = os.environ.get('AB_BURNDIR')
-        if burnDir:
-            extra['assburner burn dir'] = burnDir
-        burnFile = os.environ.get('AB_BURNFILE')
-        if burnFile:
-            extra['assburner burn file'] = burnFile
-        # grab the BDEV debug information stored for error emails.
-        prefix = 'BDEV_EMAILINFO_'
-        for key in sorted(os.environ):
-            if key.startswith(prefix):
-                extra[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
-        # grab any additional infos
-        errorReports = ErrorReport.generateReport()
-        if errorReports:
-            extra['additionalinfo'] = errorReports
-        # store data into the expected dictionary keys
-        excdata = {'tags': tags, 'user': user, 'extra': extra}
-        client.captureException(exc_info=(exctype, value, traceback_), data=excdata)
+        Executes overriden execpthook.
 
-    def __call__(self, exctype, value, traceback_):
-        self.callBaseEHook(exctype, value, traceback_)
-        self.sendExceptEmail(exctype, value, traceback_)
-        self.sendRavenEvent(exctype, value, traceback_)
+        Checks the results from the core's `shouldReportException` function as
+        to if the current exception should be reported. (Why? Nuke, for
+        example, uses exceptions to signal tradionally non-exception worthy
+        events, such as when a user cancels an Open File dialog window.)
+        """
+        self.actions = blurdev.core.shouldReportException(*exc_info)
+
+        self.call_base_excepthook(exc_info)
+        self.send_sentry_event(exc_info)
+        self.send_exception_email(exc_info)
+        self.send_logger_error(exc_info)
+
         ErrorReport.clearReports()
 
+    def call_base_excepthook(self, exc_info):
+        """
+        Process base excepthook supplied during object instantiation.
+
+        A newline is printed pre-traceback to ensure the first line of output
+        is not printed in-line with the prompt. This also provides visual
+        separation between tracebacks, when recieved consecutively.
+        """
+        print("")
+        try:
+            self.base_excepthook(*exc_info)
+        except (TypeError, NameError):
+            sys.__excepthook__(*exc_info)
+
+    def send_sentry_event(self, exc_info):
+        """
+        Sends error to Sentry.
+
+        If there is any issue importing Sentry's SDK package, fail silently and
+        disable future reporting to Sentry.
+        """
+        if not self.actions.get("sentry", False):
+            return
+
+        try:
+            import sentry_sdk
+            import urllib3
+        except ImportError:
+            self.actions["sentry"] = False
+            return
+
+        # ignore warnings emitted by urllib3 library
+        urllib3.disable_warnings()
+        sentry_sdk.capture_exception(exc_info)
+
+    def send_exception_email(self, exc_info):
+        """
+        Conditionally sends an exception email.
+        """
+        if not self.actions.get("email", False):
+            return
+
+        from blurdev.tools import ToolsEnvironment
+        from blurdev.utils.error import ErrorEmail
+
+        email_addresses = ToolsEnvironment.activeEnvironment().emailOnError()
+        if email_addresses:
+            mailer = ErrorEmail(*exc_info)
+            mailer.send(email_addresses)
+
+    def send_logger_error(self, exc_info):
+        """
+        Shows logger prompt.
+        """
+        if not self.actions.get("prompt", False):
+            return
+
+        from blurdev.gui.windows.loggerwindow import LoggerWindow
+        from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
+        from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
+        import sip
+
+        instance = LoggerWindow.instance()
+
+        # logger reference deleted, fallback and print to console
+        if sip.isdeleted(instance):
+            print("[LoggerWindow] LoggerWindow object has been deleted.")
+            print(traceback)
+            return
+
+        # logger is visble
+        if instance.isVisible():
+            return
+
+        # quiet mode active
+        if blurdev.core.quietMode():
+            return
+
+        # error already prompted
+        if ConsoleEdit._errorPrompted:
+            return
+
+        # Preemptively marking error as "prompted" (handled) to avoid errors
+        # from being raised multiple times due to C++ and/or threading error
+        # processing.
+        try:
+            ConsoleEdit._errorPrompted = True
+            errorDialog = ErrorDialog(blurdev.core.rootWindow())
+            errorDialog.setText(exc_info)
+            errorDialog.exec_()
+
+        # interruptted until dialog closed
+        finally:
+            ConsoleEdit._errorPrompted = False
+
     @classmethod
-    def install(cls, noOverride=False):
-        ''' Install the blur excepthook, and return the previous one
+    def install(cls, force=False):
+        """
+        Install Blur excepthook override, returing previously implemented
+        excepthook function.
+
         Arguments:
-            noOverride (bool): If we've already installed a BlurExcepthook,
-                don't override it if noOverride is True
-        '''
+            force (bool): force reinstallation of excepthook override when
+                already previously implemented.
+
+        Returns:
+            func: pre-override excepthook function
+        """
         ErrorReport.enabled = True
-        bak = sys.excepthook
+        prev_excepthook = sys.excepthook
 
-        if not isinstance(bak, BlurExcepthook) or not noOverride:
-            sys.excepthook = cls(bak)
+        if not isinstance(prev_excepthook, BlurExcepthook) or force:
+            sys.excepthook = cls(prev_excepthook)
 
-        return bak
+        return prev_excepthook
 
 
 # --------------------------------------------------------------------------------

@@ -2,6 +2,7 @@ import blurdev, subprocess, os, sys
 from blurdev.gui import Dialog
 from Qt.QtCore import QTimer, Qt
 from Qt.QtGui import QPixmap
+import traceback
 
 
 class ErrorDialog(Dialog):
@@ -29,18 +30,18 @@ class ErrorDialog(Dialog):
         self.requestButton.clicked.connect(self.submitRequest)
         self.ignoreButton.clicked.connect(self.close)
 
-    def setText(self, traceback_msg):
+    def setText(self, exc_info):
         from console import ConsoleEdit
 
+        self.traceback_msg = "".join(traceback.format_exception(*exc_info))
         msg = 'The following error has occurred:<br><br><font color=%(color)s>%(text)s</font>'
         self.errorLabel.setText(
             msg
             % {
-                'text': traceback_msg.split('\n')[-2],
+                'text': self.traceback_msg.split('\n')[-2],
                 'color': ConsoleEdit._errorMessageColor.name(),
             }
         )
-        self.traceback_msg = traceback_msg
 
     def showLogger(self):
         inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
