@@ -60,9 +60,9 @@ setup(
         "pygments",
         "sentry_sdk",
         "urllib3",
+        'blur-pillar>=0.2.0',
     ],
     include_package_data=True,
     author='Blur Studio',
     author_email='pipeline@blur.com',
-    install_requires=['blur-pillar>=0.2.0',],
 )
