@@ -743,10 +743,16 @@ class ToolsEnvironment(QObject):
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
         )
 
-        # This seems like the place to add new top level folders?
+        # This is the path for packages we deploy directly to the network.
         self.registerPath(
             os.path.join(
-                blurdev.activeEnvironment().path(), 'code', 'python', 'site-packages'
+                blurdev.activeEnvironment().path(),
+                'code',
+                'python',
+                'venv',
+                'lib',
+                'python2.7',
+                'site-packages',
             )
         )
 
