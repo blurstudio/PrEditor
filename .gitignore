@@ -13,6 +13,7 @@
 /dist/
 /docs/
 /venv/
+requirements.txt
 
 # /blurdev
 /blurdev/version.txt
