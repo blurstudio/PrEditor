@@ -1,8 +1,10 @@
 import os
 import sys
+from Qt import QtCompat
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QApplication, QMainWindow
 import maya.cmds
+import maya.OpenMayaUI as mui
 
 import blurdev.tools.tool
 from blurdev.cores.core import Core
@@ -73,6 +75,15 @@ class MayaCore(Core):
 
     def showToolbar(self, parent=None):
         self.toolbar(parent=parent).show()
+
+    def rootWindow(self):
+        """
+        Override of core rootWindow function; uses Maya's main window pointer
+        to derive rootWindow due to cases where plugins end up as root.
+        """
+        pointer = long(mui.MQtUtil.mainWindow())
+        self._rootWindow = QtCompat.wrapInstance(pointer)
+        return self._rootWindow
 
     def shutdownToolbars(self):
         """ Closes the toolbars and save their prefs if they are used
