@@ -3,6 +3,7 @@
 import copy
 import os
 import sys
+import site
 
 try:
     import configparser
@@ -163,7 +164,10 @@ def registerVariable(key, value):
 
 def registerPath(path):
     path = normalizePath(path)
-    if path and path != '.' and not path in sys.path:
+    # We won't register a path that does not exist to not clutter sys.path.
+    if path != '.' and not path in sys.path and os.path.exists(path):
         sys.path.insert(0, path)
+        # This will guarantee support for .pth and .egg-link files without affecting the sys.path order.
+        site.addsitedir(path)
         return True
     return False

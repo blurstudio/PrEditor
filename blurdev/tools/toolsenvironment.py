@@ -743,7 +743,7 @@ class ToolsEnvironment(QObject):
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
         )
 
-        # This is the path for packages we deploy directly to the network.
+        # This is the path for packages we deploy directly to the network using Linux virtualenv.
         self.registerPath(
             os.path.join(
                 blurdev.activeEnvironment().path(),
@@ -752,6 +752,18 @@ class ToolsEnvironment(QObject):
                 'venv',
                 'lib',
                 'python2.7',
+                'site-packages',
+            )
+        )
+
+        # This is the path for packages we deploy directly to the network using Windows virtualenv.
+        self.registerPath(
+            os.path.join(
+                blurdev.activeEnvironment().path(),
+                'code',
+                'python',
+                'venv',
+                'Lib',
                 'site-packages',
             )
         )
