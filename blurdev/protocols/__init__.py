@@ -213,10 +213,10 @@ class ShotgunActionMenuItemHandler(BaseProtocolHandler):
 
                     _blurdev.protocolSplash = randomSplashScreen(self.command)
 
-                    import blursg
+                    import recoil
 
-                    with blursg.loadConfigContext(hostname=hostname):
-                        ret = blursg.sg().find_one(
+                    with recoil.loadConfigContext(hostname=hostname):
+                        ret = recoil.sg().find_one(
                             'EventLogEntry', [['id', 'is', logId]], ['meta']
                         )
                         params = ret['meta']['ami_payload']

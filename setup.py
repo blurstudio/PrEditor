@@ -61,6 +61,7 @@ setup(
         "sentry_sdk",
         "urllib3",
         'blur-pillar>=0.2.0',
+        'blur-recoil>=0.2.0',
     ],
     include_package_data=True,
     author='Blur Studio',
