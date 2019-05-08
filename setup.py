@@ -52,7 +52,7 @@ setup(
     ],
     keywords='blurdev',
     packages=find_packages(exclude=['docs', 'installers', 'tests']),
-    scripts=['post_install_blurdev.py',],
+    scripts=['post_install-blur-blurdev.py',],
     install_requires=[
         "certifi",
         "Jinja2",
