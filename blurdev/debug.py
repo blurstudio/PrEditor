@@ -248,8 +248,9 @@ class BlurExcepthook(object):
         self.actions = blurdev.core.shouldReportException(*exc_info)
 
         self.call_base_excepthook(exc_info)
-        self.send_sentry_event(exc_info)
-        self.send_exception_email(exc_info)
+        if debugLevel() == 0:
+            self.send_sentry_event(exc_info)
+            self.send_exception_email(exc_info)
         self.send_logger_error(exc_info)
 
         ErrorReport.clearReports()

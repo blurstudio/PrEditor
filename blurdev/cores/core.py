@@ -2,6 +2,7 @@ import sys
 import time
 import os
 import glob
+from functools import partial
 
 from Qt.QtCore import QDateTime, QEvent, QObject, QRect, Qt, Signal
 from Qt.QtWidgets import (
@@ -138,6 +139,7 @@ class Core(QObject):
         # create the connection to the environment activation signal
         self.environmentActivated.connect(self.registerPaths)
         self.environmentActivated.connect(self.recordSettings)
+        self.environmentActivated.connect(partial(self.init_sentry, force=True))
         self.debugLevelChanged.connect(self.recordSettings)
 
     def aboutBlurdev(self):
@@ -513,12 +515,22 @@ class Core(QObject):
         """
         self.restoreToolbars()
 
-    def init_sentry(self):
+    def init_sentry(self, force=False):
         """
         Initialize Sentry client for core.
+
+        Args:
+            force (bool, optional): Forces a reinitalization of sentry.
+                Defaults to False.
         """
-        if self._sentry_enabled is False or not os.environ.get("SENTRY_DSN"):
+        if (
+            not os.environ.get("SENTRY_DSN")
+            or not force
+            or self._sentry_enabled is False
+        ):
             return
+
+        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
 
         try:
             from blurdev.utils.error import (
@@ -534,6 +546,7 @@ class Core(QObject):
                     default_integrations=False,
                     integrations=sentry_integrations(),
                     before_send=sentry_before_send_callback,
+                    environment=env.objectName(),
                 )
 
             # supplied dsn is invalid
