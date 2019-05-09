@@ -169,7 +169,8 @@ class Window(QMainWindow):
             import blurdev
 
             cls._instance = None
-            blurdev.core.aboutToClearPaths.disconnect(this.shutdown)
+            if this.aboutToClearPathsEnabled:
+                blurdev.core.aboutToClearPaths.disconnect(this.shutdown)
             this.setAttribute(Qt.WA_DeleteOnClose, True)
         try:
             this.close()
