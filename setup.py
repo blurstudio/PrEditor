@@ -54,6 +54,8 @@ setup(
     packages=find_packages(exclude=['docs', 'installers', 'tests']),
     scripts=['post_install-blur-blurdev.py',],
     install_requires=[
+        "future",
+        "configparser",
         "certifi",
         "Jinja2",
         "MarkupSafe",
@@ -66,4 +68,13 @@ setup(
     include_package_data=True,
     author='Blur Studio',
     author_email='pipeline@blur.com',
+    entry_points={
+        'gui_scripts': [
+            # Create executable items that work even if using virtualenv, or editable installs
+            'treegrunt = blurdev.runtimes.treegrunt:main',
+            'blurdev-protocol = blurdev.runtimes.protocol:main',
+            'blurdev-logger = blurdev.runtimes.logger:main',
+            'blurIDE = blurdev.runtimes.ide_editor:main',
+        ],
+    },
 )

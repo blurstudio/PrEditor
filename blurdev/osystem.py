@@ -199,15 +199,17 @@ def createShortcut(
         title (str): the title for the shortcut
         args (str): argument string to pass to target command
         startin (str, optional): path where the shortcut should run target command.
+            If None(default) then the dirname for the first argument in args is used.
+            If args is empty, then the dirname of target is used.
         target (str or None, optional): the target for the shortcut. If None(default)
             this will default to sys.executable.
         icon (str or None, optional): path to the icon the shortcut should use
         path (str, or None, optional): path where the shortcut should be created. If
             None(default) this will default to the desktop.
         description (str, optional): helpful description for the shortcut
-        common (int): If auto generating the path, this controls which desktop the path
-            is generated for. 1(default) is the public shared desktop, while 0 is the
-            users desktop.
+        common (int, optional): If auto generating the path, this controls which desktop
+            the path is generated for. 1(default) is the public shared desktop, while 0
+            is the users desktop.
     """
     if settings.OS_TYPE == 'Windows':
         from . import scripts
@@ -219,7 +221,13 @@ def createShortcut(
         if not target:
             target = sys.executable
         if not startin:
-            startin = os.path.split(args)[0]
+            # Set the start in directory to the directory of args if passed
+            # otherwise use the target directory
+            if args:
+                startin = os.path.dirname(args)
+            else:
+                startin = os.path.dirname(target)
+
         if icon:
             pathName, ext = os.path.splitext(icon)
             if not ext == '.ico':

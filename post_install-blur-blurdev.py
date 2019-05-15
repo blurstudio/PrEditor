@@ -36,14 +36,11 @@ def registryWrapper(
 
 def post_install():
     python_exe = blurdev.osystem.pythonPath(pyw=True, architecture=64)
-    module_name = 'blurdev'
-    path = os.path.join(
-        os.path.dirname(python_exe), 'Lib', 'site-packages', module_name
-    )
+    path = os.path.join(os.path.dirname(python_exe), 'Scripts')
 
     # Create shortcuts
-    shortcut.createShortcutTreegrunt(common=1, target=python_exe)
-    shortcut.createShortcutBlurIDE(common=1, target=python_exe)
+    shortcut.createShortcutTreegrunt(common=1)
+    shortcut.createShortcutBlurIDE(common=1)
 
     # Clear Windows icon cache, continue on fail
     ie4uinit_file_path = r'C:\Windows\system32\ie4uinit.exe'
@@ -121,9 +118,7 @@ def post_install():
 
     key = r'blurdev\shell\open\command'
     value_name = ''
-    value = python_exe + ' {} "%1"'.format(
-        os.path.join(path, 'runtimes', 'protocol.pyw')
-    )
+    value = '{} "%1"'.format(os.path.join(path, 'blurdev-protocol.exe'))
     ret = registryWrapper(
         HKCR_root_key,
         key,
@@ -137,9 +132,7 @@ def post_install():
 
     key = r'Software\Classes\Python.File\shell\Edit with BlurIDE\command'
     value_name = ''
-    value = (
-        python_exe + ' ' + os.path.join(path, 'runtimes', 'ide_editor.py') + ' "-f%1"'
-    )
+    value = os.path.join(path, 'blurIDE.exe') + ' -f "%1"'
     ret = registryWrapper(
         HKLM_root_key,
         key,

@@ -1,3 +1,4 @@
+import os
 import blurdev as _blurdev
 
 __all__ = [
@@ -5,6 +6,26 @@ __all__ = [
     'createShortcutPythonLogger',
     'createShortcutTreegrunt',
 ]
+
+
+def _scrips_path(*relative):
+    """ Build the full path to the scripts folder of python.
+
+    Uses blurdev.osystem.pythonPath so this points to the python directory defined in
+    the registry, not a virtualenv path (at least on windows).
+
+    Args:
+        *relative: Passed as additional arguments to os.path.join to build the final path.
+
+    Returns:
+        path (str): The complete path to the scripts or bin folder with any relative paths.
+    """
+    python_exe = _blurdev.osystem.pythonPath(pyw=True, architecture=64)
+    if _blurdev.settings.OS_TYPE == 'Windows':
+        relative = ['Scripts'] + list(relative)
+    else:
+        relative = ['bin'] + list(relative)
+    return os.path.join(os.path.dirname(python_exe), *relative)
 
 
 def createShortcutPythonLogger(
@@ -27,8 +48,8 @@ def createShortcutPythonLogger(
     """
     _blurdev.osystem.createShortcut(
         name,
-        _blurdev.runtime('logger.py'),
-        target=target,
+        '',
+        target=_scrips_path('blurdev-logger.exe') if target is None else target,
         path=path,
         icon=_blurdev.resourcePath(r'img\PythonLogger.ico'),
         description=description,
@@ -52,8 +73,8 @@ def createShortcutBlurIDE(
     """
     _blurdev.osystem.createShortcut(
         name,
-        _blurdev.runtime('ide_editor.py'),
-        target=target,
+        '',
+        target=_scrips_path('blurIDE.exe') if target is None else target,
         path=path,
         icon=_blurdev.resourcePath(r'img\ide.ico'),
         description=description,
@@ -81,8 +102,8 @@ def createShortcutTreegrunt(
     """
     _blurdev.osystem.createShortcut(
         name,
-        _blurdev.runtime('treegrunt.py'),
-        target=target,
+        '',
+        target=_scrips_path('treegrunt.exe') if target is None else target,
         path=path,
         icon=_blurdev.resourcePath(r'img\treegrunt.ico'),
         description=description,
