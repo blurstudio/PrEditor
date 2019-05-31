@@ -144,8 +144,3 @@ class HoudiniCore(Core):
         if not hasInstance and isinstance(parent, QMainWindow):
             parent.addToolBar(Qt.TopToolBarArea, toolbar)
         return toolbar
-
-    def registerPaths(self):
-        # Overload registerPaths to avoid loading
-        # compiled libs incompatible with houdini.
-        return
