@@ -1,9 +1,14 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import copy
 import os
 import sys
 import site
+import re
+import glob
+import ntpath
+import posixpath
 
 try:
     import configparser
@@ -166,8 +171,182 @@ def registerPath(path):
     path = normalizePath(path)
     # We won't register a path that does not exist to not clutter sys.path.
     if path != '.' and not path in sys.path and os.path.exists(path):
+        # Add the path to the top of sys.path so code in this folder is run before
+        # other code with the same name.
         sys.path.insert(0, path)
-        # This will guarantee support for .pth and .egg-link files without affecting the sys.path order.
-        site.addsitedir(path)
+        # Process any .pth files in this directory, Using our version of addsitedir
+        # so windows and linux paths in the .pth work. This makes it so any .egg-link
+        # installed packages get appended to sys.path and loaded. Egg-link installs
+        # are handled by the easy-install.pth file
+        addsitedir(path)
         return True
     return False
+
+
+def addpackage(sitedir, name, known_paths):
+    """ Process a .pth file within the site-packages directory:
+    For each line in the file, either combine it with sitedir to a path
+    and add that to known_paths, or execute it if it starts with 'import '.
+
+    NOTE: this function replicates the function in python's site module
+    It adds the ability to translate linux or windows paths to the current
+    platform in pth files. It can be used as a direct replacement to calling
+    the site function. See the `toSystemPath` function.
+    """
+    if known_paths is None:
+        known_paths = site._init_pathinfo()
+        reset = True
+    else:
+        reset = False
+    fullname = os.path.join(sitedir, name)
+    try:
+        f = open(fullname, "r")
+    except OSError:
+        return
+    with f:
+        for n, line in enumerate(f):
+            if line.startswith("#"):
+                continue
+            try:
+                if line.startswith(("import ", "import\t")):
+                    exec (line)
+                    continue
+                line = toSystemPath(line.rstrip())
+                dir, dircase = site.makepath(sitedir, line)
+                if not dircase in known_paths and os.path.exists(dir):
+                    sys.path.append(dir)
+                    known_paths.add(dircase)
+            except Exception:
+                print(
+                    "Error processing line {:d} of {}:\n".format(n + 1, fullname),
+                    file=sys.stderr,
+                )
+                import traceback
+
+                for record in traceback.format_exception(*sys.exc_info()):
+                    for line in record.splitlines():
+                        print('  ' + line, file=sys.stderr)
+                print("\nRemainder of file ignored", file=sys.stderr)
+                break
+    if reset:
+        known_paths = None
+    return known_paths
+
+
+def addsitedir(sitedir, known_paths=None):
+    """Add 'sitedir' argument to sys.path if missing and handle .pth files in
+    'sitedir'
+
+    NOTE: this function replicates the function in python's site module
+    It adds the ability to translate linux or windows paths to the current
+    platform in pth files. It can be used as a direct replacement to calling
+    the site function. See the `toSystemPath` function.
+    """
+    if known_paths is None:
+        known_paths = site._init_pathinfo()
+        reset = True
+    else:
+        reset = False
+    sitedir, sitedircase = site.makepath(sitedir)
+    if not sitedircase in known_paths:
+        sys.path.append(sitedir)  # Add path component
+        known_paths.add(sitedircase)
+    try:
+        names = os.listdir(sitedir)
+    except OSError:
+        return
+    names = [name for name in names if name.endswith(".pth")]
+    for name in sorted(names):
+        addpackage(sitedir, name, known_paths)
+    if reset:
+        known_paths = None
+    return known_paths
+
+
+def pathReplacements():
+    """ A list of replacements to apply to file paths.
+
+    Returns a list of ('windows', 'linux') tuples. `toSystemPath` uses this list
+    to translate file paths to the current system.
+
+    This list is controlled by the BDEV_PATH_REPLACEMENTS environment variable.
+    Each windows/linux mapping is defined as windows,linux. These are separated
+    by a ;. This ensures that we can define drive letter replacements that work
+    on linux.
+
+    Example:
+        `BDEV_PATH_REPLACEMENTS=\\aserver\ashare,/mnt/ashare;G:,/blur/g`
+
+    Returns:
+        list: The list of path replacements.
+    """
+    ret = os.environ.get('BDEV_PATH_REPLACEMENTS', '').split(';')
+    return [mapping.split(',') for mapping in ret]
+
+
+def pthPaths(dirname):
+    """ Returns the absolute paths defined in any .pth file in dirname.
+
+    This does not process any imports in the .pth file. The file paths are
+    converted to the current operating system by `toSystemPath`.
+
+    Args:
+        dirname (str): All .pth files in this directory are searched for paths.
+
+    Returns:
+        paths (list): A list of paths that will be added to sys.path when `addsitedir
+            ` is called.
+        skipped (list): A list of .pth files that could not be read.
+        pthFiles (list): All .pth file paths that were processed.
+    """
+    paths = []
+    skipped = []
+    pthFiles = glob.glob(os.path.join(dirname, '*.pth'))
+    for filename in pthFiles:
+        try:
+            with open(filename, 'r') as f:
+                for line in f:
+                    if line.startswith(("import ", "import\t", "#")):
+                        # For this code, we don't actually want to process imports
+                        # and always want to ignore comment lines
+                        continue
+                    line = toSystemPath(line.rstrip())
+                    _, dircase = site.makepath(dirname, line)
+                    paths.append(dircase)
+        except IOError:
+            # We can't process this item, likely due to permissions.
+            skipped.append(filename)
+    return paths, skipped, pthFiles
+
+
+def toSystemPath(path):
+    """ Ensure the file path is correct for the current os.
+
+    Args:
+        path (str): The file path to convert to the current operating system.
+
+    Returns:
+        All replacements in `pathReplacements` applied to path, with `os.path.normpath`
+        called on it.
+    """
+    replacements = pathReplacements()
+    if OS_TYPE == 'Windows':
+        src = 1
+        dest = 0
+        ospath = posixpath
+    else:
+        src = 0
+        dest = 1
+        ospath = ntpath
+    for replacement in replacements:
+
+        def repl(match):
+            # Don't modify our replacement string, just insert it.
+            return replacement[dest]
+
+        # Find and replace the text of the file paths ignoring case without
+        # affecting the case of the remaining string case.
+        path = re.sub(re.escape(replacement[src]), repl, path, flags=re.I)
+    if OS_TYPE == 'Windows':
+        return os.path.normpath(path)
+    return path.replace('\\', '/')

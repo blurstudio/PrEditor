@@ -9,10 +9,12 @@
 #
 from __future__ import absolute_import
 
+import glob
 import os
 import sys
 import re
 import datetime
+import logging
 
 from Qt.QtCore import QDateTime, QObject
 
@@ -27,6 +29,9 @@ except ImportError:
     def customize(func):
         return func
 
+
+# This logger is used to debug reloading treegrunt environments
+logging_reload = logging.getLogger('tools_environment_refresh')
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
@@ -112,10 +117,9 @@ class ToolsEnvironment(QObject):
             return False
 
         path = self.normalizePath(self.path())
-
         # do not remove python path variables
         pythonpath = [
-            split.lower() for split in os.environ.get('pythonpath', '').split(';')
+            split.lower() for split in os.environ.get('PYTHONPATH', '').split(';')
         ]
         # do not remove paths for protected modules.
         symbols = blurdev.core.protectedModules()
@@ -129,17 +133,44 @@ class ToolsEnvironment(QObject):
                 except:
                     pass
 
-        oldpaths = sys.path
-        newpaths = [
-            spath
-            for spath in sys.path
-            if (path not in spath.lower() and spath != '.')
-            or spath.lower() in pythonpath
-        ]
+        newpaths = []
+        removepaths = set()
+        pthFiles = []
+        skippedFiles = []
+        # remove all paths added by treegrunt or its .egg-link files from sys.path
+        eggPaths = []
+        for spath in sys.path:
+            npath = self.normalizePath(spath)
+            if path in npath:
+                # If this path is inside the treeegrunt folder structure, add any egg-link
+                # paths so we can remove them from python
+                removepaths.add(spath)
+                paths, skipped, pths = blurdev.settings.pthPaths(spath)
+                removepaths.update(paths)
+                skippedFiles.extend(skipped)
+                pthFiles.extend(pths)
+                # removepaths.update(self.getEggLinkPaths(spath))
+            elif npath != '.' or npath in pythonpath:
+                # Preserve any paths not in inside the treegrunt folder structure
+                newpaths.append(spath)
+
+        # Debug info about paths being removed from sys.path
+        logging_reload.debug('.pth files processed'.center(50, '-'))
+        for f in pthFiles:
+            if f in skippedFiles:
+                logging_reload.debug('Unable to read: {}'.format(f))
+            else:
+                logging_reload.debug(f)
+        logging_reload.info('Paths to be removed'.center(50, '-'))
+        for p in removepaths:
+            logging_reload.info(p)
+        logging_reload.info('-' * 50)
+
+        # remove the required paths from sys.path
         sys.path = newpaths
 
+        # Remove the modules from sys.modules so they are forced to be re-imported
         newmodules = {}
-
         for key, value in sys.modules.items():
             protected = False
             if key in symbols:
@@ -166,11 +197,17 @@ class ToolsEnvironment(QObject):
                 # sys.path manipulation, and any other module that exists
                 # outside the environment paths.
                 try:
-                    is_environment_package = path in value.__file__.lower()
-                except Exception:
-                    pass
+                    spath = self.normalizePath(value.__file__)
+                    should_remove = [
+                        x for x in removepaths if self.normalizePath(x) in spath
+                    ]
+                except Exception as e:
+                    logging_reload.debug('    no __file__: {}'.format(key))
                 else:
-                    if is_environment_package:
+                    if should_remove:
+                        logging_reload.debug(
+                            'module removed: {} "{}"'.format(key, value.__file__)
+                        )
                         sys.modules.pop(key)
 
         return True
@@ -726,6 +763,25 @@ class ToolsEnvironment(QObject):
             \return		<bool> success
         """
         blurdev.settings.registerPath(path)
+
+    def readEggLink(self, egg_link_file):
+        with open(egg_link_file, 'r') as file:
+            return file.readline().strip()
+
+    def getEggLinkList(self, path):
+        eggLinkList = []
+        if os.path.isdir(path):
+            eggLinkList = glob.glob(os.path.join(path, '*.egg-link'))
+        return eggLinkList
+
+    def getEggLinkPaths(self, path):
+        links = self.getEggLinkList(path)
+        paths = []
+        for link in links:
+            logging_reload.info('egg-link: {}'.format(link))
+            logging_reload.info('\t{}'.format(self.readEggLink(link)))
+            paths.append(self.readEggLink(link))
+        return paths
 
     def registerPaths(self):
         self.registerPath(self.path())
