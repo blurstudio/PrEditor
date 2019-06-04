@@ -459,6 +459,9 @@ class Core(QObject):
         # we should never remove main. If we do in specific cases it will prevent external tools from
         # running if they use "if __name__ == '__main__':" as __name__ will return None
         self.protectModule('__main__')
+        # Pillar is used by blurdev so reloading it breaks blurdev. Devs may have pillar
+        # in their tools virtualenv to aid in installing other pip packages.
+        self.protectModule('pillar')
 
         # instaniate Sentry client for core
         self.init_sentry()
