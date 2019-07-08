@@ -22,6 +22,7 @@ class Apps(EnumGroup):
     MotionBuilder = App(label='motionbuilder', traxName='MotionBuilder')
     Fusion = App(label='fusion', traxName='Fusion')
     Nuke = App(label='nuke', traxName='Nuke')
+    Houdini = App(label='houdini', traxName='Houdini')
     External = App(label='external', traxName='')
 
 

@@ -273,6 +273,8 @@ class Action(with_metaclass(_ActionMeta, object)):
             return Apps.XSI
         elif 'nuke' in _exe:
             return Apps.Nuke
+        elif 'houdini' in _exe:
+            return Apps.Houdini
         else:
             return Apps.External
 
