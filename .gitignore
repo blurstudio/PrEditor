@@ -14,6 +14,7 @@
 /docs/
 /venv/
 requirements.txt
+*.sublime-*
 
 # /blurdev
 /blurdev/version.txt
