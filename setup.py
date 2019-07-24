@@ -72,6 +72,7 @@ setup(
         'gui_scripts': [
             # Create executable items that work even if using virtualenv, or editable installs
             'treegrunt = blurdev.runtimes.treegrunt:main',
+            'treegrunt-tool = blurdev.runtimes.run_tool:main',
             'blurdev-protocol = blurdev.runtimes.protocol:main',
             'blurdev-logger = blurdev.runtimes.logger:main',
             'blurIDE = blurdev.runtimes.ide_editor:main',

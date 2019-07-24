@@ -5,6 +5,7 @@ __all__ = [
     'createShortcutBlurIDE',
     'createShortcutPythonLogger',
     'createShortcutTreegrunt',
+    'createShortcutTool',
 ]
 
 
@@ -41,6 +42,8 @@ def createShortcutPythonLogger(
         path (str or None, optional): Where to create the shortcut. If None(default) it will
             create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Python Logger'
+        target (str or None, optional): the target for the shortcut. If None(default)
+            this will default the blurdev-logger executable.
         description (str, optional): This text is shown as the comment for the shortcut.
         common (int): If auto generating the path, this controls which desktop the path
             is generated for. 1 is the public shared desktop, while 0(default) is the
@@ -66,6 +69,8 @@ def createShortcutBlurIDE(
         path (str or None, optional): Where to create the shortcut. If None(default) it will
             create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Blur IDE'
+        target (str or None, optional): the target for the shortcut. If None(default)
+            this will default the blurIDE executable.
         description (str, optional): This text is shown as the comment for the shortcut.
         common (int): If auto generating the path, this controls which desktop the path
             is generated for. 1 is the public shared desktop, while 0(default) is the
@@ -95,6 +100,8 @@ def createShortcutTreegrunt(
         path (str or None, optional): Where to create the shortcut. If None(default) it will
             create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Treegrunt'
+        target (str or None, optional): the target for the shortcut. If None(default)
+            this will default the treegrunt executable.
         description (str, optional): This text is shown as the comment for the shortcut.
         common (int): If auto generating the path, this controls which desktop the path
             is generated for. 1 is the public shared desktop, while 0(default) is the
@@ -107,5 +114,31 @@ def createShortcutTreegrunt(
         path=path,
         icon=_blurdev.resourcePath(r'img\treegrunt.ico'),
         description=description,
+        common=common,
+    )
+
+
+def createShortcutTool(
+    tool, path=None, target=None, common=0,
+):
+    """ Creates a shortcut that launches a treegrunt tool as a standalone application.
+
+    Args:
+        tool (blurdev.tools.tool.Tool): The tool this shortcut will launch.
+        path (str or None, optional): Where to create the shortcut. If None(default) it will
+            create the shortcut on the users Desktop.
+        target (str or None, optional): the target for the shortcut. If None(default)
+            this will default the treegrunt-tool executable.
+        common (int): If auto generating the path, this controls which desktop the path
+            is generated for. 1 is the public shared desktop, while 0(default) is the
+            users desktop.
+    """
+    _blurdev.osystem.createShortcut(
+        tool.displayName(),
+        tool.objectName(),
+        target=_scrips_path('treegrunt-tool.exe') if target is None else target,
+        path=path,
+        icon=tool.icon(),
+        description=tool.toolTip(),
         common=common,
     )

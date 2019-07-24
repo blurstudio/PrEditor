@@ -112,7 +112,7 @@ class Core(QObject):
         self._useAppUserModelID = None
         self._rootWindow = None
         # By default treegrunt and external core's will launch treegrunt tools in a
-        # subprocess. However blurdev\runtimes\run_tool.pyw needs to use the coreName
+        # subprocess. However the treegrunt-tool executable needs to use the coreName
         # of treegrunt to load the correct prefs, but launching a subprocess just
         # makes the final launching of the tool take longer.
         # Skip this by setting to True
@@ -250,15 +250,11 @@ class Core(QObject):
     def createToolMacro(self, tool, macro=''):
         """ Method to create macros for a tool, should be overloaded per core
         """
-        # Using run_tool makes it so the desktop shortcuts launch using the same
+        from ..utils import shortcut
+
+        # Using treegrunt-tool makes it so the desktop shortcuts launch using the same
         # treegrunt environment used by external treegrunt.
-        blurdev.osystem.createShortcut(
-            tool.displayName(),
-            (blurdev.runtime('run_tool.pyw'), tool.objectName()),
-            startin=blurdev.runtime(),
-            icon=tool.icon(),
-            description=tool.toolTip(),
-        )
+        shortcut.createShortcutTool(tool)
 
         return True
 
