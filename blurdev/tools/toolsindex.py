@@ -3,6 +3,8 @@ from __future__ import absolute_import
 import os
 import re
 import glob
+import shutil
+import tempfile
 
 try:
     # simplejson parses json faster than python 2.7's json module.
@@ -102,19 +104,12 @@ class ToolsIndex(QObject):
         # If a filename was not provided get the default
         if not filename:
             filename = self.filename()
-        xmlFilename = '{}.xml'.format(os.path.splitext(filename)[0])
-        jsonFilename = '{}.json'.format(os.path.splitext(filename)[0])
-
-        # Use the old xml method for building xml to preserve backwards compatibility
-        self._rebuildXML(filename=xmlFilename)
         # Build the new file so updated blurdev's can use it.
-        self._rebuildJson(filename=jsonFilename)
-
+        self._rebuildJson(filename=filename)
         if configFilename and blurdev.settings.OS_TYPE == 'Windows':
             # We only use config.ini on windows systems for maxscript
             if isinstance(configFilename, bool):
                 configFilename = os.path.join(os.path.dirname(filename), 'config.ini')
-            envName = self.parent().legacyName()
             envPath = self.parent().path()
             with blurdev.ini.temporaryDefaults():
                 blurdev.ini.SetINISetting(
@@ -142,23 +137,35 @@ class ToolsIndex(QObject):
     def _rebuildJson(self, filename):
         categories = {}
         tools = []
-
         # Add tools in each of the programming language tools folders
         for toolFolder in glob.glob(self.environment().relativePath('code/*/tools/')):
             self.rebuildPathJson(toolFolder, categories, tools)
-
         # Add tools in the legacy tool folder
         for path in glob.glob(
             self.environment().relativePath('maxscript/treeGrunt/Main/*/')
         ):
             self.rebuildPathJson(path, categories, tools, True)
-
-        # Save the output json file
+        # Prepare to save the JSON file to a temporary location.
+        dirname, basename = os.path.split(filename)
         # Use OrderedDict to build this so the json is saved consistently.
         output = OrderedDict(categories=categories)
         output['tools'] = tools
-        with open(filename, 'w') as f:
-            json.dump(output, f, indent=4)
+        name, extension = os.path.splitext(basename)
+
+        # Generating JSON index in a temporary location.
+        # Once succesfully generated we will copy the file where it needs to go.
+        with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
+            json.dump(output, fle, indent=4)
+            fle.seek(0)
+            with open(filename, 'w') as out:
+                shutil.copyfileobj(fle, out)
+            # TODO: Remove this block once everyone has versions 2.10.0.
+            if os.path.exists(os.path.join(dirname, 'code')):
+                # The read head is at the end of the file, move it back to the start of the
+                # file so we can copy it again.
+                fle.seek(0)
+                with open(os.path.join(dirname, 'code', basename), 'w') as out:
+                    shutil.copyfileobj(fle, out)
 
     def rebuildPathJson(
         self, path, categories, tools, legacy=False, parentCategoryId=None
@@ -294,57 +301,6 @@ class ToolsIndex(QObject):
             # if not (isResource or isMeta):
             if not os.path.split(path)[0].endswith('_resource'):
                 self.rebuildPathJson(path, categories, tools, legacy, categoryId)
-
-    def _rebuildXML(self, filename):
-        """ Legacy way to store the ToolsIndex. Use _rebuildJson instead
-        """
-        doc = blurdev.XML.XMLDocument()
-        root = doc.addNode('index')
-
-        # walk through the hierarchy
-        categoriesNode = root.addNode('categories')
-        categories = set()
-        tools = root.addNode('tools')
-        legacy = root.addNode('legacy')
-
-        # go through all the different language tool folders
-        # MCH 07/11/12: This is necessary for backwards compatibility until we switch over to the flat hierarchy
-        if os.path.isdir(
-            self.environment().relativePath('code/python/tools/External_Tools')
-        ):
-            # This is for the old tools system and is very blur specific
-            relPath = 'code/*/tools/*/'
-        else:
-            # This is for the new tools system
-            relPath = 'code/*/tools/'
-        for path in glob.glob(self.environment().relativePath(relPath)):
-            self.rebuildPath(path, categories, tools)
-
-        # go through the legacy folders
-        for path in glob.glob(
-            self.environment().relativePath('maxscript/treeGrunt/Main/*/')
-        ):
-            self.rebuildPath(path, categories, tools, True)
-        # process the categories into the final delivery node structure
-        parent = {}
-        for category in categories:
-            splits = category.split('::')
-            node = parent
-            for index in range(len(splits)):
-                name = '::'.join(splits[: index + 1])
-                node.setdefault(name, {})
-                node = node[name]
-        # and add them to the xml
-        def addChildren(node, data):
-            for key in data:
-                child = node.addNode('category')
-                child.setAttribute('name', key)
-                addChildren(child, data[key])
-
-        addChildren(categoriesNode, parent)
-
-        # save the index file
-        doc.save(filename)
 
     def rebuildPath(
         self,
@@ -508,17 +464,10 @@ class ToolsIndex(QObject):
             and (showDisabled or not tool.disabled())
         ]
 
-    def filename(self, forceJson=False):
+    def filename(self, **kwargs):
         """ returns the filename for this index
         """
-        jsonFilename = self.environment().relativePath('code/tools.json')
-        # TODO: remove /*
-        if forceJson or os.path.exists(jsonFilename):
-            # TODO: remove */
-            return jsonFilename
-        # TODO: remove /*
-        return self.environment().relativePath('code/tools.xml')
-        # TODO: remove */
+        return self.environment().relativePath('tools.json')
 
     def load(self, toolId=None):
         """ loads the current index from the system.
@@ -531,64 +480,39 @@ class ToolsIndex(QObject):
         """
         if not self._loaded:
             filename = self.filename()
-            # TODO: remove /*
-            if filename.endswith('.json'):
-                # TODO: remove */
-                self._loadJson(filename, toolId=toolId)
-            # TODO: remove /*
-            else:
-                self._loadXML(filename)
+            from blurdev.tools.toolscategory import ToolsCategory
+            from blurdev.tools.tool import Tool
 
-    def _loadJson(self, filename, toolId=None):
-        # TODO: remove */
-        from blurdev.tools.toolscategory import ToolsCategory
-        from blurdev.tools.tool import Tool
+            # Setting _loaded to True, makes sure that when each Tool object we
+            # create does not end triggering a call to load()
+            self._loaded = True
 
-        # Setting _loaded to True, makes sure that when each Tool object we
-        # create does not end triggering a call to load()
-        self._loaded = True
-        with open(filename) as f:
-            indexJson = json.load(f)
+            if not os.path.exists(filename):
+                return
 
-        # load categories
-        categories = indexJson.get('categories', {})
-        for topLevelCategory in categories:
-            ToolsCategory.fromIndex(
-                self, self, name=topLevelCategory, children=categories[topLevelCategory]
-            )
-
-        # load tools
-        tools = indexJson.get('tools', [])
-        loadAllTools = toolId is None
-        for tool in tools:
-            if not loadAllTools and tool['name'] != toolId:
-                continue
-            Tool.fromIndex(self, tool)
-        # If a toolId was passed in, we should not consider the tools index loaded.
-        # This would make it impossible to access any other tools
-        self._loaded = loadAllTools
-
-    # TODO: remove /*
-    def _loadXML(self, filename):
-        self._loaded = True
-        doc = blurdev.XML.XMLDocument()
-
-        if doc.load(filename):
-            root = doc.root()
+            with open(filename) as f:
+                indexJson = json.load(f)
 
             # load categories
-            categories = root.findChild('categories')
-            if categories:
-                for xml in categories.children():
-                    blurdev.tools.toolscategory.ToolsCategory.fromIndex(self, self, xml)
+            categories = indexJson.get('categories', {})
+            for topLevelCategory in categories:
+                ToolsCategory.fromIndex(
+                    self,
+                    self,
+                    name=topLevelCategory,
+                    children=categories[topLevelCategory],
+                )
 
             # load tools
-            tools = root.findChild('tools')
-            if tools:
-                for xml in tools.children():
-                    blurdev.tools.tool.Tool.fromIndex(self, xml)
-
-    # TODO: remove */
+            tools = indexJson.get('tools', [])
+            loadAllTools = toolId is None
+            for tool in tools:
+                if not loadAllTools and tool['name'] != toolId:
+                    continue
+                Tool.fromIndex(self, tool)
+            # If a toolId was passed in, we should not consider the tools index loaded.
+            # This would make it impossible to access any other tools
+            self._loaded = loadAllTools
 
     def loadFavorites(self):
         if not self._favoritesLoaded:
