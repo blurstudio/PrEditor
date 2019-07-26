@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 import re
 import glob
+import logging
 import shutil
 import tempfile
 
@@ -137,17 +138,23 @@ class ToolsIndex(QObject):
     def _rebuildJson(self, filename):
         categories = {}
         tools = []
-        # Add tools in each of the programming language tools folders
-        for toolFolder in glob.glob(self.environment().relativePath('code/*/tools/')):
-            self.rebuildPathJson(toolFolder, categories, tools)
-        # Add tools in the legacy tool folder
-        for path in glob.glob(
-            self.environment().relativePath('maxscript/treeGrunt/Main/*/')
-        ):
-            self.rebuildPathJson(path, categories, tools, True)
-        # Prepare to save the JSON file to a temporary location.
-        dirname, basename = os.path.split(filename)
+
+        # Add tools in each of the programming language tools folders.
+        path = self.environment().relativePath('code/python/tools/')
+        self.rebuildPathJson(path, categories, tools)
+
+        # Add tools in the legacy folder.
+        try:
+            import legacy
+
+            path = os.path.dirname(legacy.__file__)
+            for path in glob.glob(os.path.join(os.path.join(path, 'tools', '*'))):
+                self.rebuildPathJson(path, categories, tools, legacy=True)
+        except ImportError as error:
+            logging.error(error)
+
         # Use OrderedDict to build this so the json is saved consistently.
+        dirname, basename = os.path.split(filename)
         output = OrderedDict(categories=categories)
         output['tools'] = tools
         name, extension = os.path.splitext(basename)
@@ -159,7 +166,10 @@ class ToolsIndex(QObject):
             fle.seek(0)
             with open(filename, 'w') as out:
                 shutil.copyfileobj(fle, out)
-            # TODO: Remove this block once everyone has versions 2.10.0.
+
+            # Copying the tool index to the orignal location for backwards compatibility.
+            # Essentially host that will have the old blurdev will still look in the old place.
+            # TODO: Remove this block once everyone has versions 2.11.0.
             if os.path.exists(os.path.join(dirname, 'code')):
                 # The read head is at the end of the file, move it back to the start of the
                 # file so we can copy it again.
@@ -334,7 +344,7 @@ class ToolsIndex(QObject):
                     categories.add(categoryId)
                 node.setAttribute('category', categoryId)
             else:
-                print('Error loading tool: ', toolPath)
+                logging.error('Error loading tool: {}'.format(toolPath))
 
         def processLegacyXmlFiles(script, node, categoryId, xmls):
             """ If a matching xml file exists add its contents to the index """

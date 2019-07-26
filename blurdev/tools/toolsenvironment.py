@@ -497,23 +497,29 @@ class ToolsEnvironment(QObject):
         """
         name = env.objectName()
         legacy = env.legacyName()
-        envPath = env.path()
-        email = env.emailOnError()
         if not legacy:
             legacy = name
-        # update the config.ini file so next time we start from the correct environment.
-        codeRootPath = os.path.abspath(os.path.join(envPath, 'maxscript', 'treegrunt'))
-        if os.path.exists(codeRootPath):
-            blurdev.ini.SetINISetting(
-                blurdev.ini.configFile, legacy, 'codeRoot', codeRootPath
+
+        # Update the config.ini file so next time we start from the correct environment.
+        try:
+            import legacy
+
+            codeRootPath = os.path.abspath(
+                os.path.join(os.path.dirname(legacy.__file__))
             )
-            blurdev.ini.SetINISetting(
-                blurdev.ini.configFile,
-                legacy,
-                'startupPath',
-                os.path.abspath(os.path.join(envPath, 'maxscript', 'treegrunt', 'lib')),
-            )
-            blurdev.ini.LoadConfigData()
+            if os.path.exists(codeRootPath):
+                blurdev.ini.SetINISetting(
+                    blurdev.ini.configFile, legacy, 'codeRoot', codeRootPath,
+                )
+                blurdev.ini.SetINISetting(
+                    blurdev.ini.configFile,
+                    legacy,
+                    'startupPath',
+                    os.path.abspath(os.path.join(codeRootPath, 'lib')),
+                )
+                blurdev.ini.LoadConfigData()
+        except ImportError as error:
+            logging.error(error)
 
     @staticmethod
     def syncINI():
@@ -785,16 +791,13 @@ class ToolsEnvironment(QObject):
 
     def registerPaths(self):
         self.registerPath(self.path())
-        # make tools importable
+
+        # Make tools importable.
         self.registerPath(
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'tools')
         )
-        self.registerPath(
-            os.path.join(
-                blurdev.activeEnvironment().path(), 'maxscript', 'treegrunt', 'lib'
-            )
-        )
-        # make environment libs importable
+
+        # Make environment libs importable.
         self.registerPath(
             os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
         )
@@ -823,6 +826,15 @@ class ToolsEnvironment(QObject):
                 'site-packages',
             )
         )
+
+        # Make legacy lib importable.
+        try:
+            import legacy
+
+            path = os.path.dirname(legacy.__file__)
+            self.registerPath(os.path.join(path, 'lib'))
+        except ImportError as error:
+            logging.error(error)
 
         # If this environment has a project make sure we load the project settings
         self.activateProject()

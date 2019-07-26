@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
@@ -367,7 +368,7 @@ class StudiomaxCore(Core):
                     or iniEnvname != envname
                     or os.path.normpath(mxs.blurConfigFile) != env.configIni()
                 ):
-                    print (
+                    print(
                         'Switching maxscript environments from',
                         iniEnvname,
                         'To',
@@ -386,14 +387,13 @@ class StudiomaxCore(Core):
                     # config.ini if it exists, otherwise default to the standard c:\blur\config.ini
                     mxs.blurConfigFile = env.configIni()
                     try:
-                        mxs.filein(
-                            os.path.join(
-                                blurdev.ini.GetCodePath(), 'Lib', 'blurStartup.ms'
-                            )
-                        )
-                    except RuntimeError as error:
+                        import legacy
+
+                        path = os.path.dirname(legacy.__file__)
+                        mxs.filein(os.path.join(path, 'lib', 'blurStartup.ms'))
+                    except (RuntimeError, ImportError) as error:
                         # Show the error, but don't cause blurdev to fail to fully import.
-                        print error
+                        logging.error(error)
 
         # register standard paths
         return Core.registerPaths(self)
