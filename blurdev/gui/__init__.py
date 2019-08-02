@@ -17,12 +17,14 @@ from Qt.QtCore import Property
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QSplashScreen
 
+from .icon_factory import IconFactory
 from .window import Window
 from .dialog import Dialog
 from .dockwidget import DockWidget
 from .wizard import Wizard
 from functools import partial
 
+Icons = IconFactory()
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 

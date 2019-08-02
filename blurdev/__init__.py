@@ -41,6 +41,7 @@ import blurdev.XML
 import blurdev.prefs
 import blurdev.tools
 import blurdev.ini
+from blurdev.resource_finder import ResourceFinder as Resources
 
 
 installPath = os.path.dirname(__file__)
