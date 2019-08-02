@@ -62,7 +62,7 @@ setup(
         "Pygments==2.4.2",
         "sentry-sdk==0.10.2",
         "urllib3==1.25.3",
-        "blur-pillar>=0.5.0",
+        "blur-pillar>=0.7.0",
         "blur-recoil>=0.6.0",
         "blur-cute>=0.1.0",
     ],
