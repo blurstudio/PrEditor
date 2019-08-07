@@ -1,7 +1,7 @@
-from cute.icon_factory import IconFactory as PillarIconFactory
+from cute.icon_factory import IconFactory as CuteIconFactory
 
 
-class IconFactory(PillarIconFactory):
+class IconFactory(CuteIconFactory):
     def __init__(self):
         super(IconFactory, self).__init__()
 
@@ -9,4 +9,4 @@ class IconFactory(PillarIconFactory):
         from blurdev import Resources
 
         finder = ResourceFinder('icons', 'img', parent=Resources())
-        self._setFinders(finder, False)
+        self._configure(finders=finder)
