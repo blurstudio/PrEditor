@@ -15,6 +15,7 @@ recursive-include blurdev/traxoffline/trax/gui/dialogs/infodialog/ui *.ui
 recursive-include blurdev/gui *.ui
 recursive-include blurdev/gui *.png
 recursive-include blurdev/gui *.bmp
+recursive-include blurdev/gui *.yaml
 
 recursive-include blurdev/ide *.png
 recursive-include blurdev/ide *.ui
