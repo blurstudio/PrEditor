@@ -519,7 +519,7 @@ class ToolsEnvironment(QObject):
                 )
                 blurdev.ini.LoadConfigData()
         except ImportError as error:
-            logging.error(error)
+            logging.warning(error)
 
     @staticmethod
     def syncINI():
@@ -834,7 +834,7 @@ class ToolsEnvironment(QObject):
             path = os.path.dirname(legacy.__file__)
             self.registerPath(os.path.join(path, 'lib'))
         except ImportError as error:
-            logging.error(error)
+            logging.warning(error)
 
         # If this environment has a project make sure we load the project settings
         self.activateProject()
