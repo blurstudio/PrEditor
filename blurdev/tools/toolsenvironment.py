@@ -843,11 +843,13 @@ class ToolsEnvironment(QObject):
         ToolsEnvironment.initialized = True
 
     @classmethod
-    def packagePath(cls, package):
+    def packagePath(cls, package, raiseImportError=False):
         try:
             package = importlib.import_module(package)
             return os.path.dirname(package.__file__)
-        except ImportError:
+        except ImportError as error:
+            if raiseImportError:
+                raise error
             return ''
 
     @staticmethod
