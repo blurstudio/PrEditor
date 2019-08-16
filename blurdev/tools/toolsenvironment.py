@@ -15,6 +15,7 @@ import sys
 import re
 import datetime
 import logging
+import importlib
 
 from Qt.QtCore import QDateTime, QObject
 
@@ -840,6 +841,14 @@ class ToolsEnvironment(QObject):
         self.activateProject()
         # Some environment settings need to wait for the initial phase to be processed before proceeding
         ToolsEnvironment.initialized = True
+
+    @classmethod
+    def packagePath(cls, package):
+        try:
+            package = importlib.import_module(package)
+            return os.path.dirname(package.__file__)
+        except ImportError:
+            return ''
 
     @staticmethod
     def registerScriptPath(filename):
