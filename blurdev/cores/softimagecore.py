@@ -115,9 +115,7 @@ class SoftimageCore(Core):
         # create the options for the tool macro to run
         options = {
             'tool': tool.objectName(),
-            'displayName': os.environ.get('bdev_studio_name', '')
-            + 'TG_'
-            + tool.displayName().replace(' ', '_'),
+            'displayName': tool.displayName().replace(' ', '_'),
             'macro': macro,
             'tooltip': tool.displayName(),
             'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
