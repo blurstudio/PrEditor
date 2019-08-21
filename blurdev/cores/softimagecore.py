@@ -24,18 +24,18 @@ def XSILoadPlugin( in_reg ):
     in_reg.Name = "%(displayName)s"
     in_reg.Major = 1
     in_reg.Minor = 0
-    in_reg.RegisterCommand("%(displayName)s","%(displayName)s")
+    in_reg.RegisterCommand("%(displayName)s","%(commandName)s")
     return True
 
-def %(displayName)s_Init( in_ctxt ):
+def %(commandName)s_Init( in_ctxt ):
     oCmd = in_ctxt.Source
     oCmd.Description = "%(tooltip)s"
     oCmd.ReturnValue = False
     return True
 
-def %(displayName)s_Execute(  ):
+def %(commandName)s_Execute(  ):
     import blurdev
-    blurdev.runTool( "%(tool)s", "%(macro)s" )
+    blurdev.runTool( "%(toolName)s", "%(macro)s" )
 """
 
 
@@ -112,21 +112,27 @@ class SoftimageCore(Core):
         Overloads the createToolMacro virtual method from the Core class, this will create a command plugin for the
         Softimage application for the inputed Core tool
         """
+
+        # The command name and display name need to the same at the exception of spaces.
+        # TODO: Sanitize the display name in order to remove any potential characters that will not translate well to a command name.
+        displayName = tool.displayName().replace('_', ' ')
+        commandName = displayName.replace(' ', '')
+
         # create the options for the tool macro to run
         options = {
-            'tool': tool.objectName(),
-            'displayName': tool.displayName().replace(' ', '_'),
+            'toolName': tool.objectName(),
+            'displayName': displayName,
+            'commandName': commandName,
             'macro': macro,
             'tooltip': tool.displayName(),
-            'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
-            'author': os.environ.get('bdev_default_author_email'),
+            'author': 'Blur Studio',
         }
 
         # create the macroscript
         pluginsPath = os.path.join(
             xsi.GetInstallationPath2(constants.siUserPath), 'Application', 'Plugins'
         )
-        filename = os.path.join(pluginsPath, options['displayName'] + '.py')
+        filename = os.path.join(pluginsPath, tool.objectName().split(':')[-1] + '.py')
         f = open(filename, 'w')
         f.write(SOFTIMAGE_MACRO_TEMPLATE % options)
         f.close()
