@@ -57,7 +57,7 @@ class DocumentEditor(QsciScintilla):
     def __init__(self, parent, filename='', lineno=0):
         self._showSmartHighlighting = True
         self._smartHighlightingSupported = False
-        QsciScintilla.__init__(self, parent)
+        super(DocumentEditor, self).__init__(parent)
         self.setObjectName('DocumentEditor')
         self._speller = None
         self.initialSpellCheckComplete = False
@@ -105,7 +105,7 @@ class DocumentEditor(QsciScintilla):
         self.setSmartHighlightingRegEx()
 
         # intialize settings
-        self.initSettings()
+        self.initSettings(first_time=True)
 
         # set one time properties
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
@@ -699,9 +699,10 @@ class DocumentEditor(QsciScintilla):
         else:
             return super(DocumentEditor, self).keyReleaseEvent(event)
 
-    def initSettings(self):
+    def initSettings(self, first_time=False):
+        """ Set/reset settings using the IDE section settings.
+        """
         # grab the document settings config set
-
         configSet = IdeEditor.documentConfigSet()
 
         # set the document settings
@@ -709,7 +710,8 @@ class DocumentEditor(QsciScintilla):
 
         # set visibility settings
         self.setAutoIndent(section.value('autoIndent'))
-        self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
+        if first_time:
+            self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
         self.setTabIndents(section.value('tabIndents'))
         self.copyIndentsAsSpaces = section.value('copyIndentsAsSpaces')
         self.setTabWidth(section.value('tabWidth'))
