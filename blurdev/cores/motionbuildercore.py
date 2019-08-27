@@ -80,12 +80,19 @@ class MotionBuilderCore(Core):
         blurMenu.OnMenuActivate.Add(eventMenu)
         mgr.InsertLast('Blur', 'Treegrunt')
         # -------
-        mgr.InsertLast('Blur', '')  # Seperator
+        mgr.InsertLast('Blur', '')  # Separator
         mgr.InsertLast('Blur', 'Show Logger...')
         # -------
-        mgr.InsertLast('Blur', '')  # Seperator
+        mgr.InsertLast('Blur', '')  # Separator
         mgr.InsertLast('Blur', 'Show Toolbar...')
         mgr.InsertLast('Blur', 'Show Lovebar...')
+
+    def init(self):
+        """ Initializes the core system
+        """
+        ret = super(MotionBuilderCore, self).init()
+        self.initGui()
+        return ret
 
     def macroName(self):
         """
@@ -97,6 +104,14 @@ class MotionBuilderCore(Core):
         """ Qt should not be closed when the MayaCore has shutdown called
         """
         return False
+
+    def shutdownToolbars(self):
+        """ This core doesn't shutdown toolbar plugins.
+
+        If we shutdown the toolbar plugins, motion builder won't properly restore
+        their position and floating next time it's launched.
+        """
+        pass
 
     def toolTypes(self):
         """

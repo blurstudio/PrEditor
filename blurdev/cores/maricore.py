@@ -62,18 +62,6 @@ class MariCore(Core):
             self.shutdownToolbars()
         return super(MariCore, self).eventFilter(obj, event)
 
-    def lovebar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        hasInstance = ToolsLoveBar._instance != None
-        lovebar = ToolsLoveBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, lovebar)
-            parent.installEventFilter(self)
-        return lovebar
-
     def macroName(self):
         """
         Returns the name to display for the create macro action in treegrunt
@@ -87,40 +75,3 @@ class MariCore(Core):
         """
         output = blurdev.tools.tool.ToolType.Mari
         return output
-
-    def recordToolbarXML(self, pref):
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        if ToolsToolBar._instance:
-            toolbar = ToolsToolBar._instance
-            toolbar.toXml(pref.root())
-            child = pref.root().addNode('toolbardialog')
-            child.setAttribute('visible', toolbar.isVisible())
-
-    def showLovebar(self, parent=None):
-        self.lovebar(parent=parent).show()
-
-    def showToolbar(self, parent=None):
-        self.toolbar(parent=parent).show()
-
-    def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
-        """
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        ToolsToolBar.instanceShutdown()
-        ToolsLoveBar.instanceShutdown()
-
-    def toolbar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        hasInstance = ToolsToolBar._instance != None
-        toolbar = ToolsToolBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, toolbar)
-        return toolbar

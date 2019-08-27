@@ -78,5 +78,9 @@ setup(
             'blurdev-logger = blurdev.runtimes.logger:main',
             'blurIDE = blurdev.runtimes.ide_editor:main',
         ],
+        'blurdev.toolbars': [
+            'Favorites = blurdev.gui.toolbars.toolstoolbar:FavoritesToolbar',
+            'User = blurdev.gui.toolbars.toolstoolbar:UserToolbar',
+        ],
     },
 )

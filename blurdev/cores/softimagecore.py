@@ -46,7 +46,7 @@ class SoftimageCore(Core):
 
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'softimage'
-        Core.__init__(self, *args, **kargs)
+        super(SoftimageCore, self).__init__(*args, **kargs)
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
 
@@ -84,7 +84,9 @@ class SoftimageCore(Core):
         # load this file as a plugin for XSI
         xsi.LoadPlugin(__file__)
         # init the base class
-        return Core.init(self)
+        ret = super(SoftimageCore, self).init()
+        self.initGui()
+        return ret
 
     def macroName(self):
         """

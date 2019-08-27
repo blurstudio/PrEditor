@@ -25,6 +25,7 @@ import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 import blurdev.cores.application
 import blurdev.settings
+from blurdev.decorators import pendingdeprecation
 
 
 class Core(QObject):
@@ -111,6 +112,7 @@ class Core(QObject):
         self._headless = False
         self._useAppUserModelID = None
         self._rootWindow = None
+        self._toolbars = None
         # By default treegrunt and external core's will launch treegrunt tools in a
         # subprocess. However the treegrunt-tool executable needs to use the coreName
         # of treegrunt to load the correct prefs, but launching a subprocess just
@@ -441,7 +443,6 @@ class Core(QObject):
         """ Initializes the core system
         """
         ret = self.initCore()
-        self.initGui()
         return ret
 
     def initCore(self):
@@ -511,6 +512,9 @@ class Core(QObject):
 
     def initGui(self):
         """Initialize the portions of the core that require GUI initialization to have completed.
+
+        This function should be called by each subclass of Core if needed, or by
+        a dcc plugin implementation when it is safe to initialize gui objects.
         """
         self.restoreToolbars()
 
@@ -646,11 +650,6 @@ class Core(QObject):
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
-
-    def lovebar(self, parent=None):
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
-
-        return ToolsLoveBarDialog.instance(parent)
 
     def macroName(self):
         """
@@ -800,6 +799,10 @@ class Core(QObject):
         pref.save()
 
     def recordCoreSettings(self):
+        """ Returns a prefs object recording standard core settings.
+
+        This function does not actually save the preferences, you must call save.
+        """
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
         # record the tools environment
@@ -818,31 +821,14 @@ class Core(QObject):
         return pref
 
     def recordToolbars(self):
+        """ Records settings for all found toolbars.
+        """
         if self.headless:
             # If running headless, the toolbars were not created, and prefs don't need to be saved
             return
-        pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
 
-        # record the toolbar
-        child = pref.root().findChild('toolbardialog')
-
-        # remove the old instance
-        if child:
-            child.remove()
-
-        self.recordToolbarXML(pref)
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
-
-        if ToolsLoveBarDialog._instance:
-            ToolsLoveBarDialog._instance.recordSettings()
-
-        pref.save()
-
-    def recordToolbarXML(self, pref):
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-
-        if ToolsToolBarDialog._instance:
-            ToolsToolBarDialog._instance.toXml(pref.root())
+        for toolbar_class in self.toolbars():
+            toolbar_class.instanceRecordSettings()
 
     def refreshStyleSheet(self):
         """ Reload the current stylesheet to force a update of the display of widgets. """
@@ -985,36 +971,15 @@ class Core(QObject):
 
         return pref
 
-    def restoreToolbars(self, maxVersion=None):
-        """
-        Studiomax toolbars up to and including Max2016 have Dialog-based tool/lovebars and other DCC's including Max2018 are QToolbar-based.
-        
-        Max2016 Dialog toolbar "icons" are saved by calling ToolbarDialog.toXml(), which adds a toolbardialog child and
-        then passes the toolbardialog child to Toolbar.toXml().
-
-        Toolbar.toXml() adds another toolbardialog child and then adds "icons" to the nested toolbardialog child.
-        
-        As a result, this method needs to know which (if any) Max version is running and if it's Max2018+, look in the
-        nested toolbardialog child for "icons" because that's where Max2016 saved them.
-        
-            Args:
-                maxVersion (int): Autodesk Studiomax version
+    def restoreToolbars(self):
+        """ Create and restore the settings for any toolbar plugins.
         """
         if self.headless:
             # If running headless, do not try to create gui elements
             return
-        pref = blurdev.prefs.find('blurdev/toolbar', coreName=self.objectName())
-        # restore the toolbar
-        child = pref.root().findChild('toolbardialog')
-        if child:
-            if maxVersion and (maxVersion >= 20):
-                nestedToolbardialogChild = pref.root().findChild('toolbardialog')
-                self.toolbar().fromXml(nestedToolbardialogChild)
-            else:
-                self.toolbar().fromXml(pref.root())
-        pref = blurdev.prefs.find('tools/Lovebar', coreName=self.objectName())
-        if pref.restoreProperty('isVisible'):
-            self.showLovebar(parent=self.rootWindow())
+        for toolbar_class in self.toolbars():
+            toolbar = toolbar_class.instance(blurdev.core.rootWindow())
+            toolbar.restoreSettings()
 
     def rootWindow(self):
         """
@@ -1592,7 +1557,7 @@ class Core(QObject):
             # the app is not what we want to do. This saves prefs and closes any of the instance
             # windows if they are active
 
-            # Make sure to close the Toolbar and Lovebar
+            # Make sure to close the toolbar plugins
             self.shutdownToolbars()
             # Make sure to close Treegrunt
             from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
@@ -1604,33 +1569,43 @@ class Core(QObject):
             LoggerWindow.instanceShutdown()
 
     def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
+        """ Shutdown toolbar plugins.
         """
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
-
-        ToolsToolBarDialog.instanceShutdown()
-        ToolsLoveBarDialog.instanceShutdown()
+        for toolbar in self.toolbars():
+            toolbar.instanceShutdown()
 
     def showIdeEditor(self):
         from blurdev.ide.ideeditor import IdeEditor
 
         IdeEditor.instance().edit()
 
-    def showToolbar(self, parent=None):
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
-
-        ToolsToolBarDialog.instance(parent).show()
-
+    @pendingdeprecation("Use blurdev.core.showToolbar('Favorites')")
     def showLovebar(self, parent=None):
-        from blurdev.tools.toolslovebar import ToolsLoveBarDialog
-
-        ToolsLoveBarDialog.instance(parent).show()
+        """ TODO: Remove this function. It was left here so this code works with
+        existing dcc integration's. Remove it once these have been updated.
+        """
+        self.toolbar('Favorites').instance().show()
 
     def showPyular(self, parent=None):
         self.pyular(parent).show()
+
+    def showToolbar(self, name='User'):
+        """ Show a toolbar by its name.
+
+        Args:
+            name (str): The name of the toolbar to show.
+
+        Returns:
+            bool: If the toolbar was found and show called on it.
+        """
+        # TODO: name should not be optional. It is currently defaulting to User
+        # to emulate the old showToolbar method currently being used by dcc
+        # integration's. Remove it once these have been updated.
+        toolbar = self.toolbar(name)
+        if toolbar:
+            toolbar.instance().show()
+            return True
+        return False
 
     def showTreegrunt(self):
         treegrunt = self.treegrunt()
@@ -1704,10 +1679,35 @@ class Core(QObject):
         """
         return None
 
-    def toolbar(self, parent=None):
-        from blurdev.tools.toolstoolbar import ToolsToolBarDialog
+    def toolbar(self, name):
+        """ Returns the toolbar plugin class for the given name or None.
 
-        return ToolsToolBarDialog.instance(parent)
+        In most cases you will want to call ``.instance()`` on the return to get
+        the toolbar used in the application. If ``restoreToolbars``` was not called
+        you should pass the desired toolbar parent to ``.instance(parent)```.
+        """
+        for toolbar in self.toolbars():
+            if toolbar._name == name:
+                return toolbar
+        return None
+
+    def toolbars(self):
+        """ Returns a list of toolbars using the blurdev.toolbars entry_point.
+
+        All toolbars in the entry_point are added to the main window of the application.
+        To register a toolbar you need to add a ``blurdev.toolbars`` section in your
+        codes setup.py ``entry_point`` section. The key should match your toolbar's
+        _name property and the value should be ``the.import.path:ToolbarClass``. See
+        blurdev's setup.py for a example.
+        """
+        if self._toolbars is None:
+            # importing pkg_resources takes ~0.8 seconds only import it
+            # if we need to.
+            import pkg_resources
+
+            bars = pkg_resources.iter_entry_points('blurdev.toolbars')
+            self._toolbars = [entry_point.load() for entry_point in bars]
+        return self._toolbars
 
     def toolTypes(self):
         """

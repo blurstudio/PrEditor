@@ -302,7 +302,9 @@ class StudiomaxCore(Core):
         self.logger()
 
         # init the base class
-        return Core.init(self)
+        ret = super(StudiomaxCore, self).init()
+        self.initGui()
+        return ret
 
     def macroName(self):
         """
@@ -334,10 +336,6 @@ class StudiomaxCore(Core):
     def recordSettings(self):
         pref = self.recordCoreSettings()
         pref.recordProperty('supportLegacy', True)
-        if self.dccVersion >= 20:
-            # If Max2018+ (QToolbar based), save window state
-            rootWindowState = self.rootWindow().saveState()
-            pref.recordProperty('rootWindowState', rootWindowState)
         pref.save()
 
     def restoreSettings(self):
@@ -442,22 +440,6 @@ class StudiomaxCore(Core):
     def supportLegacy(self):
         return True
 
-    def lovebar(self, parent=None):
-        if self.dccVersion >= 20:
-            # If Max2018+ (QToolbar based)
-            if parent == None:
-                parent = self.rootWindow()
-            from blurdev.tools.toolslovebar import ToolsLoveBar
-
-            hasInstance = ToolsLoveBar._instance != None
-            lovebar = ToolsLoveBar.instance(parent)
-            if not hasInstance and isinstance(parent, QMainWindow):
-                parent.addToolBar(Qt.RightToolBarArea, lovebar)
-            return lovebar
-        else:
-            # If Max2016- (Dialog based)
-            return super(StudiomaxCore, self).lovebar(parent)
-
     def quitQtOnShutdown(self):
         """ Qt should not be closed when this core has shutdown called
         """
@@ -466,77 +448,8 @@ class StudiomaxCore(Core):
         else:
             return super(StudiomaxCore, self).quitQtOnShutdown()
 
-    def recordToolbarXML(self, pref):
-        if self.dccVersion >= 20:
-            from blurdev.tools.toolstoolbar import ToolsToolBar
-
-            if ToolsToolBar._instance:
-                toolbar = ToolsToolBar._instance
-                child = pref.root().addNode('toolbardialog')
-                toolbar.toXml(child)
-                child.setAttribute('visible', toolbar.isVisible())
-        else:
-            super(StudiomaxCore, self).recordToolbarXML(pref)
-
-    def restoreToolbars(self):
-        if self.dccVersion >= 20:
-            # If Max2018+ (QToolbar based)
-            super(StudiomaxCore, self).restoreToolbars(self.dccVersion)
-            # Restore window state
-            pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
-            rootWindowState = pref.restoreProperty('rootWindowState')
-            if (None is not rootWindowState) and isinstance(
-                rootWindowState, QByteArray
-            ):
-                self.rootWindow().restoreState(rootWindowState)
-        else:
-            # If Max2016- (Dialog based)
-            super(StudiomaxCore, self).restoreToolbars()
-
-    def showLovebar(self, parent=None):
-        if self.dccVersion >= 20:
-            self.lovebar(parent=parent).show()
-        else:
-            super(StudiomaxCore, self).showLovebar(parent)
-
-    def showToolbar(self, parent=None):
-        if self.dccVersion >= 20:
-            self.toolbar(parent=parent).show()
-        else:
-            super(StudiomaxCore, self).showToolbar(parent)
-
-    def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
-        """
-        if self.dccVersion >= 20:
-            from blurdev.tools.toolstoolbar import ToolsToolBar
-            from blurdev.tools.toolslovebar import ToolsLoveBar
-
-            ToolsToolBar.instanceShutdown()
-            ToolsLoveBar.instanceShutdown()
-        else:
-            super(StudiomaxCore, self).shutdownToolbars()
-
     def shutdown(self):
         super(StudiomaxCore, self).shutdown()
-
-    def toolbar(self, parent=None):
-        if self.dccVersion >= 20:
-            # If Max2018+ (QToolbar based)
-            if parent == None:
-                parent = self.rootWindow()
-            from blurdev.tools.toolstoolbar import ToolsToolBar
-
-            hasInstance = ToolsToolBar._instance != None
-            toolbar = ToolsToolBar.instance(parent)
-            if not hasInstance and isinstance(parent, QMainWindow):
-                parent.addToolBar(Qt.RightToolBarArea, toolbar)
-            return toolbar
-        else:
-            # If Max2016- (Dialog based)
-            return super(StudiomaxCore, self).toolbar(parent)
 
     def toolTypes(self):
         """

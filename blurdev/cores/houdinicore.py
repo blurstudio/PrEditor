@@ -1,10 +1,10 @@
-import re
+import atexit
 import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
 import hou
-from Qt.QtWidgets import QApplication, QMainWindow
-from Qt.QtCore import Qt
+import hdefereval
+from Qt import QtCompat
 
 
 class HoudiniCore(Core):
@@ -18,8 +18,7 @@ class HoudiniCore(Core):
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
         # Shutdown blurdev when Houdini closes
-        if QApplication.instance():
-            QApplication.instance().aboutToQuit.connect(self.shutdown)
+        atexit.register(self.shutdown)
 
     def addLibraryPaths(self, app):
         """ There is no need to add library paths for houdini """
@@ -36,6 +35,15 @@ class HoudiniCore(Core):
     def headless(self):
         """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
         return not hou.isUIAvailable()
+
+    def init(self):
+        """ Initializes the core system
+        """
+        ret = super(HoudiniCore, self).init()
+        # At this point Houdini has not created the main window.
+        # Delay blurdev's gui init till houdini is ready.
+        hdefereval.executeDeferred(self.initGui)
+        return ret
 
     def shouldReportException(self, exc_type, exc_value, exc_traceback):
         """
@@ -78,22 +86,28 @@ class HoudiniCore(Core):
         except RuntimeError:
             return ''
 
-    def lovebar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        hasInstance = ToolsLoveBar._instance != None
-        lovebar = ToolsLoveBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, lovebar)
-        return lovebar
-
     def macroName(self):
         """
         Returns the name to display for the create macro action in treegrunt
         """
-        return 'Add to Lovebar...'
+        return 'Add to Favorites...'
+
+    def rootWindow(self):
+        """
+        Returns the houdini main window cast to the correct Qt binding.
+        """
+        if self.headless or self._rootWindow is not None:
+            return self._rootWindow
+
+        mainWindow = hou.qt.mainWindow()
+        if mainWindow is None:
+            return None
+        # Cast the PySide2 object houdini returns to PyQt5
+        import PySide2.shiboken2
+
+        pointer = long(PySide2.shiboken2.getCppPointer(mainWindow)[0])
+        self._rootWindow = QtCompat.wrapInstance(pointer)
+        return self._rootWindow
 
     def toolTypes(self):
         """
@@ -102,45 +116,3 @@ class HoudiniCore(Core):
         """
         output = blurdev.tools.tool.ToolType.Houdini
         return output
-
-    def recordToolbarXML(self, pref):
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        if ToolsToolBar._instance:
-            toolbar = ToolsToolBar._instance
-            toolbar.toXml(pref.root())
-            child = pref.root().addNode('toolbardialog')
-            child.setAttribute('visible', toolbar.isVisible())
-
-    def restoreToolbars(self):
-        super(HoudiniCore, self).restoreToolbars()
-        # Restore the toolbar positions if they are visible
-        # maya.cmds.windowPref(restoreMainWindowState="startupMainWindowState")
-
-    def showLovebar(self, parent=None):
-        self.lovebar(parent=parent).show()
-
-    def showToolbar(self, parent=None):
-        self.toolbar(parent=parent).show()
-
-    def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
-        """
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        ToolsToolBar.instanceShutdown()
-        ToolsLoveBar.instanceShutdown()
-
-    def toolbar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        hasInstance = ToolsToolBar._instance != None
-        toolbar = ToolsToolBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, toolbar)
-        return toolbar

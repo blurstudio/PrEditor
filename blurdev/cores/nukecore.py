@@ -17,17 +17,14 @@ class NukeCore(Core):
         super(NukeCore, self).__init__(*args, **kargs)
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
-        # Shutdown blurdev when Nuke closes
-        if QApplication.instance():
-            QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    def init(self):
-        """Overload init to prevent gui-dependant initialization from occuring here.
-
-        We will need to call initGui later (in dcc.nuke.nukestartup) to initialize the
-        gui-dependant stuff.
+    def initGui(self):
         """
-        self.initCore()
+        initGui needs to be called by the nuke plugins so it gets called once the UI is created.
+        """
+        super(NukeCore, self).initGui()
+        # Shutdown blurdev when Nuke closes
+        self.rootWindow().installEventFilter(self)
 
     def createToolMacro(self, tool, macro=''):
         """
@@ -84,23 +81,11 @@ class NukeCore(Core):
 
     def eventFilter(self, obj, event):
         if event.type() == event.Close and obj == self.rootWindow():
-            # Because blurdev.core.shutdown() is triggered after the window has already been destroyed,
-            # we need to capture the close event and shutdown the toolbars here in order to successfully
-            # save preferences for them.
-            self.shutdownToolbars()
+            # Because QApplication.aboutToQuit is triggered after the window
+            # has already been destroyed, we need to capture the close event
+            # and shutdown blurdev here in order to successfully save prefs.
+            self.shutdown()
         return super(NukeCore, self).eventFilter(obj, event)
-
-    def lovebar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        hasInstance = ToolsLoveBar._instance != None
-        lovebar = ToolsLoveBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, lovebar)
-            parent.installEventFilter(self)
-        return lovebar
 
     def macroName(self):
         """
@@ -115,46 +100,3 @@ class NukeCore(Core):
         """
         output = blurdev.tools.tool.ToolType.Nuke
         return output
-
-    def recordToolbarXML(self, pref):
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        if ToolsToolBar._instance:
-            toolbar = ToolsToolBar._instance
-            toolbar.toXml(pref.root())
-            child = pref.root().addNode('toolbardialog')
-            child.setAttribute('visible', toolbar.isVisible())
-
-    def showLovebar(self, parent=None):
-        self.lovebar(parent=parent).show()
-
-    def showToolbar(self, parent=None):
-        self.toolbar(parent=parent).show()
-
-    def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
-        """
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        ToolsToolBar.instanceShutdown()
-        ToolsLoveBar.instanceShutdown()
-
-    def toolbar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        hasInstance = ToolsToolBar._instance != None
-        toolbar = ToolsToolBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.TopToolBarArea, toolbar)
-        return toolbar
-
-    # Eventually we will overload this to show the logger as a panel.  For now we'll let it be a floating window.
-    # def showLogger(self):
-    # 	"""
-    # 	Creates the python logger and displays it
-    # 	"""

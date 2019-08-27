@@ -34,16 +34,12 @@ class MayaCore(Core):
         """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
         return 'mayabatch' in os.path.basename(sys.executable).lower()
 
-    def lovebar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        hasInstance = ToolsLoveBar._instance != None
-        lovebar = ToolsLoveBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.RightToolBarArea, lovebar)
-        return lovebar
+    def init(self):
+        """ Initializes the core system
+        """
+        ret = super(MayaCore, self).init()
+        self.initGui()
+        return ret
 
     def macroName(self):
         """
@@ -56,25 +52,10 @@ class MayaCore(Core):
         """
         return False
 
-    def recordToolbarXML(self, pref):
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        if ToolsToolBar._instance:
-            toolbar = ToolsToolBar._instance
-            toolbar.toXml(pref.root())
-            child = pref.root().addNode('toolbardialog')
-            child.setAttribute('visible', toolbar.isVisible())
-
     def restoreToolbars(self):
         super(MayaCore, self).restoreToolbars()
         # Restore the toolbar positions if they are visible
         maya.cmds.windowPref(restoreMainWindowState="startupMainWindowState")
-
-    def showLovebar(self, parent=None):
-        self.lovebar(parent=parent).show()
-
-    def showToolbar(self, parent=None):
-        self.toolbar(parent=parent).show()
 
     def rootWindow(self):
         """
@@ -84,17 +65,6 @@ class MayaCore(Core):
         pointer = long(mui.MQtUtil.mainWindow())
         self._rootWindow = QtCompat.wrapInstance(pointer)
         return self._rootWindow
-
-    def shutdownToolbars(self):
-        """ Closes the toolbars and save their prefs if they are used
-        
-        This is abstracted from shutdown, so specific cores can control how they shutdown
-        """
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-        from blurdev.tools.toolslovebar import ToolsLoveBar
-
-        ToolsToolBar.instanceShutdown()
-        ToolsLoveBar.instanceShutdown()
 
     def shutdown(self):
         # We are using a autorun.bat script to create 30+ doskey aliases. When Maya is shutting
@@ -106,17 +76,6 @@ class MayaCore(Core):
             os.environ[varName] = 'true'
 
         super(MayaCore, self).shutdown()
-
-    def toolbar(self, parent=None):
-        if parent == None:
-            parent = self.rootWindow()
-        from blurdev.tools.toolstoolbar import ToolsToolBar
-
-        hasInstance = ToolsToolBar._instance != None
-        toolbar = ToolsToolBar.instance(parent)
-        if not hasInstance and isinstance(parent, QMainWindow):
-            parent.addToolBar(Qt.RightToolBarArea, toolbar)
-        return toolbar
 
     def toolTypes(self):
         """
