@@ -538,9 +538,7 @@ class ToolsIndex(QObject):
             self.load()
             self._favoritesLoaded = True
             # load favorites
-            pref = blurdev.prefs.find(
-                'treegrunt/%s_favorites' % (self.environment().objectName())
-            )
+            pref = blurdev.prefs.find('treegrunt/favorites')
             children = pref.root().children()
             for child in children:
                 if child.nodeName == 'group':
@@ -604,9 +602,7 @@ class ToolsIndex(QObject):
     def saveFavorites(self):
         # load favorites
         if self._favoritesLoaded:
-            pref = blurdev.prefs.find(
-                'treegrunt/%s_favorites' % (self.environment().objectName())
-            )
+            pref = blurdev.prefs.find('treegrunt/favorites')
             root = pref.root()
             root.clear()
 
