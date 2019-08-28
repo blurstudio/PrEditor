@@ -27,7 +27,7 @@ class ToolbarAction(QAction):
         super(ToolbarAction, self).__init__(parent)
         self.setIcon(QIcon(QPixmap(tool.image())))
         self.setText(tool.displayName())
-        self.setToolTip(tool.toolTip())
+        self.setToolTip(tool.toolTip(info=True))
 
     def tool(self):
         return self._tool

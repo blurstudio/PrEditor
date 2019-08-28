@@ -218,8 +218,17 @@ class Tool(QObject):
     def sourcefile(self):
         return self._sourcefile
 
-    def toolTip(self):
-        return self._toolTip
+    def toolTip(self, info=False):
+        if info:
+            if self._toolTip:
+                tip = self._toolTip.replace('\n', '<br>')
+                return '<b>{name}</b><br><br>{toolTip}'.format(
+                    name=self.displayName(), toolTip=tip
+                )
+            else:
+                return '<b>{name}</b>'.format(name=self.displayName())
+        else:
+            return self._toolTip
 
     def toolType(self):
         """ returns the toolType for this category
