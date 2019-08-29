@@ -178,7 +178,7 @@ class XMLElement:
         else:
             self.setAttribute('value', value)
             typ = type(value).__name__
-            if typ == 'unicode':
+            if typ in ('unicode', 'newstr'):
                 typ = 'str'
             self.setAttribute('type', typ)
 
@@ -241,7 +241,7 @@ class XMLElement:
             value.fromString(self.attribute('value'))
 
         # Restore a string
-        elif valtype in ('str', 'unicode', 'QString'):
+        elif valtype in ('str', 'unicode', 'newstr', 'QString'):
             value = self.attribute('value')
 
         elif valtype == 'ViewMode':
