@@ -5,9 +5,8 @@ from Qt.QtGui import QCursor, QIcon, QPixmap
 from Qt.QtWidgets import QAction, QMenu
 import blurdev
 from blurdev.gui.toolbars.blurdevtoolbar import BlurdevToolbar
-from blurdev.gui.icon_factory import IconFactory
+from blurdev.gui import IconFactory
 from blurdev.tools.tool import Tool
-from cute.icons.styledicon import StyledIcon
 
 
 class ToolbarAction(QAction):
@@ -71,7 +70,7 @@ class ToolsToolbar(BlurdevToolbar):
 
     def __init__(self, parent=None):
         super(ToolsToolbar, self).__init__(parent)
-        self._iconFactory = IconFactory().customize(icon_class=StyledIcon)
+        self._iconFactory = IconFactory().customize(icon_class='StyledIcon')
         self.setAcceptDrops(True)
         self.setIconSize(QSize(16, 16))
         self.setToolTip('Drag and drop Treegrunt tools.')
