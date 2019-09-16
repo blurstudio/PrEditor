@@ -3,28 +3,11 @@ from codecs import open
 import os
 import re
 import subprocess
-from setuptools.command.install import install
 import sys
-
-# Temporary until a blur-utils package is made
-import platform
-
-if 'Linux' == platform.system():
-    libPath = r'/mnt/source/code/python/lib/'
-else:
-    libPath = r'\\source\production\code\python\lib'
-if os.path.exists(os.path.join(libPath, 'blurutils')):
-    sys.path.append(libPath)
-else:
-    # BlurOffline fix
-    sys.path.append(r'C:\blur\dev\offline\code\python\lib')
-try:
-    import blurutils.version
-except ImportError:
-    raise
+from pillar.version import Version
 
 _dir = os.path.dirname(os.path.abspath(__file__))
-version = blurutils.version.Version(os.path.join(_dir, 'blurdev'))
+version = Version(os.path.join(_dir, 'blurdev'), 'blur-blurdev')
 
 # Get the long description from the README file
 with open(os.path.join(_dir, 'README.rst'), encoding='utf-8') as f:
