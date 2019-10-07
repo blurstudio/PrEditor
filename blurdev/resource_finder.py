@@ -15,7 +15,7 @@ class ResourceFinder(PillarResourceFinder):
         from pathlib2 import Path
 
         # Build blurdev resource finder.
-        path = Path(__file__).parents[1] / 'resource'
+        path = Path(__file__).parents[0] / 'resource'
         PillarResourceFinder('resources', str(path), parent=self)
 
         # Build library finder.
