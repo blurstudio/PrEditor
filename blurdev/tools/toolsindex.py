@@ -32,6 +32,7 @@ class ToolsIndex(QObject):
         self._loaded = False
         self._favoritesLoaded = False
         self._categoryCache = {}
+        self._departmentCache = set()
         self._toolCache = {}
 
     def baseCategories(self):
@@ -51,6 +52,7 @@ class ToolsIndex(QObject):
         self._favoritesLoaded = False
         self._loaded = False
         self._categoryCache.clear()
+        self._departmentCache.clear()
         self._toolCache.clear()
 
         # remove all the children
@@ -84,7 +86,12 @@ class ToolsIndex(QObject):
     def cacheTool(self, tool):
         """ caches the inputed tool by its name
         """
+        self._departmentCache.update(tool.departments())
         self._toolCache[str(tool.objectName())] = tool
+
+    def departments(self):
+        self.load()
+        return self._departmentCache
 
     def environment(self):
         """ returns this index's environment
@@ -222,6 +229,7 @@ class ToolsIndex(QObject):
             getPropertyFromXML('icon')
             getPropertyFromXML('tooltip', 'toolTip')
             getPropertyFromXML('wiki')
+            getPropertyFromXML('departments')
 
             types = xml.attribute('type')
             if types:
@@ -566,6 +574,26 @@ class ToolsIndex(QObject):
         self.load()
         output = [
             tool for tool in self._toolCache.values() if tool.categoryName() == name
+        ]
+        output.sort(
+            lambda x, y: cmp(str(x.objectName().lower()), str(y.objectName().lower()))
+        )
+        return output
+
+    def findToolsByDepartment(self, department):
+        """ looks up tools based on the provided department name.
+
+        Args:
+            department (str): The name of the department to find tools for.
+
+        Returns:
+            list: The tools with department in their departments field.
+        """
+        self.load()
+        output = [
+            tool
+            for tool in self._toolCache.values()
+            if department in tool.departments()
         ]
         output.sort(
             lambda x, y: cmp(str(x.objectName().lower()), str(y.objectName().lower()))

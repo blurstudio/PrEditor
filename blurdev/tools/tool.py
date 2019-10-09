@@ -56,6 +56,7 @@ class Tool(QObject):
         self._header = None
         self._disabled = False
         self._usagestatsEnabled = True
+        self._departments = []
 
     def architecture(self):
         """ This tool needs to run in this architecture (32bit or 64bit) when running externally
@@ -69,6 +70,17 @@ class Tool(QObject):
         if isinstance(architecture, basestring):
             architecture = int(architecture)
         self._architecture = architecture
+
+    def departments(self):
+        """ Return a list of department names that want easy access to this tool.
+        """
+        return list(self._departments)
+
+    def setDepartments(self, depts):
+        """ Set the list of department names that want easy access to this tool.
+        """
+        # Filter out empty string values from the list
+        self._departments = [d for d in depts if d]
 
     def disabled(self):
         return self._disabled
@@ -301,6 +313,7 @@ class Tool(QObject):
         output.setUsagestatsEnabled(data.get('usagestats', True))
         output.setArchitecture(data.get('architecture'))
         output.setRedistributable(data.get('redistributable', True))
+        output.setDepartments(data.get('departments', '').split(','))
 
         # Add the tool to the category or index
         category = index.findCategory(data.get('category'))
@@ -357,6 +370,7 @@ class Tool(QObject):
             output.setRedistributable(
                 data.findProperty('redistributable', 'true').capitalize() == 'True'
             )
+            output.setDepartments(data.findProperty('departments', '').split(','))
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))
