@@ -3,7 +3,6 @@ import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
 import hou
-import hdefereval
 from Qt import QtCompat
 
 
@@ -40,9 +39,13 @@ class HoudiniCore(Core):
         """ Initializes the core system
         """
         ret = super(HoudiniCore, self).init()
-        # At this point Houdini has not created the main window.
-        # Delay blurdev's gui init till houdini is ready.
-        hdefereval.executeDeferred(self.initGui)
+        if not self.headless:
+            # hdefereval is only available in a graphical Houdini
+            import hdefereval
+
+            # At this point Houdini has not created the main window.
+            # Delay blurdev's gui init till houdini is ready.
+            hdefereval.executeDeferred(self.initGui)
         return ret
 
     def shouldReportException(self, exc_type, exc_value, exc_traceback):
