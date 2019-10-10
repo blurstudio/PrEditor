@@ -25,10 +25,10 @@ class BlurdevToolbar(QToolBar):
             # if this is not a Qt app, we need to make the toolbar a "dialog"
             self.setWindowFlags(Qt.Tool)
 
-        @classmethod
-        def name(cls):
-            """ Returns the nice name of this toolbar. """
-            return self._name
+    @classmethod
+    def name(cls):
+        """ Returns the nice name of this toolbar. """
+        return self._name
 
     def preferences(self):
         return blurdev.prefs.find('blurdev/toolbar_{}'.format(self.objectName()))
