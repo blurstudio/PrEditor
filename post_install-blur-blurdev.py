@@ -158,9 +158,6 @@ def update_settings_ini():
     if not config.has_section('blurdev'):
         # if it does not exist, add blurdev section
         config.add_section('blurdev')
-    else:
-        # if it exists, the 'blurdev' section
-        config.remove_section('blurdev')
 
     day_of_week = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%a')
     month = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%b')
@@ -173,7 +170,6 @@ def update_settings_ini():
     seconds = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%S')
     year = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%Y')
 
-    config.add_section('blurdev')
     config.set(
         'blurdev',
         'installed',
