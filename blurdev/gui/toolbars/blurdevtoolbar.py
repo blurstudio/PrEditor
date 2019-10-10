@@ -28,7 +28,7 @@ class BlurdevToolbar(QToolBar):
     @classmethod
     def name(cls):
         """ Returns the nice name of this toolbar. """
-        return self._name
+        return cls._name
 
     def preferences(self):
         return blurdev.prefs.find('blurdev/toolbar_{}'.format(self.objectName()))
