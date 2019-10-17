@@ -3,6 +3,7 @@ import sys
 from Qt.QtWidgets import QApplication
 import pyfbsdk
 
+import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
 
@@ -53,39 +54,32 @@ class MotionBuilderCore(Core):
         Builds our menu for motion builder to launch treegrunt, logger, etc.
         """
 
+        toolbars = blurdev.core.toolbars()
+        toolbarNames = [toolbar.name() for toolbar in toolbars]
+
         def eventMenu(control, event):
             name = event.Name
-            import blurdev
-
             if name == "Treegrunt":
                 blurdev.core.showTreegrunt()
-            elif name == "Show Logger...":
+            elif name == "Python Logger":
                 blurdev.core.showLogger()
-            elif name == "Show Toolbar...":
-                blurdev.core.showToolbar()
-            elif name == "Show Lovebar...":
-                blurdev.core.showLovebar()
+
+        def eventToolbarsMenu(control, event):
+            name = event.Name
+            if name in toolbarNames:
+                blurdev.core.showToolbar(name)
 
         mgr = pyfbsdk.FBMenuManager()
-        blurMenu = mgr.GetMenu('Blur')
-        if blurMenu:
-            # remove all menus
-            item = blurMenu.GetFirstItem()
-            while item:
-                blurMenu.DeleteItem(item)
-                item = blurMenu.GetFirstItem()
-        else:
-            # create the menu
-            blurMenu = mgr.InsertBefore(None, 'Help', 'Blur').Menu
+        blurMenu = mgr.InsertBefore(None, 'Help', 'Blur').Menu
         blurMenu.OnMenuActivate.Add(eventMenu)
         mgr.InsertLast('Blur', 'Treegrunt')
-        # -------
-        mgr.InsertLast('Blur', '')  # Separator
-        mgr.InsertLast('Blur', 'Show Logger...')
-        # -------
-        mgr.InsertLast('Blur', '')  # Separator
-        mgr.InsertLast('Blur', 'Show Toolbar...')
-        mgr.InsertLast('Blur', 'Show Lovebar...')
+        mgr.InsertLast('Blur', 'Python Logger')
+        toolbarsMenu = mgr.InsertLast('Blur', 'Toolbars')
+        for toolbar in toolbars:
+            mgr.InsertLast('Blur/Toolbars', toolbar.name())
+
+        # This has to be after we added the items.
+        toolbarsMenu.Menu.OnMenuActivate.Add(eventToolbarsMenu)
 
     def init(self):
         """ Initializes the core system

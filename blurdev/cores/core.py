@@ -1706,7 +1706,12 @@ class Core(QObject):
             import pkg_resources
 
             bars = pkg_resources.iter_entry_points('blurdev.toolbars')
-            self._toolbars = [entry_point.load() for entry_point in bars]
+            # Remove duplicate toolbar definitions. If the pip package is found
+            # in sys.path it will show up more than once in bars.
+            # example key: `User = blurdev.gui.toolbars.toolstoolbar:UserToolbar`
+            entries = {str(entry_point): entry_point for entry_point in bars}
+            # Sort the entries alphabetically and resolve the imports
+            self._toolbars = [entries[key].load() for key in sorted(entries)]
         return self._toolbars
 
     def toolTypes(self):
