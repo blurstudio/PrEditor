@@ -78,7 +78,9 @@ class ToolsToolbar(BlurdevToolbar):
         # Create connections.
         self.actionTriggered.connect(self.runAction)
         blurdev.core.environmentActivated.connect(self.refresh)
+        blurdev.core.selectedToolTypesChanged.connect(self.updateToolVisibility)
         self.populate()
+        self.updateToolVisibility()
 
     def addAction(self, action):
         super(ToolsToolbar, self).addAction(action)
@@ -167,7 +169,10 @@ class ToolsToolbar(BlurdevToolbar):
             event.ignore()
 
     def populate(self):
-        """ This function should be subclassed to populate the toolbar.
+        """ This function should be sub-classed to populate the toolbar.
+
+        This function does not need to hide tools based on toolTypes, that
+        is taken care of by updateToolVisibility.
         """
         return False
 
@@ -186,6 +191,7 @@ class ToolsToolbar(BlurdevToolbar):
     def refresh(self):
         self.clear()
         self.populate()
+        self.updateToolVisibility()
         return True
 
     def removeAction(self, action):
@@ -215,6 +221,16 @@ class ToolsToolbar(BlurdevToolbar):
             if isinstance(action, ToolbarAction):
                 tools.append(action.tool())
         return tools
+
+    def updateToolVisibility(self):
+        """ Hides tool buttons that should not be visible based on user settings.
+
+        This hides the action but does not remove it. self.tools() will still return all
+        of the tools populate added to the toolbar.
+        """
+        for action in self.actions():
+            if hasattr(action, 'tool'):
+                action.setVisible(action.tool().isVisible())
 
 
 class FavoritesToolbar(ToolsToolbar):

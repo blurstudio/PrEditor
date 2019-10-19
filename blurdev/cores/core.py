@@ -39,8 +39,9 @@ class Core(QObject):
     debugLevelChanged = Signal()
     fileCheckedIn = Signal(str)
     fileCheckedOut = Signal(str)
-    aboutToClearPaths = Signal()  # emited before environment is changed or reloaded
+    aboutToClearPaths = Signal()  # Emitted before environment is changed or reloaded
     styleSheetChanged = Signal(str)
+    selectedToolTypesChanged = Signal()  # Emitted if selectedToolTypes is changed
 
     # ----------------------------------------------------------------
     # 3d Application Signals (common)
@@ -113,6 +114,7 @@ class Core(QObject):
         self._useAppUserModelID = None
         self._rootWindow = None
         self._toolbars = None
+        self._selected_tool_types = None
         # By default treegrunt and external core's will launch treegrunt tools in a
         # subprocess. However the treegrunt-tool executable needs to use the coreName
         # of treegrunt to load the correct prefs, but launching a subprocess just
@@ -1725,6 +1727,24 @@ class Core(QObject):
             if external.External().parentCore == 'fusion':
                 return ToolType.Fusion
         return ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
+
+    def selectedToolTypes(self):
+        """ Returns a user updated list of ToolTypes to show.
+        Returns self.toolTypes() if the user has not set selected tool types.
+        """
+        if self._selected_tool_types is None:
+            return self.toolTypes()
+        return self._selected_tool_types
+
+    def setSelectedToolTypes(self, tool_types):
+        """ Updates selectedToolTypes to the provided list of ToolTypes.
+
+        Args:
+            tool_types (blurdev.tools.tool.ToolType): One or more ToolTypes
+                |'ed together. None will reset to self.toolTypes()
+        """
+        self._selected_tool_types = tool_types
+        self.selectedToolTypesChanged.emit()
 
     def treegrunt(self, parent=None):
         """ Creates and returns the logger instance

@@ -3,8 +3,7 @@ from __future__ import absolute_import
 from past.builtins import basestring
 import os
 
-from Qt.QtCore import QObject, Qt
-from Qt.QtWidgets import QApplication
+from Qt.QtCore import QObject
 
 import blurdev
 from ..enum import enum
@@ -154,6 +153,18 @@ class Tool(QObject):
             ToolType.LegacyStudiomax,
             ToolType.LegacySoftimage,
         )
+
+    def isVisible(self):
+        """ Returns False if the tool should be hidden based on filters.
+
+        Returns:
+            bool: If the tool is disabled and ToolsEnvironment.showDisabledTools is False
+                returns False. If the none of the tools toolTypes are in
+                `blurdev.core.selectedToolTypes()` False is returned.
+        """
+        if not blurdev.tools.ToolsEnvironment.showDisabledTools and self.disabled():
+            return False
+        return self.toolType() & blurdev.core.selectedToolTypes()
 
     def index(self):
         """ returns the index from which this category is instantiated
