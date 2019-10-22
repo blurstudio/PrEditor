@@ -6,8 +6,7 @@ class IconFactory(CuteIconFactory):
     """Subclass that adds finders for the production library's and blurdev's icons. Also loads preset file.
     """
 
-    def __init__(self):
-        super(IconFactory, self).__init__()
+    def __init__(self, **kwargs):
 
         from pillar.resource_finder import ResourceFinder
         from blurdev import Resources
@@ -39,4 +38,7 @@ class IconFactory(CuteIconFactory):
         presets_file = local_path / 'icon_presets.yaml'
 
         # Add finders to IconFactory.
-        self._configure(finders=finders, presets=str(presets_file))
+        super(IconFactory, self).__init__(finders=finders, presets=str(presets_file))
+
+        # Allow passed kwargs to override settings.
+        self._configure(**kwargs)

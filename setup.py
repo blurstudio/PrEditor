@@ -47,7 +47,7 @@ setup(
         "urllib3==1.25.3",
         "blur-pillar>=0.8.0",
         "blur-recoil>=0.6.0",
-        "blur-cute>=0.8.0",
+        "blur-cute>=0.14.0",
     ],
     include_package_data=True,
     author='Blur Studio',
