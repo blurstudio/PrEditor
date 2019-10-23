@@ -12,6 +12,8 @@ class NukeCore(Core):
     This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Nuke sessions
     """
 
+    ignore_messages = set(['Cancelled', 'No nodes selected'])
+
     def __init__(self, *args, **kargs):
         kargs['objectName'] = 'nuke'
         super(NukeCore, self).__init__(*args, **kargs)
@@ -57,7 +59,7 @@ class NukeCore(Core):
             dict: booleon values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
-        if isinstance(exc_value, RuntimeError) and exc_value.message == "Cancelled":
+        if isinstance(exc_value, RuntimeError) and exc_value.message in ignore_messages:
             return dict(email=False, prompt=False, sentry=False)
 
         return super(NukeCore, self).shouldReportException(
