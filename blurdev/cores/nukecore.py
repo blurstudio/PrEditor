@@ -59,7 +59,10 @@ class NukeCore(Core):
             dict: booleon values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
-        if isinstance(exc_value, RuntimeError) and exc_value.message in ignore_messages:
+        if (
+            isinstance(exc_value, RuntimeError)
+            and exc_value.message in self.ignore_messages
+        ):
             return dict(email=False, prompt=False, sentry=False)
 
         return super(NukeCore, self).shouldReportException(
