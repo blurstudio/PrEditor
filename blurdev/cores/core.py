@@ -1726,7 +1726,7 @@ class Core(QObject):
 
             if external.External().parentCore == 'fusion':
                 return ToolType.Fusion
-        return ToolType.External | ToolType.Fusion | ToolType.LegacyExternal
+        return ToolType.External | ToolType.LegacyExternal
 
     def selectedToolTypes(self):
         """ Returns a user updated list of ToolTypes to show.
