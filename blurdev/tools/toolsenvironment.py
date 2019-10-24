@@ -211,6 +211,14 @@ class ToolsEnvironment(QObject):
                         )
                         sys.modules.pop(key)
 
+        try:
+            # Clear the cached imports in blur.Projects if supported
+            import blur.Projects
+
+            blur.Projects.clearImportCache()
+        except (ImportError, AttributeError):
+            pass
+
         return True
 
     @customize
