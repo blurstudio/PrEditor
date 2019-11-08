@@ -303,7 +303,6 @@ class StudiomaxCore(Core):
 
         # init the base class
         ret = super(StudiomaxCore, self).init()
-        self.initGui()
         return ret
 
     def macroName(self):
