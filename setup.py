@@ -48,6 +48,7 @@ setup(
         "blur-pillar>=0.13.0",
         "blur-recoil>=0.6.0",
         "blur-cute>=0.14.0",
+        "python-redmine>=2.2.1",
         "Deprecated>=1.2.6",
     ],
     include_package_data=True,
