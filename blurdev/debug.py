@@ -50,7 +50,7 @@ from Qt.QtCore import Qt
 import blurdev
 import blurdev.debug
 from blurdev.contexts import ErrorReport
-from blurdev.decorators import pendingdeprecation
+from deprecated import deprecated
 
 from .enum import enum
 
@@ -480,7 +480,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
         self.stop_lap(sstart)
         return self.start_lap(message, **kwargs)
 
-    @pendingdeprecation('Use new_lap instead.')
+    @deprecated(version='2.23.0', reason='Use new_lap instead.')
     def newLap(self, message):
         return self.new_lap(message)
 
@@ -700,7 +700,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
 
         return child
 
-    @pendingdeprecation('Use start_lap instead.')
+    @deprecated(version='2.23.0', reason='Use start_lap instead.')
     def startLap(self, message):
         return self.start_lap(message)
 
@@ -753,7 +753,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
                 child.stop(end)
                 break
 
-    @pendingdeprecation('Use stop_lap instead.')
+    @deprecated(version='2.23.0', reason='Use stop_lap instead.')
     def stopLap(self):
         return self.stop_lap()
 
