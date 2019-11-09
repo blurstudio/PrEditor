@@ -63,6 +63,11 @@ setup(
             'blurdev-logger = blurdev.runtimes.logger:main',
             'blurIDE = blurdev.runtimes.ide_editor:main',
         ],
+        'console_scripts': [
+            # Launch the blurdev-logger in a console mode so we can debug why the gui_scripts
+            # are not running if there is a pip dependency version issue.
+            'blurdev-console = blurdev.runtimes.logger:main',
+        ],
         'blurdev.toolbars': [
             'Favorites = blurdev.gui.toolbars.toolstoolbar:FavoritesToolbar',
             'User = blurdev.gui.toolbars.toolstoolbar:UserToolbar',
