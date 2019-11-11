@@ -152,7 +152,7 @@ class Core(QObject):
         from Qt import __binding__, __binding_version__, __version__ as qtpyVersion
 
         msg = [
-            'blurdev: {}'.format(blurdev.version.toString()),
+            'blurdev: {}'.format(blurdev.version.to_string()),
             '    {}'.format(os.path.dirname(blurdev.__file__)),
         ]
         # When trax is imported it creates this env var for error reporting.

@@ -31,7 +31,7 @@ from Qt.QtCore import Qt, QDateTime
 # TODO: It is probably unnecessary to import most of these subpackages in the root package.
 import blurdev.version
 
-__version__ = blurdev.version.toString(prepend_v=False)
+__version__ = blurdev.version.to_string(prepend_v=False)
 import blurdev.settings
 import blurdev.enum
 import blurdev.debug
@@ -153,7 +153,7 @@ def runtime(*args):
 
 
 def init():
-    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.version.toString()
+    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.version.to_string()
     pythonw_print_bugfix()
     blurdev.settings.init()
     blurdev.ini.LoadConfigData()

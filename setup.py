@@ -39,7 +39,7 @@ setup(
     install_requires=[
         # Please keep list alphabetical
         'blur-cute>=0.14.0',
-        'blur-pillar>=0.13.0',
+        'blur-pillar>=0.16.0',
         'blur-recoil>=0.6.0',
         'certifi==2019.9.11',
         'configparser==4.0.2',

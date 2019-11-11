@@ -58,7 +58,7 @@ class IdeAboutDialog(Dialog):
 
         # create the about html
         options = {}
-        options['version'] = blurdev.version.toString()
+        options['version'] = blurdev.version.to_string()
         options['credits'] = ''.join(
             [
                 '<tr><td>%s</td><td> . </td><td align="center">%s</td><td> . </td><td>%s</td>'
