@@ -86,11 +86,12 @@ class _StopwatchMeta(type):
         # Try to get the calling object ourselves if not provided.
         if obj is None:
             fback = inspect.currentframe().f_back
-            flocals = fback.f_locals
-            inst = flocals.get('self')
-            name = fback.f_code.co_name
-            if inst:
-                obj = getattr(inst, name)
+            if fback is not None:
+                flocals = fback.f_locals
+                inst = flocals.get('self')
+                name = fback.f_code.co_name
+                if inst:
+                    obj = getattr(inst, name)
 
         inst = None
         if obj:
