@@ -2,6 +2,7 @@ from Qt.QtGui import QBrush, QColor
 from Qt.QtWidgets import QComboBox, QStyledItemDelegate
 from Qt.QtCore import Qt, Property
 import blurdev
+from blurdev.tools import ToolsEnvironment
 
 
 class EnvComboBoxDelegate(QStyledItemDelegate):
@@ -60,6 +61,11 @@ class EnvComboBox(QComboBox):
         self.setItemDelegate(EnvComboBoxDelegate(self))
         self.currentIndexChanged.connect(self.updateColors)
         blurdev.core.styleSheetChanged.connect(self.updateColors)
+        self.refresh()
+
+    def currentEnvironment(self):
+        """ Returns the currently selected blurdev.tools.ToolsEnvironment. """
+        return self.itemData(self.currentIndex(), Qt.UserRole)
 
     def defaultEnv(self):
         model = self.model()
@@ -87,6 +93,39 @@ class EnvComboBox(QComboBox):
             else:
                 model.setData(index, False, self.DefaultEnvRole)
         self.updateColors()
+
+    def refresh(self):
+        """ Update the list of available treegrunt environments. """
+        self.blockSignals(True)
+        current_env = self.currentEnvironment()
+        self.clear()
+        envs = ToolsEnvironment.environments
+        # Sort alphabetically ignoring case, but put default environments at the top.
+        envs = sorted(envs, key=lambda i: (not i.isDefault(), i.objectName().lower()))
+        for env in envs:
+            self.addItem(env.objectName(), env)
+
+        # Update the environment colors
+        self.setDefaultEnv(ToolsEnvironment.defaultEnvironment().objectName())
+        # Restore the selected current environment
+        self.setCurrentEnvironment(current_env)
+        self.blockSignals(False)
+
+    def setCurrentEnvironment(self, env):
+        """ Set the current environment.
+
+        Args:
+            env (ToolsEnvironment or str): You can pass the name of the tools environment
+                or the environment itself. If a invalid env is selected
+        """
+        if isinstance(env, ToolsEnvironment):
+            index = self.findData(env, Qt.UserRole)
+        else:
+            index = self.findText(env)
+        # If a invalid environment was passed, use the default environment.
+        if index == -1:
+            index = self.findText(self.defaultEnv())
+        self.setCurrentIndex(index)
 
     def updateColors(self):
         """ Update the defaultActive property and force the stylesheet to refresh """
