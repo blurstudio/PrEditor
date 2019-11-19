@@ -106,9 +106,13 @@ class HoudiniCore(Core):
         if mainWindow is None:
             return None
         # Cast the PySide2 object houdini returns to PyQt5
-        import PySide2.shiboken2
+        try:
+            from PySide2 import shiboken2
+        except ImportError:
+            # Houdini 18+ have shiboken as a module separate from PySide2.
+            import shiboken2
 
-        pointer = long(PySide2.shiboken2.getCppPointer(mainWindow)[0])
+        pointer = long(shiboken2.getCppPointer(mainWindow)[0])
         self._rootWindow = QtCompat.wrapInstance(pointer)
         return self._rootWindow
 
