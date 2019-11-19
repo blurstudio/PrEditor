@@ -47,7 +47,7 @@ setup(
         'future==0.18.2',
         'Jinja2==2.10.3',
         'MarkupSafe==1.1.1',
-        'python-redmine>=2.2.1',
+        'python-redmine>=2.1.1',
         'Pygments==2.4.2',
         'sentry-sdk==0.13.2',
         'urllib3==1.25.7',
