@@ -296,6 +296,9 @@ def createShortcut(
             )
         blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
 
+        # Attempt to clear the windows icon cache so icon changes are displayed now
+        subprocess.Popen(['ie4uinit.exe', '-ClearIconCache'])
+
 
 def explore(filename, dirFallback=False):
     """ Launches the provided filename in the prefered editor for the specific platform.
