@@ -156,6 +156,11 @@ class Action(with_metaclass(_ActionMeta, object)):
         """The action's child actions."""
         return self._childActions
 
+    def kwargs(self):
+        """Returns key value pairs of argproperties.
+        """
+        return {pd._name: pd.getValue() for pd in self.getDescriptors()}
+
     def addChildActions(self, children):
         """Adds an `Action` to this action's list of child actions.
 
