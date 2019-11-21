@@ -101,10 +101,16 @@ class PythonCompleter(QCompleter):
 
         # collect the object
         object, prefix = self.currentObject(scope, docMode=True)
-        if object:
-            docs = inspect.getdoc(object)
-            if docs:
-                QToolTip.showText(pos, docs)
+
+        # not all objects allow `if object`, so catch any errors
+        # Specifically, numpy arrays fail with ValueError here
+        try:
+            if object:
+                docs = inspect.getdoc(object)
+                if docs:
+                    QToolTip.showText(pos, docs)
+        except Exception:
+            pass
 
     def setEnabled(self, state):
         self._enabled = state
