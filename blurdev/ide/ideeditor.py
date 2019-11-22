@@ -1995,7 +1995,7 @@ class IdeEditor(Window):
                     blurdev.core.objectName().capitalize(),
                     projtext,
                     path,
-                    version.toString(),
+                    version.to_string(),
                 )
             )
             self.uiLanguageDDL.blockSignals(True)
@@ -2005,7 +2005,11 @@ class IdeEditor(Window):
         else:
             self.setWindowTitle(
                 '%s | %s - %s'
-                % (blurdev.core.objectName().capitalize(), projtext, version.toString())
+                % (
+                    blurdev.core.objectName().capitalize(),
+                    projtext,
+                    version.to_string(),
+                )
             )
             self.uiLanguageDDL.blockSignals(True)
             self.uiLanguageDDL.setCurrentLanguage('')
