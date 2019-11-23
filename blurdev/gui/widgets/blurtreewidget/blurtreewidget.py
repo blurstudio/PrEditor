@@ -164,6 +164,27 @@ class BlurTreeWidget(LockableTreeWidget):
         # create connections
         self.destroyed.connect(self.aboutToBeDestroyed)
 
+    def __call_delegate__(self, name, *args, **kwargs):
+        """ Attempt to call a delegate override method if implemented.
+
+        Args:
+            name (str): The name of the function being called. This does
+                not include the identifierName.
+
+        Returns:
+            Returns the return of the delegate or super call or None if no method
+            could be called.
+        """
+        identifier = self.identifierName(name)
+        if self._delegate and hasattr(self._delegate, identifier):
+            funct = getattr(self._delegate, identifier)
+            if 'tree' in funct.func_code.co_varnames:
+                kwargs['tree'] = self
+            return funct(*args, **kwargs)
+        superclass = super(BlurTreeWidget, self)
+        if hasattr(superclass, name):
+            return getattr(superclass, name)(*args, **kwargs)
+
     def aboutToBeDestroyed(self):
         """ Prevent crashes due to "delete loops" """
         self._delegate = None
@@ -237,59 +258,46 @@ class BlurTreeWidget(LockableTreeWidget):
         return self._delegate
 
     def drawBranches(self, painter, rect, index):
+        """ Draws the branches in the tree view on the same row as the model item index,
+        using the painter given.The branches are drawn in the specified by rect.
+
+        Args:
+            painter (Qt.QtGui.QPainter):
+            rect (Qt.QtCore.QRect):
+            index (Qt.QtCore.QModelIndex):
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-            :remarks	Overloaded. If you add this function to the delegate you can override drawBranches.
-                        Draws the branches in the tree view on the same row as the model item index, using 
-                        the painter given. The branches are drawn in the rectangle specified by rect.
-            :param		painter		<QPainter>
-            :param		rect		<QRect>
-            :param		index		<QModelIndex>
-        """
-        name = self.identifierName('drawBranches')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                funct(painter, rect, index, self)
-            else:
-                funct(painter, rect, index)
-        else:
-            super(BlurTreeWidget, self).drawBranches(painter, rect, index)
+        self.__call_delegate__('drawBranches', painter, rect, index)
 
     def drawRow(self, painter, option, index):
+        """ Draws the row in the tree view that contains the model item index, using the
+        painter given.
+
+        Args:
+            painter (Qt.QtGui.QPainter):
+            rect (Qt.QtCore.QRect):
+            index (Qt.QtCore.QModelIndex):
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-            :remarks	Overloaded. If you add this function to the delegate you can override drawRow.
-                        Draws the row in the tree view that contains the model item index, using the 
-                        painter given. The option control how the item is displayed.
-            :param		painter		<QPainter>
-            :param		rect		<QStyleOptionViewItem>
-            :param		index		<QModelIndex>
-        """
-        name = self.identifierName('drawRow')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                funct(painter, option, index, self)
-            else:
-                funct(painter, option, index)
-        else:
-            super(BlurTreeWidget, self).drawRow(painter, option, index)
+        self.__call_delegate__('drawRow', painter, option, index)
 
     def dropEvent(self, event):
+        """ Handle drop events.
+
+        Args:
+            event (Qt.QtGui.QDropEvent):
+
+        Returns:
+            Qt.QtCore.QMimeData:
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-            :remarks	Overloaded. If you add this function to the delegate you can override the dropEvent handling.
-            :param		items		<list>
-            :return		<QMimeData>
-        """
-        name = self.identifierName('dropEvent')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                data = funct(event, self)
-            else:
-                data = funct(event)
-        else:
-            data = super(BlurTreeWidget, self).dropEvent(event)
-        return data
+        return self.__call_delegate__('dropEvent', event)
 
     def enableGridDelegate(self, enable):
         if enable:
@@ -494,21 +502,18 @@ class BlurTreeWidget(LockableTreeWidget):
             return True
 
     def mimeData(self, items):
+        """ Returns a object containing a serialized description of the specified items.
+
+        Args:
+            items (list): Items to generate the mimeData for.
+
+        Returns:
+            Qt.QtCore.QMimeData:
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-            :remarks	Overloaded. If you add this function to the delegate you can override the mimeData for drag events.
-            :param		items		<list>
-            :return		<QMimeData>
-        """
-        name = self.identifierName('mimeData')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                data = funct(items, self)
-            else:
-                data = funct(items)
-        else:
-            data = super(BlurTreeWidget, self).mimeData(items)
-        return data
+        return self.__call_delegate__('mimeData', items)
 
     def mimeTypes(self):
         """ Define the accepted mimeTypes for this tree widget.
@@ -518,17 +523,11 @@ class BlurTreeWidget(LockableTreeWidget):
         
         Returns:
             list: A list of mime types this tree view accepts.
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-        name = self.identifierName('mimeTypes')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                data = funct(self)
-            else:
-                data = funct()
-        else:
-            data = super(BlurTreeWidget, self).mimeTypes()
-        return data
+        return self.__call_delegate__('mimeTypes')
 
     def prefName(self, name):
         """
@@ -704,6 +703,43 @@ class BlurTreeWidget(LockableTreeWidget):
         QTreeWidget.setColumnCount(self, columns)
 
     def setDelegate(self, delegate):
+        """ Sets a override delegate for this tree and its ItemDelegate. This allows you
+        to override methods without needing to subclass them.
+
+        All override delegate methods implemented should take a tree argument as the
+        last argument or keyword argument. This will provide you with the BlurTreeWidget
+        that this method is being called by.
+
+        Example::
+
+            from Qt.QtWidgets import QDialog, QVBoxLayout, QTreeWidgetItem
+            from blurdev.gui.widgets.blurtreewidget import BlurTreeWidget
+            class MyDialog(QDialog):
+                def __init__(self, parent=None):
+                    super(MyDialog, self).__init__(parent=parent)
+                    self.uiMainTREE = BlurTreeWidget(self)
+                    lyt = QVBoxLayout(self)
+                    lyt.addWidget(self.uiMainTREE)
+                    item = QTreeWidgetItem(self.uiMainTREE, ['parent'])
+                    self.uiMainTREE.expandAll()
+                    # Register this class as the override delegate
+                    self.uiMainTREE.setDelegate(self)
+
+                def drawBranches(self, painter, rect, index, tree):
+                    ''' Adjust alpha for background of tree branches.
+                    The `tree` variable is added to the method signature
+                    of all override delegates so you can use more than one
+                    BlurTreeWidget in the same class.
+                    '''
+                    c = tree.itemFromIndex(index).backgroundColor(0)
+                    c.setAlpha(128)
+                    painter.fillRect(rect, c)
+                    # Super can be called but note that it is on the tree not self
+                    super(BlurTreeWidget, tree).drawBranches(painter, rect, index)
+
+            dlg = MyDialog()
+            dlg.show()
+        """
         self._delegate = delegate
         self.setGridsDelegate(delegate)
 
@@ -811,9 +847,13 @@ class BlurTreeWidget(LockableTreeWidget):
 
     @Slot()
     def showHeaderMenu(self):
-        """
-            :remarks	Shows the header menu if the header menu is enabled. It populates the menu with column visiblity if this is enabled.
-                        If a delegate is set, it will pass the menu item to headerMenu( menu ). You can customize the menu in this delegate function, headerMenu( menu ) must return a <bool> if the menu is to be shown
+        """ Shows the header menu if the header menu is enabled. It populates the menu
+        with column visibility if this is enabled. If a delegate is set, it will pass
+        the menu item to `headerMenu(menu)`. You can customize the menu in this delegate
+        function, `headerMenu(menu)` must return a `bool` if the menu is to be shown.
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
 
         menu = QMenu(self)
@@ -860,32 +900,26 @@ class BlurTreeWidget(LockableTreeWidget):
             action.triggered.connect(self.updateSizeHints)
 
         # call delegate so user can add custom menu items if they wish
-        result = True
         cursorPos = QCursor.pos()
-        name = self.identifierName('headerMenu')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                result = funct(menu, self)
-            else:
-                result = funct(menu)
+        result = self.__call_delegate__('headerMenu', menu)
+        if result is None:
+            result = True
+
         # only show the menu if delegate allows it and if there are any actions to show.
         if result and menu.actions():
             menu.popup(cursorPos)
 
     def startDrag(self, supportedActions):
         """
-            :remarks	Overloaded. If you add this function to the delegate you can override the startDrag for drag events.
-            :param		DropActions	- QFlags<DropAction> an OR combination of DropAction values
-            :return		<QMimeData>
+
+        Args:
+            supportedActions (Qt.QtCore.Qt.DropActions): Starts a drag by calling
+                `drag->exec()` using the given supportedActions.
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
         """
-        name = self.identifierName('startDrag')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            data = funct(supportedActions, self)
-        else:
-            data = super(BlurTreeWidget, self).startDrag(supportedActions)
-        return data
+        return self.__call_delegate__('startDrag', supportedActions)
 
     def treeWidth(self):
         """
@@ -938,10 +972,18 @@ class BlurTreeWidget(LockableTreeWidget):
         return None
 
     def wheelEvent(self, event):
+        """ Receives wheel events for the widget.
+
+        Args:
+            event (Qt.QtGui.QWheelEvent):
+
+        See Also:
+            This is a :py:meth:`BlurTreeWidget.setDelegate` method.
+        """
         name = self.identifierName('wheelEvent')
         if self._delegate and hasattr(self._delegate, name):
             funct = getattr(self._delegate, name)
-            # All widgets have wheelEvent, only call it if its been overriden.
+            # NOTE: All widgets have wheelEvent, only call it if its been overridden.
             if hasattr(funct, 'func_code'):
                 if 'tree' in funct.func_code.co_varnames:
                     funct(event, self)

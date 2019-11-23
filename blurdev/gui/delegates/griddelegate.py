@@ -44,6 +44,26 @@ class GridDelegate(QStyledItemDelegate):
         self._identifier = ''
         self.destroyed.connect(self.aboutToBeDestroyed)
 
+    def __call_delegate__(self, name, *args, **kwargs):
+        """ Attempt to call a delegate override method if implemented.
+
+        Args:
+            name (str): The name of the function being called. This does
+                not include the identifierName.
+
+        Returns:
+            Returns the return of the delegate or super call or None.
+        """
+        identifier = self.identifierName(name)
+        if self._delegate and hasattr(self._delegate, identifier):
+            funct = getattr(self._delegate, identifier)
+            if 'tree' in funct.func_code.co_varnames:
+                kwargs['tree'] = self.parent()
+            return funct(*args, **kwargs)
+        superclass = super(GridDelegate, self)
+        if hasattr(superclass, name):
+            return getattr(superclass, name)(*args, **kwargs)
+
     def aboutToBeDestroyed(self):
         """ Prevent crashes due to "delete loops" """
         self._delegate = None
@@ -75,23 +95,22 @@ class GridDelegate(QStyledItemDelegate):
         self._editor = None
 
     def createEditor(self, parent, option, index):
-        """
-            \remarks	overloaded from QStyledItemDelegate, creates a new editor for the inputed widget
-            \param		parent	<QWidget>
-            \param		option	<QStyleOptionViewItem>
-            \param		index	<QModelIndex>
-            \return		<QWidget> editor
+        """ Creates a new editor for the provided widget
+
+        Args:
+            parent (Qt.QtWidgets.QWidget): The parent of the new widget.
+            option (Qt.QtWidgets.QStyleOptionViewItem):
+            index (Qt.QtCore.QModelIndex):
+
+        Returns:
+            Qt.QtWidgets.QWidget: The editor widget to show or None.
+
+        See Also:
+            This is a :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate` method.
         """
         self.clearEditor()
-        name = self.identifierName('createEditor')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                self._editor = funct(parent, option, index, self.parent())
-            else:
-                self._editor = funct(parent, option, index)
-        else:
-            self._editor = QLineEdit(parent)
+        self._editor = self.__call_delegate__('createEditor', parent, option, index)
+
         if self._editor != None:
             self._editor.setFocus()
             self._editor.setFocusPolicy(Qt.StrongFocus)
@@ -128,7 +147,6 @@ class GridDelegate(QStyledItemDelegate):
 
     def drawGrid(self, painter, style, index):
         """ draw gridlines for this item """
-        data = index.model().data(index, Qt.UserRole)
         painter.setBrush(Qt.NoBrush)
         painter.setPen(self.pen())
         # draw the lines
@@ -208,15 +226,11 @@ class GridDelegate(QStyledItemDelegate):
         self._delegate = delegate
 
     def setEditorData(self, editor, index):
-        name = self.identifierName('setEditorData')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                funct(editor, index, self.parent())
-            else:
-                funct(editor, index)
-        else:
-            super(GridDelegate, self).setEditorData(editor, index)
+        """
+        See Also:
+            This is a :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate` method.
+        """
+        self.__call_delegate__('setEditorData', editor, index)
 
     def setGradiated(self, state):
         self._gradiated = state
@@ -241,15 +255,11 @@ class GridDelegate(QStyledItemDelegate):
         self._gradientStartColor = clr
 
     def setModelData(self, editor, model, index):
-        name = self.identifierName('setModelData')
-        if self._delegate and hasattr(self._delegate, name):
-            funct = getattr(self._delegate, name)
-            if 'tree' in funct.func_code.co_varnames:
-                funct(editor, model, index, self.parent())
-            else:
-                funct(editor, model, index)
-        else:
-            super(GridDelegate, self).setModelData(editor, model, index)
+        """
+        See Also:
+            This is a :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate` method.
+        """
+        self.__call_delegate__('setModelData', editor, model, index)
 
     def setShowBottomBorder(self, state=True):
         """ sets whether or not bottom borders are drawn """
