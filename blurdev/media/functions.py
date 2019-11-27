@@ -274,46 +274,57 @@ def imageSequenceFromFileName(fileName):
     return output
 
 
-def imageSequenceInfo(path, osystem=None):
-    """ Return a re.match object that seperates the file path into pre/postfix and frame number.
-    
+def imageSequenceInfo(path, osystem=None, ospath=None):
+    """ Return a re.Match object that separates the file path into pre/frame/post.
+
     Args:
         path (str): The path to split
-        osystem (str): pass 'Windows' to make the check case insensitive. If None(the default) is
-            passed in it will default to the contents of blurdev.settings.OS_TYPE.
-    
+        osystem (str, optional): pass 'Windows' to make the check case insensitive.
+            If None(the default) is passed in it will default to the contents of
+            blurdev.settings.OS_TYPE.
+        ospath (os.path, optional): Used to control how file paths are normalized.
+            Pass ntpath or posixpath to force path normalization. If None is passed
+            (the default) then os.path is used.
+
     Returns:
-        match: Returns the results of the re.match call or None
+        re.Match: Returns the results of the re.match call or None. The re.Match object
+        has pre, dir, filename, frame, and post groups. pre contains both dir and
+        filename and is everything before the frame number. frame is the frame number
+        including all padding.
     """
-    flags = 0
+    flags = re.VERBOSE
     if osystem == None:
         osystem = blurdev.settings.OS_TYPE
     if osystem == 'Windows':
-        flags = re.I
-    # Look for ScXXX or SXXXX.XX to include in the prefix. This prevents problems with incorrectly
-    # identifying a shot number as a image sequence. Thanks willc.
-
-    # match seq/shot format used by studio
-
-    seqShotPattern = r'(?:Sc\d{3}|S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?'
-    # grab all digits for the frame number
-    framePattern = r'(?P<frame>\d+)?'
-    # match anything after our frame (that isn't a digit), and include a file extension
-    # Frame number will be expected to be the LAST digits that appear before the extension because
-    # of this.
-    postPattern = r'(?P<post>\.[A-Za-z0-9]+?$)'
-    # Assemble the pieces of our pattern into the full match pattern for filenames
-    filePattern = r'(?P<pre>^.+?' + seqShotPattern + r')' + framePattern + postPattern
+        flags |= re.IGNORECASE
+    if ospath is None:
+        ospath = os.path
+    filePattern = r"""
+        (?P<pre>
+            (?P<dir>^.+[\\\/]+)?
+            (?P<filename>[^\\\/]+?
+                # match seq/shot/version format used by the studio to prevent problems
+                # with incorrectly identifying them as a image sequence.
+                (?:Sc\d{3}|S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?
+            )
+        )
+        # grab all digits for the frame number
+        (?P<frame>\d+)?
+        # match anything after our frame (that isn't a digit), and include a file
+        # extension. Frame number will be expected to be the LAST digits that appear
+        # before the extension because of this.
+        (?P<post>\.[A-Za-z0-9]+?$)
+    """
     regex = re.compile(filePattern, flags=flags)
-    path = os.path.normpath(path)
+    path = ospath.normpath(path)
     m = regex.match(path)
     if m and m.group('frame'):
         return m
     else:
-        # If we don't have a match object or a match for the frame group, we want to return None
-        # (we don't want to conisder it an imageSequence.)
-        # We could do this in our regular expression, but it would require more complicated logic,
-        # so I think this is easier to read.
+        # If we don't have a match object or a match for the frame group, we want to
+        # return None (we don't want to consider it an imageSequence.)
+        # We could do this in our regular expression, but it would require more
+        # complicated logic, so I think this is easier to read.
         return None
 
 
