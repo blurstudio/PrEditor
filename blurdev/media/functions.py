@@ -199,13 +199,12 @@ def imageMagick(source, destination, exe='convert', flags=''):
     """
     Crafts then runs specified command on ImageMagick executables and waits 
     until it finishes. This assumes Image Magic is installed into 32bit 
-    program files. It returns True if the requested exicutable exists path 
+    program files. It returns True if the requested executable exists path 
     exists.
-    
+
     .. seealso:: 
-    
+
        `ImageMagick <http://www.imagemagick.org/script/index.php>`_
-          ImageMagick documentation
 
     """
     converter = r'%s\ImageMagick\%s.exe' % (get32bitProgramFiles(), exe)
@@ -242,22 +241,16 @@ def escapeForGlob(text):
 
 def imageSequenceFromFileName(fileName):
     r"""
-    Gets a list of files that belong to the same image sequence as the 
+    Gets a list of files that belong to the same image sequence as the
     passed in file.
-    
-        note:: 
-    
-        This only works if the last number in filename is part of the 
-        image sequence.  For example, a file signature like this would 
-        not work::
 
-         C:\temp\test_1234_v01.jpg
+    This only works if the last number in filename is part of the
+    image sequence.  For example, a file signature like this would
+    not work `C:\\temp\\test_1234_v01.jpg`. It will ignore numbers
+    inside the extension `C:\\temp\\test_1234.png1`.
 
-        It will ignore numbers inside the extension::
-    
-        C:\temp\test_1234.png1
-        
-    :rtype: list
+    Returns:
+        list
     """
     flags = 0
     if blurdev.settings.OS_TYPE == 'Windows':
@@ -328,14 +321,16 @@ def imageSequenceRepr(
     files, strFormat='{pre}[{firstNum}:{lastNum}]{post}', forceRepr=False
 ):
     """ Takes a list of files and creates a string that represents the sequence.
+
     Args:
         files (list): A list of files in the image sequence.
-        strFormat (str): Used to format the output. Uses str.format() command and requires the 
-            keys [pre, firstNum, lastNum, post]. Defaults to '{pre}[{firstNum}:{lastNum}]{post}'
-        forceRepr (bool): If False and a single frame is provided, it will return just that frame.
-            If True and a single frame is provided, it will return a repr with that frame as the
-            firstNum and lastNum value. False by default.
-    
+        strFormat (str): Used to format the output. Uses str.format() command and
+            requires the keys [pre, firstNum, lastNum, post]. Defaults to
+            '{pre}[{firstNum}:{lastNum}]{post}'
+        forceRepr (bool): If False and a single frame is provided, it will return just
+            that frame. If True and a single frame is provided, it will return a repr
+            with that frame as the firstNum and lastNum value. False by default.
+
     Returns:
         str: A string representation of the Image Sequence.
     """
@@ -379,11 +374,11 @@ def imageSequenceReprFromFileName(fileName, strFormat=None, forceRepr=False):
 
 def imageSequenceForRepr(fileName):
     """
-    Returns the list of file names for a imageSequenceRepr. Only existing 
+    Returns the list of file names for a imageSequenceRepr. Only existing
     files are returned.
-    
-    :rtype: list
-    
+
+    Returns:
+        list:
     """
     flags = 0
     if blurdev.settings.OS_TYPE == 'Windows':
@@ -552,14 +547,14 @@ def spoolText(**kwargs):
 
 
 def spoolFileName(prefix, host='thor', folders=['new'], uid=''):
-    """ Generate a unique filename for a spool message on the given host.
-    
+    r""" Generate a unique filename for a spool message on the given host.
+
     Builds a full path for a .msg file. It uses uuid.uuid4 to ensure
-    a unique file name. 
-    
-    Example output: 
+    a unique file name.
+
+    Example output:
         \\thor\spool\new\magma7a934858-a6d9-42bc-b57e-15c8e95258d1.msg
-    
+
     Args:
         prefix (str): Prefix of the uuid for the msg file.
         host (str): The name of the smb share host. Defaults to 'thor'.
@@ -567,7 +562,7 @@ def spoolFileName(prefix, host='thor', folders=['new'], uid=''):
             os.path.join(). Defaults to ['new'].
         uid (str): The unique part of the string. If nothing is provided
             uses uuid.uuid4() to generate a unique id.
-    
+
     Returns:
         str: The generated filename.
     """
