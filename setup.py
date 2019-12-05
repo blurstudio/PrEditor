@@ -38,7 +38,7 @@ setup(
     scripts=['post_install-blur-blurdev.py',],
     install_requires=[
         # Please keep list alphabetical
-        'blur-cute>=0.14.0',
+        'blur-cute>=0.16.0',
         'blur-pillar>=0.16.0',
         'blur-recoil>=0.6.0',
         'certifi==2019.9.11',

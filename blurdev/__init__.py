@@ -18,6 +18,8 @@ import types
 import re
 import weakref
 
+from deprecated import deprecated
+
 from Qt.QtWidgets import (
     QApplication,
     QDialog,
@@ -101,32 +103,13 @@ def bindMethod(object, name, method):
     object.__dict__[name] = types.MethodType(method.__func__, object)
 
 
+@deprecated(
+    version='2.28.0', reason='Use cute.functions.ensureWindowIsVisible instead.'
+)
 def ensureWindowIsVisible(widget):
-    """
-    Checks the widget's geometry against all of the system's screens. If it does 
-    not intersect it will reposition it to the top left corner of the highest 
-    numbered desktop.  Returns a boolean indicating if it had to move the 
-    widget.	
-    
-    """
-    desktop = QApplication.desktop()
-    geo = widget.geometry()
-    for screen in range(desktop.screenCount()):
-        monGeo = desktop.screenGeometry(screen)
-        if monGeo.intersects(geo):
-            break
-    else:
-        # print 'Resetting %s position, it is offscreen.' % widget.objectName()
-        geo.moveTo(monGeo.x() + 7, monGeo.y() + 30)
-        # setting the geometry may trigger a second check if setGeometry is overriden
-        disable = hasattr(widget, 'checkScreenGeo') and widget.checkScreenGeo
-        if disable:
-            widget.checkScreenGeo = False
-        widget.setGeometry(geo)
-        if disable:
-            widget.checkScreenGeo = True
-        return True
-    return False
+    import cute
+
+    return cute.functions.ensureWindowIsVisible(widget)
 
 
 def findDevelopmentEnvironment():

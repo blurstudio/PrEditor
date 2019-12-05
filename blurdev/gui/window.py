@@ -142,9 +142,9 @@ class Window(QMainWindow):
         """
         super(Window, self).setGeometry(*args)
         if self.checkScreenGeo:
-            import blurdev
+            from cute.functions import ensureWindowIsVisible
 
-            blurdev.ensureWindowIsVisible(self)
+            ensureWindowIsVisible(self)
 
     def showEvent(self, event):
         # listen for aboutToClearPaths signal if requested
