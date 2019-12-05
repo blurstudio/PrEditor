@@ -25,8 +25,11 @@ class NukeCore(Core):
         initGui needs to be called by the nuke plugins so it gets called once the UI is created.
         """
         super(NukeCore, self).initGui()
-        # Shutdown blurdev when Nuke closes
+        # Save prefs while the gui is still visible
         self.rootWindow().installEventFilter(self)
+        # Shutdown blurdev when Nuke closes
+        if QApplication.instance():
+            QApplication.instance().aboutToQuit.connect(self.shutdown)
 
     def createToolMacro(self, tool, macro=''):
         """
@@ -85,11 +88,18 @@ class NukeCore(Core):
             return ''
 
     def eventFilter(self, obj, event):
+        """ `QApplication.aboutToQuit` is only fired after the rootWindow is closed
+        so we can't save visibility prefs. This event fires each time someone
+        tries to close nuke, but **before** the user has a chance to cancel the close.
+        This means we can't shutdown blurdev here.
+        This code saves the GUI prefs now, and when aboutToQuit is fired, it
+        saves calls self.shutdown, but because we have customized
+        :py:meth:`NukeCore.recordToolbars` the gui visibility is not saved.
+        """
         if event.type() == event.Close and obj == self.rootWindow():
-            # Because QApplication.aboutToQuit is triggered after the window
-            # has already been destroyed, we need to capture the close event
-            # and shutdown blurdev here in order to successfully save prefs.
-            self.shutdown()
+            if not self.headless:
+                for toolbar_class in self.toolbars():
+                    toolbar_class.instanceRecordSettings()
         return super(NukeCore, self).eventFilter(obj, event)
 
     def macroName(self):
@@ -97,6 +107,22 @@ class NukeCore(Core):
         Returns the name to display for the create macro action in treegrunt
         """
         return 'Add to Lovebar...'
+
+    def recordToolbars(self):
+        """ Records settings for all found toolbars.
+
+        See Also:
+            :py:meth:`blurdev.cores.core.Core.recordToolbars`.  This override does not
+            record visibility and position info for the toolbars like other core
+            overrides. This is to work around the issues discussed in
+            :py:meth:`NukeCore.recordToolbars`.
+        """
+        if self.headless:
+            # If running headless, the toolbars were not created, and prefs don't need to be saved
+            return
+
+        for toolbar_class in self.toolbars():
+            toolbar_class.instanceRecordSettings(gui=False)
 
     def toolTypes(self):
         """

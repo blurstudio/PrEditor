@@ -176,10 +176,20 @@ class ToolsToolbar(BlurdevToolbar):
         """
         return False
 
-    def recordSettings(self, save=True):
-        """ records settings to be used for another session
+    def recordSettings(self, save=True, gui=True):
+        """ Records settings to be used for another session.
+
+        Args:
+            save (bool, optional): Save the settings. This is mostly used by sub-classes
+                that need to add extra properties to the preferences.
+            gui (bool, optional): Used by some cores to prevent saving some prefs.
+                See :py:meth:`blurdev.cores.nukecore.NukeCore.eventFilter`.
+
+        Returns:
+            blurdev.prefs.Pref: The preference object. If save is False, you will
+                need to call save on it.
         """
-        pref = super(ToolsToolbar, self).recordSettings(save=False)
+        pref = super(ToolsToolbar, self).recordSettings(save=False, gui=gui)
         tools = []
         for tool in self.tools():
             tools.append(tool.objectName())

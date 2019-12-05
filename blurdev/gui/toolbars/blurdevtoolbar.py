@@ -33,20 +33,31 @@ class BlurdevToolbar(QToolBar):
     def preferences(self):
         return blurdev.prefs.find('blurdev/toolbar_{}'.format(self.objectName()))
 
-    def recordSettings(self, save=True):
-        """ records settings to be used for another session
+    def recordSettings(self, save=True, gui=True):
+        """ Records settings to be used for another session.
+
+        Args:
+            save (bool, optional): Save the settings. This is mostly used by sub-classes
+                that need to add extra properties to the preferences.
+            gui (bool, optional): Used by some cores to prevent saving some prefs.
+                See :py:meth:`blurdev.cores.nukecore.NukeCore.eventFilter`.
+
+        Returns:
+            blurdev.prefs.Pref: The preference object. If save is False, you will
+                need to call save on it.
         """
         pref = self.preferences()
-        pref.recordProperty('isVisible', self.isVisible())
-        if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
-            # If not using a proper Qt application store the position
-            pref.recordProperty('geometry', self.geometry())
-        else:
-            # Otherwise record the toolbar area. If the toolbar is floating
-            # the application will need to restore the settings.
-            # blurdev.core for most dcc's is set up to handle restoring this
-            # info. Nuke and Houdini are the exceptions.
-            pref.recordProperty('toolBarArea', int(self.parent().toolBarArea(self)))
+        if gui:
+            pref.recordProperty('isVisible', self.isVisible())
+            if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
+                # If not using a proper Qt application store the position
+                pref.recordProperty('geometry', self.geometry())
+            else:
+                # Otherwise record the toolbar area. If the toolbar is floating
+                # the application will need to restore the settings.
+                # blurdev.core for most dcc's is set up to handle restoring this
+                # info. Nuke and Houdini are the exceptions.
+                pref.recordProperty('toolBarArea', int(self.parent().toolBarArea(self)))
         if save:
             pref.save()
         return pref
@@ -94,18 +105,20 @@ class BlurdevToolbar(QToolBar):
         return cls._instance
 
     @classmethod
-    def instanceRecordSettings(cls, save=True):
+    def instanceRecordSettings(cls, save=True, gui=True):
         """ Only if a instance is created, call recordSettings on it.
 
         Args:
             save (bool, optional): Only save the prefs if True(the default).
+            gui (bool, optional): Used by some cores to prevent saving some prefs.
+                See :py:meth:`blurdev.cores.nukecore.NukeCore.eventFilter`.
 
         Returns:
             pref or None: Returns None if a instance was not created, otherwise
                 returns the pref object returned by recordSettings.
         """
         if cls._instance:
-            return cls._instance.recordSettings(save=save)
+            return cls._instance.recordSettings(save=save, gui=gui)
 
     @classmethod
     def instanceShutdown(cls):
@@ -117,5 +130,6 @@ class BlurdevToolbar(QToolBar):
         instance = cls._instance
         if instance:
             instance.shutdown()
+            cls._instance = None
             return True
         return False
