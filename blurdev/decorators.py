@@ -4,9 +4,9 @@ Defines some deocrators that are commonly useful
 
 """
 
-import traceback
 from blurdev import debug
 from Qt.QtCore import QObject, QTimer
+import os
 import sip
 
 
@@ -28,6 +28,46 @@ def abstractmethod(function):
     newFunction.__doc__ = function.__doc__
     newFunction.__dict__ = function.__dict__
     return newFunction
+
+
+class EnvironmentVariable(object):
+    """ Update environment variable only while this context/decorator is active.
+
+    Args:
+        key (str): The environment variable key.
+        value (str or None, optional): The value to store for key. If None,
+            the variable is removed from os.environ
+    """
+
+    def __init__(self, key, value):
+        self.current = None
+        self.key = key
+        self.value = value
+
+    def __call__(self, function):
+        def wrapper(*args, **kwargs):
+            with self:
+                return function(*args, **kwargs)
+
+        wrapper.__name__ = function.__name__
+        wrapper.__doc__ = function.__doc__
+        wrapper.__dict__ = function.__dict__
+        return wrapper
+
+    def __enter__(self):
+        self.current = os.environ.get(self.key)
+        if self.value is None:
+            if self.key in os.environ:
+                del os.environ[self.key]
+        else:
+            os.environ[self.key] = self.value
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.current is None:
+            if self.key in os.environ:
+                del os.environ[self.key]
+        else:
+            os.environ[self.key] = self.current
 
 
 ## {{{ http://code.activestate.com/recipes/577817/ (r1)
