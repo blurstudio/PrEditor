@@ -4,7 +4,6 @@
 *.*.swp
 .DS_Store
 
-# /
 /.project
 /.pydevproject
 /build.txt
@@ -21,69 +20,25 @@ requirements.txt
 /blurdev/hash.txt
 /blurdev/build.txt
 
-# /action/
-
-# /gui/dialogs/waitbar/
-
-# /gui/widgets/richtexteditor/
-
-# /gui/widgets/richtexteditor/ui/
-
-# /gui/widgets/richtexteditor/ui/images/
-
-# /gui/widgets/richtexteditorwidget/
-
-# /ide/addons/savelog/
-
-# /ide/addons/savelog/ui/
-
-# /ide/addons/tortoisemenus/
-
-# /ide/addons/tortoisemenus/img/
+# Coverage
+.coverage
 
 # Other than __init__.py, these files are auto-generated
 /blurdev/gui/designer/*.py
 
-# /installers/
+# Old installer system
 /blurdev/installers/autogen.nsi
 /blurdev/installers/installer.nsi
 /blurdev/installers/svnrev.nsi
 /blurdev/installers/svnrev-template.nsi
 /blurdev/installers/version-template.txt
-
-# /installers/bin/
 /blurdev/installers/bin/*.exe
-
-# /installers/bin/offline/
 /blurdev/installers/bin/offline/*.exe
-
-# /installers/resource/
 /blurdev/installers/resource/settings.ini
 /blurdev/installers/resource/tools_environments.xml
 
-# /lang/
-
-# /resource/stylesheet/
-
-# /traxoffline/
-
-# /traxoffline/trax/
-
-# /traxoffline/trax/api/
-
-# /traxoffline/trax/api/data/
-
-# /traxoffline/trax/api/data/source/
+# Fake trax system
 /blurdev/traxoffline/trax/api/data/source/approvalTypes.xml
 /blurdev/traxoffline/trax/api/data/source/departments.xml
 /blurdev/traxoffline/trax/api/data/source/roles.xml
 
-# /traxoffline/trax/gui/
-
-# /traxoffline/trax/gui/dialogs/
-
-# /traxoffline/trax/gui/dialogs/infodialog/
-
-# /traxoffline/trax/gui/dialogs/infodialog/ui/
-
-# /traxoffline/trax/gui/widgets/
