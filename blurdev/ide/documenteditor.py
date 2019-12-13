@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+import sys
 import os
 import os.path
 
@@ -456,7 +457,9 @@ class DocumentEditor(QsciScintilla):
                 return self.EolMac
         if newlineN != -1:
             return self.EolUnix
-        return self.EolMac
+        if sys.platform == 'win32':
+            return self.EolWindows
+        return self.EolUnix
 
     def editPermaHighlight(self):
         text, success = QInputDialog.getText(
