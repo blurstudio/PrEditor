@@ -124,6 +124,12 @@ class NukeCore(Core):
         for toolbar_class in self.toolbars():
             toolbar_class.instanceRecordSettings(gui=False)
 
+    def setStyleSheet(self, stylesheet, recordPrefs=True):
+        """ Disabled for Nuke. Attempting to set a useful stylesheet on QApplication
+        causes Nuke 11 to crash.
+        """
+        return
+
     def toolTypes(self):
         """
         Overloads the toolTypes method from the Core class to show tool types that are related to
