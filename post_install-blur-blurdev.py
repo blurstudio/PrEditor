@@ -176,7 +176,7 @@ def update_settings_ini():
         '%s %s %s %s:%s:%s %s'
         % (day_of_week, month, day_of_month, hour, minute, seconds, year),
     )
-    config.set('blurdev', 'version', version.toString(prepend_v=False))
+    config.set('blurdev', 'version', version.to_string(prepend_v=False))
 
     with open(r'c:\blur\software.ini', 'w') as configfile:
         config.write(configfile)
