@@ -40,7 +40,6 @@ setup(
         # Please keep list alphabetical
         'blur-cute>=0.16.0',
         'blur-pillar>=0.16.0',
-        'blur-recoil>=0.6.0',
         'certifi==2019.9.11',
         'configparser==4.0.2',
         'Deprecated>=1.2.7',
@@ -72,6 +71,11 @@ setup(
         'blurdev.toolbars': [
             'Favorites = blurdev.gui.toolbars.toolstoolbar:FavoritesToolbar',
             'User = blurdev.gui.toolbars.toolstoolbar:UserToolbar',
+        ],
+        'blurdev.protocol_handlers': [
+            'Treegrunt = blurdev.protocols.treegrunt_handler:TreegruntHandler',
+            'Blurdev = blurdev.protocols.blurdev_handler:BlurdevHandler',
+            'WriteStdOutput = blurdev.protocols.write_std_output_handler:WriteStdOutputHandler',
         ],
     },
 )
