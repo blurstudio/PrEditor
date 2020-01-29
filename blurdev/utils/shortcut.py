@@ -141,4 +141,6 @@ def createShortcutTool(
         icon=tool.icon(),
         description=tool.toolTip(),
         common=common,
+        # Tool name could be "LegacyStudioMax::MegaMerge".
+        iconFilename=tool.objectName().split(':')[-1],
     )

@@ -182,6 +182,7 @@ def createShortcut(
     startin=None,
     target=None,
     icon=None,
+    iconFilename=None,
     path=None,
     description='',
     common=1,
@@ -229,46 +230,30 @@ def createShortcut(
                 startin = os.path.dirname(target)
 
         if icon:
-            pathName, ext = os.path.splitext(icon)
-            if not ext == '.ico':
-                icon = pathName + '.ico'
-            # Calculate the path to copy the icon to
-            # On Win7/10 use 'ProgramData' for 'All Users' or the 'Public' user
-            # https://www.microsoft.com/en-us/wdsi/help/folder-variables
-            envVar = 'APPDATA'
-            if 1 == common:
-                envVar = 'ProgramData'
-            iconImagePath = os.getenv(envVar)
-            outPath = os.path.join(iconImagePath, 'blur', 'icons')
-            if not os.path.exists(outPath):
-                os.makedirs(outPath)
-            outIcon = os.path.abspath(r'%s\%s.ico' % (outPath, title))
-            if os.path.exists(icon):
+            # On Windows "PROGRAMDATA" for all users, "APPDATA" for per user.
+            # See: https://www.microsoft.com/en-us/wdsi/help/folder-variables
+            dirname = 'PROGRAMDATA' if 1 == common else 'APPDATA'
+            dirname = os.getenv(dirname)
+            dirname = os.path.join(dirname, 'blur', 'icons')
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+
+            output = os.path.abspath(
+                os.path.join(dirname, (iconFilename or title) + '.ico')
+            )
+            basename, extension = os.path.splitext(icon)
+            ico = basename + '.ico'
+            if os.path.exists(ico):
                 import shutil
 
-                shutil.copyfile(icon, outIcon)
-                if os.path.exists(outIcon):
-                    icon = outIcon
-                else:
-                    icon = None
+                shutil.copyfile(ico, output)
             else:
-                if ext == '.png':
-                    if getPointerSize() == 64:
-                        progF = 'ProgramFiles(x86)'
-                    else:
-                        progF = 'programfiles'
-                    converter = r'%s\ImageMagick\convert.exe' % os.getenv(progF)
-                    if os.path.exists(converter):
-                        icon = outIcon
-                        cmd = '"%s" "%s.png" "%s"' % (converter, pathName, icon)
-                        out = subprocess.Popen(cmd)
-                        out.wait()
-                        if not os.path.exists(icon):
-                            icon = None
-                    else:
-                        icon = None
+                from PIL import Image
 
-        shortcut = os.path.join(path, '%s.lnk' % title)
+                Image.open(icon).save(output)
+            icon = output if os.path.exists(output) else None
+
+        shortcut = os.path.join(path, title + '.lnk')
         # If the shortcut description is longer than 260 characters, the target may end up with
         # random unicode characters, and the icon is not set properly. The Properties dialog only
         # shows 259 characters in the description, so we limit the description to 259 characters.

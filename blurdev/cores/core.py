@@ -1071,7 +1071,7 @@ class Core(QObject):
         """
         Is the supplied function and arguments are in the runDelayed queue
         """
-        if (function, args, kargs) in self._itemQueue:
+        if (function, args, kwargs) in self._itemQueue:
             return True
         return False
 
