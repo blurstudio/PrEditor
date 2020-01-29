@@ -117,14 +117,15 @@
 
 from builtins import str as text
 from Qt import QtCompat
-from Qt.QtCore import Qt, Property, Signal, Slot
-from Qt.QtGui import QCursor, QIcon
+from Qt.QtCore import Qt, Property, Signal, Slot, QPoint
+from Qt.QtGui import QCursor, QIcon, QPainter, QImage, QRegion
 from Qt.QtWidgets import (
     QApplication,
     QItemDelegate,
     QMenu,
     QTreeWidget,
     QTreeWidgetItemIterator,
+    QWidget,
 )
 import blurdev
 from blurdev.gui import QtPropertyInit
@@ -929,6 +930,63 @@ class BlurTreeWidget(LockableTreeWidget):
         for column in range(self.columnCount()):
             treeWidth += self.columnWidth(column)
         return treeWidth
+
+    def toImage(
+        self,
+        format=QImage.Format_RGB32,
+        flags=QWidget.DrawWindowBackground | QWidget.DrawChildren | QWidget.IgnoreMask,
+    ):
+        """ Renders the entire contents of the BlurTreeWidget to a QImage.
+
+        This should correctly size the image width to the visible columns. The height
+        will include all shown items. If the vertical scroll bar is not needed because
+        there are not enough items to require scrolling, empty space will be rendered
+        to fill the total size of the viewport.
+
+        Args:
+            format (QImage.Format): The format the QImage uses. Defaults to Format_RGB32
+            flags (QWidget.RenderFlag): The render flags used to render the viewports.
+                Defaults to DrawWindowBackground, DrawChildren, and IgnoreMask.
+
+        Returns:
+            QImage: A rendered image of the current tree widget's contents including
+            the header.
+        """
+        # We need to scroll to the top corner to render correctly.
+        hsb = self.horizontalScrollBar()
+        vsb = self.verticalScrollBar()
+        current_scroll = [hsb.value(), vsb.value()]
+        hsb.setValue(0)
+        vsb.setValue(0)
+
+        header = self.header()
+        # We can use the size of the header columns to calculate the width
+        width = sum(self.columnWidths().values())
+        # Use the scroll bar to calculate the document length
+        height = vsb.maximum() - vsb.minimum() + vsb.pageStep()
+        # Include the header height
+        height += header.height()
+
+        image = QImage(width, height, format)
+        painter = QPainter()
+        painter.begin(image)
+        # Render with viewports so we are able to render areas not currently visible
+        # We have to render the header separate from the tree contents
+        header.viewport().render(
+            painter, QPoint(), QRegion(0, 0, width, header.height()), flags
+        )
+
+        # Render the tree's contents
+        self.viewport().render(
+            painter, QPoint(0, header.height()), QRegion(0, 0, width, height), flags
+        )
+        painter.end()
+
+        # restore the user's scroll position
+        hsb.setValue(current_scroll[0])
+        vsb.setValue(current_scroll[1])
+
+        return image
 
     def topLevelItems(self):
         r"""
