@@ -938,10 +938,7 @@ class BlurTreeWidget(LockableTreeWidget):
     ):
         """ Renders the entire contents of the BlurTreeWidget to a QImage.
 
-        This should correctly size the image width to the visible columns. The height
-        will include all shown items. If the vertical scroll bar is not needed because
-        there are not enough items to require scrolling, empty space will be rendered
-        to fill the total size of the viewport.
+        This should correctly size the image to the visible rows and columns.
 
         Args:
             format (QImage.Format): The format the QImage uses. Defaults to Format_RGB32
@@ -962,8 +959,25 @@ class BlurTreeWidget(LockableTreeWidget):
         header = self.header()
         # We can use the size of the header columns to calculate the width
         width = sum(self.columnWidths().values())
-        # Use the scroll bar to calculate the document length
-        height = vsb.maximum() - vsb.minimum() + vsb.pageStep()
+
+        try:
+            # The ModelIter method is faster use it if possible.
+            from blur.Stonegui import ModelIter
+        except ImportError:
+            # Use itemIterator method is used if blur.Stone is unavailable
+            height = 0
+            for item in self.itemIterator(hidden=False):
+                index = self.indexFromItem(item)
+                height += self.rowHeight(index)
+        else:
+            height = 0
+            itr = ModelIter(
+                self.model(), ModelIter.Recursive | ModelIter.DescendOpenOnly
+            )
+            while itr.isValid():
+                height += self.rowHeight(itr.current())
+                itr.next()
+
         # Include the header height
         height += header.height()
 
