@@ -58,7 +58,7 @@ class ToolsToolbar(BlurdevToolbar):
     
     Attributes:
         _name (str): The unique id and display name for the toolbar. This is
-            used as the display name in blur menus and the Qt interface.
+            used as the display name in blur s and the Qt interface.
             It's name must be unique among all toolbars.
         _affect_favorites (bool): When addAction or removeAction is called
             add or remove the tool from the users favorites.
@@ -132,7 +132,20 @@ class ToolsToolbar(BlurdevToolbar):
             menu = QMenu(self)
             menu.setMinimumHeight(32)
 
-            if widget and isinstance(widget.defaultAction(), ToolbarAction):
+            # Create a simple header for the menu to easily identify the toolbar
+            act = menu.addAction(self._name)
+            # Make the action visually distinct, also it doesn't do anything.
+            act.setEnabled(False)
+            act.setObjectName('uiTitleACT')
+            sep = menu.addSeparator()
+            sep.setObjectName('uiTitleSEP')
+
+            if (
+                widget
+                and hasattr(widget, 'defaultAction')
+                and isinstance(widget.defaultAction(), ToolbarAction)
+            ):
+                # Toolbar separators don't have defaultAction.
                 self.setContextMenuPolicy(Qt.CustomContextMenu)
 
                 action = widget.defaultAction()
