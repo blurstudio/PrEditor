@@ -974,7 +974,8 @@ class BlurExcepthook(object):
 
     def __init__(self, base_excepthook=None):
         self.base_excepthook = base_excepthook or sys.__excepthook__
-        self.actions = dict(email=True, prompt=True, sentry=True)
+        # We can't show the prompt if running headless.
+        self.actions = dict(email=True, prompt=not blurdev.core.headless, sentry=True)
 
     def __call__(self, *exc_info):
         """
@@ -985,7 +986,9 @@ class BlurExcepthook(object):
         example, uses exceptions to signal tradionally non-exception worthy
         events, such as when a user cancels an Open File dialog window.)
         """
-        self.actions = blurdev.core.shouldReportException(*exc_info)
+        self.actions = blurdev.core.shouldReportException(
+            *exc_info, actions=self.actions
+        )
 
         self.call_base_excepthook(exc_info)
         if debugLevel() == 0:

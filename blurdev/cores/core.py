@@ -424,7 +424,7 @@ class Core(QObject):
         elif not trigger in self._linkedSignals[signal]:
             self._linkedSignals[signal].append(trigger)
 
-    def shouldReportException(self, exc_type, exc_value, exc_traceback):
+    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions={}):
         """
         Allow core to control how exceptions are handled. Currently being used
         by `BlurExcepthook`, informing which excepthooks should or should not
@@ -434,12 +434,24 @@ class Core(QObject):
             exc_type (type): exception type class object
             exc_value (Exception): class instance of exception parameter
             exc_traceback (traceback): encapsulation of call stack for exception
+            actions (dict, optional): default values for the returned dict. A copy
+                of this dict is returned with standard defaults applied.
 
         Returns:
-            dict: booleon values representing whether to perform excepthook
+            dict: Boolean values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
-        return dict(email=True, prompt=True, sentry=True)
+
+        # Create a shallow copy so we don't modify the passed in dict and don't
+        # need to use a default value of None
+        actions = actions.copy()
+
+        # provide the expected default values
+        actions.setdefault('email', True)
+        # If blurdev is running headless, there is no way to show a gui prompt
+        actions.setdefault('prompt', not self.headless)
+        actions.setdefault('sentry', True)
+        return actions
 
     def init(self):
         """ Initializes the core system

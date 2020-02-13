@@ -48,31 +48,15 @@ class HoudiniCore(Core):
             hdefereval.executeDeferred(self.initGui)
         return ret
 
-    def shouldReportException(self, exc_type, exc_value, exc_traceback):
+    def initGui(self):
+        """Initialize the portions of the core that require GUI initialization to have
+        completed.
+
+        Added initializing the logger. This helps with tool error reporting and prevents
+        houdini crashes.
         """
-        Allow core to control how exceptions are handled. Currently being used
-        by `BlurExcepthook`, informing which excepthooks should or should not
-        be executed.
-
-        Note: We override this method to ignore a `RuntimeError`-Exception
-            raised when the user closes an open file dialog box without a
-            selection.
-
-        Args:
-            exc_type (type): exception type class object
-            exc_value (Exception): class instance of exception parameter
-            exc_traceback (traceback): encapsulation of call stack for exception
-
-        Returns:
-            dict: booleon values representing whether to perform excepthook
-                action, keyed to the name of the excepthook
-        """
-        if isinstance(exc_value, RuntimeError) and exc_value.message == "Cancelled":
-            return dict(email=False, prompt=False, sentry=False)
-
-        return super(HoudiniCore, self).shouldReportException(
-            exc_type, exc_value, exc_traceback
-        )
+        blurdev.core.logger()
+        super(HoudiniCore, self).initGui()
 
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the HoudiniCore has shutdown called

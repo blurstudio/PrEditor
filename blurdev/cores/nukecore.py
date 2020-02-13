@@ -43,7 +43,7 @@ class NukeCore(Core):
         """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
         return not nuke.GUI
 
-    def shouldReportException(self, exc_type, exc_value, exc_traceback):
+    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions={}):
         """
         Allow core to control how exceptions are handled. Currently being used
         by `BlurExcepthook`, informing which excepthooks should or should not
@@ -57,9 +57,11 @@ class NukeCore(Core):
             exc_type (type): exception type class object
             exc_value (Exception): class instance of exception parameter
             exc_traceback (traceback): encapsulation of call stack for exception
+            actions (dict, optional): default values for the returned dict. A copy
+                of this dict is returned with standard defaults applied.
 
         Returns:
-            dict: booleon values representing whether to perform excepthook
+            dict: Boolean values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
         if (
@@ -69,7 +71,7 @@ class NukeCore(Core):
             return dict(email=False, prompt=False, sentry=False)
 
         return super(NukeCore, self).shouldReportException(
-            exc_type, exc_value, exc_traceback
+            exc_type, exc_value, exc_traceback, actions=actions
         )
 
     def quitQtOnShutdown(self):
