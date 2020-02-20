@@ -88,6 +88,13 @@ elif 'rv' in _exe:
     except:
         pass
 
+# initialize the system for Softimage
+elif 'katana' in _exe:
+    try:
+        from .katanacore import KatanaCore as Core
+    except:
+        pass
+
 if Core is None:
     # import the default core
     from .core import Core

@@ -11,24 +11,24 @@ import blurdev.tools.toolheader
 import blurdev.tools.toolsindex
 
 
-# 					1			2			4			8		  16			32				64					128				256			  512	  1024, 	2048	4096,  8192     16384
 ToolType = enum(
-    'External',
-    'Trax',
-    'Studiomax',
-    'Softimage',
-    'Fusion',
-    'MotionBuilder',
-    'LegacyExternal',
-    'LegacyStudiomax',
-    'LegacySoftimage',
-    'Maya',
-    'Nuke',
-    'Shotgun',
-    'RV',
-    'Mari',
-    'Houdini',
-    AllTools=32767,
+    'External',  # 1
+    'Trax',  # 2
+    'Studiomax',  # 4
+    'Softimage',  # 8
+    'Fusion',  # 16
+    'MotionBuilder',  # 32
+    'LegacyExternal',  # 64
+    'LegacyStudiomax',  # 128
+    'LegacySoftimage',  # 255
+    'Maya',  # 512
+    'Nuke',  # 1024
+    'Shotgun',  # 2048
+    'RV',  # 4096
+    'Mari',  # 8192
+    'Houdini',  # 16384
+    'Katana',  # 32768
+    AllTools=65535,  # 2**16 - 1
 )
 
 
