@@ -1,5 +1,5 @@
 import blurdev
-from Qt.QtCore import Qt, QRect
+from Qt.QtCore import Qt, QRect, QSize
 from Qt.QtWidgets import QToolBar
 
 
@@ -21,9 +21,14 @@ class BlurdevToolbar(QToolBar):
         super(BlurdevToolbar, self).__init__(parent)
         self.setWindowTitle(self._name)
         self.setObjectName(self.windowTitle().lower().replace(' ', '_'))
+
         if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
             # if this is not a Qt app, we need to make the toolbar a "dialog"
             self.setWindowFlags(Qt.Tool)
+
+        self._iconsSize = 32
+        self.restoreSettings()
+        self.setIconSize(QSize(self._iconsSize, self._iconsSize))
 
     @classmethod
     def name(cls):
@@ -32,6 +37,10 @@ class BlurdevToolbar(QToolBar):
 
     def preferences(self):
         return blurdev.prefs.find('blurdev/toolbar_{}'.format(self.objectName()))
+
+    def setIconsSize(self, size):
+        self._iconsSize = size
+        self.setIconSize(QSize(size, size))
 
     def recordSettings(self, save=True, gui=True):
         """ Records settings to be used for another session.
@@ -47,6 +56,7 @@ class BlurdevToolbar(QToolBar):
                 need to call save on it.
         """
         pref = self.preferences()
+        pref.recordProperty('icons_size', self._iconsSize)
         if gui:
             pref.recordProperty('isVisible', self.isVisible())
             if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
@@ -66,6 +76,7 @@ class BlurdevToolbar(QToolBar):
         """ restores settings that were saved by a previous session
         """
         pref = self.preferences()
+        self._iconsSize = pref.restoreProperty('icons_size', 32)
         if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
             geometry = pref.restoreProperty('geometry', QRect())
             if geometry and not geometry.isNull():

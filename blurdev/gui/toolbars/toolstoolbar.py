@@ -72,7 +72,6 @@ class ToolsToolbar(BlurdevToolbar):
         super(ToolsToolbar, self).__init__(parent)
         self._iconFactory = IconFactory().customize(icon_class='StyledIcon')
         self.setAcceptDrops(True)
-        self.setIconSize(QSize(16, 16))
         self.setToolTip('Drag and drop Treegrunt tools.')
 
         # Create connections.
@@ -130,7 +129,6 @@ class ToolsToolbar(BlurdevToolbar):
 
             # Show menus for the toolbars.
             menu = QMenu(self)
-            menu.setMinimumHeight(32)
 
             # Create a simple header for the menu to easily identify the toolbar
             act = menu.addAction(self._name)
@@ -166,6 +164,21 @@ class ToolsToolbar(BlurdevToolbar):
 
                 menu.addSeparator()
                 event.accept()
+
+            viewMenu = menu.addMenu('View')
+            viewMenu.setIcon(self._iconFactory.getIcon('view'))
+            act = viewMenu.addAction('Small Icons')
+            act.triggered.connect(lambda: self.setIconsSize(16))
+            act.setCheckable(True)
+            act.setChecked(self._iconsSize == 16)
+            act = viewMenu.addAction('Medium Icons')
+            act.triggered.connect(lambda: self.setIconsSize(24))
+            act.setCheckable(True)
+            act.setChecked(self._iconsSize == 24)
+            act = viewMenu.addAction('Large Icons')
+            act.triggered.connect(lambda: self.setIconsSize(32))
+            act.setCheckable(True)
+            act.setChecked(self._iconsSize == 32)
 
             act = menu.addAction('Reload')
             act.setIcon(self._iconFactory.getIcon('google', name='refresh'))

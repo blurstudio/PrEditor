@@ -1,19 +1,21 @@
 ##
-# 	\namespace	python.blurdev.gui.windows.loggerwindow.workboxwidget
+#   \namespace  python.blurdev.gui.windows.loggerwindow.workboxwidget
 #
-# 	\remarks	A area to save and run code past the existing session
+#   \remarks    A area to save and run code past the existing session
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		03/17/11
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       03/17/11
 #
+import re
 
-from Qt.QtWidgets import QTextEdit, QAction
-from Qt.QtCore import QEvent, Qt
-from Qt.QtGui import QIcon
+import blurdev
+
+from Qt.QtCore import Qt
+from Qt.QtWidgets import QAction
 from blurdev.ide.documenteditor import DocumentEditor
-from Qt.QtWidgets import QApplication
-import blurdev, re
+
+from .icons import iconFactory
 
 
 class WorkboxWidget(DocumentEditor):
@@ -27,10 +29,8 @@ class WorkboxWidget(DocumentEditor):
         super(WorkboxWidget, self).__init__(parent)
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
-        import blurdev
-
         self._software = blurdev.core.objectName()
-        self.regex = re.compile('\s+$')
+        self.regex = re.compile(r'\s+$')
         self.initShortcuts()
 
     def console(self):
@@ -38,7 +38,7 @@ class WorkboxWidget(DocumentEditor):
 
     def execAll(self):
         """
-            \remarks	reimplement the DocumentEditor.exec_ method to run this code without saving
+            \remarks    reimplement the DocumentEditor.exec_ method to run this code without saving
         """
         txt = self.toUnixLineEndings(self.text()).rstrip()
         self.console().executeString(txt, filename='<WorkboxWidget>')
@@ -48,7 +48,7 @@ class WorkboxWidget(DocumentEditor):
         # We will then remove the leading whitespace from that line
         # from all subsequent lines
         for s in lines:
-            m = re.match('(\s*)[^#]', s)
+            m = re.match(r'(\s*)[^#]', s)
             if m:
                 return m.group(1)
         return ''
@@ -59,7 +59,7 @@ class WorkboxWidget(DocumentEditor):
             if not line:
                 newLines.append(line)
                 continue
-            if re.match('\s*#', line):
+            if re.match(r'\s*#', line):
                 # Ignore comment lines
                 newLines.append('')
             elif line.startswith(rep):
@@ -129,44 +129,38 @@ class WorkboxWidget(DocumentEditor):
         """
         from blurdev.ide.finddialog import FindDialog
 
-        self.uiFindACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/find.png')), 'Find...', self
-        )
+        self.uiFindACT = QAction(iconFactory.getIcon('find'), 'Find...', self)
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
 
         self.uiFindPrevACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/findprev.png')), 'Find Prev', self
+            iconFactory.getIcon('find-prev'), 'Find Prev', self
         )
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
 
         self.uiFindNextACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/findnext.png')), 'Find Next', self
+            iconFactory.getIcon('find-next'), 'Find Next', self
         )
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
 
         self.uiCommentAddACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_add.png')), 'Comment Add', self
+            iconFactory.getIcon('comment-add'), 'Comment Add', self
         )
         self.uiCommentAddACT.setShortcut("Alt+3")
         self.uiCommentAddACT.triggered.connect(self.commentAdd)
         self.addAction(self.uiCommentAddACT)
 
         self.uiCommentRemoveACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_remove.png')),
-            'Comment Remove',
-            self,
+            iconFactory.getIcon('comment-remove'), 'Comment Remove', self
         )
         self.uiCommentRemoveACT.setShortcut("Alt+#")
         self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
         self.addAction(self.uiCommentRemoveACT)
 
         self.uiCommentToggleACT = QAction(
-            QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')),
-            'Comment Toggle',
-            self,
+            iconFactory.getIcon('comment-toggle'), 'Comment Toggle', self
         )
         self.uiCommentToggleACT.setShortcut("Ctrl+/")
         self.uiCommentToggleACT.triggered.connect(self.commentToggle)

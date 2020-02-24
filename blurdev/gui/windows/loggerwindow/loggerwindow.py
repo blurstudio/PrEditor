@@ -1,11 +1,11 @@
 ##
-# 	\namespace	blurdev.gui.windows.loggerwindow.loggerwindow
+#   \namespace  blurdev.gui.windows.loggerwindow.loggerwindow
 #
-# 	\remarks	LoggerWindow class is an overloaded python interpreter for blurdev
+#   \remarks    LoggerWindow class is an overloaded python interpreter for blurdev
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/15/08
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       01/15/08
 #
 
 import os
@@ -13,28 +13,33 @@ import re
 import sys
 import time
 import warnings
+
+import blurdev
+
 from functools import partial
-from blurdev.gui import Window, Dialog
-from blurdev.gui.widgets.dragspinbox import DragSpinBox
-from .workboxwidget import WorkboxWidget
-from blurdev import prefs
-from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
+
+from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer, QSize
 from Qt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from Qt.QtWidgets import (
     QApplication,
-    QFileDialog,
     QFileIconProvider,
     QInputDialog,
     QLabel,
     QMenu,
     QMessageBox,
-    QSplitter,
-    QWidget,
     QTextBrowser,
     QVBoxLayout,
+    QTabBar,
 )
 from Qt import QtCompat
-import blurdev
+
+from blurdev import prefs
+
+from blurdev.gui import Window
+from blurdev.gui.widgets.dragspinbox import DragSpinBox
+
+from .icons import iconFactory
+from .workboxwidget import WorkboxWidget
 
 
 class LoggerWindow(Window):
@@ -47,8 +52,9 @@ class LoggerWindow(Window):
 
         import blurdev.gui
 
-        self.setWindowIcon(QIcon(blurdev.resourcePath('img/PythonLogger.png')))
+        self.setWindowIcon(QIcon(blurdev.findTool('Python_Logger').icon()))
         blurdev.gui.loadUi(__file__, self)
+        blurdev.setAppUserModelID('PythonLogger')
 
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
         self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
@@ -156,29 +162,38 @@ class LoggerWindow(Window):
             # We can't currently create desktop shortcuts on posix systems.
             self.uiShortcutsMENU.menuAction().setVisible(False)
 
-        self.uiNewScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/newfile.png')))
-        self.uiOpenScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/open.png')))
-        self.uiOpenIdeACT.setIcon(QIcon(blurdev.resourcePath('img/ide.png')))
-        self.uiRunScriptACT.setIcon(QIcon(blurdev.resourcePath('img/ide/run.png')))
-        self.uiNoDebugACT.setIcon(QIcon(blurdev.resourcePath('img/debug_off.png')))
-        self.uiDebugLowACT.setIcon(QIcon(blurdev.resourcePath('img/debug_low.png')))
-        self.uiDebugMidACT.setIcon(QIcon(blurdev.resourcePath('img/debug_mid.png')))
-        self.uiDebugHighACT.setIcon(QIcon(blurdev.resourcePath('img/debug_high.png')))
-        self.uiResetPathsACT.setIcon(QIcon(blurdev.resourcePath('img/reset.png')))
-        self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/ide/clearlog.png')))
-        self.uiSaveConsoleSettingsACT.setIcon(
-            QIcon(blurdev.resourcePath('img/savesettings.png'))
+        self.uiNewScriptACT.setIcon(iconFactory.getIcon('new'))
+        self.uiOpenScriptACT.setIcon(iconFactory.getIcon('open'))
+        self.uiOpenIdeACT.setIcon(iconFactory.getIcon('edit'))
+        self.uiRunScriptACT.setIcon(iconFactory.getIcon('run'))
+        self.uiNoDebugACT.setIcon(
+            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#70C159'))
         )
-        self.uiAboutBlurdevACT.setIcon(QIcon(blurdev.resourcePath('img/info.png')))
-        self.uiCloseLoggerACT.setIcon(QIcon(blurdev.resourcePath('img/ide/close.png')))
+        self.uiDebugLowACT.setIcon(
+            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#EEC041'))
+        )
+        self.uiDebugMidACT.setIcon(
+            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#EF8341'))
+        )
+        self.uiDebugHighACT.setIcon(
+            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#E74C46'))
+        )
+        self.uiResetPathsACT.setIcon(iconFactory.getIcon('reset'))
+        self.uiClearLogACT.setIcon(iconFactory.getIcon('clear'))
+        self.uiSaveConsoleSettingsACT.setIcon(iconFactory.getIcon('save'))
+        self.uiAboutBlurdevACT.setIcon(iconFactory.getIcon('about'))
+        self.uiCloseLoggerACT.setIcon(iconFactory.getIcon('close'))
 
-        self.uiPdbContinueACT.setIcon(
-            QIcon(blurdev.resourcePath('img/ide/pdb_continue.png'))
-        )
-        self.uiPdbStepACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_step.png')))
-        self.uiPdbNextACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_next.png')))
-        self.uiPdbUpACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_up.png')))
-        self.uiPdbDownACT.setIcon(QIcon(blurdev.resourcePath('img/ide/pdb_down.png')))
+        self.uiPdbContinueACT.setIcon(iconFactory.getIcon('continue'))
+        self.uiPdbStepACT.setIcon(iconFactory.getIcon('step'))
+        self.uiPdbNextACT.setIcon(iconFactory.getIcon('next'))
+        self.uiPdbUpACT.setIcon(iconFactory.getIcon('up'))
+        self.uiPdbDownACT.setIcon(iconFactory.getIcon('down'))
+
+        # Setting toolbar icon size.
+        from Qt.QtCore import QSize
+
+        self.uiConsoleTOOLBAR.setIconSize(QSize(18, 18))
 
         # Start the filesystem monitor
         self._openFileMonitor = QFileSystemWatcher(self)
@@ -207,10 +222,10 @@ class LoggerWindow(Window):
             'PythonLoggerWindow', 'Python Logger'
         )
         self.setWindowTitle(
-            '%s - %s - %s %ibit'
+            '%s - %s - %s %i-bit'
             % (
                 loggerName,
-                blurdev.core.objectName(),
+                blurdev.core.objectName().capitalize(),
                 '%i.%i.%i' % sys.version_info[:3],
                 blurdev.osystem.getPointerSize(),
             )
@@ -223,6 +238,17 @@ class LoggerWindow(Window):
             # before it has finished running completely.
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
+    def _getDebugIcon(self, filepath, color):
+        icf = iconFactory.customize(
+            iconClass='StyledIcon',
+            baseColor=color,
+            activeColor=color,
+            activeContrast=1,
+            highlightColor=color,
+            highlightContrast=1,
+        )
+        return icf.getIcon(path=filepath)
+
     @classmethod
     def _genPrefName(cls, baseName, index):
         if index:
@@ -230,7 +256,7 @@ class LoggerWindow(Window):
         return baseName
 
     def addWorkbox(self, tabWidget=None, title='Workbox', closable=True):
-        if tabWidget == None:
+        if tabWidget is None:
             tabWidget = self.uiWorkboxTAB
         workbox = WorkboxWidget(tabWidget)
         workbox.setConsole(self.uiConsoleTXT)
@@ -239,7 +265,6 @@ class LoggerWindow(Window):
         workbox.setLanguage('Python')
         workbox.setShowSmartHighlighting(True)
         # update the lexer
-        lex = workbox.lexer()
         workbox.setMarginsFont(workbox.font())
         if closable:
             # If only one tab is visible, don't show the close tab button
@@ -247,6 +272,28 @@ class LoggerWindow(Window):
         tabWidget.setCurrentIndex(index)
         workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
+
+        # tabButton = self.uiWorkboxTAB.tabBar().tabButton(index, QTabBar.RightSide)
+        # if tabButton:
+        #     tabButton.setIcon(QIcon(r'K:\library\icons\fugue\16\acorn.png'))
+        #     self.uiWorkboxTAB.tabBar().setTabButton(index, QTabBar.RightSide, tabButton)
+        #     print tabButton
+        # tabWidget.tabBar().tabButton(index, QTabBar.RightSide).setIcon(r'K:\library\icons\fugue\16\acorn.png')
+        # Setting close icon.
+        # closeButton = self.uiWorkboxTAB.tabBar().tabButton(index, QTabBar.RightSide)
+        # if closeButton:
+        #     closeButton.setIcon(iconFactory.getIcon(size=18, name='close'))
+        #     closeButton.setIcon(QIcon(r'K:\library\icons\fugue\16\acorn.png'))
+        #     closeButton.setIconSize(QSize(16, 16))
+        #     closeButton.setStyleSheet('''
+        #         QToolButton {
+        #             border: none;
+        #             margin: 0px;
+        #             padding: 0px;
+        #         }
+        #     ''')
+        #     self.uiWorkboxTAB.tabBar().setTabButton(index, QTabBar.RightSide, closeButton)
+
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -308,7 +355,7 @@ class LoggerWindow(Window):
 
     def execAll(self):
         """
-            \remarks	Clears the console before executing all workbox code
+            \remarks    Clears the console before executing all workbox code
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
@@ -316,7 +363,7 @@ class LoggerWindow(Window):
 
     def execSelected(self):
         """
-            \remarks	Clears the console before executing selected workbox code
+            \remarks    Clears the console before executing selected workbox code
         """
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
@@ -324,7 +371,7 @@ class LoggerWindow(Window):
 
     def gotoError(self):
         text = self.uiConsoleTXT.textCursor().selectedText()
-        results = re.match('[ \t]*File "([^"]+)", line (\d+)', text)
+        results = re.match(r'[ \t]*File "([^"]+)", line (\d+)', text)
         if results:
             from blurdev.ide import IdeEditor
 
@@ -341,7 +388,7 @@ class LoggerWindow(Window):
 
     def overrideKeyboardShortcuts(self):
         """
-            \remarks	If a specific software has limitations preventing keyboard shortcuts from working, they can be overidden here
+            \remarks    If a specific software has limitations preventing keyboard shortcuts from working, they can be overidden here
                         Example: Softimage treats both enter keys as Qt.Key_Enter, It ignores Qt.Key_Return
         """
         if self._software == 'softimage':
@@ -390,7 +437,7 @@ class LoggerWindow(Window):
         blurdev.activeEnvironment().resetPaths()
 
     def recordPrefs(self):
-        pref = prefs.find('blurdev\LoggerWindow')
+        pref = prefs.find(r'blurdev\LoggerWindow')
         pref.recordProperty('loggergeom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
         pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
@@ -452,7 +499,7 @@ class LoggerWindow(Window):
     def restorePrefs(self):
         from blurdev.XML.minidom import unescape
 
-        pref = prefs.find('blurdev\LoggerWindow')
+        pref = prefs.find(r'blurdev\LoggerWindow')
         rect = pref.restoreProperty('loggergeom')
         if rect and not rect.isNull():
             self.setGeometry(rect)
@@ -540,7 +587,7 @@ class LoggerWindow(Window):
         self.restoreToolbars()
 
     def restoreToolbars(self):
-        pref = prefs.find('blurdev\LoggerWindow')
+        pref = prefs.find(r'blurdev\LoggerWindow')
         state = pref.restoreProperty('toolbarStates', None)
         if state:
             self.restoreState(state)
@@ -637,17 +684,11 @@ class LoggerWindow(Window):
 
     def setClearBeforeRunning(self, state):
         if state:
-            self.uiRunSelectedACT.setIcon(
-                QIcon(blurdev.resourcePath('img/ide/runselectedclear.png'))
-            )
-            self.uiRunAllACT.setIcon(
-                QIcon(blurdev.resourcePath('img/ide/runallclear.png'))
-            )
+            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('run-selected'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
         else:
-            self.uiRunSelectedACT.setIcon(
-                QIcon(blurdev.resourcePath('img/ide/runselected.png'))
-            )
-            self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/ide/runall.png')))
+            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('run'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
 
     def setNoDebug(self):
         from blurdev import debug
@@ -666,7 +707,11 @@ class LoggerWindow(Window):
 
     def setFlashWindowInterval(self):
         value = self.uiConsoleTXT.flashTime
-        msg = 'If running code in the logger takes X seconds or longer,\nthe window will flash if it is not in focus.\nSetting the value to zero will disable flashing.'
+        msg = (
+            'If running code in the logger takes X seconds or longer,\n'
+            'the window will flash if it is not in focus.\n'
+            'Setting the value to zero will disable flashing.'
+        )
         value, success = QInputDialog.getDouble(None, 'Set flash window', msg, value)
         if success:
             self.uiConsoleTXT.flashTime = value
@@ -761,7 +806,7 @@ class LoggerWindow(Window):
     def linkCurrentTab(self):
         if self._currentTab != -1:
             # get the previous path
-            pref = prefs.find('blurdev\LoggerWindow')
+            pref = prefs.find(r'blurdev\LoggerWindow')
             prevPath = pref.restoreProperty(
                 'linkFolder', os.path.join(os.path.expanduser('~'))
             )
@@ -877,7 +922,7 @@ class LoggerWindow(Window):
     @classmethod
     def instanceSetPdbMode(cls, mode, msg=''):
         """ Sets the instance of LoggerWindow to pdb mode if the logger instance has been created.
-        
+
         Args:
             mode (bool): The mode to set it to
         """
@@ -930,8 +975,8 @@ class LoggerWindow(Window):
 
     @classmethod
     def instanceShutdown(cls):
-        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used. 
-        
+        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used.
+
         Returns:
             bool: If a shutdown was required
         """
