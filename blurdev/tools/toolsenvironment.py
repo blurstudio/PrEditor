@@ -155,6 +155,14 @@ class ToolsEnvironment(QObject):
                 # Preserve any paths not in inside the treegrunt folder structure
                 newpaths.append(spath)
 
+        # Remove paths defined in pth files from sys.path
+        removepaths_tuple = tuple(removepaths)
+        newpaths = [
+            np
+            for np in newpaths
+            if not self.normalizePath(np).startswith(removepaths_tuple)
+        ]
+
         # Debug info about paths being removed from sys.path
         logging_reload.debug('.pth files processed'.center(50, '-'))
         for f in pthFiles:

@@ -313,7 +313,8 @@ def pthPaths(dirname):
     """ Returns the absolute paths defined in any .pth file in dirname.
 
     This does not process any imports in the .pth file. The file paths are
-    converted to the current operating system by `toSystemPath`.
+    converted to the current operating system by `toSystemPath`. These paths
+    have os.path.normpath, abspath and normcase called on them.
 
     Args:
         dirname (str): All .pth files in this directory are searched for paths.
@@ -335,7 +336,9 @@ def pthPaths(dirname):
                         # For this code, we don't actually want to process imports
                         # and always want to ignore comment lines
                         continue
+                    # Adjust path for the current os and call os.path.normpath
                     line = toSystemPath(line.rstrip())
+                    # dircase has os.path.abspath and os.path.normcase called on it
                     _, dircase = site.makepath(dirname, line)
                     paths.append(dircase)
         except IOError:
