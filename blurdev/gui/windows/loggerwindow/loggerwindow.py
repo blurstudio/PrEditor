@@ -162,7 +162,7 @@ class LoggerWindow(Window):
             # We can't currently create desktop shortcuts on posix systems.
             self.uiShortcutsMENU.menuAction().setVisible(False)
 
-        self.uiNewScriptACT.setIcon(iconFactory.getIcon('new'))
+        self.uiNewScriptACT.setIcon(iconFactory.getIcon('insert_drive_file'))
         self.uiOpenScriptACT.setIcon(iconFactory.getIcon('open'))
         self.uiOpenIdeACT.setIcon(iconFactory.getIcon('edit'))
         self.uiRunScriptACT.setIcon(iconFactory.getIcon('run'))
@@ -684,11 +684,11 @@ class LoggerWindow(Window):
 
     def setClearBeforeRunning(self, state):
         if state:
-            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('run-selected'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
+            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('fast_forward'))
         else:
-            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('run'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
+            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('fast_forward'))
 
     def setNoDebug(self):
         from blurdev import debug
