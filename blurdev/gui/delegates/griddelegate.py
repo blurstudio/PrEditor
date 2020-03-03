@@ -108,7 +108,6 @@ class GridDelegate(QStyledItemDelegate):
         See Also:
             This is a :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate` method.
         """
-        self.clearEditor()
         self._editor = self.__call_delegate__('createEditor', parent, option, index)
 
         if self._editor != None:
@@ -192,9 +191,8 @@ class GridDelegate(QStyledItemDelegate):
         return self._gradiated
 
     def editor(self):
-        """
-            \remarks	returns the current editor for this delegate
-            \return		<QWidget> || None
+        """ returns the current editor for this delegate or None. This is only valid
+        after createEditor is called and until setModelData finishes.
         """
         return self._editor
 
@@ -260,6 +258,11 @@ class GridDelegate(QStyledItemDelegate):
             This is a :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate` method.
         """
         self.__call_delegate__('setModelData', editor, model, index)
+        # We need to clear the reference to prevent crashes trying to clear the
+        # self._editor reference on the next createEditor call. This became a problem
+        # after we started calling super on createEditor instead of making our own
+        # QLineEdit widget and returning it.
+        self.clearEditor()
 
     def setShowBottomBorder(self, state=True):
         """ sets whether or not bottom borders are drawn """
