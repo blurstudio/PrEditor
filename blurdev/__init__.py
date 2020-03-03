@@ -198,7 +198,7 @@ def launch(
     from blurdev.cores.core import Core
 
     if application:
-        application.setStyle('Plastique')
+        application.setStyle(core.defaultStyle())
 
         # See ToolsEnvironment._resetIfSamePath for more info on why this is being set.
         current = blurdev.tools.ToolsEnvironment._resetIfSamePath

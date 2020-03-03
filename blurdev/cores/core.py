@@ -224,18 +224,19 @@ class Core(QObject):
         """
         pass
 
-    def connectPlugin(
-        self, hInstance, hwnd, style='Plastique', palette=None, stylesheet=''
-    ):
-        """ Creates a QMfcApp instance for the inputed plugin and window if no app is currently running
-            
-            :param int hInstance:
-            :param int hwnd:
-            :param str style:
-            :param QPalette palette:
-            :param str stylesheet:
-            :returns: bool for success
-            
+    def connectPlugin(self, hInstance, hwnd, style=None, palette=None, stylesheet=''):
+        """ Creates a QMfcApp instance for the inputted plugin and window if no
+        app is currently running.
+
+        Args:
+            hInstance (int):
+            hwnd (int):
+            style (str, optional): If None blurdev.core.defaultStyle() is used.
+            palette (QPalette, optional): Legacy, use stylesheet to style.
+            stylesheet (str, optional):
+
+        Returns:
+            bool: success
         """
 
         # check to see if there is an application already running
@@ -250,6 +251,8 @@ class Core(QObject):
 
                 app = QApplication.instance()
                 if app:
+                    if style is None:
+                        style = self.defaultStyle()
                     app.setStyle(style)
                     if palette:
                         app.setPalette(palette)
@@ -279,6 +282,17 @@ class Core(QObject):
             os.environ['BDEV_MASTER_TOOLS_ENV_CONFIG']
             % {'filepath': blurdev.resourcePath()}
         )
+
+    def defaultStyle(self):
+        """ The default style name used when setting up the QApplication.
+
+        In Qt4 this is Plastique, in Qt5 this is Fusion.
+        """
+        from Qt import IsPyQt4, IsPySide
+
+        if IsPyQt4 or IsPySide:
+            return 'Plastique'
+        return 'Fusion'
 
     def disableKeystrokes(self):
         # disable the client keystrokes

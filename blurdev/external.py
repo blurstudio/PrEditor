@@ -212,7 +212,7 @@ class External(object):
             app = blurdev.application
             app.setQuitOnLastWindowClosed(False)
         # This is neccissary as long as our stylesheets depend on Plastique as a base.
-        blurdev.application.setStyle('Plastique')
+        blurdev.application.setStyle(blurdev.core.defaultStyle())
         # Initialize the logger
         blurdev.core.logger()
         # Start Qt's event loop
