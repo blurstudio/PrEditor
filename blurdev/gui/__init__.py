@@ -24,7 +24,7 @@ from .dockwidget import DockWidget
 from .wizard import Wizard
 from functools import partial
 
-Icons = IconFactory()
+iconFactory = IconFactory().customize(iconClass='StyledIcon')
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 

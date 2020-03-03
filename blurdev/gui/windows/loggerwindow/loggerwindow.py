@@ -18,7 +18,7 @@ import blurdev
 
 from functools import partial
 
-from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer, QSize
+from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
 from Qt.QtGui import QColor, QCursor, QIcon, QKeySequence
 from Qt.QtWidgets import (
     QApplication,
@@ -29,8 +29,8 @@ from Qt.QtWidgets import (
     QMessageBox,
     QTextBrowser,
     QVBoxLayout,
-    QTabBar,
 )
+
 from Qt import QtCompat
 
 from blurdev import prefs
@@ -38,7 +38,7 @@ from blurdev import prefs
 from blurdev.gui import Window
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
 
-from .icons import iconFactory
+from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
 
 
@@ -162,31 +162,31 @@ class LoggerWindow(Window):
             # We can't currently create desktop shortcuts on posix systems.
             self.uiShortcutsMENU.menuAction().setVisible(False)
 
-        self.uiNewScriptACT.setIcon(iconFactory.getIcon('insert_drive_file'))
+        self.uiNewScriptACT.setIcon(iconFactory.getIcon('new'))
         self.uiOpenScriptACT.setIcon(iconFactory.getIcon('open'))
-        self.uiOpenIdeACT.setIcon(iconFactory.getIcon('edit'))
-        self.uiRunScriptACT.setIcon(iconFactory.getIcon('run'))
+        self.uiOpenIdeACT.setIcon(iconFactory.getIcon('ide'))
+        self.uiRunScriptACT.setIcon(iconFactory.getIcon('play_circle_filled'))
         self.uiNoDebugACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#70C159'))
+            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#70C159'))
         )
         self.uiDebugLowACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#EEC041'))
+            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#EEC041'))
         )
         self.uiDebugMidACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#EF8341'))
+            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#EF8341'))
         )
         self.uiDebugHighACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('level'), QColor('#E74C46'))
+            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#E74C46'))
         )
-        self.uiResetPathsACT.setIcon(iconFactory.getIcon('reset'))
+        self.uiResetPathsACT.setIcon(iconFactory.getIcon('return'))
         self.uiClearLogACT.setIcon(iconFactory.getIcon('clear'))
         self.uiSaveConsoleSettingsACT.setIcon(iconFactory.getIcon('save'))
         self.uiAboutBlurdevACT.setIcon(iconFactory.getIcon('about'))
         self.uiCloseLoggerACT.setIcon(iconFactory.getIcon('close'))
 
-        self.uiPdbContinueACT.setIcon(iconFactory.getIcon('continue'))
-        self.uiPdbStepACT.setIcon(iconFactory.getIcon('step'))
-        self.uiPdbNextACT.setIcon(iconFactory.getIcon('next'))
+        self.uiPdbContinueACT.setIcon(iconFactory.getIcon('play'))
+        self.uiPdbStepACT.setIcon(iconFactory.getIcon('arrow_forward'))
+        self.uiPdbNextACT.setIcon(iconFactory.getIcon('subdirectory_arrow_right'))
         self.uiPdbUpACT.setIcon(iconFactory.getIcon('up'))
         self.uiPdbDownACT.setIcon(iconFactory.getIcon('down'))
 
@@ -242,10 +242,13 @@ class LoggerWindow(Window):
         icf = iconFactory.customize(
             iconClass='StyledIcon',
             baseColor=color,
+            baseContrast=-0.2,
             activeColor=color,
-            activeContrast=1,
+            activeContrast=0,
+            toggleColor=color,
+            toggleContrast=0,
             highlightColor=color,
-            highlightContrast=1,
+            highlightContrast=0.2,
         )
         return icf.getIcon(path=filepath)
 
@@ -272,28 +275,6 @@ class LoggerWindow(Window):
         tabWidget.setCurrentIndex(index)
         workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
-
-        # tabButton = self.uiWorkboxTAB.tabBar().tabButton(index, QTabBar.RightSide)
-        # if tabButton:
-        #     tabButton.setIcon(QIcon(r'K:\library\icons\fugue\16\acorn.png'))
-        #     self.uiWorkboxTAB.tabBar().setTabButton(index, QTabBar.RightSide, tabButton)
-        #     print tabButton
-        # tabWidget.tabBar().tabButton(index, QTabBar.RightSide).setIcon(r'K:\library\icons\fugue\16\acorn.png')
-        # Setting close icon.
-        # closeButton = self.uiWorkboxTAB.tabBar().tabButton(index, QTabBar.RightSide)
-        # if closeButton:
-        #     closeButton.setIcon(iconFactory.getIcon(size=18, name='close'))
-        #     closeButton.setIcon(QIcon(r'K:\library\icons\fugue\16\acorn.png'))
-        #     closeButton.setIconSize(QSize(16, 16))
-        #     closeButton.setStyleSheet('''
-        #         QToolButton {
-        #             border: none;
-        #             margin: 0px;
-        #             padding: 0px;
-        #         }
-        #     ''')
-        #     self.uiWorkboxTAB.tabBar().setTabButton(index, QTabBar.RightSide, closeButton)
-
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -685,10 +666,10 @@ class LoggerWindow(Window):
     def setClearBeforeRunning(self, state):
         if state:
             self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('fast_forward'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
         else:
             self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('fast_forward'))
+            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
 
     def setNoDebug(self):
         from blurdev import debug

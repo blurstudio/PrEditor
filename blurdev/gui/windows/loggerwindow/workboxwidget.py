@@ -8,14 +8,12 @@
 #   \date       03/17/11
 #
 import re
-
 import blurdev
 
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QAction
 from blurdev.ide.documenteditor import DocumentEditor
-
-from .icons import iconFactory
+from blurdev.gui import iconFactory
 
 
 class WorkboxWidget(DocumentEditor):
@@ -133,35 +131,30 @@ class WorkboxWidget(DocumentEditor):
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
 
-        self.uiFindPrevACT = QAction(
-            iconFactory.getIcon('find-prev'), 'Find Prev', self
-        )
+        icon = iconFactory.getIcon('previous')
+        self.uiFindPrevACT = QAction(icon, 'Find Prev', self)
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
 
-        self.uiFindNextACT = QAction(
-            iconFactory.getIcon('find-next'), 'Find Next', self
-        )
+        icon = iconFactory.getIcon('next')
+        self.uiFindNextACT = QAction(icon, 'Find Next', self)
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
 
-        self.uiCommentAddACT = QAction(
-            iconFactory.getIcon('comment-add'), 'Comment Add', self
-        )
+        icon = iconFactory.getIcon('comment')
+        self.uiCommentAddACT = QAction(icon, 'Comment Add', self)
         self.uiCommentAddACT.setShortcut("Alt+3")
         self.uiCommentAddACT.triggered.connect(self.commentAdd)
         self.addAction(self.uiCommentAddACT)
 
-        self.uiCommentRemoveACT = QAction(
-            iconFactory.getIcon('comment-remove'), 'Comment Remove', self
-        )
+        icon = iconFactory.getIcon('chat_bubble_outline')
+        self.uiCommentRemoveACT = QAction(icon, 'Comment Remove', self)
         self.uiCommentRemoveACT.setShortcut("Alt+#")
         self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
         self.addAction(self.uiCommentRemoveACT)
 
-        self.uiCommentToggleACT = QAction(
-            iconFactory.getIcon('comment-toggle'), 'Comment Toggle', self
-        )
+        icon = iconFactory.getIcon('chat_bubble_outline')
+        self.uiCommentToggleACT = QAction(icon, 'Comment Toggle', self)
         self.uiCommentToggleACT.setShortcut("Ctrl+/")
         self.uiCommentToggleACT.triggered.connect(self.commentToggle)
         self.addAction(self.uiCommentToggleACT)
