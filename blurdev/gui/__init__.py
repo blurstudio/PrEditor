@@ -17,6 +17,7 @@ from Qt.QtCore import Property
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QSplashScreen
 
+from .. import core
 from .icon_factory import IconFactory
 from .window import Window
 from .dialog import Dialog
@@ -24,16 +25,19 @@ from .dockwidget import DockWidget
 from .wizard import Wizard
 from functools import partial
 
-iconFactory = IconFactory().customize(iconClass='StyledIcon')
+# IconFactory.customize creates QWidgets which does not work in headless mode
+iconFactory = IconFactory()
+if not core.headless:
+    iconFactory = iconFactory.customize(iconClass='StyledIcon')
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
 def QtPropertyInit(name, default, callback=None):
     """Initializes a default Property value with a usable getter and setter.
-    
+
     You can optionally pass a function that will get called any time the property
-    is set. If using the same callback for multiple properties, you may want to 
+    is set. If using the same callback for multiple properties, you may want to
     use the blurdev.decorators.singleShot decorator to prevent your function getting
     called multiple times at once. This callback must accept the attribute name and
     value being set.
@@ -184,7 +188,7 @@ def compPixmap(imageData):
     data = [[trax.gui.findIconFile(r'employeeReview\1')],
             [trax.gui.findIconFile(r'employeeReview\alert'), [5, 5]]]
     map = compPixmap(data)
-    data = [[trax.gui.findIconFile(r'employeeReview\blank')], 
+    data = [[trax.gui.findIconFile(r'employeeReview\blank')],
             [map, [4,2]]]
     map = compPixmap(data)
     """
