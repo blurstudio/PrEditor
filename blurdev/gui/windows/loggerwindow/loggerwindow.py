@@ -148,6 +148,12 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
+        self.uiBrowseLocalPreferencesACT.triggered.connect(
+            lambda: self.browsePreferences(False)
+        )
+        self.uiBrowseSharedPreferencesACT.triggered.connect(
+            lambda: self.browsePreferences(True)
+        )
         self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
@@ -282,6 +288,11 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
         else:
             self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
+
+    def browsePreferences(self, shared=False):
+        pref = blurdev.prefs.Preference()
+        path = pref.path(shared=shared)
+        blurdev.osystem.explore(path)
 
     def console(self):
         return self.uiConsoleTXT

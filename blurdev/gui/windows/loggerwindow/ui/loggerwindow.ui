@@ -137,9 +137,18 @@
      <addaction name="uiPythonLoggerShortcutACT"/>
      <addaction name="uiTreegruntShortcutACT"/>
     </widget>
+    <widget class="QMenu" name="menuPreferences">
+     <property name="title">
+      <string>Preferences</string>
+     </property>
+     <addaction name="uiBrowseLocalPreferencesACT"/>
+     <addaction name="uiBrowseSharedPreferencesACT"/>
+    </widget>
     <addaction name="uiShortcutsMENU"/>
     <addaction name="separator"/>
+    <addaction name="menuPreferences"/>
     <addaction name="uiEnvironmentVarsACT"/>
+    <addaction name="separator"/>
     <addaction name="uiAboutBlurdevACT"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
@@ -598,6 +607,16 @@
   <action name="uiLogToFileClearACT">
    <property name="text">
     <string>Clear Output File</string>
+   </property>
+  </action>
+  <action name="uiBrowseLocalPreferencesACT">
+   <property name="text">
+    <string>Browse Local Preferences</string>
+   </property>
+  </action>
+  <action name="uiBrowseSharedPreferencesACT">
+   <property name="text">
+    <string>Browse Shared Preferences</string>
    </property>
   </action>
  </widget>
