@@ -31,7 +31,7 @@ def fromString(version, asDict=False):
 
 
 def from_string(version, as_dict=False):
-    return ver.from_string(version, as_dict=asDict)
+    return ver.from_string(version, as_dict=as_dict)
 
 
 @deprecated(version='2.24.0', reason='You should use "to_string" instead')
