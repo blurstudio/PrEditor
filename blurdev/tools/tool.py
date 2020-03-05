@@ -128,7 +128,7 @@ class Tool(QObject):
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 'resource',
                 'img',
-                'blank.png',
+                'tool.png',
             )
         return path
 
