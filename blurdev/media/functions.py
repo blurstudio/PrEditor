@@ -133,21 +133,21 @@ def convertImageToBase64(image, ext=None):
 
 def extractVideoFrame(filename, outputpath):
     """
-    This uses ffmpeg to extract a frame as a image.  This requires that 
-    ffmpeg is installed by copying the ffmpeg folder into the 32bit 
-    program files folder.
-    
+    Using FFMPEG, extracts a frame from the specified video.
+
+    Note: The FFMPEG executable must be available through your PATH variable.
+
+    Args:
+        filename (str): Video to extract frame from.
+        outputpath (str): Destination path for extracted frame.
+
+    Returns:
+        bool: Whether the frame was successfully extracted.
     """
     options = {}
     options['source'] = filename
-    options['ffmpeg'] = r'C:\Program Files\ffmpeg\bin\ffmpeg.exe'
-    if not os.path.exists(options['ffmpeg']):
-        options['ffmpeg'] = options['ffmpeg'].replace(' (x86)', '')
     options['output'] = outputpath
-    cmd = (
-        '"\"%(ffmpeg)s\" -i \"%(source)s\" -vframes 1 -f image2 \"%(output)s\""'
-        % options
-    )
+    cmd = '"ffmpeg -i \"%(source)s\" -vframes 1 -f image2 \"%(output)s\""' % options
     subprocess.call(cmd, shell=True)
     return os.path.exists(outputpath)
 
@@ -207,9 +207,10 @@ def imageMagick(source, destination, exe='convert', flags=''):
        `ImageMagick <http://www.imagemagick.org/script/index.php>`_
 
     """
-    converter = r'%s\ImageMagick\%s.exe' % (get32bitProgramFiles(), exe)
-    if os.path.exists(converter):
-        cmd = '"%s" %s "%s" "%s"' % (converter, flags, source, destination)
+    import distutils.spawn
+
+    if distutils.spawn.find_executable("magick"):
+        cmd = 'magick %s %s "%s" "%s"' % (exe, flags, source, destination)
         out = subprocess.Popen(cmd)
         out.wait()
         return True
