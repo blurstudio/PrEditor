@@ -149,7 +149,12 @@ class Core(QObject):
     def aboutBlurdev(self):
         """ Useful info about blurdev and its dependencies as a string.
         """
-        from Qt import __binding__, __binding_version__, __version__ as qtpyVersion
+        from Qt import (
+            __binding__,
+            __binding_version__,
+            __version__ as qtpyVersion,
+            __qt_version__,
+        )
 
         msg = [
             'blurdev: {}'.format(blurdev.version.to_string()),
@@ -172,6 +177,7 @@ class Core(QObject):
                     '        db: {}'.format(Database.current().connection().userName())
                 )
 
+        msg.append('Qt: {}'.format(__qt_version__))
         msg.append('{qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__))
         msg.append('Qt.py: {}'.format(qtpyVersion))
 
