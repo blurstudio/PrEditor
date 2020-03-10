@@ -4,7 +4,7 @@ import os
 import glob
 from functools import partial
 
-from Qt.QtCore import QDateTime, QEvent, QObject, QRect, Qt, Signal
+from Qt.QtCore import QCoreApplication, QDateTime, QEvent, QObject, QRect, Qt, Signal
 from Qt.QtWidgets import (
     QApplication,
     QDialog,
@@ -200,14 +200,19 @@ class Core(QObject):
             return QApplication.instance().activeWindow()
         return None
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
+        """ Add default Qt plugin paths to the QCoreApplication.
+
+        It is safe to call this multiple times as addLibraryPath won't add the
+        same path twice.
+        """
         # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
         if sys.platform != 'win32':
             return
         if blurdev.osystem.getPointerSize() == 64:
-            app.addLibraryPath("c:/windows/system32/blur64/")
+            QCoreApplication.addLibraryPath("c:/windows/system32/blur64/")
         else:
-            app.addLibraryPath("c:/blur/common/")
+            QCoreApplication.addLibraryPath("c:/blur/common/")
 
     def configUpdated(self):
         """ Preform any core specific updating of config. Returns if any actions were taken.
@@ -235,6 +240,7 @@ class Core(QObject):
 
         # check to see if there is an application already running
         if not QApplication.instance():
+            self.addLibraryPaths()
             if sys.platform == 'win32':  # shitty
                 from Qt.QtWinMigrate import QMfcApp
             # create the plugin instance
@@ -497,6 +503,7 @@ class Core(QObject):
         app = QApplication.instance()
         output = None
 
+        self.addLibraryPaths()
         if app:
             if self.isMfcApp():
                 # disable all UI effects as this is quite slow in MFC applications
@@ -508,7 +515,6 @@ class Core(QObject):
                 app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
                 app.aboutToQuit.connect(self.recordToolbars)
                 app.installEventFilter(self)
-            self.addLibraryPaths(app)
 
         # create a new application
         else:
@@ -521,7 +527,6 @@ class Core(QObject):
                     self._headless = True
             if output == None:
                 output = Application([])
-            self.addLibraryPaths(output)
 
         self.updateApplicationName(output)
 

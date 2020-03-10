@@ -45,7 +45,7 @@ class MotionBuilderCore(Core):
                 window = window.parent()
         return window
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         """ There is no need to add library paths for motion builder """
         return
 

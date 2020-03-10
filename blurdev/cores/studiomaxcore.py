@@ -128,20 +128,20 @@ class StudiomaxCore(Core):
             os.path.join(maxRoot, 'python', 'lib', 'site-packages', 'pywin32_system32')
         )
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         if sys.platform != 'win32':
             return
         if self.dccVersion == 16 and blurdev.osystem.getPointerSize() == 64:
             path = os.path.split(sys.executable)[0]
             if os.path.exists(os.path.join(path, 'QtOpenGL4.dll')):
                 # Special case for if max has our pyqt installed inside it
-                app.addLibraryPath(os.path.split(sys.executable)[0])
+                QApplication.addLibraryPath(os.path.split(sys.executable)[0])
                 return
         elif self.dccVersion > 18:
             # We don't need to worry about adding libraryPaths, its taken care of by
             # the max plugin that imported blurdev
             return
-        super(StudiomaxCore, self).addLibraryPaths(app)
+        super(StudiomaxCore, self).addLibraryPaths()
 
     def configUpdated(self):
         """

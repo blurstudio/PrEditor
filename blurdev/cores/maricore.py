@@ -23,16 +23,16 @@ class MariCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         if sys.platform != 'win32':
             return
         path = os.path.split(sys.executable)[0]
         path = os.path.join(path, '..', 'Qt4')
         if os.path.exists(os.path.join(path, 'QtOpenGL4.dll')):
             # Special case for if max has our pyqt installed inside it
-            paths = app.libraryPaths()
+            paths = QApplication.libraryPaths()
             paths.append(u'C:/Program Files/Mari3.1v3/Bundle/Qt4')
-            app.setLibraryPaths(paths)
+            QApplication.setLibraryPaths(paths)
 
     def createToolMacro(self, tool, macro=''):
         """

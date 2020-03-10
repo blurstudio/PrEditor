@@ -25,7 +25,7 @@ class MayaCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         # Do not add default library paths
         pass
 

@@ -19,7 +19,7 @@ class HoudiniCore(Core):
         # Shutdown blurdev when Houdini closes
         atexit.register(self.shutdown)
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         """ There is no need to add library paths for houdini """
         return
 

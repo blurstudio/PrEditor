@@ -18,9 +18,9 @@ class RVCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    def addLibraryPaths(self, app):
+    def addLibraryPaths(self):
         if sys.platform == 'linux2':
-            app.addLibraryPath(r'/usr/lib64/qt4/plugins')
+            QApplication.addLibraryPath(r'/usr/lib64/qt4/plugins')
             # TODO: Use the following code to dynamicly look up this path. It must be
             # run externally from RV or it will return the wrong path.
             # 			from Qt.QtCore import QLibraryInfo
