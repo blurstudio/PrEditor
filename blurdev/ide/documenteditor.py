@@ -13,8 +13,8 @@ import os
 import os.path
 
 from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint, QTimer
-from Qt.Qsci import QsciScintilla, QsciLexer, QsciLexerCustom
-from Qt.QtGui import QColor, QFont, QIcon, QCursor, QFontMetrics
+from Qt.Qsci import QsciScintilla
+from Qt.QtGui import QColor, QFont, QIcon, QFontMetrics
 from Qt.QtWidgets import (
     QApplication,
     QInputDialog,
@@ -24,22 +24,18 @@ from Qt.QtWidgets import (
     QShortcut,
 )
 from Qt import QtCompat
+from collections import OrderedDict
 
 import blurdev
-from blurdev.enum import enum
+from blurdev.enum import enum, Enum, EnumGroup
 from blurdev.ide import lang
 from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
 from .ideeditor import IdeEditor
+from .delayable_engine import DelayableEngine
 import re
 import string
 import time
-
-aspell = None
-try:
-    import aspell
-except ImportError:
-    pass
 
 
 class DocumentEditor(QsciScintilla):
@@ -55,15 +51,13 @@ class DocumentEditor(QsciScintilla):
         QsciScintilla, object
     )  # (DocumentEditor, filename) emitted when ever the document is saved.
 
-    def __init__(self, parent, filename='', lineno=0):
-        self._showSmartHighlighting = True
-        self._smartHighlightingSupported = False
+    def __init__(self, parent, filename='', lineno=0, delayable_engine='default'):
         super(DocumentEditor, self).__init__(parent)
         self.setObjectName('DocumentEditor')
-        self._speller = None
-        self.initialSpellCheckComplete = False
-        self.spellCheckTimeout = 0.01
-        self.initSpellCheck()
+        # Spell check variables
+        self.__speller__ = None
+        self.pos = None
+        self.anchor = None
 
         # create custom properties
         self._filename = ''
@@ -94,6 +88,11 @@ class DocumentEditor(QsciScintilla):
         self._indentationGuidesForegroundColor = QColor(Qt.black)
         self._markerBackgroundColor = QColor(Qt.white)
         self._markerForegroundColor = QColor(Qt.black)
+
+        # Setup the DelayableEngine and add the document to it
+        self.delayable_info = OrderedDict()
+        self.delayable_engine = DelayableEngine.instance(delayable_engine)
+        self.delayable_engine.add_document(self)
         # --------------------------------------------------------------------------------
         # used to store the right click location
         self._clickPos = None
@@ -595,10 +594,14 @@ class DocumentEditor(QsciScintilla):
         return self._language
 
     def languageChosen(self, action):
-        window = self.window()
+        self.setLanguage(action.text())
+        self.updateColorScheme()
         self._fileMonitoringActive = False
-        if isinstance(window, IdeEditor):
+        window = self.window()
+        if hasattr(window, 'uiLanguageDDL'):
+            window.uiLanguageDDL.blockSignals(True)
             window.uiLanguageDDL.setCurrentLanguage(action.text())
+            window.uiLanguageDDL.blockSignals(False)
 
     def launchConsole(self):
         if not self._filename:
@@ -609,7 +612,6 @@ class DocumentEditor(QsciScintilla):
         return self.marginWidth(self.SymbolMargin)
 
     def load(self, filename):
-        self.initialSpellCheckComplete = False
         filename = str(filename)
         if filename and os.path.exists(filename):
             f = QFile(filename)
@@ -660,6 +662,101 @@ class DocumentEditor(QsciScintilla):
             self.findTextNotFound(text)
 
         return result
+
+    def find_simple(self, find_state):
+        """ Python implementation of QsciScintilla.simpleFind.
+
+        Args:
+            find_state (blurdev.ide.FindState): A find state used to manage the find.
+
+        https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
+        """
+        if find_state.start_pos == find_state.end_pos:
+            return -1
+
+        self.SendScintilla(self.SCI_SETTARGETSTART, find_state.start_pos)
+        self.SendScintilla(self.SCI_SETTARGETEND, find_state.end_pos)
+
+        # scintilla can't match unicode strings
+        # TODO: Figure out if there is a better way to translate this.
+        expr = blurdev.settings.environStr(find_state.expr)
+
+        return self.SendScintilla(self.SCI_SEARCHINTARGET, len(expr), expr)
+
+    def find_text(self, find_state):
+        """ Finds text in the document without changing the selection.
+
+        Args:
+            find_state (blurdev.ide.FindState): A find state used to manage the find.
+
+        Based on QsciScintilla.doFind.
+        https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
+        """
+        # Set the search flags
+        self.SendScintilla(self.SCI_SETSEARCHFLAGS, find_state.flags)
+        # If no end was specified, use the end of the document
+        if find_state.end_pos is None:
+            find_state.end_pos = self.SendScintilla(self.SCI_GETLENGTH)
+
+        pos = self.find_simple(find_state)
+
+        # See if it was found.  If not and wraparound is wanted, try again.
+        if pos == -1 and find_state.wrap:
+            if find_state.forward:
+                find_state.start_pos = 0
+                if find_state.start_pos_original is None:
+                    find_state.end_pos = self.SendScintilla(self.SCI_GETLENGTH)
+                else:
+                    find_state.end_pos = find_state.start_pos_original
+            else:
+                if find_state.start_pos_original is None:
+                    find_state.start_pos = self.SendScintilla(self.SCI_GETLENGTH)
+                else:
+                    find_state.start_pos = find_state.start_pos_original
+                find_state.end_pos = 0
+            # Give a indication that we have wrapped
+            find_state.wrapped = True
+
+            pos = self.find_simple(find_state)
+
+        if pos == -1:
+            return -1, 0
+
+        # It was found.
+        target_start = self.SendScintilla(self.SCI_GETTARGETSTART)
+        target_end = self.SendScintilla(self.SCI_GETTARGETEND)
+
+        # Finally adjust the start position so that we don't find the same one again.
+        if find_state.forward:
+            find_state.start_pos = target_end
+        else:
+            find_state.start_pos = target_start - 1
+            if find_state.start_pos < 0:
+                find_state.start_pos = 0
+
+        return target_start, target_end
+
+    def find_text_from_cursor(self, find_state):
+        """ Starting from the current cursor position wrapping around, return all
+        matches to the provided find_state.
+
+        Args:
+            find_state (blurdev.ide.FindState): A find state used to manage the find.
+        """
+        # Start searching from the cursor, wrap past the end and stop where we started
+        current_position = self.positionFromLineIndex(*self.getCursorPosition())
+        find_state.start_pos = current_position
+        find_state.start_pos_original = current_position
+
+        positions = []
+        start, end = self.find_text(find_state)
+        while start != -1:
+            positions.append((start, end))
+            if find_state.wrapped:
+                # once we have wrapped, disable wrap
+                find_state.wrap = False
+            start, end = self.find_text(find_state)
+        return positions
 
     def findTextNotFound(self, text):
         try:
@@ -723,9 +820,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(0, section.value('showLineNumbers'))
         self.setIndentationGuides(section.value('showIndentations'))
         self.setEolVisibility(section.value('showEol'))
-        self.setShowSmartHighlighting(section.value('smartHighlighting'))
         self.setBackspaceUnindents(section.value('backspaceUnindents'))
-        enableSpellCheck = section.value('spellCheck')
 
         if section.value('showLimitColumn'):
             self.setEdgeMode(self.EdgeLine)
@@ -748,7 +843,6 @@ class DocumentEditor(QsciScintilla):
         self.setMarginsFont(self.marginsFont())
         self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
         self._enableFontResizing = scheme.value('document_EnableFontResize')
-        self.setSpellCheckEnabled(enableSpellCheck)
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -827,12 +921,13 @@ class DocumentEditor(QsciScintilla):
     def setPermaHighlight(self, value):
         if not isinstance(value, list):
             raise TypeError('PermaHighlight must be a list')
-        lexer = self.lexer()
-        if self._smartHighlightingSupported:
-            self._permaHighlight = value
-            self.setHighlightedKeywords(lexer, self._highlightedKeywords)
-        else:
-            raise TypeError('PermaHighlight is not supported by this lexer.')
+
+    #        lexer = self.lexer()
+    #        if self._smartHighlightingSupported:
+    #            self._permaHighlight = value
+    #            self.setHighlightedKeywords(lexer, self._highlightedKeywords)
+    #        else:
+    #            raise TypeError('PermaHighlight is not supported by this lexer.')
 
     def refreshToolTip(self):
         # TODO: This will proably be removed once I add a user interface to additionalFilenames.
@@ -946,7 +1041,7 @@ class DocumentEditor(QsciScintilla):
         self.blockSignals(True)
         super(DocumentEditor, self).setText(text)
         self.blockSignals(False)
-        self.spellCheck(0, len(self.text()), initial=True)
+        self.spellCheck(0, None)
 
     def refreshTitle(self):
         try:
@@ -1038,6 +1133,36 @@ class DocumentEditor(QsciScintilla):
         self._selectionForegroundColor = color
         super(DocumentEditor, self).setSelectionForegroundColor(color)
 
+    def selection_is_word(self):
+        """ Checks if the current selection is a single word.
+
+        Returns:
+            bool: The selected text is a single word.
+        """
+        sel = self.getSelection()
+        start = self.positionFromLineIndex(*sel[:2])
+        end = self.positionFromLineIndex(*sel[2:])
+        return self.is_word(start, end)
+
+    def is_word(self, start, end):
+        """ Checks if the text between start and end position is a word
+
+        Args:
+            start (int): Start of text offset index position.
+            end (int): End of text offset index position.
+
+        Returns:
+            bool: The text between the start and end position is a single word.
+        """
+        if start == end:
+            return False
+        # Get the word at the start of selection, if the selection doesn't match
+        # its not a word.
+        start_pos = self.SendScintilla(self.SCI_WORDSTARTPOSITION, start, True)
+        end_pos = self.SendScintilla(self.SCI_WORDENDPOSITION, start, True)
+
+        return start == start_pos and end == end_pos
+
     def setLanguage(self, language):
         if language == 'Plain Text':
             language = ''
@@ -1054,50 +1179,13 @@ class DocumentEditor(QsciScintilla):
             lexer = None
             self._language = ''
 
-        # connect the lexer if possible
-        self.setShowSmartHighlighting(self._showSmartHighlighting)
-
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
 
         # Add language keywords to aspell session dictionary
-        keywords = ''
-        if self._speller and self.lexer() and self._language:
-            language = lang.byName(self._language)
-            lexer = language.createLexer()
-            maxEnumIntList = {
-                key
-                for colorName, keys in language.lexerColorTypes().items()
-                for key in keys
-            }
-            if set([]) == maxEnumIntList:
-                # max() needs a non-empty list and the SQL lexer returns an empty set([])
-                maxEnumIntList = set([0])
-            maxInt = max(maxEnumIntList)
-            while maxInt >= 0:
-                lexerKeywords = self.lexer().keywords(maxInt)
-                if lexerKeywords:
-                    keywords = keywords + ' ' + lexerKeywords
-                maxInt -= 1
-            self._speller.clearSession()
-
-            if not keywords:
-                keywords = ''
-
-            for keyword in keywords.split():
-                # Split along whitespace
-                # Convert '-' to '_' because aspell doesn't process words with '-'
-                keyword = keyword.replace('-', '_')
-                # Strip '_' because aspell doesn't process words with '_'
-                keyword = keyword.strip('_')
-                # Remove non-alpha chars because aspell doesn't process words with non-alpha chars
-                keyword = ''.join(i for i in keyword if i.isalpha())
-                for word in keyword.split('_'):
-                    # Split along '_' because aspell doesn't process words with '_'
-                    if '' != word:
-                        self._speller.addtoSession(word)
-            self.spellCheck(0, len(self.text()))
+        if self.spellCheckEnabled():
+            self.delayable_engine.delayables['spell_check'].reset_session(self)
 
     def setLexer(self, lexer):
         font = self.documentFont
@@ -1199,21 +1287,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(self.SymbolMargin, state)
 
     def setShowSmartHighlighting(self, state):
-        self._showSmartHighlighting = state
-        # Disconnect existing connections
-        try:
-            self.selectionChanged.disconnect(self.updateHighlighter)
-        except:
-            pass
-        self._smartHighlightingSupported = False
-        lexer = self.lexer()
-        # connect to signal if enabling and possible
-        if hasattr(lexer, 'highlightedKeywords'):
-            if state:
-                self.selectionChanged.connect(self.updateHighlighter)
-                self._smartHighlightingSupported = True
-            else:
-                self.setHighlightedKeywords(lexer, '')
+        self.delayable_engine.set_delayable_enabled('smart_highlight', state)
 
     def setShowWhitespaces(self, state):
         if state:
@@ -1222,65 +1296,21 @@ class DocumentEditor(QsciScintilla):
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
 
     def spellCheckEnabled(self):
-        if self._speller:
-            return True
-        else:
-            return False
+        """ Is spellcheck is enabled for this document.
+        """
+        return self.delayable_engine.delayable_enabled('spell_check')
 
     def setSpellCheckEnabled(self, state):
-        if state:
-            if aspell:
-                self._speller = None
-                try:
-                    self._speller = aspell.Speller()
-                except:
-                    pass
-                if self._speller:
-                    self.initSpellCheck()
-                    self.SCN_MODIFIED.connect(self.onTextModified)
-                    if self.initialSpellCheckComplete:
-                        self.spellCheck(0, len(self.text()))
-        else:
-            self._speller = None
-            try:
-                self.SCN_MODIFIED.disconnect(self.onTextModified)
-            except TypeError:
-                pass
-            # Remove indicator
-            self.SendScintilla(
-                QsciScintilla.SCI_SETINDICATORCURRENT, self.spellCheckIndicatorNumber
-            )
-            self.SendScintilla(
-                QsciScintilla.SCI_INDICATORCLEARRANGE, 0, len(self.text())
-            )
-
-    def initSpellCheck(self):
-        self.chunkRE = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
-        self.camelCaseRE = re.compile(
-            '.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)'
-        )
-        # https://www.scintilla.org/ScintillaDox.html#SCI_INDICSETSTYLE
-        # https://qscintilla.com/indicators/
-        self.spellCheckIndicatorNumber = 31
-        self.indicatorDefine(
-            QsciScintilla.SquiggleLowIndicator, self.spellCheckIndicatorNumber
-        )
-        self.SendScintilla(
-            QsciScintilla.SCI_SETINDICATORCURRENT, self.spellCheckIndicatorNumber
-        )
-        self.setIndicatorForegroundColor(
-            QColor(255, 0, 0), self.spellCheckIndicatorNumber
-        )
-        self.pos = None
-        self.anchor = None
-
-    def camelCaseSplit(self, identifier):
-        return [m.group(0) for m in self.camelCaseRE.finditer(identifier)]
+        """ Enable/disable spellcheck if spellcheck can be enabled.
+        This changes spellcheck for all documents attached to this
+        documents delayable_engine.
+        """
+        self.delayable_engine.set_delayable_enabled('spell_check', state)
 
     def addWordToDict(self, word):
-        self._speller.addtoPersonal(word)
-        self._speller.saveAllwords()
-        self.spellCheck(0, len(self.text()))
+        self.__speller__.addtoPersonal(word)
+        self.__speller__.saveAllwords()
+        self.spellCheck(0, None)
         self.pos += len(word)
         self.SendScintilla(self.SCI_GOTOPOS, self.pos)
 
@@ -1291,81 +1321,19 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_REPLACESEL, action.text())
         self.endUndoAction()
 
-    def spellCheck(self, startPos, lengthText, force=False, initial=False):
-        """ Spell check some text in the document.
-
-        This function will run until self.spellCheckTimeout seconds has elapsed
-        or it finishes processing. If the spell check timed out, it will
-        automatically call spellCheck and continue processing where it left off.
+    def spellCheck(self, start_pos, end_pos):
+        """ Check spelling for some text in the document.
 
         Args:
-            startPos (int): The document position to start spell checking.
-            lengthText (int): The document position to stop spell checking.
-            force (bool, optional): If False(default) and this widget is not
-                visible, this function will just exit. Setting this to True
-                will force the document to spell check even if not visible.
-            initial (bool, optional): If True, set initialSpellCheckComplete
-                to True. Defaults to False.
+            start_pos (int): The document position to start spell checking.
+            end_pos (int): The document position to stop spell checking.
 
         Returns:
             int: Returns 0 if spell check is finished. 1 if additional
                 processing is scheduled. 2 if the spell check was canceled
                 because the widget is not visible.
         """
-        if not force and not self.isVisible():
-            return 2
-        if self._speller:
-            start = startPos
-            startTime = time.time()
-            for match in self.chunkRE.finditer(self.text(startPos, lengthText)):
-                # To-do: test if match.start()/end() is optimal
-                space, result = tuple(match.groups())
-                if space:
-                    # If the user inserted space between two words, that space
-                    # will still be marked as incorrect. Clear its indicator.
-                    self.SendScintilla(
-                        QsciScintilla.SCI_SETINDICATORCURRENT,
-                        self.spellCheckIndicatorNumber,
-                    )
-                    self.SendScintilla(
-                        QsciScintilla.SCI_INDICATORCLEARRANGE, start, len(space)
-                    )
-                start += len(space)
-                for word in self.camelCaseSplit(result):
-                    lengthWord = len(word)
-                    if any(
-                        letter in string.digits for letter in word
-                    ) or self._speller.check(word):
-                        self.SendScintilla(
-                            QsciScintilla.SCI_SETINDICATORCURRENT,
-                            self.spellCheckIndicatorNumber,
-                        )
-                        self.SendScintilla(
-                            QsciScintilla.SCI_INDICATORCLEARRANGE, start, lengthWord
-                        )
-                    else:
-                        self.SendScintilla(
-                            QsciScintilla.SCI_SETINDICATORCURRENT,
-                            self.spellCheckIndicatorNumber,
-                        )
-                        self.SendScintilla(
-                            QsciScintilla.SCI_INDICATORFILLRANGE, start, lengthWord
-                        )
-                    start += lengthWord
-                if (
-                    self.spellCheckTimeout
-                    and time.time() - startTime > self.spellCheckTimeout
-                ):
-                    QTimer.singleShot(
-                        0,
-                        lambda: self.spellCheck(
-                            start, lengthText, force=force, initial=initial
-                        ),
-                    )
-                    return 1
-        if initial:
-            self.initialSpellCheckComplete = True
-        return 0
+        self.delayable_engine.enqueue(self, 'spell_check', start_pos, end_pos)
 
     def onTextModified(
         self,
@@ -1380,24 +1348,19 @@ class DocumentEditor(QsciScintilla):
         token,
         annotationLinesAdded,
     ):
-        if (
-            self._speller
-            and self.initialSpellCheckComplete
-            and (
-                (mtype & self.SC_MOD_INSERTTEXT) == self.SC_MOD_INSERTTEXT
-                or (mtype & self.SC_MOD_DELETETEXT) == self.SC_MOD_DELETETEXT
-            )
+        if self.spellCheckEnabled() and (
+            (mtype & self.SC_MOD_INSERTTEXT) == self.SC_MOD_INSERTTEXT
+            or (mtype & self.SC_MOD_DELETETEXT) == self.SC_MOD_DELETETEXT
         ):
             # Only spell-check if text was inserted/deleted
             line = self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
-            numberOfLinesToCheck = line + linesAdded
-            while line <= numberOfLinesToCheck:
-                # If more than 1 line was inserted/deleted, check additional lines
-                self.spellCheck(
-                    self.SendScintilla(self.SCI_POSITIONFROMLINE, line),
-                    self.SendScintilla(self.SCI_GETLINEENDPOSITION, line),
-                )
-                line += 1
+            # More than one line could have been inserted.
+            # If this number is negative it will cause Qt to crash.
+            lines_to_check = line + max(0, linesAdded)
+            self.spellCheck(
+                self.SendScintilla(self.SCI_POSITIONFROMLINE, line),
+                self.SendScintilla(self.SCI_GETLINEENDPOSITION, lines_to_check),
+            )
 
     def showAutoComplete(self, toggle=False):
         # if using autoComplete toggle the autoComplete list
@@ -1413,7 +1376,7 @@ class DocumentEditor(QsciScintilla):
         pos = self.mapToGlobal(pos)
         self._clickPos = pos
 
-        if self._speller and self.initialSpellCheckComplete:
+        if self.spellCheckEnabled():
             # Get the word under the mouse and split the word if camelCase
             point = self.mapFromGlobal(self._clickPos)
             x = point.x()
@@ -1423,14 +1386,15 @@ class DocumentEditor(QsciScintilla):
             wordStartPosition = self.SendScintilla(
                 self.SCI_WORDSTARTPOSITION, positionMouse, True
             )
-            results = self.chunkRE.findall(
+            spell_check = self.delayable_engine.delayables['spell_check']
+            results = spell_check.chunk_re.findall(
                 self.text(wordStartPosition, wordStartPosition + len(wordUnderMouse))
             )
 
             for space, wordChunk in results:
-                camelCaseWords = self.camelCaseSplit(wordChunk)
+                camel_case_words = spell_check.camel_case_split(wordChunk)
                 lengthSpace = len(space)
-                for word in camelCaseWords:
+                for word in camel_case_words:
                     lengthWord = len(word)
                     # Calcualate the actual word start position accounting for any non-alpha chars
                     # word_new_start_position = wordStartPosition + lengthSpace
@@ -1438,7 +1402,7 @@ class DocumentEditor(QsciScintilla):
                         wordStartPosition + lengthSpace <= positionMouse
                         and wordStartPosition + lengthSpace + lengthWord > positionMouse
                         and not any(letter in string.digits for letter in word)
-                        and not self._speller.check(word)
+                        and not self.__speller__.check(word)
                     ):
                         spellCheckMenuShown = True
                         # For camelCase words, get the exact word under the mouse
@@ -1447,7 +1411,7 @@ class DocumentEditor(QsciScintilla):
                         # Add spelling suggestions to menu
                         submenu = menu.addMenu(word)
                         submenu.setObjectName('uiSpellCheckMENU')
-                        wordSuggestionList = self._speller.suggest(word)
+                        wordSuggestionList = self.__speller__.suggest(word)
                         for wordSuggestion in wordSuggestionList:
                             act = submenu.addAction(wordSuggestion)
                         submenu.triggered.connect(self.correctSpelling)
@@ -1472,7 +1436,7 @@ class DocumentEditor(QsciScintilla):
         # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
-        if self._showSmartHighlighting and self._smartHighlightingSupported:
+        if self.showSmartHighlighting():
             act = menu.addAction('Edit PermaHighlight')
             act.setIcon(QIcon(blurdev.resourcePath('img/ide/highlighter.png')))
             act.triggered.connect(self.editPermaHighlight)
@@ -1595,8 +1559,6 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).showEvent(event)
         # Update the colorScheme after the stylesheet has been fully loaded.
         self.updateColorScheme()
-        if not self.initialSpellCheckComplete:
-            self.spellCheck(0, len(self.text()), initial=True)
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
@@ -1605,7 +1567,7 @@ class DocumentEditor(QsciScintilla):
         return self.marginLineNumbers(self.SymbolMargin)
 
     def showSmartHighlighting(self):
-        return self._showSmartHighlighting
+        return self.delayable_engine.delayable_enabled('smart_highlight')
 
     def showWhitespaces(self):
         return self.whitespaceVisibility() == QsciScintilla.WsVisible
@@ -1775,17 +1737,18 @@ class DocumentEditor(QsciScintilla):
             :param		lexer		<QSciLexer>	Update this lexer and set as the lexer on the document.
             :param		keywords	<str>	keywords to highlight
         """
-        self.updateColorScheme()
-        self._highlightedKeywords = keywords
-        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [keywords])
 
-        # Clearing the lexer before re-setting the lexer seems to fix the scroll/jump issue
-        # when using smartHighlighting near the end of the document.
-        self.setLexer(None)
-        self.setLexer(lexer)
-        # repaint appears to fix the problem with text being squashed when smartHighlighting
-        # is activated by clicking and draging to select text.
-        self.repaint()
+    #        self.updateColorScheme()
+    #        self._highlightedKeywords = keywords
+    #        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [keywords])
+    #
+    #        # Clearing the lexer before re-setting the lexer seems to fix the scroll/jump issue
+    #        # when using smartHighlighting near the end of the document.
+    #        self.setLexer(None)
+    #        self.setLexer(lexer)
+    #        # repaint appears to fix the problem with text being squashed when smartHighlighting
+    #        # is activated by clicking and draging to select text.
+    #        self.repaint()
 
     def indentSelection(self, all=False):
         if all:
@@ -2092,5 +2055,7 @@ class DocumentEditor(QsciScintilla):
     paperIdentifier = QtPropertyInit('_paperIdentifier', _defaultPaper)
     paperCommentBlock = QtPropertyInit('_paperCommentBlock', _defaultPaper)
     paperUnclosedString = QtPropertyInit('_paperUnclosedString', QColor(224, 192, 224))
-    paperSmartHighlight = QtPropertyInit('_paperSmartHighlight', QColor(155, 255, 155))
+    paperSmartHighlight = QtPropertyInit(
+        '_paperSmartHighlight', QColor(155, 255, 155, 75)
+    )
     paperDecorator = QtPropertyInit('_paperDecorator', _defaultPaper)

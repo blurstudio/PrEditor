@@ -17,14 +17,14 @@ from blurdev.gui import iconFactory
 
 
 class WorkboxWidget(DocumentEditor):
-    def __init__(self, parent, console=None):
+    def __init__(self, parent, console=None, delayable_engine='default'):
         self._console = console
         self._searchFlags = 0
         self._searchText = ''
         self._searchDialog = None
 
         # initialize the super class
-        super(WorkboxWidget, self).__init__(parent)
+        super(WorkboxWidget, self).__init__(parent, delayable_engine=delayable_engine)
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on software
         self._software = blurdev.core.objectName()

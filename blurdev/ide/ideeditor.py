@@ -43,8 +43,9 @@ from Qt import QtCompat
 import blurdev
 from blurdev.gui import Window, loadUi
 from blurdev.gui.dialogs.configdialog import ConfigSet
-from blurdev.ide.ideproject import IdeProject, IdeProjectDelegate
-from blurdev.ide.languagecombobox import LanguageComboBox
+from .ideproject import IdeProject, IdeProjectDelegate
+from .languagecombobox import LanguageComboBox
+from .delayable_engine import DelayableEngine
 from blurdev.debug import DebugLevel, debugLevel, debugObject
 
 from blurdev import osystem, settings, version
@@ -77,6 +78,9 @@ class IdeEditor(Window):
         from blurdev.ide.ideregistry import IdeRegistry
 
         self._registry = IdeRegistry()
+
+        # Setup delayable system
+        self.delayable_engine = DelayableEngine.instance('ide', self)
 
         # create a method browser Widget
         from blurdev.ide.idemethodbrowserwidget import IdeMethodBrowserWidget
@@ -687,7 +691,9 @@ class IdeEditor(Window):
         from documenteditor import DocumentEditor
 
         # create the editor
-        editor = DocumentEditor(self, filename, lineno)
+        editor = DocumentEditor(
+            self, filename, lineno, delayable_engine=self.delayable_engine.name
+        )
         editor.fontsChanged.connect(self.updateDocumentFonts)
         editor.enableTitleUpdate()
 
@@ -1838,6 +1844,13 @@ class IdeEditor(Window):
     def setSearchFlags(self, flags):
         self._searchFlags = flags
 
+    def setSpellCheckEnabled(self, state):
+        try:
+            self.delayable_engine.set_delayable_enabled('spell_check', state)
+        except KeyError:
+            # Spell check can not be enabled
+            pass
+
     def setDocumentStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
             path to any stylesheet. If given None, it will default to Bright.
@@ -2077,12 +2090,15 @@ class IdeEditor(Window):
         # update the ui
         configSet = self.currentConfigSet()
         section = configSet.section('Common::Document')
+        smart_highlight = section.value('smartHighlighting')
+        self.delayable_engine.set_delayable_enabled('smart_highlight', smart_highlight)
         self.uiSmartHighlightingACT.setChecked(section.value('smartHighlighting'))
         self.uiShowCaretLineACT.setChecked(section.value('caretLineVisible'))
         self.uiShowIndentationsACT.setChecked(section.value('showIndentations'))
         self.uiShowLineNumbersACT.setChecked(section.value('showLineNumbers'))
         self.uiShowWhitespacesACT.setChecked(section.value('showWhitespaces'))
         self.uiShowEndlinesACT.setChecked(section.value('showEol'))
+        self.setSpellCheckEnabled(section.value('spellCheck'))
 
         # enable open file monitoring
         if section.value('openFileMonitor'):

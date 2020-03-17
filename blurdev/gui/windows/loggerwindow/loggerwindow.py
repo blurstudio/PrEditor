@@ -35,8 +35,9 @@ from Qt import QtCompat
 
 from blurdev import prefs
 
-from blurdev.gui import Window
+from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
+from blurdev.ide.delayable_engine import DelayableEngine
 
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
@@ -73,6 +74,9 @@ class LoggerWindow(Window):
         # create the workbox tabs
         self._currentTab = -1
         self._reloadRequested = set()
+        # Setup delayable system
+        self.delayable_engine = DelayableEngine.instance('logger', self)
+        self.delayable_engine.set_delayable_enabled('smart_highlight', True)
         # Connect the tab widget signals
         self.uiWorkboxTAB.addTabClicked.connect(self.addWorkbox)
         self.uiWorkboxTAB.tabCloseRequested.connect(self.removeWorkbox)
@@ -267,12 +271,11 @@ class LoggerWindow(Window):
     def addWorkbox(self, tabWidget=None, title='Workbox', closable=True):
         if tabWidget is None:
             tabWidget = self.uiWorkboxTAB
-        workbox = WorkboxWidget(tabWidget)
+        workbox = WorkboxWidget(tabWidget, delayable_engine=self.delayable_engine.name)
         workbox.setConsole(self.uiConsoleTXT)
         workbox.setMinimumHeight(1)
         index = tabWidget.addTab(workbox, title)
         workbox.setLanguage('Python')
-        workbox.setShowSmartHighlighting(True)
         # update the lexer
         workbox.setMarginsFont(workbox.font())
         if closable:
@@ -611,25 +614,16 @@ class LoggerWindow(Window):
                 tab.setAutoCompletionSource(tab.AcsNone)
 
     def setSpellCheckEnabled(self, state):
-        aspell = None
         try:
-            import aspell
-        except Exception as e:
+            self.delayable_engine.set_delayable_enabled('spell_check', state)
+        except KeyError:
+            # Spell check can not be enabled
             if self.isVisible():
-                # Only show warning if Logger is visible and also disable
+                # Only show warning if Logger is visible and also disable the action
                 self.uiSpellCheckEnabledACT.setDisabled(True)
-                QMessageBox.warning(self, "Spell-Check", "{}".format(e))
-
-        if aspell:
-            try:
-                speller = aspell.Speller()
-                for index in range(self.uiWorkboxTAB.count()):
-                    self.uiWorkboxTAB.widget(index).setSpellCheckEnabled(state)
-            except Exception as e:
-                if self.isVisible():
-                    # Only show warning if Logger is visible and also disable
-                    self.uiSpellCheckEnabledACT.setCheckable(False)
-                    QMessageBox.warning(self, "Spell-Check", "{}".format(e))
+                QMessageBox.warning(
+                    self, "Spell-Check", 'Unable to activate spell check.'
+                )
 
     def setStatusText(self, txt):
         """ Set the text shown in the menu corner of the menu bar.
@@ -665,14 +659,15 @@ class LoggerWindow(Window):
         # Load the stylesheet
         if sheet is not None:
             super(LoggerWindow, self).setStyleSheet(sheet)
-            wgt = self.uiWorkboxTAB.currentWidget()
-            wgt.updateColorScheme()
 
         # Update the style menu
         for act in self.uiStyleMENU.actions():
             name = act.objectName()
             isCurrent = name == 'ui{}ACT'.format(self._stylesheet)
             act.setChecked(isCurrent)
+
+        # Notify widgets that the styleSheet has changed
+        blurdev.core.styleSheetChanged.emit(blurdev.core.styleSheet())
 
     def setClearBeforeRunning(self, state):
         if state:
@@ -724,8 +719,6 @@ class LoggerWindow(Window):
         QMessageBox.information(self, 'About blurdev', msg)
 
     def showEnvironmentVars(self):
-        from blurdev.gui import Dialog
-
         dlg = Dialog(blurdev.core.logger())
         lyt = QVBoxLayout(dlg)
         lbl = QTextBrowser(dlg)

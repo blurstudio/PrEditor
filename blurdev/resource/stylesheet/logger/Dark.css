@@ -46,6 +46,6 @@ DocumentEditor {
 	qproperty-paperIdentifier: rgb(70, 70, 73);
 	qproperty-paperCommentBlock: rgb(70, 70, 73);
 	qproperty-paperUnclosedString: rgb(100, 60, 60);
-	qproperty-paperSmartHighlight: rgb(120,120, 80);
+	qproperty-paperSmartHighlight: rgb(75, 180, 0, 25);
 	qproperty-paperDecorator: rgb(70, 70, 73);
 }
