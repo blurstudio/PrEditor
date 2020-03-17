@@ -5,6 +5,7 @@ import tempfile
 import errno
 import time
 import blurdev
+import logging
 
 # Note: If a different version of python is launched importing pre-compiled modules
 # could cause a exception. For example, MotionBuilder 2016 has python 2.7.6 embeded,
@@ -109,7 +110,7 @@ class TempFilesContext(object):
 
     Args:
         keyed (bool): Enables Keyed mode. Defaults to True.
-        defaultDir (str|None): If not None(the default) this is passed to tempfile
+        dirname (str|None): If not None(the default) this is passed to tempfile
             functions as the dir kwarg if that kwarg is not provided in the call.
         crashMonitor (bool): If True(default), use multiprocessing to launch a watcher 
             process if python is killed by some external process while inside this 
@@ -121,9 +122,23 @@ class TempFilesContext(object):
             be redirected back to the parent process. This is useful for debugging.
     """
 
-    def __init__(self, keyed=True, defaultDir=None, crashMonitor=True, pythonw=False):
+    def __init__(
+        self,
+        keyed=True,
+        dirname=None,
+        crashMonitor=True,
+        pythonw=False,
+        defaultDir=None,
+    ):
+        # TODO: This can be removed when all the dependencies are refactored.
+        if defaultDir is not None:
+            warning = (
+                'Use dirname argument instead of defaultDir with TempFilesContext.'
+            )
+            logging.warn(warning)
+            dirname = defaultDir
         self.keyed = keyed
-        self.defaultDir = defaultDir
+        self._dirname = dirname
         self._tempDirs = {}
         self._tempFiles = {}
         self.keepTempFiles = (
@@ -158,13 +173,16 @@ class TempFilesContext(object):
                 self.crashMonitor = False
                 print('blur.Stone or psutil not installed crashMonitor disabled.')
 
+    def dirname(self):
+        return self._dirname
+
     def makeTempDirectory(self, *args, **kwargs):
         """ Creates a temporary directory and returns its file path.
         
         This directory and all of its contents are removed on exit.
         args and kwargs are passed to tempfile.NamedTemporaryFile after the 
         "key" kwarg has been removed. If dir is not provided in kwargs and 
-        self.defaultDir is set, it will be added to kwargs.
+        self._dirname is set, it will be added to kwargs.
         
         Args:
             key(str): If in keyed mode only one directory will be created
@@ -183,10 +201,10 @@ class TempFilesContext(object):
             key = len(self._tempDirs)
 
         if key not in self._tempDirs:
-            # If a defaultDir was provided, make sure its included
-            if self.defaultDir is not None and 'dir' not in kwargs:
-                kwargs['dir'] = self.defaultDir
-                print('makeTempDirectory adding defaultDir {}'.format(self.defaultDir))
+            # If a dirname was provided, make sure its included
+            if self._dirname is not None and 'dir' not in kwargs:
+                kwargs['dir'] = self._dirname
+                print('makeTempDirectory adding dirname {}'.format(self._dirname))
 
             tempDir = tempfile.mkdtemp(*args, **kwargs)
             self._tempDirs[key] = tempDir
@@ -199,7 +217,7 @@ class TempFilesContext(object):
         
         This file will only be valid till the context exits.
         args and kwargs are passed to tempfile.mkstemp after the "key" kwarg has been 
-        removed. If dir is not provided in kwargs and self.defaultDir is set, it will 
+        removed. If dir is not provided in kwargs and self._dirname is set, it will 
         be added to kwargs.
         
         Args:
@@ -221,11 +239,11 @@ class TempFilesContext(object):
         closeHandle = kwargs.pop('closeHandle', False)
 
         if key not in self._tempFiles:
-            # If a defaultDir was provided, make sure its included
-            print('DEFAULT DIR {}'.format([self.defaultDir, kwargs]))
-            if self.defaultDir is not None and 'dir' not in kwargs:
-                kwargs['dir'] = self.defaultDir
-                print('makeTempFile adding defaultDir {}'.format(self.defaultDir))
+            # If a dirname was provided, make sure its included
+            print('DEFAULT DIR {}'.format([self._dirname, kwargs]))
+            if self._dirname is not None and 'dir' not in kwargs:
+                kwargs['dir'] = self._dirname
+                print('makeTempFile adding dirname {}'.format(self._dirname))
 
             tempFile = tempfile.mkstemp(*args, **kwargs)
             self._tempFiles[key] = tempFile
