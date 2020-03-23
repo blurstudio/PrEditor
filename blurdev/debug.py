@@ -158,7 +158,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
                         loop_lap = lap.new_lap('Iteration time')
 
                         loop_lap.new_lap('Print value')
-                        print x
+                        print(x)
 
                         for y in range(5):
                             # We don't bother capturing the lap here.
@@ -176,7 +176,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
                 # staticmethod, or loose method, we must pass the object for
                 # it to monitor for passed stopwatches.
                 with Stopwatch("TestClass.print_stuff", obj=cls.print_stuff) as sw:
-                    print "Bob"
+                    print("Bob")
 
         # Here is where we create our root Stopwatch. It will own all of our laps.
         sw = Stopwatch('Test watch')
@@ -188,7 +188,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
                 t = TestClass(10)
 
             with lap.pass_context(t.get_total):
-                print t.get_total()
+                print(t.get_total())
 
             with lap.pass_context(TestClass.print_stuff):
                 t.print_stuff()
@@ -881,9 +881,9 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
         """
         if obj is not None:
             if not hasattr(obj, '__orig_name__') and inspect.ismethod(obj):
-                parent = obj.im_self
+                parent = obj.__self__
                 if parent:
-                    obj = getattr(obj.im_self, obj.__name__)
+                    obj = getattr(obj.__self__, obj.__name__)
 
             if hasattr(obj, '__stopwatch__'):
                 stopwatch = obj.__stopwatch__

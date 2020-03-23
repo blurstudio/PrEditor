@@ -67,14 +67,14 @@ be executed in sequence in the order they are defined within the action.
 
     @executehook()
     def _doSomething(self):
-        print 'This action is executing.'
+        print('This action is executing.')
 
     @postexecutehook()
     def _doSomethingLast(self):
-        print 'This is happening last.'
+        print('This is happening last.')
 
 In the above example, a very simple set of hooks have been setup and will
-execute in the order made obvious by the print statements that they contain.
+execute in the order made obvious by the print functions that they contain.
 
 Child actions allow for attaching other actions to run when the parent action
 is executed.  This parent-child relationship allows for a hierarchy of execution
@@ -108,11 +108,11 @@ to an action, as discussed previously.
 
     @prechildaction()
     def _doSomethingPreChild(self, child):
-        print 'This is running before {}'.format(str(child))
+        print('This is running before {}'.format(str(child)))
 
     @postchildaction()
     def _doSomethingPostChild(self, child):
-        print 'This is running after {}'.format(str(child))
+        print ('This is running after {}'.format(str(child)))
 
 This allows for checking the state of a child action to potentially perform
 additional operations before continuing with the execution phase of the parent
@@ -157,18 +157,18 @@ Example:
 
     @enterhook()
     def myEnterFunction(self):
-        print "This is happening on enter!"
+        print("This is happening on enter!")
     
     @exithook()
     def myExitFunction(self, *args, **kwargs):
-        print "This is happening on exit!"
+        print("This is happening on exit!")
 
 This, in turn, allows for using the action with a "with" statement:
 
 ::
 
     with MyAction() as ma:
-        print "This is happening in between my enter and exit hooks!"
+        print("This is happening in between my enter and exit hooks!")
 
 For more information on context managers and the "with" statement:
 
@@ -197,11 +197,11 @@ Example:
 
     @executehook(app=Apps.Maya)
     def myExecuteFunctionMaya(self):
-        print "This is only happening if we are in Maya!"
+        print("This is only happening if we are in Maya!")
     
     @executehook(app=Apps.Max)
     def myExecuteFunctionMax(self):
-        print "This is only happening if we are in Max!"
+        print("This is only happening if we are in Max!")
 
 There is also an additional decorator for defining abstracted methods:
 
@@ -213,11 +213,11 @@ Example:
 
     @applicationmethod(app=Apps.Maya, name='myMethod')
     def myMethodMaya(self):
-        print "This is only happening in Maya!"
+        print("This is only happening in Maya!")
     
     @applicationmethod(app=Apps.Max, name='myMethod')
     def myMethodMax(self):
-        print "This is only happening in Max!"
+        print("This is only happening in Max!")
 
 In the above example, three attributes will exist on the action once it is
 instantiated:
@@ -236,11 +236,11 @@ In this way, there are two different options for defining an abstracted action:
 
     @executehook(app=Apps.Maya)
     def myExecuteFunctionMaya(self):
-        print "This is only happening if we are in Maya!"
+        print("This is only happening if we are in Maya!")
     
     @executehook(app=Apps.Max)
     def myExecuteFunctionMax(self):
-        print "This is only happening if we are in Max!"
+        print("This is only happening if we are in Max!")
 
 Or, alternatively:
 
@@ -248,11 +248,11 @@ Or, alternatively:
 
     @applicationmethod(app=Apps.Maya, name='myMethod')
     def myMethodMaya(self):
-        print "This is only happening in Maya!"
+        print("This is only happening in Maya!")
     
     @applicationmethod(app=Apps.Max, name='myMethod')
     def myMethodMax(self):
-        print "This is only happening in Max!"
+        print("This is only happening in Max!")
     
     @executehook():
     def myExecuteFunction(self):

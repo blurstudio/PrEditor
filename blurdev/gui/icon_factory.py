@@ -31,7 +31,7 @@ class IconFactory(CuteIconFactory):
                 )
             )
         else:
-            print "No icon config file found."
+            print("No icon config file found.")
             finders.append(ResourceFinder('library-icons', 'icons', parent=lib_finder))
 
         # Get presets file.

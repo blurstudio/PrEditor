@@ -625,7 +625,7 @@ class Core(QObject):
 
         if last_timestamp < threshold_time:
             env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
-            print (
+            print(
                 'Environment timeout exceeded, Resetting to default environment:',
                 env.objectName(),
             )
@@ -1153,7 +1153,7 @@ class Core(QObject):
         """
         Runs a macro command
         """
-        print ('[blurdev.cores.core.Core.runMacro] virtual method not defined')
+        print('[blurdev.cores.core.Core.runMacro] virtual method not defined')
         return False
 
     def runStandalone(
@@ -1168,7 +1168,6 @@ class Core(QObject):
         if tool is not None:
             if env is None:
                 env = blurdev.osystem.subprocessEnvironment()
-                print 'env'
             # Pass the tool's objectName to the child process so we can update
             # its QApplication.applicationName on import of blurdev.
             appName = blurdev.settings.environStr(tool.objectName())
@@ -1314,7 +1313,7 @@ class Core(QObject):
 
             # report an unknown format
             else:
-                print (
+                print(
                     '[blurdev.cores.core.Core.runScript] Cannot run scripts of type (*%s)'
                     % ext
                 )
@@ -1451,7 +1450,7 @@ class Core(QObject):
 
             traceback.print_exc()
 
-            print (
+            print(
                 'Module {0} @ {1} failed to send email\n{2}\n{3}\n{4}\n{5}'.format(
                     module.__name__, module.__file__, sender, targets, subject, message
                 )

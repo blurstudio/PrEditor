@@ -25,11 +25,11 @@ def registryWrapper(
         )
     except TypeError as e:
         if print_initial_error_msg:
-            print ('Exception, can not update registry key(s):')
+            print('Exception, can not update registry key(s):')
         if '' == value_name:
-            print ('    "%s" with value "%s"' % (key, value))
+            print('    "%s" with value "%s"' % (key, value))
         else:
-            print ('    "%s" with value name "%s"' % (key, value_name))
+            print('    "%s" with value name "%s"' % (key, value_name))
         return False
     return True
 
@@ -52,7 +52,7 @@ def post_install():
     ret = proc.wait()
     out = proc.stdout.read().strip()
     if ('' != out) or (0 < proc.returncode):
-        print 'Clear of Windows icon cache failed'
+        print('Clear of Windows icon cache failed')
 
     HKCR_root_key = 'HKEY_CLASSES_ROOT'
     HKLM_root_key = 'HKEY_LOCAL_MACHINE'
@@ -199,7 +199,7 @@ def updateEnvirons(verbose=False):
             os.path.join(env.path(), 'maxscript', 'treegrunt')
         )
         if verbose:
-            print ('Processing:', env.path(), codeRootPath)
+            print('Processing:', env.path(), codeRootPath)
         if os.path.exists(codeRootPath):
             blurdev.ini.SetINISetting(
                 blurdev.ini.configFile, env.legacyName(), 'codeRoot', codeRootPath
@@ -224,11 +224,11 @@ def updateEnvirons(verbose=False):
 
 
 if __name__ == '__main__':
-    print ('Running post-install script')
+    print('Running post-install script')
     post_install()
-    print ('')
-    print ('Updating {}'.format('settings.ini'))
+    print('')
+    print('Updating {}'.format('settings.ini'))
     update_settings_ini()
-    print ('')
-    print ('Updating {}'.format(blurdev.ini.configFile))
+    print('')
+    print('Updating {}'.format(blurdev.ini.configFile))
     updateEnvirons()

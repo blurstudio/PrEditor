@@ -121,10 +121,10 @@ class Enum(object):
         mySuits = Suits.Hearts | Suits.Spades
         
         if Suits.Hearts & mySuits:
-            print "This is true!"
+            print("This is true!")
         
         if Suits.Clubs & mySuits:
-            print "This is false!"
+            print("This is false!")
 
     Attributes:
         name: The name of the enumerator.
@@ -343,7 +343,7 @@ class EnumGroup(object):
         suitList = list(Suits)
         
         if Suits.Hearts & Suits.All:
-            print "This is true!"
+            print("This is true!")
 
     An EnumGroup can also act as a factory for composite Enum objects.
     If a known composite value is available, like 3, which is the
@@ -354,10 +354,10 @@ class EnumGroup(object):
         comp = Suits(3)
 
         if Suits.Hearts & comp:
-            print "This is true!"
+            print("This is true!")
 
         if Suits.Clubs & comp:
-            print "This is false!"
+            print("This is false!")
 
     Attributes:
         All: The sum of all members.

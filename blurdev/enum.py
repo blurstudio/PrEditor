@@ -360,7 +360,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     
     Example:
         if Suits.Diamonds == Suits[3]:
-            print "This is true!"
+            print("This is true!")
 
     An EnumGroup can also act as a factory for composite Enum objects.
     If a known composite value is available, like 3, which is the

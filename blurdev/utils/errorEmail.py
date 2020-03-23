@@ -128,7 +128,7 @@ def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
         from pygments.lexers import get_lexer_by_name
         from pygments.formatters import HtmlFormatter
     except ImportError, e:
-        print 'Could not import pygments, using old html formatting', str(e)
+        print('Could not import pygments, using old html formatting: {}'.format(e))
         return _HTML_TEMPLATE % {'code': code.replace('\n', '<br>')}
 
     lexer = lexer or 'python'
@@ -359,5 +359,5 @@ def emailError(emails, error, subject=None, information=None):
         # Unable to send error email. It is assumed you don't have a valid email addres.
         pass
     except smtplib.SMTPException as e:
-        print 'Error connecting to smtp server', e
-        print 'email not sent'
+        print('Error connecting to smtp server: {}'.format(e))
+        print('email not sent')
