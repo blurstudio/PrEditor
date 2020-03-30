@@ -990,11 +990,6 @@ class Core(QObject):
                 if env:
                     ToolsEnvironment.findEnvironment(env).setActive()
 
-        # restore the active debug level
-        level = pref.restoreProperty('debugLevel')
-        if level is not None:
-            blurdev.debug.setDebugLevel(level)
-
         # restore the active style
         self.setStyleSheet(
             os.environ.get('BDEV_STYLESHEET') or pref.restoreProperty('style'),
@@ -1002,6 +997,11 @@ class Core(QObject):
         )
 
         self.blockSignals(False)
+
+        # restore the active debug level
+        level = pref.restoreProperty('debugLevel')
+        if level is not None:
+            blurdev.debug.setDebugLevel(level)
 
         self.applyEnvironmentTimeouts()
         self.applyStudioOverrides()
