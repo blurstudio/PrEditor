@@ -47,7 +47,7 @@ class ToolsIndex(QObject):
         """
         self.load()
         output = [cat for cat in self._categoryCache.values() if cat.parent() == self]
-        output.sort(lambda x, y: cmp(x.objectName(), y.objectName()))
+        output.sort(key=lambda x, y: cmp(x.objectName(), y.objectName()))
         return output
 
     def clear(self):
@@ -84,7 +84,7 @@ class ToolsIndex(QObject):
         """
         self.load()
         output = self._categoryCache.values()
-        output.sort(lambda x, y: cmp(x.objectName(), y.objectName()))
+        output.sort(key=lambda x, y: cmp(x.objectName(), y.objectName()))
         return output
 
     def cacheCategory(self, category):
@@ -260,7 +260,9 @@ class ToolsIndex(QObject):
 
         # Generating JSON index in a temporary location.
         # Once successfully generated we will copy the file where it needs to go.
-        with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
+        with tempfile.NamedTemporaryFile(
+            mode='w', prefix=name, suffix=extension
+        ) as fle:
             json.dump(output, fle, indent=4)
             fle.seek(0)
             with open(filename, 'w') as out:
@@ -682,7 +684,9 @@ class ToolsIndex(QObject):
             tool for tool in self._toolCache.values() if tool.categoryName() == name
         ]
         output.sort(
-            lambda x, y: cmp(str(x.objectName().lower()), str(y.objectName().lower()))
+            key=lambda x, y: cmp(
+                str(x.objectName().lower()), str(y.objectName().lower())
+            )
         )
         return output
 
@@ -702,7 +706,9 @@ class ToolsIndex(QObject):
             if department in tool.departments()
         ]
         output.sort(
-            lambda x, y: cmp(str(x.objectName().lower()), str(y.objectName().lower()))
+            key=lambda x, y: cmp(
+                str(x.objectName().lower()), str(y.objectName().lower())
+            )
         )
         return output
 
@@ -721,7 +727,7 @@ class ToolsIndex(QObject):
             if regex.match(key):
                 output.append(item)
 
-        output.sort(lambda x, y: cmp(x.name().lower(), y.name().lower()))
+        output.sort(key=lambda x, y: cmp(x.name().lower(), y.name().lower()))
 
         return output
 
@@ -765,7 +771,9 @@ class ToolsIndex(QObject):
                 output.append(tool)
 
         output.sort(
-            lambda x, y: cmp(str(x.objectName()).lower(), str(y.objectName()).lower())
+            key=lambda x, y: cmp(
+                str(x.objectName()).lower(), str(y.objectName()).lower()
+            )
         )
         return output
 

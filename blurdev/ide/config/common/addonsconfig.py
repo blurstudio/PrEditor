@@ -47,7 +47,7 @@ class AddonsConfig(ConfigSectionWidget):
         from blurdev.ide.ideaddon import IdeAddon
 
         modules = IdeAddon.modules.values()
-        modules.sort(lambda x, y: cmp(x.name(), y.name()))
+        modules.sort(key=lambda x, y: cmp(x.name(), y.name()))
         for module in modules:
             moditem = QTreeWidgetItem([module.name(), module.status()])
             if module.isEnabled():
