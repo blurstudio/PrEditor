@@ -43,17 +43,10 @@ if __name__ == '__main__':
         libPath = r'/mnt/source/code/python/lib/'
     else:
         libPath = r'\\source\production\code\python\lib'
-    if os.path.exists(os.path.join(libPath, 'blurutils')):
-        sys.path.append(libPath)
-    else:
-        # BlurOffline fix
-        sys.path.append(r'C:\blur\dev\offline\code\python\lib')
-    try:
-        import blurutils.version
-    except ImportError:
-        raise
-    version = blurutils.version.Version(path)
 
+    from pillar.version import Version
+
+    version = Version(path, 'blur-blurdev')
     blur.build.Parser = 1
 
     # determine what python folder to install to
