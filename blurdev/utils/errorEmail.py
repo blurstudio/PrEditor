@@ -4,6 +4,8 @@ import blurdev
 import os, sys, re, smtplib, socket, getpass, platform, datetime
 from blurdev.contexts import ErrorReport
 from blurdev import debug
+from builtins import str as text
+from future.utils import iteritems
 
 
 _HTML_TEMPLATE = """<div style="background:white;color:red;padding:5 10 5 10;border:1px black solid"><pre><code>
@@ -127,7 +129,7 @@ def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
         from pygments import highlight
         from pygments.lexers import get_lexer_by_name
         from pygments.formatters import HtmlFormatter
-    except ImportError, e:
+    except ImportError as e:
         print('Could not import pygments, using old html formatting: {}'.format(e))
         return _HTML_TEMPLATE % {'code': code.replace('\n', '<br>')}
 
@@ -257,9 +259,9 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
             infoList[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
 
     if fmt == 'html':
-        errorstr = highlightCodeHtml(unicode(error), 'pytb', 'default')
+        errorstr = highlightCodeHtml(text(error), 'pytb', 'default')
     else:
-        errorstr = unicode(error)
+        errorstr = text(error)
     minfo['error'] = errorstr
 
     # append any passed in body text, and any ErrorReport text.
@@ -268,18 +270,15 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
     for title, info in infos:
         if info is not None:
             if fmt == 'html':
-                formatData = {
-                    'info': unicode(info).replace('\n', '<br>'),
-                    'title': title,
-                }
+                formatData = {'info': text(info).replace('\n', '<br>'), 'title': title}
                 addinfo = _ADDITIONAL_INFO_HTML % formatData
             elif fmt == 'textile':
                 addinfo = _ADDITIONAL_INFO_TEXTILE % {
-                    'info': unicode(info),
+                    'info': text(info),
                     'title': title,
                 }
             else:
-                addinfo = unicode(info)
+                addinfo = text(info)
             minfo['additionalinfo'] += addinfo
 
     # append extra stuff
@@ -293,7 +292,7 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
                     if hasattr(module, 'errorLog'):
                         try:
                             errorlog = module.errorLog()
-                        except Exception, e:  # pylint:disable=broad-except
+                        except Exception as e:  # pylint:disable=broad-except
                             modulename = frame.f_globals.get('__name__')
                             if not modulename:
                                 modulename = 'module'
@@ -303,21 +302,21 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
                             )
                         if fmt == 'html':
                             addinfo = _ADDITIONAL_INFO_HTML % {
-                                'info': unicode(errorlog).replace('\n', '<br>')
+                                'info': text(errorlog).replace('\n', '<br>')
                             }
                         elif fmt == 'textile':
                             addinfo = _ADDITIONAL_INFO_TEXTILE % {
-                                'info': unicode(errorlog)
+                                'info': text(errorlog)
                             }
                         else:
-                            addinfo = unicode(errorlog)
+                            addinfo = text(errorlog)
                         minfo['additionalinfo'] += addinfo
 
     def _joinInfoList(formatter):
         return '\n'.join(
             [
                 formatter % {'key': key, 'value': value}
-                for key, value in infoList.iteritems()
+                for key, value in iteritems(infoList)
             ]
         )
 

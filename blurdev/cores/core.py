@@ -1363,7 +1363,7 @@ class Core(QObject):
         import hashlib
 
         m = hashlib.md5()
-        m.update(text)
+        m.update(text.encode('utf-8'))
         if address is None:
             address = os.environ.get('BDEV_ERROR_EMAIL')
         return address.format(hash=m.hexdigest())
