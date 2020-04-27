@@ -18,6 +18,7 @@ from Qt.QtWidgets import (
     QLineEdit,
     QToolButton,
     QWidget,
+    QComboBox,
 )
 from Qt import QtCompat
 from blurdev.media import (
@@ -61,8 +62,8 @@ class FilePickerWidget(QWidget):
         self._inCorrectForeground = QColor(Qt.white)
         self._defaultLocation = ''
         QWidget.__init__(self, parent)
-
-        self.uiFilenameTXT = LineEdit(self)
+        self.uiFilenameTXT = QComboBox(self)
+        self.uiFilenameTXT.setEditable(True)
         self.uiPickFileBTN = QToolButton(self)
         self.uiPickFileBTN.setText('...')
         self.uiPickFileBTN.setToolTip(
@@ -87,9 +88,9 @@ class FilePickerWidget(QWidget):
         self._chosenPath = None
         self._imageSequenceFormat = '{pre}[{firstNum}:{lastNum}]{post}'
 
-        self.uiFilenameTXT.textChanged.connect(self.emitFilenameChanged)
-
-        self.uiFilenameTXT.editingFinished.connect(self.emitFilenameEdited)
+        self.uiFilenameTXT.editTextChanged.connect(self.emitFilenameChanged)
+        self.uiFilenameTXT.lineEdit().editingFinished.connect(self.emitFilenameEdited)
+        self.uiFilenameTXT.currentIndexChanged.connect(self.emitFilenameChanged)
         self.uiPickFileBTN.clicked.connect(self.pickPath)
         self.resolvedStylesheet = resolvedStylesheetDefault
 
@@ -101,26 +102,26 @@ class FilePickerWidget(QWidget):
     def emitFilenameChanged(self):
         self.resolve()
         if not self.signalsBlocked():
-            self.filenameChanged.emit(self.uiFilenameTXT.text())
+            self.filenameChanged.emit(self.uiFilenameTXT.currentText())
 
     def emitFilenameEdited(self):
         if not self.signalsBlocked():
-            self.filenameEdited.emit(self.uiFilenameTXT.text())
+            self.filenameEdited.emit(self.uiFilenameTXT.currentText())
 
     def filePath(self):
         # if it's an image sequence, return the last chosen image path
-        return self._chosenPath or self.uiFilenameTXT.text()
+        return self._chosenPath or self.uiFilenameTXT.currentText()
 
     def fileSequence(self):
         if self._imageSequence:
-            return imageSequenceForRepr(self.uiFilenameTXT.text())
+            return imageSequenceForRepr(self.uiFilenameTXT.currentText())
         return []
 
     def setFileSequence(self, sequence):
         if self._imageSequence:
             self._chosenPath = sequence[0]
             seqRep = imageSequenceRepr(sequence)
-            self.uiFilenameTXT.setText(seqRep)
+            self.uiFilenameTXT.setEditText(seqRep)
             self.resolve()
 
     def filters(self):
@@ -136,7 +137,7 @@ class FilePickerWidget(QWidget):
         return self._pickFolder
 
     def pickPath(self):
-        initialPath = self.uiFilenameTXT.text() or self.defaultLocation
+        initialPath = self.uiFilenameTXT.currentText() or self.defaultLocation
         while not os.path.exists(initialPath):
             if os.path.dirname(initialPath) == initialPath:
                 break
@@ -165,13 +166,13 @@ class FilePickerWidget(QWidget):
                     self, self._caption, initialPath, self._filters
                 )
             if filepath:
-                self.uiFilenameTXT.setText(filepath)
+                self.uiFilenameTXT.setEditText(filepath)
                 if not self.signalsBlocked():
                     self.filenamePicked.emit(filepath)
 
     def resolve(self):
         if self.resolvePath():
-            path = self.uiFilenameTXT.text()
+            path = self.uiFilenameTXT.currentText()
             if self._pickFolder:
                 valid = os.path.isdir(path)
             else:
@@ -199,7 +200,7 @@ class FilePickerWidget(QWidget):
                         if not self._chosenPath and valid:
                             self._chosenPath = sequenceFiles[0]
                     if valid:
-                        self.uiFilenameTXT.setText(seqRep)
+                        self.uiFilenameTXT.setEditText(seqRep)
             if valid:
                 fg = self.correctForeground
                 bg = self.correctBackground
@@ -214,8 +215,6 @@ class FilePickerWidget(QWidget):
             style = ''
             self._resolved = False
 
-        self.uiFilenameTXT.setStyleSheet(style)
-
     def resolvePath(self):
         return self._resolvePath
 
@@ -224,8 +223,45 @@ class FilePickerWidget(QWidget):
 
     @Slot(str)
     def setFilePath(self, filePath):
-        self.uiFilenameTXT.setText(filePath)
+        self.uiFilenameTXT.setEditText(filePath)
         self.resolve()
+
+    def clearFilePathHistory(self):
+        """Clears the path history.
+        """
+        self.uiFilenameTXT.blockSignals(True)
+        self.uiFilenameTXT.lineEdit().blockSignals(True)
+        txt = self.uiFilenameTXT.currentText()
+        self.uiFilenameTXT.clear()
+        self.uiFilenameTXT.setEditText(txt)
+        self.uiFilenameTXT.lineEdit().blockSignals(False)
+        self.uiFilenameTXT.blockSignals(False)
+
+    def setFilePathHistory(self, filePathHistory):
+        """Sets the paths stored in the combo box's drop down.
+
+        Args:
+            filePathHistory (list): A list of paths as strings.
+        """
+        self.uiFilenameTXT.blockSignals(True)
+        self.uiFilenameTXT.lineEdit().blockSignals(True)
+        txt = self.uiFilenameTXT.currentText()
+        self.uiFilenameTXT.clear()
+        self.uiFilenameTXT.addItems(filePathHistory)
+        self.uiFilenameTXT.setEditText(txt)
+        self.uiFilenameTXT.lineEdit().blockSignals(False)
+        self.uiFilenameTXT.blockSignals(False)
+
+    def filePathHistory(self):
+        """Returns the list of paths stored as items in the combo box.
+
+        Returns:
+            list: A list of paths as strings.
+        """
+        history = []
+        for idx in range(self.uiFilenameTXT.count()):
+            history.append(self.uiFilenameTXT.itemText(idx))
+        return history
 
     def setFilters(self, filters):
         self._filters = filters
@@ -235,6 +271,26 @@ class FilePickerWidget(QWidget):
 
     def setPickFolder(self, state):
         self._pickFolder = state
+
+    @Slot(bool)
+    def setDropDownVisible(self, dropDownVisible):
+        """ Sets 
+        
+        Args:
+            dropDownVisible (TYPE): Description
+        """
+        if not dropDownVisible:
+            css = (
+                'QComboBox::drop-down {border-width: 0px;} '
+                'QComboBox::down-arrow {image: url(noimg); border-width: 0px;}'
+            )
+        else:
+            css = ''
+        self.uiFilenameTXT.setStyleSheet(css)
+        self._dropDownVisible = dropDownVisible
+
+    def dropDownVisible(self):
+        return self._dropDownVisible
 
     @Slot(bool)
     def setNotResolvePath(self, state):
@@ -269,6 +325,7 @@ class FilePickerWidget(QWidget):
     pyResolvePath = Property("bool", resolvePath, setResolvePath)
     pyImageSequence = Property("bool", imageSequence, setImageSequence)
     pyFilePath = Property("QString", filePath, setFilePath)
+    pyDropDownVisible = Property("bool", dropDownVisible, setDropDownVisible)
 
     # Load the colors from the stylesheets
     @Property(QColor)
