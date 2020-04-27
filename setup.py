@@ -72,6 +72,7 @@ setup(
             'Favorites = blurdev.gui.toolbars.toolstoolbar:FavoritesToolbar',
             'User = blurdev.gui.toolbars.toolstoolbar:UserToolbar',
         ],
+        'blurdev.tools.paths': ['SVN = blurdev.tools:toolPaths',],
         'blurdev.protocol_handlers': [
             'Treegrunt = blurdev.protocols.treegrunt_handler:TreegruntHandler',
             'Blurdev = blurdev.protocols.blurdev_handler:BlurdevHandler',

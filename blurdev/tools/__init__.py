@@ -61,3 +61,13 @@ def logUsage(info):
             emailError(emails, error)
 
     return False
+
+
+def toolPaths():
+    """ Entry point returning paths treegrunt needs to find imports and tools.
+
+    Returns:
+        sys_paths: A list of paths that need added to sys.path to add imports.
+        tool_paths: A list of paths treegrunt should scan for tools.
+    """
+    return blurdev.activeEnvironment()._environmentToolPaths()

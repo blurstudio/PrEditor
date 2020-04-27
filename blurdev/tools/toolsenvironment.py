@@ -16,6 +16,7 @@ import re
 import datetime
 import logging
 import importlib
+import traceback
 
 from Qt.QtCore import QDateTime, QObject
 
@@ -91,6 +92,41 @@ class ToolsEnvironment(QObject):
 
     def __str__(self):
         return '<ToolsEnvironment ({})>'.format(self.objectName())
+
+    def _environmentToolPaths(self):
+        """ Returns the blurdev treegrunt environment path info
+
+        See `registerPaths` for more info.
+
+        Returns:
+            sys_paths: A list of paths that need added to sys.path to add imports.
+            tool_paths: A list of paths treegrunt should scan for tools.
+        """
+
+        sys_paths = [
+            # Add the virtualenv root(If this is the new environment setup based on pip)
+            self.path(),
+            # TODO: Remove path support for the svn tools repo once this release of
+            # blurdev is installed on everyone's computers.
+            # Make environment libs importable.
+            os.path.join(self.path(), 'code', 'python', 'lib'),
+            # This is the path for packages we deploy directly to the network
+            # using Linux virtualenv.
+            os.path.join(
+                self.path(),
+                'code',
+                'python',
+                'venv',
+                'lib',
+                'python2.7',
+                'site-packages',
+            ),
+            # This is the path for packages we deploy directly to the network
+            # using Windows virtualenv.
+            os.path.join(self.path(), 'code', 'python', 'venv', 'Lib', 'site-packages'),
+        ]
+
+        return sys_paths, []
 
     def _get_project(self):
         """ Used by blur.Projects.customize to identify the environment project if set
@@ -807,51 +843,42 @@ class ToolsEnvironment(QObject):
         return paths
 
     def registerPaths(self):
-        self.registerPath(self.path())
+        """ Update sys.path with all required tool paths.
+       
+        Uses the paths defined by installed blurdev.tools.paths entry points.
+        The entry points are cached from the last time `self.index().rebuild()`
+        was called to speed up the import of blurdev and switching environments.
+        The functions called by the entry point is called by this function.
 
-        # Make tools importable.
-        self.registerPath(
-            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'tools')
-        )
+        If a entry point raises a Exception the exception is printed but
+        not raised and no path manipulation will happen for that entry point.
+        """
 
-        # Make environment libs importable.
-        self.registerPath(
-            os.path.join(blurdev.activeEnvironment().path(), 'code', 'python', 'lib')
-        )
+        # Update sys.path with the treeegrunt environment paths
+        index = self.index()
+        all_tool_paths = []
+        for entry_point in index.entry_points():
+            logging_reload.info('Processing entry point: {}'.format(entry_point))
+            # Attempt to load the module, report errors but don't break the
+            # import of blurdev if one of these fail.
+            try:
+                sys_paths, tool_paths = index.resolve_entry_point(entry_point)()
+            except Exception as error:
+                print('# Skipping entry point: {}'.format(entry_point))
+                traceback.print_exc()
+                continue
+            for path in sys_paths:
+                logging_reload.debug('  sys.path.insert: {}'.format(path))
+                self.registerPath(path)
 
-        # This is the path for packages we deploy directly to the network using Linux virtualenv.
-        self.registerPath(
-            os.path.join(
-                blurdev.activeEnvironment().path(),
-                'code',
-                'python',
-                'venv',
-                'lib',
-                'python2.7',
-                'site-packages',
-            )
-        )
-
-        # This is the path for packages we deploy directly to the network using Windows virtualenv.
-        self.registerPath(
-            os.path.join(
-                blurdev.activeEnvironment().path(),
-                'code',
-                'python',
-                'venv',
-                'Lib',
-                'site-packages',
-            )
-        )
-
-        # Make legacy lib importable.
-        try:
-            import legacy
-
-            path = os.path.dirname(legacy.__file__)
-            self.registerPath(os.path.join(path, 'lib'))
-        except ImportError as error:
-            logging.warning(error)
+            # Get the tool_paths and conform them for use in the index
+            for tool_path in tool_paths:
+                # If legacy wasn't passed we can assume its not a legacy file structure
+                if isinstance(tool_path, str):
+                    tool_path = [tool_path, False]
+                all_tool_paths.append(tool_path)
+                logging_reload.debug('  tool root path: {}'.format(tool_path))
+            index.setToolRootPaths(all_tool_paths)
 
         # If this environment has a project make sure we load the project settings
         self.activateProject()

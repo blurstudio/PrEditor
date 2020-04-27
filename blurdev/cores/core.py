@@ -499,6 +499,9 @@ class Core(QObject):
         # Pillar is used by blurdev so reloading it breaks blurdev. Devs may have pillar
         # in their tools virtualenv to aid in installing other pip packages.
         self.protectModule('pillar')
+        # pkg_resources is found in the tools virtualenv and we use it when switching
+        # treegrunt environments to find `blurdev.tools.paths` entry_points.
+        self.protectModule('pkg_resources')
 
         # instaniate Sentry client for core
         self.init_sentry()

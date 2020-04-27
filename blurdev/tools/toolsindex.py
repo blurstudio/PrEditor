@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import os
 import re
+import functools
 import glob
 import logging
 import shutil
@@ -28,12 +29,15 @@ class ToolsIndex(QObject):
     """
 
     def __init__(self, environment):
-        QObject.__init__(self, environment)
+        super(ToolsIndex, self).__init__(environment)
         self._loaded = False
         self._favoritesLoaded = False
         self._categoryCache = {}
         self._departmentCache = set()
         self._toolCache = {}
+        self._entry_points = []
+        self._loaded_entry_points = False
+        self._tool_root_paths = []
 
     def baseCategories(self):
         """ returns the categories that are parented to this index
@@ -54,6 +58,8 @@ class ToolsIndex(QObject):
         self._categoryCache.clear()
         self._departmentCache.clear()
         self._toolCache.clear()
+        self._entry_points = []
+        self._loaded_entry_points = False
 
         # remove all the children
         for child in self.findChildren(
@@ -93,6 +99,26 @@ class ToolsIndex(QObject):
         self.load()
         return self._departmentCache
 
+    def entry_points(self):
+        """ A list of entry point data resolved when the index was last rebuilt.
+
+        Each item is a list with the name, module_name, and args of a resolved
+        `blurdev.tools.paths` entry point.
+        """
+        if not self._loaded_entry_points:
+            filename = self.filename(filename='entry_points.json')
+            # Build the entry_points file if it doesn't exist
+            if not os.path.exists(filename):
+                self._rebuild_entry_points()
+
+            with open(filename) as f:
+                self._entry_points = json.load(f)
+
+            # load entry_points
+            self._loaded_entry_points = True
+
+        return self._entry_points
+
     def environment(self):
         """ returns this index's environment
         """
@@ -109,6 +135,16 @@ class ToolsIndex(QObject):
             configFilename (str|bool): if True, save as config.ini next to filename. If a file path
                 is provided save to that file path. 
         """
+
+        # Update the entry_points.json file.
+        self._rebuild_entry_points()
+
+        # Now that the entry_points.json file is updated, reload the treegrunt
+        # environment so we resolve any entry point changes made sense the last
+        # index rebuild. Without this, you would need to rebuild, reload, and
+        # rebuild to fully update the index.
+        self.environment().resetPaths()
+
         # If a filename was not provided get the default
         if not filename:
             filename = self.filename()
@@ -142,23 +178,43 @@ class ToolsIndex(QObject):
         self.load()
         self.loadFavorites()
 
+    def _rebuild_entry_points(self):
+        """ Update the entry_points definitions for this environment.
+
+        Creates a new pkg_resources.WorkingSet object to search for any
+        'blurdev.tools.paths' entry points and stores that info in
+        entry_points.json next to the environment index file.
+        """
+
+        entry_points = []
+
+        # importing pkg_resources takes ~0.8 seconds only import it if we need to.
+        import pkg_resources
+
+        # Make our own WorkingSet. The cached pkg_resources WorkingSet doesn't get
+        # updated by blurdev's environment refresh.
+        packages = pkg_resources.WorkingSet()
+        entries = packages.iter_entry_points('blurdev.tools.paths')
+        for entry_point in entries:
+            entry_points.append(
+                [entry_point.name, entry_point.module_name, entry_point.attrs]
+            )
+
+        filename = self.filename(filename='entry_points.json')
+        dirname, basename = os.path.split(filename)
+        name, extension = os.path.splitext(basename)
+        with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
+            json.dump(entry_points, fle, indent=4)
+            fle.seek(0)
+            with open(filename, 'w') as out:
+                shutil.copyfileobj(fle, out)
+
     def _rebuildJson(self, filename):
         categories = {}
         tools = []
 
-        # Add tools in each of the programming language tools folders.
-        path = self.environment().relativePath('code/python/tools/')
-        self.rebuildPathJson(path, categories, tools)
-
-        # Add tools in the legacy folder.
-        try:
-            import legacy
-
-            path = os.path.dirname(legacy.__file__)
-            for path in glob.glob(os.path.join(os.path.join(path, 'tools', '*'))):
-                self.rebuildPathJson(path, categories, tools, legacy=True)
-        except ImportError as error:
-            logging.error(error)
+        for path, legacy in self.toolRootPaths():
+            self.rebuildPathJson(path, categories, tools, legacy=legacy)
 
         # Use OrderedDict to build this so the json is saved consistently.
         dirname, basename = os.path.split(filename)
@@ -167,7 +223,7 @@ class ToolsIndex(QObject):
         name, extension = os.path.splitext(basename)
 
         # Generating JSON index in a temporary location.
-        # Once succesfully generated we will copy the file where it needs to go.
+        # Once successfully generated we will copy the file where it needs to go.
         with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
             json.dump(output, fle, indent=4)
             fle.seek(0)
@@ -457,6 +513,22 @@ class ToolsIndex(QObject):
         self.load()
         self.loadFavorites()
 
+    @classmethod
+    def resolve_entry_point(cls, entry_point):
+        """
+        Resolve the entry point from its module and attrs.
+
+        This replicates parts of the pkg_resources system. We are not using it
+        here because importing pkg_resources takes time and we also need to
+        rebuild its index when switching treegrunt environments.
+        """
+        # Copied from the `pkg_resources.EntryPoint.resolve` function
+        module = __import__(entry_point[1], fromlist=['__name__'], level=0)
+        try:
+            return functools.reduce(getattr, entry_point[2], module)
+        except AttributeError as exc:
+            raise ImportError(str(exc))
+
     def favoriteGroups(self):
         """ returns the favorites items for this index
         """
@@ -477,8 +549,13 @@ class ToolsIndex(QObject):
 
     def filename(self, **kwargs):
         """ returns the filename for this index
+
+        Args:
+            filename (str, optional): Use this filename instead of the default
+                `tools.json`.
         """
-        return self.environment().relativePath('tools.json')
+        filename = kwargs.get('filename', 'tools.json')
+        return self.environment().relativePath(filename)
 
     def load(self, toolId=None):
         """ loads the current index from the system.
@@ -661,3 +738,14 @@ class ToolsIndex(QObject):
 
     def toolNames(self):
         return self._toolCache.keys()
+
+    def toolRootPaths(self):
+        """ A list of paths to search for tools when rebuild is called.
+
+        Each item in this list should be a list/tuple of the path to search for tools
+        and a bool to indicate if its a legacy tool structure.
+        """
+        return self._tool_root_paths
+
+    def setToolRootPaths(self, paths):
+        self._tool_root_paths = paths
