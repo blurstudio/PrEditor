@@ -184,6 +184,11 @@ class ToolsIndex(QObject):
         Creates a new pkg_resources.WorkingSet object to search for any
         'blurdev.tools.paths' entry points and stores that info in
         entry_points.json next to the environment index file.
+
+        Blurdev's TREEGRUNT_ROOT entry point is sorted to the start because the other
+        entry points most likely are not importable unless TREEGRUNT_ROOT is processed.
+        No other sorting of entry_points is done so load order is not guaranteed. The
+        order saved in the entry_points.json file will be used until the next rebuild.
         """
 
         entry_points = []
@@ -199,6 +204,11 @@ class ToolsIndex(QObject):
             entry_points.append(
                 [entry_point.name, entry_point.module_name, entry_point.attrs]
             )
+
+        # Ensure that the blurdev's entry point is processed first, we need to add
+        # its paths before we try to load any of the other entry_points that are
+        # likely being loaded from the blurdev entry point.
+        entry_points.sort(lambda a, b: -1 if a[0] == 'TREEGRUNT_ROOT' else 1)
 
         filename = self.filename(filename='entry_points.json')
         dirname, basename = os.path.split(filename)
