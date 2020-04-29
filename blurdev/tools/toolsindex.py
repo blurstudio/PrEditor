@@ -24,6 +24,9 @@ import blurdev.tools.toolsfavoritegroup
 from collections import OrderedDict
 
 
+logger = logging.getLogger(__name__)
+
+
 class ToolsIndex(QObject):
     """ Defines the indexing system for the tools package
     """
@@ -109,7 +112,11 @@ class ToolsIndex(QObject):
             filename = self.filename(filename='entry_points.json')
             # Build the entry_points file if it doesn't exist
             if not os.path.exists(filename):
-                self._rebuild_entry_points()
+                try:
+                    self._rebuild_entry_points()
+                except IOError as error:
+                    logger.info(error)
+                    return []
 
             with open(filename) as f:
                 self._entry_points = json.load(f)
@@ -148,6 +155,9 @@ class ToolsIndex(QObject):
         # If a filename was not provided get the default
         if not filename:
             filename = self.filename()
+
+        first_build = not os.path.exists(filename)
+
         # Build the new file so updated blurdev's can use it.
         self._rebuildJson(filename=filename)
         if configFilename and blurdev.settings.OS_TYPE == 'Windows':
@@ -178,6 +188,15 @@ class ToolsIndex(QObject):
         self.load()
         self.loadFavorites()
 
+        if first_build:
+            # If this is the first time the index is being built, we need to fully load
+            # the environment and rebuild the index again. If we don't then the index
+            # will be missing the tools added in virtualenv entry points.
+            logger.info(
+                'This was the first index rebuild, rebuilding a second time is required'
+            )
+            self.rebuild(filename=filename, configFilename=configFilename)
+
     def _rebuild_entry_points(self):
         """ Update the entry_points definitions for this environment.
 
@@ -189,7 +208,16 @@ class ToolsIndex(QObject):
         entry points most likely are not importable unless TREEGRUNT_ROOT is processed.
         No other sorting of entry_points is done so load order is not guaranteed. The
         order saved in the entry_points.json file will be used until the next rebuild.
+
+        Raises:
+            IOError: The treegrunt root directory used to store entry_points.json
+                does not exist.
         """
+
+        filename = self.filename(filename='entry_points.json')
+        dirname, basename = os.path.split(filename)
+        if not os.path.exists(dirname):
+            raise IOError(2, 'Treegrunt root does not exist: "{}"'.format(dirname))
 
         entry_points = []
 
@@ -210,8 +238,6 @@ class ToolsIndex(QObject):
         # likely being loaded from the blurdev entry point.
         entry_points.sort(lambda a, b: -1 if a[0] == 'TREEGRUNT_ROOT' else 1)
 
-        filename = self.filename(filename='entry_points.json')
-        dirname, basename = os.path.split(filename)
         name, extension = os.path.splitext(basename)
         with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
             json.dump(entry_points, fle, indent=4)
@@ -418,7 +444,7 @@ class ToolsIndex(QObject):
                     categories.add(categoryId)
                 node.setAttribute('category', categoryId)
             else:
-                logging.error('Error loading tool: {}'.format(toolPath))
+                logger.error('Error loading tool: {}'.format(toolPath))
 
         def processLegacyXmlFiles(script, node, categoryId, xmls):
             """ If a matching xml file exists add its contents to the index """
