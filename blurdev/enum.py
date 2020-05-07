@@ -37,6 +37,15 @@ class _MetaEnumGroup(type):
     def __getitem__(self, key):
         if isinstance(key, Number):
             return list(self)[int(key)]
+        elif isinstance(key, slice):
+            # If a Enum is passed convert it to its labelIndex
+            start = key.start
+            stop = key.stop
+            if isinstance(start, Enum):
+                start = start.labelIndex
+            if isinstance(stop, Enum):
+                stop = stop.labelIndex
+            return list(self)[slice(start, stop, key.step)]
         else:
             return getattr(self, str(key))
 
@@ -357,10 +366,23 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     You can also pass a int value as a index lookup. If you pass a int value it
     will return the object by its index. This means you can not lookup composite
     Enum objects as 3 returns the third index which in the above example is Diamonds.
-    
+    The index value for Enum is stored on its labelIndex property.
+
     Example:
+        print(Suits.Diamonds.labelIndex)
+
         if Suits.Diamonds == Suits[3]:
             print("This is true!")
+
+    An EnumGroup can be sliced by passing an Enum object or its labelIndex value for
+    start and stop, returning a list of matching Enums.
+
+    Example:
+        # All Enums between Spades and Diamonds
+        Suits[Suits.Spades:Suits.Diamonds]
+
+        # All Enums between Spades and Clubs including Clubs
+        Suits[Suits.Spades:Suits.Clubs.labelIndex+1]
 
     An EnumGroup can also act as a factory for composite Enum objects.
     If a known composite value is available, like 3, which is the
@@ -378,6 +400,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
 
     Attributes:
         All: The sum of all members.
+        Nothing: None of the members.
     """
 
     _ENUMERATORS = None
