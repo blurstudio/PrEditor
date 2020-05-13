@@ -1,4 +1,5 @@
 import os
+import logging
 import webbrowser
 from Qt.QtCore import Qt, QSize
 from Qt.QtGui import QCursor, QIcon, QPixmap
@@ -91,9 +92,13 @@ class ToolsToolbar(BlurdevToolbar):
         if isinstance(tool, basestring):
             tool = blurdev.findTool(tool)
         if isinstance(tool, Tool) and not tool.isNull():
-            action = ToolbarAction(self, tool)
-            return self.addAction(action)
-        raise ValueError('Argument "tool" should be a valid tool')
+            try:
+                action = ToolbarAction(self, tool)
+                return self.addAction(action)
+            except ValueError:
+                pass
+        logging.warn('Could not add invalid tool {} to toolbar.'.format(tool))
+        return None
 
     def dragEnterEvent(self, event):
         """ filter drag events for specific items, treegrunt tools or script files """
