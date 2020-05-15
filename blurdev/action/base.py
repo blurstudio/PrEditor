@@ -529,7 +529,7 @@ class Action(with_metaclass(_ActionMeta, object)):
                         argument.value = kwargs.get(argument.name, argument.default)
                         argument.found = True
                     except ArgumentHasNoDefaultError:
-                        msg = 'Required argument {name} was not given.'.format(
+                        msg = 'Required argument "{name}" was not given.'.format(
                             name=argument.name,
                         )
                         raise ArgumentRequiredButNotGivenError(msg)
