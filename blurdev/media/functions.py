@@ -305,8 +305,10 @@ def imageSequenceInfo(path, osystem=None, ospath=None):
             (?P<dir>^.+[\\\/]+)?
             (?P<filename>[^\\\/]+?
                 # match seq/shot/version format used by the studio to prevent problems
-                # with incorrectly identifying them as a image sequence.
-                (?:Sc\d{3}|S\d{4}\.\d{2})?\D*?(?:_v\d+\D*)?
+                # with incorrectly identifying them as a image sequence. The negative
+                # look ahead prevents mis-classifying the frames if a partial shot
+                # has omitted the .XX before the frames.
+                (?:Sc\d{3}|S\d{4}\.\d{2}(?!\d))?\D*?(?:_v\d+\D*)?
             )
         )
         # grab all digits for the frame number
