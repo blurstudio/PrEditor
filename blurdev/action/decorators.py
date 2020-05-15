@@ -27,10 +27,12 @@ class _Argument(object):
         settable=True,
         allowNone=False,
         defaultInstance=False,
+        defaultFunction=None,
         **kwargs
     ):
         self._name = name
         self._defaultInstance = defaultInstance
+        self._defaultFunction = defaultFunction
         self._default = default
         self._found = False
         self._value = None
@@ -56,7 +58,16 @@ class _Argument(object):
 
     @property
     def default(self):
-        if self._defaultInstance:
+        if self._defaultFunction is not None:
+            dvalue = self._defaultFunction()
+            valid, exc, msg = self.validateValue(dvalue)
+            if not valid:
+                msg = 'Invalid defaultFunction return type for {cls}.{name}: {tpe}'.format(
+                    cls=type(self.parent).__name__, name=self.name, tpe=type(dvalue),
+                )
+                raise exc(msg)
+            return dvalue
+        elif self._defaultInstance:
             atype = self._atype[0] if isinstance(self._atype, tuple) else self._atype
             if isinstance(atype, type):
                 return atype()
@@ -115,8 +126,15 @@ class _Argument(object):
     def allowNone(self):
         return self._allowNone
 
-    @value.setter
-    def value(self, value):
+    @property
+    def defaultFunction(self):
+        return self._defaultFunction
+
+    @defaultFunction.setter
+    def defaultFunction(self, value):
+        self._defaultFunction = value
+
+    def validateValue(self, value):
         if isinstance(value, self.atype):
             if self.validValues:
                 if value in self.validValues:
@@ -127,11 +145,11 @@ class _Argument(object):
                         name=self.name,
                         valid=', '.join([str(v) for v in self.validValues]),
                     )
-                    raise ValueError(msg)
+                    return False, ValueError, msg
             else:
-                self._value = value
+                return True, None, ""
         elif self._allowNone and value is None:
-            self._value = value
+            return True, None, ""
         else:
             msg = (
                 'Given value for argument {cls}.{name} is not the correct type.\n'
@@ -143,7 +161,14 @@ class _Argument(object):
                     value=value,
                 )
             )
-            raise ArgumentTypeIncorrectError(msg)
+            return False, ArgumentTypeIncorrectError, msg
+
+    @value.setter
+    def value(self, value):
+        valid, exc, msg = self.validateValue(value)
+        if not valid:
+            raise exc(msg)
+        self._value = value
 
     def __del__(self):
         self.found = False
@@ -240,6 +265,7 @@ class argproperty(object):
         valid=None,
         settable=True,
         defaultInstance=False,
+        defaultFunction=None,
         **kwargs
     ):
         """Initializes the argproperty decorator.
@@ -269,6 +295,7 @@ class argproperty(object):
         self._atype = tuple(atype) if isinstance(atype, (list, tuple)) else (atype,)
         self._default = default
         self._defaultInstance = defaultInstance
+        self._defaultFunction = defaultFunction
         self._validValues = valid
         self._settable = settable
         self._order = self.__class__.__order
@@ -297,6 +324,7 @@ class argproperty(object):
             self._settable,
             allowNone,
             self._defaultInstance,
+            self._defaultFunction,
             **self._kwargs
         )
 
