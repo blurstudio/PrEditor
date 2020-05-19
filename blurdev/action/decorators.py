@@ -138,7 +138,7 @@ class _Argument(object):
         if isinstance(value, self.atype):
             if self.validValues:
                 if value in self.validValues:
-                    self._value = value
+                    return True, None, ""
                 else:
                     msg = 'Valid arguments for {cls}.{name} are: {valid}'.format(
                         cls=type(self.parent).__name__,
