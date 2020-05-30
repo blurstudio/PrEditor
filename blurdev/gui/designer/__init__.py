@@ -8,6 +8,7 @@
 #	\date		12/07/08
 #
 
+from __future__ import print_function
 plugindef = """##
 #	\\namespace	blurdev.gui.designer.%(class)s
 #

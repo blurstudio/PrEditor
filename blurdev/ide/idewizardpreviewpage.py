@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import print_function
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 from Qt.QtWidgets import QTreeWidgetItem, QWizardPage

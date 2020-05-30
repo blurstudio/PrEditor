@@ -115,6 +115,7 @@
 # |			super(BlurTreeWidget, tree).wheelEvent(event)
 # |		event.ignore()
 
+from __future__ import print_function
 from builtins import str as text
 from Qt import QtCompat
 from Qt.QtCore import Qt, Property, Signal, Slot, QPoint

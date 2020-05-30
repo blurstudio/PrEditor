@@ -8,6 +8,7 @@
 # 	\date		05/24/11
 #
 
+from __future__ import print_function
 from Qt.QtWidgets import QFileDialog, QMessageBox as msg
 
 from blurdev.gui import Dialog

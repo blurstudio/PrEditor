@@ -25,6 +25,9 @@
 # 	print('after')
 
 
+from __future__ import print_function
+
+
 def stuff():
     for i in range(100):
         print(i)

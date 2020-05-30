@@ -9,6 +9,9 @@
 #
 
 
+from __future__ import print_function
+
+
 class InvalidHandler(Exception):
     """ Returned to the pipe if a invalid request was provided """
 

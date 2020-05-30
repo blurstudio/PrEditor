@@ -8,6 +8,7 @@
 # 	\date		04/20/10
 #
 
+from __future__ import print_function
 import copy
 import glob
 import os.path

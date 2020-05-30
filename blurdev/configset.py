@@ -8,6 +8,7 @@
 # 	\date		04/20/10
 #
 
+from __future__ import print_function
 from Qt.QtCore import QObject
 
 

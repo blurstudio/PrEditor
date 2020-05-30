@@ -8,6 +8,8 @@
 # 	\date		06/11/10
 #
 
+from __future__ import print_function
+
 if __name__ == '__main__':
     import sys
 

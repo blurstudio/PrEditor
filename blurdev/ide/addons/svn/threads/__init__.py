@@ -174,7 +174,7 @@ class ActionThread(QThread):
 
         try:
             self.runClient(client)
-        except pysvn.ClientError, e:
+        except pysvn.ClientError as e:
             self.notify({'error': str(e.message)})
         except:
             self.notify(

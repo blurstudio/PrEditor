@@ -8,6 +8,8 @@
 
 from __future__ import absolute_import
 
+from __future__ import print_function
+
 __DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
 
 # track the install path

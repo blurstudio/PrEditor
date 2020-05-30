@@ -29,6 +29,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
    
 """
 
+from __future__ import print_function
 from past.builtins import basestring
 import datetime
 import getpass

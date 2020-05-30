@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import print_function
 import os
 import glob
 from builtins import str as text

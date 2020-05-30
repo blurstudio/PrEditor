@@ -25,6 +25,8 @@ http://www.opensource.org/licenses/mit-license.php
 25th Nov 2003 0.1	. Initial release by Tim Golden
 """
 
+from __future__ import print_function
+
 __VERSION__ = "0.2"
 
 from past.builtins import basestring

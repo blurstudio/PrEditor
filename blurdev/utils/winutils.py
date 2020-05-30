@@ -1,3 +1,4 @@
+from __future__ import print_function
 import win32api
 import win32gui
 import win32con

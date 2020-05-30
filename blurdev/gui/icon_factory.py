@@ -1,3 +1,4 @@
+from __future__ import print_function
 from cute.icon_factory import IconFactory as CuteIconFactory
 
 

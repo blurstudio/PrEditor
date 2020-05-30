@@ -8,6 +8,7 @@
 # 	:date		01/21/11
 #
 
+from __future__ import print_function
 from blurdev.enum import enum
 
 LayerType = enum('Media', 'Canvas', 'Text')
