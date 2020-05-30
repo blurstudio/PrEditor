@@ -12,7 +12,7 @@ import traceback
 
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
-from Qt.QtWidgets import QAction, QApplication, QTextEdit
+from Qt.QtWidgets import QAction, QApplication, QShortcut, QTextEdit
 
 import blurdev
 from blurdev import debug
@@ -123,10 +123,56 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # When executing code, that takes longer than this seconds, flash the window
         self.flashTime = 1.0
 
+        # Store previous commands to retrieve easily
+        self._prevCommands = []
+        self._prevCommandIndex = 0
+        self._prevCommandsMax = 100
+
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
         self.uiClearToLastPromptACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Backspace)
         self.addAction(self.uiClearToLastPromptACT)
+
+        # Add QShortcuts
+        self.uiGetPrevCommandSCT = QShortcut(Qt.ALT|Qt.Key_Up, self, context=Qt.WidgetShortcut)
+        self.uiGetPrevCommandSCT.activated.connect(self.getPrevCommand)
+        self.uiGetNextCommandSCT = QShortcut(Qt.ALT|Qt.Key_Down, self, context=Qt.WidgetShortcut)
+        self.uiGetNextCommandSCT.activated.connect(self.getNextCommand)
+
+        self.x = 0
+
+    def keyReleaseEvent(self, event):
+        # End getPrev/NextCommand
+        if event.key() == Qt.Key_Alt:
+            self._prevCommandIndex = 0
+
+    def getPrevCommand(self):
+        self._prevCommandIndex -= 1
+
+        if abs(self._prevCommandIndex) > len(self._prevCommands):
+            self._prevCommandIndex += 1
+
+        if self._prevCommands:
+            self.setCommand()
+
+    def getNextCommand(self):
+        self._prevCommandIndex += 1
+        self._prevCommandIndex = min(self._prevCommandIndex, 0)
+
+        if self._prevCommands:
+            self.setCommand()
+
+    def setCommand(self):
+        prevCommand = ''
+        if self._prevCommandIndex:
+            prevCommand = self._prevCommands[self._prevCommandIndex]
+
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.LineUnderCursor)
+        if cursor.selectedText().startswith(self._consolePrompt):
+            prevCommand = "{}{}".format(self._consolePrompt, prevCommand)
+        cursor.insertText(prevCommand)
+        self.setTextCursor(cursor)
 
     def clear(self):
         """ clears the text in the editor """
@@ -229,6 +275,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                         self.startInputLine()
                         self.insertPlainText(commandText)
                 else:
+                    # update prevCommands list
+                    # only if commandText is not the most recent prevCommand
+                    if len(commandText) > 0 and (not self._prevCommands or self._prevCommands[-1] != commandText):
+                        self._prevCommands.append(commandText)
+                    # limit length of prevCommand list to Max
+                    self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax:]
+
                     # evaluate the command
                     cmdresult, wasEval = self.executeString(commandText)
 
