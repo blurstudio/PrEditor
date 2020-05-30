@@ -48,7 +48,7 @@ setup(
         'MarkupSafe>=1.1.1',
         'Pygments>=2.4.2',
         'python-redmine>=2.1.1',
-        'QScintilla>=2.11.4',
+        'QScintilla>=2.11.4;python_version>="3.5"',
         'sentry-sdk>=0.13.2',
         'urllib3>=1.25.7',
     ],
