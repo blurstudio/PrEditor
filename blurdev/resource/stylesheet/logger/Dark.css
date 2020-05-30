@@ -49,3 +49,14 @@ DocumentEditor {
 	qproperty-paperSmartHighlight: rgba(75, 180, 0, 25);
 	qproperty-paperDecorator: rgb(70, 70, 73);
 }
+
+
+QToolButton[toolTip="Next"], QToolButton[toolTip="Step"], QSpinBox#uiPdbExecuteCountDDL {
+	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
+	background-color: rgb(210,200,160);
+}
+
+ConsoleEdit {
+	color: rgb(255, 255, 255);
+	background-color: rgb(70, 70, 73);
+}

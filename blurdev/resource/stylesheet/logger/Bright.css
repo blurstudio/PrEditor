@@ -12,7 +12,7 @@ DocumentEditor {
 	qproperty-pyEdgeColor: rgb(100, 45, 45);
 
 	qproperty-pyIndentationGuidesBackgroundColor: "white";
-	qproperty-pyIndentationGuidesForegroundColor: "black";
+	qproperty-pyIndentationGuidesForegroundColor	: "black";
 	qproperty-pyMarkerBackgroundColor: "white";
 	qproperty-pyMarkerForegroundColor: "black";
 	qproperty-foldMarginsBackgroundColor: rgb(224, 224, 224);
@@ -52,5 +52,10 @@ DocumentEditor {
 
 QToolButton[toolTip="Next"], QToolButton[toolTip="Step"], QSpinBox#uiPdbExecuteCountDDL {
 	/* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
-	background-color: rgb(75,65,65);
+	background-color: rgb(210,200,160);
+}
+
+ConsoleEdit{
+	color: rgb(0,0,0);
+	background-color: rgb(255,255,255);
 }
