@@ -51,6 +51,7 @@ setup(
         'QScintilla>=2.11.4;python_version>="3.5"',
         'sentry-sdk>=0.13.2',
         'urllib3>=1.25.7',
+        'winshell>=0.6',
     ],
     include_package_data=True,
     author='Blur Studio',

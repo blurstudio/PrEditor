@@ -214,10 +214,10 @@ def createShortcut(
             is the users desktop.
     """
     if settings.OS_TYPE == 'Windows':
-        from . import scripts
+        import winshell
 
         if not path:
-            path = scripts.winshell.desktop(common)
+            path = winshell.desktop(common)
             if not os.path.exists(path):
                 os.makedirs(path)
         if not target:
@@ -264,7 +264,7 @@ def createShortcut(
         if not isinstance(args, types.StringTypes):
             args = subprocess.list2cmdline(args)
         if icon:
-            scripts.winshell.CreateShortcut(
+            winshell.CreateShortcut(
                 shortcut,
                 target,
                 Arguments=args,
@@ -273,7 +273,7 @@ def createShortcut(
                 Description=description,
             )
         else:
-            scripts.winshell.CreateShortcut(
+            winshell.CreateShortcut(
                 shortcut,
                 target,
                 Arguments=args,
