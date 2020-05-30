@@ -1,5 +1,4 @@
 ##
-# 	\namespace	blurdev.ide.documenteditor
 #
 #   \remarks    This dialog allows the user to create new python classes and packages
 #               based on plugin templates
@@ -840,6 +839,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(0, section.value('showLineNumbers'))
         self.setIndentationGuides(section.value('showIndentations'))
         self.setEolVisibility(section.value('showEol'))
+        self.setShowSmartHighlighting(  section.value('smartHighlighting'))
         self.setBackspaceUnindents(section.value('backspaceUnindents'))
 
         if section.value('showLimitColumn'):
@@ -971,7 +971,7 @@ class DocumentEditor(QsciScintilla):
             \Remarks    Callback for file monitoring. If a file was modified or deleted
                         this method is called when Open File Monitoring is enabled.
                         Returns if the file was updated or left open
-            \Return		<bool>
+            \Return     <bool>
         """
         debugMsg(
             'Reload Change called: %0.3f Dialog Shown: %r'

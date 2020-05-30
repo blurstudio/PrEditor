@@ -21,7 +21,7 @@ import blurdev
 from functools import partial
 
 from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
-from Qt.QtGui import QColor, QCursor, QFontDatabase, QIcon, QKeySequence
+from Qt.QtGui import QColor, QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFileIconProvider,
@@ -29,6 +29,7 @@ from Qt.QtWidgets import (
     QLabel,
     QMenu,
     QMessageBox,
+    QShortcut,
     QTextBrowser,
     QToolTip,
     QVBoxLayout,
@@ -169,6 +170,27 @@ class LoggerWindow(Window):
 
             action.triggered.connect(partial(self.selectCompleterMode, action))
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
+
+        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_N, self, context=Qt.ApplicationShortcut)
+        self.uiAddWorkboxSCT.activated.connect(self.addWorkbox)
+        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_W, self, context=Qt.ApplicationShortcut)
+        self.uiRemoveWorkboxSCT.activated.connect(lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex()))
+
+        # Next tab functionality already exists, though I can't tell from where
+        # So, let's just add PrevTab functionality
+        self.uiPrevTabSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Tab, self, context=Qt.ApplicationShortcut)
+        self.uiPrevTabSCT.activated.connect(self.prevTab)
+
+        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToConsoleSCT.activated.connect(self.focusToConsole)
+        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToWorkboxSCT.activated.connect(self.focusToWorkbox)
+
+        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.ALT|Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToConsoleSCT.activated.connect(self.copyToConsole)
+        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.ALT|Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToWorkboxSCT.activated.connect(self.copyToWorkbox)
+
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
         self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
@@ -286,6 +308,56 @@ class LoggerWindow(Window):
             # before it has finished running completely.
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
+    def focusToConsole(self):
+        self.uiConsoleTXT.setFocus()
+
+    def focusToWorkbox(self):
+        self.uiWorkboxTAB.currentWidget().setFocus()
+
+    def copyToConsole(self):
+        # Copy current selection or line from workbox to console
+        workbox = self.uiWorkboxTAB.currentWidget()
+        if not workbox.hasFocus():
+            return
+
+        text = workbox.selectedText()
+        if not text:
+            line, index = workbox.getCursorPosition()
+            text = workbox.text(line)
+        text = text.rstrip('\r\n')
+        if not text:
+            return
+
+        self.uiConsoleTXT.insertPlainText(text)
+        self.focusToConsole()
+
+    def copyToWorkbox(self):
+        # Copy current selection or line from console to workbox
+        console = self.uiConsoleTXT
+        if not console.hasFocus():
+            return
+
+        cursor = console.textCursor()
+        if not cursor.hasSelection():
+            cursor.select(QTextCursor.LineUnderCursor)
+        text = cursor.selectedText()
+        text = text.lstrip(console.prompt())
+
+        outputPrompt = console.outputPrompt()
+        outputPrompt = outputPrompt.rstrip()
+        text = text.lstrip(outputPrompt)
+        text = text.lstrip()
+
+        if not text:
+            return
+
+        workbox = self.uiWorkboxTAB.currentWidget()
+        workbox.insert(text)
+        line, index = workbox.getCursorPosition()
+        index += len(text)
+        workbox.setCursorPosition(line, index)
+
+        self.focusToWorkbox()
 
     def wheelEvent(self, event):
         # adjust font size on ctrl+scrollWheel
@@ -360,6 +432,7 @@ class LoggerWindow(Window):
             workbox.documentFont = font
             workbox.setMarginsFont(font)
             workbox.lexer().setFont(font)
+
     def _getDebugIcon(self, filepath, color):
         icf = iconFactory.customize(
             iconClass='StyledIcon',
@@ -402,6 +475,10 @@ class LoggerWindow(Window):
         tabWidget.setCurrentIndex(index)
         workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
         workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
+
+        workbox.setFocus()
+        workbox.setText("\n"*19)
+
         return workbox
 
     def adjustWorkboxOrientation(self, state):
@@ -967,6 +1044,14 @@ class LoggerWindow(Window):
         act.triggered.connect(self.unlinkCurrentTab)
 
         menu.popup(QCursor.pos())
+
+    def prevTab(self):
+        tabWidget = self.uiWorkboxTAB
+        index = tabWidget.currentIndex()
+        if index > 0:
+            tabWidget.setCurrentIndex(index - 1)
+        else:
+            tabWidget.setCurrentIndex(tabWidget.count() - 1)
 
     def renameTab(self):
         if self._currentTab != -1:
