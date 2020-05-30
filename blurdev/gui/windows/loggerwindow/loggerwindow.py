@@ -9,6 +9,7 @@
 #
 
 from __future__ import print_function
+import itertools
 import os
 import re
 import sys
@@ -29,6 +30,7 @@ from Qt.QtWidgets import (
     QMenu,
     QMessageBox,
     QTextBrowser,
+    QToolTip,
     QVBoxLayout,
 )
 
@@ -43,6 +45,7 @@ from blurdev.ide.delayable_engine import DelayableEngine
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
 
+from .completer import CompleterModes
 from .level_buttons import LoggingLevelButton, DebugLevelButton
 
 
@@ -53,6 +56,7 @@ class LoggerWindow(Window):
         Window.__init__(self, parent=parent)
         self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
+        self.statusTimer = QTimer()
 
         import blurdev.gui
 
@@ -147,6 +151,24 @@ class LoggerWindow(Window):
         self.uiPdbDownACT.triggered.connect(self.uiConsoleTXT.pdbDown)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
+
+        self.uiAutoCompleteCaseSensitiveACT.toggled.connect(
+            self.setCaseSensitive)
+
+        self.completerModeCycle = itertools.cycle(CompleterModes)
+        # create CompleterModes submenu
+        defaultMode = self.completerModeCycle.next()
+        for mode in CompleterModes:
+            action = self.uiCompleterModeMENU.addAction(mode.name)
+            action.setObjectName('ui{}ModeACT'.format(mode.name))
+            action.setCheckable(True)
+            action.setChecked(mode == defaultMode)
+
+            completerMode = CompleterModes(mode)
+            action.setToolTip(completerMode.toolTip())
+
+            action.triggered.connect(partial(self.selectCompleterMode, action))
+        self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
         self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
@@ -241,6 +263,12 @@ class LoggerWindow(Window):
             # before it has finished running completely.
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
+
+    def handleMenuHovered(self, action):
+        # Qt4 doesn't have a ToolTipsVisible method, so we fake it
+        QToolTip.showText(
+            QCursor.pos(), action.toolTip(),
+            self.uiCompleterModeMENU, self.uiCompleterModeMENU.actionGeometry(action))
     def _getDebugIcon(self, filepath, color):
         icf = iconFactory.customize(
             iconClass='StyledIcon',
@@ -438,6 +466,15 @@ class LoggerWindow(Window):
 
         pref.recordProperty("loggingLevel", self.uiLoggingLevelBTN.level())
 
+        # completer settings
+        completer = self.uiConsoleTXT.completer()
+        sensitive = completer.caseSensitive()
+        completerMode = completer.completerMode()
+        completerModeValue = completerMode.value
+
+        pref.recordProperty("caseSensitive", sensitive)
+        pref.recordProperty("completerMode", completerModeValue)
+
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
             pref.recordProperty(self._genPrefName('WorkboxText', index), workbox.text())
@@ -501,6 +538,14 @@ class LoggerWindow(Window):
         if loggingLevel:
             self.uiLoggingLevelBTN.setLevel(loggingLevel)
 
+        # completer settings
+        caseSensitive = pref.restoreProperty('caseSensitive', True)
+        self.setCaseSensitive(caseSensitive)
+        completerModeValue = pref.restoreProperty('completerMode', 0)
+        completerMode = CompleterModes(completerModeValue)
+        self.cycleToCompleterMode(completerMode)
+        self.setCompleterMode(completerMode)
+
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(
             pref.restoreProperty('spellCheckEnabled', False)
@@ -517,9 +562,11 @@ class LoggerWindow(Window):
             pref.restoreProperty('clearBeforeEnvRefresh', False)
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
+
         font = pref.restoreProperty('consoleFont', None)
         if font:
             self.uiConsoleTXT.setFont(font)
+
         # Restore the workboxes
         count = pref.restoreProperty('WorkboxCount', 1)
         for index in range(count - self.uiWorkboxTAB.count()):
@@ -625,6 +672,16 @@ class LoggerWindow(Window):
         self.uiStatusLBL.setText(txt)
         self.uiMenuBar.adjustSize()
 
+    def clearStatusText(self):
+        self.uiStatusLBL.setText('')
+        self.uiMenuBar.adjustSize()
+
+    def autoHideStatusText(self):
+        if self.statusTimer.isActive():
+            self.statusTimer.stop()
+        self.statusTimer.singleShot(2000, self.clearStatusText)
+        self.statusTimer.start()
+
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
             path to any stylesheet. If given None, it will default to Bright.
@@ -659,6 +716,65 @@ class LoggerWindow(Window):
 
         # Notify widgets that the styleSheet has changed
         blurdev.core.styleSheetChanged.emit(blurdev.core.styleSheet())
+
+    def setCaseSensitive(self, state):
+        self.reportCaseChange(state)
+
+        completer = self.uiConsoleTXT.completer()
+        completer.setCaseSensitive(state)
+        self.uiAutoCompleteCaseSensitiveACT.setChecked(state)
+        completer.buildCompleter()
+        completer.refreshList()
+
+    def toggleCaseSensitive(self):
+        state = self.uiConsoleTXT.completer().caseSensitive()
+        self.setCaseSensitive(not state)
+
+    # Completer Modes
+    def cycleCompleterMode(self):
+        completerMode = self.completerModeCycle.next()
+        self.setCompleterMode(completerMode)
+
+    def cycleToCompleterMode(self, completerMode):
+        # this method keeps the CompleterModes iterator
+        # sync'd to currently chosen completerMode
+        for idx in range(len(CompleterModes)):
+            tempMode = self.completerModeCycle.next()
+            if tempMode == completerMode:
+                break
+
+    def setCompleterMode(self, completerMode): # , recordPrefs=True):
+        self.reportCompleterModeChange(completerMode)
+        completer = self.uiConsoleTXT.completer()
+
+        completer.setCompleterMode(completerMode)
+        completer.buildCompleter()
+
+        for action in self.uiCompleterModeMENU.actions():
+            isCurrent = action.text() == completerMode.name
+            action.setChecked(isCurrent)
+
+    def selectCompleterMode(self, action):
+        if not action.isChecked():
+            action.setChecked(True)
+            return
+
+        # update cycleToCompleterMode to current Mode
+        modeName = action.text()
+        mode = CompleterModes[modeName]
+        self.cycleToCompleterMode(mode)
+        self.setCompleterMode(mode)
+
+    def reportCaseChange(self, state):
+        """ Update status text with Case Sensitivity Mode """
+        text = "Case Sensitive " if state else "Case Insensitive "
+        self.setStatusText(text)
+        self.autoHideStatusText()
+
+    def reportCompleterModeChange(self, mode):
+        """ Update status text with Completer Mode """
+        self.setStatusText('Completer Mode: {} '.format(mode.name))
+        self.autoHideStatusText()
 
     def setClearBeforeRunning(self, state):
         if state:

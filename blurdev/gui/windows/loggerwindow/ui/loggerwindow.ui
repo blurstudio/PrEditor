@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>649</width>
+    <width>891</width>
     <height>277</height>
    </rect>
   </property>
@@ -66,7 +66,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>649</width>
+     <width>891</width>
      <height>21</height>
     </rect>
    </property>
@@ -94,30 +94,6 @@
     <addaction name="separator"/>
     <addaction name="uiSaveConsoleSettingsACT"/>
     <addaction name="uiCloseLoggerACT"/>
-   </widget>
-   <widget class="QMenu" name="uiFileMENU">
-    <property name="title">
-     <string>&amp;Options</string>
-    </property>
-    <widget class="QMenu" name="uiStyleMENU">
-     <property name="title">
-      <string>Style</string>
-     </property>
-    </widget>
-    <addaction name="uiAutoCompleteEnabledACT"/>
-    <addaction name="uiSpellCheckEnabledACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiClearLogACT"/>
-    <addaction name="uiClearLogOnRefreshACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiStyleMENU"/>
-    <addaction name="separator"/>
-    <addaction name="uiIndentationsTabsACT"/>
-    <addaction name="uiCopyTabsToSpacesACT"/>
-    <addaction name="uiWordWrapACT"/>
-    <addaction name="uiEditorVerticalACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiSetFlashWindowIntervalACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -166,6 +142,37 @@
     <addaction name="separator"/>
     <addaction name="uiPdbUpACT"/>
     <addaction name="uiPdbDownACT"/>
+   </widget>
+   <widget class="QMenu" name="uiFileMENU">
+    <property name="title">
+     <string>&amp;Options</string>
+    </property>
+    <widget class="QMenu" name="uiStyleMENU">
+     <property name="title">
+      <string>Style</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="uiCompleterModeMENU">
+     <property name="title">
+      <string>Auto-Complete - Mode (Cycle: Ctrl+M)</string>
+     </property>
+    </widget>
+    <addaction name="uiAutoCompleteEnabledACT"/>
+    <addaction name="uiSpellCheckEnabledACT"/>
+    <addaction name="uiAutoCompleteCaseSensitiveACT"/>
+    <addaction name="uiCompleterModeMENU"/>
+    <addaction name="separator"/>
+    <addaction name="uiClearLogACT"/>
+    <addaction name="uiClearLogOnRefreshACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiStyleMENU"/>
+    <addaction name="separator"/>
+    <addaction name="uiIndentationsTabsACT"/>
+    <addaction name="uiCopyTabsToSpacesACT"/>
+    <addaction name="uiWordWrapACT"/>
+    <addaction name="uiEditorVerticalACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiSetFlashWindowIntervalACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="uiDebugMENU"/>
@@ -574,6 +581,48 @@
   <action name="uiBrowseSharedPreferencesACT">
    <property name="text">
     <string>Browse Shared Preferences</string>
+   </property>
+  </action>
+  <action name="uiAutoCompleteCaseSensitiveACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-Complete - Case Sensitive (Toggle: Ctrl+I)</string>
+   </property>
+  </action>
+  <action name="uiStartsWithModeACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>StartsWith</string>
+   </property>
+  </action>
+  <action name="uiOuterFuzzyModeACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>OuterFuzzy</string>
+   </property>
+  </action>
+  <action name="uiFullFuzzyModeACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>FullFuzzy</string>
+   </property>
+  </action>
+  <action name="uiFontMENU">
+   <property name="text">
+    <string>PlaceHolderMonospaceFont</string>
+   </property>
+  </action>
+  <action name="actionPlaceHolderProportionalFont">
+   <property name="text">
+    <string>PlaceHolderProportionalFont</string>
    </property>
   </action>
  </widget>

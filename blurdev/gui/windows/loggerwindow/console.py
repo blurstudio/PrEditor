@@ -264,11 +264,23 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def insertCompletion(self, completion):
         """ inserts the completion text into the editor """
+
         if self.completer().widget() == self:
             cursor = self.textCursor()
+
+
+
+
             cursor.movePosition(QTextCursor.Left)
             cursor.movePosition(QTextCursor.EndOfWord)
             cursor.insertText(completion[len(self.completer().completionPrefix()):])
+            # cursor.select(QTextCursor.WordUnderCursor)
+            #cursor.insertText(completion)
+
+
+
+
+
             self.setTextCursor(cursor)
 
     def insertFromMimeData(self, mimeData):
@@ -361,13 +373,24 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         # other wise handle the keypress
         else:
-            ctrlSpace = (
-                event.key() == Qt.Key_Space
-                and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
-            )
+            # define special key sequences
+            ctrlSpace = event.key() == Qt.Key_Space and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
+            ctrlM = event.key() == Qt.Key_M and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
+            ctrlI = event.key() == Qt.Key_I and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
+
             # Process all events we do not want to override
-            if not ctrlSpace:
+            if not (ctrlSpace or ctrlM or ctrlI):
                 QTextEdit.keyPressEvent(self, event)
+
+            window = self.window()
+            if ctrlI:
+                hasToggleCase = hasattr(window, 'toggleCaseSensitive')
+                if hasToggleCase:
+                    window.toggleCaseSensitive()
+            if ctrlM:
+                hasCycleMode = hasattr(window, 'cycleCompleterMode')
+                if hasCycleMode:
+                    window.cycleCompleterMode()
 
             # check for particular events for the completion
             if completer:
@@ -388,6 +411,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     or event.key() == Qt.Key_Escape
                     or completer.popup().isVisible()
                     or ctrlSpace
+                    or ctrlI
+                    or ctrlM
                 ):
                     completer.refreshList(scope=__main__.__dict__)
                     completer.popup().setCurrentIndex(

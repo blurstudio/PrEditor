@@ -10,9 +10,25 @@
 
 import inspect
 
-from Qt.QtCore import Qt, QStringListModel
+from enum import Enum
+
+from Qt.QtCore import Qt, QRegExp, QSortFilterProxyModel, QStringListModel
 from Qt.QtGui import QCursor
 from Qt.QtWidgets import QCompleter, QToolTip
+
+
+class CompleterModes(Enum):
+    StartsWith = 0
+    OuterFuzzy = 1
+    FullFuzzy = 2
+
+    def toolTip(self):
+        toolTipMap = {
+            'StartsWith': "'all' matches 'allowtabs', does not match 'findallnames'",
+            'OuterFuzzy': "'all' matches 'findallnames', does not match 'anylowerletters'",
+            'FullFuzzy': "'all' matches 'findallnames', also matches 'anylowerletters'",
+            }
+        return toolTipMap.get(self.name, "")
 
 
 class PythonCompleter(QCompleter):
@@ -20,14 +36,36 @@ class PythonCompleter(QCompleter):
         QCompleter.__init__(self, widget)
 
         # use the python model for information
-        self.setModel(QStringListModel())
 
         self._enabled = True
 
         # update this completer
         self.setWidget(widget)
-        self.setCompletionMode(QCompleter.PopupCompletion)
-        self.setCaseSensitivity(Qt.CaseSensitive)
+
+        self.setCaseSensitive()
+        self.setCompleterMode()
+        self.buildCompleter()
+
+    def setCaseSensitive(self, caseSensitive=True):
+        self._sensitivity = Qt.CaseSensitive if caseSensitive else Qt.CaseInsensitive
+
+    def caseSensitive(self):
+        caseSensitive = self._sensitivity == Qt.CaseSensitive
+        return caseSensitive
+
+    def setCompleterMode(self, completerMode=CompleterModes.StartsWith):
+        self._completerMode = completerMode
+
+    def completerMode(self):
+        return self._completerMode
+
+    def buildCompleter(self):
+        model = (QStringListModel())
+        self.filterModel = QSortFilterProxyModel(self.parent()) 
+        self.filterModel.setSourceModel(model)
+        self.filterModel.setFilterCaseSensitivity(self._sensitivity)
+        self.setModel(self.filterModel)
+        self.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
 
     def currentObject(self, scope=None, docMode=False):
         if self._enabled:
@@ -74,6 +112,7 @@ class PythonCompleter(QCompleter):
         """ refreshes the string list based on the cursor word """
         object, prefix = self.currentObject(scope)
         self.model().setStringList([])
+
         # Only show hidden method/variable names if the hidden character '_' is typed
         # in.
         try:
@@ -84,8 +123,18 @@ class PythonCompleter(QCompleter):
         except AttributeError:
             keys = []
         keys.sort()
-        self.model().setStringList(keys)
-        self.setCompletionPrefix(prefix)
+        self.model().sourceModel().setStringList(keys)
+
+        regExStr = ""
+        if self._completerMode == CompleterModes.StartsWith:
+            regExStr = "^{}".format(prefix)
+        if self._completerMode == CompleterModes.OuterFuzzy:
+            regExStr = ".*{}.*".format(prefix)
+        if self._completerMode == CompleterModes.FullFuzzy:
+            regExStr = ".*".join(prefix)
+
+        regexp = QRegExp(regExStr, self._sensitivity)
+        self.filterModel.setFilterRegExp(regexp)
 
     def clear(self):
         self.popup().hide()
