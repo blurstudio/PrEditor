@@ -46,7 +46,7 @@ DocumentEditor {
 	qproperty-paperIdentifier: "white";
 	qproperty-paperCommentBlock: "white";
 	qproperty-paperUnclosedString: rgb(224, 192, 224);
-	qproperty-paperSmartHighlight: rgb(155, 255, 155, 75);
+	qproperty-paperSmartHighlight: rgba(155, 255, 155, 75);
 	qproperty-paperDecorator: "white";
 }
 

@@ -4,6 +4,7 @@ import getpass
 import tempfile
 import blurdev.keychain
 
+from past.builtins import basestring
 from redminelib import Redmine
 from Qt.QtWidgets import QApplication
 from Qt.QtGui import QPixmap

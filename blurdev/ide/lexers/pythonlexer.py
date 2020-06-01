@@ -8,7 +8,6 @@
 # 	\date		08/19/10
 #
 
-from past.builtins import basestring, xrange
 from Qt.Qsci import QsciLexerPython
 from Qt.QtGui import QColor
 

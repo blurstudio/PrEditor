@@ -1,6 +1,7 @@
 import os
 import logging
 import webbrowser
+from past.builtins import basestring
 from Qt.QtCore import Qt, QSize
 from Qt.QtGui import QCursor, QIcon, QPixmap
 from Qt.QtWidgets import QAction, QMenu

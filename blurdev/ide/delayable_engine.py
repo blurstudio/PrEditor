@@ -1,4 +1,5 @@
 from __future__ import print_function
+from past.builtins import basestring
 from collections import MutableSet, OrderedDict
 import weakref
 import time
