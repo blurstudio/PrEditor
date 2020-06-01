@@ -9,6 +9,7 @@
 #
 
 from __future__ import print_function
+import logging
 import os
 import xml.dom.minidom
 
@@ -118,8 +119,8 @@ class XMLDocument(XMLElement):
                     text = self.formatXml(self.toxml())
                 else:
                     text = self.toxml(encoding=None)
-            except:
-                print('Encoding error while saving XML')
+            except Exception:
+                logging.debug('Encoding error while saving XML', exc_info=True)
                 if showDialog:
                     from Qt.QtWidgets import QMessageBox
 

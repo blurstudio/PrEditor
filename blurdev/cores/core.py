@@ -624,7 +624,7 @@ class Core(QObject):
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
         last_timestamp = pref.restoreProperty('environment_set_timestamp', None)
 
-        if not last_timestamp:
+        if not last_timestamp or not threshold_time:
             return
 
         if last_timestamp < threshold_time:
