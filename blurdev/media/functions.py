@@ -465,14 +465,14 @@ def fileTypes():
 
 def openQuicktime(filename):
     if blurdev.settings.OS_TYPE == 'Windows':
-        import _winreg
+        import winreg
 
         # look up quicktime's path using the registry and the com id
-        areg = _winreg.ConnectRegistry(None, _winreg.HKEY_CLASSES_ROOT)
-        akey = _winreg.OpenKey(areg, r'QuickTimePlayerLib.QuickTimePlayerApp\CLSID')
-        clsid = _winreg.QueryValueEx(akey, '')[0]
-        envKey = _winreg.OpenKey(areg, r'Wow6432Node\CLSID\%s\LocalServer32' % clsid)
-        path = _winreg.QueryValueEx(envKey, '')[0]
+        areg = winreg.ConnectRegistry(None, winreg.HKEY_CLASSES_ROOT)
+        akey = winreg.OpenKey(areg, r'QuickTimePlayerLib.QuickTimePlayerApp\CLSID')
+        clsid = winreg.QueryValueEx(akey, '')[0]
+        envKey = winreg.OpenKey(areg, r'Wow6432Node\CLSID\%s\LocalServer32' % clsid)
+        path = winreg.QueryValueEx(envKey, '')[0]
         cmd = '%s "%s"' % (path, os.path.normpath(filename))
         subprocess.Popen(cmd)
 

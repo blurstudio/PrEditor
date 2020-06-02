@@ -735,7 +735,7 @@ class FlashTimes(EnumGroup):
 # 								Read registy values
 # --------------------------------------------------------------------------------
 def getRegKey(registry, key, architecture=None, write=False):
-    """ Returns a _winreg hkey or none.
+    """ Returns a winreg hkey or none.
     
     Args:
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
@@ -743,24 +743,24 @@ def getRegKey(registry, key, architecture=None, write=False):
         architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
     
     Returns:
-        A _winreg handle object
+        A winreg handle object
     """
-    # Do not want to import _winreg unless it is neccissary
+    # Do not want to import winreg unless it is neccissary
     regKey = None
-    import _winreg
+    import winreg
 
-    aReg = _winreg.ConnectRegistry(None, getattr(_winreg, registry))
+    aReg = winreg.ConnectRegistry(None, getattr(winreg, registry))
     if architecture == 32:
-        sam = _winreg.KEY_WOW64_32KEY
+        sam = winreg.KEY_WOW64_32KEY
     elif architecture == 64:
-        sam = _winreg.KEY_WOW64_64KEY
+        sam = winreg.KEY_WOW64_64KEY
     else:
         sam = 0
-    access = _winreg.KEY_READ
+    access = winreg.KEY_READ
     if write:
-        access = _winreg.KEY_WRITE
+        access = winreg.KEY_WRITE
     try:
-        regKey = _winreg.OpenKey(aReg, key, 0, access | sam)
+        regKey = winreg.OpenKey(aReg, key, 0, access | sam)
     except WindowsError:
         pass
     return regKey
@@ -772,7 +772,7 @@ def listRegKeyValues(registry, key, architecture=None):
     Each tuple contains 3 items.
         A string that identifies the value name
         An object that holds the value data, and whose type depends on the underlying registry type
-        An integer that identifies the type of the value data (see table in docs for _winreg.SetValueEx)
+        An integer that identifies the type of the value data (see table in docs for winreg.SetValueEx)
     
     Args:
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
@@ -782,19 +782,19 @@ def listRegKeyValues(registry, key, architecture=None):
     Returns:
         List of tuples
     """
-    import _winreg
+    import winreg
 
     regKey = getRegKey(registry, key, architecture=architecture)
     ret = []
     if regKey:
-        subKeys, valueCount, modified = _winreg.QueryInfoKey(regKey)
+        subKeys, valueCount, modified = winreg.QueryInfoKey(regKey)
         for index in range(valueCount):
-            ret.append(_winreg.EnumValue(regKey, index))
+            ret.append(winreg.EnumValue(regKey, index))
     return ret
 
 
 def listRegKeys(registry, key, architecture=None):
-    import _winreg
+    import winreg
 
     regKey = getRegKey(registry, key, architecture=architecture)
     ret = []
@@ -802,7 +802,7 @@ def listRegKeys(registry, key, architecture=None):
         index = 0
         while True:
             try:
-                ret.append(_winreg.EnumKey(regKey, index))
+                ret.append(winreg.EnumKey(regKey, index))
                 index += 1
             except WindowsError:
                 break
@@ -821,14 +821,14 @@ def registryValue(registry, key, value_name, architecture=None):
     
     Returns:
         object: Value stored in key
-        int: registry type for value. See _winreg's Value Types
+        int: registry type for value. See winreg's Value Types
     """
-    # Do not want to import _winreg unless it is neccissary
+    # Do not want to import winreg unless it is neccissary
     regKey = getRegKey(registry, key, architecture=architecture)
     if regKey:
-        import _winreg
+        import winreg
 
-        return _winreg.QueryValueEx(regKey, value_name)
+        return winreg.QueryValueEx(regKey, value_name)
     return '', 0
 
 
@@ -864,20 +864,20 @@ def setRegistryValue(
         bool: It was able to store the registry value.
     """
     try:
-        import _winreg
+        import winreg
 
         regKey = getRegKey(registry, key, architecture=architecture)
         if (not overwrite) and regKey:
             # regKey already exists and overwrite is False,
             # don't do anything and return False
             return False
-        aReg = _winreg.ConnectRegistry(None, getattr(_winreg, registry))
-        _winreg.CreateKey(aReg, key)
+        aReg = winreg.ConnectRegistry(None, getattr(winreg, registry))
+        winreg.CreateKey(aReg, key)
         regKey = getRegKey(registry, key, architecture=architecture, write=True)
         if isinstance(valueType, basestring):
-            valueType = getattr(_winreg, valueType)
+            valueType = getattr(winreg, valueType)
         # Store the value in the registry
-        _winreg.SetValueEx(regKey, value_name, 0, valueType, value)
+        winreg.SetValueEx(regKey, value_name, 0, valueType, value)
         # Auto-detect if we should notify the system that the environment has changed.
         if notify is None:
             if registry == 'HKEY_LOCAL_MACHINE':
@@ -1031,10 +1031,10 @@ def setEnvironmentPath(value_name, value, system=True, varType=None):
     Returns:
         If it was able to set the path environment variable.
     """
-    import _winreg
+    import winreg
 
     registry, key = getEnvironmentRegKey(system)
-    varType = varType if varType is not None else _winreg.REG_EXPAND_SZ
+    varType = varType if varType is not None else winreg.REG_EXPAND_SZ
     return setRegistryValue(registry, key, value_name, value, valueType=varType)
 
 
