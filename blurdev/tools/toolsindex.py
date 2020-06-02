@@ -47,7 +47,7 @@ class ToolsIndex(QObject):
         """
         self.load()
         output = [cat for cat in self._categoryCache.values() if cat.parent() == self]
-        output.sort(key=lambda x, y: cmp(x.objectName(), y.objectName()))
+        output.sort(key=lambda x: x.objectName())
         return output
 
     def clear(self):
@@ -84,7 +84,7 @@ class ToolsIndex(QObject):
         """
         self.load()
         output = self._categoryCache.values()
-        output.sort(key=lambda x, y: cmp(x.objectName(), y.objectName()))
+        output.sort(key=lambda x: x.objectName())
         return output
 
     def cacheCategory(self, category):
@@ -683,11 +683,7 @@ class ToolsIndex(QObject):
         output = [
             tool for tool in self._toolCache.values() if tool.categoryName() == name
         ]
-        output.sort(
-            key=lambda x, y: cmp(
-                str(x.objectName().lower()), str(y.objectName().lower())
-            )
-        )
+        output.sort(key=lambda x: x.objectName().lower())
         return output
 
     def findToolsByDepartment(self, department):
@@ -705,11 +701,7 @@ class ToolsIndex(QObject):
             for tool in self._toolCache.values()
             if department in tool.departments()
         ]
-        output.sort(
-            key=lambda x, y: cmp(
-                str(x.objectName().lower()), str(y.objectName().lower())
-            )
-        )
+        output.sort(key=lambda x: x.objectName().lower())
         return output
 
     def findToolsByLetter(self, letter):
@@ -727,7 +719,7 @@ class ToolsIndex(QObject):
             if regex.match(key):
                 output.append(item)
 
-        output.sort(key=lambda x, y: cmp(x.name().lower(), y.name().lower()))
+        output.sort(key=lambda x: x.name().lower())
 
         return output
 
@@ -770,11 +762,7 @@ class ToolsIndex(QObject):
             if expr.search(tool.displayName()):
                 output.append(tool)
 
-        output.sort(
-            key=lambda x, y: cmp(
-                str(x.objectName()).lower(), str(y.objectName()).lower()
-            )
-        )
+        output.sort(key=lambda x: x.objectName().lower())
         return output
 
     def tools(self):

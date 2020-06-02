@@ -190,7 +190,7 @@ class ConfigSet(QObject):
 
     def sectionsInGroup(self, group):
         output = [section for section in self.sections() if (section.group() == group)]
-        output.sort(key=lambda x, y: cmp(x.name(), y.name()))
+        output.sort(key=lambda x: x.name())
         return output
 
     def setCustomData(self, key, value):

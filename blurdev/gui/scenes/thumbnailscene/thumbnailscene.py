@@ -253,7 +253,7 @@ class ThumbnailScene(QGraphicsScene):
 
         # calculate the group information
         keys = grp_map.keys()
-        keys.sort(key=lambda x, y: cmp(x.sortData(), y.sortData()))
+        keys.sort(key=lambda x: x.sortData())
 
         if self.reverseSort():
             keys.reverse()
@@ -300,7 +300,7 @@ class ThumbnailScene(QGraphicsScene):
             row = 0
             xpos = padding.width()
 
-            thumbs.sort(key=lambda x, y: cmp(x.sortData(), y.sortData()))
+            thumbs.sort(key=lambda x: x.sortData())
 
             for item in thumbs:
                 item.setRect(0, 0, cellwidth, cellheight)

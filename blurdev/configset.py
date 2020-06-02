@@ -64,7 +64,7 @@ class ConfigSet(QObject):
             for child in self.findChildren(ConfigSetItem)
             if (child.groupName() == groupName)
         ]
-        output.sort(key=lambda x, y: cmp(x.objectName(), y.objectName()))
+        output.sort(key=lambda x: x.objectName())
         return output
 
     def edit(self, parent=None):

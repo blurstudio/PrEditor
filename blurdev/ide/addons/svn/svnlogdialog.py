@@ -216,7 +216,7 @@ class SvnLogDialog(Dialog):
             self.uiLogTREE.addTopLevelItem(item)
             item.setFirstColumnSpanned(True)
         else:
-            entries.sort(key=lambda x, y: cmp(y.revision.date, x.revision.date))
+            entries.sort(key=lambda x: x.revision.date, reverse=True)
             for entry in entries:
                 item = LogItem(entry)
                 self.uiLogTREE.addTopLevelItem(item)

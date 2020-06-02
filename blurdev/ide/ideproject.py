@@ -84,7 +84,9 @@ class IdeProjectItem(QTreeWidgetItem):
 
         # compare two items of the same type
         if self.dataType() == other.dataType():
-            return cmp(self.text(0), other.text(0))
+            x = self.text(0)
+            y = other.text(0)
+            return (x > y) - (x < y)
 
         # sort folder items first
         elif self.dataType() == 'folder':

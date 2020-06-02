@@ -54,7 +54,7 @@ class IdeMethodBrowserWidget(QWidget):
         self._resultcache.append((text, position, currlevel, typeName))
 
     def addCachedResults(self):
-        self._resultcache.sort(key=lambda x, y: cmp(x[1], y[1]))
+        self._resultcache.sort(key=lambda x: x[1])
         for text, position, currlevel, typeName in self._resultcache:
             self.addItem(text, position, currlevel, typeName)
 
