@@ -68,7 +68,7 @@ class IdeEditor(Window):
     # define the global config set
     _globalConfigSet = None
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, filename=None):
         Window.__init__(self, parent)
         self.aboutToClearPathsEnabled = False
 
@@ -111,6 +111,7 @@ class IdeEditor(Window):
         self._initExpandedFolders = []
         self.documentMarkrerDict = {}
         self._documentStylesheet = 'Bright'
+        self._load_filename = filename
 
         from idefilemenu import IdeFileMenu
 
@@ -944,7 +945,9 @@ class IdeEditor(Window):
         blurdev.core.logger(self)
 
         # launch with a given filename
-        if 'BDEV_FILE_START' in os.environ:
+        if self._load_filename:
+            self.load(osystem.expandvars(self._load_filename))
+        elif 'BDEV_FILE_START' in os.environ:
             self.load(osystem.expandvars(os.environ['BDEV_FILE_START']))
         elif self._initDocument:
             # make the correct document active
@@ -2176,16 +2179,19 @@ class IdeEditor(Window):
         return IdeEditor._globalConfigSet
 
     @staticmethod
-    def instance(parent=None):
+    def instance(parent=None, filename=None):
         # create the instance for the logger
-        if not IdeEditor._instance:
+        if IdeEditor._instance:
+            if filename:
+                IdeEditor._instance.load(filename)
+        else:
             # determine default parenting
             parent = None
             if not blurdev.core.isMfcApp():
                 parent = blurdev.core.rootWindow()
 
             # create the logger instance
-            inst = IdeEditor(parent)
+            inst = IdeEditor(parent, filename=filename)
 
             # protect the memory
             inst.setAttribute(Qt.WA_DeleteOnClose, False)

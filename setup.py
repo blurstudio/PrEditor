@@ -40,6 +40,7 @@ setup(
         'blur-cute>=0.24.0.dev2',
         'blur-pillar>=0.16.0',
         'certifi==2019.9.11',
+        'click>=7.1.2',
         'configparser>=4.0.2',
         'Deprecated>=1.2.7',
         'future>=0.18.2',
@@ -49,6 +50,7 @@ setup(
         'python-redmine>=2.1.1',
         'QScintilla>=2.11.4;python_version>="3.5"',
         'sentry-sdk>=0.13.2',
+        'tabulate>=0.8.7',
         'urllib3>=1.25.7',
         'winshell>=0.6',
     ],
@@ -60,8 +62,11 @@ setup(
     author_email='pipeline@blur.com',
     entry_points={
         'gui_scripts': [
+            'blurdevw = blurdev.cli:main',
             # Create executable items that work even if using virtualenv, or editable
             # installs
+            # TODO: Remove these entry_points and the corresponding runtimes scripts
+            # once we migrate to the new blurdevw executable.
             'treegrunt = blurdev.runtimes.treegrunt:main',
             'treegrunt-tool = blurdev.runtimes.run_tool:main',
             'blurdev-protocol = blurdev.runtimes.protocol:main',
@@ -69,8 +74,11 @@ setup(
             'blurIDE = blurdev.runtimes.ide_editor:main',
         ],
         'console_scripts': [
+            'blurdev = blurdev.cli:main',
             # Launch the blurdev-logger in a console mode so we can debug why the
             # gui_scripts are not running if there is a pip dependency version issue.
+            # TODO: Remove this entry_point and the corresponding runtimes script
+            # once we migrate to the new blurdev executable.
             'blurdev-console = blurdev.runtimes.logger:main',
         ],
         'blurdev.toolbars': [

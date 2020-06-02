@@ -55,6 +55,7 @@ class Tool(QObject):
         self._header = None
         self._disabled = False
         self._usagestatsEnabled = True
+        self._cli_module = ''
 
     def architecture(self):
         """ This tool needs to run in this architecture (32bit or 64bit) when running externally
@@ -68,6 +69,17 @@ class Tool(QObject):
         if isinstance(architecture, basestring):
             architecture = int(architecture)
         self._architecture = architecture
+
+    def cli_module(self):
+        """ Optional module import name defining a custom cli for the tool.
+
+        This module needs to implement a cli function using the click python module.
+        If not defined, then a default cli will be used to launch the tool.
+
+        Returns:
+            str: The module name as it would be passed to the import command.
+        """
+        return self._cli_module
 
     def disabled(self):
         return self._disabled
@@ -198,6 +210,9 @@ class Tool(QObject):
     def setIcon(self, icon):
         self._icon = icon
 
+    def set_cli_module(self, name):
+        self._cli_module = name
+
     def setPath(self, path):
         self._path = str(path).replace(
             str(self.objectName()).lower(), self.objectName()
@@ -313,6 +328,7 @@ class Tool(QObject):
         output.setUsagestatsEnabled(data.get('usagestats', True))
         output.setArchitecture(data.get('architecture'))
         output.setRedistributable(data.get('redistributable', True))
+        output.set_cli_module(data.get('cliModule', ''))
 
         # Add the tool to the category or index
         category = index.findCategory(data.get('category'))
@@ -369,6 +385,7 @@ class Tool(QObject):
             output.setRedistributable(
                 data.findProperty('redistributable', 'true').capitalize() == 'True'
             )
+            output.set_cli_module(data.findProperty('cliModule', ''))
 
         # add the tool to the category or index
         category = index.findCategory(xml.attribute('category'))

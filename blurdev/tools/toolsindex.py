@@ -324,6 +324,7 @@ class ToolsIndex(QObject):
             getPropertyFromXML('icon')
             getPropertyFromXML('tooltip', 'toolTip')
             getPropertyFromXML('wiki')
+            getPropertyFromXML('cliModule')
 
             types = xml.attribute('type')
             if types:

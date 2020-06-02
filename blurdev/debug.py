@@ -1462,16 +1462,20 @@ def setDebugLevel(level):
     """
     global _currentLevel
 
+    # check for the debug value if a string is passed in
+    if isinstance(level, basestring):
+        try:
+            # Check if a int value was passed as a string
+            level = int(level)
+        except ValueError:
+            level = DebugLevel.value(str(level))
+
     # clear the debug level
     if not level:
         _currentLevel = 0
         if blurdev.core:
             blurdev.core.emitDebugLevelChanged()
         return True
-
-    # check for the debug value if a string is passed in
-    if isinstance(level, basestring):
-        level = DebugLevel.value(str(level))
 
     # assign the debug flag
     if DebugLevel.isValid(level):

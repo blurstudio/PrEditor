@@ -54,6 +54,7 @@ def packagePath(path, outputfile):
     import os
     from Qt.QtCore import QProcess
 
+    # TODO: Remove this module. The code calling it should be using the zipfile module.
     zipexe = os.get('BDEV_APP_ZIP')
     if not zipexe:
         return False

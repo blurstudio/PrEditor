@@ -100,63 +100,17 @@ def init():
         parser = OptionParser()
         parser.disable_interspersed_args()
 
-        # add additional options from the environment
-        for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
-            if addtl:
-                option, help = addtl.split('=')
-                parser.add_option('', '--{}'.format(option), dest=option, help=help)
-
         # initialize common command line options
-        parser.add_option(
-            '-d', '--debug', dest='debug', help='set the debug level for the system'
-        )
-        parser.add_option(
-            '-e',
-            '--environment',
-            dest='environment',
-            help='set the trax startup environment',
-        )
         parser.add_option(
             '-p',
             '--preference_root',
             dest='preference_root',
             help='set the user pref file',
         )
-        parser.add_option(
-            '-t',
-            '--trax_root',
-            dest='trax_root',
-            help='set the import location for trax',
-        )
-        parser.add_option(
-            '-z', '--zip_exec', dest='zip_exec', help='set the zip executable location'
-        )
-        parser.add_option(
-            '-f', '--filename', dest='filename', help='set the filename to load in ide'
-        )
 
         (options, args) = parser.parse_args(sys.argv)
         if options.preference_root:
             registerVariable('BDEV_PATH_PREFS', options.preference_root)
-        if options.trax_root:
-            registerVariable('BDEV_PATH_TRAX', options.trax_root)
-        if options.zip_exec:
-            registerVariable('BDEV_APP_ZIP', options.zip_exc)
-        if options.debug:
-            registerVariable('BDEV_DEBUG_LEVEL', options.debug)
-        if options.environment:
-            registerVariable('TRAX_ENVIRONMENT', options.environment)
-        if options.filename:
-            registerVariable('BDEV_FILE_START', options.filename)
-
-        # set options
-        for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
-            if addtl:
-                option, help = addtl.split('=')
-                if option in options.__dict__ and options.__dict__[option] is not None:
-                    registerVariable(
-                        'BDEV_OPT_%s' % option.upper(), options.__dict__[option]
-                    )
 
     # register default paths
     for key in sorted(os.environ.keys(), reverse=True):

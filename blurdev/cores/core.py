@@ -874,8 +874,9 @@ class Core(QObject):
         if envName != os.environ.get('BDEV_TOOL_ENVIRONMENT'):
             pref.recordProperty('environment', envName)
 
-        # record the debug
-        pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
+        # record the debug if it was not set by the environment variable
+        if 'BDEV_DEBUG_LEVEL' not in os.environ:
+            pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
 
         # record the tools style
         pref.recordProperty('style', self._stylesheet)
@@ -1024,10 +1025,11 @@ class Core(QObject):
 
         self.blockSignals(False)
 
-        # restore the active debug level
-        level = pref.restoreProperty('debugLevel')
-        if level is not None:
-            blurdev.debug.setDebugLevel(level)
+        # restore the active debug level if it was not set by the environment variable
+        if 'BDEV_DEBUG_LEVEL' not in os.environ:
+            level = pref.restoreProperty('debugLevel')
+            if level is not None:
+                blurdev.debug.setDebugLevel(level)
 
         self.applyEnvironmentTimeouts()
         self.applyStudioOverrides()
