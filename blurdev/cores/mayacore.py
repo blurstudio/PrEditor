@@ -29,6 +29,20 @@ class MayaCore(Core):
         # Do not add default library paths
         pass
 
+    def errorCoreText(self):
+        """ Returns text that is included in the error email for the active core.
+        If a empty string is returned this line will not be shown in the error email.
+        """
+        path = maya.cmds.file(query=True, sceneName=True)
+        if not path:
+            # No idea why but the previous command sometimes fails
+            # So let's double check that
+            path = maya.cmds.file(query=True, l=True)[0]
+            if path.endswith("/untitled"):
+                return ''
+
+        return '<i>Open File:</i> %s' % os.path.normpath(path)
+
     @property
     def headless(self):
         """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
