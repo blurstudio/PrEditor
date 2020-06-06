@@ -473,6 +473,10 @@ class LoggerWindow(Window):
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execAll()
+        
+        console = self.console()
+        prompt = console.prompt()
+        console.startPrompt(prompt)
 
     def execSelected(self):
         """

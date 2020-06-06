@@ -122,6 +122,9 @@ class WorkboxWidget(DocumentEditor):
                 event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
             ):
                 self.execSelected()
+                console = self.console()
+                prompt = console.prompt()
+                console.startPrompt(prompt)
             else:
                 DocumentEditor.keyPressEvent(self, event)
 
