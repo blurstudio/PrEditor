@@ -157,6 +157,25 @@
       <string>Auto-Complete - Mode (Cycle: Ctrl+M)</string>
      </property>
     </widget>
+    <widget class="QMenu" name="uiFont_MENU">
+     <property name="title">
+      <string>Font</string>
+     </property>
+     <widget class="QMenu" name="uiMonospaceFontMENU">
+      <property name="title">
+       <string>Monospace</string>
+      </property>
+      <addaction name="uiFontMENU"/>
+     </widget>
+     <widget class="QMenu" name="uiProportionalFontMENU">
+      <property name="title">
+       <string>Proportional</string>
+      </property>
+      <addaction name="actionPlaceHolderProportionalFont"/>
+     </widget>
+     <addaction name="uiMonospaceFontMENU"/>
+     <addaction name="uiProportionalFontMENU"/>
+    </widget>
     <addaction name="uiAutoCompleteEnabledACT"/>
     <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="uiAutoCompleteCaseSensitiveACT"/>
@@ -165,6 +184,7 @@
     <addaction name="uiClearLogACT"/>
     <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
+    <addaction name="uiFont_MENU"/>
     <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>

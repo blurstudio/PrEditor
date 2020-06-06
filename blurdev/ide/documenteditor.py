@@ -1825,6 +1825,14 @@ class DocumentEditor(QsciScintilla):
 
     def wheelEvent(self, event):
         if self._enableFontResizing and event.modifiers() == Qt.ControlModifier:
+            # If used in LoggerWindow, use that wheel event
+            # May not want to import LoggerWindow, so perhaps
+            # check by str(type())
+            # if isinstance(self.window(), "LoggerWindow"):
+            if "LoggerWindow" in str(type(self.window())):
+                self.window().wheelEvent(event)
+                return
+
             font = self.documentFont
             marginsFont = self.marginsFont()
             lexer = self.lexer()

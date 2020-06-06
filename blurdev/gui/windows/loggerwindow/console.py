@@ -141,6 +141,18 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         self.x = 0
 
+    def wheelEvent(self, event):
+        # If used in LoggerWindow, use that wheel event
+        # May not want to import LoggerWindow, so perhaps
+        # check by str(type())
+        ctrlPressed = event.modifiers() == Qt.ControlModifier
+        # if ctrlPressed and isinstance(self.window(), "LoggerWindow"):
+        if ctrlPressed and "LoggerWindow" in str(type(self.window())):
+            self.window().wheelEvent(event)
+            return
+        else:
+            QTextEdit.wheelEvent(self, event)
+
     def keyReleaseEvent(self, event):
         # End getPrev/NextCommand
         if event.key() == Qt.Key_Alt:

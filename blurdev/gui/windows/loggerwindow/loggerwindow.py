@@ -21,7 +21,7 @@ import blurdev
 from functools import partial
 
 from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
-from Qt.QtGui import QCursor, QIcon, QKeySequence
+from Qt.QtGui import QColor, QCursor, QFontDatabase, QIcon, QKeySequence
 from Qt.QtWidgets import (
     QApplication,
     QFileIconProvider,
@@ -233,6 +233,29 @@ class LoggerWindow(Window):
         # calling setLanguage resets this value to False
         self.restorePrefs()
 
+        # add font menu list
+        # Qt designer behaves as thought uiFontMENU already exists, even though
+        # there doens't appear to be ab uiFontMENU in logger. So, I stuck an _
+        # in the name
+        curFamily = self.uiConsoleTXT.font().family()
+
+        fontDB = QFontDatabase()
+        fontFamilies = fontDB.families(QFontDatabase.Latin)
+        monospaceFonts = [family for family in fontFamilies if fontDB.isFixedPitch(family)]
+
+        self.uiMonospaceFontMENU.clear()
+        self.uiProportionalFontMENU.clear()
+
+        for family in fontFamilies:
+            if family in monospaceFonts:
+                action = self.uiMonospaceFontMENU.addAction(family)
+            else:
+                action = self.uiProportionalFontMENU.addAction(family)
+            action.setObjectName('ui{}FontACT'.format(family))
+            action.setCheckable(True)
+            action.setChecked(family == curFamily)
+            action.triggered.connect(partial(self.selectFont, action))
+
         # add stylesheet menu options.
         for style_name in blurdev.core.styleSheets('logger'):
             action = self.uiStyleMENU.addAction(style_name)
@@ -264,11 +287,79 @@ class LoggerWindow(Window):
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
 
+    def wheelEvent(self, event):
+        # adjust font size on ctrl+scrollWheel
+        if event.modifiers() == Qt.ControlModifier:
+            # QT4 presents QWheelEvent.delta(), QT5 has QWheelEvent.angleDelta().y()
+            if hasattr(event, 'delta'): # Qt4
+                delta = event.delta()
+            else: # QT5
+                delta = event.angleDelta().y()
+            # convert delta to +1 or -1, depending
+            delta = delta/abs(delta)
+
+            minSize = 5
+            maxSize = 50
+            font = self.uiConsoleTXT.font()
+            newSize = font.pointSize() + delta
+            newSize = max(min(newSize, maxSize), minSize)
+
+            font.setPointSize(newSize)
+            self.uiConsoleTXT.setFont(font)
+
+            for index in range(self.uiWorkboxTAB.count()):
+                workbox = self.uiWorkboxTAB.widget(index)
+
+                marginsFont = workbox.marginsFont()
+                marginsFont.setPointSize(newSize)
+                workbox.setMarginsFont(marginsFont)
+
+                if workbox.lexer():
+                    workbox.lexer().setFont(font)
+                else:
+                    workbox.setFont(font)
+        else:
+            Window.wheelEvent(self, event)
+
     def handleMenuHovered(self, action):
         # Qt4 doesn't have a ToolTipsVisible method, so we fake it
         QToolTip.showText(
             QCursor.pos(), action.toolTip(),
             self.uiCompleterModeMENU, self.uiCompleterModeMENU.actionGeometry(action))
+
+    def findCurrentFontAction(self):
+        actions = self.uiMonospaceFontMENU.actions()
+        actions.extend(self.uiProportionalFontMENU.actions())
+
+        action = None
+        for act in actions:
+            if act.isChecked():
+                action = act
+                break
+
+        return action
+
+    def selectFont(self, action):
+        # clean up menu selections
+
+        actions = self.uiMonospaceFontMENU.actions()
+        actions.extend(self.uiProportionalFontMENU.actions())
+
+        for act in actions:
+            act.setChecked(act == action)
+
+        family = action.text()
+        font = self.uiConsoleTXT.font()
+        font.setFamily(family)
+        self.uiConsoleTXT.setFont(font)
+
+        for index in range(self.uiWorkboxTAB.count()):
+            workbox = self.uiWorkboxTAB.widget(index)
+            workbox.setFont(font)
+
+            workbox.documentFont = font
+            workbox.setMarginsFont(font)
+            workbox.lexer().setFont(font)
     def _getDebugIcon(self, filepath, color):
         icf = iconFactory.customize(
             iconClass='StyledIcon',
@@ -297,8 +388,14 @@ class LoggerWindow(Window):
         workbox.setMinimumHeight(1)
         index = tabWidget.addTab(workbox, title)
         workbox.setLanguage('Python')
+
         # update the lexer
-        workbox.setMarginsFont(workbox.font())
+        fontAction = self.findCurrentFontAction()
+        if fontAction is not None:
+            self.selectFont(fontAction)
+        else:
+            workbox.setMarginsFont(workbox.font())
+
         if closable:
             # If only one tab is visible, don't show the close tab button
             tabWidget.setTabsClosable(tabWidget.count() != 1)
