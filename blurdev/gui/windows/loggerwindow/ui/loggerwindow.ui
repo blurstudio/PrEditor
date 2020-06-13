@@ -72,14 +72,8 @@
    </property>
    <widget class="QMenu" name="uiDebugMENU">
     <property name="title">
-     <string>&amp;Debugging</string>
+     <string>Debug</string>
     </property>
-    <addaction name="uiNoDebugACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiDebugLowACT"/>
-    <addaction name="uiDebugMidACT"/>
-    <addaction name="uiDebugHighACT"/>
-    <addaction name="separator"/>
     <addaction name="uiGotoErrorACT"/>
     <addaction name="uiResetPathsACT"/>
     <addaction name="separator"/>
@@ -201,11 +195,6 @@
    <addaction name="uiOpenIdeACT"/>
    <addaction name="uiRunScriptACT"/>
    <addaction name="separator"/>
-   <addaction name="uiNoDebugACT"/>
-   <addaction name="uiDebugLowACT"/>
-   <addaction name="uiDebugMidACT"/>
-   <addaction name="uiDebugHighACT"/>
-   <addaction name="separator"/>
    <addaction name="uiResetPathsACT"/>
    <addaction name="separator"/>
    <addaction name="uiRunSelectedACT"/>
@@ -239,38 +228,6 @@
   <action name="uiSaveLogACT">
    <property name="text">
     <string>&amp;Save Log...</string>
-   </property>
-  </action>
-  <action name="uiDebugLevel0ACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Level 0</string>
-   </property>
-  </action>
-  <action name="uiDebugLevel1ACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Level 1</string>
-   </property>
-  </action>
-  <action name="uiDebugLevel2ACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Level 2</string>
-   </property>
-  </action>
-  <action name="uiDebugLevel3ACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Level 3</string>
    </property>
   </action>
   <action name="uiNoDebugACT">

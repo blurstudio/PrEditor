@@ -43,6 +43,8 @@ from blurdev.ide.delayable_engine import DelayableEngine
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
 
+from .level_buttons import LoggingLevelButton, DebugLevelButton
+
 
 class LoggerWindow(Window):
     _instance = None
@@ -89,6 +91,17 @@ class LoggerWindow(Window):
         # create the default workbox
         self.uiWorkboxWGT = self.addWorkbox(self.uiWorkboxTAB)
 
+        # Create additional buttons in toolbar.
+        self.uiDebugLevelBTN = DebugLevelButton(self)
+        self.uiConsoleTOOLBAR.insertWidget(
+            self.uiResetPathsACT, self.uiDebugLevelBTN,
+        )
+        self.uiLoggingLevelBTN = LoggingLevelButton(self)
+        self.uiConsoleTOOLBAR.insertWidget(
+            self.uiResetPathsACT, self.uiLoggingLevelBTN,
+        )
+        self.uiConsoleTOOLBAR.insertSeparator(self.uiResetPathsACT)
+
         # create the pdb count widget
         self._pdbContinue = None
         self.uiPdbExecuteCountLBL = QLabel('x', self.uiPdbTOOLBAR)
@@ -113,9 +126,6 @@ class LoggerWindow(Window):
         self._stds = None
         self.uiLogToFileClearACT.setVisible(False)
 
-        # create the connections
-        blurdev.core.debugLevelChanged.connect(self.refreshDebugLevels)
-
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
         self.uiNewScriptACT.triggered.connect(blurdev.core.newScript)
@@ -123,11 +133,6 @@ class LoggerWindow(Window):
         self.uiOpenIdeACT.triggered.connect(blurdev.core.showIdeEditor)
         self.uiRunScriptACT.triggered.connect(blurdev.core.runScript)
         self.uiGotoErrorACT.triggered.connect(self.gotoError)
-
-        self.uiNoDebugACT.triggered.connect(self.setNoDebug)
-        self.uiDebugLowACT.triggered.connect(self.setLowDebug)
-        self.uiDebugMidACT.triggered.connect(self.setMidDebug)
-        self.uiDebugHighACT.triggered.connect(self.setHighDebug)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
@@ -177,18 +182,6 @@ class LoggerWindow(Window):
         self.uiOpenScriptACT.setIcon(iconFactory.getIcon('open'))
         self.uiOpenIdeACT.setIcon(iconFactory.getIcon('ide'))
         self.uiRunScriptACT.setIcon(iconFactory.getIcon('play_circle_filled'))
-        self.uiNoDebugACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#70C159'))
-        )
-        self.uiDebugLowACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#EEC041'))
-        )
-        self.uiDebugMidACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#EF8341'))
-        )
-        self.uiDebugHighACT.setIcon(
-            self._getDebugIcon(iconFactory.getIconPath('dot'), QColor('#E74C46'))
-        )
         self.uiResetPathsACT.setIcon(iconFactory.getIcon('return'))
         self.uiClearLogACT.setIcon(iconFactory.getIcon('clear'))
         self.uiSaveConsoleSettingsACT.setIcon(iconFactory.getIcon('save'))
@@ -212,9 +205,6 @@ class LoggerWindow(Window):
 
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
-
-        # refresh the ui
-        self.refreshDebugLevels()
 
         # calling setLanguage resets this value to False
         self.restorePrefs()
@@ -411,20 +401,6 @@ class LoggerWindow(Window):
         if self.uiClearLogOnRefreshACT.isChecked():
             self.clearLog()
 
-    def refreshDebugLevels(self):
-        from blurdev.debug import DebugLevel, debugLevel
-
-        dlevel = debugLevel()
-        for act, level in [
-            (self.uiNoDebugACT, 0),
-            (self.uiDebugLowACT, DebugLevel.Low),
-            (self.uiDebugMidACT, DebugLevel.Mid),
-            (self.uiDebugHighACT, DebugLevel.High),
-        ]:
-            act.blockSignals(True)
-            act.setChecked(level == dlevel)
-            act.blockSignals(False)
-
     def reportExecutionTime(self, seconds):
         """ Update status text with seconds passed in. """
         self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
@@ -455,6 +431,8 @@ class LoggerWindow(Window):
         )
         pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
+
+        pref.recordProperty("loggingLevel", self.uiLoggingLevelBTN.level())
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
@@ -514,6 +492,11 @@ class LoggerWindow(Window):
         self.uiAutoCompleteEnabledACT.setChecked(
             pref.restoreProperty('hintingEnabled', True)
         )
+
+        loggingLevel = pref.restoreProperty('loggingLevel')
+        if loggingLevel:
+            self.uiLoggingLevelBTN.setLevel(loggingLevel)
+
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(
             pref.restoreProperty('spellCheckEnabled', False)
@@ -678,21 +661,6 @@ class LoggerWindow(Window):
             self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
             self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
 
-    def setNoDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(None)
-
-    def setLowDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.Low)
-
-    def setMidDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.Mid)
-
     def setFlashWindowInterval(self):
         value = self.uiConsoleTXT.flashTime
         msg = (
@@ -703,11 +671,6 @@ class LoggerWindow(Window):
         value, success = QInputDialog.getDouble(None, 'Set flash window', msg, value)
         if success:
             self.uiConsoleTXT.flashTime = value
-
-    def setHighDebug(self):
-        from blurdev import debug
-
-        debug.setDebugLevel(debug.DebugLevel.High)
 
     def setWordWrap(self, state):
         if state:
