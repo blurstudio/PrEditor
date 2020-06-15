@@ -46,7 +46,7 @@ from blurdev.ide.delayable_engine import DelayableEngine
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
 
-from .completer import CompleterModes
+from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton, DebugLevelButton
 
 
@@ -54,10 +54,13 @@ class LoggerWindow(Window):
     _instance = None
 
     def __init__(self, parent, runWorkbox=False):
-        Window.__init__(self, parent=parent)
+        super(LoggerWindow, self).__init__(parent=parent)
         self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
+
+        # Create timer to autohide status messages
         self.statusTimer = QTimer()
+        self.statusTimer.setSingleShot(True)
 
         import blurdev.gui
 
@@ -156,39 +159,47 @@ class LoggerWindow(Window):
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(
             self.setCaseSensitive)
 
-        self.completerModeCycle = itertools.cycle(CompleterModes)
-        # create CompleterModes submenu
+        # Setup ability to cycle completer mode, and create action for each mode
+        self.completerModeCycle = itertools.cycle(CompleterMode)
+        # create CompleterMode submenu
         defaultMode = self.completerModeCycle.next()
-        for mode in CompleterModes:
-            action = self.uiCompleterModeMENU.addAction(mode.name)
-            action.setObjectName('ui{}ModeACT'.format(mode.name))
+        for mode in CompleterMode:
+            modeName = mode.displayName()
+            action = self.uiCompleterModeMENU.addAction(modeName)
+            action.setObjectName('ui{}ModeACT'.format(modeName))
+            action.setData(mode)
             action.setCheckable(True)
             action.setChecked(mode == defaultMode)
-
-            completerMode = CompleterModes(mode)
+            completerMode = CompleterMode(mode)
             action.setToolTip(completerMode.toolTip())
-
             action.triggered.connect(partial(self.selectCompleterMode, action))
+
+        self.uiCompleterModeMENU.addSeparator()
+        action = self.uiCompleterModeMENU.addAction('Cycle mode')
+        action.setObjectName('uiCycleModeACT')
+        action.setShortcut(Qt.CTRL | Qt.Key_M)
+        action.triggered.connect(self.cycleCompleterMode)
+
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
-        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_N, self, context=Qt.ApplicationShortcut)
+        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N, self, context=Qt.ApplicationShortcut)
         self.uiAddWorkboxSCT.activated.connect(self.addWorkbox)
-        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_W, self, context=Qt.ApplicationShortcut)
+        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W, self, context=Qt.ApplicationShortcut)
         self.uiRemoveWorkboxSCT.activated.connect(lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex()))
 
         # Next tab functionality already exists, though I can't tell from where
         # So, let's just add PrevTab functionality
-        self.uiPrevTabSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Tab, self, context=Qt.ApplicationShortcut)
+        self.uiPrevTabSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab, self, context=Qt.ApplicationShortcut)
         self.uiPrevTabSCT.activated.connect(self.prevTab)
 
-        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up, self, context=Qt.ApplicationShortcut)
         self.uiFocusToConsoleSCT.activated.connect(self.focusToConsole)
-        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down, self, context=Qt.ApplicationShortcut)
         self.uiFocusToWorkboxSCT.activated.connect(self.focusToWorkbox)
 
-        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.ALT|Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up, self, context=Qt.ApplicationShortcut)
         self.uiCopyToConsoleSCT.activated.connect(self.copyToConsole)
-        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL|Qt.SHIFT|Qt.ALT|Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down, self, context=Qt.ApplicationShortcut)
         self.uiCopyToWorkboxSCT.activated.connect(self.copyToWorkbox)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
@@ -256,11 +267,7 @@ class LoggerWindow(Window):
         self.restorePrefs()
 
         # add font menu list
-        # Qt designer behaves as thought uiFontMENU already exists, even though
-        # there doens't appear to be ab uiFontMENU in logger. So, I stuck an _
-        # in the name
-        curFamily = self.uiConsoleTXT.font().family()
-
+        curFamily = self.console().font().family()
         fontDB = QFontDatabase()
         fontFamilies = fontDB.families(QFontDatabase.Latin)
         monospaceFonts = [family for family in fontFamilies if fontDB.isFixedPitch(family)]
@@ -309,13 +316,15 @@ class LoggerWindow(Window):
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
 
     def focusToConsole(self):
-        self.uiConsoleTXT.setFocus()
+        """Move focus to the console"""
+        self.console().setFocus()
 
     def focusToWorkbox(self):
+        """Move focus to the current workbox"""
         self.uiWorkboxTAB.currentWidget().setFocus()
 
     def copyToConsole(self):
-        # Copy current selection or line from workbox to console
+        """Copy current selection or line from workbox to console"""
         workbox = self.uiWorkboxTAB.currentWidget()
         if not workbox.hasFocus():
             return
@@ -328,12 +337,12 @@ class LoggerWindow(Window):
         if not text:
             return
 
-        self.uiConsoleTXT.insertPlainText(text)
+        self.console().insertPlainText(text)
         self.focusToConsole()
 
     def copyToWorkbox(self):
-        # Copy current selection or line from console to workbox
-        console = self.uiConsoleTXT
+        """Copy current selection or line from console to workbox"""
+        console = self.console()
         if not console.hasFocus():
             return
 
@@ -360,7 +369,7 @@ class LoggerWindow(Window):
         self.focusToWorkbox()
 
     def wheelEvent(self, event):
-        # adjust font size on ctrl+scrollWheel
+        """adjust font size on ctrl+scrollWheel"""
         if event.modifiers() == Qt.ControlModifier:
             # QT4 presents QWheelEvent.delta(), QT5 has QWheelEvent.angleDelta().y()
             if hasattr(event, 'delta'): # Qt4
@@ -372,12 +381,12 @@ class LoggerWindow(Window):
 
             minSize = 5
             maxSize = 50
-            font = self.uiConsoleTXT.font()
+            font = self.console().font()
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
             font.setPointSize(newSize)
-            self.uiConsoleTXT.setFont(font)
+            self.console().setFont(font)
 
             for index in range(self.uiWorkboxTAB.count()):
                 workbox = self.uiWorkboxTAB.widget(index)
@@ -394,12 +403,13 @@ class LoggerWindow(Window):
             Window.wheelEvent(self, event)
 
     def handleMenuHovered(self, action):
-        # Qt4 doesn't have a ToolTipsVisible method, so we fake it
+        """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
         QToolTip.showText(
             QCursor.pos(), action.toolTip(),
             self.uiCompleterModeMENU, self.uiCompleterModeMENU.actionGeometry(action))
 
     def findCurrentFontAction(self):
+        """Find and return current font's action"""
         actions = self.uiMonospaceFontMENU.actions()
         actions.extend(self.uiProportionalFontMENU.actions())
 
@@ -412,7 +422,11 @@ class LoggerWindow(Window):
         return action
 
     def selectFont(self, action):
-        # clean up menu selections
+        """
+        Set console and workbox font to current font
+        Args:
+        action: menu action associated with chosen font
+        """
 
         actions = self.uiMonospaceFontMENU.actions()
         actions.extend(self.uiProportionalFontMENU.actions())
@@ -421,9 +435,9 @@ class LoggerWindow(Window):
             act.setChecked(act == action)
 
         family = action.text()
-        font = self.uiConsoleTXT.font()
+        font = self.console().font()
         font.setFamily(family)
-        self.uiConsoleTXT.setFont(font)
+        self.console().setFont(font)
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
@@ -550,7 +564,7 @@ class LoggerWindow(Window):
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execAll()
-        
+
         console = self.console()
         prompt = console.prompt()
         console.startPrompt(prompt)
@@ -640,12 +654,12 @@ class LoggerWindow(Window):
             'clearBeforeEnvRefresh', self.uiClearLogOnRefreshACT.isChecked()
         )
         pref.recordProperty('toolbarStates', self.saveState())
-        pref.recordProperty('consoleFont', self.uiConsoleTXT.font())
+        pref.recordProperty('consoleFont', self.console().font())
 
         pref.recordProperty("loggingLevel", self.uiLoggingLevelBTN.level())
 
         # completer settings
-        completer = self.uiConsoleTXT.completer()
+        completer = self.console().completer()
         sensitive = completer.caseSensitive()
         completerMode = completer.completerMode()
         completerModeValue = completerMode.value
@@ -720,7 +734,7 @@ class LoggerWindow(Window):
         caseSensitive = pref.restoreProperty('caseSensitive', True)
         self.setCaseSensitive(caseSensitive)
         completerModeValue = pref.restoreProperty('completerMode', 0)
-        completerMode = CompleterModes(completerModeValue)
+        completerMode = CompleterMode(completerModeValue)
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
 
@@ -743,7 +757,7 @@ class LoggerWindow(Window):
 
         font = pref.restoreProperty('consoleFont', None)
         if font:
-            self.uiConsoleTXT.setFont(font)
+            self.console().setFont(font)
 
         # Restore the workboxes
         count = pref.restoreProperty('WorkboxCount', 1)
@@ -851,10 +865,12 @@ class LoggerWindow(Window):
         self.uiMenuBar.adjustSize()
 
     def clearStatusText(self):
+        """Clear any displayed status text"""
         self.uiStatusLBL.setText('')
         self.uiMenuBar.adjustSize()
 
     def autoHideStatusText(self):
+        """Set timer to automatically clear status text"""
         if self.statusTimer.isActive():
             self.statusTimer.stop()
         self.statusTimer.singleShot(2000, self.clearStatusText)
@@ -896,62 +912,76 @@ class LoggerWindow(Window):
         blurdev.core.styleSheetChanged.emit(blurdev.core.styleSheet())
 
     def setCaseSensitive(self, state):
-        self.reportCaseChange(state)
-
-        completer = self.uiConsoleTXT.completer()
+        """Set completer case-sensivity"""    
+        completer = self.console().completer()
         completer.setCaseSensitive(state)
         self.uiAutoCompleteCaseSensitiveACT.setChecked(state)
-        completer.buildCompleter()
+        self.reportCaseChange(state)
         completer.refreshList()
 
     def toggleCaseSensitive(self):
-        state = self.uiConsoleTXT.completer().caseSensitive()
+        """Toggle completer case-sensitivity"""
+        state = self.console().completer().caseSensitive()
+        self.reportCaseChange(state)
         self.setCaseSensitive(not state)
 
     # Completer Modes
     def cycleCompleterMode(self):
+        """Cycle comleter mode"""
         completerMode = self.completerModeCycle.next()
         self.setCompleterMode(completerMode)
+        self.reportCompleterModeChange(completerMode)
 
     def cycleToCompleterMode(self, completerMode):
-        # this method keeps the CompleterModes iterator
-        # sync'd to currently chosen completerMode
-        for idx in range(len(CompleterModes)):
+        """
+        Syncs the completerModeCycle iterator to currently chosen completerMode
+        Args:
+        completerMode: Chosen CompleterMode ENUM member
+        """
+        for idx in range(len(CompleterMode)):
             tempMode = self.completerModeCycle.next()
             if tempMode == completerMode:
                 break
 
-    def setCompleterMode(self, completerMode): # , recordPrefs=True):
-        self.reportCompleterModeChange(completerMode)
-        completer = self.uiConsoleTXT.completer()
+    def setCompleterMode(self, completerMode):
+        """
+        Set the completer mode to chosen mode
+        Args:
+        completerMode: Chosen CompleterMode ENUM member
+        """
+        completer = self.console().completer()
 
         completer.setCompleterMode(completerMode)
         completer.buildCompleter()
 
         for action in self.uiCompleterModeMENU.actions():
-            isCurrent = action.text() == completerMode.name
-            action.setChecked(isCurrent)
+            action.setChecked(action.data() == completerMode)
 
     def selectCompleterMode(self, action):
         if not action.isChecked():
             action.setChecked(True)
             return
+        """
+        Handle when completer mode is chosen via menu
+        Will sync mode iterator and set the completion mode
+        Args:
+        action: the menu action associated with the chosen mode
+        """
 
         # update cycleToCompleterMode to current Mode
-        modeName = action.text()
-        mode = CompleterModes[modeName]
+        mode = action.data()
         self.cycleToCompleterMode(mode)
         self.setCompleterMode(mode)
 
     def reportCaseChange(self, state):
-        """ Update status text with Case Sensitivity Mode """
+        """ Update status text with current Case Sensitivity Mode """
         text = "Case Sensitive " if state else "Case Insensitive "
         self.setStatusText(text)
         self.autoHideStatusText()
 
     def reportCompleterModeChange(self, mode):
-        """ Update status text with Completer Mode """
-        self.setStatusText('Completer Mode: {} '.format(mode.name))
+        """ Update status text with current Completer Mode """
+        self.setStatusText('Completer Mode: {} '.format(mode.displayName()))
         self.autoHideStatusText()
 
     def setClearBeforeRunning(self, state):
@@ -1046,7 +1076,11 @@ class LoggerWindow(Window):
         menu.popup(QCursor.pos())
 
     def prevTab(self):
+        """Move focus to previous workbox tab"""
         tabWidget = self.uiWorkboxTAB
+        if not tabWidget.currentWidget().hasFocus():
+            return
+
         index = tabWidget.currentIndex()
         if index > 0:
             tabWidget.setCurrentIndex(index - 1)

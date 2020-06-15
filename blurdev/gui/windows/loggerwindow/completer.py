@@ -17,23 +17,40 @@ from Qt.QtGui import QCursor
 from Qt.QtWidgets import QCompleter, QToolTip
 
 
-class CompleterModes(Enum):
-    StartsWith = 0
-    OuterFuzzy = 1
-    FullFuzzy = 2
+class CompleterMode(Enum):
+    """
+    Enum which defines the available Completer Modes
+
+    STARTS_WITH - (Default) Matches completions which start with the typed input
+                    regex = "^SampleInput.*"
+    OUTER_FUZZY - Matches completions which contain, but don't necessarily
+                    start with, the typed input
+                    regex = ".*SampleInput.*"
+    FULL_FUZZY - Matches completions which contain the characters of the typed input,
+                    in order, regardless of other characters intermixed
+                    regex = ".*S.*a.*m.*p.*l.*e.*I.*n.*p.*u.*t.*"
+
+    Matches respect case-sensitivity, which is set separately
+    """
+    STARTS_WITH = 0
+    OUTER_FUZZY = 1
+    FULL_FUZZY = 2
+
+    def displayName(self):
+        return self.name.replace('_', ' ').title()
 
     def toolTip(self):
         toolTipMap = {
-            'StartsWith': "'all' matches 'allowtabs', does not match 'findallnames'",
-            'OuterFuzzy': "'all' matches 'findallnames', does not match 'anylowerletters'",
-            'FullFuzzy': "'all' matches 'findallnames', also matches 'anylowerletters'",
+            'STARTS_WITH': "'all' matches 'allowtabs', does not match 'findallnames'",
+            'OUTER_FUZZY': "'all' matches 'findallnames', does not match 'anylowerletters'",
+            'FULL_FUZZY': "'all' matches 'findallnames', also matches 'anylowerletters'",
             }
         return toolTipMap.get(self.name, "")
 
 
 class PythonCompleter(QCompleter):
     def __init__(self, widget):
-        QCompleter.__init__(self, widget)
+        super(QCompleter, self).__init__(widget)
 
         # use the python model for information
 
@@ -47,21 +64,30 @@ class PythonCompleter(QCompleter):
         self.buildCompleter()
 
     def setCaseSensitive(self, caseSensitive=True):
+        """Set case sensitivity for completions"""
         self._sensitivity = Qt.CaseSensitive if caseSensitive else Qt.CaseInsensitive
+        self.buildCompleter()
 
     def caseSensitive(self):
+        """Return current case sensitivity state for completions"""
         caseSensitive = self._sensitivity == Qt.CaseSensitive
         return caseSensitive
 
-    def setCompleterMode(self, completerMode=CompleterModes.StartsWith):
+    def setCompleterMode(self, completerMode=CompleterMode.STARTS_WITH):
+        """Set completer mode"""
         self._completerMode = completerMode
 
     def completerMode(self):
+        """Return current completer mode"""
         return self._completerMode
 
     def buildCompleter(self):
-        model = (QStringListModel())
-        self.filterModel = QSortFilterProxyModel(self.parent()) 
+        """
+        Build the completer to allow for wildcards and set
+        case sensitivity to use
+        """
+        model = QStringListModel()
+        self.filterModel = QSortFilterProxyModel(self.parent())
         self.filterModel.setSourceModel(model)
         self.filterModel.setFilterCaseSensitivity(self._sensitivity)
         self.setModel(self.filterModel)
@@ -126,11 +152,11 @@ class PythonCompleter(QCompleter):
         self.model().sourceModel().setStringList(keys)
 
         regExStr = ""
-        if self._completerMode == CompleterModes.StartsWith:
-            regExStr = "^{}".format(prefix)
-        if self._completerMode == CompleterModes.OuterFuzzy:
+        if self._completerMode == CompleterMode.STARTS_WITH:
+            regExStr = "^{}.*".format(prefix)
+        if self._completerMode == CompleterMode.OUTER_FUZZY:
             regExStr = ".*{}.*".format(prefix)
-        if self._completerMode == CompleterModes.FullFuzzy:
+        if self._completerMode == CompleterMode.FULL_FUZZY:
             regExStr = ".*".join(prefix)
 
         regexp = QRegExp(regExStr, self._sensitivity)

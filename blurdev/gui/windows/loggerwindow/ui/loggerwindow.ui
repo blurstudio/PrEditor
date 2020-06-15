@@ -154,8 +154,9 @@
     </widget>
     <widget class="QMenu" name="uiCompleterModeMENU">
      <property name="title">
-      <string>Auto-Complete - Mode (Cycle: Ctrl+M)</string>
+      <string>Auto-Complete Mode</string>
      </property>
+     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="uiFont_MENU">
      <property name="title">
@@ -608,7 +609,10 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Auto-Complete - Case Sensitive (Toggle: Ctrl+I)</string>
+    <string>Auto-Complete - Case Sensitive</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="uiStartsWithModeACT">
@@ -643,6 +647,14 @@
   <action name="actionPlaceHolderProportionalFont">
    <property name="text">
     <string>PlaceHolderProportionalFont</string>
+   </property>
+  </action>
+  <action name="uiCycleCompleterModeACT">
+   <property name="text">
+    <string>Cycle Completer Modes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+M</string>
    </property>
   </action>
  </widget>

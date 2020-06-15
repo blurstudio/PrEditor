@@ -60,8 +60,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     _errorMessageColor = QColor(Qt.red)
 
     def __init__(self, parent):
-        QTextEdit.__init__(self, parent)
-
+        super(QTextEdit, self).__init__(parent)
         # store the error buffer
         self._completer = None
 
@@ -142,6 +141,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.x = 0
 
     def wheelEvent(self, event):
+        """Override of wheelEvent to allow for font resizing by holding ctrl while scrolling"""
         # If used in LoggerWindow, use that wheel event
         # May not want to import LoggerWindow, so perhaps
         # check by str(type())
@@ -149,16 +149,19 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # if ctrlPressed and isinstance(self.window(), "LoggerWindow"):
         if ctrlPressed and "LoggerWindow" in str(type(self.window())):
             self.window().wheelEvent(event)
-            return
         else:
             QTextEdit.wheelEvent(self, event)
 
     def keyReleaseEvent(self, event):
+        """Override of keyReleaseEvent to determine when to end navigation of previous commands"""
         # End getPrev/NextCommand
         if event.key() == Qt.Key_Alt:
             self._prevCommandIndex = 0
+        else:
+            event.ignore()
 
     def getPrevCommand(self):
+        """Find and display the previous command in stack"""
         self._prevCommandIndex -= 1
 
         if abs(self._prevCommandIndex) > len(self._prevCommands):
@@ -168,6 +171,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.setCommand()
 
     def getNextCommand(self):
+        """Find and display the next command in stack"""
         self._prevCommandIndex += 1
         self._prevCommandIndex = min(self._prevCommandIndex, 0)
 
@@ -175,6 +179,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.setCommand()
 
     def setCommand(self):
+        """Do the displaying of currently chosen command"""
         prevCommand = ''
         if self._prevCommandIndex:
             prevCommand = self._prevCommands[self._prevCommandIndex]
@@ -277,6 +282,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 # insert a new line
                 self.insertPlainText('\n')
 
+                # update prevCommands list
+                # only if commandText is not the most recent prevCommand
+                if len(commandText) > 0 and (not self._prevCommands or self._prevCommands[-1] != commandText):
+                    self._prevCommands.append(commandText)
+                # limit length of prevCommand list to Max
+                self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax:]
+
                 if self._pdbMode:
                     if commandText:
                         self.pdbSendCommand(commandText)
@@ -287,13 +299,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                         self.startInputLine()
                         self.insertPlainText(commandText)
                 else:
-                    # update prevCommands list
-                    # only if commandText is not the most recent prevCommand
-                    if len(commandText) > 0 and (not self._prevCommands or self._prevCommands[-1] != commandText):
-                        self._prevCommands.append(commandText)
-                    # limit length of prevCommand list to Max
-                    self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax:]
-
                     # evaluate the command
                     cmdresult, wasEval = self.executeString(commandText)
 
@@ -439,9 +444,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # other wise handle the keypress
         else:
             # define special key sequences
-            ctrlSpace = event.key() == Qt.Key_Space and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
-            ctrlM = event.key() == Qt.Key_M and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
-            ctrlI = event.key() == Qt.Key_I and QApplication.instance().keyboardModifiers() == Qt.ControlModifier
+            modifiers = QApplication.instance().keyboardModifiers()
+            ctrlSpace = event.key() == Qt.Key_Space and modifiers == Qt.ControlModifier
+            ctrlM = event.key() == Qt.Key_M and modifiers == Qt.ControlModifier
+            ctrlI = event.key() == Qt.Key_I and modifiers == Qt.ControlModifier
 
             # Process all events we do not want to override
             if not (ctrlSpace or ctrlM or ctrlI):
