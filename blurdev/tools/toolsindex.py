@@ -236,10 +236,12 @@ class ToolsIndex(QObject):
         # Ensure that the blurdev's entry point is processed first, we need to add
         # its paths before we try to load any of the other entry_points that are
         # likely being loaded from the blurdev entry point.
-        entry_points.sort(lambda a, b: -1 if a[0] == 'TREEGRUNT_ROOT' else 1)
+        entry_points.sort(key=lambda a: -1 if a[0] == 'TREEGRUNT_ROOT' else 1)
 
         name, extension = os.path.splitext(basename)
-        with tempfile.NamedTemporaryFile(prefix=name, suffix=extension) as fle:
+        with tempfile.NamedTemporaryFile(
+            mode='w+', prefix=name, suffix=extension
+        ) as fle:
             json.dump(entry_points, fle, indent=4)
             fle.seek(0)
             with open(filename, 'w') as out:
@@ -261,7 +263,7 @@ class ToolsIndex(QObject):
         # Generating JSON index in a temporary location.
         # Once successfully generated we will copy the file where it needs to go.
         with tempfile.NamedTemporaryFile(
-            mode='w', prefix=name, suffix=extension
+            mode='w+', prefix=name, suffix=extension
         ) as fle:
             json.dump(output, fle, indent=4)
             fle.seek(0)
