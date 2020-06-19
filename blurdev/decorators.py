@@ -206,10 +206,7 @@ def pendingdeprecation(args):
         """
 
         def newFunction(*args, **kwargs):
-            if debug.isDebugLevel(debug.DebugLevel.High):
-                raise PendingDeprecationWarning(debug.debugObjectString(function, msg))
-            else:
-                debug.debugObject(function, msg, debug.DebugLevel.Low)
+            debug.debugObject(function, msg, debug.DebugLevel.Low)
             return function(*args, **kwargs)
 
         newFunction.__name__ = function.__name__
