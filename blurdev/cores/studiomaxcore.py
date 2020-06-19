@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import re
 import sys
 import logging
 
@@ -178,7 +179,7 @@ class StudiomaxCore(Core):
             'displayName': tool.displayName(),
             'macro': macro,
             'tooltip': tool.displayName(),
-            'id': str(tool.displayName()).replace(' ', '_').replace('::', '_'),
+            'id': re.sub('(::| |-)', '_', tool.displayName()),
             'studioName': os.environ.get('bdev_studio_name', ''),
             'iconName': '',
         }
