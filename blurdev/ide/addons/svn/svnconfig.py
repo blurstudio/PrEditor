@@ -94,7 +94,7 @@ def sortStatus(a, b):
     adat = statusData(a.text_status)
     bdat = statusData(b.text_status)
 
-    cmp = lambda (x, y): (x > y) - (x < y)
+    cmp = lambda x, y: (x > y) - (x < y)
     # sort by the order of the statuses
     if adat['sort_order'] != bdat['sort_order']:
         return cmp(adat['sort_order'], bdat['sort_order'])
