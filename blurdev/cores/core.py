@@ -1324,11 +1324,6 @@ class Core(QObject):
 
         return False
 
-    def sdkBrowser(self, parent=None):
-        from blurdev.gui.windows.sdkwindow import SdkWindow
-
-        return SdkWindow.instance(parent)
-
     def setLastFileName(self, filename):
         return self._lastFileName
 

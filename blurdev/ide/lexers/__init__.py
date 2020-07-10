@@ -20,7 +20,7 @@
 # register( 'HTML',		('.htm','.html',),								QsciLexerHTML )
 # register( 'Lua',		('.lua',),										QsciLexerLua )
 # register( 'Python', 	('.py','.pyw','.pys','.b',), 					QsciLexerPython, 		'#',			'^([ \t]*)(def|class)[ \t]*([a-zA-Z0-9_]+\(?[^\)]*\)?):$' )
-# register( 'XML', 		('.xml','.ui','.sdk','.blurproj','.pref',),		QsciLexerXML )
+# register( 'XML', 		('.xml','.ui','.blurproj','.pref',),			QsciLexerXML )
 # register( 'Bash',		('.sh',),										QsciLexerBash )
 # register( 'Javascript',	('.js',),										QsciLexerJavaScript,	'//' )
 # register( 'Puppet',		('.pp',),										QsciLexerPerl,			'#' )
