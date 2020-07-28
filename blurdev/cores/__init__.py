@@ -54,8 +54,6 @@ elif 'fusion' in _exe:
 
 # initialize the system for running inside Nuke
 elif 'nuke' in _exe:
-    from .nukecore import NukeCore as Core
-
     try:
         from .nukecore import NukeCore as Core
     except:
