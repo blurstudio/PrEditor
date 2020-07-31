@@ -36,7 +36,6 @@ class ToolsIndex(QObject):
         self._loaded = False
         self._favoritesLoaded = False
         self._categoryCache = {}
-        self._departmentCache = set()
         self._toolCache = {}
         self._entry_points = []
         self._loaded_entry_points = False
@@ -59,7 +58,6 @@ class ToolsIndex(QObject):
         self._favoritesLoaded = False
         self._loaded = False
         self._categoryCache.clear()
-        self._departmentCache.clear()
         self._toolCache.clear()
         self._entry_points = []
         self._loaded_entry_points = False
@@ -95,12 +93,7 @@ class ToolsIndex(QObject):
     def cacheTool(self, tool):
         """ caches the inputed tool by its name
         """
-        self._departmentCache.update(tool.departments())
         self._toolCache[str(tool.objectName())] = tool
-
-    def departments(self):
-        self.load()
-        return self._departmentCache
 
     def entry_points(self):
         """ A list of entry point data resolved when the index was last rebuilt.
@@ -133,14 +126,14 @@ class ToolsIndex(QObject):
 
     def rebuild(self, filename=None, configFilename=True):
         """ rebuilds the index from the file system.
-        
+
         This does not create any necessary directory structure to save the files.
-        
+
         Args:
-            filename (str): If filename is not provided it will store the file in self.filename(). 
+            filename (str): If filename is not provided it will store the file in self.filename().
                 This is the location that treegrunt looks for its tools.xml file.
             configFilename (str|bool): if True, save as config.ini next to filename. If a file path
-                is provided save to that file path. 
+                is provided save to that file path.
         """
 
         # Update the entry_points.json file.
@@ -325,7 +318,6 @@ class ToolsIndex(QObject):
             getPropertyFromXML('icon')
             getPropertyFromXML('tooltip', 'toolTip')
             getPropertyFromXML('wiki')
-            getPropertyFromXML('departments')
 
             types = xml.attribute('type')
             if types:
@@ -426,7 +418,7 @@ class ToolsIndex(QObject):
         foldername=None,
     ):
         """ rebuilds the tool information recursively for the inputed path and tools
-            
+
             :param path: str
             :param parent: <blurdev.XML.XMLElement>
             :param tools: <blurdev.XML.XMLElement>
@@ -684,24 +676,6 @@ class ToolsIndex(QObject):
         self.load()
         output = [
             tool for tool in self._toolCache.values() if tool.categoryName() == name
-        ]
-        output.sort(key=lambda x: x.objectName().lower())
-        return output
-
-    def findToolsByDepartment(self, department):
-        """ looks up tools based on the provided department name.
-
-        Args:
-            department (str): The name of the department to find tools for.
-
-        Returns:
-            list: The tools with department in their departments field.
-        """
-        self.load()
-        output = [
-            tool
-            for tool in self._toolCache.values()
-            if department in tool.departments()
         ]
         output.sort(key=lambda x: x.objectName().lower())
         return output
