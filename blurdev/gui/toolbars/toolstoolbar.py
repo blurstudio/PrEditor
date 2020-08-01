@@ -2,9 +2,9 @@ import os
 import logging
 import webbrowser
 from past.builtins import basestring
-from Qt.QtCore import Qt, QSize
+from Qt.QtCore import Qt
 from Qt.QtGui import QCursor, QIcon, QPixmap
-from Qt.QtWidgets import QAction, QMenu
+from Qt.QtWidgets import QAction, QMenu, QWidgetAction
 import blurdev
 from blurdev.gui.toolbars.blurdevtoolbar import BlurdevToolbar
 from blurdev.gui import IconFactory
@@ -36,9 +36,6 @@ class ToolbarAction(QAction):
     def exec_(self):
         blurdev.runTool(self._toolID)
 
-    def remove(self):
-        self.parent().removeAction(self)
-
     def documentation(self):
         url_template = os.environ.get('BDEV_USER_GUIDE_URL')
         if url_template:
@@ -57,24 +54,22 @@ class ToolsToolbar(BlurdevToolbar):
     The ``_name`` property gives the toolbar the name that users will see
     and is used as the unique id to find the toolbar in the functions
     ``blurdev.core.toolbar([name])`` and ``blurdev.core.findToolbar([name])``
-    
+
     Attributes:
         _name (str): The unique id and display name for the toolbar. This is
             used as the display name in blur s and the Qt interface.
             It's name must be unique among all toolbars.
-        _affect_favorites (bool): When addAction or removeAction is called
-            add or remove the tool from the users favorites.
-        
     """
 
     _name = 'Treegrunt Toolbar'
-    _affect_favorites = False
 
     def __init__(self, parent=None):
         super(ToolsToolbar, self).__init__(parent)
+        self._editable = True
         self._iconFactory = IconFactory().customize(icon_class='StyledIcon')
         self.setAcceptDrops(True)
         self.setToolTip('Drag and drop Treegrunt tools.')
+        self._protected_actions = []
 
         # Create connections.
         self.actionTriggered.connect(self.runAction)
@@ -82,12 +77,6 @@ class ToolsToolbar(BlurdevToolbar):
         blurdev.core.selectedToolTypesChanged.connect(self.updateToolVisibility)
         self.populate()
         self.updateToolVisibility()
-
-    def addAction(self, action):
-        super(ToolsToolbar, self).addAction(action)
-        if self._affect_favorites and isinstance(action, ToolbarAction):
-            action._tool.setFavorite(True)
-        return action
 
     def addTool(self, tool):
         if isinstance(tool, basestring):
@@ -131,8 +120,6 @@ class ToolsToolbar(BlurdevToolbar):
         # On a right click, show the menu.
         position = QCursor.pos()
         if event.button() == Qt.RightButton:
-            widget = self.childAt(event.x(), event.y())
-
             # Show menus for the toolbars.
             menu = QMenu(self)
 
@@ -144,32 +131,58 @@ class ToolsToolbar(BlurdevToolbar):
             sep = menu.addSeparator()
             sep.setObjectName('uiTitleSEP')
 
-            if (
-                widget
-                and hasattr(widget, 'defaultAction')
-                and isinstance(widget.defaultAction(), ToolbarAction)
-            ):
-                # Toolbar separators don't have defaultAction.
-                self.setContextMenuPolicy(Qt.CustomContextMenu)
+            action = self.actionAt(event.x(), event.y())
+            if (action and action not in self._protected_actions and not isinstance(action, QWidgetAction)):
+                if isinstance(action, ToolbarAction):
 
-                action = widget.defaultAction()
+                    # Toolbar separators don't have defaultAction.
+                    self.setContextMenuPolicy(Qt.CustomContextMenu)
 
-                act = menu.addAction('View User Guide...')
-                act.setIcon(self._iconFactory.getIcon('google', name='school'))
-                act.triggered.connect(action.documentation)
+                    act = menu.addAction('View User Guide...')
+                    act.setIcon(self._iconFactory.getIcon('google', name='school'))
+                    act.triggered.connect(action.documentation)
 
-                act = menu.addAction('Explore...')
-                act.setIcon(self._iconFactory.getIcon('google', name='folder'))
-                act.triggered.connect(action.explore)
+                    act = menu.addAction('Explore...')
+                    act.setIcon(self._iconFactory.getIcon('google', name='folder'))
+                    act.triggered.connect(action.explore)
+
+                    menu.addSeparator()
+
+                if self._editable:
+
+                    act = menu.addAction('Move Back')
+                    act.setIcon(self._iconFactory.getIcon(
+                        'google', name='chevron_left'
+                    ))
+                    act.triggered.connect(lambda: self.moveActionBack(action))
+
+                    act = menu.addAction('Move Forward')
+                    act.setIcon(self._iconFactory.getIcon(
+                        'google', name='chevron_right'
+                    ))
+                    act.triggered.connect(lambda: self.moveActionForward(action))
+
+                    menu.addSeparator()
+                    act = menu.addAction('Insert Separator')
+                    act.setIcon(self._iconFactory.getIcon(
+                        'google', name='space_bar'
+                    ))
+                    act.triggered.connect(lambda: self.insertSeparator(action))
+
+                    act = menu.addAction('Remove')
+                    act.setIcon(self._iconFactory.getIcon('google', name='delete'))
+                    act.triggered.connect(lambda: self.removeAction(action))
+
+                    menu.addSeparator()
+
+            event.accept()
+
+            if self._editable:
+                act = menu.addAction('Save')
+                act.setIcon(self._iconFactory.getIcon('google', name='save'))
+                act.triggered.connect(lambda: self.recordSettings(save=True, gui=True))
 
                 menu.addSeparator()
-
-                act = menu.addAction('Remove')
-                act.setIcon(self._iconFactory.getIcon('google', name='delete'))
-                act.triggered.connect(action.remove)
-
-                menu.addSeparator()
-                event.accept()
 
             viewMenu = menu.addMenu('View')
             viewMenu.setIcon(self._iconFactory.getIcon('view'))
@@ -191,6 +204,7 @@ class ToolsToolbar(BlurdevToolbar):
             act.triggered.connect(self.refresh)
 
             menu.addSeparator()
+
             act = menu.addAction('Close')
             act.setIcon(self._iconFactory.getIcon('google', name='close'))
             act.triggered.connect(self.close)
@@ -199,6 +213,39 @@ class ToolsToolbar(BlurdevToolbar):
         else:
             self.setContextMenuPolicy(Qt.DefaultContextMenu)
             event.ignore()
+
+    def actionPositionIndex(self, action):
+        actions = self.actions()
+        for i in range(len(actions)):
+            act = actions[i]
+            if action == act:
+                return i
+
+    def previousVisibleAction(self, action):
+        index = max(0, self.actionPositionIndex(action) - 1)
+        previous = self.actions()[index]
+        if previous.isVisible():
+            return previous
+        return self.previousVisibleAction(previous)
+
+    def nextVisibleAction(self, action):
+        actions = self.actions()
+        index = min(len(actions) - 1, self.actionPositionIndex(action) + 1)
+        nxt = actions[index]
+        if nxt.isVisible():
+            return nxt
+        return self.nextVisibleAction(nxt)
+
+    def moveActionBack(self, action, before=None):
+        before = before or self.previousVisibleAction(action)
+        if isinstance(before, QWidgetAction) or before in self._protected_actions:
+            return False
+        self.insertAction(before, action)
+
+    def moveActionForward(self, action):
+        before = self.nextVisibleAction(action)
+        self.addAction(action)
+        self.insertAction(self.nextVisibleAction(before), action)
 
     def populate(self):
         """ This function should be sub-classed to populate the toolbar.
@@ -222,13 +269,18 @@ class ToolsToolbar(BlurdevToolbar):
                 need to call save on it.
         """
         pref = super(ToolsToolbar, self).recordSettings(save=False, gui=gui)
-        tools = []
-        for tool in self.tools():
-            tools.append(tool.objectName())
-        pref.recordProperty('tools', tools)
+        pref.recordProperty('tools', self.toolIDs())
         if save:
             pref.save()
         return pref
+
+    def collapseSeparators(self):
+        """Will only keep one separator visible when more than one are juxtaposed.
+        """
+        previousAction = None
+        for action in self.actions():
+            if previousAction and action.isSeparator() and previousAction.isSeparator():
+                action.setVisible(False)
 
     def refresh(self):
         self.clear()
@@ -239,8 +291,6 @@ class ToolsToolbar(BlurdevToolbar):
     def removeAction(self, action):
         super(ToolsToolbar, self).removeAction(action)
         action.setParent(None)
-        if self._affect_favorites and isinstance(action, ToolbarAction):
-            action._tool.setFavorite(False)
         action.deleteLater()
 
     def runAction(self, action):
@@ -252,7 +302,10 @@ class ToolsToolbar(BlurdevToolbar):
         """
         toolIDs = []
         for tool in self.tools():
-            toolIDs.append(tool.objectName())
+            if tool:
+                toolIDs.append(tool.objectName())
+            else:
+                toolIDs.append('')
         return toolIDs
 
     def tools(self):
@@ -260,8 +313,12 @@ class ToolsToolbar(BlurdevToolbar):
         """
         tools = []
         for action in self.actions():
-            if isinstance(action, ToolbarAction):
+            if action in self._protected_actions:
+                continue
+            elif isinstance(action, ToolbarAction):
                 tools.append(action.tool())
+            elif action.isSeparator():
+                tools.append(None)
         return tools
 
     def updateToolVisibility(self):
@@ -280,12 +337,32 @@ class FavoritesToolbar(ToolsToolbar):
     """
 
     _name = 'Favorites'
-    _affect_favorites = True
+
+    def addAction(self, action):
+        super(FavoritesToolbar, self).addAction(action)
+        if isinstance(action, ToolbarAction):
+            action._tool.setFavorite(True)
+        return action
+
+    def removeAction(self, action):
+        if isinstance(action, ToolbarAction):
+            action._tool.setFavorite(False)
+        super(FavoritesToolbar, self).removeAction(action)
 
     def populate(self):
-        for tool in self.favoriteTools():
-            if self.objectName() != tool.objectName():
-                self.addTool(tool)
+        pref = self.preferences()
+        tools = pref.restoreProperty('tools', [])
+        favorites = [t.objectName() for t in self.favoriteTools()]
+        extras = set(favorites).difference(tools)
+        for tool in tools + list(extras):
+            if not tool:
+                self.addSeparator()
+            if tool in favorites:
+                # Ignoring the favorite toolbar tool itself.
+                # It could be a favorite tool, but we don't it in the toolbar.
+                if tool != self.objectName():
+                    self.addTool(tool)
+        self.collapseSeparators()
 
     def favoriteTools(self):
         index = blurdev.activeEnvironment().index()
@@ -299,3 +376,4 @@ class UserToolbar(ToolsToolbar):
         pref = self.preferences()
         for tool in pref.restoreProperty('tools', []):
             self.addTool(tool)
+        self.collapseSeparators()
