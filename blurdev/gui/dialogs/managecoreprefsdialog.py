@@ -110,16 +110,15 @@ class ManageCorePrefsDialog(Dialog):
                     "blurdev/core", coreName=corename, reload=True
                 )
                 debugLevel = _prefs.restoreProperty("debugLevel", 0)
-                if not activeEnv.isEmpty():
-                    item = QTreeWidgetItem(
-                        self.uiEnvironmentTREE,
-                        [
-                            corename,
-                            activeEnv.objectName(),
-                            self.debugLevels[debugLevel],
-                        ],
-                    )
-                    item.setFlags(item.flags() | Qt.ItemIsEditable)
+                item = QTreeWidgetItem(
+                    self.uiEnvironmentTREE,
+                    [
+                        corename,
+                        activeEnv.objectName(),
+                        self.debugLevels[debugLevel],
+                    ],
+                )
+                item.setFlags(item.flags() | Qt.ItemIsEditable)
         self.uiEnvironmentTREE.resizeColumnsToContents()
 
         # rebuild the setAll drop down and reset the env name cache
