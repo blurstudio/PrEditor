@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from past.builtins import basestring
 import os
+import ntpath
 
 from Qt.QtCore import QObject
 
@@ -177,7 +178,9 @@ class Tool(QObject):
         return output
 
     def path(self):
-        return self._path
+        # The index stores the absolute path for the operating system it was built
+        # on. Translate to the current operating system path if required.
+        return blurdev.settings.toSystemPath(self._path)
 
     def projectFile(self):
         return self.relativePath('%s.blurproj' % self.displayName())
@@ -243,7 +246,9 @@ class Tool(QObject):
         self._wikiPage = wiki
 
     def sourcefile(self):
-        return self._sourcefile
+        # The index stores the absolute path for the operating system it was built
+        # on. Translate to the current operating system path if required.
+        return blurdev.settings.toSystemPath(self._sourcefile)
 
     def toolTip(self, info=False):
         if info:
@@ -305,12 +310,16 @@ class Tool(QObject):
         # The code name of the tool
         output.setObjectName(data['name'])
         # The folder containing the tool
-        path = '{}/{}'.format(index.environment().path(), data['path'])
+        path = data['path']
+        # TODO: This isabs  if statement can be removed once the studio has migrated
+        # to the new absolute path treegrunt index system. ntpath is used because
+        # it understands unc paths and understands linux `/mnt/path` paths.
+        if not ntpath.isabs(path):
+            path = '{}/{}'.format(index.environment().path(), path)
         src = data['src']
         # If this is a legacy tool, we need to build the path differently.
         if data.get('legacy', False):
             srcBase = src.replace('\\', '/').rsplit('/', 1)[-1].rsplit('.', 1)[0]
-            # srcBase = os.path.splitext(os.path.basename(src))[0]
             path = '{}/{}_resource'.format(path, srcBase)
         output.setPath(path)
         # The file that starts the tool. To handle legacy and modern tool structures.

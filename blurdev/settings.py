@@ -146,7 +146,7 @@ def registerVariable(key, value):
 
 
 def registerPath(path):
-    path = normalizePath(path)
+    path = os.path.abspath(path)
     # We won't register a path that does not exist to not clutter sys.path.
     if path != '.' and path not in sys.path and os.path.exists(path):
         # Add the path to the top of sys.path so code in this folder is run before

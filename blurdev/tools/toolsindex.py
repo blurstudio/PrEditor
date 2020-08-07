@@ -334,12 +334,6 @@ class ToolsIndex(QObject):
                 data['version'] = version
             return data
 
-        def normalizePath(path):
-            """ Remove the environment path and normalize the paths for all os
-            """
-            relPath = os.path.relpath(path, self.environment().path())
-            return relPath.replace('\\', '/')
-
         def getXMLData(toolPath):
             toolPath = os.path.normpath(toolPath)
             doc = blurdev.XML.XMLDocument()
@@ -347,7 +341,7 @@ class ToolsIndex(QObject):
                 xml = doc.root()
                 toolFolder = os.path.dirname(toolPath)
                 toolId = os.path.basename(toolFolder)
-                ret = OrderedDict(name=toolId, path=normalizePath(toolFolder),)
+                ret = OrderedDict(name=toolId, path=toolFolder,)
                 ret = loadProperties(xml, ret)
                 return ret
 
@@ -373,7 +367,7 @@ class ToolsIndex(QObject):
                     legacy=True,
                     icon='icon.png',
                     src='../{}'.format(os.path.basename(toolPath)),
-                    path=normalizePath(os.path.dirname(toolPath)),
+                    path=os.path.dirname(toolPath),
                     category=categoryId,
                 )
                 toolId = os.path.splitext(os.path.basename(toolPath))[0]
