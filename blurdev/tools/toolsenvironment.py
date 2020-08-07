@@ -103,7 +103,9 @@ class ToolsEnvironment(QObject):
 
         Returns:
             sys_paths: A list of paths that need added to sys.path to add imports.
-            tool_paths: A list of paths treegrunt should scan for tools.
+            tool_paths: A list of paths treegrunt should scan for tools. You can pass
+                directory paths or a specific __meta__.xml file if your package only
+                has one tool.
         """
 
         sys_paths = [

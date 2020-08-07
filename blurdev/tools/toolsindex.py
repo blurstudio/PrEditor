@@ -281,11 +281,11 @@ class ToolsIndex(QObject):
         self, path, categories, tools, legacy=False, parentCategoryId=None
     ):
 
-        foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
-        if parentCategoryId:
-            categoryId = parentCategoryId + '::' + foldername
-        else:
-            categoryId = foldername
+        if not os.path.exists(path):
+            logger.debug('Unable to add tools in: "{}"'.format(path))
+            return
+
+        isdir = os.path.isdir(path)
 
         def addToolCategory(category):
             """ Update the categories dict to include this category
@@ -346,12 +346,28 @@ class ToolsIndex(QObject):
                 return ret
 
         if not legacy:
-            paths = glob.glob(os.path.join(path, '*', '__meta__.xml'))
+            if isdir:
+                # Find all __meta__.xml files in sub-directories of the directory
+                paths = glob.glob(os.path.join(path, '*', '__meta__.xml'))
+            else:
+                # A __meta__.xml file was directly given, no need to glob
+                paths = [path]
             for toolPath in paths:
                 toolInfo = getXMLData(toolPath)
                 if toolInfo:
                     tools.append(toolInfo)
         else:
+            # Calculate recursive folder names for legacy tools structure
+            foldername = os.path.normpath(path)
+            if not isdir:
+                foldername = os.path.dirname(foldername)
+            foldername = os.path.basename(foldername).strip('_')
+
+            if parentCategoryId:
+                categoryId = parentCategoryId + '::' + foldername
+            else:
+                categoryId = foldername
+
             paths = glob.glob(os.path.join(path, '*.*'))
             xmls = set([p for p in paths if os.path.splitext(p)[-1] == '.xml'])
             for toolPath in paths:
@@ -401,14 +417,11 @@ class ToolsIndex(QObject):
                     addToolCategory(ret['category'])
                 tools.append(ret)
 
-        # add subcategories
-        subpaths = glob.glob(path + '/*/')
-        for path in subpaths:
-            # isResource = os.path.split(path)[0].endswith('_resource')
-            # isMeta = path + '__meta__.xml' in processed
-            # if not (isResource or isMeta):
-            if not os.path.split(path)[0].endswith('_resource'):
-                self.rebuildPathJson(path, categories, tools, legacy, categoryId)
+            # add subcategories
+            subpaths = glob.glob(path + '/*/')
+            for path in subpaths:
+                if not os.path.split(path)[0].endswith('_resource'):
+                    self.rebuildPathJson(path, categories, tools, legacy, categoryId)
 
     def reload(self):
         """Reload the index without rebuilding it. This will allow users to refresh the
