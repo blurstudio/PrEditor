@@ -71,8 +71,6 @@ elif 'mari' in _exe:
 
 # initialize the system for running inside Houdini
 elif any(exeName in _exe for exeName in _houdiniExecs):
-    from .houdinicore import HoudiniCore as Core  # noqa: F811
-
     try:
         from .houdinicore import HoudiniCore as Core  # noqa: F811
     except Exception:
