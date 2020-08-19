@@ -131,6 +131,21 @@ class NukeCore(Core):
         for toolbar_class in self.toolbars():
             toolbar_class.instanceRecordSettings(gui=False)
 
+    def rootWindow(self):
+        """ Returns the nuke main window. """
+        if self._rootWindow is not None:
+            return self._rootWindow
+
+        for widget in QApplication.instance().topLevelWidgets():
+            if widget.metaObject().className() == 'Foundry::UI::DockMainWindow':
+                self._rootWindow = widget
+                break
+        else:
+            # If we don't find the root window this way, use the original method.
+            super(NukeCore, self).rootWindow()
+
+        return self._rootWindow
+
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Disabled for Nuke. Attempting to set a useful stylesheet on QApplication
         causes Nuke 11 to crash.
