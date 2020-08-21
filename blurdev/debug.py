@@ -2,16 +2,16 @@
 .. warning::
 
    The python standard library provides a very powerful and flexible logging
-   and debugging module -- 
+   and debugging module --
    `logging <http://docs.python.org/library/logging.html>`_.
-   
-   Only use this module if you are updating an existing tool or library that 
+
+   Only use this module if you are updating an existing tool or library that
    uses it or is part of a larger blur system that uses it.
-   
-   If you are creating a new tool or library, use the 
-   `logging <http://docs.python.org/library/logging.html>`_ module in the 
-   standard library instead.  
-   
+
+   If you are creating a new tool or library, use the
+   `logging <http://docs.python.org/library/logging.html>`_ module in the
+   standard library instead.
+
 .. deprecated:: 2.0
 
 
@@ -24,18 +24,15 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 
 .. data:: DebugLevel
 
-   An :class:`enum` used to set different levels of debugging.  Current 
+   An :class:`enum` used to set different levels of debugging.  Current
    values are Low, Medium, and High
-   
+
 """
 
 from __future__ import print_function
 from past.builtins import basestring
 import datetime
-import getpass
 import os
-import platform
-import string
 import sys
 import time
 import traceback
@@ -45,8 +42,6 @@ import inspect
 from collections import OrderedDict
 from contextlib import contextmanager
 from future.utils import with_metaclass
-
-from Qt.QtCore import Qt
 
 import blurdev
 import blurdev.debug
@@ -199,18 +194,27 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
         # Will output (apart from the program's print statements):
         # DEBUG (Low) : time:0:00:03.371000 | Test watch Stopwatch
         # ------------------------------------------
-        #   lap: 0:00:00.033670 | iterations: 100 | total: 0:00:03.367000 | Loop init class
+        #   lap: 0:00:00.033670 | iterations: 100 | total: 0:00:03.367000 | Loop init
+        #   class
         #   ------------------------------------------
-        #     lap: 0:00:00.026820 | iterations: 100 | total: 0:00:02.682000 | TestClass.__init__
+        #     lap: 0:00:00.026820 | iterations: 100 | total: 0:00:02.682000 |
+        #     TestClass.__init__
         #     ------------------------------------------
-        #       lap: 0:00:00.026740 | iterations: 100 | total: 0:00:02.674000 | Calculate total
+        #       lap: 0:00:00.026740 | iterations: 100 | total: 0:00:02.674000 |
+        #       Calculate total
         #       ------------------------------------------
-        #         lap: 0:00:00.002614 | iterations: 1000 | total: 0:00:02.614000 | Iteration time
+        #         lap: 0:00:00.002614 | iterations: 1000 | total: 0:00:02.614000 |
+        #         Iteration time
         #         ------------------------------------------
-        #           lap: 0:00:00.002602 | iterations: 1000 | total: 0:00:02.602000 | Print value
-        #           lap: 0:00:00.000027 | iterations: 5000 | total: 0:00:00.135000 | Multiply values
-        #     lap: 0:00:00.000030 | iterations: 100 | total: 0:00:00.003000 | TestClass.get_total
-        #     lap: 0:00:00.002530 | iterations: 100 | total: 0:00:00.253000 | TestClass.print_stuff
+        #           lap: 0:00:00.002602 | iterations: 1000 | total: 0:00:02.602000 |
+        #           Print value
+        #           lap: 0:00:00.000027 | iterations: 5000 | total: 0:00:00.135000 |
+        #           Multiply values
+        #     lap: 0:00:00.000030 | iterations: 100 | total: 0:00:00.003000 |
+        #     TestClass.get_total
+        #     lap: 0:00:00.002530 | iterations: 100 | total: 0:00:00.253000 |
+        #     TestClass.print_stuff
+
 
     Attributes:
         message (string): Name of the stopwatch.
@@ -922,18 +926,23 @@ class FileLogger:
 
 def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
     """ Redirect all stdout and/or stderr output to a log file.
-    
+
     Creates a FileLogger class for stdout and stderr and installs itself in python.
     All output will be logged to the file path. Prints the current datetime and
     sys.version info when stdout is True.
-    
+
     Args:
         path (str): File path to log output to.
+
         stdout (bool): If True(default) override sys.stdout.
+
         stderr (bool): If True(default) override sys.stderr.
+
         useOldStd (bool): If True, messages will be written to the FileLogger
             and the previous sys.stdout/sys.stderr.
-        clearLog (bool): If True(default) clear the log file when this command is called.
+
+        clearLog (bool): If True(default) clear the log file when this command is
+        called.
     """
     if stderr:
         sys.stderr = FileLogger(sys.stderr, path, useOldStd, clearLog=clearLog)
@@ -1123,13 +1132,13 @@ _blurPdb = None
 
 def getPdb():
     """ Creates or returns a instance of pdb that works when normal pdb doesnt.
-    
-    The first time this is called it creates a pdb instance using PdbInput and PdbOutput for stdin 
-    and stdout. Any future calls to getPdb will return this same pdb. If pdb is activated, it will
-    open the blurdev logger in a new instance of python using blurdev.external, all pdb output will 
-    be routed to this new logger. Commands typed in this logger will be passed back to this instance 
-    of pdb.
-    
+
+    The first time this is called it creates a pdb instance using PdbInput and PdbOutput
+    for stdin and stdout. Any future calls to getPdb will return this same pdb. If pdb
+    is activated, it will open the blurdev logger in a new instance of python using
+    blurdev.external, all pdb output will be routed to this new logger. Commands typed
+    in this logger will be passed back to this instance of pdb.
+
     Returns:
         pdb.Pdb: Special instance of pdb.
     """
@@ -1137,9 +1146,9 @@ def getPdb():
     if not _blurPdb:
         from blurdev.utils.pdbio import PdbInput, PdbOutput, BlurPdb
 
-        # Skip these modules because they are not being debugged. Generally this needs to
-        # ignore the Logger Window modules because printing causes the next function to run
-        # into these making debugging annoying to say the least.
+        # Skip these modules because they are not being debugged. Generally this needs
+        # to ignore the Logger Window modules because printing causes the next function
+        # to run into these making debugging annoying to say the least.
         skip = os.environ['BDEV_PDB_SKIP'].split(',')
         _blurPdb = BlurPdb(stdin=PdbInput(), stdout=PdbOutput(), skip=skip)
     return _blurPdb
@@ -1147,28 +1156,28 @@ def getPdb():
 
 def set_trace():
     """ Call getPdb().set_trace().
-    
-    Enter the debugger at the calling stack frame. This is useful to hard-code a breakpoint at a 
-    given point in a program, even if the code is not otherwise being debugged (e.g. when an 
-    assertion fails).
+
+    Enter the debugger at the calling stack frame. This is useful to hard-code a
+    breakpoint at a given point in a program, even if the code is not otherwise being
+    debugged (e.g. when an assertion fails).
     """
     bPdb = getPdb()
-    # Use the autoUp feature to step above the call to bPdb.set_trace so the user is at the line
-    # that called this function, not inside this function.
+    # Use the autoUp feature to step above the call to bPdb.set_trace so the user is at
+    # the line that called this function, not inside this function.
     bPdb.stdin.setAutoUp(True)
     bPdb.set_trace()
 
 
 def post_mortem(t=None):
     """ Call getPdb().post_mortem().
-    
-    Enter post-mortem debugging of the given traceback object. If no traceback is given, it uses the 
-    exception that is currently being handled (for the default to be used, this function must be
-    called from within the except of a try/except statement.)
-    
+
+    Enter post-mortem debugging of the given traceback object. If no traceback is given,
+    it uses the exception that is currently being handled (for the default to be used,
+    this function must be called from within the except of a try/except statement.)
+
     See Also:
         blurdev.debug.pm()
-    
+
     Args:
         t (traceback): exception to preform a post_mortem on.
     """
@@ -1206,13 +1215,11 @@ def clearErrorReport():
 def debugMsg(msg, level=2, fmt=None):
     """Prints out a debug message to the stdout if the inputed level is
     greater than or equal to the current debugging level
-    
-    Args:
-        msg (str): message to output
-        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
-            Defaults to DebugLevel.Mid.
-        fmt (str or None, optional): msg is formatted with this string. Fills in {level}
-            and {msg} args. If None, a default string is used.
+
+    Args: msg (str): message to output level (blurdev.debug.DebugLevel, optional):
+        Minimum DebugLevel msg should be printed. Defaults to DebugLevel.Mid. fmt (str
+        or None, optional): msg is formatted with this string. Fills in {level} and
+        {msg} args. If None, a default string is used.
     """
     if level <= debugLevel():
         if fmt is None:
@@ -1226,13 +1233,11 @@ def debugObject(object, msg, level=2, fmt=None):
     """ Uses :func:`debugMsg` to output to the stdout a debug message
     including the reference of where the object calling the method is located.
 
-    Args:
-        object (object): the object to include in the output message.
-        msg (str): message to output
-        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
-            Defaults to DebugLevel.Mid.
-        fmt (str or None, optional): msg is formatted with this string. Fills in {level}
-            and {msg} args. If None, a default string is used.
+    Args: object (object): the object to include in the output message. msg (str):
+        message to output level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel
+        msg should be printed. Defaults to DebugLevel.Mid. fmt (str or None, optional):
+        msg is formatted with this string. Fills in {level} and {msg} args. If None, a
+        default string is used.
     """
     debugMsg(lambda: debugObjectString(object, msg), level, fmt=fmt)
 
@@ -1263,13 +1268,16 @@ def debugObjectString(object, msg):
 
 
 def debugStubMethod(object, msg, level=2):
-    """ Uses :func:`debugObject` to display that a stub method has not been provided functionality.
+    """ Uses :func:`debugObject` to display that a stub method has not been provided
+    functionality.
 
     Args:
         object (object): the object to include in the output message
+
         msg (str): message to output
-        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be printed.
-            Defaults to DebugLevel.Mid.
+
+        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be
+            printed. Defaults to DebugLevel.Mid.
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
 
@@ -1332,12 +1340,12 @@ def printCallingFunction(compact=False):
     current = inspect.currentframe().f_back
     try:
         parent = current.f_back
-    except:
+    except AttributeError:
         print('No Calling function found')
         return
     currentInfo = inspect.getframeinfo(current)
     parentInfo = inspect.getframeinfo(parent)
-    if parentInfo[3] != None:
+    if parentInfo[3] is not None:
         context = ', '.join(parentInfo[3]).strip('\t').rstrip()
     else:
         context = 'No context to return'
@@ -1363,15 +1371,18 @@ def printCallingFunction(compact=False):
 
 def mroDump(obj, nice=True, joinString='\n'):
     """ Formats inspect.getmro into text.
-    
-    For the given class object or instance of a class, use inspect to return the Method 
+
+    For the given class object or instance of a class, use inspect to return the Method
     Resolution Order.
-    
-    Args:
-        obj (object): The object to return the mro of. This can be a class object or instance.1
-        nice (bool): Returns the same module names as help(object) if True, otherwise repr(object).
+
+    Args: obj (object): The object to return the mro of. This can be a class object or
+        instance.1
+
+        nice (bool): Returns the same module names as help(object) if True, otherwise
+        repr(object).
+
         joinString (str, optional): The repr of each class is joined by this string.
-    
+
     Returns:
         str: A string showing the Method Resolution Order of the given object.
     """
@@ -1403,7 +1414,7 @@ def recycleGui(cls, *args, **kwargs):
     """
     try:
         recycleGui._stored_().close()
-    except:
+    except Exception:
         pass
     out = cls(*args, **kwargs)
     recycleGui._stored_ = weakref.ref(out)
@@ -1415,8 +1426,9 @@ def reportError(msg, debugLevel=1):
 
     Args:
         msg (str): the message to add to the debug report.
-        debugLevel (blurdev.debug.DebugLevel, optional): Only adds msg to the debug report
-            if debugLevel is this level or higher. Defaults to DebugLevel.Low.
+
+        debugLevel (blurdev.debug.DebugLevel, optional): Only adds msg to the debug
+            report if debugLevel is this level or higher. Defaults to DebugLevel.Low.
     """
     if isDebugLevel(debugLevel):
         _errorReport.append(str(msg))

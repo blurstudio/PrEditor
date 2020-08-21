@@ -17,10 +17,10 @@ _cache = {}
 
 class Preference(XMLDocument):
     """
-    A preference document is a sub-class of the XMLDocument and is used for 
-    storing custom information about blurdev components, most often tools 
+    A preference document is a sub-class of the XMLDocument and is used for
+    storing custom information about blurdev components, most often tools
     or views.
-    
+
     """
 
     def __init__(self):
@@ -44,7 +44,8 @@ class Preference(XMLDocument):
         return self._name
 
     def filename(self):
-        """ return this documents filename, deriving the default filename from its name and standard preference location  """
+        """ return this documents filename, deriving the default filename from its name
+        and standard preference location  """
         if not self._filename:
             key = self.name().lower().replace(' ', '-')
             self._filename = os.path.join(
@@ -63,7 +64,8 @@ class Preference(XMLDocument):
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS_SHARED']) % {
                 'username': getpass.getuser()
             }
-        # if not shared or the path does not exist use the non shared path. This is for user accounts who do not
+        # if not shared or the path does not exist use the non shared path. This is for
+        # user accounts who do not
         # get network shared preference locations.
         if not path or not os.path.exists(path):
             path = osystem.expandvars(os.environ['BDEV_PATH_PREFS'])
@@ -131,8 +133,8 @@ def clearCache():
 
 def find(name, reload=False, coreName='', shared=False, index=0):
     """
-    Finds a preference for the with the inputed name.  If a pref already 
-    exists within the cache, then the cached pref is returned; otherwise, 
+    Finds a preference for the with the inputed name.  If a pref already
+    exists within the cache, then the cached pref is returned; otherwise,
     it is loaded from the blurdev preference location.
 
     :param name: the name of the preference to retrieve
@@ -143,8 +145,8 @@ def find(name, reload=False, coreName='', shared=False, index=0):
     :type coreName: str
     :param shared: save to the network path not localy. Defaults to False
     :type shared: bool
-    :param index: if > 0 append to the end of name. used to make multiple 
-                  instances of the same prefs file. If zero it will not 
+    :param index: if > 0 append to the end of name. used to make multiple
+                  instances of the same prefs file. If zero it will not
                   append anything for backwards compatibility. Defaults to 0
     :type index: int
     :rtype: :class:`Preference`

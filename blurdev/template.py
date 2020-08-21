@@ -36,8 +36,6 @@ def unregisterPath(key):
 
 
 def templFilename(templname, key='default'):
-    import blurdev
-
     path = _templPaths.get(key)
     if not path and key != 'default':
         return templFilename(templname, key)
@@ -90,8 +88,6 @@ def userTemplNames():
 
 
 def templNames():
-    import blurdev
-
     filenames = []
     for path in _templPaths.values():
         filenames += glob.glob(os.path.join(osystem.expandvars(path), '*.templ'))
@@ -107,7 +103,7 @@ def fromFile(filename, options={}):
         f = open(filename, 'r')
         data = f.read()
         f.close()
-    except:
+    except Exception:
         print('Error opening file', filename)
         return ''
 
@@ -120,7 +116,7 @@ def formatFile(input, output, options={}):
         f = open(input, 'r')
         data = f.read()
         f.close()
-    except:
+    except Exception:
         print('Error opening file from: ', input)
         return False
 
@@ -245,7 +241,7 @@ def formatText(txt, options={}):
         c = result.replace('{!', '').replace('!}', '').strip()
         try:
             ctext = eval(c)
-        except:
+        except Exception:
             ctext = c
 
         txt = txt.replace(result, ctext)

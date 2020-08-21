@@ -9,6 +9,7 @@ from __future__ import print_function
 from future.utils import iteritems
 from past.builtins import basestring
 from builtins import str as text
+from imp import reload
 
 _configParserKwargs = dict()
 try:
@@ -21,8 +22,8 @@ try:
     # environment variables. It raises exceptions if it finds % that don't match that.
     # This causes problems with render elements so we disable it.
     _configParserKwargs = dict(strict=False, interpolation=None)
-except:
-    import ConfigParser as configparser
+except Exception:
+    import ConfigParser as configparser  # noqa: N813
 
 import sys
 import os
@@ -40,10 +41,11 @@ fallbackEncoding = 'utf-16'
 
 
 def GetINISetting(inFileName, inSection="", inKey=""):
-    """	Gets the value of the inputed key found in the given section of an INI file, if it exists and
-        the key is specified.  If the key is not specified, but the section exists, then the function
-        will return a list of all the keys in that section.
-                    
+    """ Gets the value of the inputed key found in the given section of an INI file, if
+        it exists and the key is specified.  If the key is not specified, but the
+        section exists, then the function will return a list of all the keys in that
+        section.
+
         :param inFileName:
         :param inSection:
         :param inKey:
@@ -71,23 +73,24 @@ def SetINISetting(
     inFileName, inSection, inKey, inValue, useConfigParser=False, writeDefault=True
 ):
     """ Sets the ini section setting of the provided file with the give key/value pair.
-        
-    By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to True
-    It will use ConfigParser.ConfigParser instead. You will not be able to write to the
-    DEFAULT Section when using ConfigParser.ConfigParser. If writeDefault is False it can
-    still use the ToolParserClass, but it will not write the DEFAULT section.
-    
-    Updating the DEFAULT section will affect any future ini files you write. To prevent this
-    you may want to use the blurdev.ini.temporaryDefaults context.
-    
+
+    By default it uses blurdev.ini.ToolParserClass, but if you set useConfigParser to
+    True It will use ConfigParser.ConfigParser instead. You will not be able to write to
+    the DEFAULT Section when using ConfigParser.ConfigParser. If writeDefault is False
+    it can still use the ToolParserClass, but it will not write the DEFAULT section.
+
+    Updating the DEFAULT section will affect any future ini files you write. To prevent
+    this you may want to use the blurdev.ini.temporaryDefaults context.
+
     Args:
         inFileName (str): Ini filename to write to
         inSection (str): Name of the section the value is stored
         inKey (str): Name of the key to store the value
         inValue: The value to store
         useConfigParser (bool): Use the ToolParserClass or configparser class
-        writeDefault (bool): If using ToolParserClass, should it write the DEFAULT section
-        
+        writeDefault (bool): If using ToolParserClass, should it write the DEFAULT
+        section
+
     Returns:
         bool: IF it was able to save the ini setting to file.
     """
@@ -118,7 +121,8 @@ def SetINISetting(
 
 
 def DelINISetting(inFileName, inSection, inKey=""):
-    """ Delets the given section & key ( if specified ) from the inputed file, if the file exists.
+    """ Delets the given section & key ( if specified ) from the inputed file, if the
+    file exists.
 
         :returns: bool
     """
@@ -141,9 +145,9 @@ def EndINIFn():
     return None
 
 
-class switch(object):
+class switch(object):  # noqa: N801
     """ Provides a switch call that mimics that of C/C++.
-    
+
         :returns: bool
     """
 
@@ -170,14 +174,16 @@ class SectionClass(object):
     """
 
     def __getattr__(self, attrKey):
-        """ Overloaded the get attribute for this class to run the GetProperty function for the given attribute
+        """ Overloaded the get attribute for this class to run the GetProperty function
+            for the given attribute
         """
         if not attrKey.startswith('_'):
             return self.GetProperty(attrKey)
         raise AttributeError(attrKey)
 
     def __setattr__(self, attrKey, attrValue):
-        """ Overloaded the set attribute for this class to run the SetProperty function for the given attribute
+        """ Overloaded the set attribute for this class to run the SetProperty function
+            for the given attribute
         """
         if not attrKey.startswith('_'):
             self.SetProperty(attrKey, attrValue)
@@ -185,7 +191,8 @@ class SectionClass(object):
             raise AttributeError(attrKey)
 
     def __init__(self, sectionName):
-        """ Class initialization.  Set the sectionName for the class instance to the given variable *required*
+        """ Class initialization.  Set the sectionName for the class instance to the
+            given variable *required*
         """
         super(SectionClass, self).__init__()
         self.__dict__['_sectionName'] = sectionName
@@ -215,7 +222,8 @@ class SectionClass(object):
         return self._properties.values()
 
     def Load(self, parser):
-        """ Loads the data from the inputed parser if it has a section whose name matches this instance's name.
+        """ Loads the data from the inputed parser if it has a section whose name
+        matches this instance's name.
         """
         if parser.has_section(self._sectionName):
             self.__dict__['_properties'] = {}
@@ -244,8 +252,8 @@ class SectionClass(object):
         self._sectionName = sectionName
 
     def SetProperty(self, propName, propValue):
-        """ Sets the property and value for the INI part based on the inputed values.  ** The inputed
-            propName is converted to lowercase **
+        """ Sets the property and value for the INI part based on the inputed values.
+        ** The inputed propName is converted to lowercase **
         """
         propName = propName.lower()
         self._properties[propName] = propValue
@@ -258,9 +266,11 @@ class ToolParserClass(configparser.ConfigParser):
 
     def __getattr__(self, attrKey):
         """
-            :remarks	Overloaded the __getattr__ function to use the GetSection function for this class type
+            :remarks    Overloaded the __getattr__ function to use the GetSection
+                        function for this class type
+
             :param		attrKey		<string>
-        
+
             :return		<SectionClass> || AttributeError
         """
         if not attrKey.startswith('_'):
@@ -287,7 +297,8 @@ class ToolParserClass(configparser.ConfigParser):
         The fileName is built as:
             GetPath( pathID ) + toolID + '.ini'
 
-        If there is no toolID specified for this instance, then this function returns a blank string.
+        If there is no toolID specified for this instance, then this function returns a
+        blank string.
 
         """
         outFileName = ''
@@ -305,8 +316,8 @@ class ToolParserClass(configparser.ConfigParser):
         return outFileName
 
     def GetSection(self, sectionName):
-        """ Returns the section whose name matches the inputed string, adding a new SectionClass to this
-            instance's list if none is found.
+        """ Returns the section whose name matches the inputed string, adding a new
+        SectionClass to this instance's list if none is found.
         """
         for tSection in self._sectionClasses:
             if tSection.GetName().lower() == sectionName.lower():
@@ -327,9 +338,10 @@ class ToolParserClass(configparser.ConfigParser):
         return self._sectionClasses
 
     def Load(self, fileName=''):
-        """ Load up a config file and builds its class information based on its sections/keys/values.
-            If the fileName is specified, then the parser uses the inputed file name to open, otherwise
-            it will use the GetFileName function to build its own name.
+        """ Load up a config file and builds its class information based on its
+            sections/keys/values. If the fileName is specified, then the parser uses the
+            inputed file name to open, otherwise it will use the GetFileName function to
+            build its own name.
         """
         if not fileName:
             fileName = self.GetFileName()
@@ -354,12 +366,13 @@ class ToolParserClass(configparser.ConfigParser):
                             configparser.ParsingError,
                             UnicodeError,
                         ):
-                            # The backup is corrupted there is nothing else we can do automatically.
-                            print(
-                                'The backup config file for "{fileName}" is corrupted. Unable to load blurdev config.'.format(
-                                    fileName=fileName
-                                )
+                            # The backup is corrupted there is nothing else we can do
+                            # automatically.
+                            msg = (
+                                'The backup config file for "{fileName}" is corrupted. '
+                                'Unable to load blurdev config.'
                             )
+                            print(msg.format(fileName=fileName))
                             return False
             self._sectionClasses = []
             for tSectionName in self.sections():
@@ -392,11 +405,12 @@ class ToolParserClass(configparser.ConfigParser):
 
     def Save(self, fileName=''):
         """
-            :remarks	Save out a config file based on the class information, saving to the specified fileName.
-                        If a blank string is passed in for the fileName, then it sets the fileName value using the
-                        GetFileName function.
+            :remarks    Save out a config file based on the class information, saving to
+                        the specified fileName. If a blank string is passed in for the
+                        fileName, then it sets the fileName value using the GetFileName
+                        function.
             :param		fileName		<string>		OPTIONAL
-        
+
             :return		<bool>
         """
         if not fileName:
@@ -443,7 +457,7 @@ class ToolParserClass(configparser.ConfigParser):
                             )
                     fp.write("\n")
         for section in sorted(self._sections):
-            if not section in sects:
+            if section not in sects:
                 fp.write("[%s]\n" % section)
                 for (key, value) in sorted(self._sections[section].items()):
                     if key != "__name__":
@@ -452,8 +466,9 @@ class ToolParserClass(configparser.ConfigParser):
 
 
 def _normEnv(environmentID):
-    """ Normalizes inputed environmentID.  Function is setup for backwards compatibility, setting
-        code path 'local' and 'network' to work with new environments and turns the ID to lowercase
+    """ Normalizes inputed environmentID.  Function is setup for backwards
+        compatibility, setting code path 'local' and 'network' to work with new
+        environments and turns the ID to lowercase
     """
     if environmentID.lower() == 'network':
         return 'Production'
@@ -467,18 +482,18 @@ def _normEnv(environmentID):
 def addSysPath(path):
     if path:
         path = os.path.normpath(path.lower())
-        if not path in sys.path:
+        if path not in sys.path:
             sys.path.append(path)
             return True
     return False
 
 
 def AddResourcePath(inRelativePath):
-    """ Adds a relative path to the sys.path list, combining the inputed path with the current
-        GetCodePath results.
+    """ Adds a relative path to the sys.path list, combining the inputed path with the
+        current GetCodePath results.
     """
     tPath = os.path.normpath(os.path.join(GetCodePath(), inRelativePath).lower())
-    if not tPath in sys.path:
+    if tPath not in sys.path:
         sys.path.append(tPath)
         return True
     return False
@@ -497,15 +512,15 @@ def GetActiveEnvironmentID():
 
 
 def GetCodePath(inEnvironment=''):
-    """ Returns the 'codeRoot' pathID value for the given environment.  If no environment is specified,
-        then the current active environment is used.
+    """ Returns the 'codeRoot' pathID value for the given environment.  If no
+        environment is specified, then the current active environment is used.
     """
     return GetPath('codeRoot', inEnvironment=inEnvironment)
 
 
 def GetEnvironment(environmentID):
-    """ Returns the SectionClass instance whose ID matches the inputed envrionment ID from the global
-        environments list (if a match is found)
+    """ Returns the SectionClass instance whose ID matches the inputed envrionment ID
+        from the global environments list (if a match is found)
     """
     if not environmentID:
         environmentID = activeEnvironment
@@ -535,11 +550,11 @@ def GetEnvironmentIDs(verifyPathIDsExist=[]):
 def GetPath(
     inPathKey, inEnvironment='', inPathSeparator='/', inIncludeLastSeparator=True
 ):
-    """ Gets the path associated with the inputed path key.  If an environment is passed in, then
-        that environment section is used to find the path value, otherwise the active environment is
-        used.  If the inputed path key does not exist in the given environment, then the value for the
-        default environment is returned, and if no match exists for the default section, a blank string
-        is outputed.
+    """ Gets the path associated with the inputed path key.  If an environment is passed
+        in, then that environment section is used to find the path value, otherwise the
+        active environment is used.  If the inputed path key does not exist in the given
+        environment, then the value for the default environment is returned, and if no
+        match exists for the default section, a blank string is outputed.
     """
     if not inEnvironment:
         inEnvironment = activeEnvironment
@@ -561,9 +576,9 @@ def GetPath(
 
 
 def GetPathIDs(inEnvironment=''):
-    """ Collects all the available pathIDs for the inputed environment, using the active environment
-        if no input is specified.  Combines the given environment and the default values (which are
-        available for any environment)
+    """ Collects all the available pathIDs for the inputed environment, using the active
+        environment if no input is specified.  Combines the given environment and the
+        default values (which are available for any environment)
     """
     if not inEnvironment:
         inEnvironment = activeEnvironment
@@ -573,16 +588,16 @@ def GetPathIDs(inEnvironment=''):
 
     if inEnvironment in environments:
         for tPropName in environments[inEnvironment].GetPropNames():
-            if not tPropName in outPropNames:
+            if tPropName not in outPropNames:
                 outPropNames.append(tPropName)
 
     return outPropNames
 
 
 def GetPaths(inEnvironment='', inPathSeparator='/'):
-    """ Collects all the available paths for the inputed environment, using the active environment
-        if no input is specified.  Combines the given environment and the default values (which are
-        available for any environment)
+    """ Collects all the available paths for the inputed environment, using the active
+        environment if no input is specified.  Combines the given environment and the
+        default values (which are available for any environment)
     """
     outPaths = []
     for tPathID in GetPathIDs(inEnvironment=inEnvironment):
@@ -592,9 +607,9 @@ def GetPaths(inEnvironment='', inPathSeparator='/'):
 
 
 def IsEnvironmentValid(environmentID='', verifyPathIDsExist=[]):
-    """ Checks to see if the given environment exists by checking the paths associated with it,
-        if the pathIDs array is blank, then all the paths are checked, otherwise only those specified
-        are checked.
+    """ Checks to see if the given environment exists by checking the paths associated
+        with it, if the pathIDs array is blank, then all the paths are checked,
+        otherwise only those specified are checked.
     """
     if not environmentID:
         environmentID = activeEnvironment
@@ -617,7 +632,8 @@ def IsOffsite():
 
 
 def IsPath(pathID, inEnvironment=''):
-    """ Checks to see if the inputed ID is in the list of available path IDs for the specified environment
+    """ Checks to see if the inputed ID is in the list of available path IDs for the
+        specified environment
     """
     for tPathID in GetPathIDs(inEnvironment=''):
         if tPathID.lower() == pathID.lower():
@@ -626,13 +642,15 @@ def IsPath(pathID, inEnvironment=''):
 
 
 def IsScripter():
-    """ Checks to see if the code path for the development environment exists on the user's machine
+    """ Checks to see if the code path for the development environment exists on the
+        user's machine
     """
     return os.path.exists(GetCodePath(inEnvironment='development'))
 
 
 def LoadConfigData():
-    """ Loads the config data from the blur config.ini file to populate the path templates and data
+    """ Loads the config data from the blur config.ini file to populate the path
+    templates and data
     """
     global environments, activeEnvironment, blurConfigFile
     environments = {}
@@ -677,8 +695,8 @@ def LoadConfigData():
 
 def RestoreConfig(fileName, msg=None):
     """ Copies a fresh config.ini from the backup location.
-    
-    If msg is provided it will be printed before it copies the file
+
+        If msg is provided it will be printed before it copies the file
     """
     path = os.environ.get('BDEV_CONFIG_INI_BACKUP')
     if path and os.path.exists(path):
@@ -692,7 +710,8 @@ def RestoreConfig(fileName, msg=None):
 
 
 def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys={}):
-    """ Removes templates from the inputed path - this way paths can be built using symbolic links
+    """ Removes templates from the inputed path - this way paths can be built using
+        symbolic links
     """
     tSplit = inPath.replace('[', ']').split(']')
     outName = ''
@@ -728,20 +747,20 @@ def ReloadAllModules():
     """ Reloads all modules in memory
     """
     for module in sys.modules.itervalues():
-        if (module != None) and module.__name__.find("blur") != -1:
+        if (module is not None) and module.__name__.find("blur") != -1:
             try:
-                if not module.__name__ in ["blurdev.ini"]:
+                if module.__name__ not in ["blurdev.ini"]:
                     reload(module)
                 # xsi.LogMessage( "Reloaded:  " + module.__name__ )
-            except:
+            except Exception:
                 pass
                 # xsi.LogMessage( "No Module Named:  " + module.__name__ )
     return True
 
 
 def SetCodePath(inEnvironment, reloadModules=False):
-    """ Sets the current active environment to the inputed value, replacing the code path within
-        the sys path info for importing libraries from the right environment
+    """ Sets the current active environment to the inputed value, replacing the code
+        path within the sys path info for importing libraries from the right environment
     """
     oldCodePath = GetCodePath()
     outCodePath = oldCodePath
@@ -801,7 +820,7 @@ def IsInt(inString):
     try:
         int(inString)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -811,19 +830,19 @@ def IsFloat(inString):
     try:
         float(inString)
         return True
-    except:
+    except Exception:
         return False
 
 
 @contextmanager
 def temporaryDefaults():
     """ Context that restores the current DEFAULT settings in memory, after editing.
-    
+
     When modifying the DEFAULT section with blurdev.ini.SetINISetting, it updates the
     DEFAULT values stored in memory, so any future saves with blurdev.ini, will have
-    those changes. If you want to update DEFAULT for a single file, but not update 
-    the global defaults, you can use this context. Any changes made to DEFAULT while 
-    this context is active will be reverted afterwards, and you can make changes to 
+    those changes. If you want to update DEFAULT for a single file, but not update
+    the global defaults, you can use this context. Any changes made to DEFAULT while
+    this context is active will be reverted afterwards, and you can make changes to
     multiple DEFAULT keys.
     """
     env = environments['default']

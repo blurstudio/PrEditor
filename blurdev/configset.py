@@ -51,7 +51,7 @@ class ConfigSet(QObject):
 
         for child in self.findChildren(ConfigSetItem):
             grpName = str(child.groupName())
-            if not grpName in output:
+            if grpName not in output:
                 output.append(grpName)
 
         output.sort()
@@ -80,7 +80,9 @@ class ConfigSet(QObject):
 
     def loadFrom(self, filename, package):
         # load the config plugins
-        import os.path, glob, sys
+        import os.path
+        import glob
+        import sys
 
         filenames = glob.glob(os.path.split(filename)[0] + '/*.py')
         for f in filenames:
@@ -89,7 +91,7 @@ class ConfigSet(QObject):
                 configmodule = '%s.%s' % (package, modname)
                 try:
                     __import__(configmodule)
-                except:
+                except ImportError:
                     print('could not import %s' % configmodule)
                     continue
 

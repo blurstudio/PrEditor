@@ -19,13 +19,16 @@ if __name__ == '__main__':
     # Setup the correct build environment to allow importing of Qt.py
     import blurpath
 
-    # Setup the PATH env variable, sys.path and QT_PREFERRED_BINDING to the correct values
+    # Setup the PATH env variable, sys.path and QT_PREFERRED_BINDING to the correct
+    # values
     blurpath.installPathsForSoftware('python', '')
     # --------------------------------------------------------------------------------
 
-    from blur.build import *
+    from blur.build import WCRevTarget, NSISTarget, build, Target
     import blur.build
-    import sys, os, platform
+    import sys
+    import os
+    import platform
     from blurdev import template
 
     product = sys.argv[1]
@@ -33,13 +36,10 @@ if __name__ == '__main__':
     # make sure the path exists for the package
     path = os.path.dirname(os.path.abspath(__file__))
     dirpath = os.path.abspath(path + '/..')
-    if not dirpath in sys.path:
+    if dirpath not in sys.path:
         sys.path.append(dirpath)
 
     from optparse import OptionParser
-
-    # Temporary until a blur-utils package is made
-    import platform
 
     if 'Linux' == platform.system():
         libPath = r'/mnt/source/code/python/lib/'
@@ -77,9 +77,11 @@ if __name__ == '__main__':
 
     if dictionary['offline'] == '1':
         f.write(
-            '!define OUTPUT_FILENAME "bin\offline\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}-offline.exe"\n'
+            '!define OUTPUT_FILENAME "bin\offline\${MUI_PRODUCT}'
+            '-install-${INSTALL_VERSION}.${MUI_SVNREV}-offline.exe"\n'
         )
-        # When Building a offline build of blurdev, update the dummy records that are used to ensure trax gui dummy widgets work.
+        # When Building a offline build of blurdev, update the dummy records that are
+        # used to ensure trax gui dummy widgets work.
         import trax
 
         if trax.isValid:
@@ -97,7 +99,8 @@ if __name__ == '__main__':
             blurdev.traxoffline.trax.api.data.createDepartmentList(
                 r'%s\traxoffline\trax\api\data\source\departments.xml' % path
             )
-        # Create a offline copy of settings.ini and update any paths that may not exist offline
+        # Create a offline copy of settings.ini and update any paths that may not exist
+        # offline
         print('**************************************************')
         print('*            Updating settings.ini               *')
         print('**************************************************')
@@ -146,7 +149,8 @@ if __name__ == '__main__':
             r'C:\blur\splash',
             useConfigParser=True,
         )
-        # 		blurdev.ini.SetINISetting(destPath, 'Windows', 'BDEV_TRAX_ON_DCC_STARTUP', r'false', useConfigParser=True)
+        # blurdev.ini.SetINISetting(destPath, 'Windows',
+        # 'BDEV_TRAX_ON_DCC_STARTUP', r'false', useConfigParser=True)
 
         # remove non blur specific includes in tools_environments.xml
         print('**************************************************')
@@ -171,7 +175,8 @@ if __name__ == '__main__':
                 )
                 child.remove()
         # Add the offline environment
-        # <environment	name="Blur Offline" loc="c:/blur/dev/offline" default="True" legacyName="Offline" offline="True"/>
+        # <environment	name="Blur Offline" loc="c:/blur/dev/offline"
+        # default="True" legacyName="Offline" offline="True"/>
         print('  Adding the offline environment')
         child = root.addNode('environment')
         child.setAttribute('name', 'Blur Offline')
@@ -182,9 +187,10 @@ if __name__ == '__main__':
         doc.save(destXML)
 
     else:
-        f.write(
-            '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
-        )
+        f.write((
+            '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}'
+            '-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
+        ))
 
     f.close()
 

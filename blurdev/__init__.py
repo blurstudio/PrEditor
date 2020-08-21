@@ -7,10 +7,15 @@
 """
 
 from __future__ import absolute_import
-
 from __future__ import print_function
 
-__DOCMODE__ = False  # this variable will be set when loading information for documentation purposes
+try:
+    from importlib import reload
+except ImportError:
+    from imp import reload
+
+# this variable will be set when loading information for documentation purposes
+__DOCMODE__ = False
 
 # track the install path
 import os
@@ -32,7 +37,8 @@ from Qt.QtWidgets import (
 )
 from Qt.QtCore import Qt, QDateTime
 
-# TODO: It is probably unnecessary to import most of these subpackages in the root package.
+# TODO: It is probably unnecessary to import most of these subpackages in the root
+# package.
 import blurdev.version
 
 __version__ = blurdev.version.to_string(prepend_v=False)
@@ -45,7 +51,6 @@ import blurdev.XML
 import blurdev.prefs
 import blurdev.tools
 import blurdev.ini
-from blurdev.resource_finder import ResourceFinder as Resources
 
 
 installPath = os.path.dirname(__file__)
@@ -97,9 +102,14 @@ def activeEnvironment(coreName=None):
 
 def bindMethod(object, name, method):
     """
-    Properly binds a new python method to an existing C++ object as a 
+    Properly binds a new python method to an existing C++ object as a
     dirty alternative to sub-classing when not possible. Object must
     be a instance, not a class.
+
+    In most cases we don't use the self argument in these functions. It's
+    referencing a different object than the class its defined on so this
+    reminds you to not think of it as such. You should add the N805 noqa
+    to these functions to silence flake8 errors.
     """
     # Passing (method.__func__, object) should work in python 2 and 3.
     object.__dict__[name] = types.MethodType(method.__func__, object)
@@ -170,34 +180,32 @@ def launch(
     dockWidgetArea=Qt.RightDockWidgetArea,
 ):
     """
-    This method is used to create an instance of a widget (dialog/window) to 
-    be run inside the blurdev system.  Using this function call, blurdev will 
-    determine what the application is and how the window should be 
-    instantiated, this way if a tool is run as a standalone, a new 
-    application instance will be created, otherwise it will run on top 
+    This method is used to create an instance of a widget (dialog/window) to
+    be run inside the blurdev system.  Using this function call, blurdev will
+    determine what the application is and how the window should be
+    instantiated, this way if a tool is run as a standalone, a new
+    application instance will be created, otherwise it will run on top
     of a currently running application.
-    
+
     :param ctor: callable object that will return a widget instance, usually
                  a :class:`QWidget` or :class:`QDialog` or a function that
                  returns an instance of one.
     :param modal: If True, widget will be created as a modal widget (ie. blocks
                   access to calling gui elements).
-    :param coreName: string to give to the core if the application is 
+    :param coreName: string to give to the core if the application is
                      going to be rooted under this widget
     :param instance: If subclassed from blurdev.gui.Window or Dialog
                      it will show the existing instance instead of
                      creating a new instance. Ignored if modal == True.
     :param kwargs: A dict of keyword arguments to pass to the widget initialization
-    :param wrapClass: launch() requires a subclass of QDialog, QMainWindow or DockWidget to work 
-        correctly. If you pass in a widget, it will automatically get wrapped in a Dialog, unless
-        you specify a class using this argument, in which case it will be wrapped by that.
+    :param wrapClass: launch() requires a subclass of QDialog, QMainWindow or DockWidget
+        to work correctly. If you pass in a widget, it will automatically get wrapped in
+        a Dialog, unless you specify a class using this argument, in which case it will
+        be wrapped by that.
     :param dockWidgetArea: If ctor is a QDockWidget
     """
     global lastLaunched
     global protocolSplash
-    # create the app if necessary
-    app = None
-    from blurdev.cores.core import Core
 
     if application:
         application.setStyle(core.defaultStyle())
@@ -257,8 +265,9 @@ def launch(
     if splash:
         splash.finish(widget)
 
-    # If the passed in ctor is not a QDialog, QMainWindow or QDockWidget, wrap it in a dialog
-    # so that it displays correctly. It will get garbage collected and close otherwise
+    # If the passed in ctor is not a QDialog, QMainWindow or QDockWidget, wrap it in a
+    # dialog so that it displays correctly. It will get garbage collected and close
+    # otherwise
     if not isinstance(widget, (QMainWindow, QDialog, QDockWidget)):
         if wrapClass is not None:
             dlg = wrapClass(None)
@@ -305,9 +314,9 @@ def startApplication(windowIcon=None):
 
 def quickReload(modulename):
     """
-    Searches through the loaded sys modules and looks up matching module names 
+    Searches through the loaded sys modules and looks up matching module names
     based on the imported module.
-    
+
     """
     expr = re.compile(modulename.replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
 
@@ -318,7 +327,7 @@ def quickReload(modulename):
 
     for key in keys:
         module = sys.modules[key]
-        if expr.match(key) and module != None:
+        if expr.match(key) and module is not None:
             print('reloading', key)
             reload(module)
 
@@ -377,7 +386,8 @@ def relativePath(path, additional=''):
 
 def resetWindowPos():
     """
-        Reset any top level widgets(windows) to 0,0 use this to find windows that are offscreen.
+        Reset any top level widgets(windows) to 0,0 use this to find windows that are
+        offscreen.
     """
     for widget in QApplication.instance().topLevelWidgets():
         if widget.isVisible():
@@ -402,14 +412,15 @@ def resourcePath(relpath=''):
 
 def runTool(toolId, macro=""):
     """ Runs the tool with the given tool id.
-    
+
     Finds the tool with the given tool id name for the activeEnvironment if it exists.
     You can pass a macro to the tool.exec_ call.
-    
+
     Args:
         toolId(str): The tool Id for the tool. See Tool.objectName()
-        macro(str): I have no idea what this is for. Looks like it was from when treegrunt 
-                    was moved to blurdev.
+
+        macro(str): I have no idea what this is for. Looks like it was from when
+                    treegrunt was moved to blurdev.
     """
     # load the tool
     tool = blurdev.tools.ToolsEnvironment.activeEnvironment().index().findTool(toolId)
@@ -431,10 +442,11 @@ def setActiveEnvironment(envName, coreName=None):
 
     Args:
         envName (str): The name of a valid treegrunt environment. Case sensitive.
-        coreName (str or None, optional): Update the saved environment preference for the
-            given coreName. Ignored if coreName matches the current coreName. This change
-            will take effect the next time that core is loaded as long as some other
-            instance of python doesn't update it after this call.
+
+        coreName (str or None, optional): Update the saved environment preference for
+            the given coreName. Ignored if coreName matches the current coreName. This
+            change will take effect the next time that core is loaded as long as some
+            other instance of python doesn't update it after this call.
 
     Returns:
         bool: The environment was changed successfully. Returns False if the current
@@ -442,7 +454,8 @@ def setActiveEnvironment(envName, coreName=None):
     """
     env = blurdev.tools.ToolsEnvironment.findEnvironment(envName)
     if coreName is not None and coreName is not blurdev.core.objectName():
-        # There is no need to update the environment this way if its the current environment.
+        # There is no need to update the environment this way if its the current
+        # environment.
         if not env.isEmpty():
             # Update the saved preference so the next time the core is loaded it will
             # use the requested environment if the environment is valid.
@@ -463,22 +476,23 @@ def setActiveEnvironment(envName, coreName=None):
 
 def setAppUserModelID(appId, prefix='Blur'):
     """ Controls the Windows 7 taskbar grouping.
-    
-    Specifies a Explicit App User Model ID that Windows 7 uses to control grouping of windows on 
-    the taskbar.  This must be set before any ui is displayed. The best place to call it is in the 
-    first widget to be displayed __init__ method.
-    
+
+    Specifies a Explicit App User Model ID that Windows 7 uses to control grouping of
+    windows on the taskbar.  This must be set before any ui is displayed. The best place
+    to call it is in the first widget to be displayed __init__ method.
+
     Args:
         appId (str): The id of the application. Should use full camel-case.
             `http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how`_
-        prefix (str): The prefix attached to the id.  For a blur tool called fooBar, the associated 
-            appId should be "Blur.FooBar". Defaults to "Blur".
+
+        prefix (str): The prefix attached to the id.  For a blur tool called fooBar, the
+            associated appId should be "Blur.FooBar". Defaults to "Blur".
     """
-    # If this function is run inside other applications, it can cause(unparented) new sub windows
-    # to parent with this id instead of the parent application in windows.
-    # To test: Create a window calling setAppUserModelID before showing it. Use a unique appId. Then
-    # create a unparented window and show it. The unparented window will appear in a different
-    # taskbar group.
+    # If this function is run inside other applications, it can cause(unparented) new
+    # sub windows to parent with this id instead of the parent application in windows.
+    # To test: Create a window calling setAppUserModelID before showing it. Use a unique
+    # appId. Then create a unparented window and show it. The unparented window will
+    # appear in a different taskbar group.
     if not blurdev.core.useAppUserModelID():
         return False
     # Try/except is to prevent the NEED for blur.Stone.
@@ -495,11 +509,11 @@ def setAppUserModelID(appId, prefix='Blur'):
 
 def signalInspector(item, prefix='----', ignore=[]):
     """
-    Connects to all signals of the provided item, and prints the name of 
-    each signal.  When that signal is activated it will print the prefix, 
-    the name of the signal, and any arguments passed. These connections 
+    Connects to all signals of the provided item, and prints the name of
+    each signal.  When that signal is activated it will print the prefix,
+    the name of the signal, and any arguments passed. These connections
     will persist for the life of the object.
-    
+
     :param item: QObject to inspect signals on.
     :type item: :class:`Qt.QtCore.QObject`
     :param prefix: The prefix to display when a signal is emitted.
@@ -517,7 +531,7 @@ def signalInspector(item, prefix='----', ignore=[]):
     for attr in dir(item):
         if (
             type(getattr(item, attr)).__name__ == 'pyqtBoundSignal'
-            and not attr in ignore
+            and attr not in ignore
         ):
             print(attr)
             getattr(item, attr).connect(create(attr))

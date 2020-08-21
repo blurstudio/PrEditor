@@ -8,7 +8,7 @@ way.
 
 .. data:: EXTENSION_MAP
 
-   Dictionary of (extension: blurdev_enviroment_variable) pairs used by 
+   Dictionary of (extension: blurdev_enviroment_variable) pairs used by
    :func:`startfile` to execute scripts and other files.
    This allows blurdev to associate filetypes with executable targets outside
    of the normal windows file association mechanism.
@@ -40,7 +40,10 @@ def getPointerSize():
         size = struct.calcsize('l')
     size *= 8
     global getPointerSize
-    getPointerSize = lambda: size
+
+    def getPointerSize():
+        return size
+
     return size
 
 
@@ -63,7 +66,8 @@ def pythonPath(pyw=False, architecture=None):
 
         # Unable to pull the path from the registry just use the current python path
         basepath = os.path.split(get_python_inc())[0]
-    # build the path to the python executable. If requested use pythonw instead of python
+    # build the path to the python executable. If requested use pythonw instead of
+    # python
     return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
 
 
@@ -72,9 +76,9 @@ EXTENSION_MAP = {}
 
 def expandvars(text, cache=None):
     """
-    Recursively expands the text variables, vs. the os.path.expandvars 
+    Recursively expands the text variables, vs. the os.path.expandvars
     method which only works at one level.
-    
+
     :param text: text string to expand
     :type text: str
     :param cache: used internally during recursion to prevent infinite loop
@@ -113,7 +117,7 @@ def expandvars(text, cache=None):
 
         value = os.environ.get(key)
         if value:
-            if not key in cache:
+            if key not in cache:
                 cache[key] = value
                 value = expandvars(value, cache)
             else:
@@ -189,13 +193,13 @@ def createShortcut(
     description='',
     common=1,
 ):
-    """Creates a shortcut. 
+    """Creates a shortcut.
 
-    Windows: If icon is provided it looks for a .ico file with the same name 
-    as the provided icon.  If it can't find a .ico file it will attempt to 
-    create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick 
-    should be installed to the 32bit program files 
-    (64Bit Windows: C:\Program Files (x86)\ImageMagick, 
+    Windows: If icon is provided it looks for a .ico file with the same name
+    as the provided icon.  If it can't find a .ico file it will attempt to
+    create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick
+    should be installed to the 32bit program files
+    (64Bit Windows: C:\Program Files (x86)\ImageMagick,
     32Bit Windows: C:\Program Files\ImageMagick)
 
     Args:
@@ -256,9 +260,10 @@ def createShortcut(
             icon = output if os.path.exists(output) else None
 
         shortcut = os.path.join(path, title + '.lnk')
-        # If the shortcut description is longer than 260 characters, the target may end up with
-        # random unicode characters, and the icon is not set properly. The Properties dialog only
-        # shows 259 characters in the description, so we limit the description to 259 characters.
+        # If the shortcut description is longer than 260 characters, the target may end
+        # up with random unicode characters, and the icon is not set properly. The
+        # Properties dialog only shows 259 characters in the description, so we limit
+        # the description to 259 characters.
         description = description[:259]
 
         # If args is a list, convert it to a string using subprocess
@@ -290,10 +295,8 @@ def createShortcut(
 def explore(filename, dirFallback=False):
     """ Launches the provided filename in the prefered editor for the specific platform.
 
-    Args:
-        filename (str): The filepath to explore to.
-        dirFallback (bool): If True, and the file path does not exist, explore to the deepest
-            folder that does exist.
+    Args: filename (str): The filepath to explore to. dirFallback (bool): If True, and
+        the file path does not exist, explore to the deepest folder that does exist.
 
     Returns:
         bool: If it was able to explore the filename.
@@ -302,8 +305,8 @@ def explore(filename, dirFallback=False):
     fpath = os.path.normpath(filename)
 
     if dirFallback:
-        # If the provided filename does not exist, recursively check each parent folder for
-        # existance.
+        # If the provided filename does not exist, recursively check each parent folder
+        # for existance.
         while not os.path.exists(fpath) and not os.path.ismount(fpath):
             fpath = os.path.split(fpath)[0]
 
@@ -326,7 +329,8 @@ def explore(filename, dirFallback=False):
 
 
 def forOS(windows=None, linux=None, mac=None):
-    """ Use this function to return a specific value for the OS blurdev is currently running on.
+    """ Use this function to return a specific value for the OS blurdev is currently
+    running on.
 
     Args:
         windows: Value returned if running on Windows. Defaults to None.
@@ -359,7 +363,7 @@ def programFilesPath(path=''):
 def shell(command, basepath='', persistent=False):
     """
     Runs the given shell command in its own window.  The command will be run
-    from the current working directory, or from *basepath*, if given.  
+    from the current working directory, or from *basepath*, if given.
     If persistent is True, the shell will stay open after the command is run.
 
     """
@@ -411,15 +415,18 @@ def shell(command, basepath='', persistent=False):
 
 
 def subprocessEnvironment(env=None):
-    """ Returns a copy of the environment that will restore a new python instance to current state.
-    
-    Provides a environment dict that can be passed to subprocess.Popen that will restore the
-    current treegrunt environment settings, and blurdev stylesheet. It also resets any
-    environment variables set by a dcc that may cause problems when running a subprocess.
+    """ Returns a copy of the environment that will restore a new python instance to
+    current state.
+
+    Provides a environment dict that can be passed to subprocess.Popen that will restore
+    the current treegrunt environment settings, and blurdev stylesheet. It also resets
+    any environment variables set by a dcc that may cause problems when running a
+    subprocess.
 
     Args:
-        env (dict, Optional): The base dictionary that is modified with blurdev variables.
-            if None(default) it will be populated with a copy of os.environ.
+
+        env (dict, Optional): The base dictionary that is modified with blurdev
+            variables. if None(default) it will be populated with a copy of os.environ.
 
     Returns:
         dict: A list of environment variables to be passed to subprocess's env argument.
@@ -457,7 +464,8 @@ def subprocessEnvironment(env=None):
     # Some DCC's require inserting or appending path variables. When using subprocess
     # these path variables may cause problems with the target application. This allows
     # removing those path variables from the environment being passed to subprocess.
-    normalize = lambda i: os.path.normpath(os.path.normcase(i))
+    def normalize(i):
+        return os.path.normpath(os.path.normcase(i))
     removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
 
     # blurpath records any paths it adds to the PATH variable and other env variable
@@ -477,10 +485,10 @@ def subprocessEnvironment(env=None):
         except AttributeError:
             pass
 
-        # TODO: This is now tracked by blurpath v0.0.16, remove it
-        # This environment variable needs to be set on most dcc's to allow them to import
-        # the correct trax using blurpath. Removing this resets the subprocess to its
-        # default method of finding trax.
+        # TODO: This is now tracked by blurpath v0.0.16, remove it This environment
+        # variable needs to be set on most dcc's to allow them to import the correct
+        # trax using blurpath. Removing this resets the subprocess to its default method
+        # of finding trax.
         if 'BDEV_INCLUDE_TRAX' in env:
             del env['BDEV_INCLUDE_TRAX']
 
@@ -503,7 +511,7 @@ def subprocessEnvironment(env=None):
             # Attempt to remove any unicode objects. Ignore any conversion failures
             try:
                 k = blurdev.settings.environStr(k)
-            except:
+            except Exception:
                 pass
             try:
                 v = blurdev.settings.environStr(v)
@@ -520,28 +528,34 @@ def startfile(
 ):
     """ Runs the filename.
 
-    Runs the filename in a shell with proper commands given, or passes the command to the shell.
-    (CMD in windows) the current platform
+    Runs the filename in a shell with proper commands given, or passes the command to
+    the shell. (CMD in windows) the current platform
 
     Args:
         filename (str): path to the file to execute
-        debugLevel (blurdev.debug.DebugLevel or None, optional): If not None(default), override
-            for the current value of blurdev.debug.debugLevel(). If DebugLevel.High, a persistent
-            terminal will be opened allowing you see the output in case of a crash.
+
+        debugLevel (blurdev.debug.DebugLevel or None, optional): If not None(default),
+            override for the current value of blurdev.debug.debugLevel(). If
+            DebugLevel.High, a persistent terminal will be opened allowing you see the
+            output in case of a crash.
+
         basePath (str, optional): working directory where the command should be called
             from.  If None(default), the current working directory is used.
-        cmd (str or list or None, optional): This will be passed to subprocess if defined. 
-            You can use a couple of % formatting keywords. "%(filepath)s" will be filled with
-            filename. "%(basepath)s" will be filled with basePath.
+
+        cmd (str or list or None, optional): This will be passed to subprocess if
+            defined. You can use a couple of % formatting keywords. "%(filepath)s" will
+            be filled with filename. "%(basepath)s" will be filled with basePath.
+
         architecture (int or None, optional): 32 or 64 bit. If None use system default.
             Defaults to None
-        env (dict, optional): a copy of the environment variables passed to subprocess. If not
-            passed subprocessEnvironment is used.
 
-    Returns:
-        bool or subprocess.Popen: In most cases it should return a Popen object. However if it
-            can't run filename for some reason it will return False. On Windows if it has to
-            resort to calling os.startfile it will return the state of that command.
+        env (dict, optional): a copy of the environment variables passed to subprocess.
+            If not passed subprocessEnvironment is used.
+
+    Returns: bool or subprocess.Popen: In most cases it should return a Popen object.
+        However if it can't run filename for some reason it will return False. On
+        Windows if it has to resort to calling os.startfile it will return the state of
+        that command.
     """
     # determine the debug level
     debug = blurdev.debug
@@ -593,8 +607,8 @@ def startfile(
         # run it in debug mode for windows
         if settings.OS_TYPE == 'Windows':
             if ext == '.pyw':
-                # make sure .pyw files are opened with python.exe, not pythonw.exe so we can
-                # actually debug problems.
+                # make sure .pyw files are opened with python.exe, not pythonw.exe so we
+                # can actually debug problems.
                 if isinstance(cmd, list):
                     cmd[0] = cmd[0].replace('pythonw.exe', 'python.exe', 1)
                 else:
@@ -639,8 +653,8 @@ def startfile(
 
             # run the file
             options['filepath'] = tempfilename
-            # TODO: I don't think this successfully passses the env var to the final command
-            # we should probably debug this
+            # TODO: I don't think this successfully passses the env var to the final
+            # command we should probably debug this
             success = subprocess.Popen(debugcmd % options, env=env, shell=True)
 
         return success
@@ -659,7 +673,7 @@ def startfile(
             if not success:
                 try:
                     success = os.startfile(filename)
-                except:
+                except Exception:
                     pass
 
         # in other platforms, we'll use subprocess.Popen
@@ -686,10 +700,10 @@ def tempfile(filepath):
 
 def username():
     """
-    This function checks the environment variables LOGNAME, USER, LNAME and 
-    USERNAME, in order, and returns the value of the first one which is set 
-    to a non-empty string. If none are set, the login name from the 
-    password database is returned on systems which support the pwd module; 
+    This function checks the environment variables LOGNAME, USER, LNAME and
+    USERNAME, in order, and returns the value of the first one which is set
+    to a non-empty string. If none are set, the login name from the
+    password database is returned on systems which support the pwd module;
     otherwise, returns an empty string.
 
     """
@@ -711,16 +725,16 @@ class FlashTimes(EnumGroup):
 
     https://docs.microsoft.com/en-us/windows/desktop/api/winuser/ns-winuser-flashwinfo
     """
-
-    FLASHW_STOP = FlashTime(
-        0,
-        description='Stop flashing. The system restores the window to its original state.',
-    )
+    description = 'Stop flashing. The system restores the window to its original state.'
+    FLASHW_STOP = FlashTime(0, description=description)
     FLASHW_CAPTION = FlashTime(0x00000001, description='Flash the window caption.')
     FLASHW_TRAY = FlashTime(0x00000002, description='Flash the taskbar button.')
     FLASHW_ALL = FlashTime(
         0x00000003,
-        description='Flash both the window caption and taskbar button. This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags.',
+        description=(
+            'Flash both the window caption and taskbar button. '
+            'This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags.'
+        ),
     )
     FLASHW_TIMER = FlashTime(
         0x00000004, description='Flash continuously, until the FLASHW_STOP flag is set.'
@@ -736,12 +750,15 @@ class FlashTimes(EnumGroup):
 # --------------------------------------------------------------------------------
 def getRegKey(registry, key, architecture=None, write=False):
     """ Returns a winreg hkey or none.
-    
-    Args:
-        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
-        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
-    
+
+    Args: registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
+
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+            example
+
+        architecture (int | None): 32 or 64 bit. If None use system default.
+            Defaults to None
+
     Returns:
         A winreg handle object
     """
@@ -768,17 +785,19 @@ def getRegKey(registry, key, architecture=None, write=False):
 
 def listRegKeyValues(registry, key, architecture=None):
     """ Returns a list of child keys and their values as tuples.
-    
-    Each tuple contains 3 items.
-        A string that identifies the value name
-        An object that holds the value data, and whose type depends on the underlying registry type
-        An integer that identifies the type of the value data (see table in docs for winreg.SetValueEx)
-    
+
+    Each tuple contains 3 items. A string that identifies the value name An object that
+        holds the value data, and whose type depends on the underlying registry type An
+        integer that identifies the type of the value data (see table in docs for
+        winreg.SetValueEx)
+
     Args:
-        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
-        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
-    
+
+        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example key
+        (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to
+        None
+
     Returns:
         List of tuples
     """
@@ -811,14 +830,20 @@ def listRegKeys(registry, key, architecture=None):
 
 def registryValue(registry, key, value_name, architecture=None):
     """ Returns the value and type of the provided registry key's value name.
-    
+
     Args:
+
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
-        value_name (str): The name of the value to read. To read the '(Default)' key pass a 
-            empty string.
-        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to None
-    
+
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+            example
+
+        value_name (str): The name of the value to read. To read the '(Default)' key
+            pass a empty string.
+
+        architecture (int | None): 32 or 64 bit. If None use system default.
+            Defaults to None.
+
     Returns:
         object: Value stored in key
         int: registry type for value. See winreg's Value Types
@@ -843,23 +868,36 @@ def setRegistryValue(
     overwrite=True,
 ):
     """ Stores a value in the registry for the provided registy key's name.
-    
+
     Args:
+
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
-        value_name (str): The name of the value to read. To read the '(Default)' key pass a 
-            empty string.
+
+        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+        example
+
+        value_name (str): The name of the value to read. To read the '(Default)' key
+            pass a empty string.
+
         value: The value to store in the registry.
-        valueType (str or int or None): The Type of the data being stored. If a string is passed
-            in it must be listed in https://docs.python.org/2/library/_winreg.html#value-types.
-            See blurdev.osystem.registryValue's second return value.
-        architecture (int or None): 32 or 64 bit. If None use system default. Defaults to None
-        notify (bool or None): Defaults to None. If None and the key appears to be editing the 
-            environment it will default to True. Sends a message to the system telling them the 
-            environment has changed. This allows applications, such as the shell, to pick up 
-            your updates.
-        overwrite (bool): Defaults to True which will write the key, even if the key already exists,
-            when set to False, the value will only be written when the key doesn't already exist
+
+        valueType (str or int or None): The Type of the data being stored. If a string
+            is passed in it must be listed in
+            https://docs.python.org/2/library/_winreg.html#value-types. See
+            blurdev.osystem.registryValue's second return value.
+
+        architecture (int or None): 32 or 64 bit. If None use system default. Defaults
+        to None
+
+        notify (bool or None): Defaults to None. If None and the key appears to be
+            editing the environment it will default to True. Sends a message to the
+            system telling them the environment has changed. This allows applications,
+            such as the shell, to pick up your updates.
+
+        overwrite (bool): Defaults to True which will write the key, even if the key
+            already exists, when set to False, the value will only be written when the
+            key doesn't already exist
+
     Returns:
         bool: It was able to store the registry value.
     """
@@ -954,9 +992,12 @@ def processPath(path, cb, sep=';'):
 
     Args:
         path (str): The path value to process
-        cb (callable): The callback to call to process each path.  This is expected to take a
-            string (path) as input, and return a string or None.
-        sep (str, optional): The OS's seperator for joinging paths in an environment variable.
+
+        cb (callable): The callback to call to process each path.  This is expected to
+            take a string (path) as input, and return a string or None.
+
+        sep (str, optional): The OS's seperator for joinging paths in an environment
+            variable.
 
     Returns:
         str: The updated and recombined path value.
@@ -1025,8 +1066,11 @@ def setEnvironmentPath(value_name, value, system=True, varType=None):
     """ Method to easily set the path variable using the registry.
 
     Args:
+
         path (str): The new value for the PATH variable.
-        system (bool): If True(default) Set the system variable, otherwise set the user variable.
+
+        system (bool): If True(default) Set the system variable, otherwise set the user
+            variable.
 
     Returns:
         If it was able to set the path environment variable.
@@ -1070,8 +1114,9 @@ def getEnvironmentVariable(value_name, system=None, default=None, architecture=N
             )[0]
         except WindowsError:
             pass
-        if system == False:
-            # If system is False, then return the default. If None, then check the system.
+        if system is False:
+            # If system is False, then return the default.
+            # If None, then check the system.
             if default is None:
                 raise
             return default

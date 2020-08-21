@@ -1,9 +1,9 @@
-from past.builtins import xrange
 from future.utils import iteritems, with_metaclass
 import abc
 import re
-import sys
 from numbers import Number
+from builtins import str as text
+
 
 # =============================================================================
 # CLASSES
@@ -23,10 +23,10 @@ class _MetaEnumGroup(type):
         newCls._clsDict = classDict
         return newCls
 
-    def __call__(self, number):
+    def __call__(cls, number):
         number = int(number)
-        e = self.Nothing
-        for enum in self._ENUMERATORS:
+        e = cls.Nothing
+        for enum in cls._ENUMERATORS:
             if enum & number:
                 if e:
                     e = e | enum
@@ -34,9 +34,9 @@ class _MetaEnumGroup(type):
                     e = enum
         return e
 
-    def __getitem__(self, key):
+    def __getitem__(cls, key):
         if isinstance(key, Number):
-            return list(self)[int(key)]
+            return list(cls)[int(key)]
         elif isinstance(key, slice):
             # If a Enum is passed convert it to its labelIndex
             start = key.start
@@ -45,9 +45,9 @@ class _MetaEnumGroup(type):
                 start = start.labelIndex
             if isinstance(stop, Enum):
                 stop = stop.labelIndex
-            return list(self)[slice(start, stop, key.step)]
+            return list(cls)[slice(start, stop, key.step)]
         else:
-            return getattr(self, str(key))
+            return getattr(cls, str(key))
 
     def __instancecheck__(cls, inst):
         if type(inst) == cls:
@@ -56,24 +56,24 @@ class _MetaEnumGroup(type):
             return True
         return False
 
-    def __iter__(self):
-        for e in self._ENUMERATORS:
+    def __iter__(cls):
+        for e in cls._ENUMERATORS:
             yield e
 
-    def __len__(self):
-        return len(self._ENUMERATORS)
+    def __len__(cls):
+        return len(cls._ENUMERATORS)
 
-    def __repr__(self):
+    def __repr__(cls):
         return '<{mdl}.{cls}({enums})>'.format(
-            mdl=self._clsDict.get('__module__', 'unknown'),
-            cls=self._clsName,
-            enums=self.join(),
+            mdl=cls._clsDict.get('__module__', 'unknown'),
+            cls=cls._clsName,
+            enums=cls.join(),
         )
 
-    def __str__(self):
-        return '{0}({1})'.format(self._clsName, self.join())
+    def __str__(cls):
+        return '{0}({1})'.format(cls._clsName, cls.join())
 
-    def __getattr__(self, name):
+    def __getattr__(cls, name):
         """This is entirely for backwards compatibility.
 
         This should/will be removed once a full transition is made.
@@ -88,7 +88,7 @@ class _MetaEnumGroup(type):
         # give it an empty string.
         kwargs = dict()
         descriptions = dict()
-        for e in self._ENUMERATORS:
+        for e in cls._ENUMERATORS:
             kwargs[e.name] = e.number
             try:
                 descriptions[e.name] = e.description
@@ -118,7 +118,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
     Example:
         class Suit(Enum):
             pass
-        
+
         class Suits(EnumGroup):
             Hearts = Suit()
             Spades = Suit()
@@ -130,10 +130,10 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
 
     Example:
         mySuits = Suits.Hearts | Suits.Spades
-        
+
         if Suits.Hearts & mySuits:
             print("This is true!")
-        
+
         if Suits.Clubs & mySuits:
             print("This is false!")
 
@@ -193,7 +193,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
         return self._labelIndex
 
     def _setName(self, name):
-        if name == None:
+        if name is None:
             self._name = None
             self._cmpName = None
         else:
@@ -201,7 +201,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
             self._cmpName = name.strip('_ ')
 
     def _setLabel(self, label):
-        if label == None:
+        if label is None:
             self._label = None
             self._cmpLabel = None
         else:
@@ -228,13 +228,13 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
         return self.__cmp__(value) < 0
 
     def __eq__(self, value):
-        if value == None:
+        if value is None:
             return False
         if isinstance(value, Enum):
             return self.number == value.number
         if isinstance(value, int):
             return self.number == value
-        if isinstance(value, str) or isinstance(value, unicode):
+        if isinstance(value, str) or isinstance(value, text):
             if self._compareStr(value):
                 return True
         return False
@@ -272,7 +272,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
         name = '{0}_{1}'.format(str(self), str(other))
 
         class CompositeEnum(Enum):
-            def __init__(ss, number, lbl, name):
+            def __init__(ss, number, lbl, name):  # noqa: N805
                 super(CompositeEnum, ss).__init__(number, lbl)
                 ss._name = name
 
@@ -334,7 +334,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     Example:
         class Suit(Enum):
             pass
-        
+
         class Suits(EnumGroup):
             Hearts = Suit()
             Spades = Suit()
@@ -345,21 +345,21 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     four of them inside of a group.  This provides a number of things,
     including references by attribute, name, and index.  Also provided
     is an "All" attribute, if one is not explicitly assigned, it will be
-    a CompositeEnum of all the defined enums, and compare true against 
-    any members of the group via the binary "and" operator. Also provided 
-    is an "Nothing" attribute, if one is not explicitly assigned, it 
-    compares false against any members of the group and when converted to 
+    a CompositeEnum of all the defined enums, and compare true against
+    any members of the group via the binary "and" operator. Also provided
+    is an "Nothing" attribute, if one is not explicitly assigned, it
+    compares false against any members of the group and when converted to
     a int its value will be zero.
 
     Example:
         # By attribute.
         Suits.Hearts
-        
+
         # By name.
         Suits['Hearts']
-        
+
         suitList = list(Suits)
-        
+
         if Suits.Hearts & Suits.All:
             print("This is true!")
 
@@ -448,15 +448,15 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     @classmethod
     def copy(cls, name=None):
         """ Returns a new class type from this class without any Enums assigned.
-        
+
         If name is not provided it will automatically generate a new class name.
         For example if the EnumGroup class named DefaultEnums has been copied
         twice the new class name will be "DefaultEnums_3".
         If you provide name it will not check for duplicates.
-        
+
         Args:
             name (str|None): The name to give the new class. Defaults to None
-        
+
         Returns:
             EnumGroup: A new Class type.
         """
@@ -496,11 +496,11 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     @classmethod
     def fromValue(cls, value, default=None, allowComposite=False):
         """Gets an enumerator based on the given value.
-        
+
         If a default is provided and is not None, that value will be returned
         in the event that the given label does not exist in the EnumGroup.  If
         no default is provided, a ValueError is raised.
-        
+
         Args:
             value (int): The value to look up.
             default (*): The default value to return if the label is not found.
@@ -508,10 +508,10 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
                 created when provided a value that is the sum of multiple enum
                 values.  Otherwise, a ValueError will be raised.  Defaults to
                 False.
-        
+
         Returns:
             Enum
-        
+
         Raises:
             ValueError: Raised if default is None and the given label does not
                 exist in the EnumGroup.
@@ -545,7 +545,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         Returns:
             str: The joined enumerators.
         """
-        include = include == None and cls.All or include
+        include = include is None and cls.All or include
         return str(separator).join(
             [str(e) for e in cls._ENUMERATORS if e & int(include)]
         )
@@ -603,7 +603,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         enumNumbers = [enum.number for enum in enums if enum.number]
         num = 1
         for enum in enums:
-            if enum._number == None:
+            if enum._number is None:
                 while num in enumNumbers:
                     num *= 2
                 enum._number = num
@@ -611,7 +611,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         enums.sort()
         labelIndex = 0
         for enum in enums:
-            if enum._label != None:
+            if enum._label is not None:
                 enum._labelIndex = labelIndex
                 labelIndex += 1
         cls._ENUMERATORS = enums
@@ -655,17 +655,21 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
 # =============================================================================
 class Incrementer(object):
     """ A class that behaves similarly to c i++ or ++i.
-    
-    Once you init this class, every time you call it it will update count and return the previous 
-    value like c's i++. If you pass True to pre, it will increment then return the new value like
-    c's ++i.
-    
+
+    Once you init this class, every time you call it it will update count and return the
+    previous value like c's i++. If you pass True to pre, it will increment then return
+    the new value like c's ++i.
+
     Args:
         start (int): Start the counter at this value. Defaults to Zero.
-        increment (int): increment by this value. In most cases it should be 1 or -1. Defaults to one.
-        pre (bool): If true calling the object will return the incremented value. If False it will 
-            return the current value and increment for the next call. Defaults to False.
-    
+
+        increment (int): increment by this value. In most cases it should be 1 or -1.
+            Defaults to one.
+
+        pre (bool): If true calling the object will return the incremented value. If
+            False it will return the current value and increment for the next call.
+            Defaults to False.
+
     Attributes:
         count: The current value.
         increment: The incremnt added to count
@@ -698,7 +702,7 @@ class Incrementer(object):
 # =============================================================================
 
 
-class enum(object):
+class enum(object):  # noqa: N801
     """DEPRECATED: Python based enumerator class.
 
     This class is deprecated and should be replaced by blurdev.enum.Enum and
@@ -727,16 +731,18 @@ class enum(object):
             raise AttributeError(key)
 
     def __init__(self, *args, **kwds):
-        """ Takes the provided arguments adds them as properties of this object. For each argument you
-        pass in it will assign binary values starting with the first argument, 1, 2, 4, 8, 16, ....
-        If you pass in any keyword arguments it will store the value.
-        
-        Note: Labels automatically add spaces for every capital letter after the first, so do not use
-        spaces for args, or the keys of kwargs or you will not be able to access those parameters.
-        
+        """ Takes the provided arguments adds them as properties of this object. For
+        each argument you pass in it will assign binary values starting with the first
+        argument, 1, 2, 4, 8, 16, .... If you pass in any keyword arguments it will
+        store the value.
+
+        Note: Labels automatically add spaces for every capital letter after the first,
+        so do not use spaces for args, or the keys of kwargs or you will not be able to
+        access those parameters.
+
         :param *args: Properties with binary values are created
         :param **kwds: Properties with passed in values are created
-        
+
         Example::
             >>> e = blurdev.enum.enum('Red', 'Green', 'Blue', White=7)
             >>> e.Blue
@@ -774,7 +780,7 @@ class enum(object):
         """
         return self._descr.get(value, '')
 
-    def matches(self, a, b):
+    def matches(self, a, b):  # noqa: N804
         """ Does a binary and on a and b
         :param a: First item
         :param b: Second item
@@ -812,9 +818,10 @@ class enum(object):
         return self.keyByValue(value) != ''
 
     def keyByIndex(self, index):
-        """ Finds the key based on a index. This index contains the *args in the order they were passed in
-        then any **kwargs's keys in the order **kwargs.keys() returned. This index is created when the class
-        is initialized.
+        """ Finds the key based on a index. This index contains the *args in the order
+        they were passed in then any **kwargs's keys in the order **kwargs.keys()
+        returned. This index is created when the class is initialized.
+
         :param index: The index to lookup
         :returns: The key for the provided index or a empty string if it was not found.
         """
@@ -895,10 +902,11 @@ class enum(object):
         return -1
 
     def toString(self, value, default='None', sep=' '):
-        """ For the provided value return the parameter name(s) seperated by sep. If you provide
-        a int that represents two or more binary values, it will return all parameter names that
-        binary value represents seperated by sep. If no meaningful value is found it will return
-        the provided default.
+        """ For the provided value return the parameter name(s) seperated by sep. If you
+        provide a int that represents two or more binary values, it will return all
+        parameter names that binary value represents seperated by sep. If no meaningful
+        value is found it will return the provided default.
+
         :param value: The value to return parameter names of
         :param default: If no parameter were found this is returned. Defaults to 'None'
         :param sep: The parameters are joined by this value. Defaults to a space.
@@ -907,15 +915,15 @@ class enum(object):
         """
         parts = []
         for key in self._keys:
-            if not key in self._compound and value & self.value(key):
+            if key not in self._compound and value & self.value(key):
                 parts.append(key)
         if parts:
             return sep.join(parts)
         return default
 
     def fromString(self, labels, sep=' '):
-        """ Returns the value for a given string. This function binary or's the parameters, so it 
-        may not work well when using **kwargs
+        """ Returns the value for a given string. This function binary or's the
+        parameters, so it may not work well when using **kwargs
         :param labels: A string of parameter names.
         :param sep: The seperator used to seperate the provided parameters.
         :returns: The found value

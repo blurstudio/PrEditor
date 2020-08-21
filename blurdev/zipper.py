@@ -19,7 +19,9 @@ def packageFiles(files, outputfile):
     if not files:
         return False
 
-    import random, os, shutil
+    import random
+    import os
+    import shutil
 
     temppath = 'c:/temp/archive%i' % int(random.random() * 1000000)
 
@@ -42,7 +44,8 @@ def packageFiles(files, outputfile):
 
 def packagePath(path, outputfile):
     """
-        \remarks	packages all the information at the inputed path to the output file location
+        \remarks    packages all the information at the inputed path to the output file
+        location
         \param		path		<str>
         \param		outputfile	<str>
         \return		<bool> success
@@ -62,7 +65,8 @@ def packagePath(path, outputfile):
         os.path.normpath(path),
     )
 
-    # determine based on debugging level if we should let this process with or without a try/catch
+    # determine based on debugging level if we should let this process with or without a
+    # try/catch
     if debug.isDebugLevel(debug.DebugLevel.Mid):
         debug.debugObject(packagePath, 'Running zip command: %s' % (zipcmd))
         failure = QProcess.execute(zipcmd)
@@ -70,11 +74,11 @@ def packagePath(path, outputfile):
     else:
         try:
             failure = QProcess.execute(zipcmd)
-        except:
+        except Exception:
             debug.debugObject(
                 packagePath,
                 'Could not package %i files to %s path (%s zip EXE)'
-                % (len(files), path, _ZIP_EXE),
+                % (path, outputfile, zipexe),
             )
             failure = 1
 

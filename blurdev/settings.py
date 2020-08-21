@@ -7,13 +7,11 @@ import sys
 import site
 import re
 import glob
-import ntpath
-import posixpath
 
 try:
     import configparser
-except:
-    import ConfigParser as configparser
+except Exception:
+    import ConfigParser as configparser  # noqa: N813
 
 # define the default environment variables
 OS_TYPE = ''
@@ -63,8 +61,8 @@ def addConfigSection(config_parser, section):
             value = config_parser.get(section, option)
             if value == 'None':
                 value = ''
-            # In python2.7 on windows you can't pass unicode values to subprocess.Popen's env argument.
-            # This is the reason we are calling str()
+            # In python2.7 on windows you can't pass unicode values to
+            # subprocess.Popen's env argument. This is the reason we are calling str()
             os.environ[environStr(option.upper())] = environStr(value)
 
 
@@ -155,7 +153,7 @@ def init():
         for addtl in os.environ.get('BDEV_EXEC_OPTIONS', '').split(':'):
             if addtl:
                 option, help = addtl.split('=')
-                if option in options.__dict__ and options.__dict__[option] != None:
+                if option in options.__dict__ and options.__dict__[option] is not None:
                     registerVariable(
                         'BDEV_OPT_%s' % option.upper(), options.__dict__[option]
                     )
@@ -168,7 +166,8 @@ def init():
                 # If set to a empty value, don't register the path
                 continue
             if key == 'BDEV_INCLUDE_TRAX':
-                # check if trax is installed, if not then register the offline trax classes
+                # check if trax is installed, if not then register the offline trax
+                # classes
                 if not os.path.isfile(r'%s\trax\__init__.py' % path):
                     registerPath(r'%s\traxoffline' % os.path.split(__file__)[0])
                     continue
@@ -195,7 +194,7 @@ def registerVariable(key, value):
 def registerPath(path):
     path = normalizePath(path)
     # We won't register a path that does not exist to not clutter sys.path.
-    if path != '.' and not path in sys.path and os.path.exists(path):
+    if path != '.' and path not in sys.path and os.path.exists(path):
         # Add the path to the top of sys.path so code in this folder is run before
         # other code with the same name.
         sys.path.insert(0, path)
@@ -234,11 +233,11 @@ def addpackage(sitedir, name, known_paths):
                 continue
             try:
                 if line.startswith(("import ", "import\t")):
-                    exec (line)
+                    exec(line)
                     continue
                 line = toSystemPath(line.rstrip())
                 dir, dircase = site.makepath(sitedir, line)
-                if not dircase in known_paths and os.path.exists(dir):
+                if dircase not in known_paths and os.path.exists(dir):
                     sys.path.append(dir)
                     known_paths.add(dircase)
             except Exception:
@@ -273,7 +272,7 @@ def addsitedir(sitedir, known_paths=None):
     else:
         reset = False
     sitedir, sitedircase = site.makepath(sitedir)
-    if not sitedircase in known_paths:
+    if sitedircase not in known_paths:
         sys.path.append(sitedir)  # Add path component
         known_paths.add(sitedircase)
     try:
@@ -361,11 +360,9 @@ def toSystemPath(path):
     if OS_TYPE == 'Windows':
         src = 1
         dest = 0
-        ospath = posixpath
     else:
         src = 0
         dest = 1
-        ospath = ntpath
     for replacement in replacements:
 
         def repl(match):

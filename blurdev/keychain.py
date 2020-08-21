@@ -1,5 +1,5 @@
-""" 
-Used to securely store sensitive strings like api keys. All sensitive data is 
+"""
+Used to securely store sensitive strings like api keys. All sensitive data is
 stored outside of svn history in xml files and retreived using generic keys.
 
 """
@@ -7,6 +7,7 @@ stored outside of svn history in xml files and retreived using generic keys.
 import os
 import os.path
 from collections import OrderedDict
+from builtins import str as text
 
 import blurdev
 
@@ -20,13 +21,14 @@ def getKey(name, default=None, path=None):
 	Returns the value of the key with the given name from the given keychain
 	file.  If no keychain path is given, the default keychain path is used.
 	If no key with the given name is found, it will raise a KeyError, unless
-	a default is provided, in which case the default will be returned.	
+	a default is provided, in which case the default will be returned.
 	"""
     keys = getKeys(path)
     value = keys.get(name, default)
     if value is None:
+        msg = 'Unable to find the key "{name}" in the provided keychain. "{keychain}"'
         raise KeyError(
-            'Unable to find the key "{name}" in the provided keychain. "{keychain}"'.format(
+            msg.format(
                 name=name, keychain=path
             )
         )
@@ -39,8 +41,8 @@ def getKey(name, default=None, path=None):
 def setKey(name, value, path=None):
     """
 	Uses the provided name and value to add or update a key in the given
-	keychain file.  If no path is provided, the default keychain file is 
-	updated. 
+	keychain file.  If no path is provided, the default keychain file is
+	updated.
 	"""
     if path:
         # Force this to only accept files with the ext keychain.
@@ -60,7 +62,7 @@ def getKeys(path=None):
     """
 	Accepts a path to a keychain file and returns a dictionary of key: value pairs.
 	If no path is provided, the default path will be used.
-	
+
 	"""
     if path:
         # Force this to only accept files with the ext keychain.
@@ -70,7 +72,8 @@ def getKeys(path=None):
     else:
         path = _getDefaultPath()
 
-    # 3 possible formats, detect which format is being used and parse the file appropriately
+    # 3 possible formats, detect which format is being used and parse the file
+    # appropriately
     if path.lower().endswith('.json'):
         version = 3
     else:
@@ -84,12 +87,12 @@ def getKeys(path=None):
     if version == 1:
         keys = OrderedDict()
         for ekey in root:
-            keys[ekey.tag] = unicode(ekey.text)
+            keys[ekey.tag] = text(ekey.text)
     elif version == 2:
         keys = OrderedDict()
         # <key name=KEY_NAME value=KEY_VALUE />
         for ekey in root:
-            keys[ekey.get('name')] = unicode(ekey.get('value'))
+            keys[ekey.get('name')] = text(ekey.get('value'))
     elif version == 3:
         # The json structure already mirrors the expected key:value dict.
         import json
@@ -105,8 +108,8 @@ def getKeys(path=None):
 def setKeys(keys, path, version=3):
     """
 	Accepts a dictionary of {key: value} pairs and writes out a keychain file.
-	The version specifies the keychain version format to use (1 or 2).	
-	
+	The version specifies the keychain version format to use (1 or 2).
+
 	"""
     if version == 3:
         import json
