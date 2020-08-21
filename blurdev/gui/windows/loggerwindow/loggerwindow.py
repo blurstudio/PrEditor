@@ -21,7 +21,7 @@ import blurdev
 from functools import partial
 
 from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
-from Qt.QtGui import QColor, QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
+from Qt.QtGui import QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFileIconProvider,
@@ -182,24 +182,33 @@ class LoggerWindow(Window):
 
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
-        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N, self, context=Qt.ApplicationShortcut)
+        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N, self,
+            context=Qt.ApplicationShortcut)
         self.uiAddWorkboxSCT.activated.connect(self.addWorkbox)
-        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W, self, context=Qt.ApplicationShortcut)
-        self.uiRemoveWorkboxSCT.activated.connect(lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex()))
+        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W,
+            self, context=Qt.ApplicationShortcut)
+        self.uiRemoveWorkboxSCT.activated.connect(
+            lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex())
+            )
 
         # Next tab functionality already exists, though I can't tell from where
         # So, let's just add PrevTab functionality
-        self.uiPrevTabSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab, self, context=Qt.ApplicationShortcut)
+        self.uiPrevTabSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab,
+            self, context=Qt.ApplicationShortcut)
         self.uiPrevTabSCT.activated.connect(self.prevTab)
 
-        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up,
+            self, context=Qt.ApplicationShortcut)
         self.uiFocusToConsoleSCT.activated.connect(self.focusToConsole)
-        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down,
+            self, context=Qt.ApplicationShortcut)
         self.uiFocusToWorkboxSCT.activated.connect(self.focusToWorkbox)
 
-        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up,
+            self, context=Qt.ApplicationShortcut)
         self.uiCopyToConsoleSCT.activated.connect(self.copyToConsole)
-        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down, self, context=Qt.ApplicationShortcut)
+        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down,
+            self, context=Qt.ApplicationShortcut)
         self.uiCopyToWorkboxSCT.activated.connect(self.copyToWorkbox)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
@@ -270,7 +279,7 @@ class LoggerWindow(Window):
         curFamily = self.console().font().family()
         fontDB = QFontDatabase()
         fontFamilies = fontDB.families(QFontDatabase.Latin)
-        monospaceFonts = [family for family in fontFamilies if fontDB.isFixedPitch(family)]
+        monospaceFonts = [fam for fam in fontFamilies if fontDB.isFixedPitch(fam)]
 
         self.uiMonospaceFontMENU.clear()
         self.uiProportionalFontMENU.clear()
@@ -372,12 +381,12 @@ class LoggerWindow(Window):
         """adjust font size on ctrl+scrollWheel"""
         if event.modifiers() == Qt.ControlModifier:
             # QT4 presents QWheelEvent.delta(), QT5 has QWheelEvent.angleDelta().y()
-            if hasattr(event, 'delta'): # Qt4
+            if hasattr(event, 'delta'):  # Qt4
                 delta = event.delta()
-            else: # QT5
+            else:  # QT5
                 delta = event.angleDelta().y()
             # convert delta to +1 or -1, depending
-            delta = delta/abs(delta)
+            delta = delta / abs(delta)
 
             minSize = 5
             maxSize = 50
@@ -491,7 +500,7 @@ class LoggerWindow(Window):
         workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
 
         workbox.setFocus()
-        workbox.setText("\n"*19)
+        workbox.setText("\n" * 19)
 
         return workbox
 
@@ -912,7 +921,7 @@ class LoggerWindow(Window):
         blurdev.core.styleSheetChanged.emit(blurdev.core.styleSheet())
 
     def setCaseSensitive(self, state):
-        """Set completer case-sensivity"""    
+        """Set completer case-sensivity"""
         completer = self.console().completer()
         completer.setCaseSensitive(state)
         self.uiAutoCompleteCaseSensitiveACT.setChecked(state)

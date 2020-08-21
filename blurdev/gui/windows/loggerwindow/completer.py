@@ -42,8 +42,8 @@ class CompleterMode(Enum):
     def toolTip(self):
         toolTipMap = {
             'STARTS_WITH': "'all' matches 'allowtabs', does not match 'findallnames'",
-            'OUTER_FUZZY': "'all' matches 'findallnames', does not match 'anylowerletters'",
-            'FULL_FUZZY': "'all' matches 'findallnames', also matches 'anylowerletters'",
+            'OUTER_FUZZY': "'all' matches 'getallobjs', does not match 'anylonglists'",
+            'FULL_FUZZY': "'all' matches 'getallobjs', also matches 'anylonglists'",
             }
         return toolTipMap.get(self.name, "")
 
@@ -96,6 +96,7 @@ class PythonCompleter(QCompleter):
     def currentObject(self, scope=None, docMode=False):
         if self._enabled:
             word = self.textUnderCursor()
+
             # determine if we are in docMode or not
             if word.endswith('(') and not docMode:
                 return (None, '')
@@ -137,7 +138,6 @@ class PythonCompleter(QCompleter):
     def refreshList(self, scope=None):
         """ refreshes the string list based on the cursor word """
         object, prefix = self.currentObject(scope)
-        self.model().setStringList([])
 
         # Only show hidden method/variable names if the hidden character '_' is typed
         # in.

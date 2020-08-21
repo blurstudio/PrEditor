@@ -133,16 +133,20 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.addAction(self.uiClearToLastPromptACT)
 
         # Add QShortcuts
-        self.uiGetPrevCommandSCT = QShortcut(Qt.ALT|Qt.Key_Up, self, context=Qt.WidgetShortcut)
+        self.uiGetPrevCommandSCT = QShortcut(
+            Qt.ALT | Qt.Key_Up, self, context=Qt.WidgetShortcut
+            )
         self.uiGetPrevCommandSCT.activated.connect(self.getPrevCommand)
-        self.uiGetNextCommandSCT = QShortcut(Qt.ALT|Qt.Key_Down, self, context=Qt.WidgetShortcut)
+        self.uiGetNextCommandSCT = QShortcut(
+            Qt.ALT | Qt.Key_Down, self, context=Qt.WidgetShortcut
+            )
         self.uiGetNextCommandSCT.activated.connect(self.getNextCommand)
 
         self.x = 0
 
     def wheelEvent(self, event):
-        """Override of wheelEvent to allow for font resizing by holding ctrl while scrolling"""
-        # If used in LoggerWindow, use that wheel event
+        """Override of wheelEvent to allow for font resizing by holding ctrl while"""
+        # scrolling. If used in LoggerWindow, use that wheel event
         # May not want to import LoggerWindow, so perhaps
         # check by str(type())
         ctrlPressed = event.modifiers() == Qt.ControlModifier
@@ -153,8 +157,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             QTextEdit.wheelEvent(self, event)
 
     def keyReleaseEvent(self, event):
-        """Override of keyReleaseEvent to determine when to end navigation of previous commands"""
-        # End getPrev/NextCommand
+        """Override of keyReleaseEvent to determine when to end navigation of
+            previous commands
+            """
         if event.key() == Qt.Key_Alt:
             self._prevCommandIndex = 0
         else:
@@ -282,11 +287,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 # insert a new line
                 self.insertPlainText('\n')
 
-                # update prevCommands list
-                # only if commandText is not the most recent prevCommand
-                if len(commandText) > 0 and (not self._prevCommands or self._prevCommands[-1] != commandText):
+                # update prevCommands list, but only if commandText is not the most
+                # recent prevCommand, or there are no previous commands
+                hasText = len(commandText) > 0
+                prevCmds = self._prevCommands
+                notPrevCmd = not prevCmds or prevCmds[-1] != commandText
+                if hasText and notPrevCmd:
                     self._prevCommands.append(commandText)
-                # limit length of prevCommand list to Max
+                # limit length of prevCommand list to max number of prev commands
                 self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax:]
 
                 if self._pdbMode:
@@ -334,23 +342,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def insertCompletion(self, completion):
         """ inserts the completion text into the editor """
-
         if self.completer().widget() == self:
             cursor = self.textCursor()
-
-
-
-
-            cursor.movePosition(QTextCursor.Left)
-            cursor.movePosition(QTextCursor.EndOfWord)
-            cursor.insertText(completion[len(self.completer().completionPrefix()):])
-            # cursor.select(QTextCursor.WordUnderCursor)
-            #cursor.insertText(completion)
-
-
-
-
-
+            cursor.select(QTextCursor.WordUnderCursor)
+            cursor.insertText(completion)
             self.setTextCursor(cursor)
 
     def insertFromMimeData(self, mimeData):
