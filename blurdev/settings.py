@@ -300,18 +300,41 @@ def pthPaths(dirname):
     return paths, skipped, pthFiles
 
 
-def toSystemPath(path):
+def _path_escape(pattern):
+    """ Changes the pattern to match forward and backslash path separators.
+
+    Replaces backslashes with `[\\\\/]` so we can match windows and linux paths.
+    It then applies the same `re.escape` logic to any other characters as python 2.
+    """
+    s = list(pattern)
+    alphanum = frozenset(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    )
+    for i, c in enumerate(pattern):
+        if c in {'\\', '/'}:
+            s[i] = '[\\\\/]'
+        elif c not in alphanum:
+            if c == "\000":
+                s[i] = "\\000"
+            else:
+                s[i] = "\\" + c
+    return pattern[:0].join(s)
+
+
+def toSystemPath(path, os_type=OS_TYPE):
     """ Ensure the file path is correct for the current os.
 
     Args:
         path (str): The file path to convert to the current operating system.
+        os_type (str, optional): Override the os the path is generated for. Defaults
+            to `blurdev.settings.OS_TYPE`.
 
     Returns:
         All replacements in `pathReplacements` applied to path, with `os.path.normpath`
-        called on it.
+        called on it for Windows. For Linux all `\` are converted to forward slashes.
     """
     replacements = pathReplacements()
-    if OS_TYPE == 'Windows':
+    if os_type == 'Windows':
         src = 1
         dest = 0
     else:
@@ -323,9 +346,11 @@ def toSystemPath(path):
             # Don't modify our replacement string, just insert it.
             return replacement[dest]
 
+        pattern = replacement[src]
+        pattern = _path_escape(pattern)
         # Find and replace the text of the file paths ignoring case without
         # affecting the case of the remaining string case.
-        path = re.sub(re.escape(replacement[src]), repl, path, flags=re.I)
-    if OS_TYPE == 'Windows':
+        path = re.sub(pattern, repl, path, flags=re.I)
+    if os_type == 'Windows':
         return os.path.normpath(path)
     return path.replace('\\', '/')
