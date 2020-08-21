@@ -1,7 +1,8 @@
 ##
 #   :namespace  python.blurdev.protocols
 #
-#   :remarks    Handlers are classes that process the command and arguments into functioning code.
+#   :remarks    Handlers are classes that process the command and arguments into
+#               functioning code.
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio
@@ -48,8 +49,8 @@ class BaseProtocolHandler(object):
     def findHandler(cls, name, command, params):
         """ Returns the handler class based off the handler name.
 
-        Loops through BaseProtocolHandler.__subclasses__() and checks if name matches and
-        returns the a instance of the first match.
+        Loops through BaseProtocolHandler.__subclasses__() and checks if name matches
+        and returns the a instance of the first match.
 
         Args:
             name(str): The name of the handler

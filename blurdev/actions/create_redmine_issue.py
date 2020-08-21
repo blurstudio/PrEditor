@@ -16,16 +16,28 @@ class CreateRedmineIssue(Action):
     """Creates an issue in Redmine site.
 
     Attributes:
-        apiKey (basestring): The API key for the connection. Used "password" is None and "redmine" is a URL.
+
+        apiKey (basestring): The API key for the connection. Used "password" is None and
+            "redmine" is a URL.
+
         attachments (list): A list of filenames that should be attached to the issue.
         description (basestring): The issue description.
-        password (basestring): The password used to connect. Used when "redmine" argument is a URL.
+
+        password (basestring): The password used to connect. Used when "redmine"
+            argument is a URL.
+
         priority (int): The priority ID for the issue.
-        project (basestring): The project ID for the issue.
-        redmine (basestring, redminelib.Redmine): Redmine URL or Redmine configured object.
+            project (basestring): The project ID for the issue.
+
+        redmine (basestring, redminelib.Redmine): Redmine URL or Redmine configured
+        object.
+
         screenshot (bool): Whether a screenshot should be attached to the issue.
-        subject (basestring): The subject of the issue.
-        username (basestring): User to impersonate. Used when "redmine" argument is a URL.
+            subject (basestring): The subject of the issue.
+
+        username (basestring): User to impersonate. Used when "redmine" argument is a
+        URL.
+
         watchers (basestring): A list of usernames that should watch the issue.
     """
 

@@ -1,17 +1,17 @@
 """
-This is a dso file parser used to read custom metadata for files that support 
-the OLE data model originally created for Microsoft Word.  Both 3dsMax and 
+This is a dso file parser used to read custom metadata for files that support
+the OLE data model originally created for Microsoft Word.  Both 3dsMax and
 Softimage support this for .max, .scn, and .emdl.
 
-This class is a convience wrapper that uses win32com.client to 
-communicate with a DLL.  The 32bit version of the dll can be found 
-`here <http://support.microsoft.com/kb/224351>`_.  The 64bit version of the 
-dll can be found  
+This class is a convience wrapper that uses win32com.client to
+communicate with a DLL.  The 32bit version of the dll can be found
+`here <http://support.microsoft.com/kb/224351>`_.  The 64bit version of the
+dll can be found
 `here <http://www.keysolutions.com/blogs/kenyee.nsf/d6plinks/KKYE-79KRU6>`_.
 
 Note: The 64bit version may have a few caveats that may affect you.
 
-To install the dll on a system call "regsvr32 dsofile.dll" from cmd.exe 
+To install the dll on a system call "regsvr32 dsofile.dll" from cmd.exe
 in the folder of the dll's I renamed the 64bit dll to dsofile64.dll
 
 Max documentation for editing dso properties:
@@ -93,7 +93,8 @@ class DSOFile(object):
         self.dso = _Dispatch('DSOFile.OleDocumentProperties')
 
     def __del__(self):
-        # the dso must be closed if open, or it will lock the custom properties of the file
+        # the dso must be closed if open, or it will lock the custom properties of the
+        # file
         self.dso.close()
 
     def addCustomProperty(self, key, value):
@@ -116,9 +117,9 @@ class DSOFile(object):
 
     def customProperty(self, key):
         """
-        Finds the key with the provided name and returns a custom Property. 
+        Finds the key with the provided name and returns a custom Property.
         If the key is not found it returns None.
-        
+
         :rtype: :class:`DSOCustProperty`
         """
         for item in self.dso.CustomProperties:

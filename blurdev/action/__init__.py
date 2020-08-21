@@ -158,7 +158,7 @@ Example:
     @enterhook()
     def myEnterFunction(self):
         print("This is happening on enter!")
-    
+
     @exithook()
     def myExitFunction(self, *args, **kwargs):
         print("This is happening on exit!")
@@ -198,7 +198,7 @@ Example:
     @executehook(app=Apps.Maya)
     def myExecuteFunctionMaya(self):
         print("This is only happening if we are in Maya!")
-    
+
     @executehook(app=Apps.Max)
     def myExecuteFunctionMax(self):
         print("This is only happening if we are in Max!")
@@ -214,7 +214,7 @@ Example:
     @applicationmethod(app=Apps.Maya, name='myMethod')
     def myMethodMaya(self):
         print("This is only happening in Maya!")
-    
+
     @applicationmethod(app=Apps.Max, name='myMethod')
     def myMethodMax(self):
         print("This is only happening in Max!")
@@ -237,7 +237,7 @@ In this way, there are two different options for defining an abstracted action:
     @executehook(app=Apps.Maya)
     def myExecuteFunctionMaya(self):
         print("This is only happening if we are in Maya!")
-    
+
     @executehook(app=Apps.Max)
     def myExecuteFunctionMax(self):
         print("This is only happening if we are in Max!")
@@ -249,11 +249,11 @@ Or, alternatively:
     @applicationmethod(app=Apps.Maya, name='myMethod')
     def myMethodMaya(self):
         print("This is only happening in Maya!")
-    
+
     @applicationmethod(app=Apps.Max, name='myMethod')
     def myMethodMax(self):
         print("This is only happening in Max!")
-    
+
     @executehook():
     def myExecuteFunction(self):
         self.myMethod()
@@ -284,10 +284,10 @@ references will be available from within the action's various methods.
 import copy_reg
 import types
 
-from .base import *
-from .decorators import *
-from .constants import *
-from .exceptions import *
+from .base import *  # noqa: F401,F403
+from .decorators import *  # noqa: F401,F403
+from .constants import *  # noqa: F401,F403
+from .exceptions import *  # noqa: F401,F403
 
 # =============================================================================
 # FUNCTIONS
@@ -296,6 +296,8 @@ from .exceptions import *
 # This allows instancemethod type objects to be pickled.  Since actions
 # rely on some tricky stuff that involves storing local copies of
 # instancemethods, we will go ahead and register the correct handler.
+
+
 def _pickle_method(m):
     if not hasattr(m, '__self__'):
         return getattr, (m.__class__, m.__name__)

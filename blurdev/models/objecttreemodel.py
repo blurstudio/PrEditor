@@ -21,7 +21,8 @@ class ObjectTreeModel(QAbstractItemModel):
     def childrenOf(self, parent):
 
         """
-            \remarks	returns a list of the children for the inputed object, by default will return the QObject's children
+            \remarks    returns a list of the children for the inputed object, by
+                        default will return the QObject's children
             \param		parent	<QObject>
             \return		<list> [ <QObject>, .. ]
         """
@@ -38,7 +39,8 @@ class ObjectTreeModel(QAbstractItemModel):
 
     def data(self, index, role):
         """
-            \remarks	returns a variant containing the information for the inputed index and the given role
+            \remarks    returns a variant containing the information for the inputed
+                        index and the given role
             \param		index	<QModelIndex>
             \param		role	<Qt::Role>
         """
@@ -64,7 +66,8 @@ class ObjectTreeModel(QAbstractItemModel):
     def indexOf(self, object, column=0):
 
         """
-            \remarks	returns a model index representing the inputed object at the given column
+            \remarks    returns a model index representing the inputed object at the
+                        given column
             \param		object		<QObject>
             \param		column		<int>
             \return		<QModelIndex>
@@ -129,7 +132,7 @@ class ObjectTreeModel(QAbstractItemModel):
         object = index.internalPointer()
         try:
             parent = object.parent()
-        except:
+        except Exception:
             parent = None
 
         if parent and parent != self._rootObject:

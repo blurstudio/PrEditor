@@ -5,15 +5,13 @@ import inspect
 import os.path
 import sys
 
-from .constants import App, Apps
+from .constants import Apps
 from .exceptions import ArgumentHasNoDefaultError, ArgumentRequiredButNotGivenError
 from .decorators import argproperty, childaction
 
-# =============================================================================
-# CLASSES
-# =============================================================================
+
 class _ActionMeta(type):
-    def __new__(meta, name, bases, dct):
+    def __new__(cls, name, bases, dct):
         """
         This metaclass makes the class-variable implementation of the
         argproperty() and childaction() decorators work.
@@ -33,7 +31,7 @@ class _ActionMeta(type):
             if isinstance(v, (argproperty, childaction)):
                 d[k] = v(None, nameOverride=k)
         dct.update(d)
-        return super(_ActionMeta, meta).__new__(meta, name, bases, dct)
+        return super(_ActionMeta, cls).__new__(cls, name, bases, dct)
 
 
 class Action(with_metaclass(_ActionMeta, object)):
@@ -706,7 +704,7 @@ class _PropertyDescriptor(object):
                 )
             )
 
-        if self._valid != None:
+        if self._valid is not None:
             if value in self._valid:
                 self._value = value
             else:

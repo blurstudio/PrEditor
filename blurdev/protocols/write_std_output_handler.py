@@ -10,26 +10,26 @@ from blurdev.protocols import BaseProtocolHandler, InvalidHandler
 class WriteStdOutputHandler(BaseProtocolHandler):
     """ Writes the msg param to the requested output
 
-    Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys counterparts.
-    print(calls print. You must pass the parameter 'msg' as a string, this will be written to the 
-)
-    requested output. You can optionally pass a boolean to 'pdb', if the instance of the
-    LoggerWindow exists it will enable or disable pdb mode on it.
+    Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys
+    counterparts. print(calls print. You must pass the parameter 'msg' as a string, this
+    will be written to the ) requested output. You can optionally pass a boolean to
+    'pdb', if the instance of the LoggerWindow exists it will enable or disable pdb mode
+    on it.
 
-    Sometimes when sending a string like '161  \t\t\n' msg will end up as the int 161. In cases like
-    this you can pass the optional keyword 'wrapper' containing a string like '!!!'. If you use wrapper
-    you must add the wrapper string to the start and end of your string. If these are missing it will
-    send a InvalidHandler exception back up the pipe. These wrappers will be removed before the message
-    is written.
+    Sometimes when sending a string like '161  \t\t\n' msg will end up as the int 161.
+    In cases like this you can pass the optional keyword 'wrapper' containing a string
+    like '!!!'. If you use wrapper you must add the wrapper string to the start and end
+    of your string. If these are missing it will send a InvalidHandler exception back up
+    the pipe. These wrappers will be removed before the message is written.
     """
 
     name = 'stdoutput'
 
     @classmethod
     def unwrapMessage(cls, msg, wrapper):
-        # Passing values like '161  \t\t\n' along the pipe ends up with just a int. To get around
-        # this I am adding a wrapper string to the start and end of the msg. so we need to remove
-        # the wrapper characters.
+        # Passing values like '161  \t\t\n' along the pipe ends up with just a int. To
+        # get around this I am adding a wrapper string to the start and end of the msg.
+        # so we need to remove the wrapper characters.
         length = len(wrapper)
         if len(msg) < length or (msg[:length] != wrapper or msg[-length:] != wrapper):
             errorMsg = (
@@ -52,7 +52,7 @@ class WriteStdOutputHandler(BaseProtocolHandler):
             success, msg = self.unwrapMessage(msg, wrapper)
             if not success:
                 return
-        if pdbMode == True and msg.strip():
+        if pdbMode is True and msg.strip():
             # Don't trigger pdb mode if a empty(including new lines) string was sent
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
@@ -75,8 +75,8 @@ class WriteStdOutputHandler(BaseProtocolHandler):
         elif self.command == 'print':
             print(msg)
         if not pdbMode:
-            # disable pdbMode after the message was written because the message often contains the
-            # (pdb) prompt.
+            # disable pdbMode after the message was written because the message often
+            # contains the (pdb) prompt.
             from blurdev.gui.windows.loggerwindow import LoggerWindow
 
             LoggerWindow.instanceSetPdbMode(pdbMode)

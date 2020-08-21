@@ -62,7 +62,8 @@ class _Argument(object):
             dvalue = self._defaultFunction()
             valid, exc, msg = self.validateValue(dvalue)
             if not valid:
-                msg = 'Invalid defaultFunction return type for {cls}.{name}: {tpe}'.format(
+                msg = 'Invalid defaultFunction return type for {cls}.{name}: {tpe}'
+                msg = msg.format(
                     cls=type(self.parent).__name__, name=self.name, tpe=type(dvalue),
                 )
                 raise exc(msg)
@@ -250,7 +251,7 @@ class __BaseApplicationDecorator(object):
 # =============================================================================
 
 
-class argproperty(object):
+class argproperty(object):  # noqa: N801
     """Decorator class that is used to add an argument to an `Action`.
     """
 
@@ -274,16 +275,24 @@ class argproperty(object):
             atype(type/tuple): A type or tuple of types accepted by the argument.
             name(str): The keyword argument name, if different from the name of the
                 decorated method's name.
+
             default(*): The default value for the argument.  This also indicates that
                 the argument being defined is optional.  Not specifying a default for
-                the argument and having defaultInstance==False will imply that it is a required argument.
-            allowNone(bool): Whether to allow None as the value for this argument. Default to False
+                the argument and having defaultInstance==False will imply that it is a
+                required argument.
+
+            allowNone(bool): Whether to allow None as the value for this argument.
+                Default to False
+
             valid(list): A list of values accepted by the argument.
+
             settable(bool): Whether the argument is settable.  Default is False.
-            defaultInstance(bool): If True, the default value is built directly from atype upon
-                argument instantiation. This option will override the default value and also
-                indicates that the argument being defined is optional. Not specifying a default for
-                the argument and having defaultInstance==False will imply that it is a required argument.
+
+            defaultInstance(bool): If True, the default value is built directly from
+                atype upon argument instantiation. This option will override the default
+                value and also indicates that the argument being defined is optional.
+                Not specifying a default for the argument and having
+                defaultInstance==False will imply that it is a required argument.
 
         Returns:
             N/A
@@ -337,7 +346,7 @@ class argproperty(object):
 # =============================================================================
 
 
-class applicationmethod(__BaseApplicationDecorator):
+class applicationmethod(__BaseApplicationDecorator):  # noqa: N801
     """Decorator class that is used to add an application-specific method to
     an `Action`.
 
@@ -366,7 +375,7 @@ class applicationmethod(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class applicationimporter(__BaseApplicationDecorator):
+class applicationimporter(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being an application-specific module
     importer.
     """
@@ -388,7 +397,7 @@ class applicationimporter(__BaseApplicationDecorator):
             return res
 
         def newFunction(*args):
-            ret = persistentLocals(function, *args)
+            persistentLocals(function, *args)
             newFunction._locals = function._locals
 
         newFunction.__supportedApp = self._app
@@ -399,7 +408,7 @@ class applicationimporter(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class childaction(object):
+class childaction(object):  # noqa: N801
     """Decorator class that is used to add a child to an `Action`.
     """
 
@@ -447,7 +456,7 @@ class childaction(object):
 # =============================================================================
 
 
-class enterhook(__BaseApplicationDecorator):
+class enterhook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being the action's enter hook.
     """
 
@@ -464,7 +473,7 @@ class enterhook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class exithook(__BaseApplicationDecorator):
+class exithook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being the action's exit hook.
     """
 
@@ -481,7 +490,7 @@ class exithook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class executehook(__BaseApplicationDecorator):
+class executehook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being the action's execute hook.
     """
 
@@ -498,7 +507,7 @@ class executehook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class prechildhook(__BaseApplicationDecorator):
+class prechildhook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being a pre-child hook.
     """
 
@@ -515,7 +524,7 @@ class prechildhook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class postchildhook(__BaseApplicationDecorator):
+class postchildhook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being a post-child hook.
     """
 
@@ -532,7 +541,7 @@ class postchildhook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class preexecutehook(__BaseApplicationDecorator):
+class preexecutehook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being a pre-execute hook.
     """
 
@@ -549,7 +558,7 @@ class preexecutehook(__BaseApplicationDecorator):
 # =============================================================================
 
 
-class postexecutehook(__BaseApplicationDecorator):
+class postexecutehook(__BaseApplicationDecorator):  # noqa: N801
     """Decorator that tags a method as being a post-execute hook.
     """
 
