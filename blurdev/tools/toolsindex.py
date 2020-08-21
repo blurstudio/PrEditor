@@ -7,6 +7,7 @@ import glob
 import logging
 import shutil
 import tempfile
+from difflib import SequenceMatcher
 
 try:
     # simplejson parses json faster than python 2.7's json module.
@@ -737,19 +738,34 @@ class ToolsIndex(QObject):
 
     def search(self, searchString):
         """ looks up tools by the inputed search string
+
+        This function implements a fuzzy search. The name matches if the characters
+        in the search string appear in the same order in the tool name.
+
         """
         self.load()
-        try:
-            expr = re.compile(str(searchString).replace('*', '.*'), re.IGNORECASE)
-        except re.error:
-            # a invalid search string was provided, return a empty list
-            return []
         output = []
+        try:
+            # Remove "junk" characters for the regex
+            searchString = searchString.replace('*', '')
+            searchString = searchString.replace(' ', '')
+            # Put a wildcard between every character of the search string
+            expr = re.compile('.*'.join(searchString), re.IGNORECASE)
+        except re.error:
+            return []
+
+        # SequenceMatcher.ratio() gives a value of how close a match the
+        # strings are, 1.0 being an exact match. Use that to order the matches
+        sm = SequenceMatcher()
+        sm.set_seq2(searchString)
         for tool in self._toolCache.values():
             if expr.search(tool.displayName()):
-                output.append(tool)
+                sm.set_seq1(tool.displayName())
+                output.append((tool, sm.ratio()))
 
-        output.sort(key=lambda x: x.objectName().lower())
+        output.sort(key=lambda x: x[1], reverse=True)
+        output = [i[0] for i in output]
+
         return output
 
     def tools(self):
