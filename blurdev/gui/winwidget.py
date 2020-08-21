@@ -10,7 +10,10 @@
 
 from Qt.QtWinMigrate import QWinWidget
 
-# have to wrap in a python class or the memory management will not work properly for QWinWidgets
+# have to wrap in a python class or the memory management will not work properly for
+# QWinWidgets
+
+
 class WinWidget(QWinWidget):
     cache = []
 
@@ -19,9 +22,9 @@ class WinWidget(QWinWidget):
         import blurdev
 
         out = WinWidget(hwnd)
-        # QWinWidget's showCentered doesn't work. In fact it appears to be working as it was
-        # programmed, but I wonder if the QDialog auto center no longer works with a width
-        # and height of zero.
+        # QWinWidget's showCentered doesn't work. In fact it appears to be working as it
+        # was programmed, but I wonder if the QDialog auto center no longer works with a
+        # width and height of zero.
         geo = blurdev.core.mainWindowGeometry()
         if geo.isValid():
             out.setGeometry(geo)

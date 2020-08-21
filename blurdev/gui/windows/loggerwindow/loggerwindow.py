@@ -20,7 +20,7 @@ import blurdev
 from functools import partial
 
 from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
-from Qt.QtGui import QColor, QCursor, QIcon, QKeySequence
+from Qt.QtGui import QCursor, QIcon, QKeySequence
 from Qt.QtWidgets import (
     QApplication,
     QFileIconProvider,
@@ -67,7 +67,8 @@ class LoggerWindow(Window):
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
         )
-        # If we don't disable this shortcut Qt won't respond to this classes or the ConsoleEdit's
+        # If we don't disable this shortcut Qt won't respond to this classes or the
+        # ConsoleEdit's
         self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
 
         # create the status reporting label
@@ -118,7 +119,8 @@ class LoggerWindow(Window):
         self.uiPdbExecuteCountDDL.setToolTip(msg)
         self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountDDL)
 
-        # Store the software name so we can handle custom keyboard shortcuts based on software
+        # Store the software name so we can handle custom keyboard shortcuts based on
+        # software
         self._software = blurdev.core.objectName()
 
         # Initial configuration of the logToFile feature
@@ -374,8 +376,10 @@ class LoggerWindow(Window):
 
     def overrideKeyboardShortcuts(self):
         """
-            \remarks    If a specific software has limitations preventing keyboard shortcuts from working, they can be overidden here
-                        Example: Softimage treats both enter keys as Qt.Key_Enter, It ignores Qt.Key_Return
+            \remarks    If a specific software has limitations preventing keyboard
+                        shortcuts from working, they can be overidden here Example:
+                        Softimage treats both enter keys as Qt.Key_Enter, It ignores
+                        Qt.Key_Return
         """
         if self._software == 'softimage':
             self.uiRunSelectedACT.setShortcut(
@@ -389,8 +393,8 @@ class LoggerWindow(Window):
         # If we need to repeat the command store that info
         value = self.uiPdbExecuteCountDDL.value()
         if value > 1:
-            # The first request is triggered at the end of this function, so we need to store
-            # one less than requested
+            # The first request is triggered at the end of this function, so we need to
+            # store one less than requested
             self._pdbContinue = (value - 1, commandText)
         else:
             self._pdbContinue = None
@@ -578,7 +582,10 @@ class LoggerWindow(Window):
             msg = "You have to leave at least one tab open."
             QMessageBox.critical(self, 'Tab can not be closed.', msg, QMessageBox.Ok)
             return
-        msg = "Would you like to donate this tabs contents to the /dev/null fund for wayward code?"
+        msg = (
+            "Would you like to donate this tabs contents to the "
+            "/dev/null fund for wayward code?"
+        )
         if (
             QMessageBox.question(
                 self, 'Donate to the cause?', msg, QMessageBox.Yes | QMessageBox.Cancel
@@ -830,8 +837,8 @@ class LoggerWindow(Window):
             # create the logger instance
             inst = LoggerWindow(parent, runWorkbox=runWorkbox)
 
-            # RV has a Unique window structure. It makes more sense to not parent a singleton
-            # window than to parent it to a specific top level window.
+            # RV has a Unique window structure. It makes more sense to not parent a
+            # singleton window than to parent it to a specific top level window.
             if blurdev.core.objectName() == 'rv':
                 inst.setParent(None)
                 inst.setAttribute(Qt.WA_QuitOnClose, False)
@@ -870,7 +877,8 @@ class LoggerWindow(Window):
 
     @classmethod
     def instanceSetPdbMode(cls, mode, msg=''):
-        """ Sets the instance of LoggerWindow to pdb mode if the logger instance has been created.
+        """ Sets the instance of LoggerWindow to pdb mode if the logger instance has
+        been created.
 
         Args:
             mode (bool): The mode to set it to
@@ -884,8 +892,8 @@ class LoggerWindow(Window):
                 blurdev.external.External(
                     ['pdb', '', {'msg': 'blurdev.debug.getPdb().currentLine()'}]
                 )
-            # Pdb returns its prompt automatically. If we detect the pdb prompt and _pdbContinue
-            # is set re-run the command until it's count reaches zero.
+            # Pdb returns its prompt automatically. If we detect the pdb prompt and
+            # _pdbContinue is set re-run the command until it's count reaches zero.
             if inst._pdbContinue and msg == '(Pdb) ':
                 if inst._pdbContinue[0]:
                     count = inst._pdbContinue[0] - 1

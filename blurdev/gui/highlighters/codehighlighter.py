@@ -2,7 +2,8 @@
 # 	\namespace	blurdev.gui.highlighter
 #
 # 	\remarks	Handles generic code highlighting based on an XML file
-# 				The language definitions files for blurdev can be found in [blurdev]/config/lang/*.xml
+#               The language definitions files for blurdev can be found in
+#               [blurdev]/config/lang/*.xml
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -35,14 +36,16 @@ class CodeHighlighter(QSyntaxHighlighter):
         widget.setFont(font)
 
     def commentColor(self):
-        # pull the color from the parent if possible because this doesn't support stylesheets
+        # pull the color from the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'commentColor'):
             return parent.commentColor()
         return self._commentColor
 
     def setCommentColor(self, color):
-        # set the color for the parent if possible because this doesn't support stylesheets
+        # set the color for the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'setCommentColor'):
             parent.setCommentColor(color)
@@ -61,7 +64,8 @@ class CodeHighlighter(QSyntaxHighlighter):
         return self._consoleMode
 
     def highlightBlock(self, text):
-        """ highlights the inputed text block based on the rules of this code highlighter """
+        """ highlights the inputed text block based on the rules of this code
+        highlighter """
         if not self.isConsoleMode() or str(text).startswith('>>>'):
             # format the result lines
             format = self.resultFormat()
@@ -96,13 +100,14 @@ class CodeHighlighter(QSyntaxHighlighter):
     def highlightText(self, text, expr, format, offset=0, includeLast=False):
         """
             \remarks	Highlights a text group with an expression and format
-            
-            \param		text		<str>					text to highlight
-            \param		expr		<QRegExp>				search parameter
-            \param		format		<QTextCharFormat>		formatting rule
-            \param		offset		<int>					number of characters to offset by when highlighting
-            \param		includeLast	<bool>					whether or not the last character should be highlighted
-            
+
+            \param	text <str> text to highlight
+            \param	expr <QRegExp> search parameter
+            \param	format <QTextCharFormat> formatting rule
+            \param	offset <int> number of characters to offset by when highlighting
+            \param  includeLast <bool> whether or not the last character should be
+                highlighted
+
             \return		<void>
         """
         pos = expr.indexIn(text, 0)
@@ -126,14 +131,16 @@ class CodeHighlighter(QSyntaxHighlighter):
             pos = expr.indexIn(text, pos + matched)
 
     def keywordColor(self):
-        # pull the color from the parent if possible because this doesn't support stylesheets
+        # pull the color from the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'keywordColor'):
             return parent.keywordColor()
         return self._keywordColor
 
     def setKeywordColor(self, color):
-        # set the color for the parent if possible because this doesn't support stylesheets
+        # set the color for the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'setKeywordColor'):
             parent.setKeywordColor(color)
@@ -147,14 +154,16 @@ class CodeHighlighter(QSyntaxHighlighter):
         return format
 
     def resultColor(self):
-        # pull the color from the parent if possible because this doesn't support stylesheets
+        # pull the color from the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'resultColor'):
             return parent.resultColor()
         return self._resultColor
 
     def setResultColor(self, color):
-        # set the color for the parent if possible because this doesn't support stylesheets
+        # set the color for the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'setResultColor'):
             parent.setResultColor(color)
@@ -167,14 +176,15 @@ class CodeHighlighter(QSyntaxHighlighter):
         return fmt
 
     def setConsoleMode(self, state=False):
-        """ sets the highlighter to only apply to console strings (lines starting with >>>) """
+        """ sets the highlighter to only apply to console strings
+            (lines starting with >>>)
+        """
         self._consoleMode = state
 
     def setLanguage(self, lang):
         """ sets the language of the highlighter by loading the XML definition """
         from blurdev.XML import XMLDocument
         import blurdev
-        import os.path
 
         doc = XMLDocument()
         if doc.load(blurdev.resourcePath('lang/%s.xml' % lang.lower())):
@@ -209,14 +219,16 @@ class CodeHighlighter(QSyntaxHighlighter):
         return False
 
     def stringColor(self):
-        # pull the color from the parent if possible because this doesn't support stylesheets
+        # pull the color from the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'stringColor'):
             return parent.stringColor()
         return self._stringColor
 
     def setStringColor(self, color):
-        # set the color for the parent if possible because this doesn't support stylesheets
+        # set the color for the parent if possible because this doesn't support
+        # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'setStringColor'):
             parent.setStringColor(color)

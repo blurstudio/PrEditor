@@ -227,7 +227,7 @@ class DragFilter(QObject):
                             self.doDrag(o, e)
                         elif e.buttons() & self.dragButton:
                             self.startDrag(o, e)
-                    except:
+                    except Exception:
                         # fix the cursor if there's an error during dragging
                         self.restoreOverrideCursor()
                         raise  # re-raise the exception

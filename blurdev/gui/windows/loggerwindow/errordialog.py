@@ -10,7 +10,6 @@ from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
 from blurdev.gui.windows.loggerwindow.redmine_login_dialog import RedmineLoginDialog
 from blurdev.gui.icon_factory import IconFactory
-import traceback
 
 
 class ErrorDialog(Dialog):
@@ -19,8 +18,6 @@ class ErrorDialog(Dialog):
         icon_class='StyledIcon', finders=['library-icons.google']
     )
 
-
-class ErrorDialog(Dialog):
     def __init__(self, parent):
         super(ErrorDialog, self).__init__(parent)
 
@@ -49,7 +46,10 @@ class ErrorDialog(Dialog):
         from console import ConsoleEdit
 
         self.traceback_msg = "".join(traceback.format_exception(*exc_info))
-        msg = 'The following error has occurred:<br><br><font color=%(color)s>%(text)s</font>'
+        msg = (
+            'The following error has occurred:<br>'
+            '<br><font color=%(color)s>%(text)s</font>'
+        )
         self.errorLabel.setText(
             msg
             % {

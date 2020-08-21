@@ -1,7 +1,8 @@
 ##
 #   :namespace  python.blurdev.gui.widgets.spellchecktextbrowser
 #
-#   :remarks    A QTextBrowser with SpellingHighlighter with SpellingHighlighter suguestions integrated into the right click menu.
+#   :remarks    A QTextBrowser with SpellingHighlighter with SpellingHighlighter
+#   			suguestions integrated into the right click menu.
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio

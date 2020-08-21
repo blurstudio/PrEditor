@@ -8,7 +8,6 @@
 # 	:date		07/09/10
 #
 
-from builtins import str as text
 from Qt.QtGui import QDropEvent
 from Qt.QtWidgets import QTextEdit
 from Qt.QtCore import QMimeData, Qt
@@ -84,7 +83,7 @@ class DragDropTestWidget(QTextEdit):
         )
         html.append('<small><b>Additional Formats:</b></small>')
         for f in data.formats():
-            if not f in self.excludeFormats:
+            if f not in self.excludeFormats:
                 try:
                     html.append(
                         '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small>%s'
@@ -92,8 +91,10 @@ class DragDropTestWidget(QTextEdit):
                     )
                 except UnicodeDecodeError:
                     html.append(
-                        '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: </b></small><b>UnicodeDecodeError</b>'
-                        % cgi.escape(f)
+                        (
+                            '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: '
+                            '</b></small><b>UnicodeDecodeError</b>'
+                        ) % cgi.escape(f)
                     )
 
         self.setText('<br>'.join(html))

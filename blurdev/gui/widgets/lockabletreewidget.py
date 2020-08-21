@@ -131,7 +131,10 @@ class LockableTreeWidget(QTreeWidget):
 
     def bindTreeWidgetItem(self, item):
         """
-            :remarks	Overrides the setHidden and setExpanded methods for QTreeWidgetItems recursively. Should be replaced with a subclass of QTreeWidget that can update the model without this method as it may introduce memory leaks.
+            :remarks    Overrides the setHidden and setExpanded methods for
+                        QTreeWidgetItems recursively. Should be replaced with a subclass
+                        of QTreeWidget that can update the model without this method as
+                        it may introduce memory leaks.
         """
         blurdev.bindMethod(item, 'setHidden', self.setHiddenForItem)
         blurdev.bindMethod(item, 'setExpanded', self.setExpandedForItem)
@@ -156,7 +159,8 @@ class LockableTreeWidget(QTreeWidget):
 
     def enableAutoHeight(self, state):
         """
-            :remarks	Controls if updateSizeHintForItem(recursive=True) is called when a item is expaned. Disable for quicker expansion.
+            :remarks    Controls if updateSizeHintForItem(recursive=True) is called when
+                        a item is expaned. Disable for quicker expansion.
             :param		state	<bool>
         """
         self._enableAutoHeight = state
@@ -167,7 +171,7 @@ class LockableTreeWidget(QTreeWidget):
         self._metric = QFontMetrics(font)
 
     def isLocked(self, alignment):
-        return self._lockedViews.get(int(alignment)) != None
+        return self._lockedViews.get(int(alignment)) is not None
 
     def lockedViews(self):
         return self._lockedViews
@@ -212,7 +216,7 @@ class LockableTreeWidget(QTreeWidget):
                 bar.setValue(bar.maximum())
                 bar.blockSignals(False)
 
-    def setExpandedForItem(item, expanded):
+    def setExpandedForItem(item, expanded):  # noqa: N805
         # item.treeWidget().setItemExpanded( item, expanded )
         QTreeWidgetItem.setExpanded(item, expanded)
         tree = item.treeWidget()
@@ -222,7 +226,7 @@ class LockableTreeWidget(QTreeWidget):
             else:
                 tree.updateItemCollapsed(item)
 
-    def setHiddenForItem(item, hidden):
+    def setHiddenForItem(item, hidden):  # noqa: N805
         item.treeWidget().setItemHidden(item, hidden)
         # QTreeWidgetItem.setHidden( item )
 
@@ -380,9 +384,10 @@ class LockableTreeWidget(QTreeWidget):
 
     def updateSizeHintForItem(self, item, column, recursive=0):
         """
-            :remarks	Updates the size hint of a QTreeWidgetItem's column, optionaly recursively.
-                        recursive is reduced for each child, so you can specify the number of recursions.
-                        If recursive is -1 then it will not expire
+            :remarks    Updates the size hint of a QTreeWidgetItem's column, optionaly
+                        recursively. recursive is reduced for each child, so you can
+                        specify the number of recursions. If recursive is -1 then it
+                        will not expire
             :param		item		<QTreeWidgetItem>
             :param		column		<int>
             :param		recursive	<int>				Number of recursions
@@ -598,7 +603,8 @@ class LockableTreeWidget(QTreeWidget):
 
     def viewClicked(self, index):
         """
-            :remarks		convert the QTreeView.clicked to a QTreeView.itemClicked signal for transparent mapping
+            :remarks        convert the QTreeView.clicked to a QTreeView.itemClicked
+                            signal for transparent mapping
         """
         item = self.itemFromIndex(index)
         self.itemClicked.emit(item, index.column())

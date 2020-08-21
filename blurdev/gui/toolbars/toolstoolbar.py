@@ -132,7 +132,9 @@ class ToolsToolbar(BlurdevToolbar):
             sep.setObjectName('uiTitleSEP')
 
             action = self.actionAt(event.x(), event.y())
-            if (action and action not in self._protected_actions and not isinstance(action, QWidgetAction)):
+            if (action and action not in self._protected_actions and not isinstance(
+                action, QWidgetAction
+            )):
                 if isinstance(action, ToolbarAction):
 
                     # Toolbar separators don't have defaultAction.

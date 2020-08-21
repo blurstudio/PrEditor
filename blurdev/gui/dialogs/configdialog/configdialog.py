@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.gui.dialogs.configdialog.configdialog
 #
-# 	\remarks	Defines the ConfigDialog class that is used to display config plugins for the blurdev system
+#   \remarks    Defines the ConfigDialog class that is used to display config plugins
+#               for the blurdev system
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -67,7 +68,8 @@ class ConfigDialog(Dialog):
             Dialog.accept(self)
 
     def checkForSave(self):
-        """ tries to run the active config widget's checkForSave method, if it exists """
+        """ tries to run the active config widget's checkForSave method, if it exists
+        """
         widget = self.uiWidgetAREA.widget()
 
         if widget:
@@ -99,13 +101,13 @@ class ConfigDialog(Dialog):
                         current config set
             \param		key			<str>
             \param		default		<variant>
-            
+
             \return		<variant>
         """
         return self._configSet.customData(key, default)
 
     def setConfigSet(self, configSet):
-        """ 
+        """
             \remarks	sets the config set that should be edited
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
@@ -147,7 +149,8 @@ class ConfigDialog(Dialog):
         self.uiPluginsTREE.setUpdatesEnabled(True)
 
     def reject(self):
-        """ checks this system to make sure the current widget has been saved before exiting """
+        """ checks this system to make sure the current widget has been saved before
+        exiting """
         if self.checkForSave():
             Dialog.reject(self)
 
@@ -169,7 +172,7 @@ class ConfigDialog(Dialog):
                 widget.setParent(self)
             # create a new widget to cache
             key = item.section().uniqueName()
-            if not key in self._sectionCache:
+            if key not in self._sectionCache:
                 self._sectionCache[key] = item.section().widget(self)
 
             # create the new widgets plugin
@@ -208,7 +211,7 @@ class ConfigDialog(Dialog):
     def setConfigData(self, key, value):
         """
             \remarks	sets the custom data on the config set to the inputed value
-            
+
             \param		key		<str>
             \param		value	<variant>
         """
@@ -217,7 +220,7 @@ class ConfigDialog(Dialog):
     def setCurrentSection(self, section):
         """
             \remarks	sets the current section based on the inputed section id
-            
+
             \param		section 	<str>
         """
         found = False
@@ -234,8 +237,8 @@ class ConfigDialog(Dialog):
 
     @staticmethod
     def edit(configSet, parent=None, defaultSection=''):
-        """ 
-            \remarks 	creates a modal config dialog using the specified plugins 
+        """
+            \remarks 	creates a modal config dialog using the specified plugins
             \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
         """
         dialog = ConfigDialog(parent)

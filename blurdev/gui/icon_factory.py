@@ -4,13 +4,14 @@ from cute.icon_factory import IconFactory as CuteIconFactory
 
 class IconFactory(CuteIconFactory):
 
-    """Subclass that adds finders for the production library's and blurdev's icons. Also loads preset file.
+    """Subclass that adds finders for the production library's and blurdev's icons. Also
+    loads preset file.
     """
 
     def __init__(self, **kwargs):
 
         from pillar.resource_finder import ResourceFinder
-        from blurdev import Resources
+        from blurdev.resource_finder import ResourceFinder as Resources
 
         from pathlib2 import Path
 

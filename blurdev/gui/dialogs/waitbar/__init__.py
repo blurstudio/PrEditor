@@ -1,1 +1,1 @@
-from .waitbar import WaitBar
+from .waitbar import WaitBar  # noqa: F401

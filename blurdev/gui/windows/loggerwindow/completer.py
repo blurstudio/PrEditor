@@ -12,7 +12,7 @@ import inspect
 
 from Qt.QtCore import Qt, QStringListModel
 from Qt.QtGui import QCursor
-from Qt.QtWidgets import QCompleter, QMessageBox, QToolTip
+from Qt.QtWidgets import QCompleter, QToolTip
 
 
 class PythonCompleter(QCompleter):
@@ -49,11 +49,10 @@ class PythonCompleter(QCompleter):
                     prefix = ''
 
                 # try to evaluate the object to pull out the keys
-                keys = []
                 object = None
                 try:
                     object = eval(symbol, scope)
-                except:
+                except Exception:
                     pass
 
                 if object is None:
@@ -75,7 +74,8 @@ class PythonCompleter(QCompleter):
         """ refreshes the string list based on the cursor word """
         object, prefix = self.currentObject(scope)
         self.model().setStringList([])
-        # Only show hidden method/variable names if the hidden character '_' is typed in.
+        # Only show hidden method/variable names if the hidden character '_' is typed
+        # in.
         try:
             if prefix.startswith('_'):
                 keys = [key for key in dir(object) if key.startswith('_')]
@@ -96,7 +96,7 @@ class PythonCompleter(QCompleter):
         self.popup().hide()
 
         # create the default position
-        if pos == None:
+        if pos is None:
             pos = QCursor.pos()
 
         # collect the object
@@ -138,7 +138,8 @@ class PythonCompleter(QCompleter):
             word = char + word
             pos -= 1
 
-        # If the word starts with a opening parentheses, remove it if there is not a matching closing one.
+        # If the word starts with a opening parentheses, remove it if there is not a
+        # matching closing one.
         if word and word[0] == '(':
             count = 0
             # use a simple instance count to check if the opening parentheses is closed

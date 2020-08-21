@@ -1,10 +1,12 @@
 ##
 # 	\namespace	blurdev.gui.helpers.widgeteventhelper
 #
-# 	\remarks	The WidgetEventHelper class provides some event filter and drag & drop override functionality
-# 				to widgets, making it simpler to provide an easy filtering system without having to sub
-# 				class and reimplement the functionality every time - specifically useful for QAbstractItemView items for drag & drop
-# 				functionality which does not behave properly with an event filter
+#   \remarks    The WidgetEventHelper class provides some event filter and drag & drop
+#               override functionality to widgets, making it simpler to provide an easy
+#               filtering system without having to sub class and reimplement the
+#               functionality every time
+#               - specifically useful for QAbstractItemView items for drag & drop
+#               functionality which does not behave properly with an event filter
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -57,11 +59,9 @@ class WidgetEventHelper(QObject):
         # if the event did not tell this to eat the event, then continue
         return QObject.eventFilter(self, object, event)
 
-    def handleDragEnterEvent(widget, event):
-        """
-            \remarks	bound method to handle the drag enter event for the widget
-            \param		widget	<QWidget>
-            \param		event	<QEvent>
+    def handleDragEnterEvent(widget, event):  # noqa: N805
+        """ bound method to handle the drag enter event for the widget
+        See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')
 
@@ -72,11 +72,9 @@ class WidgetEventHelper(QObject):
         # otherwise, filter this object properly
         widget.__class__.dragEnterEvent(widget, event)
 
-    def handleDragMoveEvent(widget, event):
-        """
-            \remarks	bound method to handle the drag move event for the widget
-            \param		widget	<QWidget>
-            \param		event	<QEvent>
+    def handleDragMoveEvent(widget, event):  # noqa: N805
+        """ bound method to handle the drag move event for the widget
+        See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')
 
@@ -87,11 +85,9 @@ class WidgetEventHelper(QObject):
         # otherwise, filter this object properly
         widget.__class__.dragMoveEvent(widget, event)
 
-    def handleDropEvent(widget, event):
-        """
-            \remarks	bound method to handle the drop event for the widget
-            \param		widget	<QWidget>
-            \param		event	<QEvent>
+    def handleDropEvent(widget, event):  # noqa: N805
+        """ bound method to handle the drop event for the widget
+        See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')
 

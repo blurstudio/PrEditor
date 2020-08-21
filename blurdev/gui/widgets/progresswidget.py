@@ -1,8 +1,8 @@
 ##
 # 	:namespace	blurdev.gui.widgets.progresswidget
 #
-# 	:remarks	The ProgressWidget allows for progress bar and progress spinner widgets to display while loading
-# 				a user interface
+#   :remarks    The ProgressWidget allows for progress bar and progress spinner widgets
+#               to display while loading a user interface
 #
 # 	:author		beta@blur.com
 # 	:author		Blur Studio
@@ -36,7 +36,7 @@ class ProgressSection:
         return self._index
 
     def isValid(self):
-        return self._total != None
+        return self._total is None
 
     def parent(self):
         return self._parent
@@ -100,12 +100,9 @@ class ProgressBar(QProgressBar):
 class ProgressWidget(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
-        # -------------------------------------------------------------------------------------------------------------
 
         self._pixmap = None
         self._sections = []
-
-        # -------------------------------------------------------------------------------------------------------------
 
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setAutoFillBackground(True)
@@ -150,8 +147,6 @@ class ProgressWidget(QWidget):
         self.layout().addWidget(self._secondaryProgress)
         self.layout().addWidget(self._messageLabel)
         self.layout().addStretch()
-
-        # -------------------------------------------------------------------------------------------------------------
 
         self._primaryProgress.hide()
         self._secondaryProgress.hide()
@@ -236,10 +231,7 @@ class ProgressWidget(QWidget):
         return 0
 
     def update(self):
-        success = False
-
         # update the size
-
         self.resize(self.parent().size())
 
         # Update the movie
@@ -268,7 +260,6 @@ class ProgressWidget(QWidget):
     def start(widget, total=None, message='Loading...'):
 
         if not widget:
-
             return None
 
         progressWidget = widget.findChild(ProgressWidget)

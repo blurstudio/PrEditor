@@ -12,11 +12,11 @@ SPLASH_DIR = os.environ.get('BDEV_SPLASHSCREEN_SOURCE_DIR')
 
 def getSplashScreenDirectory(toolname='default'):
     """ Get the splashscreen directory for the requested toolname.
-    
+
     Args:
-        toolname (str): The name of a sub-directory of the directory defined in 
+        toolname (str): The name of a sub-directory of the directory defined in
             BDEV_SPLASHSCREEN_SOURCE_DIR. Defaults to 'default'.
-    
+
     Returns:
         str: The generated file path.
     """
@@ -24,19 +24,20 @@ def getSplashScreenDirectory(toolname='default'):
 
 
 def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
-    """ Randomly picks a image for the provided toolname and returns a QSplashScreen or None.
-    
+    """ Randomly picks a image for the provided toolname and returns a QSplashScreen or
+    None.
+
     The QSplashScreen will have show() called on it when it is returned.
-    
+
     Args:
-        toolname (str): The name of a sub-directory of the directory defined in 
-            BDEV_SPLASHSCREEN_SOURCE_DIR. If this directory does not exist, it will 
+        toolname (str): The name of a sub-directory of the directory defined in
+            BDEV_SPLASHSCREEN_SOURCE_DIR. If this directory does not exist, it will
             use the default directory. Defaults to 'default'.
         minsize (int): If the randomly picked image is smaller than minsize, it will
             be scaled up to this size using Qt.KeepAspectRatio. Defaults to 128.
         allowDefault (bool): If False is passed do not fallback to the 'default'
             directory. Defaults to True
-    
+
     Returns:
         QSplashScreen: If a image was picked a QSplashScreen will be returned. Otherwise
             None will be returned.
@@ -47,7 +48,8 @@ def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
         return None
 
     splash_dir = getSplashScreenDirectory(toolname)
-    # Fallback to the default splashscreens if the requested toolname folder does not exist
+    # Fallback to the default splashscreens if the requested toolname folder does not
+    # exist
     if allowDefault and not os.path.exists(splash_dir):
         splash_dir = getSplashScreenDirectory('default')
 

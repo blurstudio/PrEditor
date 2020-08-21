@@ -38,7 +38,8 @@ class Wizard(QWizard):
         # set the delete attribute to clean up the window once it is closed
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        # set this property to true to properly handle tracking events to control keyboard overrides
+        # set this property to true to properly handle tracking events to control
+        # keyboard overrides
         self.setMouseTracking(True)
 
         self.initWizardStyle()
@@ -57,7 +58,8 @@ class Wizard(QWizard):
         self.initWizardPages()
 
     def initWizardPages(self):
-        """ Allows the user to define the pages that are going to be used for this wizard.
+        """ Allows the user to define the pages that are going to be used for this
+        wizard.
         """
         pass
 
@@ -78,9 +80,10 @@ class Wizard(QWizard):
             WinWidget.uncache(wwidget)
 
     def exec_(self):
-        # do not use the DeleteOnClose attribute when executing a wizard as often times a user will
-        # be accessing information from the wizard instance after it closes.  This function
-        # properly transfers ownership of the wizard instance back to Python anyway
+        # do not use the DeleteOnClose attribute when executing a wizard as often times
+        # a user will be accessing information from the wizard instance after it closes.
+        # This function properly transfers ownership of the wizard instance back to
+        # Python anyway
         self.setAttribute(Qt.WA_DeleteOnClose, False)
 
         # execute the wizard

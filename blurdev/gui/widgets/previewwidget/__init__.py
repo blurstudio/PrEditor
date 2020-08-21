@@ -9,5 +9,11 @@
 #
 
 # import the PreviewGraphicsView to expose the symbol to the package
-from .previewwidget import PreviewWidget
-from .previewlayers import *
+from .previewwidget import PreviewWidget  # noqa: F401
+from .previewlayers import (  # noqa: F401
+	AbstractPreviewLayer,
+	CanvasLayer,
+	MediaLayer,
+	TextLayer,
+	LayerType,
+)

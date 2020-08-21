@@ -3,6 +3,8 @@ from Qt.QtWidgets import QPushButton, QTabBar, QTabWidget
 
 # This class is pulled from this example
 # http://stackoverflow.com/a/20098415
+
+
 class TabBarPlus(QTabBar):
     plusClicked = Signal()
 

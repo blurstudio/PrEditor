@@ -1,7 +1,8 @@
 ##
 #   :namespace  managecoreprefsdialog
 #
-#   :remarks    This tool allows you to modify the treegrunt environment loaded for any blurdev core.
+#   :remarks    This tool allows you to modify the treegrunt environment loaded for any
+#   blurdev core.
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio
@@ -17,7 +18,8 @@ from Qt.QtCore import QRect, Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QTreeWidgetItem, QComboBox, QInputDialog
 
-# we import from blurdev.gui vs. QtGui becuase there are some additional management features for running the Dialog in multiple environments
+# we import from blurdev.gui vs. QtGui becuase there are some additional management
+# features for running the Dialog in multiple environments
 from blurdev.gui import Dialog
 
 
@@ -56,7 +58,10 @@ class ManageCorePrefsDialog(Dialog):
         preferences.save()
 
     def addCore(self):
-        label = 'Use this to add a corename that does not currently exist. Use lowercase, no special characters or spaces. No validity checks are made.'
+        label = (
+            'Use this to add a corename that does not currently exist. Use lowercase, '
+            'no special characters or spaces. No validity checks are made.'
+        )
         corename, success = QInputDialog.getText(self, 'Type Core Name', label)
         if success:
             default = blurdev.activeEnvironment().defaultEnvironment().objectName()

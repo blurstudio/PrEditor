@@ -1,7 +1,8 @@
 ##
 # 	:namespace	python.blurdev.gui.widgets.previewscene
 #
-# 	:remarks	Defines the QGraphicsScene that will be used for the PreviewWidget system
+#   :remarks    Defines the QGraphicsScene that will be used for the PreviewWidget
+#               system
 #
 # 	:author		beta@blur.com
 # 	:author		Blur Studio
@@ -13,7 +14,7 @@ from Qt.QtGui import QColor
 from Qt.QtWidgets import QGraphicsScene
 from Qt import QtCompat
 from blurdev.enum import enum
-from .previewlayers import *
+from .previewlayers import AbstractPreviewLayer, LayerType
 
 InteractionMode = enum('Navigate', 'Pencil', 'Brush', 'Selection')
 
@@ -56,11 +57,12 @@ class PreviewScene(QGraphicsScene):
 
     def addLayer(self, layer):
         """
-            :remarks	adds a layer to the scene with the inputed name if there is not already a layer of that name
+            :remarks    adds a layer to the scene with the inputed name if there is not
+                        already a layer of that name
             :param		layer	<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>
             :return		<bool> success
         """
-        if not layer in self._layers:
+        if layer not in self._layers:
             self._layers.append(layer)
             self.setActiveLayer(layer)
             return True
@@ -129,7 +131,8 @@ class PreviewScene(QGraphicsScene):
 
     def emitCanvasSizeChanged(self, size):
         """
-            :remarks	emit the canvasSizeChanged signal for this scene provided the signals are not currently blocked
+            :remarks    emit the canvasSizeChanged signal for this scene provided the
+                        signals are not currently blocked
             :param		size	<QSize>
         """
         if not self.signalsBlocked():
@@ -145,7 +148,8 @@ class PreviewScene(QGraphicsScene):
 
     def emitInteractionModeChanged(self, mode):
         """
-            :remarks	emit the interactionModeChanged signal for this scene provided the signals are not currently blocked
+            :remarks    emit the interactionModeChanged signal for this scene provided
+                        the signals are not currently blocked
             :param		mode	<int>
         """
         if not self.signalsBlocked():
@@ -185,7 +189,8 @@ class PreviewScene(QGraphicsScene):
     def layers(self):
         """
             :remarks	return a list of the current layers for this scene
-            :return		<list> [ <blurdev.gui.widgets.previewwidget.AbstractPreviewLayer> layer, .. ]
+            :return     <list>
+                        [<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>, ..]
         """
         return self._layers
 
@@ -209,7 +214,7 @@ class PreviewScene(QGraphicsScene):
 
     def pen(self):
         from Qt.QtCore import Qt
-        from Qt.QtGui import QBrush, QPen, QRadialGradient
+        from Qt.QtGui import QPen
 
         pen = QPen()
         pen.setColor(self.foregroundColor())
@@ -237,7 +242,7 @@ class PreviewScene(QGraphicsScene):
         """
         layer = self._layers.get(str(oldname))
         newname = str(newname)
-        if layer and not newname in self._layers:
+        if layer and newname not in self._layers:
             layer._name = newname
             self._layers.pop(oldname)
             self._layers[newname] = layer
@@ -336,7 +341,8 @@ class PreviewScene(QGraphicsScene):
 
     def wheelEvent(self, event):
         """
-            :remarks	reimplements QGraphicsScene.wheelEvent to zoom in & out during wheel events
+            :remarks    reimplements QGraphicsScene.wheelEvent to zoom in & out during
+                        wheel events
             :param		event	<QWheelEvent>
         """
         if event.delta() < 0:

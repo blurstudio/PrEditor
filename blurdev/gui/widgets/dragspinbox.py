@@ -57,7 +57,6 @@ class _DragSpin(object):
 
                 self._leftover += delta
                 self._lastPos = e.pos()
-                val = self.value()
 
                 self.stepBy(int(self._leftover / self._dragSensitivity))
                 self._leftover %= self._dragSensitivity
@@ -248,7 +247,7 @@ class DragDoubleSpinBox(_DragSpin, QDoubleSpinBox):
 
 
 if __name__ == "__main__":
-    from Qt.QtWidgets import QApplication, QHBoxLayout, QWidget
+    from Qt.QtWidgets import QHBoxLayout, QWidget
     import sys
 
     app = QApplication(sys.argv)

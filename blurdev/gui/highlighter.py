@@ -2,7 +2,8 @@
 # 	\namespace	blurdev.gui.highlighter
 #
 # 	\remarks	Handles generic code highlighting based on an XML file
-# 				The language definitions files for blurdev can be found in [blurdev]/config/lang/*.xml
+#               The language definitions files for blurdev can be found in
+#               [blurdev]/config/lang/*.xml
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -42,7 +43,8 @@ class Highlighter(QSyntaxHighlighter):
         return self._consoleMode
 
     def highlightBlock(self, text):
-        """ highlights the inputed text block based on the rules of this code highlighter """
+        """ highlights the inputed text block based on the rules of this code
+        highlighter """
         if not self.isConsoleMode() or str(text).startswith('>>>'):
             from Qt.QtCore import QRegExp
 
@@ -69,13 +71,18 @@ class Highlighter(QSyntaxHighlighter):
     def highlightText(self, text, expr, format, offset=0, includeLast=False):
         """
             \remarks	Highlights a text group with an expression and format
-            
+
             \param		text		<str> || <QString>		text to highlight
             \param		expr		<QRegExp>				search parameter
             \param		format		<QTextCharFormat>		formatting rule
-            \param		offset		<int>					number of characters to offset by when highlighting
-            \param		includeLast	<bool>					whether or not the last character should be highlighted
-            
+
+            \param      offset      <int>                   number of characters to
+                                                            offset by when highlighting
+
+            \param      includeLast <bool>                  whether or not the last
+                                                            character should be
+                                                            highlighted
+
             \return		<void>
         """
         pos = expr.indexIn(text, 0)
@@ -108,7 +115,9 @@ class Highlighter(QSyntaxHighlighter):
         return format
 
     def setConsoleMode(self, state=False):
-        """ sets the highlighter to only apply to console strings (lines starting with >>>) """
+        """ sets the highlighter to only apply to console strings
+            (lines starting with >>>)
+        """
         self._consoleMode = state
 
     def setLanguage(self, lang):
@@ -116,7 +125,6 @@ class Highlighter(QSyntaxHighlighter):
         from blurdev.XML import XMLDocument
 
         import blurdev
-        import os.path
 
         doc = XMLDocument()
         if doc.load(blurdev.resourcePath('lang/%s.xml' % lang)):

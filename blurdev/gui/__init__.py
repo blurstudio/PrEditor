@@ -19,10 +19,10 @@ from Qt.QtWidgets import QSplashScreen
 
 from .. import core
 from .icon_factory import IconFactory
-from .window import Window
-from .dialog import Dialog
-from .dockwidget import DockWidget
-from .wizard import Wizard
+from .window import Window  # noqa: F401
+from .dialog import Dialog  # noqa: F401
+from .dockwidget import DockWidget  # noqa: F401
+from .wizard import Wizard  # noqa: F401
 from functools import partial
 
 # IconFactory.customize creates QWidgets which does not work in headless mode
@@ -53,7 +53,8 @@ def QtPropertyInit(name, default, callback=None):
     Args:
         name(str): The name of internal attribute to store to and lookup from.
         default: The property's default value.  This will also define the Property type.
-        callback(callable): If provided this function is called when the property is set.
+        callback(callable): If provided this function is called when the property is
+            set.
 
     Returns:
         Property
@@ -80,14 +81,18 @@ def QtPropertyInit(name, default, callback=None):
 
 
 # --------------------------------------------------------------------------------
-# pyqtPropertyInit is being removed. I'm leaving a version of it for PyQt4 to make migrating
-# easier. This function will not be available in PyQt5 to encourage migrating to QtPropertyInit.
+# pyqtPropertyInit is being removed. I'm leaving a version of it for PyQt4 to make
+# migrating easier. This function will not be available in PyQt5 to encourage migrating
+# to QtPropertyInit.
 if Qt.__binding__ == 'PyQt4':
 
     def pyqtPropertyInit(name, default, callback=None):
         import warnings
 
-        msg = "Use blurdev.gui.QtPropertyInit instead of blurdev.gui.pyqtPropertyInit. It is only valid for PyQt4"
+        msg = (
+            "Use blurdev.gui.QtPropertyInit instead of blurdev.gui.pyqtPropertyInit. "
+            "It is only valid for PyQt4"
+        )
         warnings.warn(msg, DeprecationWarning, stacklevel=2)
         return QtPropertyInit(name, default, callback=callback)
 
@@ -180,9 +185,11 @@ def readCSS(path, translateUrls=True, cwd=None):
 
 def compPixmap(imageData):
     """
-    Composites the given pixmaps or image paths into a single pixmap. It takes a list of lists containing a image path or a pixmap and
-    optionaly a list of cordinate data. The cordinate data can be just position [5, 5] or position and size [5, 5, 10, 10]. The first
-    item in the list becomes the base canvas being drawn on and ignores the cordinate data.
+    Composites the given pixmaps or image paths into a single pixmap. It takes a list of
+    lists containing a image path or a pixmap and optionaly a list of cordinate data.
+    The cordinate data can be just position [5, 5] or position and size [5, 5, 10, 10].
+    The first item in the list becomes the base canvas being drawn on and ignores the
+    cordinate data.
 
     Example of two step compositing::
     data = [[trax.gui.findIconFile(r'employeeReview\1')],
@@ -244,10 +251,12 @@ def loadUi(filename, widget, uiname=''):
 
 def findPixmap(filename, thumbSize=None):
     """
-        \remarks	looks up a pixmap based on the inputed filename using the QPixmapCache system.  If the autoLoad
-                    parameter is true, then it will automatically load the pixmap and return it
+        \remarks    looks up a pixmap based on the inputed filename using the
+                    QPixmapCache system.  If the autoLoad parameter is true, then it
+                    will automatically load the pixmap and return it
         \param		filename	<str>
-        \param		thumbSize	<QSize>		size to scale the item to if desired (will affect the search key)
+        \param      thumbSize   <QSize>     size to scale the item to if desired (will
+                                            affect the search key)
     """
     from Qt.QtCore import Qt
     from Qt.QtGui import QPixmapCache, QPixmap
@@ -298,14 +307,23 @@ def findPixmap(filename, thumbSize=None):
 def connectLogger(
     parent, start=True, sequence='F2', text='Show Logger', objName='uiShowLoggerACT'
 ):
-    """ Optionally starts the logger, and creates a QAction on the provided parent with the provided
-    keyboard shortcut to run it.
-    :param parent: The parent widget, normally a window
-    :param start: Start logging immediately. Defaults to True. Disable if you don't want to redirect immediately.
-    :param sequence: A string representing the keyboard shortcut associated with the QAction. Defaults to 'F2'
-    :param text: The display text for the QAction. Defaults to 'Show Logger'
-    :param objName: Set the QAction's objectName to this value. Defaults to 'uiShowLoggerACT'
-    :return : The created QAction
+    """ Optionally starts the logger, and creates a QAction on the provided parent with
+        the provided keyboard shortcut to run it.
+
+        :param parent: The parent widget, normally a window
+
+        :param start: Start logging immediately. Defaults to True. Disable if you don't
+            want to redirect immediately.
+
+        :param sequence: A string representing the keyboard shortcut associated with the
+            QAction. Defaults to 'F2'
+
+        :param text: The display text for the QAction. Defaults to 'Show Logger'
+
+        :param objName: Set the QAction's objectName to this value. Defaults to
+            'uiShowLoggerACT'
+
+        :return : The created QAction
     """
     import blurdev
     from Qt.QtGui import QKeySequence

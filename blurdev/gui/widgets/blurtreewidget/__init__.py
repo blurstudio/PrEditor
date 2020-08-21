@@ -8,4 +8,4 @@
 # 	:date		12/07/08
 #
 
-from .blurtreewidget import BlurTreeWidget
+from .blurtreewidget import BlurTreeWidget  # noqa: F401

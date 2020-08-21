@@ -12,10 +12,8 @@
 from Qt.QtCore import QPoint, QRect, Qt, Property, Signal, Slot
 from Qt.QtGui import (
     QColor,
-    QConicalGradient,
     QLinearGradient,
     QPainter,
-    QRadialGradient,
 )
 from Qt.QtWidgets import QPushButton, QWidget
 
@@ -367,7 +365,7 @@ class ColorPickerButton(QPushButton):
         return False
 
     def refresh(self, color=None):
-        if color == None:
+        if color is None:
             color = self.color()
 
         palette = self.palette()

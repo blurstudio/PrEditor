@@ -1,21 +1,20 @@
 ##
 # 	:namespace	python.blurdev.gui.widgets.enumwidget
 #
-# 	:remarks	The EnumWidget class is a simple expansion system for blurdev.enum.enum class types, allowing dynamic creation
-# 				of checkboxes based on the options for a given enum, and supplying simple ways to calculate what the user settings
-# 				are
+#   :remarks    The EnumWidget class is a simple expansion system for blurdev.enum.enum
+#               class types, allowing dynamic creation of checkboxes based on the
+#               options for a given enum, and supplying simple ways to calculate what
+#               the user settings are
 #
 # 	:author		beta@blur.com
 # 	:author		Blur Studio
 # 	:date		04/14/10
 #
 
-from builtins import str as text
 import re
 
 from Qt.QtCore import Qt, Property, Signal
 from Qt.QtWidgets import QCheckBox, QGridLayout, QWidget
-from blurdev.gui import Dialog
 from blurdev.enum import EnumGroup, Enum
 
 
@@ -99,7 +98,8 @@ class EnumWidget(QWidget):
         self.layout().setRowStretch(row + 1, 1)
 
     def recalculateValue(self):
-        """ goes through the checkboxes and calculates the current state of the widget """
+        """ goes through the checkboxes and calculates the current state of the widget
+        """
         value = 0
         for child in self.findChildren(QCheckBox):
             if child.isChecked():
@@ -113,7 +113,8 @@ class EnumWidget(QWidget):
         self.valueChanged.emit(value)
 
     def setColumnCount(self, count):
-        """ sets the column count for this widget, recalculating the grid on completion """
+        """ sets the column count for this widget, recalculating the grid on completion
+        """
         self._columnCount = count
         self.recalculateGrid()
 
@@ -123,7 +124,7 @@ class EnumWidget(QWidget):
 
     @Property('QStringList')
     def enumTypeList(self):
-        if self._enumType == None:
+        if self._enumType is None:
             return []
         return list(self._enumType.names())
 

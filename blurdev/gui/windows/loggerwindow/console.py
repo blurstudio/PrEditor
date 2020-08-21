@@ -2,8 +2,6 @@
 
 """
 
-from builtins import str as text
-from future.utils import iteritems
 import re
 import __main__
 import os
@@ -12,7 +10,7 @@ import sip
 import time
 import traceback
 
-from Qt.QtCore import QDateTime, QObject, QPoint, Qt, Property
+from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
@@ -21,9 +19,7 @@ from blurdev import debug
 from blurdev.debug import BlurExcepthook
 from .completer import PythonCompleter
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
-from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
 import blurdev.gui.windows.loggerwindow
-from blurdev.contexts import ErrorReport
 
 
 SafeOutput = None
@@ -33,14 +29,14 @@ class Win32ComFix(object):
     pass
 
 
-# win32com's redirects all sys.stderr output to sys.stdout if the existing sys.stdout is not a instance of its SafeOutput
-# Make our logger classes inherit from SafeOutput so they don't get replaced by win32com
-# This is only neccissary for Softimage
+# win32com's redirects all sys.stderr output to sys.stdout if the existing sys.stdout is
+# not a instance of its SafeOutput Make our logger classes inherit from SafeOutput so
+# they don't get replaced by win32com This is only neccissary for Softimage
 if blurdev.core.objectName() == 'softimage':
     try:
         from win32com.axscript.client.framework import SafeOutput
 
-        class Win32ComFix(SafeOutput):
+        class Win32ComFix(SafeOutput):  # noqa: F811
             pass
 
     except ImportError:
@@ -72,9 +68,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # create the completer
         self.setCompleter(PythonCompleter(self))
 
-        # sys.__stdout__ doesn't work if some third party has implemented their
-        # own override. Use these to backup the current logger so the logger displays output, but
-        # application specific consoles also get the info.
+        # sys.__stdout__ doesn't work if some third party has implemented their own
+        # override. Use these to backup the current logger so the logger displays
+        # output, but application specific consoles also get the info.
         self.stdout = None
         self.stderr = None
         self._errorLog = None
@@ -105,16 +101,17 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self._keywordColor = QColor(17, 154, 255)
         self._stringColor = QColor(255, 128, 0)
         self._resultColor = QColor(128, 128, 128)
-        # These variables are used to enable pdb mode. This is a special mode used by the logger if
-        # it is launched externally via getPdb, set_trace, or post_mortem in blurdev.debug.
+        # These variables are used to enable pdb mode. This is a special mode used by
+        # the logger if it is launched externally via getPdb, set_trace, or post_mortem
+        # in blurdev.debug.
         self._pdbPrompt = '(Pdb) '
         self._consolePrompt = '>>> '
         # Note: Changing _outputPrompt may require updating resource\lang\python.xml
         # If still using a #
         self._outputPrompt = '#Result: '
         self._pdbMode = False
-        # if populated when setPdbMode is called, this action will be enabled and its check state
-        # will match the current pdbMode.
+        # if populated when setPdbMode is called, this action will be enabled and its
+        # check state will match the current pdbMode.
         self.pdbModeAction = None
         # Method used to update the gui when pdb mode changes
         self.pdbUpdateVisibility = None
@@ -146,7 +143,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # Check if the last line is a empty prompt. If so, then preform two finds so we
         # find the prompt we are looking for instead of this empty prompt
         findCount = (
-            2 if self.toPlainText()[-len(self.prompt()) :] == self.prompt() else 1
+            2 if self.toPlainText()[-len(self.prompt()):] == self.prompt() else 1
         )
         for i in range(findCount):
             self.find(self.prompt(), QTextDocument.FindBackward)
@@ -194,9 +191,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         startTime = time.time()
         try:
             compiled = compile(commandText, filename, 'eval')
-        except:
+        except Exception:
             compiled = compile(commandText, filename, 'exec')
-            exec (compiled, __main__.__dict__, __main__.__dict__)
+            exec(compiled, __main__.__dict__, __main__.__dict__)
         else:
             cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
             wasEval = True
@@ -226,9 +223,9 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     if commandText:
                         self.pdbSendCommand(commandText)
                     else:
-                        # Sending a blank line to pdb will cause it to quit raising a exception.
-                        # Most likely the user just wants to add some white space between their
-                        # commands, so just add a new prompt line.
+                        # Sending a blank line to pdb will cause it to quit raising a
+                        # exception. Most likely the user just wants to add some white
+                        # space between their commands, so just add a new prompt line.
                         self.startInputLine()
                         self.insertPlainText(commandText)
                 else:
@@ -237,11 +234,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
                     # print the resulting commands
                     if cmdresult is not None:
-                        # When writing to additional stdout's not including a new line makes
-                        # the output not match the formatting you get inside the console.
+                        # When writing to additional stdout's not including a new line
+                        # makes the output not match the formatting you get inside the
+                        # console.
                         self.write(u'{}\n'.format(cmdresult))
-                        # NOTE: I am using u'' above so unicode strings in python 2 don't get
-                        # converted to str objects.
+                        # NOTE: I am using u'' above so unicode strings in python 2
+                        # don't get converted to str objects.
 
                     self.startInputLine()
 
@@ -258,7 +256,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         pass
 
     def focusInEvent(self, event):
-        """ overload the focus in event to ensure the completer has the proper widget """
+        """ overload the focus in event to ensure the completer has the proper widget
+        """
         if self.completer():
             self.completer().setWidget(self)
         QTextEdit.focusInEvent(self, event)
@@ -269,7 +268,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.Left)
             cursor.movePosition(QTextCursor.EndOfWord)
-            cursor.insertText(completion[len(self.completer().completionPrefix()) :])
+            cursor.insertText(completion[len(self.completer().completionPrefix()):])
             self.setTextCursor(cursor)
 
     def insertFromMimeData(self, mimeData):
@@ -289,9 +288,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         text = doc.toPlainText()
 
-        exp = re.compile(
-            '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
-        )
+        exp = re.compile((
+            '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:'
+            '\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
+        ))
         newText = text.encode('utf-8')
         for each in exp.findall(newText):
             newText = newText.replace(each, '?')
@@ -299,9 +299,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.insertPlainText(newText)
 
     def isatty(self):
-        """ Return True if the stream is interactive (i.e., connected to a terminal/tty device). """
-        # This method is required for pytest to run in a DCC. Returns False so the output does not
-        # contain cursor control characters that disrupt the visual display of the output.
+        """ Return True if the stream is interactive (i.e., connected to a terminal/tty
+            device).
+        """
+        # This method is required for pytest to run in a DCC. Returns False so the
+        # output does not contain cursor control characters that disrupt the visual
+        # display of the output.
         return False
 
     def lastError(self):
@@ -378,7 +381,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 elif event.key() == Qt.Key_ParenRight:
                     completer.hideDocumentation()
 
-                # determine if we need to show the popup or if it already is visible, we need to update it
+                # determine if we need to show the popup or if it already is visible, we
+                # need to update it
                 elif (
                     event.key() == Qt.Key_Period
                     or event.key() == Qt.Key_Escape
@@ -417,7 +421,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             cursor.movePosition(QTextCursor.Start)
         else:
             # Otherwise just move it to the start of the line
-            block = cursor.block().text().split()
             cursor.movePosition(QTextCursor.StartOfBlock, mode)
         # move the cursor to the end of the prompt.
         cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
@@ -449,10 +452,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     def setPdbMode(self, mode):
         if self.pdbModeAction:
             if not self.pdbModeAction.isEnabled():
-                # pdbModeAction is disabled by default, enable the action, so the user can switch
-                # between pdb and normal mode any time they want. pdbMode does nothing if this instance
-                # of python is not the child process of blurdev.external.External, and the parent
-                # process is in pdb mode.
+                # pdbModeAction is disabled by default, enable the action, so the user
+                # can switch between pdb and normal mode any time they want. pdbMode
+                # does nothing if this instance of python is not the child process of
+                # blurdev.external.External, and the parent process is in pdb mode.
                 self.pdbModeAction.blockSignals(True)
                 self.pdbModeAction.setChecked(mode)
                 self.pdbModeAction.blockSignals(False)
@@ -486,7 +489,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             completer.activated.connect(self.insertCompletion)
 
     def showEvent(self, event):
-        # _firstShow is used to ensure the first imput prompt is styled by any active stylesheet
+        # _firstShow is used to ensure the first imput prompt is styled by any active
+        # stylesheet
         if self._firstShow:
             self.startInputLine()
             self._firstShow = False
@@ -546,13 +550,15 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.setCurrentCharFormat(charFormat)
             try:
                 self.insertPlainText(msg)
-            except:
+            except Exception:
                 if SafeOutput:
-                    # win32com writes to the debugger if it is unable to print, so ensure it still does this.
+                    # win32com writes to the debugger if it is unable to print, so
+                    # ensure it still does this.
                     SafeOutput.write(self, msg)
         else:
             if SafeOutput:
-                # win32com writes to the debugger if it is unable to print, so ensure it still does this.
+                # win32com writes to the debugger if it is unable to print, so ensure it
+                # still does this.
                 SafeOutput.write(self, msg)
 
         # if a outputPipe was provided, write the message to that pipe
@@ -567,5 +573,5 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 self.stdout.write(msg)
             else:
                 sys.__stdout__.write(msg)
-        except:
+        except Exception:
             pass

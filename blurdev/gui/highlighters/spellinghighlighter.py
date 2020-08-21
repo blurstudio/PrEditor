@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.gui.highlighters.spellinghighlighter
 #
-# 	\remarks	Uses the enchant spell checking system to highlight incorrectly spelled words
+#   \remarks    Uses the enchant spell checking system to highlight incorrectly spelled
+#               words
 #
 # 	\sa			http://www.rfk.id.au/software/pyenchant/download.html
 #
@@ -9,9 +10,10 @@
 # 	\author		Blur Studio
 # 	\date		11/12/08
 #
-from builtins import str as text
-from Qt.QtGui import QCursor, QSyntaxHighlighter
+
+from Qt.QtGui import QSyntaxHighlighter, QColor, QTextCharFormat
 from Qt.QtWidgets import QMenu, QAction
+from Qt.QtCore import QRegExp, Qt
 from blurdev import debug
 import string
 
@@ -19,9 +21,10 @@ import string
 aspell = None
 try:
     import aspell
-except:
+except ImportError:
     debug.debugMsg(
-        '[blurdev.gui.highlighters.spellinghighlighter] - python aspell module could not be found'
+        '[blurdev.gui.highlighters.spellinghighlighter] -'
+        ' python aspell module could not be found'
     )
 
 
@@ -35,9 +38,10 @@ class SpellingHighlighter(QSyntaxHighlighter):
         if aspell:
             try:
                 self._speller = aspell.Speller()
-            except:
+            except Exception:
                 debug.debugMsg(
-                    '[blurdev.gui.highlighters.spellinghighlighter] - python aspell dictionary could not be found'
+                    '[blurdev.gui.highlighters.spellinghighlighter] -'
+                    ' python aspell dictionary could not be found'
                 )
 
         # set the dictionary language
@@ -105,7 +109,6 @@ class SpellingHighlighter(QSyntaxHighlighter):
             menu.insertSeparator(menu.actions()[0])
             qaction = QAction('Add %s to dictionary' % word, self.parent())
             qaction.triggered.connect(lambda: self.addWordToDict(word))
-            addmenu = menu.insertAction(menu.actions()[0], qaction)
             qaction.setObjectName('uiSpellCheckAddWordACT')
             menu.insertMenu(menu.actions()[0], sm)
         return menu
@@ -115,13 +118,12 @@ class SpellingHighlighter(QSyntaxHighlighter):
         return self._active
 
     def isValid(self):
-        return aspell != None and self._speller != None
+        return aspell is not None and self._speller is not None
 
-    def highlightBlock(self, text):
-        """ highlights the inputed text block based on the rules of this code highlighter """
+    def highlightBlock(self, txt):
+        """ highlights the inputed text block based on the rules of this code
+        highlighter """
         if self.isValid() and self.isActive():
-            from Qt.QtCore import QRegExp, Qt
-            from Qt.QtGui import QColor, QTextCharFormat
 
             # create the format
             format = QTextCharFormat()
@@ -131,14 +133,14 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
             # create the regexp
             expr = QRegExp(r'\S+\w')
-            pos = expr.indexIn(text, 0)
-            # highlight all the given matches to the expression in the text
+            pos = expr.indexIn(txt, 0)
+            # highlight all the given matches to the expression in the txt
             while pos != -1:
                 pos = expr.pos()
                 length = len(expr.cap())
 
-                # extract the text chunk for highlighting
-                chunk = text[pos : pos + length]
+                # extract the txt chunk for highlighting
+                chunk = txt[pos: pos + length]
 
                 if not (
                     any(letter in string.digits for letter in chunk)
@@ -149,10 +151,11 @@ class SpellingHighlighter(QSyntaxHighlighter):
 
                 # update the expression location
                 matched = expr.matchedLength()
-                pos = expr.indexIn(text, pos + matched)
+                pos = expr.indexIn(txt, pos + matched)
 
     def setActive(self, state=True):
-        """ sets the highlighter to only apply to console strings (lines starting with >>>) """
+        """ sets the highlighter to only apply to console strings (lines starting with
+        >>>) """
         self._active = state
         self.rehighlight()
 

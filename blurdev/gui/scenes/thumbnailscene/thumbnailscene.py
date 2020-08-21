@@ -1,8 +1,9 @@
 ##
 # 	\namespace	blurdev.gui.scenes.thumbnailscene.thumbnailscene
 #
-# 	\remarks	The ThumbnailScene class is a QGraphicsScene subclass that allows the user to show thumbnails easily and in a graphically pleasing way -
-# 				with autoresizing to fit the view scope and selection capabilities
+#   \remarks    The ThumbnailScene class is a QGraphicsScene subclass that allows the
+#               user to show thumbnails easily and in a graphically pleasing way - with
+#               autoresizing to fit the view scope and selection capabilities
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -12,8 +13,6 @@
 from Qt.QtCore import Signal
 from Qt.QtWidgets import QGraphicsScene
 from .thumbnailitem import ThumbnailItem
-
-# -------------------------------------------------------------------------------------------------------------
 
 
 class ThumbnailScene(QGraphicsScene):
@@ -242,13 +241,13 @@ class ThumbnailScene(QGraphicsScene):
             # process a thumbnail item
             if isinstance(item, ThumbnailItem):
                 tgroup = item.thumbGroup()
-                if not tgroup in grp_map:
+                if tgroup not in grp_map:
                     grp_map[tgroup] = [item]
                 else:
                     grp_map[tgroup].append(item)
 
             # process a thumbnail group
-            elif not item in grp_map:
+            elif item not in grp_map:
                 grp_map[item] = []
 
         # calculate the group information
@@ -297,7 +296,6 @@ class ThumbnailScene(QGraphicsScene):
 
             # layout the items in the grid
             col = 0
-            row = 0
             xpos = padding.width()
 
             thumbs.sort(key=lambda x: x.sortData())
@@ -363,7 +361,6 @@ class ThumbnailScene(QGraphicsScene):
 
     def setThumbnailSize(self, size):
         if size != self._thumbnailSize:
-            from Qt.QtCore import Qt
             from .thumbnailitem import ThumbnailItem
 
             self._thumbnailSize = size

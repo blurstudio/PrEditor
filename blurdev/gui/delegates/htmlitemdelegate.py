@@ -8,7 +8,7 @@
 #   :date       05/07/15
 #
 
-from Qt.QtCore import QRectF, QSize, Qt
+from Qt.QtCore import QRectF, QSize
 from Qt.QtGui import QAbstractTextDocumentLayout, QPalette, QTextDocument
 from Qt.QtWidgets import QStyle
 from .griddelegate import GridDelegate

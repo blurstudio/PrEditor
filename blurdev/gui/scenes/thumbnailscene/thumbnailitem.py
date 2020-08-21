@@ -1,8 +1,9 @@
 ##
 # 	\namespace	blurdev.gui.scenes.thumbnailscene.thumbnailitem
 #
-# 	\remarks	The ThumbnailItem is a QGraphicsRectItem that will contain and cache thumbnails for an image, allowing
-# 				for fast rendering within a ThumbnailScene
+#   \remarks    The ThumbnailItem is a QGraphicsRectItem that will contain and cache
+#               thumbnails for an image, allowing for fast rendering within a
+#               ThumbnailScene
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -52,7 +53,7 @@ class ThumbnailItem(QGraphicsRectItem):
         return self._highlightMode
 
     def paint(self, painter, option, widget):
-        from Qt.QtCore import QRect, Qt
+        from Qt.QtCore import Qt
 
         # draw the thumbnail
         scene = self.scene()
@@ -174,11 +175,7 @@ class ThumbnailItem(QGraphicsRectItem):
 
     def thumbnail(self):
         if not (self._thumbnail):
-            from Qt.QtCore import Qt
-            from Qt.QtGui import QPixmap
-
             import blurdev
-
             self._thumbnail = blurdev.gui.findPixmap(
                 self._filename, thumbSize=self.scene().thumbnailSize()
             )

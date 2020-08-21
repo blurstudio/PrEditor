@@ -27,7 +27,8 @@ class WorkboxWidget(DocumentEditor):
         # initialize the super class
         super(WorkboxWidget, self).__init__(parent, delayable_engine=delayable_engine)
 
-        # Store the software name so we can handle custom keyboard shortcuts bassed on software
+        # Store the software name so we can handle custom keyboard shortcuts bassed on
+        # software
         self._software = blurdev.core.objectName()
         self.regex = re.compile(r'\s+$')
         self.initShortcuts()
@@ -37,7 +38,8 @@ class WorkboxWidget(DocumentEditor):
 
     def execAll(self):
         """
-            \remarks    reimplement the DocumentEditor.exec_ method to run this code without saving
+            \remarks    reimplement the DocumentEditor.exec_ method to run this code
+            without saving
         """
         txt = self.toUnixLineEndings(self.text()).rstrip()
         self.console().executeString(txt, filename='<WorkboxWidget>')
@@ -69,8 +71,9 @@ class WorkboxWidget(DocumentEditor):
         return newLines
 
     def execSelected(self):
-        # Get the first line number of the selection so we can report correct line numbers.
-        # If text is selected use it, otherwise use the text of the current line.
+        # Get the first line number of the selection so we can report correct line
+        # numbers. If text is selected use it, otherwise use the text of the current
+        # line.
         txt = self.selectedText()
         if txt:
             line, s, end, e = self.getSelection()
@@ -124,7 +127,8 @@ class WorkboxWidget(DocumentEditor):
 
     def initShortcuts(self):
         """
-        Use this to set up shortcuts when the DocumentEditor is not being used in the IdeEditor.
+        Use this to set up shortcuts when the DocumentEditor is not being used in the
+        IdeEditor.
         """
         from blurdev.ide.finddialog import FindDialog
 

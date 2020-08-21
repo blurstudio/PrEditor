@@ -66,9 +66,10 @@ class FilePickerWidget(QWidget):
         self.uiFilenameTXT.setEditable(True)
         self.uiPickFileBTN = QToolButton(self)
         self.uiPickFileBTN.setText('...')
-        self.uiPickFileBTN.setToolTip(
-            '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to current path.</p></body></html>'
-        )
+        self.uiPickFileBTN.setToolTip((
+            '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to '
+            'current path.</p></body></html>'
+        ))
         # Make this widget focusable and pass the widget focus to uiFilenameTXT
         self.setFocusProxy(self.uiFilenameTXT)
         self.setFocusPolicy(Qt.StrongFocus)
@@ -195,24 +196,17 @@ class FilePickerWidget(QWidget):
                             and os.path.isfile(sequenceFiles[-1])
                         )
                         seqRep = path
-                        # If we don't have a previously selected path, use the path of the first image
-                        # in the sequence.
+                        # If we don't have a previously selected path, use the path of
+                        # the first image in the sequence.
                         if not self._chosenPath and valid:
                             self._chosenPath = sequenceFiles[0]
                     if valid:
                         self.uiFilenameTXT.setEditText(seqRep)
             if valid:
-                fg = self.correctForeground
-                bg = self.correctBackground
                 self._resolved = True
             else:
-                fg = self.inCorrectForeground
-                bg = self.inCorrectBackground
                 self._resolved = False
-
-            style = self.resolvedStylesheet % {'bg': bg.getRgb(), 'fg': fg.getRgb()}
         else:
-            style = ''
             self._resolved = False
 
     def resolvePath(self):
@@ -274,8 +268,8 @@ class FilePickerWidget(QWidget):
 
     @Slot(bool)
     def setDropDownVisible(self, dropDownVisible):
-        """ Sets 
-        
+        """ Sets
+
         Args:
             dropDownVisible (TYPE): Description
         """
@@ -372,7 +366,7 @@ class FilePickerWidget(QWidget):
     def defaultLocation(self, value):
         self._defaultLocation = text(value)
 
-    @Property(unicode)
+    @Property(text)
     def imageSequenceFormat(self):
         return self._imageSequenceFormat
 

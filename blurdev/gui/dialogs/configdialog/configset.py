@@ -55,7 +55,7 @@ class ConfigSection(object):
     def restoreFromXml(self, xml):
         for key in self._properties.keys():
             value = xml.restoreProperty(key)
-            if value != None:
+            if value is not None:
                 self._properties[key] = value
 
     def setValue(self, key, value):
@@ -114,7 +114,7 @@ class ConfigSet(QObject):
                 configmodname = '%s.%s' % (module.__name__, modname)
                 try:
                     __import__(configmodname)
-                except:
+                except ImportError:
                     print('could not import %s' % configmodname)
                     continue
 

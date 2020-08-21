@@ -42,7 +42,6 @@ class ClearableDateEdit(QDateEdit):
         self.uiNoDateLBL.setReadOnly(False)
         self.uiNoDateLBL.setVisible(False)
         self.uiNoDateLBL.setFocusPolicy(Qt.NoFocus)
-        frameWidth = self.style().pixelMetric(QStyle.PM_DefaultFrameWidth)
 
     def clear(self):
         self.uiClearBTN.setChecked(False)

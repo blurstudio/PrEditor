@@ -1,17 +1,16 @@
 ##
 #   :namespace  python.blurdev.gui.widgets.pyularwidget
 #
-#   :remarks    A Python regular expression editor based entirely on http://www.rubular.com/
+#   :remarks    A Python regular expression editor based entirely on
+#               http://www.rubular.com/
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio
 #   :date       11/11/11
 #
 
-from builtins import str as text
 import sys
 import re
-import os.path
 import blurdev
 
 from Qt.QtGui import QIcon
@@ -78,7 +77,7 @@ class PyularWidget(QWidget):
         self.flags = 0
         self.uiSearchTypeDDL.clear()
         self.uiSearchTypeDDL.addItems(
-            [self.tr(l) for l in self.ReType.labels(byVal=True)]
+            [self.tr(lab) for lab in self.ReType.labels(byVal=True)]
         )
 
     def count(self):
@@ -86,7 +85,8 @@ class PyularWidget(QWidget):
 
     def errorLog(self):
         """
-            :remarks	If a exception is called from this class, the email generated will contain this information
+            :remarks    If a exception is called from this class, the email generated
+                        will contain this information
         """
         msg = []
         msg.append('Pyular')
@@ -118,7 +118,7 @@ class PyularWidget(QWidget):
 
     def processResults(self):
         pattern = self.uiExpressionTXT.text()
-        text = self.uiStringTXT.toPlainText()
+        txt = self.uiStringTXT.toPlainText()
         typeIndex = self.uiSearchTypeDDL.currentIndex()
         count = self.uiCountSPN.value()
         # start to build the code string that will be populated later in the code.
@@ -134,12 +134,13 @@ class PyularWidget(QWidget):
             self.uiSplitNotesLBL.setVisible(False)
             regex = re.compile(pattern, flags=self.flags)
             if typeIndex == self.ReType.FindAll:
-                results = regex.findall(text)
+                results = regex.findall(txt)
                 out = []
                 if results:
                     out.append('<ul>')
                     for result in results:
-                        # re.findall can return a list of strings, or a list of tuples containing strings.
+                        # re.findall can return a list of strings, or a list of tuples
+                        # containing strings.
                         if isinstance(result, tuple):
                             out.append('<li><b><i>Nested Group:</i></b></li>')
                             out.append('<ul>')
@@ -156,26 +157,26 @@ class PyularWidget(QWidget):
                     out.append('</ul>')
                 self.uiResultsTXT.setText('\n'.join(out))
                 code += "findall(r'{pattern}', r'{stri}'{flags})".format(
-                    pattern=pattern, stri=text, flags=flags
+                    pattern=pattern, stri=txt, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
                 return
             elif typeIndex == self.ReType.Match:
                 code += "match(r'{pattern}', r'{stri}'{flags})".format(
-                    pattern=pattern, stri=text, flags=flags
+                    pattern=pattern, stri=txt, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
-                return self.processMatchObject(regex.match(text))
+                return self.processMatchObject(regex.match(txt))
             elif typeIndex == self.ReType.Search:
                 code += "search(r'{pattern}', r'{stri}'{flags})".format(
-                    pattern=pattern, stri=text, flags=flags
+                    pattern=pattern, stri=txt, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
-                return self.processMatchObject(regex.search(text))
+                return self.processMatchObject(regex.search(txt))
             elif typeIndex == self.ReType.Split:
-                results = regex.split(text, maxsplit=count)
+                results = regex.split(txt, maxsplit=count)
                 for index, result in enumerate(results):
-                    if result == None:
+                    if result is None:
                         results[index] = '[None]'
                         self.uiSplitNotesLBL.setVisible(True)
                     if result == '':
@@ -183,18 +184,20 @@ class PyularWidget(QWidget):
                         self.uiSplitNotesLBL.setVisible(True)
                 if sys.version_info.major < 2 or sys.version_info.minor < 7:
                     flags = ''
-                code += "split(r'{pattern}', r'{stri}', maxsplit={count}{flags})".format(
-                    pattern=pattern, stri=text, count=count, flags=flags
+                txt = "split(r'{pattern}', r'{stri}', maxsplit={count}{flags})"
+                code += txt.format(
+                    pattern=pattern, stri=txt, count=count, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
             else:  # Sub
                 replace = self.uiReplaceTXT.text()
-                results = regex.sub(replace, text, count=count)
+                results = regex.sub(replace, txt, count=count)
                 self.uiResultsTXT.setText(results)
                 if sys.version_info.major < 2 or sys.version_info.minor < 7:
                     flags = ''
-                code += "sub(r'{pattern}', r'{repl}', r'{stri}', count={count}{flags})".format(
-                    pattern=pattern, repl=replace, count=count, stri=text, flags=flags
+                txt = "sub(r'{pattern}', r'{repl}', r'{stri}', count={count}{flags})"
+                code += txt.format(
+                    pattern=pattern, repl=replace, count=count, stri=txt, flags=flags
                 )
                 self.uiCodeTXT.setText(code)
                 return
@@ -237,7 +240,8 @@ class PyularWidget(QWidget):
     def processMatchObject(self, results):
         if results:
             groupDict = results.groupdict()
-            # swap the keys for items, so we can do the look up on the value of results.groups()
+            # swap the keys for items, so we can do the look up on the value of
+            # results.groups()
             invert = dict(zip(groupDict.values(), groupDict.keys()))
             out = []
             for index in range(len(results.groups()) + 1):

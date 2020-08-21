@@ -132,14 +132,4 @@ class ActionManagerWidget(QTreeWidget):
     @staticmethod
     def editWidget(widget, recursive=False):
         # edit the widgets actions
-        actions = []
-        if recursive:
-            actions = widget.findChilren(QAction)
-        else:
-            actions = [
-                action
-                for action in widget.findChildren(QAction)
-                if action.parent() == widget
-            ]
-
         ActionManagerWidget.editActions(widget.findChildren(QAction))

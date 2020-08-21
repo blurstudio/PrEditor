@@ -8,7 +8,7 @@ from blurdev.tools import ToolsEnvironment
 class EnvComboBoxDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         parent = self.parent()
-        if parent and index.data(parent.DefaultEnvRole) == True:
+        if parent and index.data(parent.DefaultEnvRole) is True:
             self.initStyleOption(option, index)
             brush = index.data(Qt.BackgroundRole)
             if not brush:
@@ -26,26 +26,36 @@ class EnvComboBoxDelegate(QStyledItemDelegate):
 
 
 class EnvComboBox(QComboBox):
-    """ QComboBox that uses stylesheets to control its color and the color of its popup items.
-    
+    """ QComboBox that uses stylesheets to control its color and the color of its popup
+    items.
+
     Here is a example stylesheet:
         QComboBox#uiEnvironmentDDL, QComboBox#uiEnvironmentDDL QListView::item {
-            /* Default color of the default items in the popup via the "QComboBox#uiEnvironmentDDL" selector */
+
+            /* Default color of the default items in the popup via the
+            "QComboBox#uiEnvironmentDDL" selector */
+
             qproperty-defaultEnvBackground: rgb(0, 200, 0, 150);
             qproperty-defaultEnvColor: black;
-            /* All other popup items are styled via the "QComboBox#uiEnvironmentDDL QListView::item" 
-            selector. It is also used to style the combo box via the "QComboBox#uiEnvironmentDDL" selector */
+
+            /* All other popup items are styled via the "QComboBox#uiEnvironmentDDL
+            QListView::item" selector. It is also used to style the combo box via the
+            "QComboBox#uiEnvironmentDDL" selector */
+
             background: rgb(200, 131, 0, 150);
         }
         QComboBox#uiEnvironmentDDL QListView::item:selected {
             /* Style the selected item in the popup */
             background: rgb(0, 0, 255);
         }
-        /* Used to style the background color of the combo box when using the defaultEnv */
+
+        /* Used to style the background color of the combo box when using the defaultEnv
+        */
+
         QComboBox#uiEnvironmentDDL[defaultActive="true"] {
             background: rgb(0, 200, 0, 150);
         }
-    
+
     Attributes:
         defaultEnvColor: The color to render the default environment item text with.
         defaultEnvBackground: The background color for the default environment item.
@@ -71,17 +81,18 @@ class EnvComboBox(QComboBox):
         model = self.model()
         for row in range(model.rowCount()):
             index = model.index(row, 0)
-            if index.data(self.DefaultEnvRole) == True:
+            if index.data(self.DefaultEnvRole) is True:
                 return index.data(Qt.DisplayRole)
         return None
 
     def setDefaultEnv(self, name):
         """ Marks all items in the model using the provided text as defaultEnv
-        
-        This allows more than one environment to be marked as default as long as it has the same
-        name. You take care to not provide two environments with the same name in the combo box as
-        the defaultEnv method only returns the text of the first item marked as default.
-        
+
+        This allows more than one environment to be marked as default as long as it has
+        the same name. You take care to not provide two environments with the same name
+        in the combo box as the defaultEnv method only returns the text of the first
+        item marked as default.
+
         Args:
             name(str): The text of the item you want to mark as default
         """
@@ -115,8 +126,9 @@ class EnvComboBox(QComboBox):
         """ Set the current environment.
 
         Args:
-            env (ToolsEnvironment or str): You can pass the name of the tools environment
-                or the environment itself. If a invalid env is selected
+
+            env (ToolsEnvironment or str): You can pass the name of the tools
+                environment or the environment itself. If a invalid env is selected
         """
         if isinstance(env, ToolsEnvironment):
             index = self.findData(env, Qt.UserRole)

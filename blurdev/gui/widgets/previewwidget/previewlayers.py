@@ -163,7 +163,7 @@ class CanvasLayer(AbstractPreviewLayer):
 
         # handle drawing
         if mode & (InteractionMode.Pencil | InteractionMode.Brush):
-            from Qt.QtGui import QPainter, QPen
+            from Qt.QtGui import QPainter
 
             self._canvasPainter = QPainter()
             self._canvasPainter.begin(self._canvas)
@@ -189,10 +189,6 @@ class CanvasLayer(AbstractPreviewLayer):
 class MediaLayer(AbstractPreviewLayer):
     def __init__(self, scene, name):
         AbstractPreviewLayer.__init__(self, LayerType.Media, scene, name)
-
-        from Qt.QtCore import Qt
-        from Qt.QtGui import QColor, QPixmap
-        from Qt.QtWidgets import QGraphicsPixmapItem
 
         self._filename = ''
         self._mediaItem = None
@@ -236,7 +232,7 @@ class MediaLayer(AbstractPreviewLayer):
 
         else:
             from Qt.QtCore import Qt
-            from Qt.QtGui import QImage, QPixmap
+            from Qt.QtGui import QPixmap
             from Qt.QtWidgets import QGraphicsPixmapItem, QMessageBox
 
             pixmap = QPixmap(filename)
@@ -248,7 +244,11 @@ class MediaLayer(AbstractPreviewLayer):
                     result = QMessageBox.question(
                         None,
                         'Different Canvas Sizes',
-                        'The media you are loading has a different size than the current canvas size.  Would you like to resize the canvas to fit the media?',
+                        (
+                            'The media you are loading has a different size than the '
+                            'current canvas size.  Would you like to resize the canvas '
+                            'to fit the media?'
+                        ),
                         QMessageBox.Yes | QMessageBox.No,
                     )
 

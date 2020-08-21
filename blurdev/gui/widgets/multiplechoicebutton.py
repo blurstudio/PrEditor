@@ -11,13 +11,12 @@
 from Qt.QtCore import Signal, QLineF, Property, Qt, QRect, QSize
 from Qt.QtGui import (
     QPainter,
-    QColor,
     QPalette,
     QLinearGradient,
     QPainterPath,
     QBrush,
-    QCursor,
 )
+
 from Qt.QtWidgets import QAbstractButton
 
 
@@ -25,7 +24,9 @@ class MultipleChoiceButton(QAbstractButton):
     currentChoiceChanged = Signal(str)  # emitted when the current choice is changed
     currentValueChanged = Signal(
         int
-    )  # emitted when the current choice is changed, only if an enum instance is provided for the system
+    )
+    # emitted when the current choice is changed, only if an enum instance is provided
+    # for the system
 
     def __init__(self, parent):
         # initialize the super class
@@ -95,7 +96,6 @@ class MultipleChoiceButton(QAbstractButton):
         w = self.width() - 2  # width
         r = self.cornerRadius()  # radius
         h = self.height() - 2  # height
-        ch = h / 2.0  # center-height
 
         # create the base path
         path = QPainterPath()
@@ -138,7 +138,8 @@ class MultipleChoiceButton(QAbstractButton):
         choicepath = QPainterPath()
         currchoice = self.currentChoice()
 
-        # determine the width of the choices based on the current width and the number of chioces
+        # determine the width of the choices based on the current width and the number
+        # of chioces
         count = len(self._choices)
         if count > 1:
             painter.setBrush(brush)

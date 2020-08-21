@@ -1,7 +1,8 @@
 ##
 #   :namespace  python.blurdev.gui.widgets.editabletabbar
 #
-#   :remarks    A tab bar that alows you to rename its tabs by double clicking on the tab
+#   :remarks    A tab bar that alows you to rename its tabs by double clicking on the
+#               tab
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio
@@ -14,10 +15,12 @@ from Qt.QtWidgets import QLineEdit, QTabBar
 
 class EscapeLineEdit(QLineEdit):
     """
-        :remarks	Subclass of QLineEdit that will emit editingCanceled if the escape key is pressed.
+        :remarks    Subclass of QLineEdit that will emit editingCanceled if the escape
+                    key is pressed.
         :param		text		<str>			Text shown in the widget. Default: ''
         :param		parent		<QWidget>||None	The parent of the widget. Default: None
-        :param		selected	<QWidget>		If True the text will be selected. Default: True
+        :param      selected    <QWidget>       If True the text will be selected.
+                                                Default: True
     """
 
     editingCanceled = Signal()
@@ -38,8 +41,9 @@ class EscapeLineEdit(QLineEdit):
 
 class EditableTabBar(QTabBar):
     """
-        :remarks	This tab bar allows you to double click on a tab and rename it without extra dialogs.
-                    Commit the change by pressing enter, discard the change by pressing escape.
+        :remarks    This tab bar allows you to double click on a tab and rename it
+                    without extra dialogs. Commit the change by pressing enter, discard
+                    the change by pressing escape.
         :param		parent	<QWidget>||None
     """
 
@@ -50,7 +54,8 @@ class EditableTabBar(QTabBar):
 
     def editingCanceled(self):
         if self.lineEdit:
-            # block signals because editingFinished gets emitted when closing the lineEdit
+            # block signals because editingFinished gets emitted when closing the
+            # lineEdit
             self.lineEdit.blockSignals(True)
             self.lineEdit.close()
             self.lineEdit.blockSignals(False)

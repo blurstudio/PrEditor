@@ -12,11 +12,17 @@ class PanZoomGraphicsView(QGraphicsView):
     the what is required to enable zooming while scrolling the mouse wheel.
 
     Attributes:
+
         panKeys (list): A list of Qt.Key's that enable panning while left clicking.
-        panMouseButton (Qt.MouseButton): A mouse button that enables paning while pressed.
-        uiActualPixelsACT (QAction): QAction that resets zoom to 100%.
-        uiFitOnScreenACT (QAction): QAction that zooms out so the entire scene is visible.
-        zoomModifiers (Qt.Modifier): A list of Qt.Modifier's that enables zooming by mouse scroll.
+
+        panMouseButton (Qt.MouseButton): A mouse button that enables paning while
+        pressed. uiActualPixelsACT (QAction): QAction that resets zoom to 100%.
+
+        uiFitOnScreenACT (QAction): QAction that zooms out so the entire scene is
+        visible.
+
+        zoomModifiers (Qt.Modifier): A list of Qt.Modifier's that enables zooming by
+        mouse scroll.
     """
 
     def __init__(self, *args, **kwargs):
@@ -56,7 +62,7 @@ class PanZoomGraphicsView(QGraphicsView):
             menu (QMenu): The menu that will be shown.
         """
         menu.addSeparator()
-        act = menu.addAction('Load Background Image')
+        menu.addAction('Load Background Image')
 
     def actualPixels(self):
         """ Set the scene scale to 100%.
@@ -194,7 +200,8 @@ class PanZoomGraphicsView(QGraphicsView):
         """ Override this method to customize when zooming is enabled
 
         Returns:
-            bool: If QApplication's current keyboardModifiers is equal to self.zoomModifiers.
+            bool: If QApplication's current keyboardModifiers is equal to
+                self.zoomModifiers.
         """
         return QApplication.instance().keyboardModifiers() in self.zoomModifiers
 

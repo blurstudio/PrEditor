@@ -32,14 +32,16 @@ class LayerDelegate(QItemDelegate):
         try:
             self._editor.close()
             self._editor.deleteLater()
-        except:
+        except Exception:
             pass
 
         self._editor = None
 
     def createEditor(self, parent, option, index):
         """
-            :remarks	overloaded from QItemDelegate, creates a new editor for the inputed widget
+            :remarks    overloaded from QItemDelegate, creates a new editor for the
+            inputed widget
+
             :param		parent	<QWidget>
             :param		option	<QStyleOptionViewItem>
             :param		index	<QModelIndex>
@@ -61,7 +63,8 @@ class LayerDelegate(QItemDelegate):
         return self._checkedMap
 
     def drawCheck(self, painter, option, rect, state):
-        """ overloaded QItemDelegate.drawCheck method to handle the drawing of the checkbox to paint the pixmaps """
+        """ overloaded QItemDelegate.drawCheck method to handle the drawing of the
+        checkbox to paint the pixmaps """
         if rect.isValid():
             from Qt.QtCore import Qt
 

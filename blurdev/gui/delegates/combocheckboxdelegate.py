@@ -1,8 +1,9 @@
 ##
 # 	:namespace	python.blurdev.gui.delegates.combocheckboxdelegate
 #
-# 	:remarks	The ComboCheckboxDelegate class is designed to let a programmer turn any Combobox into a multi-selection
-# 				list that will let a user checkoff multiple options from the drop down list and use them
+#   :remarks    The ComboCheckboxDelegate class is designed to let a programmer turn any
+#               Combobox into a multi-selection list that will let a user checkoff
+#               multiple options from the drop down list and use them
 #
 # 	:author		beta@blur.com
 # 	:author		Blur Studio

@@ -1,11 +1,11 @@
 ##
-# 	\namespace	python.blurdev.gui.dialogs.multiprogressdialog
+#   \namespace  python.blurdev.gui.dialogs.multiprogressdialog
 #
-# 	\remarks
+#   \remarks
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		03/14/11
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       03/14/11
 #
 
 from Qt import QtCompat
@@ -151,7 +151,7 @@ class MultiProgressDialog(Dialog):
                 return item
         return None
 
-    def sectionUpdated(self, sectionName, percent, message=''):
+    def sectionUpdated(self, sectionName, percent, message=""):
         section = self.section(sectionName)
         if section:
             section.setPercentComplete(percent)
@@ -179,7 +179,8 @@ class MultiProgressDialog(Dialog):
         if self._shutdown:
             return
 
-        # we need to force the events to process to check if the user pressed the cancel button since this is not multi-threaded
+        # we need to force the events to process to check if the user pressed the cancel
+        # button since this is not multi-threaded
         from Qt.QtWidgets import QApplication
 
         QApplication.processEvents()
@@ -189,7 +190,7 @@ class MultiProgressDialog(Dialog):
 
         citem = tree.currentItem()
         count = tree.topLevelItemCount()
-        message = ''
+        message = ""
         completeCount = 0.0
         secondaryPerc = 0
         self._errored = False
@@ -254,7 +255,7 @@ class MultiProgressDialog(Dialog):
             MultiProgressDialog._instance = None
 
     @staticmethod
-    def start(title='Progress', parent=None):
+    def start(title="Progress", parent=None):
         if MultiProgressDialog._instance:
             MultiProgressDialog._instance.incrementStack()
         else:

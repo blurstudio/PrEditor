@@ -4,7 +4,7 @@ import abc
 
 from blurdev.debug import DebugLevel
 from cute.abcmeta import QABCMeta
-from Qt.QtCore import QSignalMapper, Signal, QObject
+from Qt.QtCore import QSignalMapper, Signal
 from Qt.QtWidgets import QAction, QToolButton
 from blurdev.gui import iconFactory
 from collections import OrderedDict
@@ -45,12 +45,12 @@ class LevelButton(with_metaclass(QABCMeta, QToolButton)):
         self._signalMapper = QSignalMapper(self)
         self._signalMapper.mapped[str].connect(self.setLevel)
 
-        for l in self._levels:
-            icon = self._getIcon('dot', self._levels[l]['color'])
-            action = QAction(icon, self._levels[l]['text'], self)
+        for lev in self._levels:
+            icon = self._getIcon('dot', self._levels[lev]['color'])
+            action = QAction(icon, self._levels[lev]['text'], self)
             action.setCheckable(True)
             self.addAction(action)
-            self._signalMapper.setMapping(action, l)
+            self._signalMapper.setMapping(action, lev)
             action.triggered.connect(self._signalMapper.map)
 
         if level:

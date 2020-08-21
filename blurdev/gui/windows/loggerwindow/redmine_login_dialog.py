@@ -35,7 +35,7 @@ class RedmineLoginDialog(QDialog):
 
     def password(self):
         """The password input by the user upon acceptance.
-        
+
         Returns:
             str: The password.
         """
@@ -43,7 +43,7 @@ class RedmineLoginDialog(QDialog):
 
     def username(self):
         """The username input by the user upon acceptance.
-        
+
         Returns:
             str: The username.
         """
@@ -51,7 +51,7 @@ class RedmineLoginDialog(QDialog):
 
     def redmine(self):
         """The Redmine connection object upon succesful acceptance.
-        
+
         Returns:
             redminelib.Redmine: Redmine connection object.
         """

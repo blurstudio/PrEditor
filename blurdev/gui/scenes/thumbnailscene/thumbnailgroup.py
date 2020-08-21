@@ -1,8 +1,9 @@
 ##
 # 	\namespace	blurdev.gui.scenes.thumbnailscene.thumbnailgroup
 #
-# 	\remarks	The ThumbnailGroup is a QGraphicsRectItem that will contain and cache thumbnails for an image, allowing
-# 				for fast rendering within a ThumbnailScene
+#   \remarks    The ThumbnailGroup is a QGraphicsRectItem that will contain and cache
+#               thumbnails for an image, allowing for fast rendering within a
+#               ThumbnailScene
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -10,8 +11,6 @@
 #
 
 from Qt.QtWidgets import QGraphicsRectItem
-
-# -------------------------------------------------------------------------------------------------------------
 
 
 class ThumbnailGroup(QGraphicsRectItem):
