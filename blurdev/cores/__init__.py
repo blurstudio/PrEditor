@@ -9,7 +9,8 @@ Core = None
 if sys.platform == 'win32':
     _exe = os.path.basename(sys.executable).lower()
 else:
-    # On linux sys.executable does not return the application that python is embedded inside
+    # On linux sys.executable does not return the application that python is embedded
+    # inside
     _exe = os.path.basename(
         os.path.realpath('/proc/{}/exe'.format(os.getpid()))
     ).lower()
@@ -20,77 +21,77 @@ _houdiniExecs = ['hmaster', 'hython', 'houdini', 'hescape']
 # initialize the system for Motion Builder
 if 'maya' in _exe:
     try:
-        from .mayacore import MayaCore as Core
-    except:
+        from .mayacore import MayaCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for Motion Builder
 if 'motionbuilder' in _exe:
     try:
-        from .motionbuildercore import MotionBuilderCore as Core
-    except:
+        from .motionbuildercore import MotionBuilderCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for 3d Studio Max
 elif 'max' in _exe:
     try:
-        from .studiomaxcore import StudiomaxCore as Core
-    except:
+        from .studiomaxcore import StudiomaxCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for Softimage
 elif 'xsi' in _exe:
     try:
-        from .softimagecore import SoftimageCore as Core
-    except:
+        from .softimagecore import SoftimageCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for running inside Fusion
 elif 'fusion' in _exe:
     try:
-        from .fusioncore import FusionCore as Core
-    except:
+        from .fusioncore import FusionCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for running inside Nuke
 elif 'nuke' in _exe:
     try:
-        from .nukecore import NukeCore as Core
-    except:
+        from .nukecore import NukeCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for running inside Mari
 elif 'mari' in _exe:
-    from .maricore import MariCore as Core
+    from .maricore import MariCore as Core  # noqa: F811
 
     try:
-        from .maricore import MariCore as Core
-    except:
+        from .maricore import MariCore as Core  # noqa: F811
+    except Exception:
         pass
 
-## initialize the system for running inside Houdini
+# initialize the system for running inside Houdini
 elif any(exeName in _exe for exeName in _houdiniExecs):
-    from .houdinicore import HoudiniCore as Core
+    from .houdinicore import HoudiniCore as Core  # noqa: F811
 
     try:
-        from .houdinicore import HoudiniCore as Core
-    except:
+        from .houdinicore import HoudiniCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for running inside RV
 elif 'rv' in _exe:
-    from .rvcore import RVCore as Core
+    from .rvcore import RVCore as Core  # noqa: F811
 
     try:
-        from .rvcore import RVCore as Core
-    except:
+        from .rvcore import RVCore as Core  # noqa: F811
+    except Exception:
         pass
 
 # initialize the system for Softimage
 elif 'katana' in _exe:
     try:
-        from .katanacore import KatanaCore as Core
-    except:
+        from .katanacore import KatanaCore as Core  # noqa: F811
+    except Exception:
         pass
 
 if Core is None:

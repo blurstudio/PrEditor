@@ -4,16 +4,15 @@ import time
 import os
 import glob
 from functools import partial
+from past.builtins import execfile
 
 from Qt.QtCore import QCoreApplication, QDateTime, QEvent, QObject, QRect, Qt, Signal
 from Qt.QtWidgets import (
     QApplication,
     QDialog,
-    QFileDialog,
     QMainWindow,
     QMessageBox,
     QSplashScreen,
-    QWidget,
 )
 from Qt import QtCompat
 
@@ -31,7 +30,8 @@ from blurdev.decorators import pendingdeprecation
 
 class Core(QObject):
     """
-    The Core class provides all the main shared functionality and signals that need to be distributed between different pacakges.
+    The Core class provides all the main shared functionality and signals that need to
+    be distributed between different pacakges.
     """
 
     # ----------------------------------------------------------------
@@ -95,7 +95,7 @@ class Core(QObject):
 
     def __init__(self, hwnd=0, objectName=None):
         QObject.__init__(self)
-        if objectName == None:
+        if objectName is None:
             objectName = 'blurdev'
         QObject.setObjectName(self, objectName)
 
@@ -123,19 +123,21 @@ class Core(QObject):
         # Skip this by setting to True
         self.launchExternalInProcess = True
 
-        # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom stylesheets
-        # it will automatically add this to the start of that stylesheet. This makes it so we
-        # don't have to include that stylesheet info into our stylesheets, but still don't cause
-        # horrible eye gouging things to happen to the application.
+        # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom
+        # stylesheets it will automatically add this to the start of that stylesheet.
+        # This makes it so we don't have to include that stylesheet info into our
+        # stylesheets, but still don't cause horrible eye gouging things to happen to
+        # the application.
         self._defaultStyleSheet = ''
 
-        # Paths in this variable will be removed in blurdev.osystem.subprocessEnvironment
+        # Paths in this variable will be removed in
+        # blurdev.osystem.subprocessEnvironment
         self._removeFromPATHEnv = set()
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
         )
-        # When Using Fusion, this will be populated with a PeyeonScript.scriptapp connected to
-        # the parent fusion process. Otherwise this will be None
+        # When Using Fusion, this will be populated with a PeyeonScript.scriptapp
+        # connected to the parent fusion process. Otherwise this will be None
         self.fusionApp = None
 
         # state of Sentry client; false if initialization failed.
@@ -153,7 +155,7 @@ class Core(QObject):
         from Qt import (
             __binding__,
             __binding_version__,
-            __version__ as qtpyVersion,
+            __version__ as qtpy_version,
             __qt_version__,
         )
 
@@ -161,8 +163,8 @@ class Core(QObject):
             'blurdev: {}'.format(blurdev.version.to_string()),
             '    {}'.format(os.path.dirname(blurdev.__file__)),
         ]
-        # When trax is imported it creates this env var for error reporting.
-        # We don't want to inport trax to generate version info, but show it if possible.
+        # When trax is imported it creates this env var for error reporting. We don't
+        # want to inport trax to generate version info, but show it if possible.
         if os.getenv('BDEV_EMAILINFO_TRAX_VERSION'):
             msg.append('trax: {}'.format(os.getenv('BDEV_EMAILINFO_TRAX_VERSION')))
             if 'trax' in sys.modules:
@@ -180,7 +182,7 @@ class Core(QObject):
 
         msg.append('Qt: {}'.format(__qt_version__))
         msg.append('{qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__))
-        msg.append('Qt.py: {}'.format(qtpyVersion))
+        msg.append('Qt.py: {}'.format(qtpy_version))
 
         try:
             # QtSiteConfig is optional
@@ -207,7 +209,8 @@ class Core(QObject):
         It is safe to call this multiple times as addLibraryPath won't add the
         same path twice.
         """
-        # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded if needed
+        # Set library paths so qt plugins, image formats, sql drivers, etc can be loaded
+        # if needed
         if sys.platform != 'win32':
             return
         if blurdev.osystem.getPointerSize() == 64:
@@ -216,12 +219,14 @@ class Core(QObject):
             QCoreApplication.addLibraryPath("c:/blur/common/")
 
     def configUpdated(self):
-        """ Preform any core specific updating of config. Returns if any actions were taken.
+        """ Preform any core specific updating of config. Returns if any actions were
+        taken.
         """
         return False
 
     def connectAppSignals(self):
-        """ Connect the signals emitted by the application we're in to the blurdev core system
+        """ Connect the signals emitted by the application we're in to the blurdev core
+        system
         """
         pass
 
@@ -344,22 +349,26 @@ class Core(QObject):
 
     def flashWindow(self, window=None, dwFlags=None, count=1, timeout=0, hwnd=None):
         """ Flashes the application depending on the os.
-        
+
         On Windows this calls FlashWindowEx. See this documentation.
         http://docs.activestate.com/activepython/2.7/pywin32/win32gui__FlashWindowEx_meth.html
         https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
-        
-        Args:
-            window (QWidget|None): This widget will be flashed. Attempts to get the hwnd from 
-                this widget. Note: This is ignored if hwnd is passed in.
-            dwFlags (blurdev.osystem.FlashTimes): A enum value used to control the flashing
-                behavior. See https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
-                for more details. Defaults to FLASHW_TIMERNOFG.
+
+        Args: window (QWidget|None): This widget will be flashed. Attempts to get the
+            hwnd from this widget. Note: This is ignored if hwnd is passed in.
+
+            dwFlags (blurdev.osystem.FlashTimes): A enum value used to control the
+                flashing behavior. See
+                https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
+                details. Defaults to FLASHW_TIMERNOFG.
+
             count (int): The number of times to flash the window. Defaults to 1.
-            timeout (int): The rate at which the window is to be flashed in milliseconds.
-                if zero is passed, the default cursor blink rate is used.
-            hwnd (int or None): Flash this hwnd. If None(default) it will flash window if
-                provided, otherwise it will flash blurdev.core.rootWindow().
+
+            timeout (int): The rate at which the window is to be flashed in
+                milliseconds. if zero is passed, the default cursor blink rate is used.
+
+            hwnd (int or None): Flash this hwnd. If None(default) it will flash window
+                if provided, otherwise it will flash blurdev.core.rootWindow().
 
         Returns:
             bool: Was anything attempted. On windows this always returns True.
@@ -384,11 +393,11 @@ class Core(QObject):
 
     def runOnDccStartup(self):
         """ When starting a DCC like 3ds Max, execute this code on startup.
-        
-        This provides a location for defining additional startup behavior when a DCC is initalized.
-        Currently it is used to check if trax should be imported on startup and if the 
-        studio.internal scene callbacks should be initialized.
-        
+
+        This provides a location for defining additional startup behavior when a DCC is
+        initalized. Currently it is used to check if trax should be imported on startup
+        and if the studio.internal scene callbacks should be initialized.
+
         This module is safe to call without trax or blur3d being installed.
         """
         # Don't run studio callbacks in this dcc when in quiet mode(rendering) or if its
@@ -398,21 +407,22 @@ class Core(QObject):
         ).lower()
         if not self.quietMode() and enableTraxOnDccStartup == 'true':
             try:
-                # A full trax install is required to work with the blur specific blur3d api
+                # A full trax install is required to work with the blur specific blur3d
+                # api
                 import trax
-
                 if trax.isValid:
-                    # Initializing the pipe layer of blur3d.
-                    # On import trax.api will be imported and pipeline specific signals will be connected.
-                    # See the studio/internal/__init__.py for more information.
-                    import studio.internal
+                    # Initializing the pipe layer of blur3d. On import trax.api will be
+                    # imported and pipeline specific signals will be connected. See the
+                    # studio/internal/__init__.py for more information.
+                    import studio.internal  # noqa: F401
             # This is to prevent errors if modules do not exist.
             except ImportError:
                 pass
 
     def errorCoreText(self):
-        """ Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-            If a empty string is returned this line will not be shown in the error email.
+        """ Returns text that is included in the error email for the active core.
+            Override in subclasses to provide extra data. If a empty string is returned
+            this line will not be shown in the error email.
         """
         return ''
 
@@ -443,12 +453,13 @@ class Core(QObject):
         return QObject.eventFilter(self, object, event)
 
     def linkSignals(self, signal, trigger):
-        """ Creates a dependency so that when the inputed signal is dispatched, the dependent trigger signal is also dispatched.  This will only work
-            for trigger signals that do not take any arguments for the dispatch.
+        """ Creates a dependency so that when the inputed signal is dispatched, the
+            dependent trigger signal is also dispatched.  This will only work for
+            trigger signals that do not take any arguments for the dispatch.
         """
-        if not signal in self._linkedSignals:
+        if signal not in self._linkedSignals:
             self._linkedSignals[signal] = [trigger]
-        elif not trigger in self._linkedSignals[signal]:
+        elif trigger not in self._linkedSignals[signal]:
             self._linkedSignals[signal].append(trigger)
 
     def shouldReportException(self, exc_type, exc_value, exc_traceback, actions={}):
@@ -487,15 +498,16 @@ class Core(QObject):
         return ret
 
     def initCore(self):
-        """Work method to initialize the core system -- breaking the initialization apart allows the
-        gui-dependant initialization to be delayed in applications where that is necessary by
-        overloading init().
+        """Work method to initialize the core system -- breaking the initialization
+        apart allows the gui-dependant initialization to be delayed in applications
+        where that is necessary by overloading init().
         """
         # register protected modules
         # do not want to affect this module during environment switching
         self.protectModule('blurdev')
-        # we should never remove main. If we do in specific cases it will prevent external tools from
-        # running if they use "if __name__ == '__main__':" as __name__ will return None
+        # we should never remove main. If we do in specific cases it will prevent
+        # external tools from running if they use "if __name__ == '__main__':" as
+        # __name__ will return None
         self.protectModule('__main__')
         # Pillar is used by blurdev so reloading it breaks blurdev. Devs may have pillar
         # in their tools virtualenv to aid in installing other pip packages.
@@ -512,10 +524,11 @@ class Core(QObject):
             self.defaultEnvironmentPath()
         )
 
-        # 		# Gets the override filepath, it is defined this way, instead of
-        # 		# being defined in the class definition, so that we can change this
-        # 		# path, or remove it entirely for offline installs.
-        # 		self.environment_override_filepath = os.environ.get('BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', '')
+        # Gets the override filepath, it is defined this way, instead of
+        # being defined in the class definition, so that we can change this
+        # path, or remove it entirely for offline installs.
+        # self.environment_override_filepath = os.environ.get(
+        #     'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', '')
 
         # initialize the application
         app = QApplication.instance()
@@ -540,10 +553,10 @@ class Core(QObject):
 
             # Check for headless environment's
             if blurdev.settings.OS_TYPE == 'Linux':
-                if os.environ.get('DISPLAY') == None:
+                if os.environ.get('DISPLAY') is None:
                     output = CoreApplication([])
                     self._headless = True
-            if output == None:
+            if output is None:
                 output = Application([])
 
         self.updateApplicationName(output)
@@ -554,7 +567,8 @@ class Core(QObject):
         return output
 
     def initGui(self):
-        """Initialize the portions of the core that require GUI initialization to have completed.
+        """ Initialize the portions of the core that require GUI initialization to have
+            completed.
 
         This function should be called by each subclass of Core if needed, or by
         a dcc plugin implementation when it is safe to initialize gui objects.
@@ -617,7 +631,7 @@ class Core(QObject):
         Checks the current environment to see if has a timeout and if it has
         exceeded that timeout.  If so, it will reset the environment to the
         default environment.
-        
+
         """
         env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
         threshold_time = env.timeoutThreshold()
@@ -641,8 +655,8 @@ class Core(QObject):
 
     def applyStudioOverrides(self):
         """
-        Checks a studio environment override file.  If there 
-        
+        Checks a studio environment override file.  If there
+
         """
         # Checks for the studio environment override file
         override_dict = self.getEnvironmentOverride()
@@ -668,7 +682,9 @@ class Core(QObject):
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        """ If true, no Qt gui elements should be used because python is running a
+            QCoreApplication.
+        """
         return self._headless
 
     def hwnd(self):
@@ -702,9 +718,11 @@ class Core(QObject):
 
     def mainWindowGeometry(self):
         """ QWinWidget doesn't properly center its children.
-        
-        In MFC apps this function returns the size of the main window. Note: Qt doesn't include the 
-        titlebar so the position may be off by that ammount.
+
+            In MFC apps this function returns the size of the main window.
+
+            Note: Qt doesn't include the titlebar so the position may be off by that
+            ammount.
         """
         if self.headless:
             raise Exception('You are showing a gui in a headless environment. STOP IT!')
@@ -768,7 +786,8 @@ class Core(QObject):
 
     def _runQueueItem(self):
         """
-        Process the top item on the queue, catch the error generated if the underlying c/c++ object has been deleted, and alow the queue to continue processing.
+        Process the top item on the queue, catch the error generated if the underlying
+        c/c++ object has been deleted, and alow the queue to continue processing.
         """
         try:
             item = self._itemQueue.pop(0)
@@ -778,14 +797,15 @@ class Core(QObject):
                 if self._itemQueue:
                     self.postQueueEvent()
                 raise
-        except Exception as value:
+        except Exception:
             if self._itemQueue:
                 self.postQueueEvent()
             raise
 
     def protectModule(self, moduleName):
         """
-        Registers the inputed module name for protection from tools environment switching
+        Registers the inputed module name for protection from tools environment
+        switching
         """
         key = str(moduleName)
         if key not in self._protectedModules:
@@ -804,7 +824,7 @@ class Core(QObject):
 
     def quietMode(self):
         """
-        Use this to decide if you should provide user input. 
+        Use this to decide if you should provide user input.
         """
         return False
 
@@ -849,9 +869,8 @@ class Core(QObject):
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
         # record the tools environment
-        envName = (
-            blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment().objectName()
-        )
+        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
+        envName = env.objectName()
         if envName != os.environ.get('BDEV_TOOL_ENVIRONMENT'):
             pref.recordProperty('environment', envName)
 
@@ -867,14 +886,16 @@ class Core(QObject):
         """ Records settings for all found toolbars.
         """
         if self.headless:
-            # If running headless, the toolbars were not created, and prefs don't need to be saved
+            # If running headless, the toolbars were not created, and prefs don't need
+            # to be saved
             return
 
         for toolbar_class in self.toolbars():
             toolbar_class.instanceRecordSettings()
 
     def refreshStyleSheet(self):
-        """ Reload the current stylesheet to force a update of the display of widgets. """
+        """ Reload the current stylesheet to force a update of the display of widgets.
+        """
         app = QApplication.instance()
         if app and isinstance(
             app, QApplication
@@ -885,9 +906,9 @@ class Core(QObject):
         from blurdev.XML import XMLDocument
 
         if env is None:
-            env = (
-                blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment().objectName()
-            )
+            env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
+            env = env.objectName()
+
         if timestamp is None:
             timestamp = QDateTime.currentDateTime()
 
@@ -962,7 +983,8 @@ class Core(QObject):
         if not env.isEmpty():
             env.setActive()
         else:
-            # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
+            # If the environment variable BLURDEV_PATH is defined create a custom
+            # environment instead of using the loaded environment
             environPath = os.environ.get('BLURDEV_PATH')
             if environPath:
                 env = ToolsEnvironment.findEnvironment(
@@ -1033,12 +1055,12 @@ class Core(QObject):
 
         # for MFC apps there should be no root window
         if self.isMfcApp():
-            # Do not cache WinWidget's to self._rootWindow. From the docs:
-            # "If the child widget is a top level window that uses the WDestructiveClose flag,
+            # Do not cache WinWidget's to self._rootWindow. From the docs: "If the child
+            # widget is a top level window that uses the WDestructiveClose flag,
             # QWinWidget will destroy itself when the child window closes down."
-            # WDestructiveClose is Qt3's version of Qt.WA_DeleteOnClose(The docs are out of date)
-            # This means that as soon as a widget with WA_DeleteOnClose set is closed the cached
-            # self._rootWindow is garbage collected.
+            # WDestructiveClose is Qt3's version of Qt.WA_DeleteOnClose(The docs are out
+            # of date) This means that as soon as a widget with WA_DeleteOnClose set is
+            # closed the cached self._rootWindow is garbage collected.
             # https://github.com/qtproject/qt-solutions/blob/master/qtwinmigrate/doc/html/qwinwidget.html#L75
             from blurdev.gui.winwidget import WinWidget
 
@@ -1051,11 +1073,11 @@ class Core(QObject):
                 self._rootWindow = None
             # If the application does not have focus try to find A top level widget
             # that doesn't have a parent and is a QMainWindow or QDialog
-            if self._rootWindow == None:
+            if self._rootWindow is None:
                 windows = []
                 dialogs = []
                 for w in QApplication.instance().topLevelWidgets():
-                    if w.parent() == None:
+                    if w.parent() is None:
                         if isinstance(w, QMainWindow):
                             windows.append(w)
                         elif isinstance(w, QDialog):
@@ -1077,17 +1099,17 @@ class Core(QObject):
 
     def runDelayed(self, function, *args, **kargs):
         """
-        Alternative to a for loop that will not block the ui. Each item added 
-        with this method will be processed during a single application event 
-        loop. If you add 5 items with runDelayed it will process the first item, 
-        update the ui, process the second item, update the ui, etc. This is 
-        usefull if you have a large amount of items to process, but processing 
-        of a individual item does not take a long time. Also it does not need 
+        Alternative to a for loop that will not block the ui. Each item added
+        with this method will be processed during a single application event
+        loop. If you add 5 items with runDelayed it will process the first item,
+        update the ui, process the second item, update the ui, etc. This is
+        usefull if you have a large amount of items to process, but processing
+        of a individual item does not take a long time. Also it does not need
         to happen immediately.
-        
+
         :param function: The function to call when ready to process.
-        
-        Any additional arguments or keyword arguments passed to this function 
+
+        Any additional arguments or keyword arguments passed to this function
         will be passed along to the provided function
 
         | #A simplified code example of what is happening.
@@ -1098,13 +1120,15 @@ class Core(QObject):
         |	if queue:
         |		item = queue.pop(0)	# remove the first item in the list
         |		item()	# call the stored function
-        
+
         """
         self._runDelayed(function, False, *args, **kargs)
 
     def runDelayedReplace(self, function, *args, **kargs):
         """
-        Same as the runDelayed, but will check if the queue contains a matching function, *args, and **kargs. If found it will remove it and append it at the end of the queue.
+        Same as the runDelayed, but will check if the queue contains a matching
+        function, *args, and **kargs. If found it will remove it and append it at the
+        end of the queue.
         """
         self._runDelayed(function, True, *args, **kargs)
 
@@ -1118,21 +1142,22 @@ class Core(QObject):
 
     def _runDelayed(self, function, replace, *args, **kargs):
         """
-        Alternative to a for loop that will not block the ui. Each item added 
+        Alternative to a for loop that will not block the ui. Each item added
         with this method will be processed during a single application event loop.
-        If you add 5 items with runDelayed it will process the first item, update 
-        the ui, process the second item, update the ui, etc. This is usefull if 
-        you have a large amount of items to process, but processing of a 
-        individual item does not take a long time. Also it does not need to 
+        If you add 5 items with runDelayed it will process the first item, update
+        the ui, process the second item, update the ui, etc. This is usefull if
+        you have a large amount of items to process, but processing of a
+        individual item does not take a long time. Also it does not need to
         happen immediately.
-                        
+
         :param function: The function to call when ready to process.
-        :param bool replace: If true, it will attempt to remove the first item in the queue with matching function, *args, **kargs
-        
-        Any additional arguments or keyword arguments passed to this function 
+        :param bool replace: If true, it will attempt to remove the first item in the
+            queue with matching function, *args, **kargs
+
+        Any additional arguments or keyword arguments passed to this function
         will be passed along to the provided function
-        
-        
+
+
         | #A simplified code example of what is happening.
         | queue = []
         | for i in range(100): queue.append(myFunction)
@@ -1141,7 +1166,7 @@ class Core(QObject):
         |	if queue:
         |		item = queue.pop(0)	# remove the first item in the list
         |		item()	# call the stored function
-        
+
         """
         isProcessing = bool(self._itemQueue)
         queueItem = (function, args, kargs)
@@ -1188,8 +1213,8 @@ class Core(QObject):
         """ Runs an inputted file in the best way this core knows how
 
         Args:
-            filename (str, optional): The filename of the script to run. If not provided,
-                open a QFileDialog that the user can pick a script to run.
+            filename (str, optional): The filename of the script to run. If not
+                provided, open a QFileDialog that the user can pick a script to run.
             scope (dict or None, optional): The scope to run the script in
                 (ie. locals(), globals()). Defaults to None.
             argv (list or None, optional): Commands to pass to the script at run time
@@ -1234,7 +1259,8 @@ class Core(QObject):
 
             # run a python file
             if ext.startswith('.py'):
-                # if running in external mode, run a standalone version for python files - this way they won't try to parent to the treegrunt
+                # if running in external mode, run a standalone version for python files
+                # - this way they won't try to parent to the treegrunt
                 if self.launchExternalInProcess and self.objectName() in (
                     'external',
                     'treegrunt',
@@ -1280,12 +1306,12 @@ class Core(QObject):
                 # Moved import here because even attempting this import causes
                 # win32 errors in Motionbuilder.
                 try:
-                    import PeyeonScript as eyeon
+                    import PeyeonScript
                 except ImportError:
-                    eyeon = None
+                    PeyeonScript = None
 
-                if eyeon:
-                    fusion = eyeon.scriptapp('Fusion')
+                if PeyeonScript:
+                    fusion = PeyeonScript.scriptapp('Fusion')
                     if fusion:
                         comp = fusion.GetCurrentComp()
                         if comp:
@@ -1317,10 +1343,11 @@ class Core(QObject):
 
             # report an unknown format
             else:
-                print(
-                    '[blurdev.cores.core.Core.runScript] Cannot run scripts of type (*%s)'
-                    % ext
+                msg = (
+                    '[blurdev.cores.core.Core.runScript] '
+                    'Cannot run scripts of type (*%s)'
                 )
+                print(msg % ext)
 
         return False
 
@@ -1332,26 +1359,29 @@ class Core(QObject):
 
     def setMaxDelayPerCycle(self, seconds):
         """
-        Run delayed will process as many items as it can within this time 
-        frame every event loop.  Seconds is a float value for seconds. If 
-        seconds is -1 it will only process 1 item per event loop. This value 
-        does not limit the cycle, it just prevents a new queue item from being 
-        called if the total time exceeds this value. If your queue items will 
+        Run delayed will process as many items as it can within this time
+        frame every event loop.  Seconds is a float value for seconds. If
+        seconds is -1 it will only process 1 item per event loop. This value
+        does not limit the cycle, it just prevents a new queue item from being
+        called if the total time exceeds this value. If your queue items will
         take almost the full time, you may want to set this value to -1.
-        
+
         """
         self._maxDelayPerCycle = seconds
 
     def emailAddressMd5Hash(self, text, address=None):
         """ Turns the text into a md5 string and inserts it in the address.
-        
-        This is useful for controlling how messages are threaded into conversations on gmail.
-        
+
+        This is useful for controlling how messages are threaded into conversations on
+        gmail.
+
         Args:
             text (str): This text will be converted into a md5 hash.
-            address (str or None): The md5 hash will be inserted using str.format on the "hash" key.
-            If None, it will use the value stored in the BDEV_ERROR_EMAIL environment variable.
-        
+
+            address (str or None): The md5 hash will be inserted using str.format on the
+            "hash" key. If None, it will use the value stored in the BDEV_ERROR_EMAIL
+            environment variable.
+
         Returns:
             str: The formatted address.
 
@@ -1370,21 +1400,24 @@ class Core(QObject):
         """ Sends an email.
         Args:
             sender (str): The source email address.
-            targets (str or list): A single email string, or a list of email address(s) to send 
-                the email to.
+
+            targets (str or list): A single email string, or a list of email address(s)
+                to send the email to.
+
             subject (str): The subject of the email.
             message (str): The body of the message. Treated as html
             attachments (list or None): File paths for files to be attached.
-            refId (str or None): If not None "X-Entity-Ref-ID" is added to the header with this
-                value. For gmail passing a empty string appears to be the same as passing real data.
+
+            refId (str or None): If not None "X-Entity-Ref-ID" is added to the header
+                with this value. For gmail passing a empty string appears to be the same
+                as passing real data.
         """
         try:
             from email import Encoders
             from email.MIMEText import MIMEText
             from email.MIMEMultipart import MIMEMultipart
             from email.MIMEBase import MIMEBase
-        except:
-            from email import encoders
+        except ImportError:
             from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
             from email.mime.base import MIMEBase
@@ -1437,7 +1470,7 @@ class Core(QObject):
             # smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
             smtp.sendmail(str(sender), output['To'].split(','), output.as_string())
             smtp.close()
-        except:
+        except Exception:
             # TODO: Proper logging
 
             import inspect
@@ -1461,22 +1494,25 @@ class Core(QObject):
         if objectName != self.objectName():
             QObject.setObjectName(self, objectName)
             blurdev.prefs.clearCache()
-            # make sure we have the proper settings restored based on the new application
+            # make sure we have the proper settings restored based on the new
+            # application
             self.restoreSettings()
 
     def readStyleSheet(self, stylesheet='', path=None):
         """ Returns the contents of the requested stylesheet.
-        
+
         Args:
-            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css shipped 
-                with blurdev. Ignored if path is provided.
+
+            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css
+                shipped with blurdev. Ignored if path is provided.
+
             path (str): Return the contents of this file path.
-        
+
         Returns:
             str: The contents of stylesheet or blank if stylesheet was not found.
             valid: A stylesheet was found and loaded.
         """
-        if path == None:
+        if path is None:
             path = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 'resource',
@@ -1493,7 +1529,7 @@ class Core(QObject):
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet.  If given None, it will remove the 
+            path to any stylesheet.  If given None, it will remove the
             stylesheet.
         """
 
@@ -1525,7 +1561,8 @@ class Core(QObject):
                     self._stylesheet = stylesheet
 
         if self.objectName() != 'blurdev':
-            # Storing the stylesheet as an environment variable for other external tools.
+            # Storing the stylesheet as an environment variable for other external
+            # tools.
             os.environ['BDEV_STYLESHEET'] = str(stylesheet)
 
             if recordPrefs:
@@ -1575,8 +1612,9 @@ class Core(QObject):
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
 
     def quitQtOnShutdown(self):
-        """ If true is returned, all windows will be closed and QApplication.instance().quit() will be 
-        called. This can be overridden in cores to prevent shutdown.
+        """ If true is returned, all windows will be closed and
+        QApplication.instance().quit() will be called. This can be overridden in cores
+        to prevent shutdown.
         """
         return True
 
@@ -1590,9 +1628,9 @@ class Core(QObject):
                 QApplication.instance().closeAllWindows()
                 QApplication.instance().quit()
         else:
-            # The app is probably nuke, maya or Motionbuilder, so closing all windows, and killing
-            # the app is not what we want to do. This saves prefs and closes any of the instance
-            # windows if they are active
+            # The app is probably nuke, maya or Motionbuilder, so closing all windows,
+            # and killing the app is not what we want to do. This saves prefs and closes
+            # any of the instance windows if they are active
 
             # Make sure to close the toolbar plugins
             self.shutdownToolbars()
@@ -1677,7 +1715,8 @@ class Core(QObject):
         """ Sets the application name based on the environment.
 
         Args:
-            application (Qt.QtCore.QCoreApplication or Qt.QtWidgets.QApplication, optional):
+            application (
+                Qt.QtCore.QCoreApplication or Qt.QtWidgets.QApplication, optional):
                 The Qt application that should have its name set to match the
                 BDEV_APPLICATION_NAME environment variable. This env variable is
                 removed by calling this function so it is not passed to child
@@ -1710,9 +1749,9 @@ class Core(QObject):
 
     def uuid(self):
         """ Application specific unique identifier
-        
+
         Returns:
-            None: 
+            None:
         """
         return None
 
@@ -1789,12 +1828,13 @@ class Core(QObject):
         return TreegruntDialog.instance(parent)
 
     def useAppUserModelID(self):
-        """ Returns a boolean value controlling if calling blurdev.setAppUserModelID will do anyting. """
-        # Core subclasses Can simply set _useAppUserModelID to True or False if they want to blanket
-        # enable or disable setAppUserModelID.
-        if self._useAppUserModelID == None:
-            # By default allow all core names. If a specific core name needs to be excluded, it
-            # should be added to this list.
+        """ Returns a boolean value controlling if calling blurdev.setAppUserModelID
+        will do anyting. """
+        # Core subclasses Can simply set _useAppUserModelID to True or False if they
+        # want to blanket enable or disable setAppUserModelID.
+        if self._useAppUserModelID is None:
+            # By default allow all core names. If a specific core name needs to be
+            # excluded, it should be added to this list.
             return self.objectName() not in ('assfreezer', 'designer')
         return self._useAppUserModelID
 

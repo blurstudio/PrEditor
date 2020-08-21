@@ -5,7 +5,8 @@ from blurdev.cores.core import Core
 
 class KatanaCore(Core):
     """
-    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Nuke sessions
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running
+    blurdev within Nuke sessions
     """
 
     # ignore_messages = set(['Cancelled', 'No nodes selected'])
@@ -18,8 +19,8 @@ class KatanaCore(Core):
 
     def toolTypes(self):
         """
-        Overloads the toolTypes method from the Core class to show tool types that are related to
-        Nuke applications
+        Overloads the toolTypes method from the Core class to show tool types that are
+        related to Nuke applications
         """
         output = blurdev.tools.tool.ToolType.Katana
         return output

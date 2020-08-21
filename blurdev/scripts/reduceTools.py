@@ -1,8 +1,8 @@
 ##
 #   :namespace  python.blurdev.scripts.reduceTools
 #
-#   :remarks    Scripts to convert the existing treegrunt code structure to the new flat structure.
-# |				reduceTools.reduceCode(path)
+#   :remarks    Scripts to convert the existing treegrunt code structure to the new flat
+#               structure. reduceTools.reduceCode(path)
 #
 #   :author     mikeh@blur.com
 #   :author     Blur Studio
@@ -10,12 +10,16 @@
 #
 
 from __future__ import print_function
-import os, glob, re
+
+import os
+import glob
+import re
+
 from blurdev.XML import XMLDocument
 
 try:
     import pysvn
-except:
+except Exception:
     pysvn = None
 
 
@@ -29,10 +33,14 @@ def reduceCode(rootPath):
 
 def reducePath(path, rootPath, dest=None):
     """
-        :remarks	Process recursively the contents of a folder and svn move it to the destination.
+        :remarks    Process recursively the contents of a folder and svn move it to the
+                    destination.
         :param		path		<str>			The folder to process.
-        :param		rootPath	<str>			Start building the category id from this folder.
-        :param		dest		<str>||None		If provided it and pysvn is installed it will svn move all tools into this directory.
+        :param      rootPath    <str>           Start building the category id from this
+                                                folder.
+        :param      dest        <str>||None     If provided it and pysvn is installed it
+                                                will svn move all tools into this
+                                                directory.
     """
 
     """

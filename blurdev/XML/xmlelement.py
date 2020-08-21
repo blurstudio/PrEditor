@@ -12,7 +12,6 @@ from builtins import str as text
 import xml.dom.minidom
 
 # Load the monkey patched version to fix a known bug http://bugs.python.org/issue5752
-import blurdev.XML.minidom
 from blurdev.XML.minidom import escape, unescape
 
 from Qt.QtCore import (
@@ -31,29 +30,31 @@ from Qt.QtGui import QColor, QFont
 
 
 class XMLElement:
-    """Ease of use wrapper class for :class:`xml.dom.minidom.Element` 
-    
+    """Ease of use wrapper class for :class:`xml.dom.minidom.Element`
+
     The XMLElement class is the root class for all blurdev XML types.  It wraps
     the :class:`xml.dom.minidom.Element` type provided in the standard library.
-    The constructor allows it be initialized with a 
+    The constructor allows it be initialized with a
     :class:`xml.dom.minidom.Element` instance.
-    
+
     """
 
     def __eq__(self, other):
-        """ checks to see if the wrapper <xml.dom.minidom.Element> instance is the same """
+        """ checks to see if the wrapper <xml.dom.minidom.Element> instance is the same
+        """
         result = False
         if isinstance(other, XMLElement):
             result = self._object == other._object
         return result
 
     def __getattr__(self, key):
-        """ pass along all unknown attributes to the <xml.dom.minidom.Element> class instance """
+        """ pass along all unknown attributes to the <xml.dom.minidom.Element> class
+        instance """
         return getattr(self._object, key)
 
     def __init__(self, object, filename=''):
         """ initialize the class with an <xml.dom.minidom.Element> instance """
-        if object == None:
+        if object is None:
             object = xml.dom.minidom.Element(None)
             object.ownerDocument = None
         self._object = object
@@ -62,14 +63,16 @@ class XMLElement:
         self.allowEmptyAttrs = False
 
     def _document(self):
-        """ recursese up the hierarchy to find the parent who is a <xml.dom.minidom.Document> class """
+        """ recursese up the hierarchy to find the parent who is a
+        <xml.dom.minidom.Document> class """
         out = self._object
         while out and not isinstance(out, xml.dom.minidom.Document):
             out = out.parentNode
         return out
 
     def _children(self):
-        """ collects the minidom child nodes which are <xml.dom.minidom.Element> types """
+        """ collects the minidom child nodes which are <xml.dom.minidom.Element> types
+        """
         if self._object:
             return [
                 child
@@ -262,7 +265,7 @@ class XMLElement:
         else:
             try:
                 value = eval('%s(%s)' % (valtype, self.attribute('value')))
-            except:
+            except Exception:
                 value = fail
 
         return value
@@ -277,7 +280,7 @@ class XMLElement:
 
     def addNode(self, nodeName):
         """Adds a new node child to the current element with the given node name.
-        
+
         :param nodeName: name of the child to add
         :type nodeName: str
         :rtype: :class:`XMLElement`
@@ -317,7 +320,8 @@ class XMLElement:
         return out
 
     def childAt(self, index):
-        """Finds the child at the given index, provided the index is within the child range
+        """Finds the child at the given index, provided the index is within the child
+        range
         """
         childList = self._children()
         if 0 <= index and index < len(childList):
@@ -325,9 +329,9 @@ class XMLElement:
         return None
 
     def childNames(self):
-        """Collects all the names of the children of this element whose 
+        """Collects all the names of the children of this element whose
         child type is an :class:`xml.dom.minidom.Element`
-        
+
         """
         if self._object:
             return [
@@ -339,7 +343,7 @@ class XMLElement:
 
     def children(self):
         """Collects all the child nodes of this element whose child type is an
-        :class:`xml.dom.minidom.Element`, wrapping each child as an 
+        :class:`xml.dom.minidom.Element`, wrapping each child as an
         :class:`XMLElement`.
 
         """
@@ -352,7 +356,7 @@ class XMLElement:
         return []
 
     def index(self, object):
-        """Finds the index of the inputed child object in this instance's 
+        """Finds the index of the inputed child object in this instance's
         XMLElement children, returning -1 if it cannot be found.
 
         """
@@ -366,9 +370,11 @@ class XMLElement:
         return -1
 
     def findChild(self, childName, recursive=False, autoCreate=False):
-        """Finds the first instance of the child of this instance whose nodeName is the given child name.
+        """Finds the first instance of the child of this instance whose nodeName is the
+        given child name.
         :param childName: Name to search for.
-        :param recursive: Recursively search each child node for more child nodes. Default is False
+        :param recursive: Recursively search each child node for more child nodes.
+            Default is False
         :param autoCreate: Create the node if it is not found.
         """
         if self._object:
@@ -400,9 +406,10 @@ class XMLElement:
 
     def findChildren(self, childName, recursive=False):
         """Finds all the children of this instance whose nodeName is the given child name.
-        
+
         :param childName: The name of the child nodes to look for.
-        :param recursive: Recursively search each child node for more child nodes. Default is False
+        :param recursive: Recursively search each child node for more child nodes.
+            Default is False
         """
         if self._object:
             if recursive:
@@ -509,8 +516,8 @@ class XMLElement:
         return True
 
     def setAttribute(self, attr, val):
-        """Sets the attribute of this instance to the inputed value, 
-        automatically converting the value to a string to avoid errors 
+        """Sets the attribute of this instance to the inputed value,
+        automatically converting the value to a string to avoid errors
         on the :class:`xml.dom.minidom.Element` object.
 
         """
@@ -560,10 +567,10 @@ class XMLElement:
         return element
 
     def setValue(self, val):
-        """Sets the text value for this instance.  If it doesn't already 
-        have a child who is of :class:`xml.dom.minidom.Text` type, then 
-        it will add one and set the data of it to the inputed value.  The 
-        inputed value will automatically be converted to a string value to 
+        """Sets the text value for this instance.  If it doesn't already
+        have a child who is of :class:`xml.dom.minidom.Text` type, then
+        it will add one and set the data of it to the inputed value.  The
+        inputed value will automatically be converted to a string value to
         avoid errors as well.
 
         """
@@ -593,8 +600,8 @@ class XMLElement:
         return '::'.join(out)
 
     def value(self):
-        """Returns the string value of the text node of this instance, 
-        provided it has a child node of :class:`xml.dom.minidom.Text` type.  
+        """Returns the string value of the text node of this instance,
+        provided it has a child node of :class:`xml.dom.minidom.Text` type.
         If no text node is found, a blank string is returned.
 
         """

@@ -4,11 +4,13 @@ import blurdev.tools.tool
 from blurdev.cores.core import Core
 import hou
 from Qt import QtCompat
+from builtins import int
 
 
 class HoudiniCore(Core):
     """
-    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Houdini sessions
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running
+    blurdev within Houdini sessions
     """
 
     def __init__(self, *args, **kargs):
@@ -25,14 +27,18 @@ class HoudiniCore(Core):
 
     def createToolMacro(self, tool, macro=''):
         """
-        Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
-        Houdini application for the inputed Core tool. Not Supported currently.
+        Overloads the createToolMacro virtual method from the Core class, this will
+        create a macro for the Houdini application for the inputed Core tool. Not
+        Supported currently.
         """
         return False
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a QCoreApplication. """
+        """
+        If true, no Qt gui elements should be used because python is running a
+        QCoreApplication.
+        """
         return not hou.isUIAvailable()
 
     def init(self):
@@ -65,8 +71,9 @@ class HoudiniCore(Core):
 
     def errorCoreText(self):
         """
-        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-        If a empty string is returned this line will not be shown in the error email.
+        Returns text that is included in the error email for the active core. Override
+        in subclasses to provide extra data. If a empty string is returned this line
+        will not be shown in the error email.
         """
         try:
             return '<i>Open File:</i> %s' % hou.hipFile.name()
@@ -96,14 +103,14 @@ class HoudiniCore(Core):
             # Houdini 18+ have shiboken as a module separate from PySide2.
             import shiboken2
 
-        pointer = long(shiboken2.getCppPointer(mainWindow)[0])
+        pointer = int(shiboken2.getCppPointer(mainWindow)[0])
         self._rootWindow = QtCompat.wrapInstance(pointer)
         return self._rootWindow
 
     def toolTypes(self):
         """
-        Overloads the toolTypes method from the Core class to show tool types that are related to
-        Houdini applications
+        Overloads the toolTypes method from the Core class to show tool types that are
+        related to Houdini applications
         """
         output = blurdev.tools.tool.ToolType.Houdini
         return output

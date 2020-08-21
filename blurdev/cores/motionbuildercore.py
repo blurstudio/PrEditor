@@ -18,7 +18,8 @@ os.environ['path'] = ';'.join((x64dir, os.environ.get('path', '')))
 
 class MotionBuilderCore(Core):
     """
-    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running
+    blurdev within Studiomax sessions
     """
 
     def __init__(self, *args, **kargs):
@@ -109,7 +110,8 @@ class MotionBuilderCore(Core):
 
     def toolTypes(self):
         """
-        Method to determine what types of tools that the treegrunt system should be looking at
+        Method to determine what types of tools that the treegrunt system should be
+        looking at
         """
         output = blurdev.tools.tool.ToolType.MotionBuilder
         return output

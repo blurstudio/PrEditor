@@ -27,21 +27,9 @@ class XMLDocument(XMLElement):
         # TODO: Remove when all uses are gone, should no longer be needed
         self.escapeDict = {}
 
-    def findElementById(self, childId):
-        split = child.split('::')
-        outTemplate = None
-        if split:
-            outTemplate = self.root().findChildById(split[0])
-            index = 1
-
-            while index < len(split) and outTemplate:
-                outTemplate = outTemplate.findChildById(split[index])
-                index += 1
-        return outTemplate
-
     def load(self, fileName):
         """
-        Loads the given xml file by calling xml.dom.minidom.parse, 
+        Loads the given xml file by calling xml.dom.minidom.parse,
         setting this instances object to the resulting value.
 
         """
@@ -73,8 +61,9 @@ class XMLDocument(XMLElement):
     @staticmethod
     def removeWitespaceNodes(node):
         """
-        Removes any nodes that are simply whitespace. Because we are saving to disk using toprettyxml the
-        new lines get read into the xml leading to files getting alot of empty whitespace.
+        Removes any nodes that are simply whitespace. Because we are saving to disk
+        using toprettyxml the new lines get read into the xml leading to files getting
+        alot of empty whitespace.
         """
         wsNodes = []
         hasElement = False
@@ -100,9 +89,9 @@ class XMLDocument(XMLElement):
 
     def save(self, fileName, pretty=True, showDialog=False):
         """
-        Saves the xml document to the given file, converting it to a 
+        Saves the xml document to the given file, converting it to a
         pretty XML document if so desired.
-        
+
         :param fileName: path to the save location
         :param pretty: if set to True, will format spaces and line breaks.
         :param showDialog: if set to True, if an error occurs while saving,
@@ -123,11 +112,14 @@ class XMLDocument(XMLElement):
                 logging.debug('Encoding error while saving XML', exc_info=True)
                 if showDialog:
                     from Qt.QtWidgets import QMessageBox
-
+                    msg = (
+                        'Unable to save xml data, please check for unsupported '
+                        'characters.'
+                    )
                     QMessageBox.critical(
                         None,
                         'Encoding Error',
-                        'Unable to save xml data, please check for unsupported characters.',
+                        msg,
                     )
                 return False
             f = open(fileName, 'w')
@@ -136,11 +128,14 @@ class XMLDocument(XMLElement):
             return True
         if showDialog:
             from Qt.QtWidgets import QMessageBox
-
+            msg = (
+                'Unable to save xml data, please verify '
+                'you have the correct privileges.'
+            )
             QMessageBox.warning(
                 None,
                 'Unable to Save',
-                'Unable to save xml data, please verify you have the correct privileges.',
+                msg,
             )
         return False
 

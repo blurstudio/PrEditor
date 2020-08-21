@@ -14,5 +14,6 @@ class Application(QApplication):
         super(Application, self).__init__(args)
 
     def commitData(self, sessionManager):
-        self.sessionEnding.emit()  # allows an application hiding in the background to properly exit on session end
+    	# allows an application hiding in the background to properly exit on session end
+        self.sessionEnding.emit()
         super(Application, self).commitData(sessionManager)

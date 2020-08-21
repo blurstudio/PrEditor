@@ -59,8 +59,8 @@ class Tool(QObject):
     def architecture(self):
         """ This tool needs to run in this architecture (32bit or 64bit) when running externally
 
-        If this tool is run by external treegrunt, launch the tool with this version of python if
-        possible. If None the system default will be used.
+        If this tool is run by external treegrunt, launch the tool with this version of
+        python if possible. If None the system default will be used.
         """
         return self._architecture
 
@@ -146,8 +146,9 @@ class Tool(QObject):
         """ Returns False if the tool should be hidden based on filters.
 
         Returns:
-            bool: If the tool is disabled and ToolsEnvironment.showDisabledTools is False
-                returns False. If the none of the tools toolTypes are in
+
+            bool: If the tool is disabled and ToolsEnvironment.showDisabledTools is
+                False returns False. If the none of the tools toolTypes are in
                 `blurdev.core.selectedToolTypes()` False is returned.
         """
         if not blurdev.tools.ToolsEnvironment.showDisabledTools and self.disabled():

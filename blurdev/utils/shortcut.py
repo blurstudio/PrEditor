@@ -11,15 +11,14 @@ __all__ = [
 
 def _scrips_path(*relative):
     """ Build the full path to the scripts folder of python.
-
     Uses blurdev.osystem.pythonPath so this points to the python directory defined in
     the registry, not a virtualenv path (at least on windows).
 
-    Args:
-        *relative: Passed as additional arguments to os.path.join to build the final path.
+    Args: *relative: Passed as additional arguments to os.path.join to build the final
+        path.
 
-    Returns:
-        path (str): The complete path to the scripts or bin folder with any relative paths.
+    Returns: path (str): The complete path to the scripts or bin folder with any
+        relative paths.
     """
     python_exe = _blurdev.osystem.pythonPath(pyw=True, architecture=64)
     if _blurdev.settings.OS_TYPE == 'Windows':
@@ -39,8 +38,8 @@ def createShortcutPythonLogger(
     """ Creates a shortcut that launches the Python Logger as a standalone application.
 
     Args:
-        path (str or None, optional): Where to create the shortcut. If None(default) it will
-            create the shortcut on the users Desktop.
+        path (str or None, optional): Where to create the shortcut. If None(default) it
+            will create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Python Logger'
         target (str or None, optional): the target for the shortcut. If None(default)
             this will default the blurdev-logger executable.
@@ -66,12 +65,12 @@ def createShortcutBlurIDE(
     """ Creates a shortcut that launches the Blur IDE as a standalone application.
 
     Args:
-        path (str or None, optional): Where to create the shortcut. If None(default) it will
-            create the shortcut on the users Desktop.
+        path (str or None, optional): Where to create the shortcut. If None(default) it
+            will create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Blur IDE'
         target (str or None, optional): the target for the shortcut. If None(default)
-            this will default the blurIDE executable.
-        description (str, optional): This text is shown as the comment for the shortcut.
+            this will default the blurIDE executable. description (str, optional): This
+            text is shown as the comment for the shortcut.
         common (int): If auto generating the path, this controls which desktop the path
             is generated for. 1 is the public shared desktop, while 0(default) is the
             users desktop.
@@ -97,8 +96,8 @@ def createShortcutTreegrunt(
     """ Creates a shortcut that launches Treegrunt as a standalone application.
 
     Args:
-        path (str or None, optional): Where to create the shortcut. If None(default) it will
-            create the shortcut on the users Desktop.
+        path (str or None, optional): Where to create the shortcut. If None(default) it
+            will create the shortcut on the users Desktop.
         name (str, optional): The name of the shortcut. Defaults to 'Treegrunt'
         target (str or None, optional): the target for the shortcut. If None(default)
             this will default the treegrunt executable.
@@ -125,8 +124,8 @@ def createShortcutTool(
 
     Args:
         tool (blurdev.tools.tool.Tool): The tool this shortcut will launch.
-        path (str or None, optional): Where to create the shortcut. If None(default) it will
-            create the shortcut on the users Desktop.
+        path (str or None, optional): Where to create the shortcut. If None(default) it
+            will create the shortcut on the users Desktop.
         target (str or None, optional): the target for the shortcut. If None(default)
             this will default the treegrunt-tool executable.
         common (int): If auto generating the path, this controls which desktop the path

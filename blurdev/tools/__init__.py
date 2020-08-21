@@ -13,8 +13,8 @@ except ImportError:
 
 
 import blurdev
-from blurdev.tools.toolsenvironment import ToolsEnvironment
-from blurdev.tools.tool import ToolType, Tool
+from blurdev.tools.toolsenvironment import ToolsEnvironment  # noqa: F401
+from blurdev.tools.tool import ToolType, Tool  # noqa: F401
 from blurdev import debug as _debug
 
 # any refrences to the temporary environment should use this constant
@@ -23,32 +23,35 @@ TEMPORARY_TOOLS_ENV = 'TEMPORARY'
 
 def logUsage(info):
     """ Log that a tool was launched.
-    
+
     Attempts to log tool usage using the modulename defined in the BDEV_USE_LOG_CLASS
-    environment variable. The module should accept a dictonary arugment containing the info it should log.
-    If it needs to report a failure, it should raise a Exception.
-    This function can be disabled by setting the environment variable BDEV_DISABLE_TOOL_USAGE_LOG to true.
-    
+    environment variable. The module should accept a dictonary arugment containing the
+    info it should log. If it needs to report a failure, it should raise a Exception.
+    This function can be disabled by setting the environment variable
+    BDEV_DISABLE_TOOL_USAGE_LOG to true.
+
     Args:
         info(dict): A dictionary of info passed to the called function
-    
+
     Returns:
         bool: If the usage reporting was successfull.
-    
+
     Raises:
-        Exception: If blurdev.debug.debugLevel is set to High, raises any exceptions generated, 
-                    otherwise consumes them and sends a error email.
+
+        Exception: If blurdev.debug.debugLevel is set to High, raises any exceptions
+                    generated, otherwise consumes them and sends a error email.
     """
     if os.environ.get('BDEV_DISABLE_TOOL_USAGE_LOG', 'False').lower() == "true":
         # This environment variable can be used to disable tool use logging.
         return False
     try:
-        # uses the environment variable "BDEV_USE_LOG_CLASS" to import a module similar to the following
+        # uses the environment variable "BDEV_USE_LOG_CLASS" to import a module similar
+        # to the following
         useLogClass = os.environ.get('BDEV_USE_LOG_CLASS')
         useLog = import_module(useLogClass)
         useLog.logEvent(info)
         return True
-    except Exception as e:
+    except Exception:
         if _debug.debugLevel() >= _debug.DebugLevel.High:
             raise
         else:

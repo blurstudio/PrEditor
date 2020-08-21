@@ -7,9 +7,8 @@ import logging
 # to be in a 3dsmax session, we need to be able to import the Py3dsMax package
 import Py3dsMax
 from Py3dsMax import mxs
-from Qt.QtGui import QImage
-from Qt.QtWidgets import QApplication, QFileDialog, QMainWindow
-from Qt.QtCore import QRect, QSize, Qt, QByteArray
+from Qt.QtWidgets import QApplication, QMainWindow
+from Qt.QtCore import QRect, QSize, Qt
 from Qt import QtCompat
 
 import blurdev
@@ -17,6 +16,7 @@ import blurdev.ini
 import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 from blurdev.cores.core import Core
+from builtins import int
 
 # 3ds max version breakdown = {version: year, 16: 2014, 18:2016, 20: 2018}
 _maxVersion = mxs.maxVersion()[0] / 1000
@@ -42,9 +42,9 @@ icon:#( "%(studioName)s_%(id)s_Macro", 1 )%(iconName)s
 STUDIOMAX_CALLBACK_TEMPLATE = """
 global pyblurdev
 if ( pyblurdev == undefined ) then ( pyblurdev = pymax.import "blurdev" )
-if ( pyblurdev != undefined ) then ( 
+if ( pyblurdev != undefined ) then (
     local ms_args = (callbacks.notificationParam())
-    pyblurdev.core.dispatch "%(signal)s" %(args)s 
+    pyblurdev.core.dispatch "%(signal)s" %(args)s
 )
 """
 
@@ -105,7 +105,8 @@ def _focusChanged(old, now):
 
 class StudiomaxCore(Core):
     """
-    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Studiomax sessions
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running
+    blurdev within Studiomax sessions
     """
 
     def __init__(self, *args, **kargs):
@@ -162,7 +163,6 @@ class StudiomaxCore(Core):
         # store the maxscript methods needed
         _n = mxs.pyhelper.namify
         callbacks = mxs.callbacks
-        blurdevid = _n('blurdev')
         callbacks.addScript(
             _n(maxSignal),
             STUDIOMAX_CALLBACK_TEMPLATE % {'signal': blurdevSignal, 'args': args},
@@ -170,8 +170,8 @@ class StudiomaxCore(Core):
 
     def createToolMacro(self, tool, macro=''):
         """
-        Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
-        Studiomax application for the inputed Core tool
+        Overloads the createToolMacro virtual method from the Core class, this will
+        create a macro for the Studiomax application for the inputed Core tool
         """
         # create the options for the tool macro to run
         options = {
@@ -271,8 +271,9 @@ class StudiomaxCore(Core):
 
     def errorCoreText(self):
         """
-        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-        If a empty string is returned this line will not be shown in the error email.
+        Returns text that is included in the error email for the active core. Override
+        in subclasses to provide extra data. If a empty string is returned this line
+        will not be shown in the error email.
         """
         return '<i>Open File:</i> %s' % mxs.maxFilePath + mxs.maxFileName
 
@@ -317,15 +318,15 @@ class StudiomaxCore(Core):
         if self.headless:
             raise Exception('You are showing a gui in a headless environment. STOP IT!')
         if self.dccVersion < 16:
-            # mxs.windows.getWindowPos is new in max 2014, so dont try to call it in previous
-            # versions of max
+            # mxs.windows.getWindowPos is new in max 2014, so dont try to call it in
+            # previous versions of max
             return QRect()
         box = mxs.windows.getWindowPos(Py3dsMax.GetWindowHandle())
         return QRect(0, 0, box.w, box.h)
 
     def quietMode(self):
         """
-        Use this to decide if you should provide user input. 
+        Use this to decide if you should provide user input.
         """
         if mxs.MAXSCRIPTHOST == 1 or mxs.GetQuietMode():
             # This is set in startup/blurStartupMaxLib.ms
@@ -358,7 +359,8 @@ class StudiomaxCore(Core):
             if not envname:
                 envname = env.objectName()
             if envname:
-                # update the maxscript code only if we are actually changing code environments
+                # update the maxscript code only if we are actually changing code
+                # environments
                 iniEnvname = blurdev.ini.GetINISetting(
                     blurdev.ini.configFile, 'GLOBALS', 'environment'
                 )
@@ -378,12 +380,14 @@ class StudiomaxCore(Core):
                             blurdev.ini.configFile, 'GLOBALS', 'environment', envname
                         )
                     except IOError as e:
-                        # If the user does not have permission to update this, don't except, just log a warning
+                        # If the user does not have permission to update this, don't
+                        # except, just log a warning
                         import warnings
 
                         warnings.warn(str(e), RuntimeWarning, stacklevel=2)
-                    # update blurConfigFile when switching environments to point to the active environment's
-                    # config.ini if it exists, otherwise default to the standard c:\blur\config.ini
+                    # update blurConfigFile when switching environments to point to the
+                    # active environment's config.ini if it exists, otherwise default to
+                    # the standard c:\blur\config.ini
                     mxs.blurConfigFile = env.configIni()
                     try:
                         import legacy
@@ -391,7 +395,8 @@ class StudiomaxCore(Core):
                         path = os.path.dirname(legacy.__file__)
                         mxs.filein(os.path.join(path, 'lib', 'blurStartup.ms'))
                     except (RuntimeError, ImportError) as error:
-                        # Show the error, but don't cause blurdev to fail to fully import.
+                        # Show the error, but don't cause blurdev to fail to fully
+                        # import.
                         logging.error(error)
 
         # register standard paths
@@ -404,7 +409,7 @@ class StudiomaxCore(Core):
             ids = PySide2.shiboken2.getCppPointer(MaxPlus.GetQMaxMainWindow())
             if ids:
                 # Convert the c++ pointer to a PyQt5 widget
-                self._rootWindow = QtCompat.wrapInstance(long(ids[0]), QMainWindow)
+                self._rootWindow = QtCompat.wrapInstance(int(ids[0]), QMainWindow)
                 return self._rootWindow
         return super(StudiomaxCore, self).rootWindow()
 
@@ -454,8 +459,8 @@ class StudiomaxCore(Core):
 
     def toolTypes(self):
         """
-        Overloads the toolTypes method from the Core class to show tool types that are related to
-        Studiomax applications
+        Overloads the toolTypes method from the Core class to show tool types that are
+        related to Studiomax applications
         """
         ToolType = blurdev.tools.tool.ToolType
         output = ToolType.Studiomax | ToolType.LegacyStudiomax

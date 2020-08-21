@@ -8,13 +8,13 @@ HEADER_HTML = """
 <html>
     <header>
         <style>
-            body { 
-                font-family: verdana; 
-                font-size: 10px; 
+            body {
+                font-family: verdana;
+                font-size: 10px;
                 background: #cccccc;
                 color: black;
             }
-            h1 { 
+            h1 {
                 font-weight: bold;
                 font-size: 1.1em;
                 color: blue;
@@ -86,7 +86,7 @@ class ToolHeader(QObject):
 
             line = line.lstrip('-').strip()
 
-            if line and not line.isspace() and not '__MXSDOC__' in line:
+            if line and not line.isspace() and '__MXSDOC__' not in line:
                 # strip out the bold comments
                 title = ''
                 text = ''
@@ -120,8 +120,6 @@ class ToolHeader(QObject):
     @staticmethod
     def parsePython(lines):
         header = ['<p>']
-        open_comment = False
-
         paragraph = re.compile(r'[# \t]*$')
         boldOld = re.compile(r'[# \t]*\[([^\]]+)*\](.*)$')
         bold = re.compile(r'[# \t]*\\([a-zA-Z0-9]+)(.*)$')
@@ -136,7 +134,7 @@ class ToolHeader(QObject):
 
             line = line.lstrip('#!').lstrip('#').strip()
 
-            if line and not line.isspace() and not '__PYDOC__' in line:
+            if line and not line.isspace() and '__PYDOC__' not in line:
                 # strip out the bold comments
                 title = ''
                 text = ''

@@ -130,10 +130,12 @@ class ToolsIndex(QObject):
         This does not create any necessary directory structure to save the files.
 
         Args:
-            filename (str): If filename is not provided it will store the file in self.filename().
-                This is the location that treegrunt looks for its tools.xml file.
-            configFilename (str|bool): if True, save as config.ini next to filename. If a file path
-                is provided save to that file path.
+            filename (str): If filename is not provided it will store the file in
+                self.filename(). This is the location that treegrunt looks for its
+                tools.xml file.
+            configFilename (str|bool): if True, save as config.ini next to filename. If
+                a file path is provided save to that file path.
+
         """
 
         # Update the entry_points.json file.
@@ -263,12 +265,13 @@ class ToolsIndex(QObject):
             with open(filename, 'w') as out:
                 shutil.copyfileobj(fle, out)
 
-            # Copying the tool index to the orignal location for backwards compatibility.
-            # Essentially host that will have the old blurdev will still look in the old place.
+            # Copying the tool index to the orignal location for backwards
+            # compatibility. Essentially host that will have the old blurdev will still
+            # look in the old place.
             # TODO: Remove this block once everyone has versions 2.11.0.
             if os.path.exists(os.path.join(dirname, 'code')):
-                # The read head is at the end of the file, move it back to the start of the
-                # file so we can copy it again.
+                # The read head is at the end of the file, move it back to the start of
+                # the file so we can copy it again.
                 fle.seek(0)
                 with open(os.path.join(dirname, 'code', basename), 'w') as out:
                     shutil.copyfileobj(fle, out)
@@ -286,7 +289,9 @@ class ToolsIndex(QObject):
         def addToolCategory(category):
             """ Update the categories dict to include this category
 
-            if passed 'External_Tools::Production_Tools::Proxy Tools', build this output.
+            if passed 'External_Tools::Production_Tools::Proxy Tools', build this
+            output.
+
             {'External_Tools': {
                 'External_Tools::Production_Tools': {
                     'External_Tools::Production_Tools::Proxy Tools': {}}}}
@@ -362,7 +367,8 @@ class ToolsIndex(QObject):
                     continue
 
                 ret = OrderedDict(
-                    legacy=True,  # We have to handle the path of legacy tools differently
+                    # We have to handle the path of legacy tools differently.
+                    legacy=True,
                     icon='icon.png',
                     src='../{}'.format(os.path.basename(toolPath)),
                     path=normalizePath(os.path.dirname(toolPath)),
@@ -444,13 +450,14 @@ class ToolsIndex(QObject):
 
         def processLegacyXmlFiles(script, node, categoryId, xmls):
             """ If a matching xml file exists add its contents to the index """
-            # Note: If there is a python and maxscript tool with the same name, this xml will be applied to both of them.
+            # Note: If there is a python and maxscript tool with the same name, this xml
+            # will be applied to both of them.
             toolPath = '{}.xml'.format(os.path.splitext(script)[0])
             if toolPath in xmls:
                 copyXmlData(toolPath, toolIndex, categoryId)
 
         # If the folder name was not passed in, use the current directory.
-        if foldername == None:
+        if foldername is None:
             foldername = os.path.normpath(path).split(os.path.sep)[-1].strip('_')
         if parentCategoryId:
             categoryId = parentCategoryId + '::' + foldername
@@ -540,7 +547,8 @@ class ToolsIndex(QObject):
                 self.rebuildPath(path, categories, tools, legacy, categoryId)
 
     def reload(self):
-        """Reload the index without rebuilding it. This will allow users to refresh the index without restarting treegrunt."""
+        """Reload the index without rebuilding it. This will allow users to refresh the
+        index without restarting treegrunt."""
         self.clear()
         self.load()
         self.loadFavorites()
@@ -659,13 +667,15 @@ class ToolsIndex(QObject):
                     self.findTool(child.attribute('id')).setFavorite(True)
 
     def findCategory(self, name):
-        """ returns the tool based on the inputed name, returning the default option if no tool is found
+        """ returns the tool based on the inputed name, returning the default option if
+        no tool is found
         """
         self.load()
         return self._categoryCache.get(str(name))
 
     def findTool(self, name):
-        """ returns the tool based on the inputed name, returning the default option if no tool is found
+        """ returns the tool based on the inputed name, returning the default option if
+        no tool is found
         """
         self.load(name)
         return self._toolCache.get(str(name), blurdev.tools.tool.Tool())
@@ -700,7 +710,8 @@ class ToolsIndex(QObject):
         return output
 
     def findToolsByRedistributable(self, state):
-        """ Return a list of tools with redistributable set to the provided boolean value """
+        """ Return a list of tools with redistributable set to the provided boolean
+        value """
         return [
             tool
             for tool in blurdev.activeEnvironment().index().tools()

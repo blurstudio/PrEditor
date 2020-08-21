@@ -1,8 +1,8 @@
 from __future__ import print_function
+
 import os
 import glob
 import blurdev
-import getpass
 
 
 def getPrefs(limit=None, allUsers=False):
@@ -56,8 +56,8 @@ def mergePrefs(all_prefs):
             getFavorites('treegrunt/favorites', root, coreName, favorites)
             for pref in cores[coreName]:
                 getFavorites(pref, root, coreName, favorites)
-            # Note: this will make duplicate entries, but this will get fixed when the prefs
-            # are saved normally
+            # Note: this will make duplicate entries, but this will get fixed when the
+            # prefs are saved normally
             prefs = findPref(r'treegrunt\favorites', root, coreName)
             pref_root = prefs.root()
             changes = []

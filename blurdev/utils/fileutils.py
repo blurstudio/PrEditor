@@ -28,7 +28,7 @@ def rglob(treeroot, pattern):
 def makedirs(path):
     """Similar to os.makedirs, but surrounded in a check to make sure the
     path doesn't exist first.
-    
+
     """
     if not os.path.exists(path):
         os.makedirs(path)
@@ -37,15 +37,15 @@ def makedirs(path):
 def threadedCopy(filepaths):
     """
     This function will copy a set of files in a separate thread.
-    
+
     filepaths is a list of (from_path, to_path) pairs::
-    
+
         [('C:/src/path.txt', 'C:/destination/path.txt'),
         ('C:/src/path1.txt', 'C:/destination/path1.txt'),
         ('C:/src/path2.txt', 'C:/destination/path2.txt')]
-        
+
     Uses the :class:`CopyThread` class.
-    
+
     """
     CopyThread(filepaths).start()
 

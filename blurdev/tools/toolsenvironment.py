@@ -27,8 +27,8 @@ import blurdev.tools.toolsindex
 try:
     from blur.Projects import customize
 except ImportError:
-    # If blur.Projects is not importable, rather than except, create a dummy decorator to
-    # replace it.
+    # If blur.Projects is not importable, rather than except, create a dummy decorator
+    # to replace it.
     def customize(func):
         return func
 
@@ -49,15 +49,16 @@ class ToolsEnvironment(QObject):
     showDisabledTools = False
     # Enabled the first time an environment is evaluated
     initialized = False
-    # In special init cases(switching blurdev.core.objectName() from blurdev to external) we need
-    # to make sure deactivateProject is called, but not reset sys.path and sys.modules.
-    # The specific conditions are:
-    # 	1. app_blurdev's environment is set to env1.
-    # 	2. app_external's environment is set to env2. env2's path is the same as env1.
-    # Because of the way external tools are launched, they import the class from the module, then call
-    # blurdev.launch. blurdev.launch calls blurdev.core.setObjectName(), which in this case causes
-    # the module to be unloaded and become None (see clearPathSymbols). This causes super calls to
-    # fail because you can't pass in None for the type argument.
+    # In special init cases(switching blurdev.core.objectName() from blurdev to
+    # external) we need to make sure deactivateProject is called, but not reset sys.path
+    # and sys.modules. The specific conditions are:
+    #   1. app_blurdev's environment is set to env1. 2. app_external's environment is
+    #      set to env2. env2's path is the same as env1.
+    # Because of the way external tools are launched, they import the class from the
+    # module, then call blurdev.launch. blurdev.launch calls
+    # blurdev.core.setObjectName(), which in this case causes the module to be unloaded
+    # and become None (see clearPathSymbols). This causes super calls to fail because
+    # you can't pass in None for the type argument.
     # This often results in a traceback ending something like this:
     #    super(RequestPimpDialog, self).__init__(parent)
     # TypeError: must be type, not None
@@ -83,11 +84,12 @@ class ToolsEnvironment(QObject):
         self._autoupdate = False
         self._keychain = ''
         self._project = ''
-        # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the environment
-        # tool stopwatch this will start a stopwatch every time blurdev.core.runScript is
-        # called and stop it once that script has finished(this should include showEvent).
-        # This will allow you to time how long it takes to launch a tool.
-        # You can add laps by calling blurdev.activeEnvironment().stopwatch.newLap('info text')
+        # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the
+        # environment tool stopwatch this will start a stopwatch every time
+        # blurdev.core.runScript is called and stop it once that script has
+        # finished(this should include showEvent). This will allow you to time how long
+        # it takes to launch a tool. You can add laps by calling
+        # blurdev.activeEnvironment().stopwatch.newLap('info text')
         self.stopwatchEnabled = False
         self.stopwatch = blurdev.debug.Stopwatch('Default tool')
 
@@ -136,11 +138,12 @@ class ToolsEnvironment(QObject):
 
     def clearPathSymbols(self, onlyDeactivate=False):
         """ Removes the path symbols from the environment.
-        
+
         Args:
-            onlyDeactivate (bool): If True, call deactivateProject and return without modifying
-                sys.path and sys.modules. You should not normally need to set this to True.
-        
+            onlyDeactivate (bool): If True, call deactivateProject and return without
+                modifying sys.path and sys.modules. You should not normally need to set
+                this to True.
+
         Returns:
             bool: Was sys.modules and sys.path cleared.
         """
@@ -168,7 +171,7 @@ class ToolsEnvironment(QObject):
                     pythonpath.append(
                         self.normalizePath(os.path.split(mod.__file__)[0])
                     )
-                except:
+                except Exception:
                     pass
 
         newpaths = []
@@ -176,12 +179,11 @@ class ToolsEnvironment(QObject):
         pthFiles = []
         skippedFiles = []
         # remove all paths added by treegrunt or its .egg-link files from sys.path
-        eggPaths = []
         for spath in sys.path:
             npath = self.normalizePath(spath)
             if path in npath:
-                # If this path is inside the treeegrunt folder structure, add any egg-link
-                # paths so we can remove them from python
+                # If this path is inside the treeegrunt folder structure, add any
+                # egg-link paths so we can remove them from python
                 removepaths.add(spath)
                 paths, skipped, pths = blurdev.settings.pthPaths(spath)
                 removepaths.update(paths)
@@ -216,7 +218,6 @@ class ToolsEnvironment(QObject):
         sys.path = newpaths
 
         # Remove the modules from sys.modules so they are forced to be re-imported
-        newmodules = {}
         for key, value in sys.modules.items():
             protected = False
             if key in symbols:
@@ -247,7 +248,7 @@ class ToolsEnvironment(QObject):
                     should_remove = [
                         x for x in removepaths if self.normalizePath(x) in spath
                     ]
-                except Exception as e:
+                except Exception:
                     logging_reload.debug('    no __file__: {}'.format(key))
                 else:
                     if should_remove:
@@ -429,8 +430,9 @@ class ToolsEnvironment(QObject):
             \return		<str>
         """
         if not self.isEmpty():
-            # posixpath.normpath does not convert windows slashes to prevent problems with escaping.
-            # Our tool paths do not have spaces and should not need escaping
+            # posixpath.normpath does not convert windows slashes to prevent problems
+            # with escaping. Our tool paths do not have spaces and should not need
+            # escaping
             path = str(path).replace('\\', '/')
             return os.path.abspath(os.path.join(str(self.path()), path))
         return ''
@@ -443,17 +445,19 @@ class ToolsEnvironment(QObject):
 
     def setActive(self, silent=False, force=False):
         """ Sets this environment as the active environment.
-    
-        It also switches the currently running modules from the system by removing the old 
-        environment path from sys.path and sys.modules. It then adds the paths for this
-        environment to sys.path.
-        
+
+        It also switches the currently running modules from the system by removing the
+        old environment path from sys.path and sys.modules. It then adds the paths for
+        this environment to sys.path.
+
         Args:
-            silent (bool): If True, do not emit the blurdev.core.environmentActivated signal.
-                Defaults to False.
-            force (bool): IF True, force this environment to reload, even if its is currently
-                active. Defaults to False.
-        
+
+            silent (bool): If True, do not emit the blurdev.core.environmentActivated
+                signal. Defaults to False.
+
+            force (bool): IF True, force this environment to reload, even if its is
+                currently active. Defaults to False.
+
         Returns:
             bool: The environment was set active.
         """
@@ -475,7 +479,8 @@ class ToolsEnvironment(QObject):
 
             # emit the environment activateion change signal
             if not silent:
-                # core can be defined as None at this point in if this was called during blurdev.core init.
+                # core can be defined as None at this point in if this was called during
+                # blurdev.core init.
                 if blurdev.core:
                     blurdev.core.emitEnvironmentActivated()
 
@@ -502,7 +507,7 @@ class ToolsEnvironment(QObject):
             self._emailOnError = []
         else:
             self._emailOnError = [
-                entry for entry in emails if str(entry) != '' and entry != None
+                entry for entry in emails if str(entry) != '' and entry is not None
             ]
 
     def setKeychain(self, keychain):
@@ -547,7 +552,7 @@ class ToolsEnvironment(QObject):
     def syncINIEnvironment(env):
         """
         Syncs a single environment definition with the legacy config.ini file.
-        
+
         """
         name = env.objectName()
         legacy = env.legacyName()
@@ -580,16 +585,16 @@ class ToolsEnvironment(QObject):
         """
         Syncs all environments from the environment definition xml files to the
         legacy config.ini file.
-                
+
         """
         for env in ToolsEnvironment.environments:
             name = env.objectName()
             legacy = env.legacyName()
             envPath = env.path()
-            email = env.emailOnError()
             if not legacy:
                 legacy = name
-            # update the config.ini file so next time we start from the correct environment.
+            # update the config.ini file so next time we start from the correct
+            # environment.
             codeRootPath = os.path.abspath(
                 os.path.join(envPath, 'maxscript', 'treegrunt')
             )
@@ -629,16 +634,21 @@ class ToolsEnvironment(QObject):
         legacyName=None,
     ):
         """
-            :remarks	Adds a new environment to the list of environments. It does not save this environment to user_environments.
+            :remarks    Adds a new environment to the list of environments. It does not
+            save this environment to user_environments.
             :param		name			<str>	The name of the new environment
             :param		path			<str>	The base path to the environment
-            :param		default			<bool>	This environment should be treated as default. There should only be one env with this set 
-                                                to true. This is ignored in user_environments.xml
-            :param		development		<bool>	
-            :param		offline			<bool>	
-            :param		environmentFile	<str>	The source file. Defaults to blurdev.tools.toolsenvironment.USER_ENVIRONMENT_FILE
-            :param		legacyName		<str>	The name of the legacy environment defined in c:\blur\config.ini
-            
+            :param      default         <bool>  This environment should be treated as
+                                                default. There should only be one env
+                                                with this set to true. This is ignored
+                                                in user_environments.xml
+            :param		development		<bool>
+            :param		offline			<bool>
+            :param      environmentFile <str>   The source file. Defaults to
+                blurdev.tools.toolsenvironment.USER_ENVIRONMENT_FILE
+            :param      legacyName      <str>   The name of the legacy environment
+                defined in c:\blur\config.ini
+
             :return		<ToolsEnvironment>
         """
         output = ToolsEnvironment()
@@ -653,7 +663,7 @@ class ToolsEnvironment(QObject):
         output.setOffline(offline)
         output.setSourceFile(environmentFile)
         output.setCustom(True)
-        if legacyName == None:
+        if legacyName is None:
             legacyName = name
         output.setLegacyName(legacyName)
 
@@ -678,15 +688,17 @@ class ToolsEnvironment(QObject):
     @staticmethod
     def findEnvironment(name, path=None):
         """ Looks up the environment by the inputed name or base path.
-        
+
         Args:
+
             name (str): The name of the environment to find.
-            path (str): If provided try to find a environment with this path. This is only used
-                if the environment was not found by name. Defaults to None.
-        
+
+            path (str): If provided try to find a environment with this path. This is
+            only used if the environment was not found by name. Defaults to None.
+
         Returns:
-            blurdev.tools.ToolsEnvironment: The environment found. Use env.isEmpty() to check if it
-                is a valid environment.
+            blurdev.tools.ToolsEnvironment: The environment found. Use env.isEmpty() to
+            check if it is a valid environment.
         """
         # Find the environmet by name.
         for env in ToolsEnvironment.environments:
@@ -709,7 +721,8 @@ class ToolsEnvironment(QObject):
     @staticmethod
     def fromXml(xml):
         """
-            \remarks	generates a new tools environment based on the inputed xml information
+            \remarks    generates a new tools environment based on the inputed xml
+                        information
             \param		xml		<blurdev.XML.XMLElement>
             \return		<ToolsEnvironment>
         """
@@ -733,7 +746,8 @@ class ToolsEnvironment(QObject):
     @staticmethod
     def normalizePath(path):
         """
-            \remarks	returns a normalized path for this environment to use when registering paths to the sys path
+            \remarks    returns a normalized path for this environment to use when
+                        registering paths to the sys path
             \warning	deprecated method - use blurdev.settings.normalizePath
             \param		path		<str> || <QString>
             \return		<str>
@@ -743,14 +757,14 @@ class ToolsEnvironment(QObject):
     @staticmethod
     def loadConfig(filename, included=False):
         """
-            \remarks	loads the environments from the inputed config file
+            \remarks    loads the environments from the inputed config file
             \param		filename		<str>
             \param		included		<bool> 	marks whether or not this is an included file
             \return		<bool> success
         """
         doc = blurdev.XML.XMLDocument()
-        # Expand any environment variables and user directory shortcuts.
-        # For example you can use '~\$TEST_ENV_VAR' which could expand to 'C:\Users\username\test'
+        # Expand any environment variables and user directory shortcuts. For example you
+        # can use '~\$TEST_ENV_VAR' which could expand to 'C:\Users\username\test'
         filename = os.path.expandvars(os.path.expanduser(filename))
         if doc.load(filename):
             root = doc.root()
@@ -776,11 +790,13 @@ class ToolsEnvironment(QObject):
                 if envName:
                     env = ToolsEnvironment.findEnvironment(envName)
                     if not env.isEmpty():
-                        # restore the environment from settings instead of the default if possible.
+                        # restore the environment from settings instead of the default
+                        # if possible.
                         env.setActive(silent=True)
                         return True
 
-                # If the environment variable BLURDEV_PATH is defined create a custom environment instead of using the loaded environment
+                # If the environment variable BLURDEV_PATH is defined create a custom
+                # environment instead of using the loaded environment
                 environPath = os.environ.get('BLURDEV_PATH')
                 found = False
                 if environPath:
@@ -845,7 +861,7 @@ class ToolsEnvironment(QObject):
 
     def registerPaths(self):
         """ Update sys.path with all required tool paths.
-       
+
         Uses the paths defined by installed blurdev.tools.paths entry points.
         The entry points are cached from the last time `self.index().rebuild()`
         was called to speed up the import of blurdev and switching environments.
@@ -864,7 +880,7 @@ class ToolsEnvironment(QObject):
             # import of blurdev if one of these fail.
             try:
                 sys_paths, tool_paths = index.resolve_entry_point(entry_point)()
-            except Exception as error:
+            except Exception:
                 print('# Skipping entry point: {}'.format(entry_point))
                 traceback.print_exc()
                 continue
@@ -883,7 +899,8 @@ class ToolsEnvironment(QObject):
 
         # If this environment has a project make sure we load the project settings
         self.activateProject()
-        # Some environment settings need to wait for the initial phase to be processed before proceeding
+        # Some environment settings need to wait for the initial phase to be processed
+        # before proceeding
         ToolsEnvironment.initialized = True
 
     @classmethod
@@ -901,7 +918,8 @@ class ToolsEnvironment(QObject):
         # push the local path to the front of the list
         path = os.path.split(filename)[0]
 
-        # if it is a package, then register the parent path, otherwise register the folder itself
+        # if it is a package, then register the parent path, otherwise register the
+        # folder itself
         if os.path.exists(path + '/__init__.py'):
             path = os.path.abspath(path + '/..')
 

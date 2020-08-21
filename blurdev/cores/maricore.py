@@ -1,17 +1,20 @@
 import sys
-import re
 import os
 import blurdev
 import blurdev.tools.tool
+
+# This import mari may have been used to check if we are inside Mari.
+# If its not importable it will not init the MariCore.
+import mari  # noqa: F401
+
 from blurdev.cores.core import Core
-import mari
-from Qt.QtWidgets import QApplication, QMainWindow
-from Qt.QtCore import Qt
+from Qt.QtWidgets import QApplication
 
 
 class MariCore(Core):
     """
-    This class is a reimplimentation of the blurdev.cores.core.Core class for running blurdev within Mari sessions
+    This class is a reimplimentation of the blurdev.cores.core.Core class for running
+    blurdev within Mari sessions
     """
 
     def __init__(self, *args, **kargs):
@@ -36,8 +39,9 @@ class MariCore(Core):
 
     def createToolMacro(self, tool, macro=''):
         """
-        Overloads the createToolMacro virtual method from the Core class, this will create a macro for the
-        Mari application for the inputed Core tool. Not Supported currently.
+        Overloads the createToolMacro virtual method from the Core class, this will
+        create a macro for the Mari application for the inputed Core tool. Not Supported
+        currently.
         """
         return False
 
@@ -48,17 +52,18 @@ class MariCore(Core):
 
     def errorCoreText(self):
         """
-        Returns text that is included in the error email for the active core. Override in subclasses to provide extra data.
-        If a empty string is returned this line will not be shown in the error email.
+        Returns text that is included in the error email for the active core. Override
+        in subclasses to provide extra data. If a empty string is returned this line
+        will not be shown in the error email.
         """
         # Mari does not have a scene file that can be used like most other applications.
         return ''
 
     def eventFilter(self, obj, event):
         if event.type() == event.Close and obj == self.rootWindow():
-            # Because blurdev.core.shutdown() is triggered after the window has already been destroyed,
-            # we need to capture the close event and shutdown the toolbars here in order to successfully
-            # save preferences for them.
+            # Because blurdev.core.shutdown() is triggered after the window has already
+            # been destroyed, we need to capture the close event and shutdown the
+            # toolbars here in order to successfully save preferences for them.
             self.shutdownToolbars()
         return super(MariCore, self).eventFilter(obj, event)
 
@@ -70,8 +75,8 @@ class MariCore(Core):
 
     def toolTypes(self):
         """
-        Overloads the toolTypes method from the Core class to show tool types that are related to
-        Mari applications
+        Overloads the toolTypes method from the Core class to show tool types that are
+        related to Mari applications
         """
         output = blurdev.tools.tool.ToolType.Mari
         return output

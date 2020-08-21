@@ -2,7 +2,6 @@
 
 """
 
-import sys
 import struct
 
 from blurdev.enum import enum
@@ -10,9 +9,9 @@ from blurdev.enum import enum
 
 def readFXD(filename):
     """
-    Convenience function for returning a :class:`FXDFile` object 
+    Convenience function for returning a :class:`FXDFile` object
     representing the given filename.
-    
+
     """
     return FXDFile.read(filename)
 
@@ -21,10 +20,10 @@ class FXDFile(object):
     """
     Reader for fxd fume caches.  Currently, it only supports reading the
     fxd headers.
-    
+
     Information about the header is stored in the "attributes" attribute
     dictionary.
-    
+
     """
 
     ChannelTypes = enum(
@@ -42,7 +41,7 @@ class FXDFile(object):
         """
         Reads the fume cache at the given filepath and returns a
         :class:`FXDFile` instance representing that cache.
-        
+
         """
         fxd = FXDFile()
         fxd.filename = filename
@@ -55,7 +54,6 @@ class FXDFile(object):
         fmt_ushort = 'H'
         fmt_int = 'i'
         fmt_float = 'f'
-        fmt_bool = '?'
 
         f = open(filename, 'rb')
         (outputFileVer,) = struct.unpack(fmt_ushort, f.read(sizeof_ushort))

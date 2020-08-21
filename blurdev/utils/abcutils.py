@@ -5,14 +5,12 @@ Utilities and tools for reading and writing alembic files.
 
 from __future__ import print_function
 import re
-import sys
 import os
-from pprint import pprint
 import logging
 
 # set the exocortex license server env var
 os.environ["EXOCORTEX_LICENSE"] = "5053@mandarin004"
-import _ExocortexAlembicPython as alembic
+import _ExocortexAlembicPython as Alembic
 
 
 def copyArchive(src, dst):
@@ -32,7 +30,7 @@ def readArchive(src):
 
 
 def getIdentifiers(filepath):
-    iarchive = alembic.getIArchive(filename)
+    iarchive = Alembic.getIArchive(filepath)
     return iarchive.getIdentifiers()
 
 
@@ -94,7 +92,7 @@ class ABCArchive(object):
     @classmethod
     def fromFile(cls, filename):
         logging.debug("Reading file: %s" % filename)
-        iarchive = alembic.getIArchive(filename)
+        iarchive = Alembic.getIArchive(filename)
         archive = ABCArchive()
         archive.filename = iarchive.getFileName()
         archive.version = iarchive.getVersion()
@@ -109,7 +107,7 @@ class ABCArchive(object):
 
     def toFile(self, filename):
         logging.debug("Writing oArchive to file: %s" % filename)
-        oarchive = alembic.getOArchive(filename)
+        oarchive = Alembic.getOArchive(filename)
         if self.sampletimes:
             # TODO: not sure what the 2d array is?
             oarchive.createTimeSampling(self.sampletimes[1])

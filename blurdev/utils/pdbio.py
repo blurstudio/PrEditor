@@ -7,7 +7,7 @@ from pdb import Pdb
 class BlurPdb(Pdb):
     def currentLine(self):
         """ Returns the current frame's filename and line number
-        
+
         Returns:
             str: The filename pdb is currently at.
             int: The line number pdb is currently at.
@@ -55,8 +55,9 @@ class BlurPdb(Pdb):
 
 class PdbBase(object):
     def external(self):
-        """ Opens the logger in a sub process if it is not open and returns the connection 
-        
+        """ Opens the logger in a sub process if it is not open and returns the
+        connection
+
         Returns:
             blurdev.external.External: Class to send messages to
         """
@@ -64,8 +65,8 @@ class PdbBase(object):
 
 
 class PdbInput(PdbBase):
-    # autoUp is used to move the current frame above blurdev.debug.set_trace. This makes the current
-    # frame into your code, not inside the blurdev.debug.set_trace function.
+    # autoUp is used to move the current frame above blurdev.debug.set_trace. This makes
+    # the current frame into your code, not inside the blurdev.debug.set_trace function.
     _autoUp = False
 
     @classmethod
@@ -77,8 +78,8 @@ class PdbInput(PdbBase):
         cls._autoUp = state
 
     def readline(self):
-        # If autoUp is enabled we need to tell pdb to move up the current frame up to where the user
-        # actually called the pdb command.
+        # If autoUp is enabled we need to tell pdb to move up the current frame up to
+        # where the user actually called the pdb command.
         if self.autoUp():
             self.setAutoUp(False)
             return "up"
@@ -100,9 +101,8 @@ class PdbInput(PdbBase):
             hasData, data = external.checkPipe()
         else:
             if not isAlive:
-                print(
-                    '**************** Lost Connection to pdb logger, exiting pdb via continue ****************'
-                )
+                txt = ' Lost Connection to pdb logger, exiting pdb via continue '
+                print(txt.center(100, '*'))
                 out = 'continue'
             else:
                 if data[0] == 'pdb':
@@ -116,7 +116,7 @@ class PdbInput(PdbBase):
         # Exiting pdb, tell the pdb logger to exit pdbMode
         # TODO: Should I subclass pdb.Pdb to handle this directly?
         if out == '' or out in ('continue', 'EOF', 'exit'):
-            msg = '**************** Exit pdb command detected, exiting Pdb Mode ****************'
+            msg = ' Exit pdb command detected, exiting Pdb Mode '.center(100, '*')
             external.send((['stdoutput', 'stdout', {'msg': msg, 'pdb': False}]))
         return out
 
