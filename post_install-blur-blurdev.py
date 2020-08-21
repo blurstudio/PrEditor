@@ -24,7 +24,7 @@ def registryWrapper(
         blurdev.osystem.setRegistryValue(
             root_key, key, value_name, value, valueType, architecture, notify
         )
-    except TypeError as e:
+    except TypeError:
         if print_initial_error_msg:
             print('Exception, can not update registry key(s):')
         if '' == value_name:
@@ -147,7 +147,6 @@ def post_install():
 
 def update_settings_ini():
     time_in_seconds = time.time()
-    st = datetime.datetime.fromtimestamp(time_in_seconds).strftime('%c')
     # strict=False: Something in our current workflow is writing duplicate options in
     # ini files. So for now when using the new configparser module we have to set its
     # strict value to False so it doesn't error out when reading those files.
@@ -211,7 +210,8 @@ def updateEnvirons(verbose=False):
                 'startupPath',
                 os.path.abspath(os.path.join(codeRootPath, 'lib')),
             )
-    # because legacy switching is not enabled by default, update the maxscript environment if it is pointing to the old environments.
+    # because legacy switching is not enabled by default, update the maxscript
+    # environment if it is pointing to the old environments.
     if blurdev.ini.GetINISetting(blurdev.ini.configFile, 'GLOBALS', 'environment') in (
         'Beta',
         'Gold',

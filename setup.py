@@ -1,9 +1,6 @@
 from setuptools import setup, find_packages
 from codecs import open
 import os
-import re
-import subprocess
-import sys
 from pillar.version import Version
 
 _dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +16,9 @@ setup(
     description='blurdev',
     long_description=long_description,
     url='https://gitlab.blur.com/pipeline/blurdev.git',
-    download_url='https://gitlab.blur.com/pipeline/blurdev/repository/archive.tar.gz?ref=master',
+    download_url=(
+        'https://gitlab.blur.com/pipeline/blurdev/repository/archive.tar.gz?ref=master'
+    ),
     license='Proprietary',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
@@ -35,7 +34,7 @@ setup(
     ],
     keywords='blurdev',
     packages=find_packages(exclude=['docs', 'installers', 'tests']),
-    scripts=['post_install-blur-blurdev.py',],
+    scripts=['post_install-blur-blurdev.py'],
     install_requires=[
         # Please keep list alphabetical
         'blur-cute>=0.24.0.dev2',
@@ -58,7 +57,8 @@ setup(
     author_email='pipeline@blur.com',
     entry_points={
         'gui_scripts': [
-            # Create executable items that work even if using virtualenv, or editable installs
+            # Create executable items that work even if using virtualenv, or editable
+            # installs
             'treegrunt = blurdev.runtimes.treegrunt:main',
             'treegrunt-tool = blurdev.runtimes.run_tool:main',
             'blurdev-protocol = blurdev.runtimes.protocol:main',
@@ -66,19 +66,22 @@ setup(
             'blurIDE = blurdev.runtimes.ide_editor:main',
         ],
         'console_scripts': [
-            # Launch the blurdev-logger in a console mode so we can debug why the gui_scripts
-            # are not running if there is a pip dependency version issue.
+            # Launch the blurdev-logger in a console mode so we can debug why the
+            # gui_scripts are not running if there is a pip dependency version issue.
             'blurdev-console = blurdev.runtimes.logger:main',
         ],
         'blurdev.toolbars': [
             'Favorites = blurdev.gui.toolbars.toolstoolbar:FavoritesToolbar',
             'User = blurdev.gui.toolbars.toolstoolbar:UserToolbar',
         ],
-        'blurdev.tools.paths': ['TREEGRUNT_ROOT = blurdev.tools:toolPaths',],
+        'blurdev.tools.paths': ['TREEGRUNT_ROOT = blurdev.tools:toolPaths'],
         'blurdev.protocol_handlers': [
             'Treegrunt = blurdev.protocols.treegrunt_handler:TreegruntHandler',
             'Blurdev = blurdev.protocols.blurdev_handler:BlurdevHandler',
-            'WriteStdOutput = blurdev.protocols.write_std_output_handler:WriteStdOutputHandler',
+            (
+                'WriteStdOutput = '
+                'blurdev.protocols.write_std_output_handler:WriteStdOutputHandler'
+            ),
         ],
     },
 )
