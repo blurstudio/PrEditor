@@ -33,10 +33,10 @@ class SvnCopyDialog(Dialog):
         source = self.source()
         target = self.target()
 
-        from Qt.QtWidgets import QMessageBox as msg
+        from Qt.QtWidgets import QMessageBox
 
         if not (source and target):
-            msg.critical(
+            QMessageBox.critical(
                 self,
                 'Missing Data',
                 'You need to provide valid source and target urls for the copy.',
@@ -44,7 +44,7 @@ class SvnCopyDialog(Dialog):
             return False
 
         if source == target:
-            msg.critical(
+            QMessageBox.critical(
                 self,
                 'Same Paths',
                 'You cannot copy to the same url.  Please provide a valid target url.',
@@ -52,7 +52,7 @@ class SvnCopyDialog(Dialog):
             return False
 
         if not self.uiMessageTXT.toPlainText():
-            msg.critical(
+            QMessageBox.critical(
                 self, 'Missing Message', 'You need to provide a message for this copy.'
             )
             return False

@@ -182,7 +182,7 @@ class DelayableEngine(QObject):
         self.start_time = time.time()
         documents = list(self.documents)
         # offset documents by the document_index so we can pickup where we left off
-        documents = documents[self.document_index :] + documents[: self.document_index]
+        documents = documents[self.document_index:] + documents[: self.document_index]
 
         count = 0
         skipped = 0
@@ -208,7 +208,7 @@ class DelayableEngine(QObject):
                     continue
 
                 keys = document.delayable_info.keys()
-                keys = keys[self.delayable_index :] + keys[: self.delayable_index]
+                keys = keys[self.delayable_index:] + keys[: self.delayable_index]
                 for key in keys:
                     self.delayable_index += 1
                     if self.delayable_index > len(keys):

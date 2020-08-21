@@ -8,8 +8,6 @@
 # 	\date		05/25/11
 #
 
-import pysvn
-
 from blurdev.ide.addons.svn.threads import ActionThread
 
 

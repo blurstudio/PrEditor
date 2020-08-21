@@ -8,7 +8,6 @@
 # 	\date		07/20/11
 #
 
-import os
 import blurdev
 
 from Qt.QtCore import Qt
@@ -171,7 +170,7 @@ class RegistryConfig(ConfigSectionWidget):
         for commandType in commands:
             for key, value in commands[commandType].items():
                 # add to the installed registry
-                if not commandType in (
+                if commandType not in (
                     RegistryType.GlobalOverride,
                     RegistryType.ProjectOverride,
                 ):

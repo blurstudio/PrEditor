@@ -67,8 +67,8 @@ STATUS_DATA = {
         'foreground': 'Modified',
         'sort_order': 1,
     },
-    'replaced': {'commit_visible': True, 'commit_checked': True, 'sort_order': 1,},
-    'unversioned': {'commit_visible': True, 'commit_checked': False,},
+    'replaced': {'commit_visible': True, 'commit_checked': True, 'sort_order': 1},
+    'unversioned': {'commit_visible': True, 'commit_checked': False},
 }
 
 
@@ -94,7 +94,9 @@ def sortStatus(a, b):
     adat = statusData(a.text_status)
     bdat = statusData(b.text_status)
 
-    cmp = lambda x, y: (x > y) - (x < y)
+    def cmp(x, y):
+        return (x > y) - (x < y)
+
     # sort by the order of the statuses
     if adat['sort_order'] != bdat['sort_order']:
         return cmp(adat['sort_order'], bdat['sort_order'])

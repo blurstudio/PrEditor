@@ -14,7 +14,7 @@ import re
 
 try:
     from configparser import ConfigParser
-except:
+except ImportError:
     from ConfigParser import ConfigParser
 
 from Qt import Qsci
@@ -26,7 +26,7 @@ class MethodDescriptor(object):
         self.exprText = expr
         try:
             self.expr = re.compile(expr, re.DOTALL | re.MULTILINE)
-        except:
+        except Exception:
             print('error generating expression', expr)
             self.expr = None
 
@@ -103,10 +103,12 @@ class Language(object):
                     try:
                         __import__(self._lexerModule)
                         module = sys.modules.get(self._lexerModule)
-                    except:
+                    except Exception:
                         print(
-                            '[blurdev.ide.lexers.Language.createLexer() Error] Could not import %s module'
-                            % self._lexerModule
+                            (
+                                '[blurdev.ide.lexers.Language.createLexer() Error] '
+                                'Could not import %s module'
+                            ) % self._lexerModule
                         )
                         self._lexerClass = None
                         return None
@@ -119,7 +121,10 @@ class Language(object):
             self._lexerClass = module.__dict__.get(self._lexerClassName)
             if not self._lexerClass:
                 print(
-                    '[blurdev.ide.lexers.Language.createLexer() Error] No %s class in %s'
+                    (
+                        '[blurdev.ide.lexers.Language.createLexer() Error] '
+                        'No %s class in %s'
+                    )
                     % (self._lexerClassName, module.__name__)
                 )
 
@@ -202,20 +207,20 @@ class Language(object):
         # try to load the line comment information
         try:
             plugin._lineComment = parser.get('GLOBALS', 'linecomment').strip('"')
-        except:
+        except Exception:
             pass
 
         # try to load the lexer information
         try:
             plugin._lexerClassName = parser.get('LEXER', 'class')
             plugin._lexerModule = parser.get('LEXER', 'module')
-        except:
+        except Exception:
             pass
 
         # load the different descriptor options
         try:
             options = parser.options('DESCRIPTORS')
-        except:
+        except Exception:
             options = []
 
         for option in options:
@@ -226,7 +231,7 @@ class Language(object):
         # load the different color map options
         try:
             options = parser.options('COLOR_TYPES')
-        except:
+        except Exception:
             options = []
 
         for option in options:
@@ -234,7 +239,7 @@ class Language(object):
             for val in parser.get('COLOR_TYPES', option).split(','):
                 try:
                     vals.append(int(val))
-                except:
+                except Exception:
                     pass
             plugin._lexerColorTypes[option] = vals
 

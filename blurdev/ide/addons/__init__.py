@@ -8,12 +8,12 @@
 # 	\date		05/03/11
 #
 
-import sys
 import traceback
 
 from blurdev.ide.ideaddon import IdeAddon
 
 _loaded = False
+
 
 # define global functions
 def init():
@@ -21,7 +21,8 @@ def init():
     if not _loaded:
         _loaded = True
 
-        import os.path, glob
+        import os.path
+        import glob
 
         filenames = glob.glob(os.path.split(__file__)[0] + '/*/__init__.py')
         for filename in filenames:
@@ -33,5 +34,5 @@ def init():
 
                 try:
                     __import__(package)
-                except:
+                except Exception:
                     IdeAddon.registerErrored(package, traceback.format_exc())

@@ -71,7 +71,7 @@ class TortoiseMenusAddon(IdeAddon):
         if not settings:
             settings = blurdev.relativePath(__file__, 'settings.xml')
         if doc.load(settings):
-            if path == None:
+            if path is None:
                 path = menu.filepath()
             for subMenu in doc.root().children():
                 parentName = subMenu.attribute('parent', 'uiExploreACT')
@@ -105,6 +105,7 @@ class TortoiseMenusAddon(IdeAddon):
 
 # register the addon to the system
 IdeAddon.register('TortoiseMenus', TortoiseMenusAddon)
+
 
 # create the init method (in case this addon doesn't get registered as part of a group)
 def init():

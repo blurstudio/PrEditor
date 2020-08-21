@@ -8,7 +8,6 @@
 # 	\date		11/19/10
 #
 
-import os
 import blurdev
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget

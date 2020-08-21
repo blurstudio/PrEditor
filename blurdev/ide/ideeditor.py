@@ -11,6 +11,7 @@
 import os
 import copy
 from functools import partial
+from builtins import str as text
 
 from Qt.QtCore import (
     QDir,
@@ -41,21 +42,21 @@ from Qt.QtWidgets import (
 from Qt import QtCompat
 
 import blurdev
-from blurdev.gui import Window, loadUi
+from blurdev.gui import Window
 from blurdev.gui.dialogs.configdialog import ConfigSet
 from .ideproject import IdeProject, IdeProjectDelegate
 from .languagecombobox import LanguageComboBox
 from .delayable_engine import DelayableEngine
-from blurdev.debug import DebugLevel, debugLevel, debugObject
+from blurdev.debug import DebugLevel, debugLevel, debugObject, setDebugLevel
 
 from blurdev import osystem, settings, version
 
 
 class IdeEditor(Window):
     documentTitleChanged = Signal()
-    # currentProjectChanged should be IdeProject or None.
-    # Blur's Qt now is more strict on types being passed through signals.
-    # this can be changed back to IdeProject, if None can no longer be passed in. Probably a empty IdeProject in its place.
+    # currentProjectChanged should be IdeProject or None. Blur's Qt now is more strict
+    # on types being passed through signals. this can be changed back to IdeProject, if
+    # None can no longer be passed in. Probably a empty IdeProject in its place.
     currentProjectChanged = Signal(object)
     currentDocumentChanged = Signal()
     settingsRecorded = Signal()
@@ -88,7 +89,8 @@ class IdeEditor(Window):
         self.uiMethodBrowserWGT = IdeMethodBrowserWidget(self)
         self.uiBrowserTAB.addTab(self.uiMethodBrowserWGT, 'Outliner')
 
-        # synchronize the environment variables based on the currently loaded config settings
+        # synchronize the environment variables based on the currently loaded config
+        # settings
         self.syncEnvironment()
         self.updateSettings()
 
@@ -395,7 +397,7 @@ class IdeEditor(Window):
             folder = os.path.join(path, text)
             try:
                 os.mkdir(folder)
-            except:
+            except Exception:
                 QMessageBox.critical(
                     self, 'Error Creating Folder', 'Could not create folder: ', folder
                 )
@@ -501,7 +503,9 @@ class IdeEditor(Window):
 
     def documentCloseAllExcept(self, current=None):
         """
-            \Remarks	Closes all open subWindows except the current window or the passed in window. If no window is passed in it will take the current window.
+            \Remarks    Closes all open subWindows except the current window or the
+                        passed in window. If no window is passed in it will take the
+                        current window.
             \param		current		<Qt.QtGui.QMdiSubWindow> || None
         """
         if not current:
@@ -706,7 +710,8 @@ class IdeEditor(Window):
         # update the last saved file
         fp = self.currentFilePath()
         if fp:
-            # add a junk directory that is automaticaly removed when the lastSavedFilename is used.
+            # add a junk directory that is automaticaly removed when the
+            # lastSavedFilename is used.
             self._lastSavedFilename = os.path.join(fp, 'this_dir_is_removed_when_used')
 
         return window
@@ -810,10 +815,12 @@ class IdeEditor(Window):
 
                     if settings.OS_TYPE == 'Windows':
                         if filename.startswith('/'):
-                            # only drive letters have 3 slashes so we need to remove the starting slash
+                            # only drive letters have 3 slashes so we need to remove the
+                            # starting slash
                             filename = filename.strip('/')
                         else:
-                            # Network shares only have 2 slashes so this must be a network share, add the two foward slashes.
+                            # Network shares only have 2 slashes so this must be a
+                            # network share, add the two foward slashes.
                             filename = '//' + filename
 
                     # ignore the registry when drag/dropping
@@ -829,7 +836,9 @@ class IdeEditor(Window):
 
     def duplicateAction(self, menu, source, trigger=None):
         """
-            \remarks	Creates a new action with the same name and icon and adds it to the provided menu. Optionaly connect triggered to the new action.
+            \remarks    Creates a new action with the same name and icon and adds it to
+                        the provided menu. Optionaly connect triggered to the new
+                        action.
             \param		menu	<QMenu>
             \param		source	<QAction>
             \param		trigger	<function> || <None>
@@ -852,7 +861,10 @@ class IdeEditor(Window):
                 answer = QMessageBox.question(
                     self,
                     'Edit Project Settings',
-                    'Do you want to update the common settings for the current project also?',
+                    (
+                        'Do you want to update the common settings for '
+                        'the current project also?'
+                    ),
                     options,
                 )
                 if answer == QMessageBox.Yes:
@@ -949,8 +961,8 @@ class IdeEditor(Window):
 
     def lastSavedFilename(self):
         """
-            :remarks	Returns the filename of the last save. This is used to provide the default directory for
-                        file open and save dialogs.
+            :remarks    Returns the filename of the last save. This is used to provide
+                        the default directory for file open and save dialogs.
             :return		<str>
         """
         return self._lastSavedFilename
@@ -979,7 +991,7 @@ class IdeEditor(Window):
             cmd = self.registry().findCommand(filename)
 
             # run a command line operation on the file
-            if cmd and type(cmd) in (str, unicode):
+            if cmd and type(cmd) in (str, text):
                 osystem.startfile(filename, cmd=osystem.expandvars(cmd))
                 return True
 
@@ -1110,9 +1122,10 @@ class IdeEditor(Window):
             )
 
     def openFileChanged(self, filename):
-        # TODO: Open file changed message boxes should only pop up when BlurIDE regains primary focus, not as soon as the file is changed.
-        # We should probubly create a messageing class that handles these messages.
-        # make sure the file is not already loaded
+        # TODO: Open file changed message boxes should only pop up when BlurIDE regains
+        # primary focus, not as soon as the file is changed. We should probubly create a
+        # messageing class that handles these messages. make sure the file is not
+        # already loaded
         for window in self.uiWindowsAREA.subWindowList():
             if window.widget().filename() == filename:
                 window.setFocus()
@@ -1121,7 +1134,8 @@ class IdeEditor(Window):
 
     def openFileMonitor(self):
         """
-            \Remarks	Returns the file system monitor so documents can connect to it, or none
+            \Remarks    Returns the file system monitor so documents can connect to it,
+                        or none
             \Return 	<QFileSystemWatcher>||<None>
         """
         return self._openFileMonitor
@@ -1326,7 +1340,7 @@ class IdeEditor(Window):
 
         try:
             self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
-        except:
+        except Exception:
             debugObject(self.restoreSettings, 'error restoring window state')
         states = pref.restoreProperty('windowStateSave')
         if states:
@@ -1384,7 +1398,7 @@ class IdeEditor(Window):
         if project:
             selected = self.uiCommandDDL.currentText()
             commandList = project.commandList()
-            if not selected in commandList:
+            if selected not in commandList:
                 return False
             command = commandList[selected][1]
             if self.uiCommandArgsACT.isVisible():
@@ -1443,10 +1457,10 @@ class IdeEditor(Window):
 
     def selectProjectItem(self, filename):
         """ For a given filename attempt to select it in the project tree.
-        
+
         Args:
             filename (str): The filepath of the item you want to select
-        
+
         Returns:
             bool: A project item was selected
         """
@@ -1465,7 +1479,7 @@ class IdeEditor(Window):
                     item.setExpanded(True)
                     item.setExpanded(False)
                 flen = len(fpath)
-                if not flen in partial:
+                if flen not in partial:
                     partial[flen] = item
         else:
             if partial:
@@ -2184,7 +2198,8 @@ class IdeEditor(Window):
     @staticmethod
     def instanceShutdown():
         """
-            \remarks	Faster way to shutdown the instance of IdeEditor if it possibly was not used. Returns if shutdown was required.
+            \remarks    Faster way to shutdown the instance of IdeEditor if it possibly
+                        was not used. Returns if shutdown was required.
             \return		<bool>
         """
         instance = IdeEditor._instance

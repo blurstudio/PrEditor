@@ -8,7 +8,6 @@
 # 	\date		08/19/10
 #
 
-import re
 from Qt.Qsci import QsciLexerCPP
 from Qt.QtGui import QColor
 

@@ -38,7 +38,8 @@ class SvnActionMenu(QMenu):
             self.setTitle('pySVN')
         self.setIcon(QIcon(svn.resource('img/svn.png')))
 
-        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise add them to the SvnActionMenu
+        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise
+        # add them to the SvnActionMenu
         if hasEnviron:
             if svnops.findUrl(self._filepath):
                 # create the update command

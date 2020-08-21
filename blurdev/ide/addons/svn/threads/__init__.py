@@ -13,8 +13,6 @@ import traceback
 
 from Qt.QtCore import QThread, Signal
 
-import blurdev
-
 from blurdev.decorators import abstractmethod
 from blurdev.ide.addons import svn
 
@@ -72,7 +70,7 @@ class LogThread(QThread):
                 peg_revision=self._pegRevision,
                 include_merged_revisions=self._includeMergedRevisions,
             )
-        except:
+        except Exception:
             self._results = []
 
     def setRevisionStart(self, revision):
@@ -164,9 +162,9 @@ class ActionThread(QThread):
 
     def run(self):
         """
-            \remarks	main method for the thread.  this will create the client, connect the 
-                        required callbacks, and then call the runAction method that should be
-                        defined in subclasses
+            \remarks    main method for the thread.  this will create the client,
+                        connect the required callbacks, and then call the runAction
+                        method that should be defined in subclasses
         """
         # create the callbacks
         client = pysvn.Client()
@@ -176,7 +174,7 @@ class ActionThread(QThread):
             self.runClient(client)
         except pysvn.ClientError as e:
             self.notify({'error': str(e.message)})
-        except:
+        except Exception:
             self.notify(
                 {'error': 'Unknown python error occurred.\n' + traceback.format_exc()}
             )

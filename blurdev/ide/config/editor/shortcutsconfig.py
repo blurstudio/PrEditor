@@ -8,7 +8,6 @@
 # 	\date		07/08/11
 #
 
-import os
 import blurdev
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
@@ -35,7 +34,7 @@ class ShortcutsConfig(ConfigSectionWidget):
         """
             \remarks	records the latest ui settings to the data
         """
-        section = self.section()
+        self.section()
 
         # record section values
 
@@ -45,7 +44,7 @@ class ShortcutsConfig(ConfigSectionWidget):
         """
             \remarks	refrshes the ui with the latest data settings
         """
-        section = self.section()
+        self.section()
 
         # restore section values
 

@@ -8,17 +8,12 @@
 # 	\date		05/24/11
 #
 
-import sip
-import pysvn
-
+import blurdev
 from Qt import QtCompat
-from Qt.QtCore import QThread, Qt
+from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 from Qt.QtWidgets import QTreeWidgetItem
-
 from blurdev.gui import Dialog
-
-from blurdev.ide.addons import svn
 from blurdev.ide.addons.svn import svnconfig
 
 
@@ -27,8 +22,6 @@ class SvnActionDialog(Dialog):
         Dialog.__init__(self, parent)
 
         # load the ui
-        import blurdev
-
         blurdev.gui.loadUi(__file__, self)
 
         # update the header
@@ -109,7 +102,7 @@ class SvnActionDialog(Dialog):
 
         try:
             self.parent().projectRefreshItem()
-        except:
+        except Exception:
             pass
 
     def log(self, action, path, mime_type=None, revision=-1):
@@ -137,7 +130,6 @@ class SvnActionDialog(Dialog):
     # define static methods
     @staticmethod
     def start(parent, *threads, **kwds):
-        import blurdev
 
         # create the action dialog
         dlg = SvnActionDialog(parent)

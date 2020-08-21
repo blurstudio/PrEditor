@@ -9,16 +9,20 @@
 #
 
 import os
+import blurdev
+import blurdev.gui
 from blurdev.gui import Dialog
 from blurdev import osystem
 from Qt import QtCompat
+from Qt.QtCore import Qt
+from Qt.QtGui import QIcon, QCursor
+from Qt.QtWidgets import QMessageBox, QTreeWidgetItem, QMenu
+from .ideproject import IdeProject
 
 
 class IdeProjectFavoritesDialog(Dialog):
     def __init__(self, parent):
         Dialog.__init__(self, parent)
-
-        import blurdev.gui
 
         blurdev.gui.loadUi(__file__, self)
 
@@ -27,7 +31,6 @@ class IdeProjectFavoritesDialog(Dialog):
         self.refresh()
 
     def addFavorite(self):
-        from .ideproject import IdeProject
 
         filename, _ = QtCompat.QFileDialog.getOpenFileName(
             self,
@@ -36,9 +39,7 @@ class IdeProjectFavoritesDialog(Dialog):
             'Blur IDE Projects (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
         )
 
-        from ideproject import IdeProject
-
-        if filename and not filename in IdeProject.Favorites:
+        if filename and filename not in IdeProject.Favorites:
             IdeProject.Favorites.append(filename)
             self.refresh()
 
@@ -46,10 +47,6 @@ class IdeProjectFavoritesDialog(Dialog):
         item = self.uiFavoriteTREE.currentItem()
         if not item:
             return None
-
-        from .ideproject import IdeProject
-        from Qt.QtCore import Qt
-        from Qt.QtWidgets import QMessageBox
 
         filename = item.data(0, Qt.UserRole)
         if not os.path.exists(filename):
@@ -67,17 +64,8 @@ class IdeProjectFavoritesDialog(Dialog):
         self.uiFavoriteTREE.setUpdatesEnabled(False)
         self.uiFavoriteTREE.clear()
 
-        from Qt.QtCore import Qt
-        from Qt.QtGui import QIcon
-        from Qt.QtWidgets import QTreeWidgetItem
-
-        import os.path
-        from .ideproject import IdeProject
-
         filenames = IdeProject.Favorites
         filenames.sort()
-
-        import blurdev
 
         favicon = QIcon(blurdev.resourcePath('img/favorite.png'))
 
@@ -99,15 +87,10 @@ class IdeProjectFavoritesDialog(Dialog):
         if not item:
             return
 
-        from .ideproject import IdeProject
-        from Qt.QtCore import Qt
-
         IdeProject.Favorites.remove(item.data(0, Qt.UserRole))
         self.refresh()
 
     def showMenu(self):
-        from Qt.QtGui import QCursor
-        from Qt.QtWidgets import QMenu
 
         menu = QMenu(self)
         menu.addAction('Add Favorite...').triggered.connect(self.addFavorite)
@@ -118,7 +101,6 @@ class IdeProjectFavoritesDialog(Dialog):
 
     @staticmethod
     def getProject():
-        import blurdev
 
         dlg = IdeProjectFavoritesDialog(blurdev.core.activeWindow())
         if dlg.exec_():

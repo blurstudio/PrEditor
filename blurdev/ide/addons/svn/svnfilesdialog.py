@@ -8,16 +8,12 @@
 # 	\date		05/25/11
 #
 
-import pysvn
 import os.path
 
 from blurdev.gui import Dialog
 from Qt import QtCompat
 from Qt.QtCore import QFileInfo, Qt
 from Qt.QtWidgets import QFileIconProvider, QMessageBox, QTreeWidgetItem
-
-from blurdev.gui import Dialog
-from threads import DataCollectionThread
 
 from blurdev.ide.addons.svn import svnconfig
 from blurdev.ide.addons.svn.threads import DataCollectionThread
@@ -93,8 +89,6 @@ class SvnFilesDialog(Dialog):
         return self._filepath
 
     def refresh(self):
-        client = pysvn.Client()
-
         # load the commit data
         self._thread.setFilepath(self._filepath)
         self._thread.start()

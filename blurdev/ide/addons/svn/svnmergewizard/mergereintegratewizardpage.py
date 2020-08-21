@@ -47,5 +47,5 @@ class MergeReintegrateWizardPage(QWizardPage):
         client = pysvn.Client()
         try:
             self.uiUrlTXT.setText(client.info(filepath).url)
-        except:
+        except Exception:
             self.uiUrlTXT.setText(svnconfig.CURRENT_URL)

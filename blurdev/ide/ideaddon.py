@@ -52,7 +52,7 @@ class IdeAddonModule(object):
             __import__(self._name)
             sys.modules[self._name].init()
             self._status = 'loaded'
-        except:
+        except Exception:
             self._errors = traceback.format_exc()
             self._status = 'errored'
 
@@ -61,16 +61,15 @@ class IdeAddonModule(object):
             if self._name in addon.__module__:
                 if addon.isEnabled():
                     if debug.isDebugLevel(debug.DebugLevel.High):
-                        result = addon.activate(ide)
+                        addon.activate(ide)
                         status = 'active'
                         errors = []
                     else:
                         try:
-                            result = addon.activate(ide)
+                            addon.activate(ide)
                             status = 'active'
                             errors = []
-                        except:
-                            result = False
+                        except Exception:
                             errors = [
                                 'Addon: ',
                                 addon.name(),
@@ -167,7 +166,7 @@ class IdeAddon(object):
                 try:
                     result - self.activate(ide)
                     status = 'active'
-                except:
+                except Exception:
                     errors = [
                         'Addon: ',
                         self.name(),
@@ -179,7 +178,7 @@ class IdeAddon(object):
                 try:
                     result = self.deactivate(ide)
                     status = 'inactive'
-                except:
+                except Exception:
                     errors = [
                         'Addon: ',
                         self.name(),

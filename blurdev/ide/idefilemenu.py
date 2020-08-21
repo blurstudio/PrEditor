@@ -18,8 +18,8 @@ import blurdev
 
 
 class IdeFileMenu(QMenu):
-    # additionalItems is a list of functions that are called when adding menu items to the IdeFileMenu.
-    # It passes along the file menu after the menu has been created.
+    # additionalItems is a list of functions that are called when adding menu items to
+    # the IdeFileMenu. It passes along the file menu after the menu has been created.
     # def additionalStuff(self, menu):
     additionalItems = []
 
@@ -38,7 +38,6 @@ class IdeFileMenu(QMenu):
     def defineMenu(self):
         ide = self.ide()
         projectMode = self.projectMode()
-        filepath = self.filepath()
 
         # add the new from wizard action from the ide
         self.addAction(ide.uiNewFromWizardACT)
@@ -122,14 +121,18 @@ class IdeFileMenu(QMenu):
             funct(self)
 
     def removeFilepath(self):
-        msg = 'Are you sure you want to remove this from the filesystem?  This is not undoable.'
+        msg = (
+            'Are you sure you want to remove this from the filesystem? '
+            'This is not undoable.'
+        )
         req = QMessageBox.question(
             self, 'Removing Filepath', msg, QMessageBox.Yes | QMessageBox.No
         )
         if req == QMessageBox.Yes:
             QApplication.setOverrideCursor(Qt.WaitCursor)
 
-            import os, shutil
+            import os
+            import shutil
 
             fpath = self.filepath()
 

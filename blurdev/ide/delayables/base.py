@@ -84,4 +84,4 @@ class SearchDelayable(Delayable):
     def text_found(self, document, start, end, find_state):
         """ Called each time text is found.
         """
-        raise NotImplemented('SearchDelayable.text_found should be subclassed.')
+        raise NotImplementedError('SearchDelayable.text_found should be subclassed.')

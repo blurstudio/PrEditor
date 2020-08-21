@@ -118,7 +118,7 @@ class SvnUrlItem(QTreeWidgetItem):
             return
 
         # stop navigating
-        if not self._url in url:
+        if self._url not in url:
             return
 
         # load the children
@@ -226,7 +226,7 @@ class SvnRepoBrowserDialog(Dialog):
     def reset(self):
         try:
             baseurl = client.root_url_from_path(self.url())
-        except:
+        except Exception:
             baseurl = ''
 
         QApplication.setOverrideCursor(Qt.WaitCursor)

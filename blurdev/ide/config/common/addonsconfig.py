@@ -8,7 +8,6 @@
 # 	\date		07/08/11
 #
 
-import os
 import blurdev
 
 from Qt import QtCompat
@@ -34,11 +33,7 @@ class AddonsConfig(ConfigSectionWidget):
         """
             \remarks	records the latest ui settings to the data
         """
-        section = self.section()
-
-        # record section values
-
-    # 		section.setValue( 'param',  str(self.uiParamTXT.text()) )
+        pass
 
     def refreshUi(self):
         """

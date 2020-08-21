@@ -57,11 +57,11 @@ class MergeRevisionWizardPage(QWizardPage):
 
             for rev in revisions + [None]:
                 # make sure we log the first revision in the sequence
-                if firstrev == None:
+                if firstrev is None:
                     firstrev = rev
 
                 # check against the last revision in the chain
-                if rev == None or lastrev != None and rev != (lastrev + 1):
+                if rev is None or lastrev is not None and rev != (lastrev + 1):
                     if lastrev != firstrev:
                         revisiontext.append('%s-%s' % (firstrev, lastrev))
                     else:
@@ -81,5 +81,5 @@ class MergeRevisionWizardPage(QWizardPage):
         client = pysvn.Client()
         try:
             self.uiUrlTXT.setText(client.info(filepath).url)
-        except:
+        except Exception:
             self.uiUrlTXT.setText(svnconfig.CURRENT_URL)

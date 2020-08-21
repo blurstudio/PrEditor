@@ -1,14 +1,17 @@
 ##
 # 	\namespace	blurdev.ide.addons.svn.svnmergewizard
 #
-# 	\remarks	Creates a merging wizard for taking a user through the steps of merging SVN branches
+#   \remarks    Creates a merging wizard for taking a user through the steps of merging
+#               SVN branches
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
 # 	\date		06/01/11
 #
 
-from blurdev.ide.addons.svn.threads.mergethread import *
+from blurdev.ide.addons.svn.threads.mergethread import (
+    MergeRangesThread, MergeReintegrateThread,
+)
 
 from blurdev.gui import Wizard
 from blurdev.enum import enum
@@ -18,13 +21,12 @@ class SvnMergeWizard(Wizard):
     Pages = enum('Type', 'Ranges', 'Reintegrate', 'Tree', 'Options')
 
     def initWizardPages(self):
-        """
-            \remarks	[virtual]	overloaded from the Wizard class, this method allows a user to define the pages that are
-                                    going to be used for this wizard.  Look up QWizard in the Qt Assistant for more advanced options
-                                    and controlling flows for your wizard.
-                                    
-                                    Wizard classes don't need to specify UI information, all the data for the Wizard will be encased
-                                    within WizardPage instances
+        """ overloaded from the Wizard class, this method allows a user to define the
+        pages that are going to be used for this wizard.  Look up QWizard in the Qt
+        Assistant for more advanced options and controlling flows for your wizard.
+
+        Wizard classes don't need to specify UI information, all the data for the
+        Wizard will be encased within WizardPage instances
         """
         # create custom properties
         self._filepath = ''

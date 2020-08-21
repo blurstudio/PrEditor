@@ -144,7 +144,6 @@ class IdeMethodBrowserWidget(QWidget):
 
         # parse out the results for the document
         if self._document:
-            import re
             from blurdev.ide import lang
 
             language = lang.byName(self._document.language())
@@ -152,10 +151,9 @@ class IdeMethodBrowserWidget(QWidget):
                 descriptors = language.descriptors()
 
                 if descriptors:
-                    levelstack = []
                     try:
                         text = str(self._ide.currentDocument().text())
-                    except:
+                    except Exception:
                         self.cacheResult('Error converting text to string')
                         text = ''
 

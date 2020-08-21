@@ -13,7 +13,7 @@ import os.path
 
 from blurdev.gui import Dialog
 from Qt import QtCompat
-from Qt.QtCore import QFileInfo, QThread, Qt
+from Qt.QtCore import QFileInfo, Qt
 from Qt.QtWidgets import QFileIconProvider, QMessageBox, QTreeWidgetItem
 
 from blurdev.ide.addons.svn import svnconfig
@@ -218,7 +218,8 @@ class SvnCommitDialog(Dialog):
         if not self.uiChangeTREE.topLevelItemCount():
             item = QTreeWidgetItem(
                 [
-                    'No files were changed or added since\nthe last commit.  There is nothing\nfor SVN to do here...'
+                    'No files were changed or added since\nthe last commit. '
+                    'There is nothing\nfor SVN to do here...'
                 ]
             )
             item.setTextAlignment(0, Qt.AlignCenter)

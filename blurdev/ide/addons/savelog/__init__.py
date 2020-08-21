@@ -129,6 +129,7 @@ class SaveLogAddon(IdeAddon):
 # register the addon to the system
 IdeAddon.register('Save Log', SaveLogAddon)
 
+
 # create the init method (in case this addon doesn't get registered as part of a group)
 def init():
     pass

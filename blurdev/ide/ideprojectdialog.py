@@ -46,8 +46,10 @@ class IdeProjectDialog(Dialog):
                 QMessageBox.critical(
                     None,
                     'Invalid Project Path',
-                    'Please specify a valid path for your project.  Cannot create the project at: %s'
-                    % path,
+                    (
+                        'Please specify a valid path for your project. '
+                        'Cannot create the project at: %s'
+                    ) % path,
                 )
                 return False
 
@@ -57,7 +59,10 @@ class IdeProjectDialog(Dialog):
                 results = QMessageBox.question(
                     None,
                     'Project Already Exists',
-                    'The project you are trying to create already exists.  Do you want to overwrite?',
+                    (
+                        'The project you are trying to create already exists. '
+                        'Do you want to overwrite?'
+                    ),
                     (QMessageBox.Yes | QMessageBox.No),
                 )
                 if results == QMessageBox.No:
@@ -98,7 +103,6 @@ class IdeProjectDialog(Dialog):
 
     def editItem(self):
         from ideprojectitemdialog import IdeProjectItemDialog
-        from ideproject import IdeProjectItem
 
         # pull the item from the tree
         item = self.uiProjectTREE.currentItem()

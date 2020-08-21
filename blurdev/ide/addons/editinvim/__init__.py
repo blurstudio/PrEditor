@@ -63,6 +63,7 @@ class EditInVimAddon(IdeAddon):
 # register the addon to the system
 IdeAddon.register('EditInVim', EditInVimAddon)
 
+
 # create the init method (in case this addon doesn't get registered as part of a group)
 def init():
     pass

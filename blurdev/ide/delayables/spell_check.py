@@ -1,7 +1,8 @@
 from __future__ import print_function
+
 import re
 import string
-import blurdev
+
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 from Qt.Qsci import QsciScintilla

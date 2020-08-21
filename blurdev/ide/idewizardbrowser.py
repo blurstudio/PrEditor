@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.ide.idewizardbrowser
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin wizards
+#   \remarks    This dialog allows the user to create new python classes and packages
+#               based on plugin wizards
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio

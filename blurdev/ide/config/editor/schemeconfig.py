@@ -8,7 +8,6 @@
 # 	\date		07/08/11
 #
 
-import os
 import re
 import blurdev
 
@@ -149,7 +148,7 @@ class SchemeConfig(ConfigSectionWidget):
         keys = section.properties()
         keys.sort()
         for key in keys:
-            if not '_color_' in key:
+            if '_color_' not in key:
                 continue
 
             item = ColorItem(key, section.value(key))
@@ -219,7 +218,6 @@ def registerSections(configSet):
         'document_color_marginsText': QColor('black'),
         'document_color_foldMargin': QColor('white'),
         'document_color_foldMarginText': QColor('black'),
-        'document_color_marginsText': QColor('black'),
         'document_color_indentGuide': QColor('black'),
         'document_color_invalidBrace': QColor('red'),
         'document_color_braceHighlight': QColor('yellow'),

@@ -9,7 +9,6 @@
 #
 
 import pysvn
-import traceback
 
 from blurdev.ide.addons.svn.threads import ActionThread
 
@@ -111,7 +110,8 @@ class MergeRangesThread(MergeThread):
             for result in results:
                 result = result.strip()
 
-                # parse out valid revision ranges (the start should be 1- the inputed revision number for the range)
+                # parse out valid revision ranges (the start should be 1- the inputed
+                # revision number for the range)
                 try:
                     if '-' in result:
                         start, end = result.split('-')
@@ -138,7 +138,7 @@ class MergeRangesThread(MergeThread):
                         end = pysvn.Revision(
                             pysvn.opt_revision_kind.number, int(result)
                         )
-                except:
+                except Exception:
                     continue
 
                 ranges.append((start, end))

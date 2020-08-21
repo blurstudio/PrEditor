@@ -9,7 +9,6 @@
 #
 
 import os
-from Qt.QtWidgets import QMenu
 
 from blurdev.ide.idefilemenu import IdeFileMenu
 from blurdev.ide.addons.svn import svnops
@@ -27,7 +26,8 @@ class SvnFileMenu(IdeFileMenu):
         # define the SVN commands before the explore action
         before = self.ide().findChild(QAction, 'uiExploreACT')
 
-        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise add them to the SvnActionMenu
+        # If BDEV_SVN_FILE_EXTRAS is defined, add the options to this menu, otherwise
+        # add them to the SvnActionMenu
         if os.environ.get('BDEV_SVN_FILE_EXTRAS', None):
             if svnops.findUrl(self.filepath()):
                 # create the update command

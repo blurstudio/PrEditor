@@ -10,8 +10,11 @@
 
 from builtins import str as text
 import os
-from Qt.QtGui import QPixmap
-from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem
+import sys
+import blurdev
+from Qt.QtCore import QDir, QFileInfo
+from Qt.QtGui import QPixmap, QIcon
+from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem, QFileIconProvider
 from Qt import QtCompat
 
 import blurdev.ide.config.common
@@ -72,9 +75,6 @@ class IdeProjectItem(QTreeWidgetItem):
         self._overlay = None
 
         # set the default icon
-        from Qt.QtGui import QIcon
-        import blurdev
-
         self.setIcon(0, QIcon(blurdev.resourcePath('img/folder.png')))
         self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
 
@@ -104,8 +104,6 @@ class IdeProjectItem(QTreeWidgetItem):
         return self._filePath
 
     def fileInfo(self):
-        from Qt.QtCore import QFileInfo
-
         if self.isFileSystem():
             return QFileInfo(self.filePath())
         return QFileInfo()
@@ -117,8 +115,6 @@ class IdeProjectItem(QTreeWidgetItem):
         return self._group
 
     def isFile(self):
-        from Qt.QtCore import QFileInfo
-
         return QFileInfo(self.filePath()).isFile()
 
     def isFileSystem(self):
@@ -159,11 +155,9 @@ class IdeProjectItem(QTreeWidgetItem):
         folders = []
         files = []
 
-        import os
-        from Qt.QtCore import QDir, QFileInfo
-
         path = self.filePath()
-        # Check for a invalid path and notify the user by updating the text of the folder.
+        # Check for a invalid path and notify the user by updating the text of the
+        # folder.
         try:
             dirs = os.listdir(path)
         except WindowsError:
@@ -194,8 +188,6 @@ class IdeProjectItem(QTreeWidgetItem):
         files.sort(key=text.lower)
 
         # load the icon provider
-        from Qt.QtWidgets import QFileIconProvider
-
         iconprovider = QFileIconProvider()
 
         # add the folders
@@ -218,9 +210,11 @@ class IdeProjectItem(QTreeWidgetItem):
                 )
             )
 
-        # MCH 10/18/12 HACK: After updating to 4.8.3 the project tree would not update its vertical scroll bar the first time a item was expanded
-        # calling updateGeometries seems to fix the problem, but there should be a better way to handle this. I am assuming that its a problem
-        # with the sizes of the child items not being updated when the scrollbar is updated.
+        # MCH 10/18/12 HACK: After updating to 4.8.3 the project tree would not update
+        # its vertical scroll bar the first time a item was expanded calling
+        # updateGeometries seems to fix the problem, but there should be a better way to
+        # handle this. I am assuming that its a problem with the sizes of the child
+        # items not being updated when the scrollbar is updated.
         tree.updateGeometries()
 
     def loadXml(self, xml):
@@ -350,11 +344,8 @@ class IdeProjectItem(QTreeWidgetItem):
     def createFolderItem(
         folder, iconprovider=None, fileTypes=[], exclude=[], overlayFinder=None
     ):
-        from Qt.QtCore import QDir, QFileInfo
 
         if not iconprovider:
-            from Qt.QtWidgets import QFileIconProvider
-
             iconprovider = QFileIconProvider()
 
         item = IdeProjectItem()
@@ -376,12 +367,8 @@ class IdeProjectItem(QTreeWidgetItem):
 
     @staticmethod
     def createFileItem(filename, iconprovider=None, overlayFinder=None):
-        from Qt.QtCore import QFileInfo
-        import os.path
 
         if not iconprovider:
-            from Qt.QtWidgets import QFileIconProvider
-
             iconprovider = QFileIconProvider()
 
         # create the item and initialize its properties
@@ -428,10 +415,6 @@ class IdeProject(IdeProjectItem):
         IdeProjectItem.__init__(self)
 
         # initialize the project item
-        from Qt.QtGui import QIcon
-
-        import blurdev
-
         self.setIcon(0, QIcon(blurdev.resourcePath('img/project.png')))
         self._filename = ''
 
@@ -452,8 +435,6 @@ class IdeProject(IdeProjectItem):
 
     def activateSystem(self):
         # update the os.environ variable with this projects environment variables
-        import os
-        import sys
 
         # record the original information
         self._origEnv = os.environ.copy()
@@ -472,13 +453,11 @@ class IdeProject(IdeProjectItem):
 
     def deactivateSystem(self):
         # unregister all the project specific override information
-        import os
-        import sys
 
         # restore the system variables
-        if self._origEnv != None:
+        if self._origEnv is not None:
             os.environ = self._origEnv
-        if self._origSys != None:
+        if self._origSys is not None:
             sys.path = self._origSys
 
     def configSet(self):
@@ -495,7 +474,7 @@ class IdeProject(IdeProjectItem):
 
     def registerPath(self, path):
         path = str(path).strip()
-        if path and not path in self._syspaths:
+        if path and path not in self._syspaths:
             self._syspaths.append(path)
 
     def save(self):

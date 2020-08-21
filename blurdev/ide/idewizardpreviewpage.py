@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.ide.idewizardpreviewpage
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
+#   \remarks    This dialog allows the user to create new python classes and packages
+#   based on plugin templates
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -38,7 +39,7 @@ class ComponentItem(QTreeWidgetItem):
             self.addChild(ComponentItem(page, child))
 
     def refreshChecked(self, inherit=False, state=None):
-        if state == None or not inherit:
+        if state is None or not inherit:
             state = self.checkState(0)
 
         elif inherit:
@@ -60,7 +61,8 @@ class ComponentItem(QTreeWidgetItem):
         if not self.checkState(0) == Qt.Checked:
             return
 
-        import os, shutil
+        import os
+        import shutil
 
         path = str(path)
         newpath = os.path.join(path, str(self.text(0)))
@@ -70,7 +72,7 @@ class ComponentItem(QTreeWidgetItem):
             if not os.path.exists(newpath):
                 try:
                     os.mkdir(newpath)
-                except:
+                except OSError:
                     print('Could not create folder: ', newpath)
                     return
 
@@ -78,7 +80,7 @@ class ComponentItem(QTreeWidgetItem):
         elif self._copyFrom:
             try:
                 shutil.copyfile(self._copyFrom, newpath)
-            except:
+            except OSError:
                 print('Error copying file from: ', self._copyFrom, ' to: ', newpath)
 
         # create from a template
@@ -120,7 +122,8 @@ class IdeWizardPreviewPage(QWizardPage):
         from blurdev import template
 
         template.formatFile(input, output, self._options)
-        # Call formatFile twice so that it can properly format the aditional text added in self._options.
+        # Call formatFile twice so that it can properly format the aditional text added
+        # in self._options.
         return template.formatFile(output, output, self._options)
 
     def formatText(self, text):
@@ -227,7 +230,7 @@ class IdeWizardPreviewPage(QWizardPage):
         # figure out the package location for this path
         import blurdev
 
-        if not 'package' in self._options:
+        if 'package' not in self._options:
             self._options['package'] = blurdev.packageForPath(path)
 
         # record the installpath for future use

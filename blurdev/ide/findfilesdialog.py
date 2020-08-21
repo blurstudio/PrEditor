@@ -8,7 +8,6 @@
 # 	\date		04/22/11
 #
 
-from builtins import str as text
 import os
 import re
 
@@ -84,9 +83,9 @@ class FindFilesThread(QThread):
             basepaths = [
                 os.path.normpath(os.path.normcase(p)) for p in self._basepath.split(';')
             ]
-            # The treeview used to display the results alphabetically is updated durring the
-            # search, so we must search basepaths alphabetically so the results list doesn't
-            # have results appended before the previous results
+            # The treeview used to display the results alphabetically is updated durring
+            # the search, so we must search basepaths alphabetically so the results list
+            # doesn't have results appended before the previous results
             for basepath in sorted(set(basepaths)):
                 self._output.append('Searching Basepath: %s' % basepath)
                 for (path, dirs, files) in os.walk(basepath):
@@ -96,9 +95,7 @@ class FindFilesThread(QThread):
                             self._output.append('	Checking File: %s' % file)
                             if self._exit:
                                 self._exit = False
-                                self._output.append(
-                                    "!!!!!!!!!!!!!!!!!!!! Exiting !!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                                )
+                                self._output.append(' Existing '.center(50, '!'))
                                 return
                             filename = os.path.join(path, file)
 
@@ -139,7 +136,7 @@ class FindFilesThread(QThread):
         # look for the text within the lines
         try:
             f = open(filename, 'rU')
-        except:
+        except Exception:
             return
 
         lines = f.readlines()
@@ -164,7 +161,7 @@ class FindFilesThread(QThread):
                         "		Result! Line Number: %i File: %s Line: %s"
                         % (lineno, filename, line.strip())
                     )
-                    if not filename in self._results:
+                    if filename not in self._results:
                         self._results[filename] = [(lineno + 1, line.strip())]
                     else:
                         self._results[filename].append((lineno + 1, line.strip()))
@@ -182,8 +179,8 @@ class FindFilesThread(QThread):
                     % (lineno, filename, repr(e))
                 )
 
-    def setSearchText(self, text):
-        self._searchText = text
+    def setSearchText(self, txt):
+        self._searchText = txt
 
     def setBasePath(self, basepath):
         self._basepath = basepath
@@ -305,14 +302,16 @@ class FindFilesDialog(Dialog):
                     blurdev.ide.documenteditor.DocumentEditor, 'DocumentEditor'
                 )
                 if document:
-                    # Use the python lexer it provides a workable lexer for find results.
+                    # Use the python lexer it provides a workable lexer for find
+                    # results.
                     document.setText(self._allResultsText)
                     document.setLanguage('Python')
                     ide.updateTitle()
-                    # permaHighlight is not shown unless we call processEvents so the document is visible.
+                    # permaHighlight is not shown unless we call processEvents so the
+                    # document is visible.
                     QApplication.instance().processEvents()
-                    # use permaHighlight to highlight the search term. This probably won't
-                    # work for regex searches
+                    # use permaHighlight to highlight the search term. This probably
+                    # won't work for regex searches
                     document.setPermaHighlight([self.uiSearchTXT.text()])
                     return
         QApplication.clipboard().setText(self._allResultsText)
@@ -320,7 +319,8 @@ class FindFilesDialog(Dialog):
     def keyPressEvent(self, event):
         if self.focusWidget() == self.uiResultsTREE:
             if event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
-                # If the uiResultsTREE is in focus open the selected file don't start searching again.
+                # If the uiResultsTREE is in focus open the selected file don't start
+                # searching again.
                 return
         super(FindFilesDialog, self).keyPressEvent(event)
 
@@ -349,10 +349,10 @@ class FindFilesDialog(Dialog):
             for i in range(self.uiResultsTREE.topLevelItemCount()):
                 output += self.recordOpenState(self.uiResultsTREE.topLevelItem(i))
         else:
-            text = item.text(0)
+            txt = item.text(0)
             if item.isExpanded():
-                output.append(key + text)
-            key += text + '::'
+                output.append(key + txt)
+            key += txt + '::'
             for c in range(item.childCount()):
                 output += self.recordOpenState(item.child(c), key)
         return output
@@ -421,11 +421,11 @@ class FindFilesDialog(Dialog):
             for i in range(self.uiResultsTREE.topLevelItemCount()):
                 self.restoreOpenState(openState, self.uiResultsTREE.topLevelItem(i))
         else:
-            text = item.text(0)
-            itemkey = key + text
+            txt = item.text(0)
+            itemkey = key + txt
             if itemkey in openState:
                 item.setExpanded(True)
-            key += text + '::'
+            key += txt + '::'
             for c in range(item.childCount()):
                 self.restoreOpenState(openState, item.child(c), key)
 
@@ -504,8 +504,8 @@ class FindFilesDialog(Dialog):
     def setSearchedCount(self, count):
         self.uiSearchedLBL.setText('in %i' % count)
 
-    def setSearchText(self, text):
-        self.uiSearchTXT.setText(text)
+    def setSearchText(self, txt):
+        self.uiSearchTXT.setText(txt)
 
     def stopSearch(self):
         self._searchThread.stop()

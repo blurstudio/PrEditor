@@ -13,7 +13,7 @@ import blurdev
 from blurdev.ide import lang
 
 from Qt import QtCompat
-from Qt.QtCore import QSize, Qt
+from Qt.QtCore import QSize
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QMessageBox, QTreeWidgetItem
 
@@ -85,13 +85,13 @@ class LanguagesConfig(ConfigSectionWidget):
         """
             \remarks	records the latest ui settings to the data
         """
-        section = self.section()
+        self.section()
 
     def refreshUi(self):
         """
             \remarks	refrshes the ui with the latest data settings
         """
-        section = self.section()
+        self.section()
 
         self.uiLanguageTREE.clear()
         self.uiUserLanguageTREE.clear()

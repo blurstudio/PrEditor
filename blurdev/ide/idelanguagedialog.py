@@ -8,12 +8,11 @@
 # 	\date		07/21/11
 #
 
-import os.path
 import re
 
 from Qt import Qsci
 from Qt.QtCore import QSize, Qt
-from Qt.QtGui import QColor, QIcon
+from Qt.QtGui import QIcon
 from Qt.QtWidgets import (
     QComboBox,
     QDialog,
@@ -160,7 +159,7 @@ class IdeLanguageDialog(QDialog):
         if dlg.exec_():
             self.uiDescriptorTREE.addTopLevelItem(QTreeWidgetItem(dlg.descriptor()))
 
-    def handleDropEvent(object, event):
+    def handleDropEvent(object, event):  # noqa: N805
         self = object.window()
         dragItem = event.source().currentItem()
         if not dragItem:
@@ -262,7 +261,7 @@ class IdeLanguageDialog(QDialog):
         if lexercls:
             try:
                 lexer = lexercls()
-            except:
+            except Exception:
                 lexer = None
 
             for k in dir(lexer):
@@ -295,7 +294,7 @@ class IdeLanguageDialog(QDialog):
 
         # add unprocessed data
         for data, key in data_map.items():
-            if not data in processed:
+            if data not in processed:
                 child = QTreeWidgetItem([str(data_map.get(data, data))])
                 child.setData(0, Qt.UserRole, data)
                 self.uiLexerColorsTREE.addTopLevelItem(child)

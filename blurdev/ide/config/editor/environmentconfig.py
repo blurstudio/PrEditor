@@ -1,14 +1,14 @@
 ##
 # 	\namespace	linux-2011-07-19.ide.config.editor.[module]
 #
-# 	\remarks	Allows the user to view and edit the environment variables used for the editor
+#   \remarks    Allows the user to view and edit the environment variables used for the
+#               editor
 #
 # 	\author		eric@blur.com
 # 	\author		Blur Studio
 # 	\date		07/20/11
 #
 
-import os
 import blurdev
 
 from Qt import QtCompat

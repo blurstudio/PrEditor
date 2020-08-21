@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.ide.documenteditor
 #
-# 	\remarks	This dialog allows the user to create new python classes and packages based on plugin templates
+#   \remarks    This dialog allows the user to create new python classes and packages
+#               based on plugin templates
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -12,7 +13,7 @@ import sys
 import os
 import os.path
 
-from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint, QTimer
+from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
 from Qt.Qsci import QsciScintilla
 from Qt.QtGui import QColor, QFont, QIcon, QFontMetrics
 from Qt.QtWidgets import (
@@ -27,7 +28,7 @@ from Qt import QtCompat
 from collections import OrderedDict
 
 import blurdev
-from blurdev.enum import enum, Enum, EnumGroup
+from blurdev.enum import enum
 from blurdev.ide import lang
 from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
@@ -93,11 +94,12 @@ class DocumentEditor(QsciScintilla):
         self.delayable_info = OrderedDict()
         self.delayable_engine = DelayableEngine.instance(delayable_engine)
         self.delayable_engine.add_document(self)
-        # --------------------------------------------------------------------------------
+        # ------------------------------------------------------------------------------
         # used to store the right click location
         self._clickPos = None
-        # dialog shown is used to prevent showing multiple versions of the of the confirmation dialog.
-        # this is caused because multiple signals are emitted and processed.
+        # dialog shown is used to prevent showing multiple versions of the of the
+        # confirmation dialog. this is caused because multiple signals are emitted and
+        # processed.
         self._dialogShown = False
         # used to store perminately highlighted keywords
         self._permaHighlight = []
@@ -147,7 +149,8 @@ class DocumentEditor(QsciScintilla):
 
         # Update keyboard shortcuts that come with QsciScintilla
         commands = self.standardCommands()
-        # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to comment
+        # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to
+        # comment
         command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
         if command is not None:
             command.setKey(0)
@@ -176,7 +179,11 @@ class DocumentEditor(QsciScintilla):
             QMessageBox.warning(
                 self.window(),
                 'autopep8 missing',
-                'The autopep8 library is missing. To use this feature you must install it. https://pypi.python.org/pypi/autopep8/ ',
+                (
+                    'The autopep8 library is missing. '
+                    'To use this feature you must install it. '
+                    'https://pypi.python.org/pypi/autopep8/ '
+                ),
                 QMessageBox.Ok,
             )
             return
@@ -185,7 +192,11 @@ class DocumentEditor(QsciScintilla):
             QMessageBox.warning(
                 self.window(),
                 'autopep8 out of date',
-                'The autopep8 library is out of date and needs to be updated. To use this feature you must install it. https://pypi.python.org/pypi/autopep8/ ',
+                (
+                    'The autopep8 library is out of date and needs to be updated. '
+                    'To use this feature you must install it. '
+                    'https://pypi.python.org/pypi/autopep8/ '
+                ),
                 QMessageBox.Ok,
             )
             return
@@ -237,6 +248,8 @@ class DocumentEditor(QsciScintilla):
 
     def closeEvent(self, event):
         self.disableTitleUpdate()
+        # unsubcribe the file from the open file monitor
+        self.enableFileWatching(False)
         super(DocumentEditor, self).closeEvent(event)
 
     def closeEditor(self):
@@ -253,11 +266,6 @@ class DocumentEditor(QsciScintilla):
             and parent.inherits('QMdiSubWindow')
         ):
             window.documentCloseAllExcept(self.parent())
-
-    def closeEvent(self, event):
-        # unsubcribe the file from the open file monitor
-        self.enableFileWatching(False)
-        super(DocumentEditor, self).closeEvent(event)
 
     def commentCheck(self):
         # collect the language
@@ -298,7 +306,8 @@ class DocumentEditor(QsciScintilla):
                 self.insert(comment)
         # restore the currently selected text and compensate for the new characters
         if endcol:
-            # only adjust the end column value if it contained a selection in the first place.
+            # only adjust the end column value if it contained a selection in the first
+            # place.
             endcol += 1
         self.setSelection(startline, startcol + 1, endline, endcol)
         self.endUndoAction()
@@ -363,9 +372,9 @@ class DocumentEditor(QsciScintilla):
 
     def copy(self):
         """ Copies the selected text.
-        
-        If copyIndentsAsSpaces and self.indentationsUseTabs() is True it will convert any indents
-        to spaces before copying the text.
+
+        If copyIndentsAsSpaces and self.indentationsUseTabs() is True it will convert
+        any indents to spaces before copying the text.
         """
         if self.copyIndentsAsSpaces and self.indentationsUseTabs():
             self.copySpaceIndentation()
@@ -397,7 +406,8 @@ class DocumentEditor(QsciScintilla):
         )
 
     def copyLstrip(self):
-        """Copy's the selected text, but strips off any leading whitespace shared by the entire selection.
+        """Copy's the selected text, but strips off any leading whitespace shared by the
+        entire selection.
         """
         start, s, end, e = self.getSelection()
         count = end - start + 1
@@ -416,8 +426,8 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(txt)
 
     def copySpaceIndentation(self):
-        """ Copy the selected text with any tab indents converted to space indents. 
-        
+        """ Copy the selected text with any tab indents converted to space indents.
+
         If indentationsUseTabs is False it will just copy the text
         """
         txt = self.selectedText()
@@ -430,7 +440,8 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(ret)
 
     def copyHtml(self):
-        """ Copy's the selected text, but formats it using pygments if installed into html."""
+        """ Copy's the selected text, but formats it using pygments if installed into
+        html."""
         text = self.selectedText()
         from blurdev.utils.errorEmail import highlightCodeHtml
 
@@ -472,11 +483,14 @@ class DocumentEditor(QsciScintilla):
 
     def enableFileWatching(self, state):
         """
-            \Remarks	Enables/Disables open file change monitoring. If enabled, A dialog will pop up when ever the open file is changed externally.
-                        If file monitoring is disabled in the IDE settings it will be ignored
+            \Remarks    Enables/Disables open file change monitoring. If enabled, A
+                        dialog will pop up when ever the open file is changed
+                        externally. If file monitoring is disabled in the IDE settings
+                        it will be ignored.
             \Return		<bool>
         """
-        # if file monitoring is enabled and we have a file name then set up the file monitoring
+        # if file monitoring is enabled and we have a file name then set up the file
+        # monitoring
         window = self.window()
         self._fileMonitoringActive = False
         if hasattr(window, 'openFileMonitor'):
@@ -540,7 +554,7 @@ class DocumentEditor(QsciScintilla):
 
     def foldMarginColors(self):
         """ Returns the fold margin's foreground and background QColor
-        
+
         Returns:
             foreground(QColor): The foreground color
             background(QColor): The background color
@@ -549,7 +563,7 @@ class DocumentEditor(QsciScintilla):
 
     def setFoldMarginColors(self, foreground, background):
         """ Sets the fold margins foreground and background QColor
-        
+
         Args:
             foreground(QColor): The forground color of the checkerboard
             background(QColor): The background color of the checkerboard
@@ -565,7 +579,8 @@ class DocumentEditor(QsciScintilla):
             accepted = True
 
         if accepted:
-            # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog go to the correct line.
+            # MH 04/12/11 changed from line + 1 to line - 1 to make the gotoLine dialog
+            # go to the correct line.
             self.setCursorPosition(line - 1, 0)
             self.ensureLineVisible(line)
 
@@ -655,7 +670,8 @@ class DocumentEditor(QsciScintilla):
         isSelected = self.hasSelectedText()
         result = self.findFirst(text, re, cs, wo, wrap, forward)
         if result and isSelected:
-            # If text is selected when finding previous, it will find the currently selected text so do another find.
+            # If text is selected when finding previous, it will find the currently
+            # selected text so do another find.
             result = QsciScintilla.findNext(self)
 
         if not result:
@@ -760,9 +776,13 @@ class DocumentEditor(QsciScintilla):
 
     def findTextNotFound(self, text):
         try:
-            # If a number was typed in, ask the user if they wanted to goto that line number.
+            # If a number was typed in, ask the user if they wanted to goto that line
+            # number.
             line = int(text)
-            msg = 'Search string "%s" was not found. \nIt looks like a line number, would you like to goto line %i?'
+            msg = (
+                'Search string "%s" was not found. \nIt looks like a line number, '
+                'would you like to goto line %i?'
+            )
             result = QMessageBox.critical(
                 self,
                 'No Text Found',
@@ -856,7 +876,8 @@ class DocumentEditor(QsciScintilla):
 
     def markerLoad(self, input):
         r"""
-            \remarks	Takes a list of line numbers and adds a marker to each of them in the file.
+            \remarks    Takes a list of line numbers and adds a marker to each of them
+            in the file.
         """
         for line in input:
             marker = self.markerDefine(self.Circle)
@@ -930,7 +951,8 @@ class DocumentEditor(QsciScintilla):
     #            raise TypeError('PermaHighlight is not supported by this lexer.')
 
     def refreshToolTip(self):
-        # TODO: This will proably be removed once I add a user interface to additionalFilenames.
+        # TODO: This will proably be removed once I add a user interface to
+        # additionalFilenames.
         toolTip = []
         if self.additionalFilenames:
             toolTip.append('<u><b>Additional Filenames:</b></u>')
@@ -946,7 +968,8 @@ class DocumentEditor(QsciScintilla):
 
     def reloadChange(self):
         """
-            \Remarks	Callback for file monitoring. If a file was modified or deleted this method is called when Open File Monitoring is enabled.
+            \Remarks    Callback for file monitoring. If a file was modified or deleted
+                        this method is called when Open File Monitoring is enabled.
                         Returns if the file was updated or left open
             \Return		<bool>
         """
@@ -961,7 +984,8 @@ class DocumentEditor(QsciScintilla):
             return False
         if not os.path.isfile(self.filename()) and not self._dialogShown:
             debugMsg('The file was deleted', DebugLevel.High)
-            # the file was deleted, ask the user if they still want to keep the file in the editor.
+            # the file was deleted, ask the user if they still want to keep the file in
+            # the editor.
             self._dialogShown = True
             result = QMessageBox.question(
                 self.window(),
@@ -978,7 +1002,8 @@ class DocumentEditor(QsciScintilla):
                 )
                 self.parent().close()
                 return False
-            # TODO: The file no longer exists, and the document should be marked as changed.
+            # TODO: The file no longer exists, and the document should be marked as
+            # changed.
             debugMsg(
                 'The file was deleted, But the user left it in the editor',
                 DebugLevel.High,
@@ -1053,19 +1078,19 @@ class DocumentEditor(QsciScintilla):
 
     def save(self):
         debugMsg(
-            '------------------------------ Save Called ------------------------------ ',
+            ' Saved Called'.center(60, '-'),
             DebugLevel.High,
         )
         ret = self.saveAs(self.filename())
-        # If the user has provided additionalFilenames to save, process each of them without
-        # switching the current filename.
+        # If the user has provided additionalFilenames to save, process each of them
+        # without switching the current filename.
         for filename in self.additionalFilenames:
-            r = self.saveAs(filename, setFilename=False)
+            self.saveAs(filename, setFilename=False)
         return ret
 
     def saveAs(self, filename='', setFilename=True):
         debugMsg(
-            '------------------------------ Save As Called ------------------------------ ',
+            ' Save As Called '.center(60, '-'),
             DebugLevel.High,
         )
         newFile = False
@@ -1210,14 +1235,15 @@ class DocumentEditor(QsciScintilla):
             lexer.setPaper(
                 self.pyIndentationGuidesBackgroundColor, self.STYLE_INDENTGUIDE
             )
-        # QSciLexer.wordCharacters is not virtual, or even exposed. This hack allows custom lexers
-        # to define their own wordCharacters
+        # QSciLexer.wordCharacters is not virtual, or even exposed. This hack allows
+        # custom lexers to define their own wordCharacters
         if hasattr(lexer, 'wordCharactersOverride'):
             wordCharacters = lexer.wordCharactersOverride
         else:
-            # We can't query the lexer for its word characters, but we can query the document.
-            # This ensures the lexer's wordCharacters are used if switching from a wordCharactersOverride
-            # lexer to a lexer that doesn't define custom wordCharacters.
+            # We can't query the lexer for its word characters, but we can query the
+            # document. This ensures the lexer's wordCharacters are used if switching
+            # from a wordCharactersOverride lexer to a lexer that doesn't define custom
+            # wordCharacters.
             wordCharacters = self.wordCharacters()
         self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters.encode('utf8'))
 
@@ -1270,9 +1296,10 @@ class DocumentEditor(QsciScintilla):
         self, exp='[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
     ):
         r"""
-            \remarks	Set the regular expression used to control if a selection is considered valid for
-                        smart highlighting.
-            \param		exp		<str>	Default:'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
+            \remarks    Set the regular expression used to control if a selection is
+                        considered valid for smart highlighting.
+            \param		exp	<str> Default:
+                            '[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
         """
         self._smartHighlightingRegEx = exp
         self.selectionValidator = re.compile(exp)
@@ -1396,15 +1423,15 @@ class DocumentEditor(QsciScintilla):
                 lengthSpace = len(space)
                 for word in camel_case_words:
                     lengthWord = len(word)
-                    # Calcualate the actual word start position accounting for any non-alpha chars
-                    # word_new_start_position = wordStartPosition + lengthSpace
+                    # Calcualate the actual word start position accounting for any
+                    # non-alpha chars word_new_start_position = wordStartPosition +
+                    # lengthSpace
                     if (
                         wordStartPosition + lengthSpace <= positionMouse
                         and wordStartPosition + lengthSpace + lengthWord > positionMouse
                         and not any(letter in string.digits for letter in word)
                         and not self.__speller__.check(word)
                     ):
-                        spellCheckMenuShown = True
                         # For camelCase words, get the exact word under the mouse
                         self.pos = wordStartPosition + lengthSpace
                         self.anchor = wordStartPosition + lengthSpace + lengthWord
@@ -1461,7 +1488,8 @@ class DocumentEditor(QsciScintilla):
 
         copyMenu = menu.addMenu('Advanced Copy')
 
-        # Note: I cant use the actions defined above because they end up getting garbage collected
+        # Note: I cant use the actions defined above because they end up getting garbage
+        # collected
         iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
         act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
         act.setShortcut('Ctrl+Shift+C')
@@ -1521,15 +1549,15 @@ class DocumentEditor(QsciScintilla):
 
         submenu = menu.addMenu('View as...')
         submenu.setIcon(QIcon(blurdev.resourcePath('img/ide/view_as.png')))
-        l = self.language()
+        lg = self.language()
         act = submenu.addAction('Plain Text')
-        if l == "":
+        if lg == "":
             act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
         submenu.addSeparator()
 
         for language in lang.languages():
             act = submenu.addAction(language)
-            if language == l:
+            if language == lg:
                 act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
 
         submenu.triggered.connect(self.languageChosen)
@@ -1597,7 +1625,9 @@ class DocumentEditor(QsciScintilla):
         self.endUndoAction()
 
     def updateColorScheme(self):
-        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible dict """
+        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible
+            dict
+        """
         # lookup the language
         language = lang.byName(self.language())
         lex = self.lexer()
@@ -1669,7 +1699,7 @@ class DocumentEditor(QsciScintilla):
 
         try:
             self.window().emitDocumentTitleChanged()
-        except:
+        except Exception:
             pass
 
         self.refreshTitle()
@@ -1715,7 +1745,11 @@ class DocumentEditor(QsciScintilla):
             else:
                 sline += 1
                 eline += 1
-                text = 'Line: {sline} Pos: {spos} To Line: {eline} Pos: {epos} Line Count: {lineCount}'.format(
+                text = (
+                    'Line: {sline} Pos: {spos} To Line: {eline} '
+                    'Pos: {epos} Line Count: {lineCount}'
+                )
+                text = text.format(
                     sline=sline,
                     spos=spos,
                     eline=eline,
@@ -1734,7 +1768,8 @@ class DocumentEditor(QsciScintilla):
     def setHighlightedKeywords(self, lexer, keywords):
         """
             :remarks	Updates the lexers highlighted keywords
-            :param		lexer		<QSciLexer>	Update this lexer and set as the lexer on the document.
+            :param      lexer       <QSciLexer> Update this lexer and set as the lexer
+            on the document.
             :param		keywords	<str>	keywords to highlight
         """
 
@@ -1742,11 +1777,13 @@ class DocumentEditor(QsciScintilla):
     #        self._highlightedKeywords = keywords
     #        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [keywords])
     #
-    #        # Clearing the lexer before re-setting the lexer seems to fix the scroll/jump issue
+    #        # Clearing the lexer before re-setting the lexer seems to fix the
+    #          scroll/jump issue
     #        # when using smartHighlighting near the end of the document.
     #        self.setLexer(None)
     #        self.setLexer(lexer)
-    #        # repaint appears to fix the problem with text being squashed when smartHighlighting
+    #        # repaint appears to fix the problem with text being squashed when
+    #          smartHighlighting
     #        # is activated by clicking and draging to select text.
     #        self.repaint()
 
@@ -1796,7 +1833,7 @@ class DocumentEditor(QsciScintilla):
             try:
                 # Qt5 support
                 delta = event.angleDelta().y()
-            except:
+            except Exception:
                 # Qt4 support
                 delta = event.delta()
             if delta > 0:
@@ -1883,7 +1920,8 @@ class DocumentEditor(QsciScintilla):
         """ This is subclassed so we can create a Property of it"""
         super(DocumentEditor, self).setEdgeColor(color)
 
-    # Because foreground and background must be set together, this cant use QtPropertyInit
+    # Because foreground and background must be set together, this cant use
+    # QtPropertyInit
     @Property(QColor)
     def foldMarginsBackgroundColor(self):
         return self._foldMarginBackgroundColor
@@ -1972,7 +2010,8 @@ class DocumentEditor(QsciScintilla):
         self._unmatchedBraceForegroundColor = color
         super(DocumentEditor, self).setUnmatchedBraceForegroundColor(color)
 
-    # Handle Stylesheet colors for properties that are built into QsciScintilla but dont have getters.
+    # Handle Stylesheet colors for properties that are built into QsciScintilla but dont
+    # have getters.
     pyMarginsBackgroundColor = Property(
         QColor, marginsBackgroundColor, setMarginsBackgroundColor
     )

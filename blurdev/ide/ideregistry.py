@@ -53,11 +53,12 @@ class IdeRegistry(object):
         """
             \remarks	searches the registry for the inputed registry command
                         based on the type and regex
-                        
+
             \param		registryType	<blurdev.ide.ideregistry.RegistryType>
             \param		expression		<str>		text to compare against regex in registry
-            
-            \return		<tuple> ( <str> || <function> || None command, <str> args, <str> startpath )
+
+            \return     <tuple> ( <str> || <function> || None command, <str> args, <str>
+                        startpath )
         """
         cmds = self._commands.get(registryType)
         if cmds:
@@ -93,10 +94,11 @@ class IdeRegistry(object):
         """
             \remarks	registers the inputed command for the given type
                         to the registry
-            
+
             \param		registryType	<blurdev.ide.ideregistry.IdeRegistry>
             \param		regex			<str> 		regular expression to search for in the registry
-            \param		command			<tuple> ( <str> || <function> command, <str> args, <str> startpath )
+            \param      command         <tuple> ( <str> || <function> command, <str>
+                                        args, <str> startpath )
         """
         self._commands.setdefault(registryType, {})
         self._commands[registryType][regex] = command
@@ -105,7 +107,7 @@ class IdeRegistry(object):
         """
             \remarks	removes the inputed command from the registry based
                         on the type and extension
-            
+
             \param		registryType	<blurdev.ide.registry.IdeRegistry>
             \param		regex			<str>		regular expression to search for in the registry
         """

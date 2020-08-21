@@ -8,8 +8,6 @@
 # 	\date		07/21/11
 #
 
-import blurdev.version
-
 from blurdev.gui import Dialog
 
 HTML_TEMPLATE = """
@@ -26,13 +24,16 @@ HTML_TEMPLATE = """
         <br>
         <hr/>
         <p>
-            The blurdev IDE is an editing system designed and developed at Blur Studio in Venice, CA, 2010.  The
-            original goal for the project was to create a system which was easily expandable, making it simple to
-            create and maintain coding standards.  
+            The blurdev IDE is an editing system designed and developed at Blur Studio
+            in Venice, CA, 2010.  The original goal for the project was to create a
+            system which was easily expandable, making it simple to create and maintain
+            coding standards.
             <br/><br/>
             The other purpose for the IDE was to provide a cross-platform,
-            cross-application editor that works not only on multiple platforms, but that can run as a standalone
-            application as well as an application running inside of DCC applications such as 3dsMax and Softimage.
+            cross-application editor that works not only on multiple platforms, but that
+            can run as a standalone application as well as an application running inside
+            of DCC applications such as 3dsMax and Softimage.
+
         </p>
     </body>
 </html>
@@ -61,8 +62,10 @@ class IdeAboutDialog(Dialog):
         options['version'] = blurdev.version.to_string()
         options['credits'] = ''.join(
             [
-                '<tr><td>%s</td><td> . </td><td align="center">%s</td><td> . </td><td>%s</td>'
-                % credit
+                (
+                    '<tr><td>%s</td><td> . </td><td align="center">%s</td><td> . '
+                    '</td><td>%s</td>'
+                ) % credit
                 for credit in credits
             ]
         )

@@ -9,8 +9,7 @@
 #
 
 from __future__ import print_function
-from Qt.QtWidgets import QFileDialog, QMessageBox as msg
-
+from Qt.QtWidgets import QFileDialog, QMessageBox
 from blurdev.gui import Dialog
 from blurdev.ide.addons.svn import svnops
 from blurdev.ide.addons.svn import svnconfig
@@ -34,7 +33,7 @@ class SvnCheckoutDialog(Dialog):
     def accept(self):
         # make sure there is a url and a filepath specified
         if not (self.url() and self.filepath()):
-            msg.critical(
+            QMessageBox.critical(
                 self,
                 'Missing Data',
                 'You need to provide a URL and filepath for the checkout to work.',

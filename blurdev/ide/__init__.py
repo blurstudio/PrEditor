@@ -1,7 +1,8 @@
 ##
 # 	\namespace	blurdev.ide
 #
-# 	\remarks	The blurdev IDE allows you to quickly and easily create and edit python files
+#   \remarks    The blurdev IDE allows you to quickly and easily create and edit python
+#               files
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -27,7 +28,7 @@ class FindState(object):
         self.end_pos = None
 
 
-from .ideeditor import IdeEditor
-from .ideproject import IdeProject
-from .ideaddon import IdeAddon
-from .ideregistry import RegistryType
+from .ideeditor import IdeEditor  # noqa: F401
+from .ideproject import IdeProject  # noqa: F401
+from .ideaddon import IdeAddon  # noqa: F401
+from .ideregistry import RegistryType  # noqa: F401

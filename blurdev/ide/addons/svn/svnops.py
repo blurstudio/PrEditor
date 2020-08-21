@@ -10,12 +10,10 @@
 
 import pysvn
 import os.path
-
 import blurdev
-from blurdev import osystem, settings
-import subprocess
 
-from Qt.QtWidgets import QFileDialog, QInputDialog, QLineEdit, QMessageBox
+from blurdev import osystem
+from Qt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 
 def add(filepath):
@@ -26,7 +24,12 @@ def add(filepath):
     ide = blurdev.core.rootWindow()
 
     # promp the user to select non-versioned files
-    emptyMessage = 'There is nothing to add.  All the files and folders are either under version control\nor have been ignored using the svn.ignore property\nor the global ignore configuration setting.'
+    emptyMessage = (
+        'There is nothing to add. '
+        'All the files and folders are either under version control\nor have been '
+        'ignored using the svn.ignore property\nor the global ignore '
+        'configuration setting.'
+    )
     from svnfilesdialog import SvnFilesDialog
 
     filepaths, accepted = SvnFilesDialog.collect(
@@ -107,7 +110,7 @@ def cleanup(filepath):
 def createFolder(url, folderName=''):
     """
         \remarks	creates a new folder at the given url with the inputed folder name
-                    if a blank folder name is supplied, the user will be prompted to 
+                    if a blank folder name is supplied, the user will be prompted to
                     enter one
         \param		url				<str>
         \param		folderName		<str>
@@ -127,7 +130,7 @@ def createFolder(url, folderName=''):
     try:
         client.mkdir(urlpath, 'Created %s folder' % folderName, False, None)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -150,15 +153,13 @@ def compare(filepath, old=None, new=None):
         \param      new         <int> || None   <new revision>
         \return		<bool> accepted
     """
-    if old == None:
+    if old is None:
         revision = 'HEAD'
     else:
         revision = str(old)
 
-    if new != None:
+    if new is not None:
         revision += ':%s' % new
-
-    from blurdev import osystem
 
     osystem.startfile(
         filepath,
@@ -207,7 +208,7 @@ def findUrl(filepath):
     # check to see if this is already part of svn
     try:
         entry = client.info(filepath)
-    except:
+    except Exception:
         entry = None
 
     # create options for SVN filepaths
@@ -264,7 +265,7 @@ def remove(filepath):
         try:
             client.remove(filepath)
             return True
-        except:
+        except Exception:
             return False
 
 
@@ -276,7 +277,10 @@ def revert(filepath):
     """
     ide = blurdev.core.rootWindow()
     # promp the user to select non-versioned files
-    emptyMessage = 'There is nothing to revert.  All the files and folders are up-to-date and unmodified.'
+    emptyMessage = (
+        'There is nothing to revert. '
+        'All the files and folders are up-to-date and unmodified.'
+    )
     from svnfilesdialog import SvnFilesDialog
 
     filepaths, accepted = SvnFilesDialog.collect(

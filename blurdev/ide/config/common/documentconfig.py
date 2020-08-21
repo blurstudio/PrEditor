@@ -8,7 +8,6 @@
 # 	\date		07/08/11
 #
 
-import os
 import blurdev
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget
@@ -27,11 +26,11 @@ class DocumentConfig(ConfigSectionWidget):
         aspell = None
         try:
             import aspell
-        except:
+        except ImportError:
             pass
         if aspell:
             try:
-                speller = aspell.Speller()
+                aspell.Speller()
             except Exception as e:
                 self.uiSpellCheckCHK.setCheckable(False)
                 QMessageBox.warning(self, "Spell-Check", "{}".format(e))
@@ -89,10 +88,9 @@ class DocumentConfig(ConfigSectionWidget):
         )
         self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
         try:
-            import aspell
-
+            import aspell  # noqa: F401
             self.uiSpellCheckCHK.setChecked(section.value('spellCheck'))
-        except:
+        except ImportError:
             self.uiSpellCheckCHK.setDisabled(True)
         self.uiSmartHighlightingCHK.setChecked(section.value('smartHighlighting'))
         self.uiBackspaceUnindentsCHK.setChecked(section.value('backspaceUnindents'))

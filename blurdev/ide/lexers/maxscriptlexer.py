@@ -102,7 +102,7 @@ class MaxscriptLexer(QsciLexerCustom):
             pos = chunk.find('*/')
             if pos != -1:
                 self.setStyling(pos + 2, self.Comment)
-                return self.processChunk(chunk[pos + 2 :], self.Default, keywords)
+                return self.processChunk(chunk[pos + 2:], self.Default, keywords)
             else:
                 self.setStyling(length, self.Comment)
                 return (self.Comment, 0)
@@ -120,7 +120,7 @@ class MaxscriptLexer(QsciLexerCustom):
             pos = chunk.find('"')
             if pos != -1:
                 self.setStyling(pos + 1, self.String)
-                return self.processChunk(chunk[pos + 1 :], self.Default, keywords)
+                return self.processChunk(chunk[pos + 1:], self.Default, keywords)
             else:
                 self.setStyling(length, self.String)
                 return (self.String, 0)
@@ -133,8 +133,8 @@ class MaxscriptLexer(QsciLexerCustom):
             order = [blockpos, linepos, strpos]
             order.sort()
 
-            # any of the above symbols will affect how a symbol following it is treated, so make sure we process
-            # in the proper order
+            # any of the above symbols will affect how a symbol following it is treated,
+            # so make sure we process in the proper order
             for i in order:
                 if i == -1:
                     continue
@@ -144,7 +144,7 @@ class MaxscriptLexer(QsciLexerCustom):
                     state, folding = self.processChunk(chunk[:i], lastState, keywords)
                     self.setStyling(1, self.String)
                     newstate, newfolding = self.processChunk(
-                        chunk[i + 1 :], self.String, keywords
+                        chunk[i + 1:], self.String, keywords
                     )
                     return (newstate, newfolding + folding)
 
@@ -159,13 +159,15 @@ class MaxscriptLexer(QsciLexerCustom):
                     state, folding = self.processChunk(chunk[:i], lastState, keywords)
                     self.setStyling(2, self.Comment)
                     newstate, newfolding = self.processChunk(
-                        chunk[i + 2 :], self.Comment, keywords
+                        chunk[i + 2:], self.Comment, keywords
                     )
                     return (newstate, newfolding + folding)
 
-            # otherwise, we are processing a default set of text whose syntaxing is irrelavent from the previous one
-            # TODO: this needs to handle QStrings. However I do not thing QStrings are the problem, its more likely a bytearray problem.
-            # the conversion at the start of this function may have resolved it.
+            # otherwise, we are processing a default set of text whose syntaxing is
+            # irrelavent from the previous one TODO: this needs to handle QStrings.
+            # However I do not thing QStrings are the problem, its more likely a
+            # bytearray problem. the conversion at the start of this function may have
+            # resolved it.
             results = self.chunkRegex.findall(chunk)
             for space, kwd in results:
                 if not (space or kwd):
@@ -180,15 +182,14 @@ class MaxscriptLexer(QsciLexerCustom):
                 else:
                     self.setStyling(len(kwd), self.Default)
 
-            # in this context, look for opening and closing parenthesis which will determine folding scope
+            # in this context, look for opening and closing parenthesis which will
+            # determine folding scope
             return (self.Default, chunk.count('(') - chunk.count(')'))
 
     def styleText(self, start, end):
         editor = self.editor()
         if not editor:
             return
-
-        import sys
 
         # scintilla works with encoded bytes, not decoded characters
         # this matters if the source contains non-ascii characters and
@@ -228,7 +229,8 @@ class MaxscriptLexer(QsciLexerCustom):
 
         self.startStyling(start, 0x1F)
 
-        # cache objects used by processChunk that do not need updated every time it is called
+        # cache objects used by processChunk that do not need updated every time it is
+        # called
         self.hlkwords = set(text(self.keywords(self.SmartHighlight)).lower().split())
         self.chunkRegex = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
         kwrds = set(MS_KEYWORDS.split())

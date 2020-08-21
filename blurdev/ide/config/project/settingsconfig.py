@@ -252,8 +252,10 @@ class SettingsConfig(ConfigSectionWidget):
                 QMessageBox.critical(
                     None,
                     'Invalid Project Path',
-                    'Please specify a valid path for your project.  Cannot create the project at: %s'
-                    % path,
+                    (
+                        'Please specify a valid path for your project. '
+                        'Cannot create the project at: %s'
+                    ) % path,
                 )
                 return False
 
@@ -261,7 +263,10 @@ class SettingsConfig(ConfigSectionWidget):
                 results = QMessageBox.question(
                     None,
                     'Project Already Exists',
-                    'The project you are trying to create already exists.  Do you want to overwrite?',
+                    (
+                        'The project you are trying to create already exists. '
+                        'Do you want to overwrite?'
+                    ),
                     (QMessageBox.Yes | QMessageBox.No),
                 )
                 if results == QMessageBox.No:

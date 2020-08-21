@@ -39,7 +39,7 @@ class GitGuiAddon(IdeAddon):
         try:
             # Avoid redundant disk access if from the IdeFileMenu
             isFile = menu.isfile()
-        except:
+        except Exception:
             isFile = os.path.isfile(path)
         dirname = path
         if isFile:
@@ -100,7 +100,10 @@ class GitGuiAddon(IdeAddon):
         if path:
             cmd = os.getenv(
                 'BDEV_PLUGIN_GIT_GUI_CMD',
-                r'"C:\Program Files\Git\cmd\git-gui.exe" --working-dir {dirname} blame "{filename}"',
+                (
+                    r'"C:\Program Files\Git\cmd\git-gui.exe" '
+                    r'--working-dir {dirname} blame "{filename}"'
+                ),
             )
             dirname = os.path.dirname(path)
             basename = os.path.basename(path)
@@ -132,6 +135,7 @@ class GitGuiAddon(IdeAddon):
 
 # register the addon to the system
 IdeAddon.register('GitGui', GitGuiAddon)
+
 
 # create the init method (in case this addon doesn't get registered as part of a group)
 def init():

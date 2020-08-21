@@ -25,12 +25,12 @@ STATUS_ORDER = {
 class SvnAddon(IdeAddon):
     def activate(self, ide):
         """
-            \remarks	registers the SvnFileMenu as the default file menu for the IDE editor
+            \remarks    registers the SvnFileMenu as the default file menu for the IDE
+                        editor
             \param		ide		<blurdev.ide.IdeEditor>
             \return		<bool> success
         """
         # make sure that we can import the pysvn module
-        import pysvn
 
         # connect the filemenu class
         from blurdev.ide.addons.svn.svnfilemenu import SvnFileMenu
@@ -87,7 +87,7 @@ class SvnAddon(IdeAddon):
         # make sure we have a client svn area
         try:
             status = client.status(filepath, recurse=False, ignore_externals=True)
-        except:
+        except Exception:
             return ''
 
         # collect the state for the status
@@ -110,7 +110,8 @@ class SvnAddon(IdeAddon):
 
     def deactivate(self, ide):
         """
-            \remarks	unregisters the SvnFileMenu as the default file menu for the IDE Editor
+            \remarks    unregisters the SvnFileMenu as the default file menu for the IDE
+                        Editor
             \param		ide		<blurdev.ide.IdeEditor>
             \return		<bool> success
         """
