@@ -74,6 +74,23 @@ def pythonPath(pyw=False, architecture=None):
 EXTENSION_MAP = {}
 
 
+def app_id_for_shortcut(shortcut):
+    """ Gets the AppUserModel.ID for the given shortcut.
+
+    This will allow windows to group windows with the same app id on a shortcut pinned
+    to the taskbar. Use :py:meth:`blurdev.setAppUserModelID` to set the app id for a
+    running application.
+    """
+    if os.path.exists(shortcut):
+        # These imports won't work inside python 2 DCC's
+        from win32com.propsys import propsys
+
+        # Original info from https://stackoverflow.com/a/61714895
+        key = propsys.PSGetPropertyKeyFromName("System.AppUserModel.ID")
+        store = propsys.SHGetPropertyStoreFromParsingName(shortcut)
+        return store.GetValue(key).GetValue()
+
+
 def expandvars(text, cache=None):
     """
     Recursively expands the text variables, vs. the os.path.expandvars
@@ -286,7 +303,7 @@ def createShortcut(
                 StartIn=startin,
                 Description=description,
             )
-        blurdev.media.setAppIdForIcon(shortcut, 'Blur.%s' % title.replace(' ', ''))
+        set_app_id_for_shortcut(shortcut, 'Blur.%s' % title.replace(' ', ''))
 
         # Attempt to clear the windows icon cache so icon changes are displayed now
         subprocess.Popen(['ie4uinit.exe', '-ClearIconCache'])
@@ -358,6 +375,38 @@ def programFilesPath(path=''):
     else:
         progF = 'programfiles'
     return r'%s\%s' % (os.getenv(progF), path)
+
+
+def set_app_id_for_shortcut(shortcut, app_id):
+    """ Sets AppUserModel.ID info for a windows shortcut.
+
+    Note: This doesn't seem to work on a pinned taskbar shortcut. Set it on a desktop
+    shortcut then pin that shortcut.
+
+    This will allow windows to group windows with the same app id on a shortcut pinned
+    to the taskbar. Use :py:meth:`blurdev.setAppUserModelID` to set the app id for a
+    running application.
+
+    Args:
+        shortcut (str): The .lnk filename to set the app id on.
+        app_id (str): The app id to set on the shortcut
+    """
+    if os.path.exists(shortcut):
+        # Original info from https://stackoverflow.com/a/61714895
+
+        # These imports won't work inside python 2 DCC's
+        import pythoncom
+        from win32com.propsys import propsys
+        from win32com.shell import shellcon
+
+        key = propsys.PSGetPropertyKeyFromName("System.AppUserModel.ID")
+        store = propsys.SHGetPropertyStoreFromParsingName(
+            shortcut, None, shellcon.GPS_READWRITE, propsys.IID_IPropertyStore
+        )
+
+        newValue = propsys.PROPVARIANTType(app_id, pythoncom.VT_BSTR)
+        store.SetValue(key, newValue)
+        store.Commit()
 
 
 def shell(command, basepath='', persistent=False):

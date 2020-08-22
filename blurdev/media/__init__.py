@@ -606,37 +606,6 @@ def spoolFileName(prefix, host='thor', folders=['new'], uid=''):
     return filename
 
 
-def setAppIdForIcon(source, new=None):
-    r"""
-    Uses Win7AppID.exe to add the System.AppUserModel.ID property to
-    windows 7 shortcuts allowing for pinning python applications to taskbars.
-    You need to download the executible from
-    `here <http://code.google.com/p/win7appid/>`_ and place it in
-    *C:\Program Files (x86)\Common Files\Win7AppID\Win7AppId.exe* or
-    equivalent for 32bit apps on your system.
-
-    :param source: The icon file to query or modify
-    :param new: If None, returns the current appId for source. If a string
-                is provided it will change the appId for source.
-
-    :returns: Returns -1 if it can not find the file; otherwise, returns
-              the output of the application as a list.
-    :rtype: list or int
-
-    """
-    appId = r'%s\Common Files\Win7AppId\Win7AppId.exe' % get32bitProgramFiles()
-    if os.path.exists(appId):
-        cmd = '"%s" "%s"' % (appId, source)
-        if new:
-            cmd += ' %s' % new
-        out = subprocess.Popen(
-            cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        out.wait()
-        return out.stdout.readlines()
-    return -1
-
-
 def naturalSort(ls):
     """ taken from: http://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
     """

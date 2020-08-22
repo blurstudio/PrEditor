@@ -475,18 +475,21 @@ def setActiveEnvironment(envName, coreName=None):
 
 
 def setAppUserModelID(appId, prefix='Blur'):
-    """ Controls the Windows 7 taskbar grouping.
+    """ Controls Windows taskbar grouping.
 
     Specifies a Explicit App User Model ID that Windows 7 uses to control grouping of
     windows on the taskbar.  This must be set before any ui is displayed. The best place
     to call it is in the first widget to be displayed __init__ method.
 
+    See :py:meth:`blurdev.osystem.set_app_id_for_shortcut` to set the app id on a
+    windows shortcut.
+
     Args:
         appId (str): The id of the application. Should use full camel-case.
             `http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how`_
 
-        prefix (str): The prefix attached to the id.  For a blur tool called fooBar, the
-            associated appId should be "Blur.FooBar". Defaults to "Blur".
+        prefix (str, optional): The prefix attached to the id.  For a blur tool called
+            fooBar, the associated appId should be "Blur.FooBar". Defaults to "Blur".
     """
     # If this function is run inside other applications, it can cause(unparented) new
     # sub windows to parent with this id instead of the parent application in windows.
@@ -495,16 +498,11 @@ def setAppUserModelID(appId, prefix='Blur'):
     # appear in a different taskbar group.
     if not blurdev.core.useAppUserModelID():
         return False
-    # Try/except is to prevent the NEED for blur.Stone.
-    try:
-        # Import blur.Stone here because It is not needed elsewhere
-        import blur.Stone
-    except ImportError:
-        return False
-    if hasattr(blur.Stone, 'qSetCurrentProcessExplicitAppUserModelID'):
-        blur.Stone.qSetCurrentProcessExplicitAppUserModelID('%s.%s' % (prefix, appId))
-        return True
-    return False
+
+    # https://stackoverflow.com/a/27872625
+    import ctypes
+    myappid = u'%s.%s' % (prefix, appId)
+    return not ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 def signalInspector(item, prefix='----', ignore=[]):
