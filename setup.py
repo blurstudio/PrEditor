@@ -52,6 +52,9 @@ setup(
         'urllib3>=1.25.7',
         'winshell>=0.6',
     ],
+    extras_require={
+        'dev': ['pytest==4.6.3', 'pytest-cov'],  # works with Python 2
+    },
     include_package_data=True,
     author='Blur Studio',
     author_email='pipeline@blur.com',
