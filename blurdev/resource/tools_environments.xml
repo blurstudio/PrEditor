@@ -3,6 +3,9 @@
     <!-- load local user environments -->
     <include loc="c:/blur/common/user_environments.xml"/>
     <include loc="//source/source/dev/share_all/studio_environments.xml"/>
-	<!-- load studio standard environments -->
-    <environment default="True" emailOnError="errors@blur.com" loc="\\source\production" name="Production" keychain="\\source\production\keychain"/>
+    <!-- load studio standard environments -->
+    <environment default="True" emailOnError="errors@blur.com" loc="\\source\production\release\lib\python2.7\site-packages" name="Release"/>
+    <environment emailOnError="errors@blur.com" loc="\\source\production\rc\lib\python2.7\site-packages" name="Release Candidate"/>
+    <environment emailOnError="errors@blur.com" loc="\\source\production\pre\lib\python2.7\site-packages" name="Pre-Release"/>
+    <environment emailOnError="errors@blur.com" loc="\\source\production\delayed\lib\python2.7\site-packages" name="Delayed"/>
 </tools_environments>
