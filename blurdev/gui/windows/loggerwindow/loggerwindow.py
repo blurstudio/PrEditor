@@ -220,7 +220,9 @@ class LoggerWindow(Window):
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
-        self.uiSaveConsoleSettingsACT.triggered.connect(self.recordPrefs)
+        self.uiSaveConsoleSettingsACT.triggered.connect(
+            lambda: self.recordPrefs(manual=True)
+            )
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
@@ -641,7 +643,10 @@ class LoggerWindow(Window):
     def resetPaths(self):
         blurdev.activeEnvironment().resetPaths()
 
-    def recordPrefs(self):
+    def recordPrefs(self, manual=False):
+        if not manual and not self.uiAutoSaveSettingssACT.isChecked():
+            return
+
         pref = prefs.find(r'blurdev\LoggerWindow')
         pref.recordProperty('loggergeom', self.geometry())
         pref.recordProperty('windowState', self.windowState().__int__())
@@ -662,17 +667,20 @@ class LoggerWindow(Window):
         pref.recordProperty(
             'clearBeforeEnvRefresh', self.uiClearLogOnRefreshACT.isChecked()
         )
-        pref.recordProperty('toolbarStates', self.saveState())
+        # pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.console().font())
 
         pref.recordProperty("loggingLevel", self.uiLoggingLevelBTN.level())
+
+        pref.recordProperty(
+            'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
+            )
 
         # completer settings
         completer = self.console().completer()
         sensitive = completer.caseSensitive()
         completerMode = completer.completerMode()
         completerModeValue = completerMode.value
-
         pref.recordProperty("caseSensitive", sensitive)
         pref.recordProperty("completerMode", completerModeValue)
 
@@ -702,9 +710,9 @@ class LoggerWindow(Window):
                     self.unlinkTab(index)
 
             pref.recordProperty(self._genPrefName('workboxPath', index), linkPath)
-
         pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
         pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
+
         pref.recordProperty('currentStyleSheet', self._stylesheet)
         if self._stylesheet == 'Custom':
             pref.recordProperty('styleSheet', self.styleSheet())
@@ -754,6 +762,9 @@ class LoggerWindow(Window):
         self.uiConsoleTXT.completer().setEnabled(
             self.uiAutoCompleteEnabledACT.isChecked()
         )
+        self.uiAutoSaveSettingssACT.setChecked(
+            pref.restoreProperty('uiAutoSaveSettingssACT', True)
+            )
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(

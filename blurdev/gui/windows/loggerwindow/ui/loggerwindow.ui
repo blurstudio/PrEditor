@@ -192,6 +192,7 @@
     <addaction name="uiCopyTabsToSpacesACT"/>
     <addaction name="uiWordWrapACT"/>
     <addaction name="uiEditorVerticalACT"/>
+    <addaction name="uiAutoSaveSettingssACT"/>
     <addaction name="separator"/>
     <addaction name="uiSetFlashWindowIntervalACT"/>
    </widget>
@@ -655,6 +656,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
+   </property>
+  </action>
+  <action name="uiAutoSaveSettingssACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-Save Console Settings</string>
    </property>
   </action>
  </widget>

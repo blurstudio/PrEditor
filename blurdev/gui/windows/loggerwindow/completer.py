@@ -42,8 +42,8 @@ class CompleterMode(Enum):
     def toolTip(self):
         toolTipMap = {
             'STARTS_WITH': "'all' matches 'allowtabs', does not match 'findallnames'",
-            'OUTER_FUZZY': "'all' matches 'getallobjs', does not match 'anylonglists'",
-            'FULL_FUZZY': "'all' matches 'getallobjs', also matches 'anylonglists'",
+            'OUTER_FUZZY': "'all' matches 'getallobjs', does not match 'anylonglist'",
+            'FULL_FUZZY': "'all' matches 'getallobjs', also matches 'anylonglist'",
             }
         return toolTipMap.get(self.name, "")
 
