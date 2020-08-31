@@ -20,6 +20,7 @@ import blurdev
 
 from functools import partial
 
+from Qt import QtCore, QtWidgets
 from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
 from Qt.QtGui import QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
@@ -29,7 +30,6 @@ from Qt.QtWidgets import (
     QLabel,
     QMenu,
     QMessageBox,
-    QShortcut,
     QTextBrowser,
     QToolTip,
     QVBoxLayout,
@@ -179,37 +179,37 @@ class LoggerWindow(Window):
         action.setObjectName('uiCycleModeACT')
         action.setShortcut(Qt.CTRL | Qt.Key_M)
         action.triggered.connect(self.cycleCompleterMode)
-
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
-        self.uiAddWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N, self,
-            context=Qt.ApplicationShortcut)
-        self.uiAddWorkboxSCT.activated.connect(self.addWorkbox)
-        self.uiRemoveWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W,
-            self, context=Qt.ApplicationShortcut)
-        self.uiRemoveWorkboxSCT.activated.connect(
+        # Workbox add/remove
+        self.uiNewWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N)
+        self.uiNewWorkboxACT.triggered.connect(lambda: self.addWorkbox())
+        self.uiCloseWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W)
+        self.uiCloseWorkboxACT.triggered.connect(
             lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex())
             )
 
-        # Next tab functionality already exists, though I can't tell from where
-        # So, let's just add PrevTab functionality
-        self.uiPrevTabSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab,
-            self, context=Qt.ApplicationShortcut)
-        self.uiPrevTabSCT.activated.connect(self.prevTab)
+        # Browse previous commands
+        self.uiGetPrevCmdACT.setShortcut(Qt.ALT | Qt.Key_Up)
+        self.uiGetPrevCmdACT.triggered.connect(self.getPrevCommand)
+        self.uiGetNextCmdACT.setShortcut(Qt.ALT | Qt.Key_Down)
+        self.uiGetNextCmdACT.triggered.connect(self.getNextCommand)
 
-        self.uiFocusToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up,
-            self, context=Qt.ApplicationShortcut)
-        self.uiFocusToConsoleSCT.activated.connect(self.focusToConsole)
-        self.uiFocusToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down,
-            self, context=Qt.ApplicationShortcut)
-        self.uiFocusToWorkboxSCT.activated.connect(self.focusToWorkbox)
+        # Focus to console or to workbox, optionally copy seleciton or line
+        self.uiFocusToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up)
+        self.uiFocusToConsoleACT.triggered.connect(self.focusToConsole)
+        self.uiCopyToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up)
+        self.uiCopyToConsoleACT.triggered.connect(self.copyToConsole)
+        self.uiFocusToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down)
+        self.uiFocusToWorkboxACT.triggered.connect(self.focusToWorkbox)
+        self.uiCopyToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down)
+        self.uiCopyToWorkboxACT.triggered.connect(self.copyToWorkbox)
 
-        self.uiCopyToConsoleSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up,
-            self, context=Qt.ApplicationShortcut)
-        self.uiCopyToConsoleSCT.activated.connect(self.copyToConsole)
-        self.uiCopyToWorkboxSCT = QShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down,
-            self, context=Qt.ApplicationShortcut)
-        self.uiCopyToWorkboxSCT.activated.connect(self.copyToWorkbox)
+        # Navigate workbox tabs
+        self.uiNextTabACT.setShortcut(Qt.CTRL | Qt.Key_Tab)
+        self.uiNextTabACT.triggered.connect(self.nextTab)
+        self.uiPrevTabACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab)
+        self.uiPrevTabACT.triggered.connect(self.prevTab)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
@@ -235,6 +235,12 @@ class LoggerWindow(Window):
         self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
+
+        # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
+        regEx = ".*"
+        menus = sorted(self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx)))
+        for menu in menus:
+            menu.hovered.connect(self.handleMenuHovered)
 
         if blurdev.settings.OS_TYPE == 'Windows':
             self.uiBlurIdeShortcutACT.triggered.connect(self.createShortcutBlurIDE)
@@ -379,6 +385,14 @@ class LoggerWindow(Window):
 
         self.focusToWorkbox()
 
+    def getNextCommand(self):
+        if hasattr(self.console(), 'getNextCommand'):
+            self.console().getNextCommand()
+
+    def getPrevCommand(self):
+        if hasattr(self.console(), 'getPrevCommand'):
+            self.console().getPrevCommand()
+
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
         if event.modifiers() == Qt.ControlModifier:
@@ -415,9 +429,17 @@ class LoggerWindow(Window):
 
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
-        QToolTip.showText(
-            QCursor.pos(), action.toolTip(),
-            self.uiCompleterModeMENU, self.uiCompleterModeMENU.actionGeometry(action))
+        # Don't show if it's just the text of the action
+        text = re.sub("(?<!&)&(?!&)", "", action.text())
+        text = text.replace('...', '')
+
+        if text == action.toolTip():
+            text = ''
+        else:
+            text = action.toolTip()
+
+        menu = action.parentWidget()
+        QToolTip.showText(QCursor.pos(), text, menu)
 
     def findCurrentFontAction(self):
         """Find and return current font's action"""
@@ -1095,6 +1117,18 @@ class LoggerWindow(Window):
 
         menu.popup(QCursor.pos())
 
+    def nextTab(self):
+        """Move focus to next workbox tab"""
+        tabWidget = self.uiWorkboxTAB
+        if not tabWidget.currentWidget().hasFocus():
+            return
+
+        index = tabWidget.currentIndex()
+        if index == tabWidget.count() - 1:
+            tabWidget.setCurrentIndex(0)
+        else:
+            tabWidget.setCurrentIndex(index + 1)
+
     def prevTab(self):
         """Move focus to previous workbox tab"""
         tabWidget = self.uiWorkboxTAB
@@ -1102,10 +1136,10 @@ class LoggerWindow(Window):
             return
 
         index = tabWidget.currentIndex()
-        if index > 0:
-            tabWidget.setCurrentIndex(index - 1)
-        else:
+        if index == 0:
             tabWidget.setCurrentIndex(tabWidget.count() - 1)
+        else:
+            tabWidget.setCurrentIndex(index - 1)
 
     def renameTab(self):
         if self._currentTab != -1:

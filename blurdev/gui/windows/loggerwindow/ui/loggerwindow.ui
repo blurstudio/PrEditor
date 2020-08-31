@@ -92,6 +92,9 @@
     <addaction name="separator"/>
     <addaction name="uiRunScriptACT"/>
     <addaction name="separator"/>
+    <addaction name="uiNewWorkboxACT"/>
+    <addaction name="uiCloseWorkboxACT"/>
+    <addaction name="separator"/>
     <addaction name="uiSaveConsoleSettingsACT"/>
     <addaction name="uiCloseLoggerACT"/>
    </widget>
@@ -153,6 +156,9 @@
      </property>
     </widget>
     <widget class="QMenu" name="uiCompleterModeMENU">
+     <property name="toolTip">
+      <string/>
+     </property>
      <property name="title">
       <string>Auto-Complete Mode</string>
      </property>
@@ -196,10 +202,31 @@
     <addaction name="separator"/>
     <addaction name="uiSetFlashWindowIntervalACT"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="uiGetPrevCmdACT"/>
+    <addaction name="uiGetNextCmdACT"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="uiFocusToConsoleACT"/>
+    <addaction name="uiCopyToConsoleACT"/>
+    <addaction name="uiFocusToWorkboxACT"/>
+    <addaction name="uiCopyToWorkboxACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiNextTabACT"/>
+    <addaction name="uiPrevTabACT"/>
+   </widget>
    <addaction name="uiScriptingMENU"/>
+   <addaction name="menuEdit"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="menu_Run"/>
    <addaction name="uiPdbMENU"/>
+   <addaction name="menuTools"/>
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
@@ -306,6 +333,9 @@
    <property name="text">
     <string>&amp;New Script...</string>
    </property>
+   <property name="toolTip">
+    <string>Start a new script in the Blur IDE</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
    </property>
@@ -314,6 +344,9 @@
    <property name="text">
     <string>&amp;Open Script...</string>
    </property>
+   <property name="toolTip">
+    <string>Open an existing script in the Blur IDE</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
    </property>
@@ -321,6 +354,9 @@
   <action name="uiRunScriptACT">
    <property name="text">
     <string>&amp;Run Script...</string>
+   </property>
+   <property name="toolTip">
+    <string>Select and run an existing script</string>
    </property>
    <property name="shortcut">
     <string>F5</string>
@@ -340,6 +376,9 @@
   <action name="uiGotoErrorACT">
    <property name="text">
     <string>Goto Error...</string>
+   </property>
+   <property name="toolTip">
+    <string>Highlight 'File &quot;...&quot;, line XXX' to open that file at the line in the Blur IDE</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+G</string>
@@ -365,6 +404,9 @@
    <property name="text">
     <string>Run All...</string>
    </property>
+   <property name="toolTip">
+    <string>Run all workbox code</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
    </property>
@@ -377,6 +419,9 @@
   <action name="uiRunSelectedACT">
    <property name="text">
     <string>Run Selected...</string>
+   </property>
+   <property name="toolTip">
+    <string>Run selected workbox code</string>
    </property>
    <property name="shortcut">
     <string>Shift+Return</string>
@@ -405,6 +450,9 @@
    <property name="text">
     <string>Save Console Settings</string>
    </property>
+   <property name="toolTip">
+    <string>Save Console Settings and all Workbox code</string>
+   </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
    </property>
@@ -425,7 +473,7 @@
     <string>Close</string>
    </property>
    <property name="toolTip">
-    <string>Close the</string>
+    <string>Close</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -445,6 +493,9 @@
   <action name="uiOpenIdeACT">
    <property name="text">
     <string>Open IDE</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the Blur IDE</string>
    </property>
   </action>
   <action name="uiClearLogOnRefreshACT">
@@ -475,6 +526,9 @@
   <action name="uiClearToLastPromptACT">
    <property name="text">
     <string>Clear to Last Prompt</string>
+   </property>
+   <property name="toolTip">
+    <string>Clear console  to the last prompt</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Backspace</string>
@@ -569,6 +623,9 @@
    <property name="text">
     <string>Log Output to File</string>
    </property>
+   <property name="toolTip">
+    <string>Log Output to a log File</string>
+   </property>
   </action>
   <action name="actionSone">
    <property name="text">
@@ -611,6 +668,9 @@
    </property>
    <property name="text">
     <string>Auto-Complete - Case Sensitive</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose auto-completion case-sensitivity</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+I</string>
@@ -667,6 +727,91 @@
    </property>
    <property name="text">
     <string>Auto-Save Console Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Auto-Save Console Settings and Workbox code.
+Useful if often using multiple DCC instances simultaneously.
+Must manually save instead.</string>
+   </property>
+  </action>
+  <action name="uiNewWorkboxACT">
+   <property name="text">
+    <string>New Workbox</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a new workbox</string>
+   </property>
+  </action>
+  <action name="uiCloseWorkboxACT">
+   <property name="text">
+    <string>Close Workbox</string>
+   </property>
+   <property name="toolTip">
+    <string>Close the current workbox</string>
+   </property>
+  </action>
+  <action name="uiGetPrevCmdACT">
+   <property name="text">
+    <string>Get Previous Command</string>
+   </property>
+   <property name="toolTip">
+    <string>Get Previous Command (like in a  command prompt)</string>
+   </property>
+  </action>
+  <action name="uiGetNextCmdACT">
+   <property name="text">
+    <string>Get Next Command</string>
+   </property>
+   <property name="toolTip">
+    <string>Get Next Command (like in a  command prompt)</string>
+   </property>
+  </action>
+  <action name="uiFocusToConsoleACT">
+   <property name="text">
+    <string>Focus to Console</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the console</string>
+   </property>
+  </action>
+  <action name="uiCopyToConsoleACT">
+   <property name="text">
+    <string>Focus and Copy to Console</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the console and copy/paste selection or line</string>
+   </property>
+  </action>
+  <action name="uiFocusToWorkboxACT">
+   <property name="text">
+    <string>Focus to Workbox</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the current workbox</string>
+   </property>
+  </action>
+  <action name="uiCopyToWorkboxACT">
+   <property name="text">
+    <string>Focus and Copy to Workbox</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the current workbox and copy/paste selection or line</string>
+   </property>
+  </action>
+  <action name="uiNextTabACT">
+   <property name="text">
+    <string>Focus to Next Tab</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the next  workbox tab</string>
+   </property>
+  </action>
+  <action name="uiPrevTabACT">
+   <property name="text">
+    <string>Focus to Previous Tab</string>
+   </property>
+   <property name="toolTip">
+    <string>Set focus to the previous  workbox tab</string>
    </property>
   </action>
  </widget>

@@ -12,7 +12,7 @@ import traceback
 
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
-from Qt.QtWidgets import QAction, QApplication, QShortcut, QTextEdit
+from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
 import blurdev
 from blurdev import debug
@@ -131,16 +131,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
         self.uiClearToLastPromptACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Backspace)
         self.addAction(self.uiClearToLastPromptACT)
-
-        # Add QShortcuts
-        self.uiGetPrevCommandSCT = QShortcut(
-            Qt.ALT | Qt.Key_Up, self, context=Qt.WidgetShortcut
-            )
-        self.uiGetPrevCommandSCT.activated.connect(self.getPrevCommand)
-        self.uiGetNextCommandSCT = QShortcut(
-            Qt.ALT | Qt.Key_Down, self, context=Qt.WidgetShortcut
-            )
-        self.uiGetNextCommandSCT.activated.connect(self.getNextCommand)
 
         self.x = 0
 
