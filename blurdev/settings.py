@@ -57,7 +57,7 @@ def addConfigSection(config_parser, section):
     """
 
     for option in config_parser.options(section):
-        if option not in os.environ:
+        if option.upper() not in os.environ:
             value = config_parser.get(section, option)
             if value == 'None':
                 value = ''
