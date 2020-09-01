@@ -52,7 +52,16 @@ def active(core_name):
 @click.option(
     '-n', '--name', help="Use this treegrunt environment instead of the active one."
 )
-def rebuild(name):
+@click.option(
+    '-r',
+    '--replace',
+    nargs=2,
+    default=None,
+    help="Call str.replace on the paths of the treegrunt index. This takes two text "
+    "values, old and new. This is used by servers that don't use the same mount paths "
+    "as regular users.",
+)
+def rebuild(name, replace):
     """ Rebuild this treegrunt environment's index """
 
     active = blurdev.activeEnvironment()
@@ -67,7 +76,11 @@ def rebuild(name):
     blurdev.setActiveEnvironment(name)
     click.echo(' Rebuilding Environment: {} '.format(name).center(80, '-'))
 
-    blurdev.activeEnvironment().index().rebuild()
+    if replace:
+        click.echo('Performing {} path replace on index.'.format(replace))
+    else:
+        replace = None
+    blurdev.activeEnvironment().index().rebuild(path_replace=replace)
     # Reset original environment
     blurdev.setActiveEnvironment(curenv)
     click.echo('Finished')

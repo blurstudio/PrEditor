@@ -125,7 +125,7 @@ class ToolsIndex(QObject):
         """
         return self.parent()
 
-    def rebuild(self, filename=None, configFilename=True):
+    def rebuild(self, filename=None, configFilename=True, path_replace=None):
         """ rebuilds the index from the file system.
 
         This does not create any necessary directory structure to save the files.
@@ -136,7 +136,8 @@ class ToolsIndex(QObject):
                 tools.xml file.
             configFilename (str|bool): if True, save as config.ini next to filename. If
                 a file path is provided save to that file path.
-
+            path_replace (tuple, optional): If provided, call str.replace with these
+                arguments on each tool's path stored in the index file.
         """
 
         # Update the entry_points.json file.
@@ -155,7 +156,7 @@ class ToolsIndex(QObject):
         first_build = not os.path.exists(filename)
 
         # Build the new file so updated blurdev's can use it.
-        self._rebuildJson(filename=filename)
+        self._rebuildJson(filename=filename, path_replace=path_replace)
         if configFilename and blurdev.settings.OS_TYPE == 'Windows':
             # We only use config.ini on windows systems for maxscript
             if isinstance(configFilename, bool):
@@ -243,12 +244,14 @@ class ToolsIndex(QObject):
             with open(filename, 'w') as out:
                 shutil.copyfileobj(fle, out)
 
-    def _rebuildJson(self, filename):
+    def _rebuildJson(self, filename, path_replace=None):
         categories = {}
         tools = []
 
         for path, legacy in self.toolRootPaths():
-            self.rebuildPathJson(path, categories, tools, legacy=legacy)
+            self.rebuildPathJson(
+                path, categories, tools, legacy=legacy, path_replace=path_replace
+            )
 
         # Use OrderedDict to build this so the json is saved consistently.
         dirname, basename = os.path.split(filename)
@@ -278,7 +281,13 @@ class ToolsIndex(QObject):
                     shutil.copyfileobj(fle, out)
 
     def rebuildPathJson(
-        self, path, categories, tools, legacy=False, parentCategoryId=None
+        self,
+        path,
+        categories,
+        tools,
+        legacy=False,
+        parentCategoryId=None,
+        path_replace=None,
     ):
 
         if not os.path.exists(path):
@@ -339,9 +348,11 @@ class ToolsIndex(QObject):
             doc = blurdev.XML.XMLDocument()
             if doc.load(toolPath) and doc.root():
                 xml = doc.root()
-                toolFolder = os.path.dirname(toolPath)
-                toolId = os.path.basename(toolFolder)
-                ret = OrderedDict(name=toolId, path=toolFolder,)
+                tool_folder = os.path.dirname(toolPath)
+                toolId = os.path.basename(tool_folder)
+                if path_replace is not None:
+                    tool_folder = tool_folder.replace(*path_replace)
+                ret = OrderedDict(name=toolId, path=tool_folder,)
                 ret = loadProperties(xml, ret)
                 return ret
 
@@ -378,12 +389,16 @@ class ToolsIndex(QObject):
                     # Not a valid file extension
                     continue
 
+                tool_folder = os.path.dirname(toolPath)
+                if path_replace is not None:
+                    tool_folder = tool_folder.replace(*path_replace)
+
                 ret = OrderedDict(
                     # We have to handle the path of legacy tools differently.
                     legacy=True,
                     icon='icon.png',
                     src='../{}'.format(os.path.basename(toolPath)),
-                    path=os.path.dirname(toolPath),
+                    path=tool_folder,
                     category=categoryId,
                 )
                 toolId = os.path.splitext(os.path.basename(toolPath))[0]
@@ -421,7 +436,14 @@ class ToolsIndex(QObject):
             subpaths = glob.glob(path + '/*/')
             for path in subpaths:
                 if not os.path.split(path)[0].endswith('_resource'):
-                    self.rebuildPathJson(path, categories, tools, legacy, categoryId)
+                    self.rebuildPathJson(
+                        path,
+                        categories,
+                        tools,
+                        legacy,
+                        categoryId,
+                        path_replace=path_replace,
+                    )
 
     def reload(self):
         """Reload the index without rebuilding it. This will allow users to refresh the
