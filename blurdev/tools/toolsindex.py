@@ -192,7 +192,11 @@ class ToolsIndex(QObject):
             logger.info(
                 'This was the first index rebuild, rebuilding a second time is required'
             )
-            self.rebuild(filename=filename, configFilename=configFilename)
+            self.rebuild(
+                filename=filename,
+                configFilename=configFilename,
+                path_replace=path_replace,
+            )
 
     def _rebuild_entry_points(self):
         """ Update the entry_points definitions for this environment.
