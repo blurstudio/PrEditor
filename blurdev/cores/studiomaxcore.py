@@ -301,6 +301,20 @@ class StudiomaxCore(Core):
             # backup the existing stylesheet so blurdev doesn't step on it
             self._defaultStyleSheet = app.styleSheet()
 
+            # CSS style workarounds for Max 2019
+            if self.dccVersion > 19:
+                # In the off chance that blurdev is init-ed twice in the same max
+                # session, this should prevent us adding the css fix twice.
+                if 'Start Blur css workarounds' not in self._defaultStyleSheet:
+                    # If a QCheckBox or QPushButton has both a icon and text, the text
+                    # is hidden unless we force css styling of QCheckBoxes. padding
+                    # forces this but doesn't change the style that much.
+                    self._defaultStyleSheet += (
+                        ' /* Start Blur css workarounds: */ QCheckBox, '
+                        'QPushButton{padding: 2px;}'
+                    )
+                    app.setStyle(self._defaultStyleSheet)
+
         # initialize the logger
         self.logger()
 
