@@ -40,7 +40,7 @@ class %(class)sPlugin(QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        from %(module)s import %(class)s
+        from %(module)s import %(class)s  # noqa: E501
         return %(class)s(parent=parent)
 
     def name(self):
@@ -68,13 +68,11 @@ class %(class)sPlugin(QPyDesignerCustomWidgetPlugin):
     def domXml(self):
         # Allow the class to specify its own xml. This is useful for containers that
         # subclass from other subclassed containers.
-        from %(module)s import %(class)s
+        from %(module)s import %(class)s  # noqa: E501
         if hasattr(%(class)s, '_qDesignerDomXML'):
             return %(class)s._qDesignerDomXML()
         xml = []
-        xml.append(
-            '<widget class="%(class)s" name="%(class)s"/>'
-        )
+        xml.append('<widget class="%(class)s" name="%(class)s"/>')  # noqa: E501
         return '\\n'.join(xml)
 
 
