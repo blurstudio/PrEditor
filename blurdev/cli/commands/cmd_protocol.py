@@ -33,11 +33,16 @@
 from __future__ import print_function
 
 import os
-import urlparse
 import click
 import blurdev
 import blurdev.osystem
 import blurdev.debug
+
+try:
+    # Python 3 urlparse
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from blurdev.protocols import BaseProtocolHandler
 
