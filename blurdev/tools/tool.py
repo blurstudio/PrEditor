@@ -8,7 +8,6 @@ from Qt.QtCore import QObject
 
 import blurdev
 from ..enum import enum
-import blurdev.tools.toolheader
 import blurdev.tools.toolsindex
 
 
@@ -53,7 +52,6 @@ class Tool(QObject):
         self._favorite = False
         self._favoriteGroup = None
         self._redistributable = True
-        self._header = None
         self._disabled = False
         self._usagestatsEnabled = True
         self._cli_module = ''
@@ -115,12 +113,6 @@ class Tool(QObject):
 
     def favoriteGroup(self):
         return self._favoriteGroup
-
-    def header(self):
-        # TODO: This is likely no longer used, remove it once this is confirmed
-        if not self._header:
-            self._header = blurdev.tools.toolheader.ToolHeader(self)
-        return self._header
 
     def icon(self):
         path = self.relativePath(self._icon)
