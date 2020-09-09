@@ -88,6 +88,7 @@ class FilePickerWidget(QWidget):
         self._resolved = False
         self._chosenPath = None
         self._imageSequenceFormat = '{pre}[{firstNum}:{lastNum}]{post}'
+        self.setDropDownVisible(False)
 
         self.uiFilenameTXT.editTextChanged.connect(self.emitFilenameChanged)
         self.uiFilenameTXT.lineEdit().editingFinished.connect(self.emitFilenameEdited)
