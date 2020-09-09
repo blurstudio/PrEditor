@@ -117,6 +117,7 @@ class Tool(QObject):
         return self._favoriteGroup
 
     def header(self):
+        # TODO: This is likely no longer used, remove it once this is confirmed
         if not self._header:
             self._header = blurdev.tools.toolheader.ToolHeader(self)
         return self._header
