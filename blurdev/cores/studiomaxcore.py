@@ -298,22 +298,6 @@ class StudiomaxCore(Core):
         else:
             app = QApplication.instance()
             app.focusChanged.connect(_focusChanged)
-            # backup the existing stylesheet so blurdev doesn't step on it
-            self._defaultStyleSheet = app.styleSheet()
-
-            # CSS style workarounds for Max 2019
-            if self.dccVersion > 19:
-                # In the off chance that blurdev is init-ed twice in the same max
-                # session, this should prevent us adding the css fix twice.
-                if 'Start Blur css workarounds' not in self._defaultStyleSheet:
-                    # If a QCheckBox or QPushButton has both a icon and text, the text
-                    # is hidden unless we force css styling of QCheckBoxes. padding
-                    # forces this but doesn't change the style that much.
-                    self._defaultStyleSheet += (
-                        ' /* Start Blur css workarounds: */ QCheckBox, '
-                        'QPushButton{padding: 2px;}'
-                    )
-                    app.setStyle(self._defaultStyleSheet)
 
         # initialize the logger
         self.logger()
@@ -321,6 +305,32 @@ class StudiomaxCore(Core):
         # init the base class
         ret = super(StudiomaxCore, self).init()
         return ret
+
+    def initGui(self):
+        super(StudiomaxCore, self).initGui()
+        # CSS style workarounds for Max 2019
+        # Update the stylesheet if we haven't already done so
+        if self.dccVersion >= 19:
+            app = QApplication.instance()
+            if self._defaultStyleSheet == '':
+                # backup the existing stylesheet so blurdev doesn't remove it
+                # when we apply custom stylesheets.
+                self._defaultStyleSheet = app.styleSheet()
+
+            # In the off chance that blurdev is init-ed twice in the same max
+            # session, this should prevent us adding the css fix twice.
+            if 'Start Blur css workarounds' not in self._defaultStyleSheet:
+                # If a QCheckBox or QPushButton has both a icon and text, the text
+                # is hidden unless we force css styling of QCheckBoxes. padding
+                # forces this but doesn't change the style that much.
+                # These changes will be applied when we call initGui later.
+                self._defaultStyleSheet += (
+                    ' /* Start Blur css workarounds: */ '
+                    'QCheckBox, QPushButton{padding: 2px;} '
+                    'QPushButton{min-width:5em; min-height:1.25em}'
+                )
+            if 'Start Blur css workarounds' not in app.styleSheet():
+                app.setStyleSheet(self._defaultStyleSheet)
 
     def macroName(self):
         """
