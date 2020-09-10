@@ -84,6 +84,7 @@ class ToolsEnvironment(QObject):
         self._autoupdate = False
         self._keychain = ''
         self._project = ''
+        self._description = ''
         # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the
         # environment tool stopwatch this will start a stopwatch every time
         # blurdev.core.runScript is called and stop it once that script has
@@ -498,6 +499,9 @@ class ToolsEnvironment(QObject):
     def setDefault(self, state=True):
         self._default = state
 
+    def setDescription(self, txt):
+        self._description = txt
+
     def setDevelopment(self, state=True):
         self._development = state
 
@@ -687,6 +691,10 @@ class ToolsEnvironment(QObject):
                 return env
         return ToolsEnvironment()
 
+    def description(self):
+        """A description of this treegrunt environment"""
+        return self._description
+
     @staticmethod
     def findEnvironment(name, path=None):
         """ Looks up the environment by the inputed name or base path.
@@ -737,6 +745,7 @@ class ToolsEnvironment(QObject):
         output.setDevelopment(xml.attribute('development') == 'True')
         output.setOffline(xml.attribute('offline') == 'True')
         output.setEmailOnError(xml.attribute('emailOnError').split(';'))
+        output.setDescription(xml.attribute('description', ''))
         output.setCustom(xml.attribute('custom') == 'True')
         output.setLegacyName(xml.attribute('legacyName', name))
         output.setTimeout(xml.attribute('timeout', ''))

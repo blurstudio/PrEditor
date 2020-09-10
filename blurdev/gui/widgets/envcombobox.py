@@ -115,6 +115,10 @@ class EnvComboBox(QComboBox):
         envs = sorted(envs, key=lambda i: (not i.isDefault(), i.objectName().lower()))
         for env in envs:
             self.addItem(env.objectName(), env)
+            # Add a environment tooltip if one is provided
+            desc = env.description()
+            if desc:
+                self.setItemData(self.count() - 1, desc, Qt.ToolTipRole)
 
         # Update the environment colors
         self.setDefaultEnv(ToolsEnvironment.defaultEnvironment().objectName())
