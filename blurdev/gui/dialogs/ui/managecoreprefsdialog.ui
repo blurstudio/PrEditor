@@ -25,21 +25,29 @@ You should make sure to close the applications before making changes, or these c
      </property>
     </widget>
    </item>
-   <item row="2" column="2">
-    <widget class="QComboBox" name="uiSetAllEnvDDL">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-    </widget>
-   </item>
    <item row="1" column="0" colspan="4">
     <widget class="BlurTreeWidget" name="uiEnvironmentTREE">
+     <property name="rootIsDecorated">
+      <bool>false</bool>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
+     </property>
+     <property name="pySaveColumnWidths" stdset="0">
+      <bool>true</bool>
+     </property>
+     <property name="pySaveVisualIndex" stdset="0">
+      <bool>true</bool>
+     </property>
      <property name="pyEnableGridDelegate" stdset="0">
       <bool>true</bool>
      </property>
+     <attribute name="headerDefaultSectionSize">
+      <number>125</number>
+     </attribute>
+     <attribute name="headerMinimumSectionSize">
+      <number>125</number>
+     </attribute>
      <column>
       <property name="text">
        <string>Application</string>
@@ -102,9 +110,24 @@ You should make sure to close the applications before making changes, or these c
      </property>
     </widget>
    </item>
+   <item row="2" column="2">
+    <widget class="EnvComboBox" name="uiSetAllEnvDDL">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>EnvComboBox</class>
+   <extends>QComboBox</extends>
+   <header>blurdev.gui.widgets.envcombobox</header>
+  </customwidget>
   <customwidget>
    <class>BlurTreeWidget</class>
    <extends>QTreeWidget</extends>

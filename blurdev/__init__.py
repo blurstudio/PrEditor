@@ -453,7 +453,7 @@ def setActiveEnvironment(envName, coreName=None):
             environment is already envName, or if envName is not a valid environment.
     """
     env = blurdev.tools.ToolsEnvironment.findEnvironment(envName)
-    if coreName is not None and coreName is not blurdev.core.objectName():
+    if coreName is not None:
         # There is no need to update the environment this way if its the current
         # environment.
         if not env.isEmpty():
@@ -468,6 +468,8 @@ def setActiveEnvironment(envName, coreName=None):
                 'environment_set_timestamp', QDateTime.currentDateTime()
             )
             pref.save()
+            if coreName == blurdev.core.objectName():
+                return env.setActive()
             return True
         # not a valid treegrunt environment
         return False
