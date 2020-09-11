@@ -48,7 +48,8 @@ class MayaCore(Core):
     def headless(self):
         """ If true, no Qt gui elements should be used because python is running a
         QCoreApplication. """
-        return 'mayabatch' in os.path.basename(sys.executable).lower()
+        basename = os.path.splitext(os.path.basename(sys.executable).lower())[0]
+        return basename in ('mayabatch', 'mayapy')
 
     def init(self):
         """ Initializes the core system
