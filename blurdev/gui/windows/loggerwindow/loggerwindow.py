@@ -162,7 +162,7 @@ class LoggerWindow(Window):
         # Setup ability to cycle completer mode, and create action for each mode
         self.completerModeCycle = itertools.cycle(CompleterMode)
         # create CompleterMode submenu
-        defaultMode = self.completerModeCycle.next()
+        defaultMode = next(self.completerModeCycle)
         for mode in CompleterMode:
             modeName = mode.displayName()
             action = self.uiCompleterModeMENU.addAction(modeName)
@@ -238,7 +238,7 @@ class LoggerWindow(Window):
 
         # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
         regEx = ".*"
-        menus = sorted(self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx)))
+        menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx))
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
@@ -970,7 +970,7 @@ class LoggerWindow(Window):
     # Completer Modes
     def cycleCompleterMode(self):
         """Cycle comleter mode"""
-        completerMode = self.completerModeCycle.next()
+        completerMode = next(self.completerModeCycle)
         self.setCompleterMode(completerMode)
         self.reportCompleterModeChange(completerMode)
 
@@ -981,7 +981,7 @@ class LoggerWindow(Window):
         completerMode: Chosen CompleterMode ENUM member
         """
         for idx in range(len(CompleterMode)):
-            tempMode = self.completerModeCycle.next()
+            tempMode = next(self.completerModeCycle)
             if tempMode == completerMode:
                 break
 

@@ -221,7 +221,8 @@ class ToolsEnvironment(QObject):
         sys.path = newpaths
 
         # Remove the modules from sys.modules so they are forced to be re-imported
-        for key, value in sys.modules.items():
+        # Cast to list so we can remove items from sys.modules in python 3
+        for key, value in list(sys.modules.items()):
             protected = False
             if key in symbols:
                 protected = True
