@@ -40,9 +40,9 @@ import blurdev.debug
 
 try:
     # Python 3 urlparse
-    from urllib.parse import urlparse
+    from urllib import parse
 except ImportError:
-    from urlparse import urlparse
+    import urlparse as parse
 
 from blurdev.protocols import BaseProtocolHandler
 
@@ -76,17 +76,17 @@ def parseURL(url):
         returning them as strings.
 
     """
-    parsed = urlparse.urlsplit(url)
-    # urlsplit and urlparse don't recognize the blurdev protocol parse and capture the
+    parsed = parse.urlsplit(url)
+    # urlsplit and parse_qs don't recognize the blurdev protocol parse and capture the
     # scheme
     scheme = parsed.scheme
     if url.startswith('blurdev:'):
         # Then re-parse the url removing the blurdev: protocol if its the protocol
-        parsed = urlparse.urlsplit(url.replace('blurdev:', ''))
+        parsed = parse.urlsplit(url.replace('blurdev:', ''))
     # The old parseURL code only returned lists of values if a key was used more than
     # once
     query = {}
-    for key, value in urlparse.parse_qs(parsed.query).iteritems():
+    for key, value in parse.parse_qs(parsed.query).iteritems():
         if len(value) == 1:
             query[key] = value[0]
         else:
