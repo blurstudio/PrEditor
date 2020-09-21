@@ -100,6 +100,19 @@ def activeEnvironment(coreName=None):
     return blurdev.tools.ToolsEnvironment.activeEnvironment()
 
 
+def appUserModelID():
+    """ Returns the current Windows 7+ app user model id used for taskbar grouping.
+    """
+    import ctypes
+    from ctypes import wintypes
+    lpBuffer = wintypes.LPWSTR()
+    AppUserModelID = ctypes.windll.shell32.GetCurrentProcessExplicitAppUserModelID
+    AppUserModelID(ctypes.cast(ctypes.byref(lpBuffer), wintypes.LPWSTR))
+    appid = lpBuffer.value
+    ctypes.windll.kernel32.LocalFree(lpBuffer)
+    return appid
+
+
 def bindMethod(object, name, method):
     """
     Properly binds a new python method to an existing C++ object as a
@@ -479,7 +492,7 @@ def setActiveEnvironment(envName, coreName=None):
 def setAppUserModelID(appId, prefix='Blur'):
     """ Controls Windows taskbar grouping.
 
-    Specifies a Explicit App User Model ID that Windows 7 uses to control grouping of
+    Specifies a Explicit App User Model ID that Windows 7+ uses to control grouping of
     windows on the taskbar.  This must be set before any ui is displayed. The best place
     to call it is in the first widget to be displayed __init__ method.
 
