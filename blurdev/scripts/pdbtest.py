@@ -33,11 +33,12 @@ def stuff():
         print(i)
 
 
-import blurdev
+if __name__ == '__main__':
+    import blurdev
 
-print('starting test')
+    print('starting test')
 
-blurdev.debug.set_trace()
-stuff()
+    blurdev.debug.set_trace()
+    stuff()
 
-print('ending test')
+    print('ending test')
