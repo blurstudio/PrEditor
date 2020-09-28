@@ -25,7 +25,7 @@ _HTML_TEMPLATE = (
 
 splits = [os.path.dirname(__file__), '..', 'resource', 'error_email_old.html']
 template = os.path.join(*splits)
-with open(template, 'w') as fle:
+with open(template) as fle:
     _EMAIL_FORMAT = fle.read()
 
 _ADDITIONAL_INFO_HTML = """<br><h3>ErrorReport: %(title)s</h3>
