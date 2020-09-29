@@ -506,6 +506,10 @@ def setAppUserModelID(appId, prefix='Blur'):
         prefix (str, optional): The prefix attached to the id.  For a blur tool called
             fooBar, the associated appId should be "Blur.FooBar". Defaults to "Blur".
     """
+
+    if blurdev.settings.OS_TYPE != 'Windows':
+        return False
+
     # If this function is run inside other applications, it can cause(unparented) new
     # sub windows to parent with this id instead of the parent application in windows.
     # To test: Create a window calling setAppUserModelID before showing it. Use a unique
