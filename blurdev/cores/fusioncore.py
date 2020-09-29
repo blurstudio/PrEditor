@@ -27,19 +27,11 @@ class FusionCore(Core):
         # NOTE: composition is globaly available inside fusion.exe, no need to import.
         return re.findall(r'UUID: ([^\]]+)', str(composition))[0]  # noqa: F821
 
-    def createToolMacro(self, tool, macro=''):
+    def macroSupported(self):
+        """ Returns True if the current blurdev core create a tool macro.
         """
-        Overloads the createToolMacro virtual method from the Core class, this will
-        create a macro for the Fusion application for the inputed Core tool. Not
-        Supported currently.
-        """
+        # Blurdev can not currently make a macro for this DCC.
         return False
-
-    def macroName(self):
-        """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Create Macro...'
 
     def toolTypes(self):
         """

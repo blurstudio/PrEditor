@@ -25,14 +25,6 @@ class HoudiniCore(Core):
         """ There is no need to add library paths for houdini """
         return
 
-    def createToolMacro(self, tool, macro=''):
-        """
-        Overloads the createToolMacro virtual method from the Core class, this will
-        create a macro for the Houdini application for the inputed Core tool. Not
-        Supported currently.
-        """
-        return False
-
     @property
     def headless(self):
         """
@@ -80,11 +72,11 @@ class HoudiniCore(Core):
         except RuntimeError:
             return ''
 
-    def macroName(self):
+    def macroSupported(self):
+        """ Returns True if the current blurdev core create a tool macro.
         """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Add to Favorites...'
+        # Blurdev can not currently make a macro for this DCC.
+        return False
 
     def rootWindow(self):
         """

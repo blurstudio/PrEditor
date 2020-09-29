@@ -41,14 +41,6 @@ class RVCore(Core):
 
         # NOTE: DO NOT CALL SUPER for this reason on windows.
 
-    def createToolMacro(self, tool, macro=''):
-        """
-        Overloads the createToolMacro virtual method from the Core class, this will
-        create a macro for the Fusion application for the inputed Core tool. Not
-        Supported currently.
-        """
-        return False
-
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the RVCore has shutdown called
         """

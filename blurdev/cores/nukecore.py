@@ -32,14 +32,6 @@ class NukeCore(Core):
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
 
-    def createToolMacro(self, tool, macro=''):
-        """
-        Overloads the createToolMacro virtual method from the Core class, this will
-        create a macro for the Nuke application for the inputed Core tool. Not Supported
-        currently.
-        """
-        return False
-
     @property
     def headless(self):
         """ If true, no Qt gui elements should be used because python is running a
@@ -108,11 +100,11 @@ class NukeCore(Core):
                     toolbar_class.instanceRecordSettings()
         return super(NukeCore, self).eventFilter(obj, event)
 
-    def macroName(self):
+    def macroSupported(self):
+        """ Returns True if the current blurdev core create a tool macro.
         """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Add to Lovebar...'
+        # Blurdev can not currently make a macro for this DCC.
+        return False
 
     def recordToolbars(self):
         """ Records settings for all found toolbars.

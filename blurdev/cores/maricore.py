@@ -37,14 +37,6 @@ class MariCore(Core):
             paths.append(u'C:/Program Files/Mari3.1v3/Bundle/Qt4')
             QApplication.setLibraryPaths(paths)
 
-    def createToolMacro(self, tool, macro=''):
-        """
-        Overloads the createToolMacro virtual method from the Core class, this will
-        create a macro for the Mari application for the inputed Core tool. Not Supported
-        currently.
-        """
-        return False
-
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the MariCore has shutdown called
         """
@@ -67,11 +59,11 @@ class MariCore(Core):
             self.shutdownToolbars()
         return super(MariCore, self).eventFilter(obj, event)
 
-    def macroName(self):
+    def macroSupported(self):
+        """ Returns True if the current blurdev core create a tool macro.
         """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Add to Lovebar...'
+        # Blurdev can not currently make a macro for this DCC.
+        return False
 
     def toolTypes(self):
         """

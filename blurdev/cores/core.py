@@ -273,8 +273,14 @@ class Core(QObject):
         return False
 
     def createToolMacro(self, tool, macro=''):
-        """ Method to create macros for a tool, should be overloaded per core
+        """ Method to create macros for a tool.
+
+        Creates a desktop shortcut if `self.macroSupported()` returns True. If a DCC
+        supports macros, it should override this function with its own implementation.
         """
+        if not self.macroSupported():
+            return False
+
         from ..utils import shortcut
 
         # Using treegrunt-tool makes it so the desktop shortcuts launch using the same
@@ -715,6 +721,11 @@ class Core(QObject):
         Returns the name to display for the create macro action in treegrunt
         """
         return 'Create Desktop Shortcut...'
+
+    def macroSupported(self):
+        """ Returns True if the current blurdev core create a tool macro.
+        """
+        return True
 
     def mainWindowGeometry(self):
         """ QWinWidget doesn't properly center its children.
