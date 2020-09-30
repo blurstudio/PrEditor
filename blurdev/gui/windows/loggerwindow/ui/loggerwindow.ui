@@ -198,6 +198,8 @@
     <addaction name="uiCopyTabsToSpacesACT"/>
     <addaction name="uiWordWrapACT"/>
     <addaction name="uiEditorVerticalACT"/>
+    <addaction name="uiAutoPromptACT"/>
+    <addaction name="uiLinesInNewWorkboxACT"/>
     <addaction name="uiAutoSaveSettingssACT"/>
     <addaction name="separator"/>
     <addaction name="uiSetFlashWindowIntervalACT"/>
@@ -812,6 +814,22 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Set focus to the previous  workbox tab</string>
+   </property>
+  </action>
+  <action name="uiAutoPromptACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto-prompt</string>
+   </property>
+  </action>
+  <action name="uiLinesInNewWorkboxACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Add lines to new workbox</string>
    </property>
   </action>
  </widget>

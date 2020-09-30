@@ -523,7 +523,8 @@ class LoggerWindow(Window):
         workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
 
         workbox.setFocus()
-        workbox.setText("\n" * 19)
+        if self.uiLinesInNewWorkboxACT.isChecked():
+            workbox.setText("\n" * 19)
 
         return workbox
 
@@ -597,9 +598,10 @@ class LoggerWindow(Window):
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execAll()
 
-        console = self.console()
-        prompt = console.prompt()
-        console.startPrompt(prompt)
+        if self.uiAutoPromptACT.isChecked():
+            console = self.console()
+            prompt = console.prompt()
+            console.startPrompt(prompt)
 
     def execSelected(self):
         """
@@ -697,6 +699,13 @@ class LoggerWindow(Window):
             'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
             )
 
+        pref.recordProperty(
+            'uiAutoPromptACT', self.uiAutoPromptACT.isChecked()
+            )
+        pref.recordProperty(
+            'uiLinesInNewWorkboxACT', self.uiLinesInNewWorkboxACT.isChecked()
+            )
+
         # completer settings
         completer = self.console().completer()
         sensitive = completer.caseSensitive()
@@ -786,6 +795,14 @@ class LoggerWindow(Window):
         self.uiAutoSaveSettingssACT.setChecked(
             pref.restoreProperty('uiAutoSaveSettingssACT', True)
             )
+
+        self.uiAutoPromptACT.setChecked(
+            pref.restoreProperty('uiAutoPromptACT', False)
+            )
+        self.uiLinesInNewWorkboxACT.setChecked(
+            pref.restoreProperty('uiLinesInNewWorkboxACT', False)
+            )
+
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(

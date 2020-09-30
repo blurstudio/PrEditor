@@ -1080,7 +1080,8 @@ class BlurExcepthook(object):
 
         # logger is visble
         if instance.isVisible():
-            instance.console().startInputLine()
+            if instance.uiAutoPromptACT.isChecked():
+                instance.console().startInputLine()
             return
 
         # quiet mode active

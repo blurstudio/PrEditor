@@ -122,7 +122,9 @@ class WorkboxWidget(DocumentEditor):
                 event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
             ):
                 self.execSelected()
-                self.console().startInputLine()
+
+                if self.window().uiAutoPromptACT.isChecked():
+                    self.console().startInputLine()
             else:
                 DocumentEditor.keyPressEvent(self, event)
 
