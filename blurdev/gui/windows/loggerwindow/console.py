@@ -7,12 +7,14 @@ import __main__
 import os
 import sys
 import sip
+import subprocess
 import time
 import traceback
 
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
+from Qt import QtCore
 
 import blurdev
 from blurdev import debug
@@ -58,6 +60,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     _errorPrompted = False
     # the color error messages are displayed in, can be set by stylesheets
     _errorMessageColor = QColor(Qt.red)
+
+    _errorPattern = "(?P<full>File \"(?P<filepath>.*\..*)\", line (?P<lineNum>\d+).*)"
 
     def __init__(self, parent):
         super(QTextEdit, self).__init__(parent)
@@ -133,6 +137,28 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.addAction(self.uiClearToLastPromptACT)
 
         self.x = 0
+        self.clickPos = None
+
+    def mousePressEvent(self, event):
+        """Overload of mousePressEvent to capture click position, so on release, we can
+        check release position. If it's the same (ie user clicked vs click-drag to
+        select text), we check if user clicked an error hyperlink.
+        """
+        self.clickPos = event.pos()
+        return super(ConsoleEdit, self).mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Overload of mouseReleaseEvent to capture if user has left clicked... Check if
+        click position is the same as release position, if so, call errorHyperlink.
+        """
+        releasePos = event.pos()
+        if releasePos == self.clickPos:
+            left = event.button() == QtCore.Qt.LeftButton
+            if left:
+                self.errorHyperlink()
+
+        self.clickPos = None
+        return super(ConsoleEdit, self).mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
         """Override of wheelEvent to allow for font resizing by holding ctrl while"""
@@ -154,6 +180,68 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self._prevCommandIndex = 0
         else:
             event.ignore()
+
+    def errorHyperlink(self):
+        """Determine if chosen line is an error traceback file-info line, if so, parse
+        the filepath and line number, and attempt to open the module file in the user's
+        chosen text editor at the relevant line, using specified Command Prompt pattern.
+
+        The text editor defaults to SublimeText3, in the normal install directory
+        """
+        # Bail if Error Hyperlinks setting is not turned on.
+        if not self.window().uiErrorHyperlinksACT.isChecked():
+            return
+
+        # Get current line of text
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        line = cursor.selectedText()
+
+        # Perform regex search
+        match = re.search(self.__class__._errorPattern, line)
+        if match is None:
+            return
+        modulePath = match.group('filepath')
+        lineNum = match.group('lineNum')
+
+        # fetch info from LoggerWindow
+        exePath = ''
+        cmdTempl = ''
+        window = self.window()
+        if hasattr(window, 'textEditorPath'):
+            exePath = window.textEditorPath
+            cmdTempl = window.textEditorCmdTempl
+
+        # Bail if not setup properly
+        if not exePath:
+            print("No text editor path defined.")
+            return
+        if not os.path.exists(exePath):
+            print("Text editor executable does not exist: {}".format(exePath))
+            return
+        if not cmdTempl:
+            print("No text editor Command Prompt command template defined.")
+            return
+        if not os.path.exists(modulePath):
+            print("Specified module path does not exist: {}".format(modulePath))
+            return
+
+        # Create command list
+        cmdList = cmdTempl.split(" ")
+        for i in range(len(cmdList)):
+            chunk = cmdList[i]
+            chunk = chunk.replace("exePath", exePath)
+            chunk = chunk.replace("modulePath", modulePath)
+            chunk = chunk.replace("lineNum", lineNum)
+            cmdList[i] = chunk
+
+        # Attempt to run command
+        try:
+            subprocess.Popen(cmdList)
+        except WindowsError:
+            msg = "The provided text editor command template is not valid:\n    {}"
+            msg = msg.format(cmdTempl)
+            print(msg)
 
     def getPrevCommand(self):
         """Find and display the previous command in stack"""
@@ -627,15 +715,30 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 charFormat.setForeground(self.stdoutColor())
             else:
                 charFormat.setForeground(self.errorMessageColor())
-
             self.setCurrentCharFormat(charFormat)
+
             try:
-                self.insertPlainText(msg)
+                # If showing Error Hyperlinks, display underline output, otherwise
+                # display normal output
+                match = re.search(self.__class__._errorPattern, msg)
+                if match and self.window().uiErrorHyperlinksACT.isChecked():
+                    toUnderline = match.group('full')
+                    start = msg.find(toUnderline)
+
+                    # self.setFontUnderline(False)
+                    self.insertPlainText(msg[:start])
+                    self.setFontUnderline(True)
+                    self.insertPlainText(msg[start:])
+                    self.setFontUnderline(False)
+                else:
+                    self.insertPlainText(msg)
+
             except Exception:
                 if SafeOutput:
                     # win32com writes to the debugger if it is unable to print, so
                     # ensure it still does this.
                     SafeOutput.write(self, msg)
+
         else:
             if SafeOutput:
                 # win32com writes to the debugger if it is unable to print, so ensure it

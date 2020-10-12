@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>891</width>
-    <height>277</height>
+    <height>256</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -203,6 +203,9 @@
     <addaction name="uiAutoSaveSettingssACT"/>
     <addaction name="separator"/>
     <addaction name="uiSetFlashWindowIntervalACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiErrorHyperlinksACT"/>
+    <addaction name="uiSetPreferredTextEditorPathACT"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -830,6 +833,24 @@ Must manually save instead.</string>
    </property>
    <property name="text">
     <string>Add lines to new workbox</string>
+   </property>
+  </action>
+  <action name="uiSetPreferredTextEditorPathACT">
+   <property name="text">
+    <string>Set Preferred Text Editor Path</string>
+   </property>
+  </action>
+  <action name="uiErrorHyperlinksACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Error Hyperlinks</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Error Hyperlinks, which can be clicked to open the indicated module
+at the indicated line in the specified text editor.
+</string>
    </property>
   </action>
  </widget>

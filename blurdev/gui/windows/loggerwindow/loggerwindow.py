@@ -48,6 +48,7 @@ from .workboxwidget import WorkboxWidget
 
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton, DebugLevelButton
+from set_text_editor_path_dialog import SetTextEditorPathDialog
 
 
 class LoggerWindow(Window):
@@ -235,6 +236,10 @@ class LoggerWindow(Window):
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
+        self.uiSetPreferredTextEditorPathACT.triggered.connect(
+            self.openSetPreferredTextEditorDialog
+            )
+
         # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
         regEx = ".*"
         menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx))
@@ -330,6 +335,10 @@ class LoggerWindow(Window):
             # then call execAll. This makes it easier to see what code you are running
             # before it has finished running completely.
             QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
+
+    def openSetPreferredTextEditorDialog(self):
+        dlg = SetTextEditorPathDialog(parent=self)
+        dlg.exec_()
 
     def focusToConsole(self):
         """Move focus to the console"""
@@ -705,6 +714,11 @@ class LoggerWindow(Window):
         pref.recordProperty(
             'uiLinesInNewWorkboxACT', self.uiLinesInNewWorkboxACT.isChecked()
             )
+        pref.recordProperty(
+            'uiErrorHyperlinksACT', self.uiErrorHyperlinksACT.isChecked()
+            )
+        pref.recordProperty('textEditorPath', self.textEditorPath)
+        pref.recordProperty('textEditorCmdTempl', self.textEditorCmdTempl)
 
         # completer settings
         completer = self.console().completer()
@@ -802,6 +816,15 @@ class LoggerWindow(Window):
         self.uiLinesInNewWorkboxACT.setChecked(
             pref.restoreProperty('uiLinesInNewWorkboxACT', False)
             )
+        self.uiErrorHyperlinksACT.setChecked(
+            pref.restoreProperty('uiErrorHyperlinksACT', True)
+            )
+
+        # External text editor filepath and command template
+        defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"
+        defaultCmd = r"exePath modulePath:lineNum"
+        self.textEditorPath = pref.restoreProperty('textEditorPath', defaultExePath)
+        self.textEditorCmdTempl = pref.restoreProperty('textEditorCmdTempl', defaultCmd)
 
         self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
