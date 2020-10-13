@@ -326,15 +326,7 @@ class StudiomaxCore(Core):
                 # These changes will be applied when we call initGui later.
                 self._defaultStyleSheet += (
                     ' /* Start Blur css workarounds: */ '
-                    'QCheckBox, QPushButton{padding: 2px;} '
-                    'QPushButton{'
-                    'min-width:5em; min-height:1.25em; '
-                    # Applying a stylesheet to a QPushButton breaks the color applied
-                    # by the theme. We also appear to not be able to control the
-                    # background color of button. Forcing the text to black makes the
-                    # button text readable on for both ami-dark and ami-light
-                    'color: rgb(0, 0, 0);'
-                    '}'
+                    'QCheckBox{padding: 2px;} '
                 )
             if 'Start Blur css workarounds' not in app.styleSheet():
                 app.setStyleSheet(self._defaultStyleSheet)
