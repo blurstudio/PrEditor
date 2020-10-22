@@ -95,6 +95,9 @@ class Tool(QObject):
 
             :param str macro: macro
         """
+        # The external Treegrunt tool sometimes gets deleted before we can collect
+        # usage stats. Capture the name before we launch(exec_) the tool.
+        name = self.objectName()
         # run standalone
         if self.toolType() & ToolType.LegacyExternal:
             blurdev.core.runStandalone(
@@ -107,7 +110,7 @@ class Tool(QObject):
 
         # Log what tool was used and when.
         if self._usagestatsEnabled:
-            info = {'name': self.objectName()}
+            info = {'name': name}
             info['miscInfo'] = macro
             blurdev.tools.logUsage(info)
 
