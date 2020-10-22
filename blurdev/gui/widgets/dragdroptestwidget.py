@@ -8,6 +8,7 @@
 # 	:date		07/09/10
 #
 
+from __future__ import unicode_literals
 from Qt.QtGui import QDropEvent
 from Qt.QtWidgets import QTextEdit
 from Qt.QtCore import QMimeData, Qt
@@ -38,11 +39,11 @@ class DragDropTestWidget(QTextEdit):
         if isinstance(event, QDropEvent):
             html.append(
                 '<h1>Drop Event</h1><small><b>source:</b></small> %s'
-                % cgi.escape(event.source())
+                % cgi.escape(str(event.source()))
             )
             html.append(
                 '<small><b>proposed action:</b></small> %s'
-                % cgi.escape(event.proposedAction())
+                % cgi.escape(str(event.proposedAction()))
             )
             possibleActions = event.possibleActions().__int__()
             html.append('<small><b>possible actions:</b></small> %i' % possibleActions)
