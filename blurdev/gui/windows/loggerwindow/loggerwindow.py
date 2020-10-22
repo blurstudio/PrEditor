@@ -1166,7 +1166,7 @@ class LoggerWindow(Window):
         """Move focus to next workbox tab"""
         tabWidget = self.uiWorkboxTAB
         if not tabWidget.currentWidget().hasFocus():
-            return
+            tabWidget.currentWidget().setFocus()
 
         index = tabWidget.currentIndex()
         if index == tabWidget.count() - 1:
@@ -1178,7 +1178,7 @@ class LoggerWindow(Window):
         """Move focus to previous workbox tab"""
         tabWidget = self.uiWorkboxTAB
         if not tabWidget.currentWidget().hasFocus():
-            return
+            tabWidget.currentWidget().setFocus()
 
         index = tabWidget.currentIndex()
         if index == 0:
