@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>682</width>
-    <height>138</height>
+    <height>151</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -65,7 +65,8 @@
         </property>
         <property name="text">
          <string>Command Prompt template (template of how your chosen text editor may implement line numbers in a Command Prompt command).
-Use these template strings: exePath, modulePath, lineNum</string>
+Use these template strings: {exePath}, {modulePath}, {lineNum}
+</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -78,7 +79,7 @@ Use these template strings: exePath, modulePath, lineNum</string>
          <string/>
         </property>
         <property name="text">
-         <string>exePath modulePath:lineNum</string>
+         <string>{exePath} {modulePath}:{lineNum}</string>
         </property>
        </widget>
       </item>

@@ -24,13 +24,13 @@ class SetTextEditorPathDialog(QDialog):
             self.uiTextEditorCommandPatternLE.setText(cmdTempl)
 
         toolTip = ("Examples:\n"
-            "SublimeText: exePath modulePath:lineNum\n"
-            "notepad++: exePath modulePath -nlineNum\n"
-            "vim: exePath +lineNum modulePath")
+            "SublimeText: {exePath} {modulePath}:{lineNum}\n"
+            "notepad++: {exePath} {modulePath} -n{lineNum}\n"
+            "vim: {exePath} +{lineNum} {modulePath}")
         self.uiTextEditorCommandPatternLE.setToolTip(toolTip)
 
     def accept(self):
-        """Validate that the path exists and is an executable (extension is '.exe')
+        """Validate that the path exists and is executable.
         Can't really validate the command template, so instead we use try/except when
         issuing the command.
         """
@@ -38,11 +38,16 @@ class SetTextEditorPathDialog(QDialog):
         cmdTempl = self.uiTextEditorCommandPatternLE.text()
 
         path = path.strip("\"")
-        if os.path.exists(path) and path.endswith('.exe'):
+
+        # isExecutable is not very accurate, because on Windows, .jpg and .txt, etc
+        # files are returned as executable. Perhaps on other systems, it's actually
+        # relevant to whether the file is 'executable'.
+        isExecutable = os.access(path, os.X_OK)
+        if isExecutable:
             self.parent().textEditorPath = path
             self.parent().textEditorCmdTempl = cmdTempl
             super(SetTextEditorPathDialog, self).accept()
         else:
-            msg = "That path doesn't exists or isn't an exe file."
+            msg = "That path doesn't exists or isn't an executable file."
             label = 'Incorrect Path'
             QMessageBox.warning(self.window(), label, msg, QMessageBox.Ok)
