@@ -379,11 +379,15 @@ class LoggerWindow(Window):
         if not cursor.hasSelection():
             cursor.select(QTextCursor.LineUnderCursor)
         text = cursor.selectedText()
-        text = text.lstrip(console.prompt())
+        prompt = console.prompt()
+        if text.startswith(prompt):
+            text = text[len(prompt):]
+        text = text.lstrip()
 
         outputPrompt = console.outputPrompt()
         outputPrompt = outputPrompt.rstrip()
-        text = text.lstrip(outputPrompt)
+        if text.startswith(outputPrompt):
+            text = text[len(outputPrompt):]
         text = text.lstrip()
 
         if not text:
