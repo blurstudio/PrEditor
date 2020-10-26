@@ -362,6 +362,10 @@ class LoggerWindow(Window):
         if not text:
             return
 
+        cursor = self.console().textCursor()
+        if cursor.hasSelection():
+            cursor.removeSelectedText()
+
         self.console().insertPlainText(text)
         self.focusToConsole()
 
@@ -386,7 +390,9 @@ class LoggerWindow(Window):
             return
 
         workbox = self.uiWorkboxTAB.currentWidget()
+        workbox.removeSelectedText()
         workbox.insert(text)
+
         line, index = workbox.getCursorPosition()
         index += len(text)
         workbox.setCursorPosition(line, index)
