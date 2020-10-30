@@ -34,7 +34,7 @@ except ImportError:
 
 
 # This logger is used to debug reloading treegrunt environments
-logging_reload = logging.getLogger('tools_environment_refresh')
+logger = logging.getLogger(__name__)
 
 USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
@@ -206,16 +206,16 @@ class ToolsEnvironment(QObject):
         ]
 
         # Debug info about paths being removed from sys.path
-        logging_reload.debug('.pth files processed'.center(50, '-'))
+        logger.debug('.pth files processed'.center(50, '-'))
         for f in pthFiles:
             if f in skippedFiles:
-                logging_reload.debug('Unable to read: {}'.format(f))
+                logger.debug('Unable to read: {}'.format(f))
             else:
-                logging_reload.debug(f)
-        logging_reload.info('Paths to be removed'.center(50, '-'))
+                logger.debug(f)
+        logger.info('Paths to be removed'.center(50, '-'))
         for p in removepaths:
-            logging_reload.info(p)
-        logging_reload.info('-' * 50)
+            logger.info(p)
+        logger.info('-' * 50)
 
         # remove the required paths from sys.path
         sys.path = newpaths
@@ -253,10 +253,10 @@ class ToolsEnvironment(QObject):
                         x for x in removepaths if self.normalizePath(x) in spath
                     ]
                 except Exception:
-                    logging_reload.debug('    no __file__: {}'.format(key))
+                    logger.debug('    no __file__: {}'.format(key))
                 else:
                     if should_remove:
-                        logging_reload.debug(
+                        logger.debug(
                             'module removed: {} "{}"'.format(key, value.__file__)
                         )
                         sys.modules.pop(key)
@@ -866,8 +866,8 @@ class ToolsEnvironment(QObject):
         links = self.getEggLinkList(path)
         paths = []
         for link in links:
-            logging_reload.info('egg-link: {}'.format(link))
-            logging_reload.info('\t{}'.format(self.readEggLink(link)))
+            logger.info('egg-link: {}'.format(link))
+            logger.info('\t{}'.format(self.readEggLink(link)))
             paths.append(self.readEggLink(link))
         return paths
 
@@ -887,7 +887,7 @@ class ToolsEnvironment(QObject):
         index = self.index()
         all_tool_paths = []
         for entry_point in index.entry_points():
-            logging_reload.info('Processing entry point: {}'.format(entry_point))
+            logger.info('Processing entry point: {}'.format(entry_point))
             # Attempt to load the module, report errors but don't break the
             # import of blurdev if one of these fail.
             try:
@@ -897,7 +897,7 @@ class ToolsEnvironment(QObject):
                 traceback.print_exc()
                 continue
             for path in sys_paths:
-                logging_reload.debug('  sys.path.insert: {}'.format(path))
+                logger.debug('  sys.path.insert: {}'.format(path))
                 self.registerPath(path)
 
             # Get the tool_paths and conform them for use in the index
@@ -906,7 +906,7 @@ class ToolsEnvironment(QObject):
                 if isinstance(tool_path, str):
                     tool_path = [tool_path, False]
                 all_tool_paths.append(tool_path)
-                logging_reload.debug('  tool root path: {}'.format(tool_path))
+                logger.debug('  tool root path: {}'.format(tool_path))
             index.setToolRootPaths(all_tool_paths)
 
         # If this environment has a project make sure we load the project settings

@@ -21,6 +21,7 @@ __DOCMODE__ = False
 import os
 import sys
 import copy
+import logging
 import types
 import re
 import weakref
@@ -81,6 +82,15 @@ been deleted.
 # system sets it, and it will be cleared the first time blurdev.launch
 # is called. blurdev.gui.splashscreen.randomSplashScreen checks this value
 protocolSplash = None
+
+
+# Create the root blurdev module logging object.
+logger = logging.getLogger(__name__)
+# Add a NullHandler to suppress the "No handlers could be found for logger"
+# warnings from being printed to stderr. Studiomax and possibly other DCC's
+# tend to treat any text written to stderr as a error when running headless.
+# We also don't want this warning showing up in production anyway.
+logger.addHandler(logging.NullHandler())
 
 
 def activeEnvironment(coreName=None):
