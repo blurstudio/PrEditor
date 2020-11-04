@@ -59,7 +59,7 @@ def launch_tool(ctx):
 
     # Use the toolId as the applicationName. When blurdev is imported, it will
     # set the ApplicationName to match this toolname.
-    blurdev.core.updateApplicationName(tool)
+    blurdev.core.updateApplicationName(name=tool)
 
     if 'BDEV_TOOL_ENVIRONMENT' not in os.environ:
         # Use the external environment that is used by external treegrunt.
@@ -73,9 +73,12 @@ def launch_tool(ctx):
     # blurdev.launch will call this automatically. By setting it here, we prevent a
     # known bug where tool class objects get reset to None and the tool fails to launch.
     blurdev.core.setObjectName('external')
+
     # Do not launch the tool as a subprocess. This ends up wasting time creating a new
-    # python subprocess, and re-importing blurdev.
-    blurdev.core.launchExternalInProcess = False
+    # python subprocess, and re-importing python modules. Once the requested tool is
+    # launched, this value will get set to True so any tools launched after this will
+    # happen in a new process.
+    blurdev.core.launchExternalInProcess = 'once'
 
     # launch the editor
     blurdev.runTool(tool)

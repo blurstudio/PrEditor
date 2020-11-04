@@ -116,11 +116,13 @@ class Core(QObject):
         self._rootWindow = None
         self._toolbars = None
         self._selected_tool_types = None
-        # By default treegrunt and external core's will launch treegrunt tools in a
-        # subprocess. However the treegrunt-tool executable needs to use the coreName
-        # of treegrunt to load the correct prefs, but launching a subprocess just
-        # makes the final launching of the tool take longer.
-        # Skip this by setting to True
+
+        # Controls if launching a treegrunt tool in external python will use a
+        # subprocess. The blurdev cli launcher sets this to `"once"`, so when it
+        # launches the requested tool it is done in the same process. Then this variable
+        # is changed to True. This speeds up loading of the tool as it prevents
+        # repeating imports in a new process. If True, then all tool launches are done
+        # in a subprocess if using external python.
         self.launchExternalInProcess = True
 
         # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom
@@ -525,11 +527,6 @@ class Core(QObject):
         # instaniate Sentry client for core
         self.init_sentry()
 
-        # initialize the tools environments
-        blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
-            self.defaultEnvironmentPath()
-        )
-
         # Gets the override filepath, it is defined this way, instead of
         # being defined in the class definition, so that we can change this
         # path, or remove it entirely for offline installs.
@@ -566,6 +563,11 @@ class Core(QObject):
                 output = Application([])
 
         self.updateApplicationName(output)
+
+        # initialize the tools environments after the applicationName is set.
+        blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
+            self.defaultEnvironmentPath()
+        )
 
         # restore the core settings
         self.restoreSettings()
@@ -1272,11 +1274,17 @@ class Core(QObject):
 
             # run a python file
             if ext.startswith('.py'):
+                if self.launchExternalInProcess == 'once':
+                    self.launchExternalInProcess = True
+                    launchExternalInProcess = False
+                else:
+                    launchExternalInProcess = self.launchExternalInProcess
                 # if running in external mode, run a standalone version for python files
                 # - this way they won't try to parent to the treegrunt
-                if self.launchExternalInProcess and self.objectName() in (
+                if launchExternalInProcess and self.objectName() in (
                     'external',
                     'treegrunt',
+                    'logger',
                 ):
                     self.runStandalone(filename, architecture=architecture, tool=tool)
                 else:
