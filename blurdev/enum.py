@@ -115,7 +115,8 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
     Enumerators are named values that act as identifiers.  Typically, a
     list of enumerators are component pieces of an `EnumGroup`.
 
-    Example:
+    Example::
+
         class Suit(Enum):
             pass
 
@@ -128,7 +129,8 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
     Enum objects can be combined and compared using binary "and" and "or"
     operations.
 
-    Example:
+    Example::
+
         mySuits = Suits.Hearts | Suits.Spades
 
         if Suits.Hearts & mySuits:
@@ -331,7 +333,8 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     organizational convenience, and in most cases handles the generation
     and assignment of Enum numbers, names, and labels.
 
-    Example:
+    Example::
+
         class Suit(Enum):
             pass
 
@@ -351,7 +354,8 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     compares false against any members of the group and when converted to
     a int its value will be zero.
 
-    Example:
+    Example::
+
         # By attribute.
         Suits.Hearts
 
@@ -368,7 +372,8 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     Enum objects as 3 returns the third index which in the above example is Diamonds.
     The index value for Enum is stored on its labelIndex property.
 
-    Example:
+    Example::
+
         print(Suits.Diamonds.labelIndex)
 
         if Suits.Diamonds == Suits[3]:
@@ -377,7 +382,8 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     An EnumGroup can be sliced by passing an Enum object or its labelIndex value for
     start and stop, returning a list of matching Enums.
 
-    Example:
+    Example::
+
         # All Enums between Spades and Diamonds
         Suits[Suits.Spades:Suits.Diamonds]
 
@@ -389,7 +395,8 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     combination of enum values 1 and 2, a composite Enum object can
     be constructed.
 
-    Example:
+    Example::
+
         comp = Suits(3)
 
         if Suits.Hearts & comp:
@@ -397,6 +404,20 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
 
         if Suits.Clubs & comp:
             print("This is false!")
+
+    If one of the Enum's has the default keyword argument set to True, then that Enum
+    is also exposed as the "Default" attribute. Additionally all other Enum's will have
+    a default property added and set to False.
+
+    Example::
+
+        class Suits(EnumGroup):
+            Hearts = Suit()
+            Spades = Suit(default=True)
+
+        assert Suits.Hearts.default == False
+        assert Suits.Spades.default == True
+        assert Suits.Default == Suits.Spades
 
     Attributes:
         All: The sum of all members.
@@ -589,6 +610,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
     @classmethod
     def __init_enums__(cls):
         enums = []
+        default_enum = None
 
         orderedEnums = sorted(
             [(k, v) for k, v in iteritems(cls.__dict__) if isinstance(v, Enum)],
@@ -600,6 +622,17 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
             value._setName(name)
             if value.label is None:
                 value._setLabel(cls._varNameToLabel(name))
+            # Check for a default property and raise a error if more than one is found
+            if hasattr(value, 'default') and value.default:
+                if default_enum is not None:
+                    raise ValueError(
+                        (
+                            '"{}" already defines default and "{}" is trying to '
+                            'claim the default'
+                        ).format(default_enum, value)
+                    )
+                default_enum = value
+
         enumNumbers = [enum.number for enum in enums if enum.number]
         num = 1
         for enum in enums:
@@ -614,6 +647,9 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
             if enum._label is not None:
                 enum._labelIndex = labelIndex
                 labelIndex += 1
+            # Add a default property to all enums for consistency
+            if default_enum and not hasattr(enum, 'default'):
+                enum.default = False
         cls._ENUMERATORS = enums
         # Build the All object if its not defined
         if isinstance(cls.All, int):
@@ -637,6 +673,13 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
                     # against all Enums in this EnumGroup.
                     enumClass.register(cls.Nothing.__class__)
                 processed.add(enumClass)
+        # If a default was specified, store it on the Default argument
+        if default_enum and not hasattr(cls, 'Default'):
+            cls.Default = default_enum
+            # Ensure the All and Nothing Enum's have a default as well
+            cls.All.default = False
+            if enums:
+                cls.Nothing.default = False
 
     @classmethod
     def _varNameToLabel(cls, varName):
