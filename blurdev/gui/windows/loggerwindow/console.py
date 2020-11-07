@@ -2,21 +2,18 @@
 
 """
 
-import json
-import re
 import __main__
 import os
-import sys
+import re
 import sip
-import string
 import subprocess
+import sys
 import time
 import traceback
 
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
-from Qt import QtCore
 
 import blurdev
 from blurdev import debug
@@ -62,10 +59,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     _errorPrompted = False
     # the color error messages are displayed in, can be set by stylesheets
     _errorMessageColor = QColor(Qt.red)
-
-    # The pattern used to create traceback hyperlinks
-    pattern = r"(?P<full>File \"(?P<filepath>.*\..*)\", line (?P<lineNum>\d+).*)"
-    _errorPattern = re.compile(pattern)
 
     def __init__(self, parent):
         super(QTextEdit, self).__init__(parent)
@@ -142,6 +135,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         self.x = 0
         self.clickPos = None
+        self.anchor = None
 
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can
@@ -159,7 +153,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         click position is the same as release position, if so, call errorHyperlink.
         """
         samePos = event.pos() == self.clickPos
-        left = event.button() == QtCore.Qt.LeftButton
+        left = event.button() == Qt.LeftButton
         if samePos and left and self.anchor:
             self.errorHyperlink()
 
@@ -196,19 +190,24 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         The text editor defaults to SublimeText3, in the normal install directory
         """
+        window = self.window()
 
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
-        if not self.window().uiErrorHyperlinksACT.isChecked() or not self.anchor:
+        doHyperlink = (hasattr(window, 'uiErrorHyperlinksACT')
+                       and window.uiErrorHyperlinksACT.isChecked()
+                       and self.anchor)
+        if not doHyperlink:
             return
 
-        infoDict = json.loads(self.anchor)
-        modulePath = infoDict['filepath']
-        lineNum = infoDict['lineNum']
+        # info is a comma separated string, in the form: "filename, workboxIdx, lineNum"
+        info = self.anchor.split(', ')
+        modulePath = info[0]
+        workboxIndex = info[1]
+        lineNum = info[2]
 
         # fetch info from LoggerWindow
         exePath = ''
         cmdTempl = ''
-        window = self.window()
         if hasattr(window, 'textEditorPath'):
             exePath = window.textEditorPath
             cmdTempl = window.textEditorCmdTempl
@@ -227,23 +226,31 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             msg += "No text editor Command Prompt command template defined."
             print(msg)
             return
-        if not os.path.exists(modulePath):
+        if modulePath and not os.path.exists(modulePath):
             msg += "Specified module path does not exist: {}".format(modulePath)
             print(msg)
             return
 
-        # Attempt to create command from template and run the command
-        try:
-            command = cmdTempl.format(
-                exePath=exePath,
-                modulePath=modulePath,
-                lineNum=lineNum
-                )
-            subprocess.Popen(command)
-        except (ValueError, OSError):
-            msg = "The provided text editor command template is not valid:\n    {}"
-            msg = msg.format(cmdTempl)
-            print(msg)
+        if modulePath:
+            # Attempt to create command from template and run the command
+            try:
+                command = cmdTempl.format(
+                    exePath=exePath,
+                    modulePath=modulePath,
+                    lineNum=lineNum
+                    )
+                subprocess.Popen(command)
+            except (ValueError, OSError):
+                msg = "The provided text editor command template is not valid:\n    {}"
+                msg = msg.format(cmdTempl)
+                print(msg)
+        elif workboxIndex is not None:
+            workboxIndex = int(workboxIndex)
+            lineNum = int(lineNum)
+            window.uiWorkboxTAB.setCurrentIndex(workboxIndex)
+            workbox = window.uiWorkboxTAB.widget(workboxIndex)
+            workbox.SendScintilla(workbox.SCI_GOTOLINE, lineNum - 1)
+            workbox.setFocus()
 
     def getPrevCommand(self):
         """Find and display the previous command in stack"""
@@ -715,9 +722,33 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.textCursor().deletePreviousChar()
         self.insertPlainText("\n")
 
+    def parseErrorHyperLinkInfo(self, txt):
+        """Determine if txt is a File-info line from a traceback, and if so, return info
+        dict.
+        """
+        ret = None
+        if txt[:8] == '  File "':
+            filename_end = txt.find('"', 8)
+            filename = txt[8:filename_end]
+
+            line_start = filename_end + 8
+            line_end = txt.find(',', line_start)
+            line_number = int(txt[line_start:line_end])
+
+            ret = {
+                'filename': filename,
+                'fileStart': 8,
+                'fileEnd': filename_end,
+                'lineNum': line_number}
+
+        return ret
+
     def write(self, msg, error=False):
         """ write the message to the logger """
-        errorLink = self.window().uiErrorHyperlinksACT.isChecked()
+        window = self.window()
+        doHyperlink = (hasattr(window, 'uiErrorHyperlinksACT')
+                       and window.uiErrorHyperlinksACT.isChecked()
+                       )
 
         if not sip.isdeleted(self):
             self.moveCursor(QTextCursor.End)
@@ -736,49 +767,57 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # that current line and do re search on it. If it matches, clear the
             # existing line, then proceed using that line as msg
             cursor = self.textCursor()
-            if errorLink and msg == '\n':
+            info = None
+            if doHyperlink and msg == '\n':
                 cursor.select(QTextCursor.BlockUnderCursor)
                 line = cursor.selectedText()
-
-                # There can be unprinting characters in line, which foils regex search,
-                # so strip unprinting characters out
-                clean = ''.join(filter(string.printable.__contains__, line))
-
-                match = re.search(self.__class__._errorPattern, clean)
-                if match:
-                    msg = clean + "\n"
+                info = self.parseErrorHyperLinkInfo(line)
+                if info:
+                    msg = line + "\n"
                     cursor.select(QTextCursor.BlockUnderCursor)
                     self.removeCurrentLine()
 
             try:
                 # If showing Error Hyperlinks, display underline output, otherwise
                 # display normal output
-                match = re.search(self.__class__._errorPattern, msg)
-                if match and errorLink:
-                    filepathIdx = self.__class__._errorPattern.groupindex['filepath']
-                    filepathStart = match.start(filepathIdx)
-                    filepathEnd = match.end(filepathIdx)
+                info = info if info else self.parseErrorHyperLinkInfo(msg)
+                if info and doHyperlink:
+                    filename = info.get("filename")
+                    fileStart = info.get("fileStart")
+                    fileEnd = info.get("fileEnd")
+                    lineNum = info.get("lineNum")
 
-                    self.insertPlainText(msg[:filepathStart])
-                    filepath = match.group("filepath")
-                    lineNum = match.group("lineNum")
-                    toolTip = "Open {} at line number {}".format(filepath, lineNum)
+                    isWorkbox = ('<WorkboxSelection>' in filename
+                        or '<WorkboxWidget>' in filename)
+                    if isWorkbox:
+                        split = filename.split(':')
+                        workboxIdx = split[-1]
+                        filename = ''
+                    else:
+                        filename = filename
+                        workboxIdx = ''
+                    href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
 
-                    infoDict = {
-                        'filepath': filepath,
-                        'lineNum': lineNum}
-                    href = json.dumps(infoDict)
+                    # Insert initial, non-underlined text
+                    self.insertPlainText(msg[:fileStart])
 
+                    # Insert hyperlink
                     fmt = cursor.charFormat()
-                    fmt.setFontUnderline(True)
                     fmt.setAnchor(True)
                     fmt.setAnchorHref(href)
+                    fmt.setFontUnderline(True)
+                    toolTip = "Open {} at line number {}".format(filename, lineNum)
                     fmt.setToolTip(toolTip)
-                    cursor.insertText(msg[filepathStart:filepathEnd], fmt)
+                    cursor.insertText(msg[fileStart:fileEnd], fmt)
 
-                    self.setFontUnderline(False)
-                    self.insertPlainText(msg[filepathEnd:])
+                    # Insert the rest of the msg
+                    fmt.setAnchor(False)
+                    fmt.setAnchorHref('')
+                    fmt.setFontUnderline(False)
+                    fmt.setToolTip('')
+                    cursor.insertText(msg[fileEnd:], fmt)
                 else:
+                    # Non-hyperlink output
                     self.insertPlainText(msg)
 
             except Exception:

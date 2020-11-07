@@ -42,7 +42,8 @@ class WorkboxWidget(DocumentEditor):
             without saving
         """
         txt = self.toUnixLineEndings(self.text()).rstrip()
-        self.console().executeString(txt, filename='<WorkboxWidget>')
+        idx = self.parent().indexOf(self)
+        self.console().executeString(txt, filename='<WorkboxWidget>:{}'.format(idx))
 
     def findLeadingWhitespace(self, lines):
         # Find the first line that has text that isn't a comment
@@ -96,7 +97,9 @@ class WorkboxWidget(DocumentEditor):
         txt = '\n' * line + txt
 
         # execute the code
-        ret, wasEval = self.console().executeString(txt, filename='<WorkboxSelection>')
+        idx = self.parent().indexOf(self)
+        filename = '<WorkboxSelection>:{}'.format(idx)
+        ret, wasEval = self.console().executeString(txt, filename=filename)
         if wasEval:
             # If the selected code was a statement print the result of the statement.
             ret = repr(ret)

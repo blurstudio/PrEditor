@@ -48,7 +48,7 @@ from .workboxwidget import WorkboxWidget
 
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton, DebugLevelButton
-from set_text_editor_path_dialog import SetTextEditorPathDialog
+from .set_text_editor_path_dialog import SetTextEditorPathDialog
 
 
 class LoggerWindow(Window):
@@ -238,7 +238,7 @@ class LoggerWindow(Window):
 
         self.uiSetPreferredTextEditorPathACT.triggered.connect(
             self.openSetPreferredTextEditorDialog
-            )
+        )
 
         # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
         regEx = ".*"
