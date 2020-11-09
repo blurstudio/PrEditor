@@ -40,19 +40,25 @@ blurConfigFile = None
 fallbackEncoding = 'utf-16'
 
 
-def GetINISetting(inFileName, inSection="", inKey=""):
-    """ Gets the value of the inputed key found in the given section of an INI file, if
-        it exists and the key is specified.  If the key is not specified, but the
-        section exists, then the function will return a list of all the keys in that
-        section.
+def GetINISetting(inFileName, inSection="", inKey="", lowercaseOptions=True):
+    """ Gets the value of the inputted key found in the given section of an INI file, if
+    it exists and the key is specified.  If the key is not specified, but the
+    section exists, then the function will return a list of all the keys in that
+    section.
 
-        :param inFileName:
-        :param inSection:
-        :param inKey:
-        :returns:	<string> || <list>[ <string>,.. ]
+    Args:
+        inFileName: The ini file to read from.
+        inSection: The section to read from.
+        inKey: The key(option) to read from.
+        lowercaseOptions (bool, optional): If True, then all keys(options) will be
+            treated as lowercase. This is how python's configparser handles ini
+            files. You may want to set this to False if editing 3ds max ini files.
+
+    Returns:
+        string: A string or list of strings.
     """
     if os.path.isfile(inFileName):
-        tParser = ToolParserClass()
+        tParser = ToolParserClass(lowercaseOptions=lowercaseOptions)
         tParser.read(inFileName)
         inSection = text(inSection)
         inKey = text(inKey)
@@ -70,7 +76,13 @@ def GetINISetting(inFileName, inSection="", inKey=""):
 
 
 def SetINISetting(
-    inFileName, inSection, inKey, inValue, useConfigParser=False, writeDefault=True
+    inFileName,
+    inSection,
+    inKey,
+    inValue,
+    useConfigParser=False,
+    writeDefault=True,
+    lowercaseOptions=True,
 ):
     """ Sets the ini section setting of the provided file with the give key/value pair.
 
@@ -85,11 +97,14 @@ def SetINISetting(
     Args:
         inFileName (str): Ini filename to write to
         inSection (str): Name of the section the value is stored
-        inKey (str): Name of the key to store the value
+        inKey (str): Name of the key(option) to store the value
         inValue: The value to store
-        useConfigParser (bool): Use the ToolParserClass or configparser class
-        writeDefault (bool): If using ToolParserClass, should it write the DEFAULT
-        section
+        useConfigParser (bool, optional): Use the ToolParserClass or configparser class
+        writeDefault (bool, optional): If using ToolParserClass, should it write the
+            DEFAULT section
+        lowercaseOptions (bool, optional): If True, then all keys(options) will be
+                treated as lowercase. This is how python's configparser handles ini
+                files. You may want to set this to False if editing 3ds max ini files.
 
     Returns:
         bool: IF it was able to save the ini setting to file.
@@ -97,7 +112,9 @@ def SetINISetting(
     if useConfigParser:
         tParser = configparser.ConfigParser(**_configParserKwargs)
     else:
-        tParser = ToolParserClass(writeDefault=writeDefault)
+        tParser = ToolParserClass(
+            writeDefault=writeDefault, lowercaseOptions=lowercaseOptions
+        )
     inSection = text(inSection)
     inKey = text(inKey)
     inValue = text(inValue)
@@ -277,12 +294,15 @@ class ToolParserClass(configparser.ConfigParser):
             return self.GetSection(attrKey)
         raise AttributeError(attrKey)
 
-    def __init__(self, toolID='', location='', writeDefault=True):
+    def __init__(
+        self, toolID='', location='', writeDefault=True, lowercaseOptions=True
+    ):
         configparser.ConfigParser.__init__(self, **_configParserKwargs)
         self._toolID = toolID
         self._location = location
         self._sectionClasses = []
         self._writeDefault = writeDefault
+        self.lowercaseOptions = lowercaseOptions
         if toolID:
             self.Load()
 
@@ -382,6 +402,13 @@ class ToolParserClass(configparser.ConfigParser):
 
             return True
         return False
+
+    def optionxform(self, option):
+        """ Set lowercaseOptions to False if you want to preserve option case.
+        """
+        if self.lowercaseOptions:
+            return super(ToolParserClass, self).optionxform(option)
+        return option
 
     def read(self, filenames):
         try:
