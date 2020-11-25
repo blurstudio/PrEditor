@@ -1,5 +1,6 @@
 import os
 import blurdev as _blurdev
+import distutils.spawn
 
 __all__ = [
     'createShortcutBlurIDE',
@@ -7,6 +8,30 @@ __all__ = [
     'createShortcutTreegrunt',
     'createShortcutTool',
 ]
+
+
+def _blurdev_exe(pyw=True):
+    """ Gets the path to blurdevw or blurdev executable.
+
+    Uses ``distutils.spawn.find_executable`` so the path is consistent with the system.
+    If blurdevw is not found with this, ``_scrips_path`` is used for the base path and
+    the .exe file extension is added if running on windows.
+
+    Args:
+        pyw (bool, optional): If True then blurdevw is returned, if false blurdev is
+            returned. On windows blurdevw.exe is used to run python without showing a
+            command prompt window like blurdev would, the same way that pythonw.exe
+            works. On linux both work the same way.
+    """
+    exe_base = 'blurdevw' if pyw else 'blurdev'
+    # Check if we can just call blurdevw directly because it is in the PATH env var.
+    exe = distutils.spawn.find_executable(exe_base)
+    if exe:
+        # blurdevw is in PATH, so strip off the directory path, preserving any extension
+        return exe
+    if _blurdev.settings.OS_TYPE == 'Windows':
+        exe_base += '.exe'
+    return _scrips_path(exe_base)
 
 
 def _scrips_path(*relative):
@@ -132,10 +157,12 @@ def createShortcutTool(
             is generated for. 1 is the public shared desktop, while 0(default) is the
             users desktop.
     """
+    target = _blurdev_exe() if target is None else target
     _blurdev.osystem.createShortcut(
         tool.displayName(),
-        tool.objectName(),
-        target=_scrips_path('treegrunt-tool.exe') if target is None else target,
+        ['launch', tool.objectName()],
+        target=target,
+        startin=os.path.dirname(target),
         path=path,
         icon=tool.icon(),
         description=tool.toolTip(),

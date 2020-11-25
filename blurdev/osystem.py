@@ -245,10 +245,13 @@ def createShortcut(
         if not target:
             target = sys.executable
         if not startin:
-            # Set the start in directory to the directory of args if passed
+            # Set the start in directory to the directory of the first args if passed
             # otherwise use the target directory
             if args:
-                startin = os.path.dirname(args)
+                if isinstance(args, (list, tuple)):
+                    startin = os.path.dirname(args[0])
+                else:
+                    startin = os.path.dirname(args)
             else:
                 startin = os.path.dirname(target)
 
