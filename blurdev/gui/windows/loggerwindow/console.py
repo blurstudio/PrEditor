@@ -6,6 +6,7 @@ import __main__
 import os
 import re
 import sip
+import string
 import subprocess
 import sys
 import time
@@ -726,20 +727,23 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """Determine if txt is a File-info line from a traceback, and if so, return info
         dict.
         """
+        lineMarker = '", line '
         ret = None
-        if txt[:8] == '  File "':
-            filename_end = txt.find('"', 8)
-            filename = txt[8:filename_end]
 
-            line_start = filename_end + 8
-            line_end = txt.find(',', line_start)
-            line_number = int(txt[line_start:line_end])
-
+        filenameEnd = txt.find(lineMarker)
+        if txt[:8] == '  File "' and filenameEnd >= 0:
+            filename = txt[8:filenameEnd]
+            lineNumStart = filenameEnd + len(lineMarker)
+            lineNumEnd = txt.find(',', lineNumStart)
+            if lineNumEnd == -1:
+                lineNumEnd = len(txt)
+            lineNum = txt[lineNumStart:lineNumEnd]
             ret = {
                 'filename': filename,
                 'fileStart': 8,
-                'fileEnd': filename_end,
-                'lineNum': line_number}
+                'fileEnd': filenameEnd,
+                'lineNum': lineNum
+                }
 
         return ret
 
@@ -762,29 +766,37 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 charFormat.setForeground(self.errorMessageColor())
             self.setCurrentCharFormat(charFormat)
 
-            # If showing Error Hyperlinks...
-            # Sometimes the last File-Info line of a traceback is issued in multiple
-            # messages followed by a newline, so our normal regex search won't work.
-            # Instead, we'll manually reconstruct the line. If msg is a newline, grab
-            # that current line and do re search on it. If it matches, clear the
-            # existing line, then proceed using that line as msg
+            # If showing Error Hyperlinks... Sometimes (when a syntax error, at least),
+            # the last File-Info line of a traceback is issued in multiple messages
+            # starting with unicode paragraph separator (r"\u2029") and followed by a
+            # newline, so our normal string checks search won't work. Instead, we'll
+            # manually reconstruct the line. If msg is a newline, grab that current line
+            # and check it. If it matches,proceed using that line as msg
             cursor = self.textCursor()
             info = None
+
             if doHyperlink and msg == '\n':
                 cursor.select(QTextCursor.BlockUnderCursor)
                 line = cursor.selectedText()
+
+                # Remove possible leading unicode paragraph separator, which really
+                # messes up the works
+                if line and line[0] not in string.printable:
+                    line = line[1:]
+
                 info = self.parseErrorHyperLinkInfo(line)
                 if info:
-                    msg = line + "\n"
-                    cursor.select(QTextCursor.BlockUnderCursor)
-                    self.removeCurrentLine()
+                    cursor.insertText("\n")
+                    msg = "{}\n".format(line)
 
             try:
                 # If showing Error Hyperlinks, display underline output, otherwise
-                # display normal output
+                # display normal output. Exclude ConsoleEdits
                 info = info if info else self.parseErrorHyperLinkInfo(msg)
-                if info and doHyperlink:
-                    filename = info.get("filename")
+                filename = info.get("filename", "") if info else ""
+                isConsoleEdit = '<ConsoleEdit>' in filename
+
+                if info and doHyperlink and not isConsoleEdit:
                     fileStart = info.get("fileStart")
                     fileEnd = info.get("fileEnd")
                     lineNum = info.get("lineNum")
@@ -801,7 +813,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
 
                     # Insert initial, non-underlined text
-                    self.insertPlainText(msg[:fileStart])
+                    cursor.insertText(msg[:fileStart])
 
                     # Insert hyperlink
                     fmt = cursor.charFormat()

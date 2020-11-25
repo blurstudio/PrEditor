@@ -43,7 +43,8 @@ class WorkboxWidget(DocumentEditor):
         """
         txt = self.toUnixLineEndings(self.text()).rstrip()
         idx = self.parent().indexOf(self)
-        self.console().executeString(txt, filename='<WorkboxWidget>:{}'.format(idx))
+        filename = '<WorkboxWidget>:{}'.format(idx)
+        self.console().executeString(txt, filename=filename)
 
     def findLeadingWhitespace(self, lines):
         # Find the first line that has text that isn't a comment
