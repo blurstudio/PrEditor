@@ -34,6 +34,7 @@ class ToolsIndex(QObject):
     def __init__(self, environment):
         super(ToolsIndex, self).__init__(environment)
         self._loaded = False
+        self._favorite_tool_ids = set()
         self._favoritesLoaded = False
         self._categoryCache = {}
         self._toolCache = {}
@@ -465,11 +466,29 @@ class ToolsIndex(QObject):
         except AttributeError as exc:
             raise ImportError(str(exc))
 
-    def favoriteTools(self):
-        """ returns all the tools that are favorited and linked
+    def favoriteToolIds(self):
+        """ The tool id's the user has favorited.
+
+        This is stored as a set of tool ids so we can store tool ids that are not valid
+        for the current treegrunt environment. This allows you to keep your favorites
+        when you switch between multiple treegrunt environments even if they don't have
+        the same treegrunt tools. This does mean that as we remove old tools, they won't
+        get removed from peoples saved favorites, but this is better than a user loosing
+        their favorites because the index didn't build, or they switched to an
+        environment that doesn't have their tool.
         """
         self.loadFavorites()
-        return [tool for tool in self._toolCache.values() if tool.isFavorite()]
+        return self._favorite_tool_ids
+
+    def favoriteTools(self):
+        """ Returns a list of ``blurdev.tools.Tool`` that the user has favorited.
+        """
+        ret = []
+        for tool_id in self.favoriteToolIds():
+            tool = self._toolCache.get(str(tool_id))
+            if tool:
+                ret.append(tool)
+        return ret
 
     def filename(self, **kwargs):
         """ returns the filename for this index
@@ -547,7 +566,15 @@ class ToolsIndex(QObject):
                     # If a user has the old favorite groups pref, skip them,
                     # the next time we save they should be removed.
                     continue
-                self.findTool(child.attribute('id')).setFavorite(True)
+                tool_id = child.attribute('id')
+                tool = self.findTool(tool_id)
+                if tool.isNull():
+                    # This tool is not valid for this index, make sure its added
+                    # so it is not lost when saving the favorites to disk.
+                    self._favorite_tool_ids.add(tool_id)
+                else:
+                    # Its a valid tool, let the Tool api update _favorite_tool_ids
+                    tool.setFavorite(True)
 
     def findCategory(self, name):
         """ returns the tool based on the inputed name, returning the default option if
@@ -609,9 +636,9 @@ class ToolsIndex(QObject):
             root.clear()
 
             # record the tools
-            for tool in self.favoriteTools():
+            for tool_id in sorted(self.favoriteToolIds()):
                 node = root.addNode('tool')
-                node.setAttribute('id', tool.objectName())
+                node.setAttribute('id', tool_id)
             pref.save()
 
     def search(self, searchString):

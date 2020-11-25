@@ -196,6 +196,12 @@ class Tool(QObject):
 
     def setFavorite(self, state=True):
         self._favorite = state
+        # Update the set that is used to save user favorites if this is a valid tool.
+        if not self.isNull():
+            if state:
+                self.index().favoriteToolIds().add(self.objectName())
+            else:
+                self.index().favoriteToolIds().discard(self.objectName())
 
     def setIcon(self, icon):
         self._icon = icon
