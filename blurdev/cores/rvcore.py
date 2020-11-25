@@ -41,6 +41,12 @@ class RVCore(Core):
 
         # NOTE: DO NOT CALL SUPER for this reason on windows.
 
+    def macroNames(self):
+        """ Returns True if the current blurdev core create a tool macro.
+        """
+        # Blurdev can not currently make a macro for this DCC.
+        return tuple()
+
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the RVCore has shutdown called
         """

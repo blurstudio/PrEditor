@@ -58,11 +58,11 @@ class MayaCore(Core):
         self.initGui()
         return ret
 
-    def macroSupported(self):
+    def macroNames(self):
         """ Returns True if the current blurdev core create a tool macro.
         """
         # Blurdev can not currently make a macro for this DCC.
-        return False
+        return tuple()
 
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the MayaCore has shutdown called

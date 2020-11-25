@@ -72,11 +72,11 @@ class HoudiniCore(Core):
         except RuntimeError:
             return ''
 
-    def macroSupported(self):
+    def macroNames(self):
         """ Returns True if the current blurdev core create a tool macro.
         """
         # Blurdev can not currently make a macro for this DCC.
-        return False
+        return tuple()
 
     def rootWindow(self):
         """

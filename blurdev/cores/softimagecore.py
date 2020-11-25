@@ -92,11 +92,11 @@ class SoftimageCore(Core):
         self.initGui()
         return ret
 
-    def macroName(self):
+    def macroNames(self):
         """
         Returns the name to display for the create macro action in treegrunt
         """
-        return 'Create Macro...'
+        return ('Create Macro...',)
 
     def mainWindowGeometry(self):
         if self.headless:

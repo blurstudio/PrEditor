@@ -17,6 +17,12 @@ class KatanaCore(Core):
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
 
+    def macroNames(self):
+        """ Returns True if the current blurdev core create a tool macro.
+        """
+        # Blurdev can not currently make a macro for this DCC.
+        return tuple()
+
     def toolTypes(self):
         """
         Overloads the toolTypes method from the Core class to show tool types that are

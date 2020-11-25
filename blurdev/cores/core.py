@@ -274,20 +274,35 @@ class Core(QObject):
                 return True
         return False
 
-    def createToolMacro(self, tool, macro=''):
+    def createToolMacro(self, tool, macro_name):
         """ Method to create macros for a tool.
 
-        Creates a desktop shortcut if `self.macroSupported()` returns True. If a DCC
+        Creates a shortcut if `self.macroNames()` has any names. If a DCC
         supports macros, it should override this function with its own implementation.
+
+        Args:
+            tool (blurdev.tools.tool.Tool): The tool to create the desktop shortcut for.
+            macro_name (str): One of the returned strings of the `macroNames` method.
+                This is used to create the macro for the requested menu item.
+
+        Returns:
+            bool: If a macro was created.
         """
-        if not self.macroSupported():
+        if not self.macroNames():
             return False
 
         from ..utils import shortcut
 
+        # If the user requested a start menu shortcut, create it in the blur folder.
+        if macro_name == 'Create Start Menu Shortcut':
+            path = ('start menu', 'Blur')
+        else:
+            # Otherwise create it on the desktop
+            path = ('desktop',)
+
         # Using treegrunt-tool makes it so the desktop shortcuts launch using the same
         # treegrunt environment used by external treegrunt.
-        shortcut.createShortcutTool(tool)
+        shortcut.createShortcutTool(tool, path=path)
 
         return True
 
@@ -718,16 +733,12 @@ class Core(QObject):
 
         return LoggerWindow.instance(parent)
 
-    def macroName(self):
-        """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Create Desktop Shortcut...'
+    def macroNames(self):
+        """ Returns the names to display for the create macro action in treegrunt.
 
-    def macroSupported(self):
-        """ Returns True if the current blurdev core create a tool macro.
+        The selected name is passed to the macro_name argument of createToolMacro.
         """
-        return True
+        return ('Create Start Menu Shortcut', 'Create Desktop Shortcut')
 
     def mainWindowGeometry(self):
         """ QWinWidget doesn't properly center its children.

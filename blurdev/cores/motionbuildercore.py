@@ -89,11 +89,11 @@ class MotionBuilderCore(Core):
         self.initGui()
         return ret
 
-    def macroName(self):
+    def macroNames(self):
+        """ Returns True if the current blurdev core create a tool macro.
         """
-        Returns the name to display for the create macro action in treegrunt
-        """
-        return 'Create Macro...'
+        # Blurdev can not currently make a macro for this DCC.
+        return tuple()
 
     def quitQtOnShutdown(self):
         """ Qt should not be closed when the MayaCore has shutdown called

@@ -27,11 +27,11 @@ class FusionCore(Core):
         # NOTE: composition is globaly available inside fusion.exe, no need to import.
         return re.findall(r'UUID: ([^\]]+)', str(composition))[0]  # noqa: F821
 
-    def macroSupported(self):
+    def macroNames(self):
         """ Returns True if the current blurdev core create a tool macro.
         """
         # Blurdev can not currently make a macro for this DCC.
-        return False
+        return tuple()
 
     def toolTypes(self):
         """

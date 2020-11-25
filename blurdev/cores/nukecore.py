@@ -100,11 +100,11 @@ class NukeCore(Core):
                     toolbar_class.instanceRecordSettings()
         return super(NukeCore, self).eventFilter(obj, event)
 
-    def macroSupported(self):
+    def macroNames(self):
         """ Returns True if the current blurdev core create a tool macro.
         """
         # Blurdev can not currently make a macro for this DCC.
-        return False
+        return tuple()
 
     def recordToolbars(self):
         """ Records settings for all found toolbars.

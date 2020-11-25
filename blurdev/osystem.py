@@ -228,20 +228,35 @@ def createShortcut(
         target (str or None, optional): the target for the shortcut. If None(default)
             this will default to sys.executable.
         icon (str or None, optional): path to the icon the shortcut should use
-        path (str, or None, optional): path where the shortcut should be created. If
-            None(default) this will default to the desktop.
+        path (str or list, optional): path where the shortcut should be created. On
+            windows, if a list is passed it must have at least one string in it and the
+            list will be passed to os.path.join. The first string in the list will be
+            replaced if a key is used. `start menu` is replaced with the path to the
+            start menu. `desktop` is replaced with the path to the desktop. If None the
+            desktop path is used.
         description (str, optional): helpful description for the shortcut
-        common (int, optional): If auto generating the path, this controls which desktop
-            the path is generated for. 1(default) is the public shared desktop, while 0
-            is the users desktop.
+        common (int, optional): If auto generating the path, this controls if the path
+            is generated for the user or shared. 1(default) is the public shared folde,
+            while 0 is the users folder. See path to control if the auto-generated path
+            is for the desktop or start menu.
     """
     if settings.OS_TYPE == 'Windows':
         import winshell
 
-        if not path:
+        if isinstance(path, (list, tuple)):
+            base = path[0]
+            if base == 'start menu':
+                base = os.path.join(winshell.start_menu(common), 'Programs')
+            elif base == 'desktop':
+                base = winshell.desktop(common)
+            # Add the remaining path structure
+            path = os.path.join(base, *path[1:])
+        elif not path:
             path = winshell.desktop(common)
-            if not os.path.exists(path):
-                os.makedirs(path)
+        # Create any missing folders in the path structure
+        if path and not os.path.exists(path):
+            os.makedirs(path)
+
         if not target:
             target = sys.executable
         if not startin:

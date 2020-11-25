@@ -331,11 +331,11 @@ class StudiomaxCore(Core):
             if 'Start Blur css workarounds' not in app.styleSheet():
                 app.setStyleSheet(self._defaultStyleSheet)
 
-    def macroName(self):
+    def macroNames(self):
         """
         Returns the name to display for the create macro action in treegrunt
         """
-        return 'Create Macro...'
+        return ('Create Macro...',)
 
     def mainWindowGeometry(self):
         if self.headless:
