@@ -1,5 +1,4 @@
 import os
-import logging
 import webbrowser
 from past.builtins import basestring
 from Qt.QtCore import Qt
@@ -13,25 +12,35 @@ from blurdev.tools.tool import Tool
 
 class ToolbarAction(QAction):
     def __init__(self, parent, tool):
-        self._tool = tool
-        self._toolID = tool.objectName()
-        if isinstance(tool, str):
-            self._tool = blurdev.findTool(self._toolID)
+        if isinstance(tool, basestring):
+            self._tool = blurdev.findTool(tool)
+            self._toolID = tool
+        else:
+            self._tool = tool
+            self._toolID = tool.objectName()
 
-        if not isinstance(self._tool, Tool) or self._tool.isNull():
-            msg = 'Could not resolve to a valid tool for {}'
-            raise ValueError(msg.format(tool))
-
-        self._toolWikiName = tool.displayName().replace(' ', '_')
-        self._toolDsiplayName = tool.displayName()
+        self._toolWikiName = self._tool.displayName().replace(' ', '_')
+        self._toolDsiplayName = self._tool.displayName()
 
         super(ToolbarAction, self).__init__(parent)
-        self.setIcon(QIcon(QPixmap(tool.image())))
-        self.setText(tool.displayName())
-        self.setToolTip(tool.toolTip(info=True))
+        self.setIcon(QIcon(QPixmap(self._tool.image())))
+        self.setText(self._tool.displayName())
+        self.setToolTip(self._tool.toolTip(info=True))
+
+        if not isinstance(self._tool, Tool):
+            msg = 'Could not resolve to a valid tool for {}'
+            raise ValueError(msg.format(self._tool))
+        elif self._tool.isNull():
+            # Hide tools that are not valid for the active treegrunt environment.
+            # This tool may be used in other treegrunt environments
+            self.setVisible(False)
+            self._tool.setObjectName(self._toolID)
 
     def tool(self):
         return self._tool
+
+    def toolID(self):
+        return self._toolID
 
     def exec_(self):
         blurdev.runTool(self._toolID)
@@ -79,16 +88,8 @@ class ToolsToolbar(BlurdevToolbar):
         self.updateToolVisibility()
 
     def addTool(self, tool):
-        if isinstance(tool, basestring):
-            tool = blurdev.findTool(tool)
-        if isinstance(tool, Tool) and not tool.isNull():
-            try:
-                action = ToolbarAction(self, tool)
-                return self.addAction(action)
-            except ValueError:
-                pass
-        logging.warn('Could not add invalid tool {} to toolbar.'.format(tool))
-        return None
+        action = ToolbarAction(self, tool)
+        return self.addAction(action)
 
     def dragEnterEvent(self, event):
         """ filter drag events for specific items, treegrunt tools or script files """
@@ -109,9 +110,9 @@ class ToolsToolbar(BlurdevToolbar):
             toolIDs = self.toolIDs()
             if toolID not in toolIDs:
                 tool = blurdev.findTool(toolID)
+                # Only allow drag drop of valid tool ids
                 if not tool.isNull():
-                    action = ToolbarAction(self, tool)
-                    self.addAction(action)
+                    self.addTool(tool)
 
     def mousePressEvent(self, event):
         """ Overload the mouse press event to handle custom context menus
