@@ -745,12 +745,14 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def write(self, msg, error=False):
         """ write the message to the logger """
-        window = self.window()
-        doHyperlink = (hasattr(window, 'uiErrorHyperlinksACT')
-                       and window.uiErrorHyperlinksACT.isChecked()
-                       )
-
+        # Check that we haven't been garbage collected before trying to write.
+        # This can happen while shutting down a QApplication like Nuke.
         if not sip.isdeleted(self):
+            window = self.window()
+            doHyperlink = (
+                hasattr(window, 'uiErrorHyperlinksACT')
+                and window.uiErrorHyperlinksACT.isChecked()
+            )
             self.moveCursor(QTextCursor.End)
 
             charFormat = QTextCharFormat()
