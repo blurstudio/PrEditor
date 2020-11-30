@@ -21,7 +21,6 @@ from Qt.QtCore import QObject
 import blurdev
 import blurdev.tools.toolscategory
 import blurdev.tools.tool
-import blurdev.tools.toolsfavoritegroup
 from collections import OrderedDict
 
 
@@ -64,12 +63,6 @@ class ToolsIndex(QObject):
         self._loaded_entry_points = False
 
         # remove all the children
-        for child in self.findChildren(
-            blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup
-        ):
-            child.setParent(None)
-            child.deleteLater()
-
         for child in self.findChildren(blurdev.tools.tool.Tool):
             child.setParent(None)
             child.deleteLater()
@@ -472,18 +465,6 @@ class ToolsIndex(QObject):
         except AttributeError as exc:
             raise ImportError(str(exc))
 
-    def favoriteGroups(self):
-        """ returns the favorites items for this index
-        """
-        self.loadFavorites()
-        return [
-            child
-            for child in self.findChildren(
-                blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup
-            )
-            if child.parent() == self
-        ]
-
     def favoriteTools(self):
         """ returns all the tools that are favorited and linked
         """
@@ -563,11 +544,10 @@ class ToolsIndex(QObject):
             children = pref.root().children()
             for child in children:
                 if child.nodeName == 'group':
-                    blurdev.tools.toolsfavoritegroup.ToolsFavoriteGroup.fromXml(
-                        self, self, child
-                    )
-                else:
-                    self.findTool(child.attribute('id')).setFavorite(True)
+                    # If a user has the old favorite groups pref, skip them,
+                    # the next time we save they should be removed.
+                    continue
+                self.findTool(child.attribute('id')).setFavorite(True)
 
     def findCategory(self, name):
         """ returns the tool based on the inputed name, returning the default option if
@@ -627,10 +607,6 @@ class ToolsIndex(QObject):
             pref = blurdev.prefs.find('treegrunt/favorites')
             root = pref.root()
             root.clear()
-
-            # record the groups
-            for grp in self.favoriteGroups():
-                grp.toXml(root)
 
             # record the tools
             for tool in self.favoriteTools():

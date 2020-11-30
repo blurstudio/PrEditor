@@ -50,7 +50,6 @@ class Tool(QObject):
         self._toolType = 0
         self._architecture = None
         self._favorite = False
-        self._favoriteGroup = None
         self._redistributable = True
         self._disabled = False
         self._usagestatsEnabled = True
@@ -113,9 +112,6 @@ class Tool(QObject):
             info = {'name': name}
             info['miscInfo'] = macro
             blurdev.tools.logUsage(info)
-
-    def favoriteGroup(self):
-        return self._favoriteGroup
 
     def icon(self):
         path = self.relativePath(self._icon)
@@ -200,11 +196,6 @@ class Tool(QObject):
 
     def setFavorite(self, state=True):
         self._favorite = state
-
-    def setFavoriteGroup(self, favoriteGroup):
-        self._favoriteGroup = favoriteGroup
-        if favoriteGroup:
-            self.setFavorite()
 
     def setIcon(self, icon):
         self._icon = icon
