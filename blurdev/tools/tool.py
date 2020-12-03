@@ -286,14 +286,6 @@ class Tool(QObject):
         Returns:
             Tool: The created tool record.
         """
-        # TODO: remove /*
-        if not isinstance(data, dict):
-            return cls._fromIndexXML(index, data)
-        return cls._fromIndexJson(index, data)
-
-    @classmethod
-    def _fromIndexJson(cls, index, data):
-        # TODO: remove */
         output = cls()
 
         # NOTE: Not using os.path is intentional. Those functions are slower
@@ -343,62 +335,3 @@ class Tool(QObject):
         index.cacheTool(output)
 
         return output
-
-    # TODO: remove /*
-    @classmethod
-    def _fromIndexXML(cls, index, xml):
-        output = Tool()
-        # The code name is required
-        output.setObjectName(xml.attribute('name'))
-
-        # load modern tools
-        loc = xml.attribute('loc')
-        if loc:
-            output.setPath(os.path.split(index.environment().relativePath(loc))[0])
-        else:
-            # load legacy tools
-            output.setToolType(ToolType.fromString(xml.attribute('type', 'AllTools')))
-            filename = xml.attribute('src')
-            # NOTE: This has been broken and I'm not fixing it because it is going away.
-            # "bsi1.bat.remapDrives_win7_resource" incorrectly becomes "bsi1_resource"
-            output.setPath(
-                os.path.split(filename)[0]
-                + '/%s_resource' % os.path.basename(filename).split('.')[0]
-            )
-            output.setSourcefile(filename)
-            output.setIcon(xml.attribute('icon'))
-
-        # load the meta data
-        data = xml.findChild('data')
-        if data:
-            output.setVersion(data.attribute('version'))
-            output.setIcon(data.findProperty('icon'))
-            output.setSourcefile(output.relativePath(data.findProperty('src')))
-            output.setWikiPage(data.findProperty('wiki'))
-            output.setUrl(data.findProperty('url'))
-            output.setToolType(ToolType.fromString(data.attribute('type', 'AllTools')))
-            output.setDisplayName(data.findProperty('displayName', output.objectName()))
-            output.setDisabled(data.findProperty('disabled', 'false').lower() == 'true')
-            output.setUsagestatsEnabled(
-                data.findProperty('usagestats', 'true').lower() == 'true'
-            )
-            output.setToolTip(data.findProperty('toolTip', ''))
-            output.setArchitecture(data.findProperty('architecture', None))
-            output.setRedistributable(
-                data.findProperty('redistributable', 'true').capitalize() == 'True'
-            )
-            output.set_cli_module(data.findProperty('cliModule', ''))
-
-        # add the tool to the category or index
-        category = index.findCategory(xml.attribute('category'))
-        if category:
-            category.addTool(output)
-        else:
-            output.setParent(index)
-
-        # cache the tool in the index
-        index.cacheTool(output)
-
-        return output
-
-    # TODO: remove */

@@ -57,15 +57,7 @@ class ToolsCategory(QObject):
         return self._toolType
 
     @classmethod
-    def fromIndex(cls, index, parent, xml=None, name=None, children={}):
-        # TODO: remove /*
-        if name is None:
-            return cls._fromIndexXML(index, parent, xml)
-        return cls._fromIndexJson(index, parent, name, children)
-
-    @classmethod
-    def _fromIndexJson(cls, index, parent, name, children={}):
-        # TODO: remove */
+    def fromIndex(cls, index, parent, name=None, children={}):
         output = cls(parent, name)
 
         # cache the category
@@ -73,24 +65,5 @@ class ToolsCategory(QObject):
 
         # load the child categories
         for childName in children:
-            cls._fromIndexJson(index, output, childName, children[childName])
+            cls.fromIndex(index, output, childName, children=children[childName])
         return output
-
-    # TODO: remove /*
-    @classmethod
-    def _fromIndexXML(cls, index, parent, xml):
-        output = ToolsCategory(parent)
-
-        # load the information
-        output.setObjectName(xml.attribute('name'))
-
-        # cache the category
-        index.cacheCategory(output)
-
-        # load the child categories
-        for child in xml.children():
-            ToolsCategory.fromIndex(index, output, child)
-
-        return output
-
-    # TODO: remove */
