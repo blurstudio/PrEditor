@@ -65,7 +65,7 @@ class LoggerWindow(Window):
 
         import blurdev.gui
 
-        self.setWindowIcon(QIcon(blurdev.findTool('Python_Logger').icon()))
+        self.setWindowIcon(QIcon(blurdev.resourcePath('img/python_logger.png')))
         blurdev.gui.loadUi(__file__, self)
 
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
