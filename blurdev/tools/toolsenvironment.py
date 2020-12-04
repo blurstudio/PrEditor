@@ -8,7 +8,6 @@
 # 	\date		06/11/10
 #
 from __future__ import absolute_import
-
 from __future__ import print_function
 import glob
 import os
@@ -17,7 +16,6 @@ import re
 import datetime
 import logging
 import importlib
-import traceback
 
 from Qt.QtCore import QDateTime, QObject
 
@@ -886,22 +884,13 @@ class ToolsEnvironment(QObject):
         # Update sys.path with the treeegrunt environment paths
         index = self.index()
         all_tool_paths = []
-        for entry_point in index.entry_points():
-            logger.info('Processing entry point: {}'.format(entry_point))
-            # Attempt to load the module, report errors but don't break the
-            # import of blurdev if one of these fail.
-            try:
-                sys_paths, tool_paths = index.resolve_entry_point(entry_point)()
-            except Exception:
-                print('# Skipping entry point: {}'.format(entry_point))
-                traceback.print_exc()
-                continue
-            for path in sys_paths:
+        for tools_package in index.packages():
+            for path in tools_package.sys_paths():
                 logger.debug('  sys.path.insert: {}'.format(path))
                 self.registerPath(path)
 
             # Get the tool_paths and conform them for use in the index
-            for tool_path in tool_paths:
+            for tool_path in tools_package.tool_paths():
                 # If legacy wasn't passed we can assume its not a legacy file structure
                 if isinstance(tool_path, str):
                     tool_path = [tool_path, False]

@@ -58,10 +58,12 @@ class ToolsCategory(QObject):
 
     @classmethod
     def fromIndex(cls, index, parent, name=None, children={}):
-        output = cls(parent, name)
-
-        # cache the category
-        index.cacheCategory(output)
+        # Check if the category already exists and create it if it doesn't
+        output = index.findCategory(name)
+        if not output:
+            output = cls(parent, name)
+            # cache the category
+            index.cacheCategory(output)
 
         # load the child categories
         for childName in children:

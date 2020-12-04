@@ -276,12 +276,17 @@ class Tool(QObject):
         return self._wikiPage
 
     @classmethod
-    def fromIndex(cls, index, data):
-        """ Creates a new tool record based on the provided information for the given index
+    def fromIndex(cls, index, data, relative_root=None):
+        """ Creates a new tool record based on the provided information for the given
+        index.
 
         Args:
             index (ToolsIndex):
-            xml (blurdev.XML.XMLElement):
+            data (dict):
+            relative_root (str, optional): Relative path joined to the path stored in
+                data. This should only be used if data was built with a relative path.
+                For example `blurdev.tools.setup_tools.buildCmdFactory` is used by pip
+                packages to build a relative index.
 
         Returns:
             Tool: The created tool record.
@@ -296,6 +301,8 @@ class Tool(QObject):
         output.setObjectName(data['name'])
         # The folder containing the tool
         path = data['path']
+        if relative_root:
+            path = os.path.join(relative_root, path)
         # TODO: This isabs  if statement can be removed once the studio has migrated
         # to the new absolute path treegrunt index system. ntpath is used because
         # it understands unc paths and understands linux `/mnt/path` paths.

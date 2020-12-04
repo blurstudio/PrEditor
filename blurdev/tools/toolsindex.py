@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import os
 import re
-import functools
 import glob
 import logging
 import shutil
@@ -19,9 +18,10 @@ except ImportError:
 from Qt.QtCore import QObject
 
 import blurdev
-import blurdev.tools.toolscategory
-import blurdev.tools.tool
 from collections import OrderedDict
+from .toolscategory import ToolsCategory
+from .tool import Tool
+from .toolspackage import ToolsPackage
 
 
 logger = logging.getLogger(__name__)
@@ -38,8 +38,8 @@ class ToolsIndex(QObject):
         self._favoritesLoaded = False
         self._categoryCache = {}
         self._toolCache = {}
-        self._entry_points = []
-        self._loaded_entry_points = False
+        self._packages = []
+        self._loaded_packages = False
         self._tool_root_paths = []
 
     def baseCategories(self):
@@ -60,15 +60,15 @@ class ToolsIndex(QObject):
         self._loaded = False
         self._categoryCache.clear()
         self._toolCache.clear()
-        self._entry_points = []
-        self._loaded_entry_points = False
+        self._packages = []
+        self._loaded_packages = False
 
         # remove all the children
-        for child in self.findChildren(blurdev.tools.tool.Tool):
+        for child in self.findChildren(Tool):
             child.setParent(None)
             child.deleteLater()
 
-        for child in self.findChildren(blurdev.tools.toolscategory.ToolsCategory):
+        for child in self.findChildren(ToolsCategory):
             child.setParent(None)
             child.deleteLater()
 
@@ -90,13 +90,13 @@ class ToolsIndex(QObject):
         """
         self._toolCache[str(tool.objectName())] = tool
 
-    def entry_points(self):
+    def packages(self):
         """ A list of entry point data resolved when the index was last rebuilt.
 
         Each item is a list with the name, module_name, and args of a resolved
         `blurdev.tools.paths` entry point.
         """
-        if not self._loaded_entry_points:
+        if not self._loaded_packages:
             filename = self.filename(filename='entry_points.json')
             # Build the entry_points file if it doesn't exist
             if not os.path.exists(filename):
@@ -107,12 +107,15 @@ class ToolsIndex(QObject):
                     return []
 
             with open(filename) as f:
-                self._entry_points = json.load(f)
+                entry_points = json.load(f)
+                self._packages = []
+                for entry_point in entry_points:
+                    tools_package = ToolsPackage(entry_point)
+                    self._packages.append(tools_package)
 
-            # load entry_points
-            self._loaded_entry_points = True
+            self._loaded_packages = True
 
-        return self._entry_points
+        return self._packages
 
     def environment(self):
         """ returns this index's environment
@@ -246,10 +249,59 @@ class ToolsIndex(QObject):
         categories = {}
         tools = []
 
-        for path, legacy in self.toolRootPaths():
-            self.rebuildPathJson(
-                path, categories, tools, legacy=legacy, path_replace=path_replace
+        for package in self.packages():
+            # TODO: Detect if package is a editable install and automatically call
+            # buildIndexForToolsPackage on it.
+            if not package.tool_index():
+                for tool_path in package.tool_paths():
+                    # If legacy wasn't passed we can assume its not a legacy
+                    # file structure
+                    if isinstance(tool_path, str):
+                        tool_path = [tool_path, False]
+
+                    self.rebuildPathJson(
+                        tool_path[0],
+                        categories,
+                        tools,
+                        legacy=tool_path[1],
+                        path_replace=path_replace,
+                    )
+
+        self.saveToolJson(filename, categories, tools)
+
+    @classmethod
+    def buildIndexForToolsPackage(cls, package):
+        if isinstance(package, (list, tuple)):
+            package = ToolsPackage(package)
+
+        categories = {}
+        tools = []
+
+        filename = package.tool_index()
+        if not filename:
+            logging.debug('No tool_index defined for {}'.format(package.name()))
+            return None, categories, tools
+
+        relative_root = os.path.dirname(filename)
+
+        for tool_path in package.tool_paths():
+            # If legacy wasn't passed we can assume its not a legacy file structure
+            if isinstance(tool_path, str):
+                tool_path = [tool_path, False]
+
+            cls.rebuildPathJson(
+                tool_path[0],
+                categories,
+                tools,
+                legacy=tool_path[1],
+                relative_root=relative_root,
             )
+
+        cls.saveToolJson(filename, categories, tools)
+        return filename, categories, tools
+
+    @classmethod
+    def saveToolJson(cls, filename, categories, tools):
 
         # Use OrderedDict to build this so the json is saved consistently.
         dirname, basename = os.path.split(filename)
@@ -278,14 +330,16 @@ class ToolsIndex(QObject):
                 with open(os.path.join(dirname, 'code', basename), 'w') as out:
                     shutil.copyfileobj(fle, out)
 
+    @classmethod
     def rebuildPathJson(
-        self,
+        cls,
         path,
         categories,
         tools,
         legacy=False,
         parentCategoryId=None,
         path_replace=None,
+        relative_root=None,
     ):
 
         if not os.path.exists(path):
@@ -350,6 +404,8 @@ class ToolsIndex(QObject):
                 toolId = os.path.basename(tool_folder)
                 if path_replace is not None:
                     tool_folder = tool_folder.replace(*path_replace)
+                if relative_root:
+                    tool_folder = os.path.relpath(tool_folder, relative_root)
                 ret = OrderedDict(name=toolId, path=tool_folder,)
                 ret = loadProperties(xml, ret)
                 return ret
@@ -434,7 +490,7 @@ class ToolsIndex(QObject):
             subpaths = glob.glob(path + '/*/')
             for path in subpaths:
                 if not os.path.split(path)[0].endswith('_resource'):
-                    self.rebuildPathJson(
+                    cls.rebuildPathJson(
                         path,
                         categories,
                         tools,
@@ -449,22 +505,6 @@ class ToolsIndex(QObject):
         self.clear()
         self.load()
         self.loadFavorites()
-
-    @classmethod
-    def resolve_entry_point(cls, entry_point):
-        """
-        Resolve the entry point from its module and attrs.
-
-        This replicates parts of the pkg_resources system. We are not using it
-        here because importing pkg_resources takes time and we also need to
-        rebuild its index when switching treegrunt environments.
-        """
-        # Copied from the `pkg_resources.EntryPoint.resolve` function
-        module = __import__(entry_point[1], fromlist=['__name__'], level=0)
-        try:
-            return functools.reduce(getattr, entry_point[2], module)
-        except AttributeError as exc:
-            raise ImportError(str(exc))
 
     def favoriteToolIds(self):
         """ The tool id's the user has favorited.
@@ -511,39 +551,54 @@ class ToolsIndex(QObject):
         """
         if not self._loaded:
             filename = self.filename()
-            from blurdev.tools.toolscategory import ToolsCategory
-            from blurdev.tools.tool import Tool
+            load_all = toolId is None
+            self.loadIndexFile(filename, toolId=toolId, load_all=load_all)
 
-            # Setting _loaded to True, makes sure that when each Tool object we
-            # create does not end triggering a call to load()
-            self._loaded = True
+            # Handle any entry_point specified index files.
+            for tools_package in self.packages():
+                if tools_package.tool_index():
+                    self.loadIndexFile(
+                        tools_package.tool_index(),
+                        toolId=toolId,
+                        load_all=load_all,
+                        relative=True,
+                    )
+            # Only consider everything loaded if we didn't use a toolId
+            # TODO: Refactor how load is called so we don't need to call it everywhere
+            # with a self._loaded check.
+            self._loaded = load_all
 
-            if not os.path.exists(filename):
-                return
+    def loadIndexFile(self, filename, toolId=None, load_all=True, relative=False):
+        if not os.path.exists(filename):
+            return
 
-            with open(filename) as f:
-                indexJson = json.load(f)
+        relative_root = os.path.dirname(filename) if relative else None
+        # Setting _loaded to True, makes sure that when each Tool object we
+        # create does not end triggering a call to load()
+        loaded = self._loaded
+        self._loaded = True
 
-            # load categories
-            categories = indexJson.get('categories', {})
-            for topLevelCategory in categories:
-                ToolsCategory.fromIndex(
-                    self,
-                    self,
-                    name=topLevelCategory,
-                    children=categories[topLevelCategory],
-                )
+        with open(filename) as f:
+            indexJson = json.load(f)
 
-            # load tools
-            tools = indexJson.get('tools', [])
-            loadAllTools = toolId is None
-            for tool in tools:
-                if not loadAllTools and tool['name'] != toolId:
-                    continue
-                Tool.fromIndex(self, tool)
-            # If a toolId was passed in, we should not consider the tools index loaded.
-            # This would make it impossible to access any other tools
-            self._loaded = loadAllTools
+        # load categories
+        categories = indexJson.get('categories', {})
+        for topLevelCategory in categories:
+            ToolsCategory.fromIndex(
+                self,
+                self,
+                name=topLevelCategory,
+                children=categories[topLevelCategory],
+            )
+
+        # load tools
+        tools = indexJson.get('tools', [])
+        for tool in tools:
+            if not load_all and tool['name'] != toolId:
+                continue
+            Tool.fromIndex(self, tool, relative_root=relative_root)
+
+        self._loaded = loaded
 
     def loadFavorites(self):
         if not self._favoritesLoaded:
@@ -588,7 +643,7 @@ class ToolsIndex(QObject):
         no tool is found
         """
         self.load(name)
-        return self._toolCache.get(str(name), blurdev.tools.tool.Tool())
+        return self._toolCache.get(str(name), Tool())
 
     def findToolsByCategory(self, name):
         """ looks up the tools based on the inputed category name
