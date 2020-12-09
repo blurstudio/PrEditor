@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import os
 import re
+import sys
 import glob
 import logging
 import shutil
@@ -89,6 +90,35 @@ class ToolsIndex(QObject):
         """ caches the inputed tool by its name
         """
         self._toolCache[str(tool.objectName())] = tool
+
+    def editable_install_paths(self):
+        """ Generates a set of all paths contained in all .egg-link files on sys.path
+        """
+        repo_roots = set()
+        for path in sys.path:
+            for link in glob.glob(os.path.join(path, '*.egg-link')):
+
+                for line in open(link).readlines():
+                    line = line.strip()
+                    if line != '.' and os.path.exists(line):
+                        repo_roots.add(line)
+        return repo_roots
+
+    def editable_tools_package_ids(self):
+        """ Returns the name and module_name for editable blurdev.tools.paths installs.
+        """
+        # importing pkg_resources takes ~0.8 seconds only import it if we need to.
+        import pkg_resources
+
+        editable = set()
+        for path in self.editable_install_paths():
+            # Note: pkg_resources.find_distributions is not dependent on the working set
+            for dist in pkg_resources.find_distributions(path):
+                entries = dist.get_entry_map('blurdev.tools.paths')
+                editable.update(
+                    {(entry.name, entry.module_name) for entry in entries.values()}
+                )
+        return editable
 
     def packages(self):
         """ A list of entry point data resolved when the index was last rebuilt.
@@ -249,10 +279,12 @@ class ToolsIndex(QObject):
         categories = {}
         tools = []
 
+        editable_ids = self.editable_tools_package_ids()
         for package in self.packages():
-            # TODO: Detect if package is a editable install and automatically call
-            # buildIndexForToolsPackage on it.
             if not package.tool_index():
+                logger.info('tool_index for "{}" added to shared index'.format(
+                    package.name())
+                )
                 for tool_path in package.tool_paths():
                     # If legacy wasn't passed we can assume its not a legacy
                     # file structure
@@ -266,6 +298,15 @@ class ToolsIndex(QObject):
                         legacy=tool_path[1],
                         path_replace=path_replace,
                     )
+            elif (package.name(), package.module_name()) in editable_ids:
+                # This package with a tools_index is a editable install and we should
+                # rebuild the index.
+                logger.info(
+                    'tool_index for "{}" generated for editable install'.format(
+                        package.name()
+                    )
+                )
+                self.buildIndexForToolsPackage(package)
 
         self.saveToolJson(filename, categories, tools)
 
