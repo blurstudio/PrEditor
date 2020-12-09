@@ -221,17 +221,20 @@ class TempFilesContext(object):
     def makeTempFile(self, *args, **kwargs):
         """ Creates a tempfile using tempfile.mkstemp and returns the path to the file.
 
-        This file will only be valid till the context exits.
-        args and kwargs are passed to tempfile.mkstemp after the "key" kwarg has been
-        removed. If dir is not provided in kwargs and self._dirname is set, it will
-        be added to kwargs.
+        This file will only be valid till the context exits. Any args and kwargs are
+        passed to tempfile.mkstemp after any extra keyword arguments are removed from
+        kwargs. If dir is not provided in kwargs and self.dirname is set, it will be
+        added to kwargs.
 
         Args:
-            key(str): If in keyed mode only one directory will be created
-                for any key value. Any future calls to this function with
-                the same key will return the same directory. If keyed is
-                False, this will always return a new directory name. The
-                default key is 'default'.
+            key(str): If in keyed mode only one directory will be created for any key
+                value. Any future calls to this function with the same key will return
+                the same directory. If keyed is False, this will always return a new
+                directory name. Must be a keyword argument, defaults to 'default'.
+            closeHandle (bool, optional): If True, the file handle created by mkstemp
+                is immediately closed so the file is unlocked for other processes to
+                modify. This will be removed when the context exits. Must be a keyword
+                argument, defaults to False.
 
         Returns:
             str: the full path to the temporary file.
