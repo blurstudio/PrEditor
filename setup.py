@@ -4,7 +4,7 @@ import os
 from pillar.version import Version
 
 _dir = os.path.dirname(os.path.abspath(__file__))
-version = Version(os.path.join(_dir, 'blurdev'), 'blur-blurdev')
+version = Version(os.path.join(_dir, 'blurdev'), 'blur-blurdev', regenerate=True)
 
 # Get the long description from the README file
 with open(os.path.join(_dir, 'README.rst'), encoding='utf-8') as f:
