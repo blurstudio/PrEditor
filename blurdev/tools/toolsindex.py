@@ -157,6 +157,20 @@ class ToolsIndex(QObject):
 
         This does not create any necessary directory structure to save the files.
 
+        Tools packages are found by processing the `blurdev.tools.paths` entry_point.
+        The first item in the entry point list(the name) is used as a unique identifier
+        and the last processed entry_point is used if there are duplicate names. If you
+        need to add entry points that are not currently installed you can add them with
+        a json string stored in the ``BDEV_TOOLS_INDEX_DEFAULT_ENTRY_POINTS``
+        environment variable. These are processed before the entry points found by
+        pkg_resources. This is used to add the trax tools package on our release
+        environments. These have to be built without trax installed due to how trax is
+        distributed on each host but the release environments are shared on the network.
+
+        Example::
+
+            set BDEV_TOOLS_INDEX_DEFAULT_ENTRY_POINTS=[["name", "module", ["function"]]]
+
         Args:
             filename (str): If filename is not provided it will store the file in
                 self.filename(). This is the location that treegrunt looks for its
@@ -247,7 +261,16 @@ class ToolsIndex(QObject):
         if not os.path.exists(dirname):
             raise IOError(2, 'Treegrunt root does not exist: "{}"'.format(dirname))
 
-        entry_points = []
+        entry_points = {}
+
+        # When building the release environments we don't have access to all pip
+        # packages in the virtualenv. For example trax is installed on the local
+        # computer not in the release environment. This lets us manually add the
+        # extra entry_point cache when building the treegrunt environment.
+        defaults = os.getenv('BDEV_TOOLS_INDEX_DEFAULT_ENTRY_POINTS')
+        if defaults:
+            defaults = json.loads(defaults)
+            entry_points = {ep[0]: ep for ep in defaults}
 
         # importing pkg_resources takes ~0.8 seconds only import it if we need to.
         import pkg_resources
@@ -257,9 +280,16 @@ class ToolsIndex(QObject):
         packages = pkg_resources.WorkingSet()
         entries = packages.iter_entry_points('blurdev.tools.paths')
         for entry_point in entries:
-            entry_points.append(
-                [entry_point.name, entry_point.module_name, entry_point.attrs]
-            )
+            entry_points[entry_point.name] = [
+                entry_point.name,
+                entry_point.module_name,
+                entry_point.attrs,
+            ]
+
+        # Convert the dict to a list for saving: We use a dictionary so we can use the
+        # entry point name to ensure unique values especially when using the
+        # environment variable.
+        entry_points = entry_points.values()
 
         # Ensure that the blurdev's entry point is processed first, we need to add
         # its paths before we try to load any of the other entry_points that are

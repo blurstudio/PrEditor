@@ -15,6 +15,9 @@
 requirements.txt
 *.sublime-*
 
+# Used by ci to download files required for testing
+/downloads/
+
 # /blurdev
 /blurdev/version.txt
 /blurdev/hash.txt
