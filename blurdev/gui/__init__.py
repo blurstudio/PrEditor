@@ -33,7 +33,7 @@ if not core.headless:
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
-def QtPropertyInit(name, default, callback=None):
+def QtPropertyInit(name, default, callback=None, typ=None):
     """Initializes a default Property value with a usable getter and setter.
 
     You can optionally pass a function that will get called any time the property
@@ -52,9 +52,13 @@ def QtPropertyInit(name, default, callback=None):
 
     Args:
         name(str): The name of internal attribute to store to and lookup from.
-        default: The property's default value.  This will also define the Property type.
+        default: The property's default value.  This will also define the Property type
+            if typ is not set.
         callback(callable): If provided this function is called when the property is
             set.
+        typ (class, optional): If not None this value is used to specify the type of
+            the Property. This is useful when you need to specify a property as python's
+            object but pass a default value of a given class.
 
     Returns:
         Property
@@ -75,9 +79,10 @@ def QtPropertyInit(name, default, callback=None):
 
     ga = partial(_getattrDefault, default)
     sa = partial(_setattrCallback, callback, name)
-    return Property(
-        default.__class__, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)),
-    )
+    # Use the default value's class if typ is not provided.
+    if typ is None:
+        typ = default.__class__
+    return Property(typ, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)))
 
 
 # --------------------------------------------------------------------------------
