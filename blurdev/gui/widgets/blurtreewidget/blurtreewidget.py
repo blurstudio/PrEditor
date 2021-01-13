@@ -126,7 +126,6 @@
 #       event.ignore()
 
 from __future__ import print_function
-from builtins import str as text
 from Qt import QtCompat
 from Qt.QtCore import Qt, Property, Signal, Slot, QPoint
 from Qt.QtGui import QCursor, QIcon, QPainter, QImage, QRegion
@@ -379,7 +378,9 @@ class BlurTreeWidget(LockableTreeWidget):
         textItems = []
         items = self.hideableColumns()
         for item in items:
-            textItems.append(text(item))
+            # NOTE: str is important for Python 2.7 Qt5. QByteArray does not accept
+            # unicode strings when using Qt5.
+            textItems.append(str(item))
         return QByteArray(','.join(textItems))
 
     def identifier(self):

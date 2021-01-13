@@ -367,7 +367,7 @@ class FilePickerWidget(QWidget):
     def defaultLocation(self, value):
         self._defaultLocation = text(value)
 
-    @Property(text)
+    @Property("QString")
     def imageSequenceFormat(self):
         return self._imageSequenceFormat
 
