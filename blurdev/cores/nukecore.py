@@ -20,6 +20,10 @@ class NukeCore(Core):
         # Disable AppUserModelID. See blurdev.setAppUserModelID for more info.
         self._useAppUserModelID = False
 
+    def addLibraryPaths(self):
+        # Do not add default library paths
+        self._disable_libstone_qt_library_path()
+
     def initGui(self):
         """
         initGui needs to be called by the nuke plugins so it gets called once the UI is

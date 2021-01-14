@@ -143,6 +143,7 @@ class StudiomaxCore(Core):
         elif self.dccVersion > 18:
             # We don't need to worry about adding libraryPaths, its taken care of by
             # the max plugin that imported blurdev
+            self._disable_libstone_qt_library_path()
             return
         super(StudiomaxCore, self).addLibraryPaths()
 

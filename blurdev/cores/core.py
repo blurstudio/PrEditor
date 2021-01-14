@@ -151,6 +151,19 @@ class Core(QObject):
         self.environmentActivated.connect(partial(self.init_sentry, force=True))
         self.debugLevelChanged.connect(self.recordSettings)
 
+    @classmethod
+    def _disable_libstone_qt_library_path(cls):
+        """ By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common"
+        to QApplication.libraryPaths(). This works well for external python applications
+        but doesn't work well in DCC's. If Qt5 is installed globally its msvc compiled
+        version may conflict with the DCC's msvc compile and cause it to crash.
+
+        This sets the LIBSTONE_QT_LIBRARY_PATH to a invalid path disabling that feature
+        of libstone. `blurdev.osystem.subprocessEnvironment` removes this env var to
+        prevent launching a external python process from a DCC getting this var.
+        """
+        os.environ["LIBSTONE_QT_LIBRARY_PATH"] = "false"
+
     def aboutBlurdev(self):
         """ Useful info about blurdev and its dependencies as a string.
         """

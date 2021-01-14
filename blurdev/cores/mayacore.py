@@ -28,7 +28,7 @@ class MayaCore(Core):
 
     def addLibraryPaths(self):
         # Do not add default library paths
-        pass
+        self._disable_libstone_qt_library_path()
 
     def errorCoreText(self):
         """ Returns text that is included in the error email for the active core.
