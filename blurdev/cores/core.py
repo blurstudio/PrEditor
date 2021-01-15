@@ -1068,6 +1068,14 @@ class Core(QObject):
         if self.headless:
             # If running headless, do not try to create gui elements
             return
+
+        # The toolbars will end up calling findTool(tool_name). This doesn't end up
+        # fully loading the index and results in multiple json file reads. This can
+        # cause duplicate tools to show up in the index. This is visible in the
+        # Treegrunt category view. Calling load here prevents all of this and means
+        # we only need to parse the json files once.
+        blurdev.activeEnvironment().index().load()
+
         for toolbar_class in self.toolbars():
             toolbar = toolbar_class.instance(blurdev.core.rootWindow())
             toolbar.restoreSettings()
