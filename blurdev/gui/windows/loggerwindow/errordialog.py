@@ -66,7 +66,7 @@ class ErrorDialog(Dialog):
     def submitRequest(self):
         from blurdev.utils.errorEmail import buildErrorMessage
 
-        subject, description = buildErrorMessage(self.traceback_msg, fmt='textile')
+        subject, description = buildErrorMessage(self.traceback_msg, fmt='markdown')
         subject = self.traceback_msg.split('\n')[-2]
         from blurdev.actions.create_redmine_issue import CreateRedmineIssue
 

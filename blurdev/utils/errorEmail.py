@@ -34,6 +34,12 @@ _ADDITIONAL_INFO_HTML = """<br><h3>ErrorReport: %(title)s</h3>
 %(info)s
 </code></pre></div>"""
 
+_ADDITIONAL_INFO_MARKDOWN = """### ErrorReport: %(title)s
+
+```python
+%(info)s
+```"""
+
 _ADDITIONAL_INFO_TEXTILE = """h3. ErrorReport: %(title)s
 
 <pre><code class="Python">
@@ -52,7 +58,17 @@ _MESSAGE_BODY_HTML = """<ul>
 %(error)s
 %(additionalinfo)s"""
 
+_INFO_LIST_ITEM_MARKDOWN = "* **%(key)s:** %(value)s"
 _INFO_LIST_ITEM_TEXTILE = "* *%(key)s:* %(value)s"
+
+_MESSAGE_BODY_MARKDOWN = """%(infoList)s
+
+### Traceback Printout
+
+```python
+%(error)s```
+
+%(additionalinfo)s"""
 
 _MESSAGE_BODY_TEXTILE = """%(infoList)s
 
@@ -178,7 +194,12 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
         infoList['assburner burn file'] = burnFile
 
     infoList['blurdev core'] = blurdev.core.objectName()
-    infoList['blurdev env'] = '%s: %s' % (envName, blurdev.activeEnvironment().path())
+    # UNC paths have their first slash removed in markdown, adding inline pre fixes that
+    if fmt == 'markdown':
+        env_format = '%s: `%s`'
+    else:
+        env_format = '%s: %s'
+    infoList['blurdev env'] = env_format % (envName, blurdev.activeEnvironment().path())
 
     # notify where the error came from
     if blurdev.core.headless:
@@ -242,17 +263,17 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
     infos = [(None, information)] + ErrorReport.generateReport()
     for title, info in infos:
         if info is not None:
+            formatData = {'info': text(info), 'title': title}
             if fmt == 'html':
-                formatData = {'info': text(info).replace('\n', '<br>'), 'title': title}
-                addinfo = _ADDITIONAL_INFO_HTML % formatData
+                formatData['info'] = info.replace('\n', '<br>')
+                addinfo = _ADDITIONAL_INFO_HTML
+            elif fmt == 'markdown':
+                addinfo = _ADDITIONAL_INFO_MARKDOWN
             elif fmt == 'textile':
-                addinfo = _ADDITIONAL_INFO_TEXTILE % {
-                    'info': text(info),
-                    'title': title,
-                }
+                addinfo = _ADDITIONAL_INFO_TEXTILE
             else:
                 addinfo = text(info)
-            minfo['additionalinfo'] += addinfo
+            minfo['additionalinfo'] += addinfo % formatData
 
     # append extra stuff
     if hasattr(sys, 'last_traceback'):
@@ -273,17 +294,17 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
                                 modulename,
                                 str(e),
                             )
+                        formatData = {'info': text(errorlog)}
                         if fmt == 'html':
-                            addinfo = _ADDITIONAL_INFO_HTML % {
-                                'info': text(errorlog).replace('\n', '<br>')
-                            }
+                            addinfo = _ADDITIONAL_INFO_HTML
+                            formatData['info'] = text(errorlog).replace('\n', '<br>')
+                        elif fmt == 'markdown':
+                            addinfo = _ADDITIONAL_INFO_MARKDOWN
                         elif fmt == 'textile':
-                            addinfo = _ADDITIONAL_INFO_TEXTILE % {
-                                'info': text(errorlog)
-                            }
+                            addinfo = _ADDITIONAL_INFO_TEXTILE
                         else:
                             addinfo = text(errorlog)
-                        minfo['additionalinfo'] += addinfo
+                        minfo['additionalinfo'] += addinfo % formatData
 
     def _joinInfoList(formatter):
         return '\n'.join(
@@ -296,6 +317,9 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
     if fmt == 'html':
         minfo['infoList'] = _joinInfoList(_INFO_LIST_ITEM_HTML)
         message = _MESSAGE_BODY_HTML % minfo
+    elif fmt == 'markdown':
+        minfo['infoList'] = _joinInfoList(_INFO_LIST_ITEM_MARKDOWN)
+        message = _MESSAGE_BODY_MARKDOWN % minfo
     elif fmt == 'textile':
         minfo['infoList'] = _joinInfoList(_INFO_LIST_ITEM_TEXTILE)
         message = _MESSAGE_BODY_TEXTILE % minfo
