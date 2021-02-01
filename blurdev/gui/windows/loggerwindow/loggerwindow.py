@@ -301,7 +301,7 @@ class LoggerWindow(Window):
                 action = self.uiMonospaceFontMENU.addAction(family)
             else:
                 action = self.uiProportionalFontMENU.addAction(family)
-            action.setObjectName('ui{}FontACT'.format(family))
+            action.setObjectName(u'ui{}FontACT'.format(family))
             action.setCheckable(True)
             action.setChecked(family == curFamily)
             action.triggered.connect(partial(self.selectFont, action))
@@ -448,7 +448,7 @@ class LoggerWindow(Window):
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
         # Don't show if it's just the text of the action
-        text = re.sub("(?<!&)&(?!&)", "", action.text())
+        text = re.sub(r"(?<!&)&(?!&)", "", action.text())
         text = text.replace('...', '')
 
         if text == action.toolTip():
