@@ -113,7 +113,7 @@ class SoftimageCore(Core):
         output = ToolType.Softimage | ToolType.LegacySoftimage
         return output
 
-    def createToolMacro(self, tool, macro=''):
+    def createToolMacro(self, tool, macro_name):
         """
         Overloads the createToolMacro virtual method from the Core class, this will
         create a command plugin for the Softimage application for the inputed Core tool
@@ -130,7 +130,7 @@ class SoftimageCore(Core):
             'toolName': tool.objectName(),
             'displayName': displayName,
             'commandName': commandName,
-            'macro': macro,
+            'macro': macro_name,
             'tooltip': tool.displayName(),
             'author': 'Blur Studio',
         }

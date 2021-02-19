@@ -168,7 +168,7 @@ class StudiomaxCore(Core):
             STUDIOMAX_CALLBACK_TEMPLATE % {'signal': blurdevSignal, 'args': args},
         )
 
-    def createToolMacro(self, tool, macro=''):
+    def createToolMacro(self, tool, macro_name):
         """
         Overloads the createToolMacro virtual method from the Core class, this will
         create a macro for the Studiomax application for the inputed Core tool
@@ -177,7 +177,7 @@ class StudiomaxCore(Core):
         options = {
             'tool': tool.objectName(),
             'displayName': tool.displayName(),
-            'macro': macro,
+            'macro': macro_name,
             'tooltip': tool.displayName(),
             'id': re.sub('(::| |-)', '_', tool.displayName()),
             'studioName': os.environ.get('bdev_studio_name', ''),
