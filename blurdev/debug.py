@@ -924,7 +924,7 @@ class FileLogger:
             self._stdhandle.write(msg)
 
 
-def logToFile(path, stdout=True, stderr=True, useOldStd=False, clearLog=True):
+def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
     """ Redirect all stdout and/or stderr output to a log file.
 
     Creates a FileLogger class for stdout and stderr and installs itself in python.
