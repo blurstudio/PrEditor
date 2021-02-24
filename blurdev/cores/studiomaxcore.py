@@ -299,8 +299,34 @@ class StudiomaxCore(Core):
             app = QApplication.instance()
             app.focusChanged.connect(_focusChanged)
 
+        old_stdout = sys.stdout
         # initialize the logger
         self.logger()
+
+        # Redirect the root logging handler to the loggers stdout
+        # We redirect logging's stream handler to stdout because 3dsmaxbatch detects
+        # any stderr text python(presumably maxscript as well) writes as a error.
+        # The startup script "legacy\lib\startup\blurStartupMaxLib.ms" in blur-legacy
+        # calls `logging.basicConfig` so we redirect the logging as early as possible
+        # to prevent false errors. This code makes it so we can see the logging
+        # messages in the python logger.
+        for handler in logging.getLogger().handlers:
+            if (
+                isinstance(handler, logging.StreamHandler)
+                and handler.stream == old_stdout
+            ):
+                # Update the stream handler so we can see logging output in the
+                # Python Logger, not just the maxscript listener.
+                if sys.version_info[0] > 2:
+                    handler.setStream(sys.stdout)
+                else:
+                    # Copied from python 3's logging's setStream to work in python 2
+                    handler.acquire()
+                    try:
+                        handler.flush()
+                        handler.stream = sys.stdout
+                    finally:
+                        handler.release()
 
         # init the base class
         ret = super(StudiomaxCore, self).init()
