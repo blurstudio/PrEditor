@@ -9,6 +9,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+# Override the base logging class.
+import blurdev.logger
+blurdev.logger.patchLogger()
+
 try:
     from importlib import reload
 except ImportError:
@@ -83,9 +87,9 @@ been deleted.
 # is called. blurdev.gui.splashscreen.randomSplashScreen checks this value
 protocolSplash = None
 
-
 # Create the root blurdev module logging object.
 logger = logging.getLogger(__name__)
+
 # Add a NullHandler to suppress the "No handlers could be found for logger"
 # warnings from being printed to stderr. Studiomax and possibly other DCC's
 # tend to treat any text written to stderr as a error when running headless.

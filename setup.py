@@ -54,6 +54,7 @@ setup(
         # includes QScintilla and PyQt5. Don't require this as a pip package.
         'QScintilla>=2.11.4;python_version>="3.5" and platform_system=="Windows"',
         'sentry-sdk>=0.13.2',
+        'signalslot>=0.1.2',
         'tabulate>=0.8.7',
         'urllib3>=1.25.7',
         'winshell>=0.6',

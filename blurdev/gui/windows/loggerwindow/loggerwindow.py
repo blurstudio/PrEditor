@@ -38,6 +38,7 @@ from Qt.QtWidgets import (
 from Qt import QtCompat
 
 from blurdev import prefs
+from blurdev.logger import saveLoggerConfiguration
 
 from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
@@ -572,6 +573,8 @@ class LoggerWindow(Window):
 
     def closeEvent(self, event):
         self.recordPrefs()
+        saveLoggerConfiguration()
+
         Window.closeEvent(self, event)
         if self.uiConsoleTOOLBAR.isFloating():
             self.uiConsoleTOOLBAR.hide()
@@ -712,8 +715,6 @@ class LoggerWindow(Window):
         # pref.recordProperty('toolbarStates', self.saveState())
         pref.recordProperty('consoleFont', self.console().font())
 
-        pref.recordProperty("loggingLevel", self.uiLoggingLevelBTN.level())
-
         pref.recordProperty(
             'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
             )
@@ -796,10 +797,6 @@ class LoggerWindow(Window):
         self.uiAutoCompleteEnabledACT.setChecked(
             pref.restoreProperty('hintingEnabled', True)
         )
-
-        loggingLevel = pref.restoreProperty('loggingLevel')
-        if loggingLevel:
-            self.uiLoggingLevelBTN.setLevel(loggingLevel)
 
         # completer settings
         caseSensitive = pref.restoreProperty('caseSensitive', True)
