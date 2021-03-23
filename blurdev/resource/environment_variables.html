@@ -18,6 +18,12 @@
 	<p><span style=" font-weight:bold;">BDEV_STYLESHEET:</span> Used to override the stylesheet when initalizing blurdev.</p>
 	<p><span style=" font-weight:bold;">BDEV_TOOL_ENVIRONMENT:</span> Forces blurdev to initialize with this treegrunt environment name. When saving prefs, this environment name change will not be saved. This is mostly used to ensure that launching a subprocess or farm job happens on the same treegrunt environment.</p>
 	<p></p>
+	<h2>Sentry variables:</h2>
+	<p><span style=" font-style:italic;">These variables control the behavior of Sentry's integration in blurdev.</span></p>
+	<p><span style=" font-weight:bold;">SENTRY_DSN:</span> Required for Sentry to initialize, defines the endpoint for Sentry to submit error events.</p>
+	<p><span style=" font-weight:bold;">SENTRY_DEBUG:</span> If set to 1 (or any value), Sentry will be initialized in debug mode providing granular output related to the underlying Sentry API (such as startup process progress and output for event transmission).</p>
+	<p><span style=" font-weight:bold;">BDEV_SENTRY_AT_STARTUP:</span> Sets up Sentry earlier in blurdev startup process. By default, Sentry is configured upon core initialization.</p>
+	<p></p>
 	<h1>trax</h1>
 	<hr>
 	<p><span style=" font-weight:bold;">BDEV_INCLUDE_TRAX:</span> A special BDEV_INCLUDE_* environment variable that specifies where trax can be imported from. It should contain the path to the <b>folder containing the trax folder</b>(for instance: C:\blur\it\python\apps). It is used by the blurpath system to ensure the correct build is imported. It can also be used to make testing development easier by pointing to your local checkout.</p>

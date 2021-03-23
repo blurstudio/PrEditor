@@ -968,9 +968,6 @@ class BlurExcepthook(object):
             excepthook callable supplied at initialization; if not supplied or
             invalid, executes standard library excepthook.
 
-        - *`send_sentry_event`*
-            reports exception to on-premise Sentry server for debug triage.
-
         - *`send_exception_email`*
             email notification.
 
@@ -985,7 +982,7 @@ class BlurExcepthook(object):
     def __init__(self, base_excepthook=None):
         self.base_excepthook = base_excepthook or sys.__excepthook__
         # We can't show the prompt if running headless.
-        self.actions = dict(email=True, prompt=not blurdev.core.headless, sentry=True)
+        self.actions = dict(email=True, prompt=not blurdev.core.headless)
 
     def __call__(self, *exc_info):
         """
@@ -1002,7 +999,6 @@ class BlurExcepthook(object):
 
         self.call_base_excepthook(exc_info)
         if debugLevel() == 0:
-            self.send_sentry_event(exc_info)
             self.send_exception_email(exc_info)
         self.send_logger_error(exc_info)
 
@@ -1021,27 +1017,6 @@ class BlurExcepthook(object):
             self.base_excepthook(*exc_info)
         except (TypeError, NameError):
             sys.__excepthook__(*exc_info)
-
-    def send_sentry_event(self, exc_info):
-        """
-        Sends error to Sentry.
-
-        If there is any issue importing Sentry's SDK package, fail silently and
-        disable future reporting to Sentry.
-        """
-        if not self.actions.get("sentry", False):
-            return
-
-        try:
-            import sentry_sdk
-            import urllib3
-        except ImportError:
-            self.actions["sentry"] = False
-            return
-
-        # ignore warnings emitted by urllib3 library
-        urllib3.disable_warnings()
-        sentry_sdk.capture_exception(exc_info)
 
     def send_exception_email(self, exc_info):
         """

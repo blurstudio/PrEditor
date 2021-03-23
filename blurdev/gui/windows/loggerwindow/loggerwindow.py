@@ -43,6 +43,7 @@ from blurdev.logger import saveLoggerConfiguration
 from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from blurdev.ide.delayable_engine import DelayableEngine
+from blurdev.utils.error import sentry_enabled, sentry_enable, sentry_disable
 
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
@@ -221,6 +222,8 @@ class LoggerWindow(Window):
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
+        self.uiToggleSentryACT.toggled.connect(self.setSentryEnabled)
+        self.uiToggleSentryACT.setChecked(sentry_enabled)
         self.uiSaveConsoleSettingsACT.triggered.connect(
             lambda: self.recordPrefs(manual=True)
             )
@@ -942,6 +945,19 @@ class LoggerWindow(Window):
                 QMessageBox.warning(
                     self, "Spell-Check", 'Unable to activate spell check.'
                 )
+
+    def setSentryEnabled(self, state):
+        """
+        Control whether Sentry will track errors and logging events.
+
+        Args:
+            state (bool): Enable (True) or disable (False) Sentry Error
+                Tracking.
+        """
+        if state is True:
+            sentry_enable()
+        elif state is False:
+            sentry_disable()
 
     def setStatusText(self, txt):
         """ Set the text shown in the menu corner of the menu bar.

@@ -76,6 +76,7 @@
     </property>
     <addaction name="uiGotoErrorACT"/>
     <addaction name="uiResetPathsACT"/>
+    <addaction name="uiToggleSentryACT"/>
     <addaction name="separator"/>
     <addaction name="uiResetWarningFiltersACT"/>
     <addaction name="separator"/>
@@ -419,6 +420,20 @@
   <action name="uiClearWorkspaceACT">
    <property name="text">
     <string>Clear Workspace...</string>
+   </property>
+  </action>
+  <action name="uiToggleSentryACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use Sentry Error Tracking</string>
+   </property>
+   <property name="toolTip">
+    <string>Control whether tracebacks and/or logging events are sent to Sentry.</string>
    </property>
   </action>
   <action name="uiRunSelectedACT">

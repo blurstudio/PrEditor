@@ -96,6 +96,11 @@ logger = logging.getLogger(__name__)
 # We also don't want this warning showing up in production anyway.
 logger.addHandler(logging.NullHandler())
 
+# initialize sentry if environment variable present
+if os.environ.get("BDEV_SENTRY_AT_STARTUP"):
+    from blurdev.utils.error import setup_sentry
+    setup_sentry()
+
 
 def activeEnvironment(coreName=None):
     """ Returns the current active Tools Environment as part of the blurdev.tools system.

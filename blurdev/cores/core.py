@@ -3,7 +3,6 @@ import sys
 import time
 import os
 import glob
-from functools import partial
 from past.builtins import execfile
 
 from Qt.QtCore import QCoreApplication, QDateTime, QEvent, QObject, QRect, Qt, Signal
@@ -26,6 +25,7 @@ import blurdev.tools.toolsenvironment
 import blurdev.cores.application
 import blurdev.settings
 from blurdev.decorators import pendingdeprecation
+from blurdev.utils.error import setup_sentry
 
 
 class Core(QObject):
@@ -142,13 +142,9 @@ class Core(QObject):
         # connected to the parent fusion process. Otherwise this will be None
         self.fusionApp = None
 
-        # state of Sentry client; false if initialization failed.
-        self._sentry_enabled = None
-
         # create the connection to the environment activation signal
         self.environmentActivated.connect(self.registerPaths)
         self.environmentActivated.connect(self.recordSettings)
-        self.environmentActivated.connect(partial(self.init_sentry, force=True))
         self.debugLevelChanged.connect(self.recordSettings)
 
     @classmethod
@@ -524,7 +520,6 @@ class Core(QObject):
         actions.setdefault('email', True)
         # If blurdev is running headless, there is no way to show a gui prompt
         actions.setdefault('prompt', not self.headless)
-        actions.setdefault('sentry', True)
         return actions
 
     def init(self):
@@ -552,8 +547,8 @@ class Core(QObject):
         # treegrunt environments to find `blurdev.tools.paths` entry_points.
         self.protectModule('pkg_resources')
 
-        # instaniate Sentry client for core
-        self.init_sentry()
+        # initialize sentry client
+        setup_sentry()
 
         # Gets the override filepath, it is defined this way, instead of
         # being defined in the class definition, so that we can change this
@@ -610,57 +605,6 @@ class Core(QObject):
         a dcc plugin implementation when it is safe to initialize gui objects.
         """
         self.restoreToolbars()
-
-    def init_sentry(self, force=False):
-        """
-        Initialize Sentry client for core.
-
-        Args:
-            force (bool, optional): Forces a reinitalization of sentry.
-                Defaults to False.
-        """
-        if (
-            not os.environ.get("SENTRY_DSN")
-            or not force
-            or self._sentry_enabled is False
-        ):
-            return
-
-        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
-
-        try:
-            from blurdev.utils.error import (
-                sentry_before_send_callback,
-                sentry_integrations,
-            )
-            import sentry_sdk
-
-            try:
-                sentry_sdk.init(
-                    dsn=os.environ["SENTRY_DSN"],
-                    debug=bool(os.environ.get("SENTRY_DEBUG", False)),
-                    default_integrations=False,
-                    integrations=sentry_integrations(),
-                    before_send=sentry_before_send_callback,
-                    environment=env.objectName(),
-                )
-
-            # supplied dsn is invalid
-            except sentry_sdk.utils.BadDsn:
-                self._sentry_enabled = False
-
-            # successful import; setting Sentry's error logger to critical to
-            # suppress issues connecting to the DSN's host
-            else:
-                import logging
-
-                sentry_logger = logging.getLogger("sentry_sdk.errors")
-                sentry_logger.setLevel(logging.CRITICAL)
-                self._sentry_enabled = True
-
-        # could not import `sentry_sdk`
-        except ImportError:
-            self._sentry_enabled = False
 
     def applyEnvironmentTimeouts(self):
         """

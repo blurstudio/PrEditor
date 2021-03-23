@@ -3,6 +3,7 @@
 # standard library imports
 from collections import OrderedDict
 from datetime import datetime
+import logging
 import os
 import traceback
 import sys
@@ -17,12 +18,14 @@ from blurdev.contexts import ErrorReport
 _host_information = None
 _user_information = None
 _environment_information = None
+_sentry_initialized = None
+sentry_enabled = True
 
 
 def get_host_information(refresh=False):
     """
-    Aggreates several sources of host metadata, constructing an informative
-    dictionary. Example information: hostname, operating system, ip address,
+    Aggregates several sources of host metadata, constructing an informative
+    dictionary. Example information: hostname, operating system, IP address,
     host type (i.e. farm server vs. workstation).
 
     Information is gathered only once per runtime and stored globally. One may
@@ -147,11 +150,6 @@ def get_environment_information(refresh=False):
                 trimmed_key = key.replace(prefix, "").lower()
                 _environment_information[trimmed_key] = value
 
-        # core-specific message
-        core_message = blurdev.core.errorCoreText()
-        if core_message:
-            _environment_information["core.message"] = core_message
-
         # root application window
         if not blurdev.core.headless:
             from Qt.QtWidgets import QApplication
@@ -168,6 +166,11 @@ def get_environment_information(refresh=False):
                 if hasattr(window, "objectName"):
                     _environment_information["window"] = window.objectName()
                     _environment_information["window.class"] = window_class
+
+    # core-specific message, checked per-error
+    core_message = blurdev.core.errorCoreText()
+    if core_message:
+        _environment_information["core.message"] = core_message
 
     return _environment_information
 
@@ -218,7 +221,7 @@ def all_information_by_section(refresh=False):
 def all_information(refresh=False):
     """
     Convenience function to return a flattened version of all sessions'
-    relevate debug information dictionaries.
+    relevant debug information dictionaries.
 
     Note: Information is gathered only once per runtime and stored globally.
           One may force a refresh by setting the `refresh` argument to True.
@@ -264,24 +267,51 @@ def highlight_code(code, linenos=False):
 
 def sentry_integrations():
     """
+    Configure various Sentry integrations for the initialization of the Sentry
+    API.
+
+    These integrations are usually provided via the `default_integrations`
+    argument of `sentry_sdk.init` but have been manually provided by this
+    function in order to control aspects of the logging integration,
+    initialized when `default_integrations` is True. The default logging
+    integration patches the `Logger`-class instead of accounting for the use of
+    the logging module's `setLoggerClass` functionality, which is used by
+    blurdev.
+
+    Integrations:
+        - Argv: Adds the list of command line arguments passed to the Python
+            script as and entry in the `extra` dict.
+        - Atexit: Flushes Sentry events in the BG queue pre-interpreter
+            shutdown.
+        - Dedupe: Limits duplication of certain events.
+        - Excepthook: Registers with the interpreter's except hook system to
+            report unhanded, non-interactive/REPL raised exceptions to Sentry.
+        - Modules: Attaches a list of installed Python modules to the error
+            event. The list of modules is calculated once per session.
+        - Stdlib: Adds breadcrumb emissions for HTTP requests via `httplib` and
+            the spawning of subprocesses via `subprocess`.
+        - Threading: Reports crashing of threads.
+
     Returns:
-        list: integration frameworks to be used in our implementation of the
+        list: Integration frameworks to be used in our implementation of the
             Sentry SDK.
     """
     from sentry_sdk.integrations.argv import ArgvIntegration
     from sentry_sdk.integrations.atexit import AtexitIntegration
     from sentry_sdk.integrations.dedupe import DedupeIntegration
-    from sentry_sdk.integrations.logging import LoggingIntegration
+    from sentry_sdk.integrations.excepthook import ExcepthookIntegration
     from sentry_sdk.integrations.modules import ModulesIntegration
     from sentry_sdk.integrations.stdlib import StdlibIntegration
+    from sentry_sdk.integrations.threading import ThreadingIntegration
 
     return [
         ArgvIntegration(),
         AtexitIntegration(),
         DedupeIntegration(),
-        LoggingIntegration(),
+        ExcepthookIntegration(),
         ModulesIntegration(),
         StdlibIntegration(),
+        ThreadingIntegration(propagate_hub=True),
     ]
 
 
@@ -298,6 +328,14 @@ def sentry_before_send_callback(event, hint):
     Returns:
         dict: modified Sentry event dictionary
     """
+    # discard event if debug enabled
+    if blurdev.debug.debugLevel() != 0:
+        return None
+
+    # discard event if sentry disabled by user
+    if not sentry_enabled:
+        return None
+
     info = all_information_by_section()
     user_info = info.pop("user")
 
@@ -319,12 +357,85 @@ def sentry_before_send_callback(event, hint):
     return event
 
 
+def sentry_enable():
+    """
+    Enables Sentry error tracking.
+    """
+    global sentry_enabled
+    sentry_enabled = True
+
+
+def sentry_disable():
+    """
+    Disables Sentry error tracking.
+    """
+    global sentry_enabled
+    sentry_enabled = False
+
+
+def setup_sentry(force=False):
+    """
+    Initializes the Sentry API. Providing error tracking for sessions
+    leveraging blurdev, Sentry integrates with Python's excepthook and logging
+    infrastructure to report errors that occur during code execution. These
+    errors are submitted to our Sentry server at `https://sentry.blur.com`.
+
+    If initialization is successful `_sentry_initialized`, the private global
+    variable, will be set to True. Otherwise the variable will be set to False.
+
+    Setup will not be performed for following scenarios:
+        - Sentry is already initialized (may be overridden with `force` arg).
+        - A previous attempt to initialize Sentry failed (ex: bad DSN).
+        - The `SENTRY_DSN` environment variable is not set.
+
+    Environment Variables:
+        SENTRY_DSN: Required for Sentry to initialize, defines the endpoint for
+            Sentry to submit error events.
+        SENTRY_DEBUG: If set to 1 (or any value), Sentry will be initialized
+            in debug mode providing granular output related to the underlying
+            Sentry API (such as startup process progress and output for event
+            transmission).
+
+    Args:
+        force (bool, optional): When True, initializes Sentry even if it has
+            already been successfully initialized or previously failed.
+    """
+    global _sentry_initialized
+
+    sentry_dsn = os.environ.get("SENTRY_DSN")
+    if sentry_dsn and (force or _sentry_initialized is None):
+        import sentry_sdk
+        from sentry_sdk.integrations.logging import BreadcrumbHandler, EventHandler
+
+        logging.root.addHandler(BreadcrumbHandler(logging.INFO))
+        logging.root.addHandler(EventHandler(logging.ERROR))
+
+        try:
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                debug=bool(os.environ.get("SENTRY_DEBUG")),
+                default_integrations=False,
+                integrations=sentry_integrations(),
+                before_send=sentry_before_send_callback,
+            )
+
+        # unable to import sentry or dsn is invalid
+        except (ImportError, sentry_sdk.utils.BadDsn):
+            _sentry_initialized = False
+
+        # set sentry logger to critical; suppresses issues with dsn connection
+        else:
+            sentry_logger = logging.getLogger("sentry_sdk.errors")
+            sentry_logger.setLevel(logging.CRITICAL)
+            _sentry_initialized = True
+
+
 class ErrorEmail(object):
     """
     Error email generator and sender.
 
-    Assembles a litney of relevant debug information for regarding the supplied
-    exception event, then (via Jinja) produces valid HTML with inline CSS
+    Assembles a litany of relevant debug information for regarding the supplied
+    exception event, then (via Jinja2) produces valid HTML with inline CSS
     properties to email as desired.
 
     Args:
@@ -360,7 +471,7 @@ class ErrorEmail(object):
     def subject(self, max_length=150):
         """
         Error email subject line; includes several basic bits of information
-        for quick identfication within ones Inbox.
+        for quick identification within ones Inbox.
 
         By default, subject is truncated to 150 characters. May be disabled by
         setting `max_length` to None.
@@ -404,7 +515,7 @@ class ErrorEmail(object):
         """
         from jinja2 import Environment, PackageLoader
 
-        # jinja environment to import template from resources directory and
+        # Jinja2 environment to import template from resources directory and
         # add `highlight_code` to environment namespace for code-highlighting
         # process within the template
         jinja_env = Environment(loader=PackageLoader("blurdev", "resource"))
@@ -423,7 +534,7 @@ class ErrorEmail(object):
 
     def send(self, recipients):
         """
-        Initates sending of error email to supplied recipient list.
+        Initiates sending of error email to supplied recipient list.
 
         Args:
             recipients (list): email addresses of recipients for error email

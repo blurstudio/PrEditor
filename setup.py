@@ -53,7 +53,7 @@ setup(
         # Currently blur_python requires a custom PyQt5 install on linux that
         # includes QScintilla and PyQt5. Don't require this as a pip package.
         'QScintilla>=2.11.4;python_version>="3.5" and platform_system=="Windows"',
-        'sentry-sdk>=0.13.2',
+        'sentry-sdk>=1.0.0',
         'signalslot>=0.1.2',
         'tabulate>=0.8.7',
         'urllib3>=1.25.7',
