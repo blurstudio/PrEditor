@@ -68,7 +68,9 @@ def launch_tool(ctx):
         # With this set, the treegrunt environment will always be this environment
         # in this process even if the core prefs want to load a different environment.
         # It also prevents changing the core's environment if core.shutdown() is called.
-        os.environ['BDEV_TOOL_ENVIRONMENT'] = pref.restoreProperty('environment')
+        os.environ['BDEV_TOOL_ENVIRONMENT'] = blurdev.settings.environStr(
+            pref.restoreProperty('environment')
+        )
 
     # blurdev.launch will call this automatically. By setting it here, we prevent a
     # known bug where tool class objects get reset to None and the tool fails to launch.
