@@ -2,6 +2,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 
 # third-party imports
@@ -198,8 +199,11 @@ def loadLoggerConfiguration(force=False):
         logger_config_path = os.path.join(config_path, "loggers.json")
 
         if os.path.exists(logger_config_path):
-            with open(logger_config_path) as logger_config_file_obj:
-                logger_config = json.load(logger_config_file_obj)
+            try:
+                with open(logger_config_path) as logger_config_file_obj:
+                    logger_config = json.load(logger_config_file_obj)
+            except ValueError:
+                logger_config = {}
 
     return logger_config
 
@@ -218,12 +222,17 @@ def saveLoggerConfiguration():
     core_name = getCoreName()
     config_path = Preference.path(coreName=core_name)
     logger_config_path = os.path.join(config_path, "loggers.json")
+    temp_logger_config_path = logger_config_path + ".temp"
 
     # ensure destination exists
     if not os.path.exists(config_path):
         os.makedirs(config_path)
 
-    # output logger configuration to json
-    json_str = json.dumps(logger_config, sort_keys=True, indent=4)
-    with open(logger_config_path, "w") as logger_config_file_obj:
-        logger_config_file_obj.write(json_str)
+    # output logger configuration to temp file then move on success
+    try:
+        json_str = json.dumps(logger_config, sort_keys=True, indent=4)
+        with open(temp_logger_config_path, "w") as logger_config_file_obj:
+            logger_config_file_obj.write(json_str)
+        shutil.move(temp_logger_config_path, logger_config_path)
+    except Exception:
+        pass
