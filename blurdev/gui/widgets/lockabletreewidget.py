@@ -12,7 +12,6 @@ from Qt import QtCompat
 from Qt.QtWidgets import QHeaderView, QTreeWidget, QTreeWidgetItem
 from Qt.QtCore import QSize, QTimer, Qt
 import blurdev
-import sip
 
 
 class LockableTreeHeaderView(QHeaderView):
@@ -392,7 +391,7 @@ class LockableTreeWidget(QTreeWidget):
             :param		column		<int>
             :param		recursive	<int>				Number of recursions
         """
-        if sip.isdeleted(item):
+        if not QtCompat.isValid(item):
             # The item has been deleted so we have no need to update the sizeHint.
             return
         if recursive:

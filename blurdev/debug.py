@@ -1043,12 +1043,12 @@ class BlurExcepthook(object):
         from blurdev.gui.windows.loggerwindow import LoggerWindow
         from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
         from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
-        import sip
+        from Qt import QtCompat
 
         instance = LoggerWindow.instance()
 
         # logger reference deleted, fallback and print to console
-        if sip.isdeleted(instance):
+        if not QtCompat.isValid(instance):
             print("[LoggerWindow] LoggerWindow object has been deleted.")
             print(traceback)
             return

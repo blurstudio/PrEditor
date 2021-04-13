@@ -5,13 +5,13 @@
 import __main__
 import os
 import re
-import sip
 import string
 import subprocess
 import sys
 import time
 import traceback
 
+from Qt import QtCompat
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
@@ -751,7 +751,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         """ write the message to the logger """
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
-        if not sip.isdeleted(self):
+        if QtCompat.isValid(self):
             window = self.window()
             doHyperlink = (
                 hasattr(window, 'uiErrorHyperlinksACT')

@@ -7,7 +7,7 @@ Defines some deocrators that are commonly useful
 from blurdev import debug
 from Qt.QtCore import QObject, QTimer
 import os
-import sip
+from Qt import QtCompat
 
 
 def abstractmethod(function):
@@ -337,9 +337,9 @@ class singleShot(QObject):  # noqa: N801
         self._args = []
         self._kwargs = {}
         if args:
-            if sip.isdeleted(args[0]):
+            if not QtCompat.isValid(args[0]):
                 debug.debugMsg(
-                    '@singleShot: Sip Object is deleted, not calling {}'.format(
+                    '@singleShot: Qt Object is deleted, not calling {}'.format(
                         self._function.__name__
                     ),
                     debug.DebugLevel.High,
