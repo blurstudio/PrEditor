@@ -978,7 +978,7 @@ class DocumentEditor(QsciScintilla):
             % (self._saveTimer, self._dialogShown),
             DebugLevel.High,
         )
-        if time.time() - self._saveTimer < 0.25:
+        if time.time() - self._saveTimer < 0.5:
             # If we are saving no need to reload the file
             debugMsg('timer has not expired', DebugLevel.High)
             return False
