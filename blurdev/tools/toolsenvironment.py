@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import glob
+import json
 import os
 import sys
 import re
@@ -9,6 +10,7 @@ import logging
 import importlib
 
 from Qt.QtCore import QDateTime, QObject
+from collections import OrderedDict
 
 import blurdev
 import blurdev.tools.toolsindex
@@ -25,7 +27,7 @@ except ImportError:
 # This logger is used to debug reloading treegrunt environments
 logger = logging.getLogger(__name__)
 
-USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
+USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.json'
 
 
 class ToolsEnvironment(QObject):
@@ -52,27 +54,30 @@ class ToolsEnvironment(QObject):
     # TypeError: must be type, not None
     _resetIfSamePath = True
 
-    def __init__(self):
-        QObject.__init__(self)
+    def __init__(self, config=None):
+        super(ToolsEnvironment, self).__init__()
+        if config is None:
+            config = {}
 
-        self._path = ''
+        if 'name' in config:
+            self.setObjectName(config['name'])
+        self._path = config.get('path', '')
         # Defaults to os.getenv('BDEV_DEFAULT_CONFIG_INI')
         self._configIni = None
-        self._development = False
-        self._default = False
+        self._development = config.get('dev', False)
+        self._default = config.get('default', False)
         self._active = False
-        self._offline = False
+        self._offline = config.get('offline', False)
         self._custom = False
         self._temporary = False
         self._index = None
-        self._sourcefile = ''
-        self._emailOnError = []
-        self._legacyName = ''
-        self._timeout = ''
-        self._autoupdate = False
-        self._keychain = ''
-        self._project = ''
-        self._description = ''
+        self._emailOnError = config.get('email', [])
+        self._legacyName = config.get('legacy', '')
+        self._timeout = config.get('timeout', '')
+        self._autoupdate = config.get('autoupdate', False)
+        self._keychain = config.get('keychain', '')
+        self._project = config.get('project', '')
+        self._description = config.get('description', '')
         # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the
         # environment tool stopwatch this will start a stopwatch every time
         # blurdev.core.runScript is called and stop it once that script has
@@ -524,14 +529,8 @@ class ToolsEnvironment(QObject):
     def setAutoUpdate(self, autoupdate):
         self._autoupdate = autoupdate
 
-    def setSourceFile(self, filename):
-        self._sourcefile = filename
-
     def setTemporary(self, state):
         self._temporary = state
-
-    def sourceFile(self):
-        return self._sourcefile
 
     def stripRelativePath(self, path):
         """removes this environments path from the inputted path
@@ -638,8 +637,8 @@ class ToolsEnvironment(QObject):
         environment to user_environments.
 
         Args:
-            name (str):	The name of the new environment
-            path (str):	The base path to the environment
+            name (str): The name of the new environment
+            path (str): The base path to the environment
             default (bool): This environment should be treated as default. There
                 should only be one env with this set to true. This is ignored in
                 user_environments.xml
@@ -769,73 +768,241 @@ class ToolsEnvironment(QObject):
         """
         return blurdev.settings.normalizePath(path)
 
-    @staticmethod
-    def loadConfig(filename, included=False):
+    @classmethod
+    def load_config_file(
+        cls, filename, config=None, include_name=None, relative_root=None
+    ):
+        """Reads the config data from one or more files on disk. This is recursively
+        called for any included file paths.
+
+        Args:
+            filename (str): The filename to load the data from. Follows include any
+                include links in this file. Supports only .json and .xml files.
+            include_name (str, optional): Used as the name of this include file if
+                provided, otherwise the name specified in the file is used.
+
+        Returns:
+            dict: A dictionary of all the environment info including the included files.
+                It is structured reflecting the included files so we can use this
+                dictionary to edit any one of those files.
+        """
+        if config is None:
+            config = OrderedDict()
+        current = OrderedDict()
+
+        # Normalize and fully expand the filename.
+        # Expand any environment variables and user directory shortcuts. For example
+        # you can use '~\$TEST_ENV_VAR' which could expand to
+        # 'C:\Users\username\test'
+        filename = os.path.expandvars(os.path.expanduser(filename))
+        # If a relative path was passed, turn it into a absolute path
+        if relative_root:
+            filename = os.path.join(relative_root, filename)
+        filename = os.path.normpath(filename)
+        dir_name = os.path.dirname(filename)
+
+        # TODO: Remove this transition code in a few months when we are no longer using
+        # xml files for local configs.
+        # To facilitate the transition from xml to json, we change the filename used to
+        # save changes to the treegrunt environment to json. This will result in us
+        # reading the xml file and changing it to a json file when saving.
+        base, ext = os.path.splitext(filename)
+        if ext.lower() == '.xml':
+            json_name = '{}.json'.format(base)
+            if os.path.exists(json_name):
+                filename = json_name
+
+        if filename in config or not os.path.isfile(filename):
+            # Don't reprocess the same file if there is are circular includes
+            return config
+
+        # Add current now to prevent include cycles. This stores a pointer so the
+        # future updates to current in the rest of the function will be included.
+        base, _ = os.path.splitext(filename)
+        config['{}.json'.format(base)] = current
+
+        if os.path.splitext(filename.lower())[-1] == '.json':
+            with open(filename) as fh:
+                data = json.load(fh, object_pairs_hook=OrderedDict)
+            name = include_name if include_name else 'Environment'
+            current['name'] = data.get('name', name)
+            current['read_only'] = data.get('read_only', False)
+
+            for include in data.get('included', []):
+                current.setdefault('included', []).append(include)
+                name = include.get('name')
+                fn = include.get('filename', '')
+                cls.load_config_file(
+                    fn, config=config, include_name=name, relative_root=dir_name
+                )
+
+            if 'environments' in data:
+                current.setdefault('environments', []).extend(data['environments'])
+
+        # TODO: Remove this xml processing code once we are no longer using xml
+        elif os.path.splitext(filename.lower())[-1] == '.xml':
+            # If the json file was not found, look for and parse the xml file instead
+            doc = blurdev.XML.XMLDocument()
+            if doc.load(filename):
+                root = doc.root()
+                # TODO: perhaps use include_name as the default name not explicit name
+                if include_name is None:
+                    current['name'] = root.attribute('name')
+                else:
+                    current['name'] = include_name
+
+                for child in root.children():
+                    # include another config file
+                    if child.nodeName == 'include':
+                        name = child.attribute('name')
+                        fn = child.attribute('loc')
+                        child_dict = OrderedDict((('name', name), ('filename', fn)))
+                        current.setdefault('included', []).append(child_dict)
+                        cls.load_config_file(
+                            fn,
+                            config=config,
+                            include_name=name,
+                            relative_root=dir_name,
+                        )
+
+                    # load an environment
+                    elif child.nodeName == 'environment':
+                        env = OrderedDict()
+                        env['name'] = child.attribute('name')
+                        env['path'] = child.attribute('loc')
+                        env['email'] = child.attribute('emailOnError')
+                        env['description'] = child.attribute('description')
+                        env['legacy'] = child.attribute('legacyName')
+                        env['dev'] = (
+                            child.attribute('development', 'false').lower() == 'true'
+                        )
+                        env['default'] = (
+                            child.attribute('default', 'false').lower() == 'true'
+                        )
+                        env['offline'] = (
+                            child.attribute('offline', 'false').lower() == 'true'
+                        )
+                        env['autoupdate'] = (
+                            child.attribute('autoupdate', 'false').lower() == 'true'
+                        )
+                        env['timeout'] = child.attribute('timeout', '')
+                        env['keychain'] = child.attribute('keychain', '')
+                        env['project'] = child.attribute('project', '')
+
+                        current.setdefault('environments', []).append(env)
+        return config
+
+    @classmethod
+    def create_env(
+        cls,
+        name,
+        path,
+        email='',
+        description='',
+        dev=False,
+        default=False,
+        offline=False,
+        autoupdate=False,
+        timeout='',
+        keychain='',
+        project='',
+        legacy='',
+    ):
+        """Generate a environment dictionary with the given values that can be stored
+        in the "environments" section of the treegrunt config.
+        """
+        ret = OrderedDict()
+        ret['name'] = name
+        ret['path'] = path
+        ret['email'] = email
+        ret['description'] = description
+        ret['dev'] = dev
+        ret['default'] = default
+        ret['offline'] = offline
+        ret['autoupdate'] = autoupdate
+        ret['timeout'] = timeout
+        ret['keychain'] = keychain
+        ret['project'] = project
+        ret['legacy'] = legacy
+        return ret
+
+    @classmethod
+    def save_config(cls, config, postfix=''):
+        """Save the config and any filenames it includes.
+
+        Args:
+            config (dict): The config dictionary to save.
+            postfix (str, optional): The config specifies the location it is saved.
+                This allows you to save a copy of it next to the original file.
+        """
+        for filename in config:
+
+            current = config[filename]
+            if postfix:
+                filename, ext = os.path.splitext(filename)
+                # TODO: Remove the hardcoded ext once we have migrated to json configs.
+                ext = '.json'
+                filename = ''.join((filename, postfix, ext))
+
+            dir_name = os.path.dirname(filename)
+            if not os.path.exists(dir_name):
+                os.makedirs(dir_name)
+
+            with open(filename, 'w') as fp:
+                json.dump(current, fp, indent=4)
+
+    @classmethod
+    def loadConfig(cls, filename):
         """Loads the environments from the inputted config file
 
         Args:
-            filename (str)
-            included (bool) marks whether or not this is an included file
+            filename (str): The file to load from.
 
         Returns:
             bool: success
         """
-        doc = blurdev.XML.XMLDocument()
         # Expand any environment variables and user directory shortcuts. For example you
         # can use '~\$TEST_ENV_VAR' which could expand to 'C:\Users\username\test'
         filename = os.path.expandvars(os.path.expanduser(filename))
-        if doc.load(filename):
-            root = doc.root()
-
-            for child in root.children():
-                # include another config file
-                if child.nodeName == 'include':
-                    ToolsEnvironment.loadConfig(child.attribute('loc'), True)
-
-                # load an environment
-                elif child.nodeName == 'environment':
-                    env = ToolsEnvironment.fromXml(child)
-                    env.setSourceFile(filename)
-                    ToolsEnvironment.environments.append(env)
-
-            # initialize the default environment
-            if not included:
-                pref = blurdev.prefs.find(
-                    'blurdev/core', coreName=blurdev.core.objectName()
-                )
-
-                envName = pref.restoreProperty('environment')
-                if envName:
-                    env = ToolsEnvironment.findEnvironment(envName)
-                    if not env.isEmpty():
-                        # restore the environment from settings instead of the default
-                        # if possible.
-                        env.setActive(silent=True)
-                        return True
-
-                ToolsEnvironment.defaultEnvironment().setActive(silent=True)
-            return True
-
-        return False
-
-    @staticmethod
-    def recordConfig(filename=''):
-        if not filename:
-            filename = USER_ENVIRONMENT_FILE
-
-        if not filename:
+        if not os.path.exists(filename):
             return False
 
-        doc = blurdev.XML.XMLDocument()
-        root = doc.addNode('tools_environments')
-        root.setAttribute('version', 1.0)
+        config = cls.load_config_file(filename)
+        default = None
+        # Iterate over the environments and create them
+        for environments in config.values():
+            for env_config in environments['environments']:
+                env = ToolsEnvironment(config=env_config)
+                if env.isDefault():
+                    if default is None:
+                        default = env
+                    else:
+                        env.setDefault(False)
+                        msg = '{} is marked default but {} is already marked default'
+                        logger.warning(msg.format(env.objectName(), default.name()))
+                ToolsEnvironment.environments.append(env)
 
-        filename = os.path.normcase(filename)
-        for env in ToolsEnvironment.environments:
-            if os.path.normcase(env.sourceFile()) == filename:
-                env.recordXml(root)
+        return True
 
-        return doc.save(filename)
+    @classmethod
+    def refreshEnvironmentConfigs(cls):
+        """Reset the treegrunt environments to match the configs on disk."""
+        active = ToolsEnvironment.activeEnvironment()
+        activeName = active.objectName()
+        # Ensure the current environment is unloaded.
+        blurdev.core.configUpdated()
+        active.clearPathSymbols()
+
+        # Reset the treegunt environments to match the configs on disk
+        ToolsEnvironment.environments = []
+        ToolsEnvironment.loadConfig(blurdev.core.defaultEnvironmentPath())
+
+        # Update any EnvComboBox or any other widgets showing treegrunt environments
+        blurdev.core.environmentsUpdated.emit()
+
+        # Reload the active environment to restore the paths we removed earlier and
+        # to ensure they are updated with the latest config.
+        blurdev.setActiveEnvironment(activeName)
 
     @staticmethod
     def registerPath(path):

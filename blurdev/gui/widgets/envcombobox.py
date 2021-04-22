@@ -71,6 +71,7 @@ class EnvComboBox(QComboBox):
         self._defaultActive = False
         self.setItemDelegate(EnvComboBoxDelegate(self))
         self.currentIndexChanged.connect(self.updateColors)
+        blurdev.core.environmentsUpdated.connect(self.refresh)
         blurdev.core.styleSheetChanged.connect(self.updateColors)
         self.refresh()
 

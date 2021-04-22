@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <tools_environments version="1.0" name="Built-in">
     <!-- load local user environments -->
-    <include loc="c:/blur/common/user_environments.xml"/>
-    <include loc="//source/source/dev/share_all/studio_environments.xml"/>
+    <include loc="c:/blur/common/user_environments.xml" name="Machine"/>
+    <include loc="//source/source/dev/share_all/studio_environments.xml" name="Studiowide"/>
     <!-- load studio standard environments -->
     <environment default="True" emailOnError="errors@blur.com" description="This is the environment you should be using most of the time. It features the code that is meant to be used by artists." loc="\\source\production\release\lib\python2.7\site-packages" name="Release"/>
     <environment emailOnError="errors@blur.com" description="Very similar to Release but is exposing code that we plan to release soon." loc="\\source\production\rc\lib\python2.7\site-packages" name="Release Candidate"/>

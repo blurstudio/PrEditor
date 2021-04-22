@@ -39,6 +39,7 @@ class Core(QObject):
     # ----------------------------------------------------------------
     # blurdev signals
     environmentActivated = Signal()
+    environmentsUpdated = Signal()
     debugLevelChanged = Signal()
     fileCheckedIn = Signal(str)
     fileCheckedOut = Signal(str)
