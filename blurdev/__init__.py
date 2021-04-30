@@ -98,8 +98,10 @@ logger.addHandler(logging.NullHandler())
 
 # initialize sentry if environment variable present
 if os.environ.get("BDEV_SENTRY_AT_STARTUP"):
-    from blurdev.utils.error import setup_sentry
-    setup_sentry()
+    import sentry_bootstrap
+    from blurdev.utils.error import sentry_before_send_callback
+    sentry_bootstrap.init_sentry()
+    sentry_bootstrap.add_external_callback(sentry_before_send_callback)
 
 
 def activeEnvironment(coreName=None):

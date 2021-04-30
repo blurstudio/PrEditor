@@ -36,6 +36,7 @@ from Qt.QtWidgets import (
 )
 
 from Qt import QtCompat
+import sentry_bootstrap
 
 from blurdev import prefs
 from blurdev.logger import saveLoggerConfiguration
@@ -43,7 +44,6 @@ from blurdev.logger import saveLoggerConfiguration
 from blurdev.gui import Window, Dialog
 from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from blurdev.ide.delayable_engine import DelayableEngine
-from blurdev.utils.error import sentry_enabled, sentry_enable, sentry_disable
 
 from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
@@ -223,7 +223,7 @@ class LoggerWindow(Window):
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiToggleSentryACT.toggled.connect(self.setSentryEnabled)
-        self.uiToggleSentryACT.setChecked(sentry_enabled)
+        self.uiToggleSentryACT.setChecked(sentry_bootstrap.is_enabled())
         self.uiSaveConsoleSettingsACT.triggered.connect(
             lambda: self.recordPrefs(manual=True)
             )
@@ -955,9 +955,9 @@ class LoggerWindow(Window):
                 Tracking.
         """
         if state is True:
-            sentry_enable()
+            sentry_bootstrap.enable()
         elif state is False:
-            sentry_disable()
+            sentry_bootstrap.disable()
 
     def setStatusText(self, txt):
         """ Set the text shown in the menu corner of the menu bar.

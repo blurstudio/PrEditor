@@ -41,6 +41,7 @@ setup(
         # Please keep list alphabetical
         'blur-cute>=0.25.0',
         'blur-pillar>=0.16.0',
+        'blur-sentry-bootstrap>=1.1.0',
         'certifi==2019.9.11',
         'click>=7.1.2',
         'configparser>=4.0.2',
@@ -53,7 +54,6 @@ setup(
         # Currently blur_python requires a custom PyQt5 install on linux that
         # includes QScintilla and PyQt5. Don't require this as a pip package.
         'QScintilla>=2.11.4;python_version>="3.5" and platform_system=="Windows"',
-        'sentry-sdk>=1.0.0',
         'signalslot>=0.1.2',
         'tabulate>=0.8.7',
         'urllib3>=1.25.7',

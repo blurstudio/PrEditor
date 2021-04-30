@@ -14,6 +14,7 @@ from Qt.QtWidgets import (
     QSplashScreen,
 )
 from Qt import QtCompat
+import sentry_bootstrap
 
 import blurdev
 import blurdev.prefs
@@ -25,7 +26,7 @@ import blurdev.tools.toolsenvironment
 import blurdev.cores.application
 import blurdev.settings
 from blurdev.decorators import pendingdeprecation
-from blurdev.utils.error import setup_sentry
+from blurdev.utils.error import sentry_before_send_callback
 
 
 class Core(QObject):
@@ -548,7 +549,8 @@ class Core(QObject):
         self.protectModule('pkg_resources')
 
         # initialize sentry client
-        setup_sentry()
+        sentry_bootstrap.init_sentry(force=True)
+        sentry_bootstrap.add_external_callback(sentry_before_send_callback)
 
         # Gets the override filepath, it is defined this way, instead of
         # being defined in the class definition, so that we can change this

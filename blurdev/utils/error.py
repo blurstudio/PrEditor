@@ -3,7 +3,6 @@
 # standard library imports
 from collections import OrderedDict
 from datetime import datetime
-import logging
 import os
 import traceback
 import sys
@@ -18,8 +17,6 @@ from blurdev.contexts import ErrorReport
 _host_information = None
 _user_information = None
 _environment_information = None
-_sentry_initialized = None
-sentry_enabled = True
 
 
 def get_host_information(refresh=False):
@@ -265,60 +262,11 @@ def highlight_code(code, linenos=False):
     return formatted_code
 
 
-def sentry_integrations():
-    """
-    Configure various Sentry integrations for the initialization of the Sentry
-    API.
-
-    These integrations are usually provided via the `default_integrations`
-    argument of `sentry_sdk.init` but have been manually provided by this
-    function in order to control aspects of the logging integration,
-    initialized when `default_integrations` is True. The default logging
-    integration patches the `Logger`-class instead of accounting for the use of
-    the logging module's `setLoggerClass` functionality, which is used by
-    blurdev.
-
-    Integrations:
-        - Argv: Adds the list of command line arguments passed to the Python
-            script as and entry in the `extra` dict.
-        - Atexit: Flushes Sentry events in the BG queue pre-interpreter
-            shutdown.
-        - Dedupe: Limits duplication of certain events.
-        - Excepthook: Registers with the interpreter's except hook system to
-            report unhanded, non-interactive/REPL raised exceptions to Sentry.
-        - Modules: Attaches a list of installed Python modules to the error
-            event. The list of modules is calculated once per session.
-        - Stdlib: Adds breadcrumb emissions for HTTP requests via `httplib` and
-            the spawning of subprocesses via `subprocess`.
-        - Threading: Reports crashing of threads.
-
-    Returns:
-        list: Integration frameworks to be used in our implementation of the
-            Sentry SDK.
-    """
-    from sentry_sdk.integrations.argv import ArgvIntegration
-    from sentry_sdk.integrations.atexit import AtexitIntegration
-    from sentry_sdk.integrations.dedupe import DedupeIntegration
-    from sentry_sdk.integrations.excepthook import ExcepthookIntegration
-    from sentry_sdk.integrations.modules import ModulesIntegration
-    from sentry_sdk.integrations.stdlib import StdlibIntegration
-    from sentry_sdk.integrations.threading import ThreadingIntegration
-
-    return [
-        ArgvIntegration(),
-        AtexitIntegration(),
-        DedupeIntegration(),
-        ExcepthookIntegration(),
-        ModulesIntegration(),
-        StdlibIntegration(),
-        ThreadingIntegration(propagate_hub=True),
-    ]
-
-
 def sentry_before_send_callback(event, hint):
     """
-    Executed before an event is sent to the Sentry server, gathers all error
-    information and adds it to the event.
+    Callback function to be used with Sentry's python SDK. Executed before an
+    event is sent to the Sentry server, gathers all error information and adds
+    it to the event.
 
     Args:
         event (dict): Sentry event supplied before submission to server
@@ -328,14 +276,6 @@ def sentry_before_send_callback(event, hint):
     Returns:
         dict: modified Sentry event dictionary
     """
-    # discard event if debug enabled
-    if blurdev.debug.debugLevel() != 0:
-        return None
-
-    # discard event if sentry disabled by user
-    if not sentry_enabled:
-        return None
-
     info = all_information_by_section()
     user_info = info.pop("user")
 
@@ -355,79 +295,6 @@ def sentry_before_send_callback(event, hint):
         event_extra["error_reports"] = error_reports
 
     return event
-
-
-def sentry_enable():
-    """
-    Enables Sentry error tracking.
-    """
-    global sentry_enabled
-    sentry_enabled = True
-
-
-def sentry_disable():
-    """
-    Disables Sentry error tracking.
-    """
-    global sentry_enabled
-    sentry_enabled = False
-
-
-def setup_sentry(force=False):
-    """
-    Initializes the Sentry API. Providing error tracking for sessions
-    leveraging blurdev, Sentry integrates with Python's excepthook and logging
-    infrastructure to report errors that occur during code execution. These
-    errors are submitted to our Sentry server at `https://sentry.blur.com`.
-
-    If initialization is successful `_sentry_initialized`, the private global
-    variable, will be set to True. Otherwise the variable will be set to False.
-
-    Setup will not be performed for following scenarios:
-        - Sentry is already initialized (may be overridden with `force` arg).
-        - A previous attempt to initialize Sentry failed (ex: bad DSN).
-        - The `SENTRY_DSN` environment variable is not set.
-
-    Environment Variables:
-        SENTRY_DSN: Required for Sentry to initialize, defines the endpoint for
-            Sentry to submit error events.
-        SENTRY_DEBUG: If set to 1 (or any value), Sentry will be initialized
-            in debug mode providing granular output related to the underlying
-            Sentry API (such as startup process progress and output for event
-            transmission).
-
-    Args:
-        force (bool, optional): When True, initializes Sentry even if it has
-            already been successfully initialized or previously failed.
-    """
-    global _sentry_initialized
-
-    sentry_dsn = os.environ.get("SENTRY_DSN")
-    if sentry_dsn and (force or _sentry_initialized is None):
-        import sentry_sdk
-        from sentry_sdk.integrations.logging import BreadcrumbHandler, EventHandler
-
-        logging.root.addHandler(BreadcrumbHandler(logging.INFO))
-        logging.root.addHandler(EventHandler(logging.ERROR))
-
-        try:
-            sentry_sdk.init(
-                dsn=sentry_dsn,
-                debug=bool(os.environ.get("SENTRY_DEBUG")),
-                default_integrations=False,
-                integrations=sentry_integrations(),
-                before_send=sentry_before_send_callback,
-            )
-
-        # unable to import sentry or dsn is invalid
-        except (ImportError, sentry_sdk.utils.BadDsn):
-            _sentry_initialized = False
-
-        # set sentry logger to critical; suppresses issues with dsn connection
-        else:
-            sentry_logger = logging.getLogger("sentry_sdk.errors")
-            sentry_logger.setLevel(logging.CRITICAL)
-            _sentry_initialized = True
 
 
 class ErrorEmail(object):
