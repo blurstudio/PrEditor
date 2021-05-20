@@ -406,7 +406,8 @@ def imageSequenceForRepr(fileName):
     flags = 0
     if blurdev.settings.OS_TYPE == 'Windows':
         flags = re.I
-    filter = re.compile((
+    filter = re.compile(
+        (
             r'(?P<pre>^.+?)\[(?P<start>\d+)(?P<separator>[^\da-zA-Z]?)'
             r'(?P<end>\d+)\](?P<post>\.[A-Za-z0-9]+?$)'
         ),

@@ -189,7 +189,7 @@ class LoggerWindow(Window):
         self.uiCloseWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W)
         self.uiCloseWorkboxACT.triggered.connect(
             lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex())
-            )
+        )
 
         # Browse previous commands
         self.uiGetPrevCmdACT.setShortcut(Qt.ALT | Qt.Key_Up)
@@ -226,7 +226,7 @@ class LoggerWindow(Window):
         self.uiToggleSentryACT.setChecked(sentry_bootstrap.is_enabled())
         self.uiSaveConsoleSettingsACT.triggered.connect(
             lambda: self.recordPrefs(manual=True)
-            )
+        )
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
@@ -720,17 +720,17 @@ class LoggerWindow(Window):
 
         pref.recordProperty(
             'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
-            )
+        )
 
         pref.recordProperty(
             'uiAutoPromptACT', self.uiAutoPromptACT.isChecked()
-            )
+        )
         pref.recordProperty(
             'uiLinesInNewWorkboxACT', self.uiLinesInNewWorkboxACT.isChecked()
-            )
+        )
         pref.recordProperty(
             'uiErrorHyperlinksACT', self.uiErrorHyperlinksACT.isChecked()
-            )
+        )
         pref.recordProperty('textEditorPath', self.textEditorPath)
         pref.recordProperty('textEditorCmdTempl', self.textEditorCmdTempl)
 
@@ -818,17 +818,17 @@ class LoggerWindow(Window):
         )
         self.uiAutoSaveSettingssACT.setChecked(
             pref.restoreProperty('uiAutoSaveSettingssACT', True)
-            )
+        )
 
         self.uiAutoPromptACT.setChecked(
             pref.restoreProperty('uiAutoPromptACT', False)
-            )
+        )
         self.uiLinesInNewWorkboxACT.setChecked(
             pref.restoreProperty('uiLinesInNewWorkboxACT', False)
-            )
+        )
         self.uiErrorHyperlinksACT.setChecked(
             pref.restoreProperty('uiErrorHyperlinksACT', True)
-            )
+        )
 
         # External text editor filepath and command template
         defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"

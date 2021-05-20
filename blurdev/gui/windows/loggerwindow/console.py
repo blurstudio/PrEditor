@@ -239,7 +239,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     exePath=exePath,
                     modulePath=modulePath,
                     lineNum=lineNum
-                    )
+                )
                 subprocess.Popen(command)
             except (ValueError, OSError):
                 msg = "The provided text editor command template is not valid:\n    {}"
@@ -743,7 +743,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 'fileStart': 8,
                 'fileEnd': filenameEnd,
                 'lineNum': lineNum
-                }
+            }
 
         return ret
 

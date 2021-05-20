@@ -18,11 +18,11 @@ import blurdev
 
 def getKey(name, default=None, path=None):
     """
-	Returns the value of the key with the given name from the given keychain
-	file.  If no keychain path is given, the default keychain path is used.
-	If no key with the given name is found, it will raise a KeyError, unless
-	a default is provided, in which case the default will be returned.
-	"""
+    Returns the value of the key with the given name from the given keychain
+    file.  If no keychain path is given, the default keychain path is used.
+    If no key with the given name is found, it will raise a KeyError, unless
+    a default is provided, in which case the default will be returned.
+    """
     keys = getKeys(path)
     value = keys.get(name, default)
     if value is None:
@@ -40,10 +40,10 @@ def getKey(name, default=None, path=None):
 
 def setKey(name, value, path=None):
     """
-	Uses the provided name and value to add or update a key in the given
-	keychain file.  If no path is provided, the default keychain file is
-	updated.
-	"""
+    Uses the provided name and value to add or update a key in the given
+    keychain file.  If no path is provided, the default keychain file is
+    updated.
+    """
     if path:
         # Force this to only accept files with the ext keychain.
         path = '{}.keychain'.format(os.path.splitext(path)[0])
@@ -60,10 +60,10 @@ def setKey(name, value, path=None):
 
 def getKeys(path=None):
     """
-	Accepts a path to a keychain file and returns a dictionary of key: value pairs.
-	If no path is provided, the default path will be used.
+    Accepts a path to a keychain file and returns a dictionary of key: value pairs.
+    If no path is provided, the default path will be used.
 
-	"""
+    """
     if path:
         # Force this to only accept files with the ext keychain.
         path = '{}.keychain'.format(os.path.splitext(path)[0])
@@ -107,10 +107,10 @@ def getKeys(path=None):
 
 def setKeys(keys, path, version=3):
     """
-	Accepts a dictionary of {key: value} pairs and writes out a keychain file.
-	The version specifies the keychain version format to use (1 or 2).
+    Accepts a dictionary of {key: value} pairs and writes out a keychain file.
+    The version specifies the keychain version format to use (1 or 2).
 
-	"""
+    """
     if version == 3:
         import json
 

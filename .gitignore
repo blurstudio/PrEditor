@@ -10,10 +10,17 @@
 /blur_blurdev.egg-info/
 /build/
 /dist/
-/docs/
 /venv/
 requirements.txt
 *.sublime-*
+
+# Ignore the majority of the docs folder
+/docs/*
+!/docs/
+/docs/source/*
+!/docs/source/
+!/docs/source/conf.py
+!/docs/source/index.rst
 
 # Used by ci to download files required for testing
 /downloads/

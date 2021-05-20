@@ -2,17 +2,9 @@
 ignore =
 	BLK100,  # Black would make changes
 	C901,  # Function is too complex
-	E101,  # Indentation contains mixed spaces and tabs
-	E117,  # Over-indented code blocks
-	E121,  # Continuation line under-indented for hanging indent
-	E123,  # Closing bracket does not match indentation of opening bracket's line
 	E126,  # Continuation line over-indented for hanging indent
 	E128,  # Continuation line under-indented for visual indent
-	E201,  # Whitespace after '('
-	E202,  # Whitespace before ')'
-	E223,  # Tab before operator
 	E265,  # Block comment should start with '# '
-	E274,  # Tab before keyword
 	E402,  # Module level import not at top of file
 	E704,  # Multiple statements on one line (def)
 	N802,  # Function name should be lowercase
@@ -20,7 +12,6 @@ ignore =
 	N806,  # Variable in function should be lowercase
 	N815,  # MixedCase variable in class scope
 	N816,  # MixedCase variable in global scope
-	W191,  # Indentation contains tabs
 	W503,  # Line break before binary operator
 	W504,  # Line break after binary operator
 	W605,  # Invalid escape sequence

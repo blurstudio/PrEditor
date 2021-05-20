@@ -839,7 +839,7 @@ class DocumentEditor(QsciScintilla):
         self.setMarginLineNumbers(0, section.value('showLineNumbers'))
         self.setIndentationGuides(section.value('showIndentations'))
         self.setEolVisibility(section.value('showEol'))
-        self.setShowSmartHighlighting(  section.value('smartHighlighting'))
+        self.setShowSmartHighlighting(section.value('smartHighlighting'))
         self.setBackspaceUnindents(section.value('backspaceUnindents'))
 
         if section.value('showLimitColumn'):

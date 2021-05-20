@@ -44,7 +44,7 @@ class CompleterMode(Enum):
             'STARTS_WITH': "'all' matches 'allowtabs', does not match 'findallnames'",
             'OUTER_FUZZY': "'all' matches 'getallobjs', does not match 'anylonglist'",
             'FULL_FUZZY': "'all' matches 'getallobjs', also matches 'anylonglist'",
-            }
+        }
         return toolTipMap.get(self.name, "")
 
 
