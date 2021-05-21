@@ -54,9 +54,6 @@ def launch_tool(ctx):
     # Get the tool id from the parent context
     tool = ctx.parent.tool
 
-    # mark that this is executing a runtime of blurdev, so parse command line arguments
-    os.environ['BDEV_EXEC'] = '1'
-
     # Use the toolId as the applicationName. When blurdev is imported, it will
     # set the ApplicationName to match this toolname.
     blurdev.core.updateApplicationName(name=tool)

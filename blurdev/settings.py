@@ -93,25 +93,6 @@ def init():
         return
     _inited = True
 
-    # set this variable in any runtime to load arguments from command line
-    if hasattr(sys, 'argv') and os.environ.get('BDEV_EXEC') == '1':
-        from optparse import OptionParser
-
-        parser = OptionParser()
-        parser.disable_interspersed_args()
-
-        # initialize common command line options
-        parser.add_option(
-            '-p',
-            '--preference_root',
-            dest='preference_root',
-            help='set the user pref file',
-        )
-
-        (options, args) = parser.parse_args(sys.argv)
-        if options.preference_root:
-            registerVariable('BDEV_PATH_PREFS', options.preference_root)
-
     # register default paths
     for key in sorted(os.environ.keys(), reverse=True):
         if key.startswith('BDEV_INCLUDE_'):
