@@ -209,6 +209,7 @@ def createShortcut(
     path=None,
     description='',
     common=1,
+    app_id=None
 ):
     """Creates a shortcut.
 
@@ -239,6 +240,7 @@ def createShortcut(
             is generated for the user or shared. 1(default) is the public shared folde,
             while 0 is the users folder. See path to control if the auto-generated path
             is for the desktop or start menu.
+        app_id (bool, str or None): whether to set app ID on shortcut or not
     """
     if settings.OS_TYPE == 'Windows':
         import winshell
@@ -321,7 +323,10 @@ def createShortcut(
                 StartIn=startin,
                 Description=description,
             )
-        set_app_id_for_shortcut(shortcut, 'Blur.%s' % title.replace(' ', ''))
+        if app_id is True:
+            app_id = 'Blur.%s' % title.replace(' ', '')
+        if app_id:
+            set_app_id_for_shortcut(shortcut, app_id)
 
         # Attempt to clear the windows icon cache so icon changes are displayed now
         subprocess.Popen(['ie4uinit.exe', '-ClearIconCache'])
