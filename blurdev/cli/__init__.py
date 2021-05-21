@@ -39,6 +39,8 @@ import click
 import blurdev
 
 cmd_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), 'commands'))
+# No one wants to actually type `--help`
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 class CommandLoader(click.MultiCommand):
@@ -64,7 +66,7 @@ class CommandLoader(click.MultiCommand):
         return mod.cli
 
 
-@click.command(cls=CommandLoader)
+@click.command(cls=CommandLoader, context_settings=CONTEXT_SETTINGS)
 @click.option(
     '-d',
     '--debug',
