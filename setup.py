@@ -42,7 +42,7 @@ setup(
         'blur-cute>=0.25.0',
         'blur-pillar>=0.16.0',
         'blur-sentry-bootstrap>=1.1.0',
-        'certifi==2019.9.11',
+        'certifi>=2019.9.11',
         'click>=7.1.2',
         'configparser>=4.0.2',
         'Deprecated>=1.2.7',
