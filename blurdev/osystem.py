@@ -329,7 +329,9 @@ def createShortcut(
             set_app_id_for_shortcut(shortcut, app_id)
 
         # Attempt to clear the windows icon cache so icon changes are displayed now
-        subprocess.Popen(['ie4uinit.exe', '-ClearIconCache'])
+        subprocess.Popen(
+            ['ie4uinit.exe', '-ClearIconCache'], env=subprocessEnvironment()
+        )
 
 
 def explore(filename, dirFallback=False):
@@ -352,10 +354,11 @@ def explore(filename, dirFallback=False):
 
     # run the file in windows
     if settings.OS_TYPE == 'Windows':
+        env = subprocessEnvironment()
         if os.path.isfile(fpath):
-            subprocess.Popen(r'explorer.exe /select, "{}"'.format(fpath))
+            subprocess.Popen(r'explorer.exe /select, "{}"'.format(fpath), env=env)
             return True
-        subprocess.Popen(r'explorer.exe "{}"'.format(fpath))
+        subprocess.Popen(r'explorer.exe "{}"'.format(fpath), env=env)
         return True
 
     # run the file in linux
