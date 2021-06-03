@@ -264,49 +264,16 @@ def findPixmap(filename, thumbSize=None):
                                             affect the search key)
     """
     from Qt.QtCore import Qt
-    from Qt.QtGui import QPixmapCache, QPixmap
+    from Qt.QtGui import QPixmap
 
     # create the thumbnail size
+    thumb = QPixmap()
+    thumb.load(filename)
+
     if thumbSize:
-        w = thumbSize.width()
-        h = thumbSize.height()
-
-        ratio = '_%sx%s' % (w, h)
-
-        thumb = QPixmap()
-
-        # load the existing cached thumb file
-        if not QPixmapCache.find(filename + ratio, thumb):
-            cache = QPixmap()
-
-            # load the existing cached main file
-            if not QPixmapCache.find(filename, cache):
-                cache.load(filename)
-
-                # cache the source
-                QPixmapCache.insert(filename, cache)
-
-            if thumbSize.width() < cache.width() or thumbSize.height() < cache.height():
-                thumb = cache.scaled(thumbSize, Qt.KeepAspectRatio)
-            else:
-                thumb = QPixmap(cache)
-
-            QPixmapCache.insert(filename + ratio, thumb)
+        thumb = thumb.scaled(thumbSize, Qt.KeepAspectRatio)
 
         return thumb
-
-    else:
-        # try to load the pixmap
-        cache = QPixmap()
-
-        # pull the pixmap, autoloading it when necessary
-        if not QPixmapCache.find(filename, cache):
-            cache.load(filename)
-
-            # cache the source
-            QPixmapCache.insert(filename, cache)
-
-        return QPixmap(cache)
 
 
 def connectLogger(

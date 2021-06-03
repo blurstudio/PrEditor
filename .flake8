@@ -17,6 +17,6 @@ ignore =
 	W605,  # Invalid escape sequence
 	T000
 max-line-length = 88
-exclude = tests/*
+exclude = tests/*,shared-venv
 max-complexity = 10
 

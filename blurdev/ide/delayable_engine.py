@@ -207,7 +207,7 @@ class DelayableEngine(QObject):
                     skipped += 1
                     continue
 
-                keys = document.delayable_info.keys()
+                keys = list(document.delayable_info.keys())
                 keys = keys[self.delayable_index:] + keys[: self.delayable_index]
                 for key in keys:
                     self.delayable_index += 1

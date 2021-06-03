@@ -294,7 +294,9 @@ class ToolsIndex(QObject):
         # Ensure that the blurdev's entry point is processed first, we need to add
         # its paths before we try to load any of the other entry_points that are
         # likely being loaded from the blurdev entry point.
-        entry_points.sort(key=lambda a: -1 if a[0] == 'TREEGRUNT_ROOT' else 1)
+        entry_points = sorted(
+            entry_points, key=lambda a: -1 if a[0] == 'TREEGRUNT_ROOT' else 1
+        )
 
         name, extension = os.path.splitext(basename)
         with tempfile.NamedTemporaryFile(

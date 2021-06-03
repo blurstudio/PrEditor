@@ -449,7 +449,7 @@ class Core(QObject):
                     # studio/internal/__init__.py for more information.
                     import studio.internal  # noqa: F401
             # This is to prevent errors if modules do not exist.
-            except ImportError:
+            except (ImportError, AttributeError):
                 pass
 
     def errorCoreText(self):

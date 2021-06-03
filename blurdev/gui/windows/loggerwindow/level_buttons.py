@@ -436,7 +436,7 @@ class LoggingLevelMenu(QMenu):
             menu (LoggingLevelMenu): Logger QMenu to insert into action list.
         """
         current_actions = self.actions()
-        current_names = map(lambda x: x.text(), current_actions)
+        current_names = list(map(lambda x: x.text(), current_actions))
 
         # ensure separator is visible
         separator_index = current_names.index("Separator")
@@ -452,7 +452,7 @@ class LoggingLevelMenu(QMenu):
             return
 
         # add new menu name to current list & sort
-        child_menu_names = map(lambda x: x.text(), child_menus)
+        child_menu_names = list(map(lambda x: x.text(), child_menus))
         child_menu_names.append(menu.title())
         sorted_child_names = sorted(child_menu_names, key=lambda x: x.lower())
 
@@ -479,7 +479,7 @@ class LoggingLevelMenu(QMenu):
         """
         child_menus = []
         current_actions = self.actions()
-        current_names = map(lambda x: x.text(), current_actions)
+        current_names = list(map(lambda x: x.text(), current_actions))
 
         # determine start of child menus
         separator_index = current_names.index("Separator")

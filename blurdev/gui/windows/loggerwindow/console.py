@@ -20,6 +20,7 @@ import blurdev
 from blurdev import debug
 from blurdev.debug import BlurExcepthook
 from .completer import PythonCompleter
+from builtins import str as text
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 import blurdev.gui.windows.loggerwindow
 
@@ -308,8 +309,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         cursor = self.textCursor()
         cursor.movePosition(cursor.EndOfLine)
         cursor.movePosition(cursor.End, cursor.KeepAnchor)
-        text = cursor.selectedText()
-        if text:
+        txt = cursor.selectedText()
+        if txt:
             self.setTextCursor(cursor)
             self.insertPlainText('')
         # Restore the cursor position to its original location
@@ -439,25 +440,25 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     def insertFromMimeData(self, mimeData):
         html = False
         if mimeData.hasHtml():
-            text = mimeData.html()
+            txt = mimeData.html()
             html = True
         else:
-            text = mimeData.text()
+            txt = mimeData.text()
 
         doc = QTextDocument()
 
         if html:
-            doc.setHtml(text)
+            doc.setHtml(txt)
         else:
-            doc.setPlainText(text)
+            doc.setPlainText(txt)
 
-        text = doc.toPlainText()
+        txt = doc.toPlainText()
 
         exp = re.compile((
-            '[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:'
-            '\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
+            r'[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:'
+            r'\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
         ))
-        newText = text.encode('utf-8')
+        newText = text(txt)
         for each in exp.findall(newText):
             newText = newText.replace(each, '?')
 

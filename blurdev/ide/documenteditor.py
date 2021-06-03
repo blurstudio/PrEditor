@@ -692,9 +692,9 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_SETTARGETSTART, find_state.start_pos)
         self.SendScintilla(self.SCI_SETTARGETEND, find_state.end_pos)
 
-        # scintilla can't match unicode strings
-        # TODO: Figure out if there is a better way to translate this.
-        expr = blurdev.settings.environStr(find_state.expr)
+        # scintilla can't match unicode strings, even in python 3
+        # In python 3 you have to cast it to a bytes object
+        expr = bytes(str(find_state.expr).encode("utf-8"))
 
         return self.SendScintilla(self.SCI_SEARCHINTARGET, len(expr), expr)
 

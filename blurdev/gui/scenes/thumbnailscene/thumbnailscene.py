@@ -251,8 +251,13 @@ class ThumbnailScene(QGraphicsScene):
                 grp_map[item] = []
 
         # calculate the group information
+        def sort_key(item):
+            if item is None:
+                return item
+            return item.sortData()
+
         keys = grp_map.keys()
-        keys.sort(key=lambda x: x.sortData())
+        keys.sort(key=sort_key)
 
         if self.reverseSort():
             keys.reverse()

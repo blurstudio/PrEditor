@@ -281,7 +281,7 @@ references will be available from within the action's various methods.
 
 """
 
-import copy_reg
+import copyreg
 import types
 
 from .base import *  # noqa: F401,F403
@@ -305,6 +305,6 @@ def _pickle_method(m):
         return getattr, (m.__self__, m.__func__.__name__)
 
 
-copy_reg.pickle(types.MethodType, _pickle_method)
+copyreg.pickle(types.MethodType, _pickle_method)
 
 # =============================================================================
