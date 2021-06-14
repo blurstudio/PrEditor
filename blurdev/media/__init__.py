@@ -10,6 +10,7 @@ import re
 import blurdev
 
 from past.builtins import basestring
+from deprecated import deprecated
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -167,6 +168,10 @@ def get32bitProgramFiles():
     return os.getenv(progF)
 
 
+@deprecated(
+    version='2.55.0',
+    reason='html2textile is ancient and the future module does not support it.'
+)
 def html2textile(html, clearStyle=True):
     """ Converts the provided html text to textile markup using html2textile.
 
