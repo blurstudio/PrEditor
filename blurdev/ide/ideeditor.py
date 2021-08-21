@@ -525,12 +525,12 @@ class IdeEditor(Window):
     def documentCommentAdd(self):
         doc = self.currentDocument()
         if doc:
-            doc.commentAdd()
+            doc.commentToggle(doWhich="Comment")
 
     def documentCommentRemove(self):
         doc = self.currentDocument()
         if doc:
-            doc.commentRemove()
+            doc.commentToggle(doWhich="Uncomment")
 
     def documentCommentToggle(self):
         doc = self.currentDocument()

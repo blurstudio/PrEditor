@@ -16,7 +16,7 @@ import traceback
 from Qt import QtCompat
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
-from Qt.QtWidgets import QAction, QApplication, QTextEdit, QToolTip
+from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
 import blurdev
 from blurdev import debug
@@ -340,7 +340,16 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
     def setForegroundColor(self, color):
         self._foregroundColor = color
 
-    def executeString(self, commandText, filename='<ConsoleEdit>'):
+    def executeString(self, commandText, filename='<ConsoleEdit>', extraPrint=True):
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        line = cursor.selectedText()
+        if line and line[0] not in string.printable:
+            line = line[1:]
+
+        if line.startswith(self.prompt()) and extraPrint:
+            print("")
+
         cmdresult = None
         # https://stackoverflow.com/a/29456463
         # If you want to get the result of the code, you have to call eval
@@ -528,11 +537,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         elif event.key() == Qt.Key_Escape and completer.popup().isVisible():
             completer.clear()
 
-        elif (event.key() == Qt.Key_Escape and
-                not completer.popup().isVisible() and
-                not QToolTip.isVisible()):
-            self.startInputLine()
-
         # other wise handle the keypress
         else:
             # define special key sequences
@@ -576,6 +580,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     or ctrlSpace
                     or ctrlI
                     or ctrlM
+                    or completer.wasCompletingCounter
                 ):
                     completer.refreshList(scope=__main__.__dict__)
                     completer.popup().setCurrentIndex(
@@ -589,6 +594,19 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                         + completer.popup().verticalScrollBar().sizeHint().width()
                     )
                     completer.complete(rect)
+
+                if completer.popup().isVisible():
+                    completer.wasCompleting = True
+                    completer.wasCompletingCounter = 0
+
+                if completer.wasCompleting and not completer.popup().isVisible():
+                    wasCompletingCounterMax = completer.wasCompletingCounterMax
+                    if completer.wasCompletingCounter <= wasCompletingCounterMax:
+                        if event.key() not in (Qt.Key_Backspace, Qt.Key_Left):
+                            completer.wasCompletingCounter += 1
+                    else:
+                        completer.wasCompletingCounter = 0
+                        completer.wasCompleting = False
 
     def keywordColor(self):
         return self._keywordColor

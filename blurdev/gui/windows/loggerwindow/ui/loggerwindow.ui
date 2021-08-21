@@ -219,6 +219,8 @@
     <property name="title">
      <string>Edit</string>
     </property>
+    <addaction name="uiCommentToggleACT"/>
+    <addaction name="separator"/>
     <addaction name="uiFocusToConsoleACT"/>
     <addaction name="uiCopyToConsoleACT"/>
     <addaction name="uiFocusToWorkboxACT"/>
@@ -226,6 +228,16 @@
     <addaction name="separator"/>
     <addaction name="uiNextTabACT"/>
     <addaction name="uiPrevTabACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiTab1ACT"/>
+    <addaction name="uiTab2ACT"/>
+    <addaction name="uiTab3ACT"/>
+    <addaction name="uiTab4ACT"/>
+    <addaction name="uiTab5ACT"/>
+    <addaction name="uiTab6ACT"/>
+    <addaction name="uiTab7ACT"/>
+    <addaction name="uiTab8ACT"/>
+    <addaction name="uiTabLastACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="menuEdit"/>
@@ -866,6 +878,72 @@ Must manually save instead.</string>
     <string>Show Error Hyperlinks, which can be clicked to open the indicated module
 at the indicated line in the specified text editor.
 </string>
+   </property>
+  </action>
+  <action name="uiTab1ACT">
+   <property name="text">
+    <string>Focus to Tab 1</string>
+   </property>
+  </action>
+  <action name="uiTab2ACT">
+   <property name="text">
+    <string>Focus to Tab 2</string>
+   </property>
+  </action>
+  <action name="uiTab3ACT">
+   <property name="text">
+    <string>Focus to Tab 3</string>
+   </property>
+  </action>
+  <action name="uiTab4ACT">
+   <property name="text">
+    <string>Focus to Tab 4</string>
+   </property>
+  </action>
+  <action name="uiTab5ACT">
+   <property name="text">
+    <string>Focus to Tab 5</string>
+   </property>
+  </action>
+  <action name="uiTab6ACT">
+   <property name="text">
+    <string>Focus to Tab 6</string>
+   </property>
+  </action>
+  <action name="uiTab7ACT">
+   <property name="text">
+    <string>Focus to Tab 7</string>
+   </property>
+  </action>
+  <action name="uiTab8ACT">
+   <property name="text">
+    <string>Focus to Tab 8</string>
+   </property>
+  </action>
+  <action name="uiTabLastACT">
+   <property name="text">
+    <string>Focus to Last Tab</string>
+   </property>
+  </action>
+  <action name="uiSelectCurrentLineACT">
+   <property name="text">
+    <string>Select Current Line</string>
+   </property>
+  </action>
+  <action name="uiTab0ACT">
+   <property name="text">
+    <string>Focus to Tab 0</string>
+   </property>
+   <property name="iconText">
+    <string>Focus to Tab 0</string>
+   </property>
+   <property name="toolTip">
+    <string>Focus to Tab 0</string>
+   </property>
+  </action>
+  <action name="uiCommentToggleACT">
+   <property name="text">
+    <string>Comment Toggle</string>
    </property>
   </action>
  </widget>

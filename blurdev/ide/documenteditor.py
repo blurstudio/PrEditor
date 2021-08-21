@@ -12,6 +12,7 @@ from __future__ import absolute_import
 import sys
 import os
 import os.path
+import six
 
 from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
 from Qt.Qsci import QsciScintilla
@@ -160,8 +161,10 @@ class DocumentEditor(QsciScintilla):
                 command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Up)
             if command.description() == 'Move selected lines down one line':
                 command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Down)
-            if command.description() == 'Duplicate the current line':
+            if command.description() == 'Duplicate selection':
                 command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_D)
+            if command.description() == 'Cut current line':
+                command.setKey(0)
 
         # Add QShortcuts
         self.uiShowAutoCompleteSCT = QShortcut(
@@ -212,7 +215,7 @@ class DocumentEditor(QsciScintilla):
         options.max_line_length = self.edgeColumn()
         fixed = autopep8.fix_code(self.text(), options=options)
         self.beginUndoAction()
-        startline, startcol, endline, endcol = self.getSelection()
+        startLine, startCol, endLine, endCol = self.getSelection()
         self.selectAll()
         self.removeSelectedText()
         self.insert(fixed)
@@ -220,7 +223,7 @@ class DocumentEditor(QsciScintilla):
             # fix tab indentations
             self.indentSelection(True)
             self.unindentSelection(True)
-        self.setSelection(startline, startcol + 1, endline, endcol)
+        self.setSelection(startLine, startCol + 1, endLine, endCol)
         self.endUndoAction()
 
     def autoReloadOnChange(self):
@@ -298,85 +301,165 @@ class DocumentEditor(QsciScintilla):
             return '', False
         return comment, True
 
-    def commentAdd(self):
+    def commentToggle(self, doWhich=None):
+        """Toggle comments, mimicing SublimeText functionality.
+
+        - Comments will be indented to match the outermost line being commented.
+        - Commenting / uncommenting is determined by whether all non-empty lines are
+          currently commented or not. If they ALL are, then uncomment, otherwise
+          comment.
+        """
+
+        # If called by 'triggered' signal, clear out passed argument.
+        if not isinstance(doWhich, six.string_types):
+            doWhich = None
+
         comment, result = self.commentCheck()
         if not result:
             return False
+        commentSpace = comment + " "
 
         self.beginUndoAction()
         # lookup the selected text positions
-        startline, startcol, endline, endcol = self.getSelection()
+        cursorLine, cursorIndex = self.expandCursorToLineSelection()
+        startLine, startCol, endLine, endCol = self.getSelection()
 
-        for line in range(startline, endline + 1):
-            # do not comment the last line if it contains no selection
-            if line != endline or endcol:
-                self.setCursorPosition(line, 0)
-                self.insert(comment)
-        # restore the currently selected text and compensate for the new characters
-        if endcol:
-            # only adjust the end column value if it contained a selection in the first
-            # place.
-            endcol += 1
-        self.setSelection(startline, startcol + 1, endline, endcol)
+        # Collect comments and indents, to determine indentation to use, and whether
+        # to comment or uncomment.
+        comments = []
+        indents = []
+        for line in range(startLine, endLine + 1):
+            lineText = self.getSelectionCurrentLineText(line)
+
+            # Skip if line is empty, or line is last line without selection
+            if not lineText.strip() or (line == endLine and not endCol):
+                continue
+
+            comments.append(lineText.lstrip()[0] == comment)
+
+            curIndent = self.determineIndent(lineText, comment)
+            indents.append(curIndent)
+
+        if not indents:
+            return
+        indent = min(indents)
+
+        # If all lines are comments, we uncomment. If any aren't comments, we comment.
+        if doWhich is None:
+            if all(comments):
+                doWhich = "Uncomment"
+            else:
+                doWhich = "Comment"
+
+        for line in range(startLine, endLine + 1):
+            lineText = self.getSelectionCurrentLineText(line)
+            if not lineText.strip():
+                continue
+
+            # Do not toggle comments on the last line if it contains no selection
+            if line != endLine or endCol:
+
+                if doWhich == "Comment":
+                    self.setCursorPosition(line, indent)
+                    self.insert(commentSpace)
+                    if cursorIndex is not None and cursorIndex >= indent:
+                        cursorIndex += len(commentSpace)
+                    if line == startLine:
+                        startCol -= len(commentSpace)
+                    if line == endLine:
+                        endCol += len(commentSpace)
+
+                elif doWhich == "Uncomment":
+                    for curComment in [commentSpace, comment]:
+                        foundText = self.getSelectedCommentText(
+                            line, indent, len(curComment)
+                        )
+                        startCol, endCol, cursorIndex, removed = self.removeComment(
+                            foundText,
+                            curComment,
+                            line,
+                            indent,
+                            startLine,
+                            startCol,
+                            endLine,
+                            endCol,
+                            cursorIndex,
+                        )
+                        if removed:
+                            break
+
+        # restore the currently selected text, or cursor position
+        if cursorLine is not None:
+            startLine, endLine = cursorLine, cursorLine
+            startCol, endCol = cursorIndex, cursorIndex
+        self.setSelection(startLine, startCol, endLine, endCol)
         self.endUndoAction()
-        return True
+        # return True
 
-    def commentRemove(self):
-        comment, result = self.commentCheck()
-        if not result:
-            return False
+    def removeComment(
+        self,
+        text,
+        comment,
+        line,
+        indent,
+        startLine,
+        startCol,
+        endLine,
+        endCol,
+        cursorIndex,
+    ):
+        removed = False
+        if text == comment:
+            commentLen = len(comment)
+            self.setSelection(line, indent, line, indent + commentLen)
+            self.removeSelectedText()
 
-        # lookup the selected text positions
-        self.beginUndoAction()
-        startline, startcol, endline, endcol = self.getSelection()
-        commentlen = len(comment)
+            if cursorIndex > indent:
+                adjustment = None
+                for checkIndex in range(commentLen - 1):
+                    newIndex = indent + checkIndex + 1
+                    if cursorIndex == newIndex:
+                        adjustment = checkIndex + 1
+                        break
+                if adjustment is None:
+                    adjustment = commentLen
+                cursorIndex -= adjustment
 
-        for line in range(startline, endline + 1):
-            # do not un-comment the last line if it contains no selection
-            if line != endline or endcol:
-                self.setSelection(line, 0, line, commentlen)
-                if self.selectedText() == comment:
-                    self.removeSelectedText()
-                    if line == startline:
-                        startcol -= 1
-                    if line == endline:
-                        endcol -= 1
-        # restore the currently selected text
-        self.setSelection(startline, startcol, endline, endcol)
-        self.endUndoAction()
-        return True
+            if line == startLine:
+                startCol -= commentLen
+            if line == endLine:
+                endCol -= commentLen
 
-    def commentToggle(self):
-        comment, result = self.commentCheck()
-        if not result:
-            return False
+            removed = True
+        return startCol, endCol, cursorIndex, removed
 
-        self.beginUndoAction()
-        # lookup the selected text positions
-        startline, startcol, endline, endcol = self.getSelection()
-        commentlen = len(comment)
+    def determineIndent(self, lineText, comment=None):
+        indent = len(lineText) - len(lineText.lstrip())
+        return indent
 
-        for line in range(startline, endline + 1):
-            # do not toggle comments on the last line if it contains no selection
-            if line != endline or endcol:
-                self.setSelection(line, 0, line, commentlen)
-                if self.selectedText() == comment:
-                    self.removeSelectedText()
-                    if line == startline:
-                        startcol -= 1
-                    elif line == endline:
-                        endcol -= 1
-                else:
-                    self.setCursorPosition(line, 0)
-                    self.insert(comment)
-                    if line == startline:
-                        startcol += 1
-                    elif line == endline:
-                        endcol += 1
-        # restore the currently selected text
-        self.setSelection(startline, startcol, endline, endcol)
-        self.endUndoAction()
-        return True
+    def getSelectedCommentText(self, line, indent, commentLen):
+        """Because QScintilla.setSelection automatically strips trailing
+        whitespace, we grab the whole rest of the line, then reset it
+        to just the length of the currentComment
+        """
+        self.setSelection(line, indent, line, self.lineLength(line))
+        text = self.selectedText()
+        if len(text) >= commentLen:
+            text = text[:commentLen]
+        return text
+
+    def getSelectionCurrentLineText(self, line):
+        lineLength = len(self.text(line).rstrip())
+        self.setSelection(line, 0, line, lineLength)
+        lineText = self.selectedText()
+        return lineText
+
+    def expandCursorToLineSelection(self):
+        line, index = None, None
+        if not self.hasSelectedText():
+            line, index = self.getCursorPosition()
+            self.setSelection(line, 0, line, self.lineLength(line) - 2)
+        return line, index
 
     def copy(self):
         """Copies the selected text.
@@ -1526,16 +1609,6 @@ class DocumentEditor(QsciScintilla):
         act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
 
         menu.addSeparator()
-
-        act = menu.addAction('Comment Add')
-        act.triggered.connect(self.commentAdd)
-        act.setShortcut("Alt+3")
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_add.png')))
-
-        act = menu.addAction('Comment Remove')
-        act.triggered.connect(self.commentRemove)
-        act.setShortcut("Alt+#")
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_remove.png')))
 
         act = menu.addAction('Comment Toggle')
         act.triggered.connect(self.commentToggle)

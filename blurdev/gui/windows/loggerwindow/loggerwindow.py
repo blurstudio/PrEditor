@@ -13,6 +13,7 @@ from __future__ import absolute_import
 import itertools
 import os
 import re
+import six
 import sys
 import time
 import warnings
@@ -52,6 +53,8 @@ from .workboxwidget import WorkboxWidget
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton, DebugLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
+
+import __main__
 
 
 class LoggerWindow(Window):
@@ -206,7 +209,9 @@ class LoggerWindow(Window):
         self.uiCopyToConsoleACT.triggered.connect(self.copyToConsole)
         self.uiFocusToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_PageDown)
         self.uiFocusToWorkboxACT.triggered.connect(self.focusToWorkbox)
-        self.uiCopyToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageDown)
+        self.uiCopyToWorkboxACT.setShortcut(
+            Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageDown
+        )
         self.uiCopyToWorkboxACT.triggered.connect(self.copyToWorkbox)
 
         # Navigate workbox tabs
@@ -214,6 +219,29 @@ class LoggerWindow(Window):
         self.uiNextTabACT.triggered.connect(self.nextTab)
         self.uiPrevTabACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab)
         self.uiPrevTabACT.triggered.connect(self.prevTab)
+
+        self.uiTab1ACT.triggered.connect(partial(self.gotoTabByIndex, 1))
+        self.uiTab2ACT.triggered.connect(partial(self.gotoTabByIndex, 2))
+        self.uiTab3ACT.triggered.connect(partial(self.gotoTabByIndex, 3))
+        self.uiTab4ACT.triggered.connect(partial(self.gotoTabByIndex, 4))
+        self.uiTab5ACT.triggered.connect(partial(self.gotoTabByIndex, 5))
+        self.uiTab6ACT.triggered.connect(partial(self.gotoTabByIndex, 6))
+        self.uiTab7ACT.triggered.connect(partial(self.gotoTabByIndex, 7))
+        self.uiTab8ACT.triggered.connect(partial(self.gotoTabByIndex, 8))
+        self.uiTabLastACT.triggered.connect(partial(self.gotoTabByIndex, -1))
+
+        self.uiTab1ACT.setShortcut(Qt.CTRL | Qt.Key_1)
+        self.uiTab2ACT.setShortcut(Qt.CTRL | Qt.Key_2)
+        self.uiTab3ACT.setShortcut(Qt.CTRL | Qt.Key_3)
+        self.uiTab4ACT.setShortcut(Qt.CTRL | Qt.Key_4)
+        self.uiTab5ACT.setShortcut(Qt.CTRL | Qt.Key_5)
+        self.uiTab6ACT.setShortcut(Qt.CTRL | Qt.Key_6)
+        self.uiTab7ACT.setShortcut(Qt.CTRL | Qt.Key_7)
+        self.uiTab8ACT.setShortcut(Qt.CTRL | Qt.Key_8)
+        self.uiTabLastACT.setShortcut(Qt.CTRL | Qt.Key_9)
+
+        self.uiCommentToggleACT.setShortcut(Qt.CTRL | Qt.Key_Slash)
+        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
@@ -335,12 +363,80 @@ class LoggerWindow(Window):
             )
         )
 
+        self.setupRunWorkbox()
+
         # Run the current workbox after the LoggerWindow is shown.
         if runWorkbox:
             # By using two singleShot timers, we can show and draw the LoggerWindow,
             # then call execAll. This makes it easier to see what code you are running
             # before it has finished running completely.
-            QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
+            # QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
+            QTimer.singleShot(
+                0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(runWorkbox))
+            )
+
+    def commentToggle(self):
+        self.uiWorkboxTAB.currentWidget().commentToggle()
+
+    def runWorkbox(self, indicator):
+        """This is a function which will be added to __main__, and therefore available
+        to PythonLogger users. It will accept a python-like index (positive or
+        negative), a string representing the name of the chosen Workbox, or a boolean
+        which support existing command line launching functionality which will auto-run
+        the last workbox up launch.
+
+        Args:
+            indicator(int, str, boolean): Used to define which workbox to run.
+
+        Raises:
+            Exception: "Cannot call current workbox."
+
+        Example Usages:
+            runWorkbox(3)
+            runWorkbox(-2)
+            runWorkbox('test')
+            runWorkbox('stuff.py')
+
+            (from command line): blurdev launch Python_Logger --run_workbox
+
+        """
+        pyLogger = blurdev.core.logger()
+        workboxTab = pyLogger.uiWorkboxTAB
+        workboxCount = workboxTab.count()
+
+        # Determine workbox index
+        index = None
+
+        # If indicator is True, run last workbox
+        if isinstance(indicator, bool):
+            if indicator:
+                index = workboxCount - 1
+        # If indicator is an int, use as normal python index
+        elif isinstance(indicator, int):
+            if indicator < 0:
+                num = workboxCount + indicator
+            else:
+                num = indicator
+            if num >= 0 and num < workboxCount:
+                index = num
+        # If indicator is a string, find first tab with that name
+        elif isinstance(indicator, six.string_types):
+            for i in range(workboxCount):
+                if workboxTab.tabText(i) == indicator:
+                    index = i
+                    break
+        if index is not None:
+            workbox = workboxTab.widget(index)
+            if workbox.hasFocus():
+                raise Exception("Cannot call current workbox.")
+            else:
+                workbox.execAll()
+
+    def setupRunWorkbox(self):
+        """We will bind the runWordbox function on __main__, which makes is available to
+        code running within PythonLogger.
+        """
+        __main__.runWorkbox = self.runWorkbox
 
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
@@ -444,10 +540,7 @@ class LoggerWindow(Window):
                 marginsFont.setPointSize(newSize)
                 workbox.setMarginsFont(marginsFont)
 
-                if workbox.lexer():
-                    workbox.lexer().setFont(font)
-                else:
-                    workbox.setFont(font)
+                workbox.setWorkboxFont(font)
         else:
             Window.wheelEvent(self, event)
 
@@ -498,11 +591,10 @@ class LoggerWindow(Window):
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
-            workbox.setFont(font)
 
             workbox.documentFont = font
             workbox.setMarginsFont(font)
-            workbox.lexer().setFont(font)
+            workbox.setWorkboxFont(font)
 
     def _getDebugIcon(self, filepath, color):
         icf = iconFactory.customize(
@@ -1194,6 +1286,20 @@ class LoggerWindow(Window):
         else:
             tabWidget.setCurrentIndex(index - 1)
 
+    def gotoTabByIndex(self, index):
+        """Generally to be used in conjunction with the Ctrl+<num> keyboard shortcuts,
+        which allow user to jump directly to another tab, mimicing we browser
+        functionality.
+        """
+        if index == -1:
+            index = self.uiWorkboxTAB.count() - 1
+        else:
+            count = self.uiWorkboxTAB.count()
+            index = min(index, count)
+            index -= 1
+
+        self.uiWorkboxTAB.setCurrentIndex(index)
+
     def renameTab(self):
         if self._currentTab != -1:
             current = self.uiWorkboxTAB.tabBar().tabText(self._currentTab)
@@ -1233,6 +1339,9 @@ class LoggerWindow(Window):
         iconprovider = QFileIconProvider()
         tab.setTabIcon(tabIdx, iconprovider.icon(QFileInfo(path)))
 
+        font = self.console().font()
+        wid.setWorkboxFont(font)
+
     def unlinkCurrentTab(self):
         if self._currentTab != -1:
             self.unlinkTab(self._currentTab)
@@ -1247,10 +1356,13 @@ class LoggerWindow(Window):
         tab.setTabIcon(tabIdx, QIcon())
 
     def linkedFileChanged(self, filename):
+        font = self.console().font()
         for tabIndex in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(tabIndex)
             if workbox.filename() == filename:
                 self._reloadRequested.add(tabIndex)
+                self.uiWorkboxTAB.currentWidget().setFont(font)
+
         newIdx = self.uiWorkboxTAB.currentIndex()
         self.updateLink(newIdx)
 
@@ -1267,6 +1379,8 @@ class LoggerWindow(Window):
                 # Only reload the current widget if requested
                 time.sleep(0.1)  # loading the file too quickly misses any changes
                 self.uiWorkboxTAB.currentWidget().reloadChange()
+                font = self.console().font()
+                self.uiWorkboxTAB.currentWidget().setFont(font)
             self._reloadRequested.remove(tabIdx)
 
     def openFileMonitor(self):

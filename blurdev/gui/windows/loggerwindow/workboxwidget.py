@@ -44,32 +44,6 @@ class WorkboxWidget(DocumentEditor):
         filename = '<WorkboxWidget>:{}'.format(idx)
         self.console().executeString(txt, filename=filename)
 
-    def findLeadingWhitespace(self, lines):
-        # Find the first line that has text that isn't a comment
-        # We will then remove the leading whitespace from that line
-        # from all subsequent lines
-        for s in lines:
-            m = re.match(r'(\s*)[^#]', s)
-            if m:
-                return m.group(1)
-        return ''
-
-    def stripLeadingWhitespace(self, lines, rep):
-        newLines = []
-        for line in lines:
-            if not line:
-                newLines.append(line)
-                continue
-            if re.match(r'\s*#', line):
-                # Ignore comment lines
-                newLines.append('')
-            elif line.startswith(rep):
-                nl = line.replace(rep, '', 1)
-                newLines.append(nl)
-            else:
-                raise IndentationError("Prefix Stripping Failed")
-        return newLines
-
     def execSelected(self):
         # Get the first line number of the selection so we can report correct line
         # numbers. If text is selected use it, otherwise use the text of the current
@@ -104,6 +78,31 @@ class WorkboxWidget(DocumentEditor):
             ret = repr(ret)
             self.console().startOutputLine()
             print(self.truncate_middle(ret, 100))
+
+    def findLeadingWhitespace(self, lines):
+        # Find the first line that has text that isn't a comment
+        # We will then remove the leading whitespace from that line
+        # from all subsequent lines
+        for s in lines:
+            m = re.match(r'(\s*)([^#])', s)
+            # Only use leading whitespace if the match has text
+            if m and m.group(2).strip():
+                return m.group(1)
+        return ''
+
+    def stripLeadingWhitespace(self, lines, rep):
+        newLines = []
+        for line in lines:
+            if not line:
+                newLines.append(line)
+                continue
+
+            if line.startswith(rep):
+                nl = line.replace(rep, '', 1)
+                newLines.append(nl)
+            else:
+                raise IndentationError("Prefix Stripping Failed")
+        return newLines
 
     def truncate_middle(self, s, n, sep=' ... '):
         # https://www.xormedia.com/string-truncate-middle-with-ellipsis/
@@ -151,23 +150,10 @@ class WorkboxWidget(DocumentEditor):
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)
 
-        icon = iconFactory.getIcon('comment')
-        self.uiCommentAddACT = QAction(icon, 'Comment Add', self)
-        self.uiCommentAddACT.setShortcut("Alt+3")
-        self.uiCommentAddACT.triggered.connect(self.commentAdd)
-        self.addAction(self.uiCommentAddACT)
-
-        icon = iconFactory.getIcon('chat_bubble_outline')
-        self.uiCommentRemoveACT = QAction(icon, 'Comment Remove', self)
-        self.uiCommentRemoveACT.setShortcut("Alt+#")
-        self.uiCommentRemoveACT.triggered.connect(self.commentRemove)
-        self.addAction(self.uiCommentRemoveACT)
-
-        icon = iconFactory.getIcon('chat_bubble_outline')
-        self.uiCommentToggleACT = QAction(icon, 'Comment Toggle', self)
-        self.uiCommentToggleACT.setShortcut("Ctrl+/")
-        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
-        self.addAction(self.uiCommentToggleACT)
+        self.uiSelectCurrentLineACT = QAction(icon, 'Select Line', self)
+        self.uiSelectCurrentLineACT.triggered.connect(self.expandCursorToLineSelection)
+        self.uiSelectCurrentLineACT.setShortcut('Ctrl+L')
+        self.addAction(self.uiSelectCurrentLineACT)
 
         # create the search dialog and connect actions
         self._searchDialog = FindDialog(self)
@@ -209,6 +195,12 @@ class WorkboxWidget(DocumentEditor):
 
     def setSearchText(self, txt):
         self._searchText = txt
+
+    def setWorkboxFont(self, font):
+        if self.lexer():
+            self.lexer().setFont(font)
+        else:
+            self.setFont(font)
 
     @classmethod
     def toUnixLineEndings(cls, txt):

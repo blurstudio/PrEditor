@@ -65,6 +65,10 @@ class PythonCompleter(QCompleter):
         self.setCompleterMode()
         self.buildCompleter()
 
+        self.wasCompleting = False
+        self.wasCompletingCounter = 0
+        self.wasCompletingCounterMax = 1
+
     def setCaseSensitive(self, caseSensitive=True):
         """Set case sensitivity for completions"""
         self._sensitivity = Qt.CaseSensitive if caseSensitive else Qt.CaseInsensitive
@@ -167,6 +171,9 @@ class PythonCompleter(QCompleter):
     def clear(self):
         self.popup().hide()
         self.hideDocumentation()
+
+        self.wasCompletingCounter = 0
+        self.wasCompleting = False
 
     def showDocumentation(self, pos=None, scope=None):
         # hide the existing popup widget
