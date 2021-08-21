@@ -155,6 +155,14 @@ class DocumentEditor(QsciScintilla):
         if command is not None:
             command.setKey(0)
 
+        for command in commands.commands():
+            if command.description() == 'Move selected lines up one line':
+                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Up)
+            if command.description() == 'Move selected lines down one line':
+                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Down)
+            if command.description() == 'Duplicate the current line':
+                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_D)
+
         # Add QShortcuts
         self.uiShowAutoCompleteSCT = QShortcut(
             Qt.CTRL | Qt.Key_Space, self, context=Qt.WidgetShortcut

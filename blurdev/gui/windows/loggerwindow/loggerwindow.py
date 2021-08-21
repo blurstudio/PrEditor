@@ -200,13 +200,13 @@ class LoggerWindow(Window):
         self.uiGetNextCmdACT.triggered.connect(self.getNextCommand)
 
         # Focus to console or to workbox, optionally copy seleciton or line
-        self.uiFocusToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Up)
+        self.uiFocusToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_PageUp)
         self.uiFocusToConsoleACT.triggered.connect(self.focusToConsole)
-        self.uiCopyToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Up)
+        self.uiCopyToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageUp)
         self.uiCopyToConsoleACT.triggered.connect(self.copyToConsole)
-        self.uiFocusToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Down)
+        self.uiFocusToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_PageDown)
         self.uiFocusToWorkboxACT.triggered.connect(self.focusToWorkbox)
-        self.uiCopyToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_Down)
+        self.uiCopyToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageDown)
         self.uiCopyToWorkboxACT.triggered.connect(self.copyToWorkbox)
 
         # Navigate workbox tabs

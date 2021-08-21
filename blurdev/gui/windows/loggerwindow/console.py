@@ -16,7 +16,7 @@ import traceback
 from Qt import QtCompat
 from Qt.QtCore import QObject, QPoint, Qt
 from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
-from Qt.QtWidgets import QAction, QApplication, QTextEdit
+from Qt.QtWidgets import QAction, QApplication, QTextEdit, QToolTip
 
 import blurdev
 from blurdev import debug
@@ -527,6 +527,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         elif event.key() == Qt.Key_Escape and completer.popup().isVisible():
             completer.clear()
+
+        elif (event.key() == Qt.Key_Escape and
+                not completer.popup().isVisible() and
+                not QToolTip.isVisible()):
+            self.startInputLine()
 
         # other wise handle the keypress
         else:

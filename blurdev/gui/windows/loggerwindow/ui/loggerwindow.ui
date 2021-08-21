@@ -332,7 +332,7 @@
     <string>Clears the top section of the Python Logger. This does not clear the workbox.</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Shift+D</string>
+    <string>Ctrl+Alt+Shift+D</string>
    </property>
   </action>
   <action name="uiNewScriptACT">
