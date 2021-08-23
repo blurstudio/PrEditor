@@ -4,7 +4,7 @@ import sys
 
 from future.utils import iteritems
 
-from blurdev.protocols import BaseProtocolHandler, InvalidHandler
+from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
 
 
 class WriteStdOutputHandler(BaseProtocolHandler):
@@ -19,8 +19,8 @@ class WriteStdOutputHandler(BaseProtocolHandler):
     Sometimes when sending a string like '161  \t\t\n' msg will end up as the int 161.
     In cases like this you can pass the optional keyword 'wrapper' containing a string
     like '!!!'. If you use wrapper you must add the wrapper string to the start and end
-    of your string. If these are missing it will send a InvalidHandler exception back up
-    the pipe. These wrappers will be removed before the message is written.
+    of your string. If these are missing it will send a InvalidHandlerError exception
+    back up the pipe. These wrappers will be removed before the message is written.
     """
 
     name = 'stdoutput'
@@ -38,7 +38,7 @@ class WriteStdOutputHandler(BaseProtocolHandler):
             import blurdev.external
 
             blurdev.external.External(
-                InvalidHandler(errorMsg.format(wrapper=wrapper, msg=msg))
+                InvalidHandlerError(errorMsg.format(wrapper=wrapper, msg=msg))
             )
             return False, msg
         return True, msg[length:-length]

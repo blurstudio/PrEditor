@@ -7,7 +7,7 @@ import multiprocessing
 from multiprocessing import Process, Pipe
 import blurdev
 from Qt.QtCore import QTimer
-from blurdev.protocols import BaseProtocolHandler, InvalidHandler
+from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
 
 try:
     # Optional: In case blur.Stone is not installed,
@@ -121,8 +121,8 @@ class External(object):
         data should be in the form of ['handlerName', 'handlerCommand'] or
         ['handlerName', 'handlerCommand', {'keyword', 'args'}]. It will also accept a
         Exception as the only data. If a Exception is received it will be raised. If a
-        invalid request is received, it will send a InvalidHandler exception back up the
-        pipe.
+        invalid request is received, it will send a InvalidHandlerError exception back
+        up the pipe.
 
         Args:
             data (list): ['handlerName', 'handlerCommand', {'keyword', 'args'}]
@@ -153,7 +153,7 @@ class External(object):
                 "Please provide valid command handler arguments. Example: "
                 "['handlerName', 'handlerCommand', {'keyword', 'args'}]"
             )
-            self.send(InvalidHandler(msg))
+            self.send(InvalidHandlerError(msg))
             return
         handler = BaseProtocolHandler.findHandler(name, command, params)
         if handler:
