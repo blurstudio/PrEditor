@@ -25,6 +25,7 @@ requirements.txt
 # Used by ci to download files required for testing
 /downloads/
 /shared-venv/
+/.tox/
 
 # /blurdev
 /blurdev/version.txt
