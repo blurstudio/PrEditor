@@ -6,6 +6,7 @@ Also has functions for accessing & setting INI information.
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 from future.utils import iteritems
 from builtins import str as text
 from imp import reload

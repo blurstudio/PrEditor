@@ -9,4 +9,5 @@
 # 	\date		06/01/11
 #
 
-from svnmergewizard import SvnMergeWizard  # noqa: F401
+from __future__ import absolute_import
+from .svnmergewizard import SvnMergeWizard  # noqa: F401

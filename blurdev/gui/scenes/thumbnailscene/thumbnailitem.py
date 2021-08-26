@@ -10,6 +10,7 @@
 # 	\date		03/31/10
 #
 
+from __future__ import absolute_import
 from Qt.QtWidgets import QGraphicsRectItem
 from blurdev.enum import enum
 

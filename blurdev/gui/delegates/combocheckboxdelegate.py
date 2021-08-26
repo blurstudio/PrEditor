@@ -10,6 +10,7 @@
 # 	:date		01/22/09
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Qt, QRect
 from Qt.QtGui import QCursor, QPalette
 from Qt.QtWidgets import QItemDelegate, QMenu, QComboBox

@@ -8,6 +8,7 @@
 #   :date       09/24/13
 #
 
+from __future__ import absolute_import
 import blurdev
 import os
 import subprocess

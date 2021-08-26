@@ -8,6 +8,7 @@
 # 	\date		11/02/10
 #
 
+from __future__ import absolute_import
 import os
 
 from blurdev.gui import Dialog
@@ -74,8 +75,8 @@ class IdeProjectDialog(Dialog):
             Dialog.accept(self)
 
     def addItem(self):
-        from ideprojectitemdialog import IdeProjectItemDialog
-        from ideproject import IdeProjectItem
+        from .ideprojectitemdialog import IdeProjectItemDialog
+        from .ideproject import IdeProjectItem
 
         # pull the parent from the tree
         item = self.uiProjectTREE.currentItem()
@@ -102,7 +103,7 @@ class IdeProjectDialog(Dialog):
             item.addChild(child)
 
     def editItem(self):
-        from ideprojectitemdialog import IdeProjectItemDialog
+        from .ideprojectitemdialog import IdeProjectItemDialog
 
         # pull the item from the tree
         item = self.uiProjectTREE.currentItem()
@@ -127,7 +128,7 @@ class IdeProjectDialog(Dialog):
 
     def setProject(self, project):
         if not project:
-            from ideproject import IdeProject
+            from .ideproject import IdeProject
 
             project = IdeProject()
             self.uiProjectPATH.setFilePath(
@@ -172,7 +173,7 @@ class IdeProjectDialog(Dialog):
         dlg = IdeProjectDialog(blurdev.core.activeWindow())
         dlg.setProject(None)
         if dlg.exec_():
-            from ideproject import IdeProject
+            from .ideproject import IdeProject
 
             return IdeProject.fromXml(dlg.filename())
         return None
@@ -180,7 +181,7 @@ class IdeProjectDialog(Dialog):
     @staticmethod
     def edit(filename):
         import blurdev
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
         dlg = IdeProjectDialog(blurdev.core.activeWindow())
         dlg.setProject(IdeProject.fromXml(filename))

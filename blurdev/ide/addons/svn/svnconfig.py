@@ -8,6 +8,7 @@
 # 	\date		05/17/11
 #
 
+from __future__ import absolute_import
 from Qt.QtGui import QColor
 
 # global settings

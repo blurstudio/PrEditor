@@ -11,6 +11,7 @@
 
 from __future__ import print_function
 
+from __future__ import absolute_import
 plugindef = """##
 #   \\namespace blurdev.gui.designer.%(class)s
 #

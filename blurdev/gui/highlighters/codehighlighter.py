@@ -10,6 +10,7 @@
 # 	\date		11/12/08
 #
 
+from __future__ import absolute_import
 import re
 from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat

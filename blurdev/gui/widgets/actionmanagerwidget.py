@@ -8,6 +8,7 @@
 #   :date       06/22/11
 #
 
+from __future__ import absolute_import
 from Qt import QtCompat
 from Qt.QtCore import QSize, Qt, Signal
 from Qt.QtGui import QKeySequence

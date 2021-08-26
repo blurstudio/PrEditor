@@ -8,6 +8,7 @@
 #   :date       08/12/14
 #
 
+from __future__ import absolute_import
 import os
 import logging
 import blurdev
@@ -93,7 +94,7 @@ class SaveLogAddon(IdeAddon):
         editor.documentSaved.connect(self.documentSaved)
 
     def editLogFile(self):
-        import savelogdialog
+        from . import savelogdialog
 
         dlg = savelogdialog.SaveLogDialog(self.ide)
         if dlg.exec_():

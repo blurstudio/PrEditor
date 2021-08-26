@@ -9,6 +9,7 @@
 # 	\date		04/20/10
 #
 
+from __future__ import absolute_import
 from blurdev.gui import Dialog
 from Qt.QtWidgets import QTreeWidgetItem
 

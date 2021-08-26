@@ -2,6 +2,7 @@
 Version module to track the version information for blurdev
 """
 
+from __future__ import absolute_import
 import os
 import pillar.version
 from deprecated import deprecated

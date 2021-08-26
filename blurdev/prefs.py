@@ -3,6 +3,7 @@ Module for handling user interface preferences
 
 """
 
+from __future__ import absolute_import
 import os
 import getpass
 

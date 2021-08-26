@@ -13,6 +13,7 @@
 # 	\date		04/15/10
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QObject
 
 

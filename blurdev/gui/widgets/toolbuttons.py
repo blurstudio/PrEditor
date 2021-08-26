@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtGui import QIcon, QMovie
 from Qt.QtWidgets import QApplication, QToolButton
 

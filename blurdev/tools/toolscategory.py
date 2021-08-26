@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtCore import QObject
 
 import blurdev.tools.toolsindex

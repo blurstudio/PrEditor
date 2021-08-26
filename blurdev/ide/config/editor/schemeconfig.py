@@ -8,6 +8,7 @@
 # 	\date		07/08/11
 #
 
+from __future__ import absolute_import
 import re
 import blurdev
 

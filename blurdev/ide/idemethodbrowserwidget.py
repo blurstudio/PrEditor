@@ -8,6 +8,7 @@
 # 	\date		05/16/11
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Qt
 from Qt.QtGui import QIcon, QPalette
 from Qt.QtWidgets import QTreeWidgetItem, QVBoxLayout, QWidget

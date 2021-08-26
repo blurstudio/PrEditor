@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from distutils import log
 from setuptools import Command
 from setuptools.command.build_py import build_py

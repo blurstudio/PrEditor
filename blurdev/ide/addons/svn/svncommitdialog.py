@@ -8,6 +8,7 @@
 # 	\date		05/17/11
 #
 
+from __future__ import absolute_import
 import pysvn
 import os.path
 
@@ -99,17 +100,17 @@ class SvnCommitDialog(Dialog):
             return False
 
         # create the commit thread
-        from threads.committhread import CommitThread
+        from .threads.committhread import CommitThread
 
         thread = CommitThread()
         thread.setFilepaths(filepaths)
         thread.setComments(comment)
 
         # run add & commit actions
-        from svnactiondialog import SvnActionDialog
+        from .svnactiondialog import SvnActionDialog
 
         if nonversioned:
-            from threads.addthread import AddThread
+            from .threads.addthread import AddThread
 
             addthread = AddThread()
             addthread.setFilepaths(nonversioned)
@@ -239,7 +240,7 @@ class SvnCommitDialog(Dialog):
         item = self.uiChangeTREE.currentItem()
         if item:
             from Qt.QtGui import QCursor
-            from svnactionmenu import SvnActionMenu
+            from .svnactionmenu import SvnActionMenu
 
             menu = SvnActionMenu(self, 'commit', item.data(0, Qt.UserRole))
             menu.exec_(QCursor.pos())

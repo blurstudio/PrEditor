@@ -9,6 +9,7 @@ Importing this module applies the suggested patch dynamically.
   http://www.w3.org/TR/2000/WD-xml-c14n-20000119.html#charescaping
 """
 
+from __future__ import absolute_import
 from builtins import str as text
 from future.utils import iteritems
 import xml.dom.minidom

@@ -4,6 +4,7 @@ Defines some deocrators that are commonly useful
 
 """
 
+from __future__ import absolute_import
 from blurdev import debug
 from Qt.QtCore import QObject, QTimer
 import os

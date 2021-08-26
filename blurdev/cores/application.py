@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtWidgets import QApplication
 from Qt.QtCore import QCoreApplication, Signal
 

@@ -10,6 +10,7 @@
 # 	\date		11/12/08
 #
 
+from __future__ import absolute_import
 from Qt.QtGui import QSyntaxHighlighter
 
 

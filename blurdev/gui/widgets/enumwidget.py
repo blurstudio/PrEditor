@@ -11,6 +11,7 @@
 # 	:date		04/14/10
 #
 
+from __future__ import absolute_import
 import re
 
 from Qt.QtCore import Qt, Property, Signal

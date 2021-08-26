@@ -8,6 +8,7 @@
 #   \date       12/01/11
 #
 
+from __future__ import absolute_import
 import blurdev
 from Qt.QtGui import QMovie
 from Qt.QtWidgets import QDialog, QHBoxLayout, QLabel

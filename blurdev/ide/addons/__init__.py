@@ -8,6 +8,7 @@
 # 	\date		05/03/11
 #
 
+from __future__ import absolute_import
 import traceback
 
 from blurdev.ide.ideaddon import IdeAddon

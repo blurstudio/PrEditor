@@ -10,6 +10,7 @@
 # 	\date		03/31/10
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Signal
 from Qt.QtWidgets import QGraphicsScene
 from .thumbnailitem import ThumbnailItem

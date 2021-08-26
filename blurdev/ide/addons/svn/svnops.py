@@ -8,6 +8,7 @@
 # 	\date		05/17/11
 #
 
+from __future__ import absolute_import
 import pysvn
 import os.path
 import blurdev
@@ -30,7 +31,7 @@ def add(filepath):
         'ignored using the svn.ignore property\nor the global ignore '
         'configuration setting.'
     )
-    from svnfilesdialog import SvnFilesDialog
+    from .svnfilesdialog import SvnFilesDialog
 
     filepaths, accepted = SvnFilesDialog.collect(
         ide, filepath, ['unversioned'], title='Add', emptyMessage=emptyMessage
@@ -39,13 +40,13 @@ def add(filepath):
     # if the user selects the files, then add them
     if accepted and filepaths:
         # create the commit thread
-        from threads.addthread import AddThread
+        from .threads.addthread import AddThread
 
         thread = AddThread()
         thread.setFilepaths(filepaths)
 
         # run the commit action
-        from svnactiondialog import SvnActionDialog
+        from .svnactiondialog import SvnActionDialog
 
         SvnActionDialog.start(ide, thread, title='Add')
 
@@ -55,7 +56,7 @@ def branch(filepath):
     if not url:
         return False
 
-    from svncopydialog import SvnCopyDialog
+    from .svncopydialog import SvnCopyDialog
 
     SvnCopyDialog.branch(source=url, target=url)
 
@@ -69,7 +70,7 @@ def browse(filepath='', url=''):
     if filepath:
         url = findUrl(filepath)
 
-    from svnrepobrowserdialog import SvnRepoBrowserDialog
+    from .svnrepobrowserdialog import SvnRepoBrowserDialog
 
     SvnRepoBrowserDialog.browse(url)
 
@@ -82,7 +83,7 @@ def checkout(filepath):
     """
     ide = blurdev.core.rootWindow()
 
-    from svncheckoutdialog import SvnCheckoutDialog
+    from .svncheckoutdialog import SvnCheckoutDialog
 
     SvnCheckoutDialog.checkout(ide, filepath)
 
@@ -96,13 +97,13 @@ def cleanup(filepath):
     ide = blurdev.core.rootWindow()
 
     # create the cleanup thread
-    from threads.cleanupthread import CleanupThread
+    from .threads.cleanupthread import CleanupThread
 
     thread = CleanupThread()
     thread.setFilepath(filepath)
 
     # create the action dialog
-    from svnactiondialog import SvnActionDialog
+    from .svnactiondialog import SvnActionDialog
 
     SvnActionDialog.start(ide, thread, title='Cleanup')
 
@@ -140,7 +141,7 @@ def commit(filepath):
         \param		filepath	<str>
     """
     ide = blurdev.core.rootWindow()
-    from svncommitdialog import SvnCommitDialog
+    from .svncommitdialog import SvnCommitDialog
 
     SvnCommitDialog.commit(ide, filepath)
 
@@ -169,13 +170,13 @@ def compare(filepath, old=None, new=None):
 
 
 def getMessage():
-    from svnrecentmessagedialog import SvnRecentMessageDialog
+    from .svnrecentmessagedialog import SvnRecentMessageDialog
 
     return SvnRecentMessageDialog.getMessage()
 
 
 def getRevisions(url):
-    from svnlogdialog import SvnLogDialog
+    from .svnlogdialog import SvnLogDialog
 
     return SvnLogDialog.getRevisions(url)
 
@@ -186,13 +187,13 @@ def getUrl(url=''):
         \param		url		<str>	url to start from
         \return		<str>		(will be blank if the user does not complete selection)
     """
-    from svnrepobrowserdialog import SvnRepoBrowserDialog
+    from .svnrepobrowserdialog import SvnRepoBrowserDialog
 
     return SvnRepoBrowserDialog.getUrl(url)
 
 
 def merge(filepath):
-    from svnmergewizard import SvnMergeWizard
+    from .svnmergewizard import SvnMergeWizard
 
     SvnMergeWizard.runWizard(filepath)
 
@@ -281,7 +282,7 @@ def revert(filepath):
         'There is nothing to revert. '
         'All the files and folders are up-to-date and unmodified.'
     )
-    from svnfilesdialog import SvnFilesDialog
+    from .svnfilesdialog import SvnFilesDialog
 
     filepaths, accepted = SvnFilesDialog.collect(
         ide,
@@ -294,19 +295,19 @@ def revert(filepath):
     # if the user selects the files, then add them
     if accepted and filepaths:
         # create the commit thread
-        from threads.revertthread import RevertThread
+        from .threads.revertthread import RevertThread
 
         thread = RevertThread()
         thread.setFilepaths(filepaths)
 
         # run the commit action
-        from svnactiondialog import SvnActionDialog
+        from .svnactiondialog import SvnActionDialog
 
         SvnActionDialog.start(ide, thread, title='Revert')
 
 
 def showLog(filepath):
-    from svnlogdialog import SvnLogDialog
+    from .svnlogdialog import SvnLogDialog
 
     SvnLogDialog.showLog(filepath)
 
@@ -320,12 +321,12 @@ def update(filepath):
     ide = blurdev.core.rootWindow()
 
     # create the update thread
-    from threads.updatethread import UpdateThread
+    from .threads.updatethread import UpdateThread
 
     thread = UpdateThread()
     thread.setFilepath(filepath)
 
     # create the action dialog
-    from svnactiondialog import SvnActionDialog
+    from .svnactiondialog import SvnActionDialog
 
     SvnActionDialog.start(ide, thread, title='Update')

@@ -9,6 +9,7 @@
 #
 
 from __future__ import unicode_literals
+from __future__ import absolute_import
 from Qt.QtGui import QDropEvent
 from Qt.QtWidgets import QTextEdit
 from Qt.QtCore import QMimeData, Qt

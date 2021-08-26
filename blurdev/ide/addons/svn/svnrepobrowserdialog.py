@@ -8,6 +8,7 @@
 # 	\date		05/26/11
 #
 
+from __future__ import absolute_import
 import os.path
 import datetime
 import pysvn

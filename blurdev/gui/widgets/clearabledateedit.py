@@ -8,6 +8,7 @@
 #   :date       05/24/12
 #
 
+from __future__ import absolute_import
 import blurdev
 from Qt.QtCore import QDate, Qt
 from Qt.QtGui import QIcon, QPixmap

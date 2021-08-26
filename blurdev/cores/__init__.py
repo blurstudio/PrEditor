@@ -1,6 +1,7 @@
 """ Defines the different core systems for the blurdev
 """
 
+from __future__ import absolute_import
 import sys
 import os
 

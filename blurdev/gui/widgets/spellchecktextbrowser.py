@@ -9,6 +9,7 @@
 #   :date       05/22/12
 #
 
+from __future__ import absolute_import
 from blurdev.gui.highlighters.spellinghighlighter import SpellingHighlighter
 from Qt.QtWidgets import QTextBrowser
 

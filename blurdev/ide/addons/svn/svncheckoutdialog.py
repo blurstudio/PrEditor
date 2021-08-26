@@ -9,6 +9,7 @@
 #
 
 from __future__ import print_function
+from __future__ import absolute_import
 from Qt.QtWidgets import QFileDialog, QMessageBox
 from blurdev.gui import Dialog
 from blurdev.ide.addons.svn import svnops
@@ -41,7 +42,7 @@ class SvnCheckoutDialog(Dialog):
             return False
 
         # create the checkout thread
-        from threads.checkoutthread import CheckoutThread
+        from .threads.checkoutthread import CheckoutThread
 
         thread = CheckoutThread()
         thread.setFilepath(self.filepath())
@@ -53,7 +54,7 @@ class SvnCheckoutDialog(Dialog):
             print('process a specific revision')
 
         # create the actions dialog
-        from svnactiondialog import SvnActionDialog
+        from .svnactiondialog import SvnActionDialog
 
         SvnActionDialog.start(self.parent(), thread, title='Checkout')
 

@@ -8,6 +8,7 @@
 # 	\date		12/05/08
 #
 
+from __future__ import absolute_import
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QWizard
 from Qt.QtCore import Qt

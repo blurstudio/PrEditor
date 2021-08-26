@@ -15,6 +15,7 @@
 # 	\date		11/18/09
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Qt, QRectF, QLineF
 from Qt.QtGui import QColor, QPen, QTextDocument, QLinearGradient, QBrush
 from Qt.QtWidgets import (

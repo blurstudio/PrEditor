@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import blurdev
 from Qt.QtCore import Qt, QRect, QSize
 from Qt.QtWidgets import QToolBar

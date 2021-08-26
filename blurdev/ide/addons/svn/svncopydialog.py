@@ -8,6 +8,7 @@
 # 	\date		05/26/11
 #
 
+from __future__ import absolute_import
 from blurdev.gui import Dialog
 
 from blurdev.ide.addons.svn import svnconfig
@@ -61,7 +62,7 @@ class SvnCopyDialog(Dialog):
         svnconfig.CURRENT_URL = self.target()
 
         # create the copy thread
-        from threads.copythread import CopyThread
+        from .threads.copythread import CopyThread
 
         thread = CopyThread()
         thread.setSource(source)
@@ -69,7 +70,7 @@ class SvnCopyDialog(Dialog):
         thread.setComments(str(self.uiMessageTXT.toPlainText()))
 
         # create the action dialog
-        from svnactiondialog import SvnActionDialog
+        from .svnactiondialog import SvnActionDialog
 
         SvnActionDialog.start(self.parent(), thread, title='Branch/Tag')
 

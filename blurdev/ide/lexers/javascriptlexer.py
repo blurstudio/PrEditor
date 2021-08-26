@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import absolute_import
 from Qt.Qsci import QsciLexerJavaScript
 from Qt.QtGui import QColor
 

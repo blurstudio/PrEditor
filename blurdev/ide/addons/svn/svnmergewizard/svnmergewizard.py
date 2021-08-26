@@ -9,6 +9,7 @@
 # 	\date		06/01/11
 #
 
+from __future__ import absolute_import
 from blurdev.ide.addons.svn.threads.mergethread import (
     MergeRangesThread, MergeReintegrateThread,
 )
@@ -37,25 +38,25 @@ class SvnMergeWizard(Wizard):
         self.setButtonText(Wizard.FinishButton, 'Merge')
 
         # create the merge type merge path
-        from mergetypewizardpage import MergeTypeWizardPage
+        from .mergetypewizardpage import MergeTypeWizardPage
 
         self._mergeType = MergeTypeWizardPage(self)
         self.setPage(self.Pages.Type, self._mergeType)
 
         # create the merge reintegrate page
-        from mergereintegratewizardpage import MergeReintegrateWizardPage
+        from .mergereintegratewizardpage import MergeReintegrateWizardPage
 
         self._reintegrate = MergeReintegrateWizardPage(self)
         self.setPage(self.Pages.Reintegrate, self._reintegrate)
 
         # create the merge revision page
-        from mergerevisionwizardpage import MergeRevisionWizardPage
+        from .mergerevisionwizardpage import MergeRevisionWizardPage
 
         self._revision = MergeRevisionWizardPage(self)
         self.setPage(self.Pages.Ranges, self._revision)
 
         # create the merge options page
-        from mergeoptionswizardpage import MergeOptionsWizardPage
+        from .mergeoptionswizardpage import MergeOptionsWizardPage
 
         self._options = MergeOptionsWizardPage(self)
         self.setPage(self.Pages.Options, self._options)

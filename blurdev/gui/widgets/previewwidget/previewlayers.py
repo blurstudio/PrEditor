@@ -9,6 +9,7 @@
 #
 
 from __future__ import print_function
+from __future__ import absolute_import
 from blurdev.enum import enum
 
 LayerType = enum('Media', 'Canvas', 'Text')
@@ -157,7 +158,7 @@ class CanvasLayer(AbstractPreviewLayer):
 
     def startEditing(self, event):
         scene = self._scene
-        from previewscene import InteractionMode
+        from .previewscene import InteractionMode
 
         mode = scene.interactionMode()
 

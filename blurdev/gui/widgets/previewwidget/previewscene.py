@@ -9,6 +9,7 @@
 # 	:date		01/21/11
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Signal
 from Qt.QtGui import QColor
 from Qt.QtWidgets import QGraphicsScene

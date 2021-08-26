@@ -9,6 +9,7 @@
 #   :date       09/24/12
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Qt, Signal
 from Qt.QtWidgets import QLineEdit, QTabBar
 

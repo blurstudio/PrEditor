@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import blurdev
 import traceback
@@ -43,7 +44,7 @@ class ErrorDialog(Dialog):
         self.ignoreButton.clicked.connect(self.close)
 
     def setText(self, exc_info):
-        from console import ConsoleEdit
+        from .console import ConsoleEdit
 
         self.traceback_msg = "".join(traceback.format_exception(*exc_info))
         msg = (

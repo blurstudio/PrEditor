@@ -7,6 +7,7 @@
 #   \author     Blur Studio
 #   \date       04/03/12
 #
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Signal
 from Qt.QtWidgets import QComboBox
 from blurdev.ide import lang

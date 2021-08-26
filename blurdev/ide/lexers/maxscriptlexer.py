@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import absolute_import
 from future.utils import iteritems
 from builtins import str as text
 import re

@@ -126,6 +126,7 @@
 #       event.ignore()
 
 from __future__ import print_function
+from __future__ import absolute_import
 from Qt import QtCompat
 from Qt.QtCore import Qt, Property, Signal, Slot, QPoint
 from Qt.QtGui import QCursor, QIcon, QPainter, QImage, QRegion

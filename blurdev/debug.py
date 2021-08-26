@@ -30,6 +30,7 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 """
 
 from __future__ import print_function
+from __future__ import absolute_import
 import datetime
 import os
 import sys

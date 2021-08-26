@@ -1,4 +1,5 @@
 # pylint: disable=protected-access, invalid-name, too-few-public-methods, line-too-long
+from __future__ import absolute_import
 import sys
 
 from .constants import Apps, App

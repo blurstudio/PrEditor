@@ -9,6 +9,7 @@
 #
 
 # required python module for the SVN interface
+from __future__ import absolute_import
 from blurdev.ide.ideaddon import IdeAddon
 from blurdev.ide.ideregistry import RegistryType
 

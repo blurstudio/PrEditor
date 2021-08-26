@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core

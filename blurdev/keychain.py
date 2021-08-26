@@ -4,6 +4,7 @@ stored outside of svn history in xml files and retreived using generic keys.
 
 """
 
+from __future__ import absolute_import
 import os
 import os.path
 from collections import OrderedDict

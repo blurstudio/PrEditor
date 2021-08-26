@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtCore import QEvent, QObject, QPoint, Qt
 from Qt.QtCore import Signal
 from Qt.QtGui import QCursor, QMouseEvent

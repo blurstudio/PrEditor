@@ -8,6 +8,7 @@
 # 	\date		04/09/10
 #
 
+from __future__ import absolute_import
 from builtins import str as text
 import xml.dom.minidom
 

@@ -8,6 +8,7 @@
 # 	\date		03/14/11
 #
 
+from __future__ import absolute_import
 from Qt.QtWidgets import QTreeWidgetItem
 
 

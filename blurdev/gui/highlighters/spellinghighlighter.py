@@ -11,6 +11,7 @@
 # 	\date		11/12/08
 #
 
+from __future__ import absolute_import
 from Qt.QtGui import QSyntaxHighlighter, QColor, QTextCharFormat
 from Qt.QtWidgets import QMenu, QAction
 from Qt.QtCore import QRegExp, Qt

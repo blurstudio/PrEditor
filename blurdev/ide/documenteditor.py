@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import absolute_import
 import sys
 import os
 import os.path

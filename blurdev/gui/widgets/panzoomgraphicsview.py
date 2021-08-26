@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtGui import QMouseEvent
 from Qt.QtWidgets import QGraphicsView, QMenu, QApplication, QAction

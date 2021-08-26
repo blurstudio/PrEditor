@@ -8,6 +8,7 @@
 # 	\date		05/24/11
 #
 
+from __future__ import absolute_import
 import blurdev
 from Qt import QtCompat
 from Qt.QtCore import Qt

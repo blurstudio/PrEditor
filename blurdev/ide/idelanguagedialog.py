@@ -8,6 +8,7 @@
 # 	\date		07/21/11
 #
 
+from __future__ import absolute_import
 import re
 
 from Qt import Qsci

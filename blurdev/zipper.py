@@ -9,6 +9,7 @@
 #
 
 
+from __future__ import absolute_import
 def packageFiles(files, outputfile):
     """
         \remarks	packages the inputed files to the output file location

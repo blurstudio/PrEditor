@@ -8,6 +8,7 @@
 # 	:date		10/06/10
 #
 
+from __future__ import absolute_import
 from builtins import str as text
 from Qt.QtCore import Qt, Property, Signal, Slot
 from Qt.QtGui import QColor

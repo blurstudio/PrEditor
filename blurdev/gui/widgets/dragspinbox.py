@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtCore import QEvent, QPoint, Qt, Property
 from Qt.QtGui import QCursor, QMouseEvent
 from Qt.QtWidgets import QApplication, QDoubleSpinBox, QSpinBox

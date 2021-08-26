@@ -8,6 +8,7 @@
 # 	\date		11/19/10
 #
 
+from __future__ import absolute_import
 import blurdev
 
 from blurdev.gui.dialogs.configdialog import ConfigSectionWidget

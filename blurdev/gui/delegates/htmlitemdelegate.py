@@ -8,6 +8,7 @@
 #   :date       05/07/15
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QRectF, QSize
 from Qt.QtGui import QAbstractTextDocumentLayout, QPalette, QTextDocument
 from Qt.QtWidgets import QStyle

@@ -8,6 +8,7 @@
 # 	:date		01/21/11
 #
 
+from __future__ import absolute_import
 from Qt.QtWidgets import QWidget
 
 
@@ -27,12 +28,12 @@ class PreviewWidget(QWidget):
         self.setLayout(layout)
 
         # create the scene
-        from previewscene import PreviewScene
+        from .previewscene import PreviewScene
 
         self._view.setScene(PreviewScene(self._view))
 
         # create the tools widget
-        from toolswidget import ToolsWidget
+        from .toolswidget import ToolsWidget
 
         self._toolsWidget = ToolsWidget(self._view)
 

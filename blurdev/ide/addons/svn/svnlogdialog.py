@@ -8,6 +8,7 @@
 # 	\date		06/01/11
 #
 
+from __future__ import absolute_import
 import pysvn
 import datetime
 
@@ -95,7 +96,7 @@ class SvnLogDialog(Dialog):
         QtCompat.QHeaderView.setSectionResizeMode(header, 3, header.ResizeToContents)
 
         # create the query thread
-        from threads import LogThread
+        from .threads import LogThread
 
         self._thread = LogThread()
         self._thread.setDiscoverChanged(True)

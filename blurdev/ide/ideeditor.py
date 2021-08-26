@@ -8,6 +8,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import absolute_import
 import os
 import copy
 from functools import partial
@@ -113,7 +114,7 @@ class IdeEditor(Window):
         self._documentStylesheet = 'Bright'
         self._load_filename = filename
 
-        from idefilemenu import IdeFileMenu
+        from .idefilemenu import IdeFileMenu
 
         self._fileMenuClass = IdeFileMenu
 
@@ -614,7 +615,7 @@ class IdeEditor(Window):
     def documentFromWizard(self):
         QDir.setCurrent(self.currentFilePath())
 
-        from idewizardbrowser import IdeWizardBrowser
+        from .idewizardbrowser import IdeWizardBrowser
 
         if IdeWizardBrowser.createFromWizard():
             self.projectRefreshItem()
@@ -693,7 +694,7 @@ class IdeEditor(Window):
             doc.paste()
 
     def documentNew(self, trigger=True, filename='', lineno=''):
-        from documenteditor import DocumentEditor
+        from .documenteditor import DocumentEditor
 
         # create the editor
         editor = DocumentEditor(
@@ -1046,7 +1047,7 @@ class IdeEditor(Window):
         dlg.show()
 
     def projectNew(self):
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
         proj = IdeProject()
         configSet = proj.configSet()
@@ -1082,7 +1083,7 @@ class IdeEditor(Window):
         self.updateSettings()
 
     def projectFavorites(self):
-        from ideprojectfavoritesdialog import IdeProjectFavoritesDialog
+        from .ideprojectfavoritesdialog import IdeProjectFavoritesDialog
 
         proj = IdeProjectFavoritesDialog.getProject()
         if proj:
@@ -1099,7 +1100,7 @@ class IdeEditor(Window):
             'Blur IDE Project (*.blurproj);;XML Files (*.xml);;All Files (*.*)',
         )
         if filename:
-            from ideproject import IdeProject
+            from .ideproject import IdeProject
 
             proj = IdeProject.fromXml(filename)
 
@@ -1185,7 +1186,7 @@ class IdeEditor(Window):
 
         pref.recordProperty('recentFiles', self._recentFiles)
 
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
         pref.recordProperty('proj_favorites', IdeProject.Favorites)
         pref.recordProperty('geom', self.geometry())
@@ -1304,7 +1305,7 @@ class IdeEditor(Window):
         self._recentFiles = pref.restoreProperty('recentFiles', [])
 
         # update project options
-        from ideproject import IdeProject
+        from .ideproject import IdeProject
 
         self.setCurrentProject(
             IdeProject.fromXml(pref.restoreProperty('currproj')), silent=True
@@ -1442,7 +1443,7 @@ class IdeEditor(Window):
             return ''
 
         # refresh the search text
-        from documenteditor import DocumentEditor
+        from .documenteditor import DocumentEditor
 
         if (
             not (

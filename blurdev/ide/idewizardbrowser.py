@@ -9,6 +9,7 @@
 # 	\date		08/19/10
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QTreeWidgetItem
@@ -26,7 +27,7 @@ class IdeWizardBrowser(Dialog):
         self.setWindowIcon(QIcon(blurdev.resourcePath('img/ide/newwizard.png')))
 
         # import the wizards
-        import wizards
+        from . import wizards
 
         folder = QIcon(blurdev.resourcePath('img/folder.png'))
 

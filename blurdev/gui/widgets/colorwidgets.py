@@ -9,6 +9,7 @@
 #
 
 # used in painting, faster to do global import
+from __future__ import absolute_import
 from Qt.QtCore import QPoint, QRect, Qt, Property, Signal, Slot
 from Qt.QtGui import (
     QColor,

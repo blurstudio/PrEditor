@@ -8,6 +8,7 @@
 # 	\date		09/27/10
 #
 
+from __future__ import absolute_import
 from Qt.QtWinMigrate import QWinWidget
 
 # have to wrap in a python class or the memory management will not work properly for

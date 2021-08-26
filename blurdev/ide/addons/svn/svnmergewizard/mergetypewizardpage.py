@@ -8,6 +8,7 @@
 # 	\date		06/01/11
 #
 
+from __future__ import absolute_import
 from Qt.QtWidgets import QWizardPage
 
 

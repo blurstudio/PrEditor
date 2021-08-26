@@ -8,6 +8,7 @@
 # 	\date		05/25/11
 #
 
+from __future__ import absolute_import
 import os.path
 
 from blurdev.gui import Dialog

@@ -8,6 +8,7 @@
 # 	\date		04/22/11
 #
 
+from __future__ import absolute_import
 import os
 import re
 

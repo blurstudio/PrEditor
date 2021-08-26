@@ -9,6 +9,7 @@
 # 	:date		01/06/09
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtCore import QEventLoop
 

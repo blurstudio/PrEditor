@@ -8,6 +8,7 @@
 # 	:date		12/06/10
 #
 
+from __future__ import absolute_import
 from Qt import QtCompat
 from Qt.QtWidgets import QHeaderView, QTreeWidget, QTreeWidgetItem
 from Qt.QtCore import QSize, QTimer, Qt

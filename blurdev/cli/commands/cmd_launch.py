@@ -6,6 +6,7 @@ tag to the tool's __meta__.xml. This tag should contain the path to import the c
 module. The cli module should have a cli function that implements its command line
 interface using the click package.
 """
+from __future__ import absolute_import
 import click
 import blurdev
 import os

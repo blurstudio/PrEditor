@@ -8,6 +8,7 @@
 # 	:date		01/24/11
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Qt
 from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem, QWidget
 
@@ -96,7 +97,7 @@ class LayerItem(QTreeWidgetItem):
 
         from Qt.QtGui import QIcon
         import blurdev
-        from previewlayers import LayerType
+        from .previewlayers import LayerType
 
         if layer.layerType() == LayerType.Text:
             self.setIcon(1, QIcon(blurdev.resourcePath('img/preview/type.png')))

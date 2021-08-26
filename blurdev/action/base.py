@@ -1,5 +1,6 @@
 # pylint: disable=protected-access
 
+from __future__ import absolute_import
 from future.utils import iteritems, with_metaclass
 import inspect
 import os.path

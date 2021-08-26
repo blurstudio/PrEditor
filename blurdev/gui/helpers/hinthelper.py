@@ -3,6 +3,7 @@ The HintHelper class helps provide a constant tool tip to widgets
 
 """
 
+from __future__ import absolute_import
 from Qt.QtWidgets import (
     QComboBox,
     QLabel,

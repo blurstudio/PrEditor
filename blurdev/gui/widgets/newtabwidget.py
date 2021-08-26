@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtCore import QSize, Signal
 from Qt.QtWidgets import QPushButton, QTabBar, QTabWidget
 

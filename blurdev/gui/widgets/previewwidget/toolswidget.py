@@ -8,6 +8,7 @@
 # 	:date		01/21/11
 #
 
+from __future__ import absolute_import
 from Qt.QtWidgets import QWidget
 
 
@@ -24,7 +25,7 @@ class ToolsWidget(QWidget):
         self.setMaximumWidth(26)
         scene = parent.scene()
 
-        from layerswidget import LayersWidget
+        from .layerswidget import LayersWidget
 
         self._layersWidget = LayersWidget(self, scene)
 
@@ -72,7 +73,7 @@ class ToolsWidget(QWidget):
         return self.parent().scene().createMediaLayer()
 
     def refreshMode(self):
-        from previewscene import InteractionMode
+        from .previewscene import InteractionMode
 
         scene = self.parent().scene()
         mode = scene.interactionMode()

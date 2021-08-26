@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from Qt.QtGui import QBrush, QColor
 from Qt.QtWidgets import QComboBox, QStyledItemDelegate
 from Qt.QtCore import Qt, Property

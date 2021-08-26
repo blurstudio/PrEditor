@@ -12,6 +12,7 @@
 # 	\date		11/19/10
 #
 
+from __future__ import absolute_import
 import copy
 
 from Qt.QtWidgets import QWidget

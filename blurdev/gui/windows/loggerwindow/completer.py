@@ -8,6 +8,7 @@
 # 	\date		01/15/08
 #
 
+from __future__ import absolute_import
 import inspect
 
 from enum import Enum

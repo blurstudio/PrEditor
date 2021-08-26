@@ -281,6 +281,7 @@ references will be available from within the action's various methods.
 
 """
 
+from __future__ import absolute_import
 import copyreg
 import types
 

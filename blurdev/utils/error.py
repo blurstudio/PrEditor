@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # standard library imports
+from __future__ import absolute_import
 from collections import OrderedDict
 from datetime import datetime
 import os

@@ -8,6 +8,7 @@
 # 	:date		03/28/11
 #
 
+from __future__ import absolute_import
 from Qt.QtCore import Signal, QLineF, Property, Qt, QRect, QSize
 from Qt.QtGui import (
     QPainter,
