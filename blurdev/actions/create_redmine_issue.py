@@ -4,11 +4,11 @@ import getpass
 import tempfile
 import blurdev.keychain
 
-from past.builtins import basestring
 from redminelib import Redmine
 from Qt.QtWidgets import QApplication
 from Qt.QtGui import QPixmap
 from blurdev.action import Action, Apps, executehook, argproperty
+import six
 
 
 class CreateRedmineIssue(Action):
@@ -42,20 +42,20 @@ class CreateRedmineIssue(Action):
     """
 
     apiKey = argproperty(
-        atype=basestring, default=blurdev.keychain.getKey('redmine_api_key')
+        atype=six.string_types, default=blurdev.keychain.getKey('redmine_api_key')
     )
     attachments = argproperty(atype=list, defaultInstance=True)
-    description = argproperty(atype=basestring, default='')
-    password = argproperty(atype=basestring, allowNone=True, default=None)
+    description = argproperty(atype=six.string_types, default='')
+    password = argproperty(atype=six.string_types, allowNone=True, default=None)
     priority = argproperty(atype=int, default=14)
-    project = argproperty(atype=basestring, default='pipeline')
+    project = argproperty(atype=six.string_types, default='pipeline')
     redmine = argproperty(
-        atype=(basestring, Redmine),
+        atype=(six.string_types, Redmine),
         default=os.environ.get('BDEV_REDMINE_URL', 'https://redmine.blur.com',),
     )
     screenshot = argproperty(atype=bool, default=False)
-    subject = argproperty(atype=basestring)
-    username = argproperty(atype=basestring, default=getpass.getuser())
+    subject = argproperty(atype=six.string_types)
+    username = argproperty(atype=six.string_types, default=getpass.getuser())
     watchers = argproperty(atype=list, default=None, allowNone=True)
 
     @executehook(app=Apps.All)

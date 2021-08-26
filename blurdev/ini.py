@@ -7,9 +7,9 @@ Also has functions for accessing & setting INI information.
 
 from __future__ import print_function
 from future.utils import iteritems
-from past.builtins import basestring
 from builtins import str as text
 from imp import reload
+import six
 
 _configParserKwargs = dict()
 try:
@@ -416,7 +416,7 @@ class ToolParserClass(configparser.ConfigParser):
         except configparser.MissingSectionHeaderError:
             # Attempt to read the file using a specific encoding.
             read_ok = []
-            if isinstance(filenames, basestring):
+            if isinstance(filenames, six.string_types):
                 filenames = [filenames]
             for filename in filenames:
                 try:

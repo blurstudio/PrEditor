@@ -1,6 +1,4 @@
 from __future__ import absolute_import
-
-from past.builtins import basestring
 import os
 import ntpath
 
@@ -9,6 +7,7 @@ from Qt.QtCore import QObject
 import blurdev
 from ..enum import enum
 import blurdev.tools.toolsindex
+import six
 
 
 ToolType = enum(
@@ -64,7 +63,7 @@ class Tool(QObject):
         return self._architecture
 
     def setArchitecture(self, architecture):
-        if isinstance(architecture, basestring):
+        if isinstance(architecture, six.string_types):
             architecture = int(architecture)
         self._architecture = architecture
 

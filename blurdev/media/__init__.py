@@ -8,9 +8,8 @@ import os
 import subprocess
 import re
 import blurdev
-
-from past.builtins import basestring
 from deprecated import deprecated
+import six
 
 _movieFileTypes = {
     '.mov': ('Quicktime Files', 'QuickTime'),
@@ -115,7 +114,7 @@ def convertImageToBase64(image, ext=None):
     """
     from Qt.QtCore import QBuffer, QByteArray
 
-    if isinstance(image, basestring):
+    if isinstance(image, six.string_types):
         if not os.path.exists(image):
             raise IOError('Image path does not exist.')
         if not ext:
@@ -517,12 +516,12 @@ def resizeImage(source, newSize=None, maxSize=None, filter=None):
         return -1, 'Unable to import PIL'
     if filter is None:
         filter = Image.BICUBIC
-    elif isinstance(filter, basestring):
+    elif isinstance(filter, six.string_types):
         try:
             filter = getattr(Image, filter)
         except AttributeError:
             return -2, 'Invalid resize filter specified.'
-    if isinstance(source, basestring):
+    if isinstance(source, six.string_types):
         try:
             source = Image.open(source)
         except IOError:
@@ -558,12 +557,12 @@ def spoolText(**kwargs):
     """
 
     def toPerlString(value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             return "'%s'" % (value.replace("'", r"\'"))
         return str(value)
 
     def createLink(key, value):
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             value = toPerlString(value)
         if isinstance(value, (list, tuple)):
             value = [toPerlString(v) for v in value]

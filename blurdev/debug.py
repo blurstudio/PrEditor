@@ -30,7 +30,6 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 """
 
 from __future__ import print_function
-from past.builtins import basestring
 import datetime
 import os
 import sys
@@ -49,6 +48,7 @@ from blurdev.contexts import ErrorReport
 from deprecated import deprecated
 
 from .enum import enum
+import six
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
 _debugLogger = None
@@ -1298,7 +1298,7 @@ def isDebugLevel(level):
     Returns
         bool: the current debug level is greater than or equal to level
     """
-    if isinstance(level, basestring):
+    if isinstance(level, six.string_types):
         level = DebugLevel.value(str(level))
     return level <= debugLevel()
 
@@ -1440,7 +1440,7 @@ def setDebugLevel(level):
     global _currentLevel
 
     # check for the debug value if a string is passed in
-    if isinstance(level, basestring):
+    if isinstance(level, six.string_types):
         try:
             # Check if a int value was passed as a string
             level = int(level)

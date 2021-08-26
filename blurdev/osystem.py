@@ -16,7 +16,6 @@ way.
 """
 
 from __future__ import print_function
-from past.builtins import basestring
 import os
 import sys
 import types
@@ -28,6 +27,7 @@ from Qt.QtCore import QProcess
 import blurdev
 from . import settings
 from blurdev.enum import Enum, EnumGroup
+import six
 
 
 def getPointerSize():
@@ -987,7 +987,7 @@ def setRegistryValue(
         aReg = winreg.ConnectRegistry(None, getattr(winreg, registry))
         winreg.CreateKey(aReg, key)
         regKey = getRegKey(registry, key, architecture=architecture, write=True)
-        if isinstance(valueType, basestring):
+        if isinstance(valueType, six.string_types):
             valueType = getattr(winreg, valueType)
         # Store the value in the registry
         winreg.SetValueEx(regKey, value_name, 0, valueType, value)

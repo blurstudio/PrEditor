@@ -1,5 +1,4 @@
 from __future__ import print_function
-from past.builtins import basestring
 from collections import MutableSet, OrderedDict
 import weakref
 import time
@@ -7,6 +6,7 @@ import warnings
 from Qt.QtCore import QObject, QTimer, Signal
 from Qt import QtCompat
 from .delayables import Delayable
+import six
 
 
 # https://stackoverflow.com/a/7829569
@@ -95,7 +95,7 @@ class DelayableEngine(QObject):
         Raises:
             KeyError: A invalid key identifier string was passed.
         """
-        if isinstance(delayable, basestring):
+        if isinstance(delayable, six.string_types):
             if delayable in self.delayables:
                 # Don't replace the instance if a string is passed
                 return
@@ -264,7 +264,7 @@ class DelayableEngine(QObject):
             delayable (Delayable or str): A Delayable instance or the key identifier.
                 Remove this delayable from the current documents if it was added.
         """
-        if isinstance(delayable, basestring):
+        if isinstance(delayable, six.string_types):
             if delayable not in self.delayables:
                 return
             delayable = self.delayables[delayable]

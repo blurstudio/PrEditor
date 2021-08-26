@@ -1,6 +1,5 @@
 import os
 import webbrowser
-from past.builtins import basestring
 from Qt.QtCore import Qt
 from Qt.QtGui import QCursor, QIcon, QPixmap
 from Qt.QtWidgets import QAction, QMenu, QWidgetAction
@@ -8,11 +7,12 @@ import blurdev
 from blurdev.gui.toolbars.blurdevtoolbar import BlurdevToolbar
 from blurdev.gui import IconFactory
 from blurdev.tools.tool import Tool
+import six
 
 
 class ToolbarAction(QAction):
     def __init__(self, parent, tool):
-        if isinstance(tool, basestring):
+        if isinstance(tool, six.string_types):
             self._tool = blurdev.findTool(tool)
             self._toolID = tool
         else:

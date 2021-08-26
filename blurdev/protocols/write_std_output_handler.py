@@ -1,10 +1,10 @@
 from __future__ import print_function
-from past.builtins import basestring
 import sys
 
 from future.utils import iteritems
 
 from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
+import six
 
 
 class WriteStdOutputHandler(BaseProtocolHandler):
@@ -63,7 +63,7 @@ class WriteStdOutputHandler(BaseProtocolHandler):
 
             data = {}
             for key, value in iteritems(self.params):
-                if isinstance(value, basestring):
+                if isinstance(value, six.string_types):
                     success, value = self.unwrapMessage(value, wrapper)
                 data[key] = value
             LoggerWindow.instancePdbResult(data)

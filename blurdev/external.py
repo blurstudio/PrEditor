@@ -1,5 +1,4 @@
 from __future__ import print_function
-from past.builtins import basestring
 import os
 import sys
 import time
@@ -8,6 +7,7 @@ from multiprocessing import Process, Pipe
 import blurdev
 from Qt.QtCore import QTimer
 from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
+import six
 
 try:
     # Optional: In case blur.Stone is not installed,
@@ -144,8 +144,8 @@ class External(object):
                 params = data[2]
             handler = data
         if (
-            not isinstance(name, basestring)
-            or not isinstance(command, basestring)
+            not isinstance(name, six.string_types)
+            or not isinstance(command, six.string_types)
             or not isinstance(params, dict)
         ):
             print("Invalid data", [name, command, params])
