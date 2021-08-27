@@ -27,7 +27,7 @@ class EnvComboBoxDelegate(QStyledItemDelegate):
 
 
 class EnvComboBox(QComboBox):
-    """ QComboBox that uses stylesheets to control its color and the color of its popup
+    """QComboBox that uses stylesheets to control its color and the color of its popup
     items.
 
     Here is a example stylesheet:
@@ -75,7 +75,7 @@ class EnvComboBox(QComboBox):
         self.refresh()
 
     def currentEnvironment(self):
-        """ Returns the currently selected blurdev.tools.ToolsEnvironment. """
+        """Returns the currently selected blurdev.tools.ToolsEnvironment."""
         return self.itemData(self.currentIndex(), Qt.UserRole)
 
     def defaultEnv(self):
@@ -87,7 +87,7 @@ class EnvComboBox(QComboBox):
         return None
 
     def setDefaultEnv(self, name):
-        """ Marks all items in the model using the provided text as defaultEnv
+        """Marks all items in the model using the provided text as defaultEnv
 
         This allows more than one environment to be marked as default as long as it has
         the same name. You take care to not provide two environments with the same name
@@ -107,7 +107,7 @@ class EnvComboBox(QComboBox):
         self.updateColors()
 
     def refresh(self):
-        """ Update the list of available treegrunt environments. """
+        """Update the list of available treegrunt environments."""
         self.blockSignals(True)
         current_env = self.currentEnvironment()
         self.clear()
@@ -128,7 +128,7 @@ class EnvComboBox(QComboBox):
         self.blockSignals(False)
 
     def setCurrentEnvironment(self, env):
-        """ Set the current environment.
+        """Set the current environment.
 
         Args:
 
@@ -145,7 +145,7 @@ class EnvComboBox(QComboBox):
         self.setCurrentIndex(index)
 
     def updateColors(self):
-        """ Update the defaultActive property and force the stylesheet to refresh """
+        """Update the defaultActive property and force the stylesheet to refresh"""
         self.defaultActive = self.defaultEnv() == self.currentText()
         # Force the styleSheet to re-evaluate so it sees the new defaultActive state.
         sheet = self.styleSheet()

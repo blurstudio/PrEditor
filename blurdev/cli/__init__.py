@@ -45,8 +45,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 
 class CommandLoader(click.MultiCommand):
-    """ Automatically imports all `commands/cmd_*.py` files to extend the cli.
-    """
+    """Automatically imports all `commands/cmd_*.py` files to extend the cli."""
 
     def list_commands(self, ctx):
         rv = []
@@ -76,7 +75,7 @@ class CommandLoader(click.MultiCommand):
     'in preferences.',
 )
 def main(debug):
-    """ Blurdev's command line interface. """
+    """Blurdev's command line interface."""
 
     if debug is not None:
         success = blurdev.debug.setDebugLevel(debug)

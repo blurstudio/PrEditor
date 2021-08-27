@@ -7,8 +7,7 @@ from blurdev.enum import Enum, EnumGroup
 
 
 class App(Enum):
-    """An enum representation of an application context.
-    """
+    """An enum representation of an application context."""
 
     pass
 

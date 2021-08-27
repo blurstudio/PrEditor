@@ -18,7 +18,7 @@ from .xmlelement import XMLElement
 
 
 class XMLDocument(XMLElement):
-    """ class to ease the handling of XML documents """
+    """class to ease the handling of XML documents"""
 
     def __init__(self, object=None):
         if not object:
@@ -81,9 +81,7 @@ class XMLDocument(XMLElement):
                 node.removeChild(n)
 
     def root(self):
-        """Returns the root xml node for this document.
-
-        """
+        """Returns the root xml node for this document."""
         if self._object and self._object.childNodes:
             return XMLElement(self._object.childNodes[0], self.__file__)
         return None
@@ -113,6 +111,7 @@ class XMLDocument(XMLElement):
                 logging.debug('Encoding error while saving XML', exc_info=True)
                 if showDialog:
                     from Qt.QtWidgets import QMessageBox
+
                     msg = (
                         'Unable to save xml data, please check for unsupported '
                         'characters.'
@@ -129,6 +128,7 @@ class XMLDocument(XMLElement):
             return True
         if showDialog:
             from Qt.QtWidgets import QMessageBox
+
             msg = (
                 'Unable to save xml data, please verify '
                 'you have the correct privileges.'

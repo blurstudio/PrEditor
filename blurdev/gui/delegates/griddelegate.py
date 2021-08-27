@@ -47,7 +47,7 @@ class GridDelegate(QStyledItemDelegate):
         self.destroyed.connect(self.aboutToBeDestroyed)
 
     def __call_delegate__(self, name, *args, **kwargs):
-        """ Attempt to call a delegate override method if implemented.
+        """Attempt to call a delegate override method if implemented.
 
         Args:
             name (str): The name of the function being called. This does
@@ -67,7 +67,7 @@ class GridDelegate(QStyledItemDelegate):
             return getattr(superclass, name)(*args, **kwargs)
 
     def aboutToBeDestroyed(self):
-        """ Prevent crashes due to "delete loops" """
+        """Prevent crashes due to "delete loops" """
         self._delegate = None
 
     def checkboxRect(self, option, index):
@@ -84,9 +84,7 @@ class GridDelegate(QStyledItemDelegate):
         return rect, state
 
     def clearEditor(self):
-        """
-            \remarks	clears the reference to this editor
-        """
+        """clears the reference to this editor"""
         try:
             self._editor.close()
             self._editor.deleteLater()
@@ -95,7 +93,7 @@ class GridDelegate(QStyledItemDelegate):
         self._editor = None
 
     def createEditor(self, parent, option, index):
-        """ Creates a new editor for the provided widget
+        """Creates a new editor for the provided widget
 
         Args:
             parent (Qt.QtWidgets.QWidget): The parent of the new widget.
@@ -144,7 +142,7 @@ class GridDelegate(QStyledItemDelegate):
         painter.drawRect(option.rect)
 
     def drawGrid(self, painter, style, index):
-        """ draw gridlines for this item """
+        """draw gridlines for this item"""
         painter.setBrush(Qt.NoBrush)
         painter.setPen(self.pen())
         # draw the lines
@@ -193,7 +191,7 @@ class GridDelegate(QStyledItemDelegate):
         return self._gradiated
 
     def editor(self):
-        """ returns the current editor for this delegate or None. This is only valid
+        """returns the current editor for this delegate or None. This is only valid
         after createEditor is called and until setModelData finishes.
         """
         return self._editor
@@ -205,11 +203,11 @@ class GridDelegate(QStyledItemDelegate):
         return self._gradientEndColor
 
     def gridColor(self):
-        """ returns the color for the current pen """
+        """returns the color for the current pen"""
         return self._pen.color()
 
     def paint(self, painter, option, index):
-        """ draw the delegate and the grid """
+        """draw the delegate and the grid"""
         # Note: calling initStyleOption, results in the super paint call drawing what
         # ever is in its cache where it should draw nothing. draw the gradiation
         if self._gradiated:
@@ -218,7 +216,7 @@ class GridDelegate(QStyledItemDelegate):
         self.drawGrid(painter, option, index)
 
     def pen(self):
-        """ returns this delegates pen """
+        """returns this delegates pen"""
         return self._pen
 
     def setDelegate(self, delegate):
@@ -234,7 +232,7 @@ class GridDelegate(QStyledItemDelegate):
         self._gradiated = state
 
     def setGridColor(self, color):
-        """ sets the pen color for this delegate """
+        """sets the pen color for this delegate"""
 
         self._pen.setColor(QColor(color))
 
@@ -242,7 +240,7 @@ class GridDelegate(QStyledItemDelegate):
         self._identifier = identifier
 
     def setPen(self, pen):
-        """ sets the current grid delegate pen """
+        """sets the current grid delegate pen"""
 
         self._pen = QPen(pen)
 
@@ -264,31 +262,31 @@ class GridDelegate(QStyledItemDelegate):
         self.clearEditor()
 
     def setShowBottomBorder(self, state=True):
-        """ sets whether or not bottom borders are drawn """
+        """sets whether or not bottom borders are drawn"""
         self._showBottomBorder = state
 
     def setShowColumnBorders(self, state=True):
-        """ sets whether or not column borders are drawn """
+        """sets whether or not column borders are drawn"""
         self._showColumnBorders = state
 
     def setShowTree(self, state=True):
-        """ sets whether or not the delegate show a tree """
+        """sets whether or not the delegate show a tree"""
         self._showTree = state
 
     def setShowRichText(self, state=True):
         self._showRichText = state
 
     def showBottomBorder(self):
-        """ returns if this item shows the bottom divider """
+        """returns if this item shows the bottom divider"""
         return self._showBottomBorder
 
     def showColumnBorders(self):
-        """ returns if this item shows the column divider """
+        """returns if this item shows the column divider"""
         return self._showColumnBorders
 
     def showRichText(self):
         return self._showRichText
 
     def showTree(self):
-        """ returns if this item shows a tree """
+        """returns if this item shows a tree"""
         return self._showTree

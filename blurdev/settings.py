@@ -120,8 +120,7 @@ def normalizePath(path):
 
 
 def registerVariable(key, value):
-    """ Add the key value pair to both the current os.environ, and the startup_environ
-    """
+    """Add the key value pair to both the current os.environ, and the startup_environ"""
     value = environStr(value)
     os.environ[key] = value
     startup_environ[key] = value
@@ -144,7 +143,7 @@ def registerPath(path):
 
 
 def addpackage(sitedir, name, known_paths):
-    """ Process a .pth file within the site-packages directory:
+    """Process a .pth file within the site-packages directory:
     For each line in the file, either combine it with sitedir to a path
     and add that to known_paths, or execute it if it starts with 'import '.
 
@@ -224,7 +223,7 @@ def addsitedir(sitedir, known_paths=None):
 
 
 def pathReplacements():
-    """ A list of replacements to apply to file paths.
+    """A list of replacements to apply to file paths.
 
     Returns a list of ('windows', 'linux') tuples. `toSystemPath` uses this list
     to translate file paths to the current system.
@@ -245,7 +244,7 @@ def pathReplacements():
 
 
 def pthPaths(dirname):
-    """ Returns the absolute paths defined in any .pth file in dirname.
+    """Returns the absolute paths defined in any .pth file in dirname.
 
     This does not process any imports in the .pth file. The file paths are
     converted to the current operating system by `toSystemPath`. These paths
@@ -283,7 +282,7 @@ def pthPaths(dirname):
 
 
 def _path_escape(pattern):
-    """ Changes the pattern to match forward and backslash path separators.
+    """Changes the pattern to match forward and backslash path separators.
 
     Replaces backslashes with `[\\\\/]` so we can match windows and linux paths.
     It then applies the same `re.escape` logic to any other characters as python 2.
@@ -304,7 +303,7 @@ def _path_escape(pattern):
 
 
 def toSystemPath(path, os_type=OS_TYPE):
-    """ Ensure the file path is correct for the current os.
+    """Ensure the file path is correct for the current os.
 
     Args:
         path (str): The file path to convert to the current operating system.

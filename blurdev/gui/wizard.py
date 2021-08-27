@@ -15,8 +15,7 @@ from Qt.QtCore import Qt
 
 
 class Wizard(QWizard):
-    """ Provides a QWizard class that works inside and outside of DCC's.
-    """
+    """Provides a QWizard class that works inside and outside of DCC's."""
 
     def __init__(self, parent=None, flags=0):
         import blurdev
@@ -46,8 +45,7 @@ class Wizard(QWizard):
         self.initWizardStyle()
 
     def initWizardStyle(self):
-        """ Create the QWizard style, and calls initWizardPages.
-        """
+        """Create the QWizard style, and calls initWizardPages."""
         # set the window style
         self.setWizardStyle(QWizard.MacStyle)
 
@@ -59,7 +57,7 @@ class Wizard(QWizard):
         self.initWizardPages()
 
     def initWizardPages(self):
-        """ Allows the user to define the pages that are going to be used for this
+        """Allows the user to define the pages that are going to be used for this
         wizard.
         """
         pass
@@ -92,7 +90,7 @@ class Wizard(QWizard):
 
     @classmethod
     def runWizard(cls, parent=None):
-        """ Executes the wizard and returns True if a return value was returned.
+        """Executes the wizard and returns True if a return value was returned.
 
         Args:
             parent (QWidget or None, optional): Parent the widiget to this object.

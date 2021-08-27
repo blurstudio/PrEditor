@@ -27,9 +27,7 @@ class LayerDelegate(QItemDelegate):
         self._editor = None
 
     def clearEditor(self):
-        """
-            :remarks	clears the reference to this editor
-        """
+        """clears the reference to this editor"""
         try:
             self._editor.close()
             self._editor.deleteLater()
@@ -39,14 +37,15 @@ class LayerDelegate(QItemDelegate):
         self._editor = None
 
     def createEditor(self, parent, option, index):
-        """
-            :remarks    overloaded from QItemDelegate, creates a new editor for the
-            inputed widget
+        """overloaded from QItemDelegate, creates a new editor for the inputted widget
 
-            :param		parent	<QWidget>
-            :param		option	<QStyleOptionViewItem>
-            :param		index	<QModelIndex>
-            :return		<QWidget> editor
+        Args:
+            parent (QWidget):
+            option (QStyleOptionViewItem):
+            index (QModelIndex):
+
+        Returns:
+            QWidget: editor
         """
         from Qt.QtCore import Qt
         from Qt.QtWidgets import QLineEdit
@@ -60,12 +59,12 @@ class LayerDelegate(QItemDelegate):
         return self._editor
 
     def checkedMap(self):
-        """ returns the checked pixmap for this delegate """
+        """returns the checked pixmap for this delegate"""
         return self._checkedMap
 
     def drawCheck(self, painter, option, rect, state):
-        """ overloaded QItemDelegate.drawCheck method to handle the drawing of the
-        checkbox to paint the pixmaps """
+        """overloaded QItemDelegate.drawCheck method to handle the drawing of the
+        checkbox to paint the pixmaps"""
         if rect.isValid():
             from Qt.QtCore import Qt
 
@@ -75,14 +74,11 @@ class LayerDelegate(QItemDelegate):
                 painter.drawPixmap(rect.x(), rect.y(), self.uncheckedMap())
 
     def editor(self):
-        """
-            :remarks	returns the current editor for this delegate
-            :return		<QWidget> || None
-        """
+        """returns the current editor for this delegate"""
         return self._editor
 
     def uncheckedMap(self):
-        """ returns the unchecked pixmap for this delegate """
+        """returns the unchecked pixmap for this delegate"""
         return self._uncheckedMap
 
 

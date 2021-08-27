@@ -110,9 +110,7 @@ class SchemeConfig(ConfigSectionWidget):
             section.setValue(item.key(), item.color())
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refreshes the ui with the latest data settings"""
         section = self.section()
 
         # restore application settings

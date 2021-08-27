@@ -23,7 +23,7 @@ class HoudiniCore(Core):
         atexit.register(self.shutdown)
 
     def addLibraryPaths(self):
-        """ There is no need to add library paths for houdini """
+        """There is no need to add library paths for houdini"""
         return
 
     @property
@@ -35,8 +35,7 @@ class HoudiniCore(Core):
         return not hou.isUIAvailable()
 
     def init(self):
-        """ Initializes the core system
-        """
+        """Initializes the core system"""
         ret = super(HoudiniCore, self).init()
         if not self.headless:
             # hdefereval is only available in a graphical Houdini
@@ -58,8 +57,7 @@ class HoudiniCore(Core):
         super(HoudiniCore, self).initGui()
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the HoudiniCore has shutdown called
-        """
+        """Qt should not be closed when the HoudiniCore has shutdown called"""
         return False
 
     def errorCoreText(self):
@@ -74,8 +72,7 @@ class HoudiniCore(Core):
             return ''
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 

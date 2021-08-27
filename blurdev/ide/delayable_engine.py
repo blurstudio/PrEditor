@@ -40,7 +40,7 @@ class OrderedWeakrefSet(weakref.WeakSet):
 
 
 class DelayableEngine(QObject):
-    """ Provides a way for multiple DocumentEditors to run code over
+    """Provides a way for multiple DocumentEditors to run code over
     multiple Qt event loops in chunks preventing locking up the ui.
 
     Signals:
@@ -79,14 +79,16 @@ class DelayableEngine(QObject):
 
     def __repr__(self):
         return '{}.{}("{}")'.format(
-            self.__module__, self.__class__.__name__, self.name,
+            self.__module__,
+            self.__class__.__name__,
+            self.name,
         )
 
     def __str__(self):
         return '{}("{}")'.format(self.__class__.__name__, self.name)
 
     def add_delayable(self, delayable):
-        """ Add a Delayable subclass instance for processing in this engine.
+        """Add a Delayable subclass instance for processing in this engine.
 
         Args:
             delayable (Delayable or str): A Delayable instance or the key identifier.
@@ -121,15 +123,14 @@ class DelayableEngine(QObject):
             self.delayables[delayable].add_document(document)
 
     def add_supported_delayables(self, name):
-        """ Add all valid Delayable subclasses that have name in their supports.
-        """
+        """Add all valid Delayable subclasses that have name in their supports."""
         for delayable in Delayable._all_subclasses():
             if delayable.key not in self.delayables:
                 if name in delayable.supports and delayable.key != 'invalid':
                     self.add_delayable(delayable(self))
 
     def delayable_enabled(self, delayable):
-        """ Returns True if delayable is currently added.
+        """Returns True if delayable is currently added.
 
         Args:
             delayable (Delayable or str): A Delayable instance or the key identifier.
@@ -166,7 +167,7 @@ class DelayableEngine(QObject):
 
     @classmethod
     def instance(cls, name, parent=None, interval=0):
-        """ Returns a shared instance of DelayableEngine, creating the instance if needed.
+        """Returns a shared instance of DelayableEngine, creating the instance if needed.
 
         Args:
             name (str): The name of the delayable engine to get the instance of.
@@ -183,7 +184,7 @@ class DelayableEngine(QObject):
         self.start_time = time.time()
         documents = list(self.documents)
         # offset documents by the document_index so we can pickup where we left off
-        documents = documents[self.document_index:] + documents[: self.document_index]
+        documents = documents[self.document_index :] + documents[: self.document_index]
 
         count = 0
         skipped = 0
@@ -209,7 +210,7 @@ class DelayableEngine(QObject):
                     continue
 
                 keys = list(document.delayable_info.keys())
-                keys = keys[self.delayable_index:] + keys[: self.delayable_index]
+                keys = keys[self.delayable_index :] + keys[: self.delayable_index]
                 for key in keys:
                     self.delayable_index += 1
                     if self.delayable_index > len(keys):
@@ -249,8 +250,7 @@ class DelayableEngine(QObject):
             self.processing_finished.emit()
 
     def remove_document(self, document):
-        """ Removes a document from being processed
-        """
+        """Removes a document from being processed"""
         if document in self.documents:
             for delayable in self.delayables:
                 self.delayables[delayable].remove_document(document)
@@ -259,7 +259,7 @@ class DelayableEngine(QObject):
             document.delayable_engine = type(self).instance('default')
 
     def remove_delayable(self, delayable):
-        """ Removes a Delayable subclass instance for processing in this engine.
+        """Removes a Delayable subclass instance for processing in this engine.
 
         Args:
             delayable (Delayable or str): A Delayable instance or the key identifier.
@@ -280,7 +280,7 @@ class DelayableEngine(QObject):
             self.delayables.pop(delayable.key)
 
     def set_delayable_enabled(self, delayable, enabled):
-        """ Add or remove the delayable provided.
+        """Add or remove the delayable provided.
 
         Args:
             delayable (Delayable or str): A Delayable instance or the key identifier.

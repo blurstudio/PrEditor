@@ -116,7 +116,10 @@ class SvnActionMenu(QMenu):
             act.setIcon(QIcon(svn.resource('img/update.png')))
             act.setEnabled(False)
 
-        if mode in ('file', 'repobrowser',):
+        if mode in (
+            'file',
+            'repobrowser',
+        ):
             act = self.addAction('Rename...')
             act.setIcon(QIcon(svn.resource('img/rename.png')))
             act.triggered.connect(self.svnRename)

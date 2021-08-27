@@ -19,7 +19,7 @@ except ImportError:
 
 
 class External(object):
-    """ Singleton class used for multiProcess communication.
+    """Singleton class used for multiProcess communication.
 
     This class provides a easy way to spawn a secondary instance of python and run
     Qt/blurdev. It also provides for two way communication between the two processes.
@@ -92,7 +92,7 @@ class External(object):
             self.send(send)
 
     def checkPipe(self):
-        """ Poll the pipe to see if it contains data and return if it does and the data.
+        """Poll the pipe to see if it contains data and return if it does and the data.
 
         If the pipe is broken because the parent process was closed, it will call
         shutdownIfParentClosed if checkIfOrphaned is enabled.
@@ -115,7 +115,7 @@ class External(object):
         return False, None
 
     def handleData(self, data):
-        """ Parses the data returned from the pipe and calls the proper handler.
+        """Parses the data returned from the pipe and calls the proper handler.
 
         Processes data retreived from the pipe, and uses
         blurdev.protocols.BaseProtocolHandler to process the contents of data. Valid
@@ -177,7 +177,7 @@ class External(object):
         parentCore='',
         compid=None,
     ):
-        """ Used to initialize a new instance of python and start the Qt Event loop.
+        """Used to initialize a new instance of python and start the Qt Event loop.
 
         This function configures blurdev and starts Qt. It calls QApplication.exec_()
         and will not exit until blurdev is shutdown.
@@ -214,6 +214,7 @@ class External(object):
         if compid:
             # If a compid was passed, in create a connection to fusion
             import PeyeonScript
+
             blurdev.core.fusionApp = PeyeonScript.scriptapp(
                 "Fusion", "localhost", 0.0, compid
             )
@@ -250,7 +251,7 @@ class External(object):
         blurdev.startApplication()
 
     def multiProcess(self):
-        """ Spawns or returns instance of python and the Pipe to communicate with.
+        """Spawns or returns instance of python and the Pipe to communicate with.
 
         It is safe to call this method multiple times in both the parent and child
         processes. It will only spawn a new instance of python in the parent process if
@@ -297,7 +298,7 @@ class External(object):
         return self.childProcess, self._parentPipe
 
     def parsePipe(self):
-        """ Callback used to monitor for incoming commands and execute them.
+        """Callback used to monitor for incoming commands and execute them.
 
         If checkIfOrphaned is True, and exitMonitorPid is populated,
         it will check if the process is still running, if not,
@@ -314,7 +315,7 @@ class External(object):
             hasData, data = self.checkPipe()
 
     def pipe(self):
-        """ Returns the pipe used to communicate with the other end of the application.
+        """Returns the pipe used to communicate with the other end of the application.
 
         Returns:
             multiprocessing.Pipe: used to communicate with the other process
@@ -324,7 +325,7 @@ class External(object):
         return self._parentPipe
 
     def send(self, data):
-        """ Sends a command to be handled in the other process
+        """Sends a command to be handled in the other process
 
         Commands must be a list. The first item is the name of the handler.
         The second item is the
@@ -346,7 +347,7 @@ class External(object):
         return False
 
     def shutdownIfParentClosed(self, force=False):
-        """ Shutdown blurdev if parent process is closed.
+        """Shutdown blurdev if parent process is closed.
 
         Uses blur.Stone to check if the parent process is still running, if not,
         it calls blurdev.core.shutdown() to close qt and allow python to exit.
@@ -359,11 +360,7 @@ class External(object):
         ):
             args = {"app": self.parentCore.capitalize()}
             msg = "{app} is no longer running, shutting down blurdev and saving prefs"
-            print(
-                msg.format(
-                    **args
-                )
-            )
+            print(msg.format(**args))
             if "python.exe" in sys.executable.lower():
                 time.sleep(1)
             blurdev.core.shutdown()
@@ -371,7 +368,7 @@ class External(object):
         return False
 
     def startCheckingPipe(self, interval):
-        """ Starts a QTimer that calls parsePipe at the provided interval.
+        """Starts a QTimer that calls parsePipe at the provided interval.
 
         This will process all pre-existing messages in the pipe
 
@@ -384,7 +381,7 @@ class External(object):
         self.timerCommand.start(interval)
 
     def stopCheckingPipe(self):
-        """ Stops the timerCommand QTimer. """
+        """Stops the timerCommand QTimer."""
         if self.timerCommand:
             self.timerCommand.stop()
 

@@ -63,8 +63,8 @@ class SoftimageCore(Core):
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a
-        QCoreApplication. """
+        """If true, no Qt gui elements should be used because python is running a
+        QCoreApplication."""
         ret = 'xsibatch.exe' in sys.executable.lower()
         return ret
 

@@ -175,6 +175,7 @@ class ThumbnailItem(QGraphicsRectItem):
     def thumbnail(self):
         if not (self._thumbnail):
             import blurdev
+
             self._thumbnail = blurdev.gui.findPixmap(
                 self._filename, thumbSize=self.scene().thumbnailSize()
             )

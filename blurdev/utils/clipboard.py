@@ -2,6 +2,7 @@
 
 
 from __future__ import absolute_import
+
 try:
     import win32clipboard
 except ImportError:

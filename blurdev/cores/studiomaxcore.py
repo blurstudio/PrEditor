@@ -51,7 +51,7 @@ if ( pyblurdev != undefined ) then (
 
 
 def _focusChanged(old, now):
-    """ Disables Max keyboard shotcuts when a widget in a window gets focus.
+    """Disables Max keyboard shotcuts when a widget in a window gets focus.
 
     This is called after both old and now have been notified through QFocusEvent
 
@@ -352,8 +352,7 @@ class StudiomaxCore(Core):
                 # forces this but doesn't change the style that much.
                 # These changes will be applied when we call initGui later.
                 self._defaultStyleSheet += (
-                    ' /* Start Blur css workarounds: */ '
-                    'QCheckBox{padding: 2px;} '
+                    ' /* Start Blur css workarounds: */ ' 'QCheckBox{padding: 2px;} '
                 )
             if 'Start Blur css workarounds' not in app.styleSheet():
                 app.setStyleSheet(self._defaultStyleSheet)
@@ -497,8 +496,7 @@ class StudiomaxCore(Core):
         return True
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when this core has shutdown called
-        """
+        """Qt should not be closed when this core has shutdown called"""
         if self.dccVersion >= 20:
             return False
         else:

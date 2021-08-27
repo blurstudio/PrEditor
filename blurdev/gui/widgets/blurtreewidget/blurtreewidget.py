@@ -177,7 +177,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self.destroyed.connect(self.aboutToBeDestroyed)
 
     def __call_delegate__(self, name, *args, **kwargs):
-        """ Attempt to call a delegate override method if implemented.
+        """Attempt to call a delegate override method if implemented.
 
         Args:
             name (str): The name of the function being called. This does
@@ -198,13 +198,12 @@ class BlurTreeWidget(LockableTreeWidget):
             return getattr(superclass, name)(*args, **kwargs)
 
     def aboutToBeDestroyed(self):
-        """ Prevent crashes due to "delete loops" """
+        """Prevent crashes due to "delete loops" """
         self._delegate = None
 
     def buildColumnIndex(self):
-        """
-            :remarks    Builds column name index. This is called automatically the first
-            time columnIndex or columnNames is called.
+        """Builds column name index. This is called automatically the first time
+        columnIndex or columnNames is called.
         """
         self._columnIndex = []
         headerItem = self.headerItem()
@@ -217,10 +216,8 @@ class BlurTreeWidget(LockableTreeWidget):
             self._columnsMenu.hideTearOffMenu()
 
     def columnIndex(self, label):
-        """
-            :remarks    Returns the column index for column named label. If label is not
-            a <str> it converts it to <str>.
-            :return		<int>
+        """Returns the column index for column named label. If label is not
+        a <str> it converts it to <str>.
         """
         if not self._indexBuilt:
             self.buildColumnIndex()
@@ -229,10 +226,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return None
 
     def columnNames(self):
-        """
-            :Remarks	Returns a list of column names as <str>.
-            :return		<list>
-        """
+        """Returns a list of column names as <str>."""
         if not self._indexBuilt:
             self.buildColumnIndex()
         return self._columnIndex
@@ -272,7 +266,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return self._delegate
 
     def drawBranches(self, painter, rect, index):
-        """ Draws the branches in the tree view on the same row as the model item index,
+        """Draws the branches in the tree view on the same row as the model item index,
         using the painter given.The branches are drawn in the specified by rect.
 
         Args:
@@ -286,7 +280,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self.__call_delegate__('drawBranches', painter, rect, index)
 
     def drawRow(self, painter, option, index):
-        """ Draws the row in the tree view that contains the model item index, using the
+        """Draws the row in the tree view that contains the model item index, using the
         painter given.
 
         Args:
@@ -300,7 +294,7 @@ class BlurTreeWidget(LockableTreeWidget):
         self.__call_delegate__('drawRow', painter, option, index)
 
     def dropEvent(self, event):
-        """ Handle drop events.
+        """Handle drop events.
 
         Args:
             event (Qt.QtGui.QDropEvent):
@@ -322,19 +316,21 @@ class BlurTreeWidget(LockableTreeWidget):
             self.setItemDelegate(QItemDelegate())
 
     def expandAll(self, state=True):
-        """
-            :remarks	Expands all the tree items based on the inputed parent item
-            :param		state	<bool>	Expand or contract items
+        """Expands all the tree items based on the inputted parent item
+
+        Args:
+            state (bool): Expand or contract items
         """
         for index in range(self.topLevelItemCount()):
             self.itemExpandAllChildren(self.topLevelItem(index), state)
 
     def expandParentOfItem(self, item, state=True, recursive=True):
-        """
-            :Remarks	Expand the parents of this item recursively, to ensure its visible.
-            :param		item		<object>
-            :param		state		<bool>		Expansion state, defaults to True
-            :param		recursive	<bool>		Should this be recusive
+        """Expand the parents of this item recursively, to ensure its visible.
+
+        Args:
+            item (object):
+            state (bool, optional): Expansion state, defaults to True
+            recursive (bool, optional): Should this be recursive
         """
         parent = item.parent()
         if parent:
@@ -343,14 +339,13 @@ class BlurTreeWidget(LockableTreeWidget):
                 self.expandParentOfItem(parent, state, recursive)
 
     def expandToDepth(self, depth, item=None):
-        """
-            :Remarks    Recursively expands children until depth reaches zero. If a item
-                        is provided it will only use the children of that item. If no
-                        item is passed in it will start with the top level items of this
-                        widget.
+        """Recursively expands children until depth reaches zero. If a item is provided
+        it will only use the children of that item. If no item is passed in it will
+        start with the top level items of this widget.
 
-            :param		depth	<int>						How many levels deep to expand
-            :param		item	<QTreeWidgetItem>||None		Item to start with.
+        Args:
+            depth (int): How many levels deep to expand
+            item (QTreeWidgetItem, optional): Item to start with.
         """
         if depth < 0:
             return
@@ -388,13 +383,14 @@ class BlurTreeWidget(LockableTreeWidget):
         return self._identifier
 
     def identifierName(self, name):
-        """
-            :Remarks    Returns the name. If self._identifier is set it will return
-                        place the identifier before name and capitalize the first letter
-                        of name.
+        """Returns the name. If self._identifier is set it will return place the
+        identifier before name and capitalize the first letter of name.
 
-            :param		name		<str>
-            :Return		<str>		"identifierName" || 'name'
+        Args:
+            name (str):
+
+        Returns:
+            str: "identifierName" || 'name'
         """
         if self._identifier:
             name = self._identifier + name[0].upper() + name[1:]
@@ -407,10 +403,8 @@ class BlurTreeWidget(LockableTreeWidget):
         return type(self.itemDelegate()) == GridDelegate
 
     def itemCount(self):
-        """
-            :Remarks    Shows the total number of QTreeWidgetItem's in this tree, it is
-                        recursive and will include all children of items.
-            :Return		<int>
+        """Shows the total number of QTreeWidgetItem's in this tree, it is recursive
+        and will include all children of items.
         """
         total = 0
         for _ in self.itemIterator():
@@ -418,22 +412,19 @@ class BlurTreeWidget(LockableTreeWidget):
         return total
 
     def itemCountForItem(self, item):
-        """
-            :Remarks	Recursive function for itemCount
-            :Return		<int>
-        """
+        """Recursive function for itemCount"""
         total = item.childCount()
         for index in range(total):
             total += self.itemCountForItem(item.child(index))
         return total
 
     def itemIsCollapsed(self, item):
-        """
-            :remarks    Marks this item as being collapsed, then calls the update items
-                        method to reflect the tree state in the dateline scene.  If the
-                        user has the CTRL modifier clicked, then the collapse will be
-                        recursive
-            :param		item	<QTreeWidgetItem>
+        """Marks this item as being collapsed, then calls the update items method to
+        reflect the tree state in the dateline scene.  If the user has the CTRL
+        modifier clicked, then the collapse will be recursive
+
+        Args:
+            item (QTreeWidgetItem):
         """
         if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
@@ -441,12 +432,12 @@ class BlurTreeWidget(LockableTreeWidget):
             # self.blockSignals( False )
 
     def itemIsExpanded(self, item):
-        """
-            :remarks    Marks this item as being expanded, then calls the update items
-                        method to reflect the tree state in the dateline scene.  If the
-                        user has the CTRL modifier clicked, then the expansion will be
-                        recursive
-            :param		item	<QTreeWidgetItem>
+        """Marks this item as being expanded, then calls the update items method to
+        reflect the tree state in the dateline scene.  If the user has the CTRL
+        modifier clicked, then the expansion will be recursive
+
+        Args:
+            item (QTreeWidgetItem):
         """
         if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
             # self.blockSignals( True )
@@ -495,19 +486,21 @@ class BlurTreeWidget(LockableTreeWidget):
             item = iterator.value()
 
     def itemExpandAllChildren(self, item, state, filter=None, column=0, contains=False):
-        """
-            :Remarks    Recursively goes down the tree hierarchy expanding/collapsing
-                        all the tree items.  This method is called in the expandAll,
-                        itemExpanded, and itemCollapsed methods.
-            :param		item <QTreeWidgetItem>
-            :param		state <bool> Expand or collapse state
-            :param      filter <str> Only expand items with text in column matching
-                            this will be set to state
-            :param		column <int> The column filter is applied to
-            :param      contains <bool> If True check if filter is contained in the
-                            column text, not that the column text
-                            matches the filter.
-            :Return		<bool> Was this item or its children expanded.
+        """Recursively goes down the tree hierarchy expanding/collapsing all the tree
+        items.  This method is called in the expandAll, itemExpanded, and itemCollapsed
+        methods.
+
+        Args:
+            item (QTreeWidgetItem):
+            state (bool): Expand or collapse state
+            filter (str, optional): Only expand items with text in column matching this
+            will be set to state
+            column (int, optional): The column filter is applied to
+            contains (bool, optional): If True check if filter is contained in the
+                column text, not that the column text matches the filter.
+
+        Returns:
+            bool: Was this item or its children expanded.
         """
         result = False
         for c in range(item.childCount()):
@@ -533,7 +526,7 @@ class BlurTreeWidget(LockableTreeWidget):
             return True
 
     def mimeData(self, items):
-        """ Returns a object containing a serialized description of the specified items.
+        """Returns a object containing a serialized description of the specified items.
 
         Args:
             items (list): Items to generate the mimeData for.
@@ -547,7 +540,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return self.__call_delegate__('mimeData', items)
 
     def mimeTypes(self):
-        """ Define the accepted mimeTypes for this tree widget.
+        """Define the accepted mimeTypes for this tree widget.
 
         Overloaded. If you add this function to the delegate you can override the
         accepted mimeTypes for drag Events.
@@ -561,11 +554,14 @@ class BlurTreeWidget(LockableTreeWidget):
         return self.__call_delegate__('mimeTypes')
 
     def prefName(self, name):
-        """
-            :Remarks    Appends self._identifier to the pref name allowing you to save
-            more than one BlurTreeWidget preffrences in a single file.
-            :param		name		<str>
-            :Return		<str>		"name-identifier" || 'name'
+        """Appends self._identifier to the pref name allowing you to save more than one
+        BlurTreeWidget preferences in a single file.
+
+        Args:
+            name (str):
+
+        Returns:
+            str: "name-identifier" || 'name'
         """
         names = [name]
         if self._identifier:
@@ -589,18 +585,18 @@ class BlurTreeWidget(LockableTreeWidget):
         return output
 
     def recordPrefs(self, pref):
-        """
-            :remarks    Record tree settings for the provided prefrences. You can
-                        control what prefrences get saved by enableing the various
-                        options. If you want to save the prefrences of more than one
-                        BlurTreeWidget in the same preffrences file you must set a
-                        identifier for each tree.
+        """Record tree settings for the provided preferences. You can control what
+        preferences get saved by enabling the various options. If you want to save the
+        preferences of more than one BlurTreeWidget in the same preferences file you
+        must set a identifier for each tree.
 
-            :param		pref	<blurdev.prefs.Preference>	The pref file to restore from.
-            :sa			<BlurTreeWidget.saveColumnWidths>	Save column widths
-            :sa			<BlurTreeWidget.saveColumnOrder>	Sace column order
-            :sa         <BlurTreeWidget.setIdentifier>  Set a specific identifier for
-                                                        each tree.
+        Args:
+            pref (blurdev.prefs.Preference): The pref file to restore from.
+
+        See Also:
+            - :py:meth:`.BlurTreeWidget.saveColumnWidths`: Save column widths.
+            - :py:meth:`.BlurTreeWidget.saveColumnOrder`: Save column order.
+            - :py:meth:`.BlurTreeWidget.setIdentifier`: Set a specific identifier for each tree.
         """
         pref.recordProperty(self.prefName('ColumnVis'), self.columnVisibility())
         if self._saveColumnWidths:
@@ -624,12 +620,12 @@ class BlurTreeWidget(LockableTreeWidget):
         self.setColumnWidth(column, (width + self.resizeColumnToContentsPadding))
 
     def resizeColumnsToContents(self):
-        """
-            :remarks    Resizes all columns to fit contents, If the header is set to
-                        stretch the last section, it will properly stretch the last
-                        column if it falls short of the view's width
+        """Resizes all columns to fit contents, If the header is set to stretch the
+        last section, it will properly stretch the last column if it falls short of
+        the view's width
 
-            :param      padding    <int>  amount of  extra pixel padding.
+        Args:
+            padding (int): amount of  extra pixel padding.
         """
 
         count = self.columnCount()
@@ -645,9 +641,7 @@ class BlurTreeWidget(LockableTreeWidget):
             self.setColumnWidth(-1, viewWidth - treeWidth)
 
     def resizeColumnsToWindow(self):
-        """
-            :remarks	Reduce the width of all columns until they fit on screen.
-        """
+        """Reduce the width of all columns until they fit on screen."""
         # get view width and data width
         viewWidth = self.width()
         treeWidth = self.treeWidth()
@@ -708,9 +702,10 @@ class BlurTreeWidget(LockableTreeWidget):
                 self.restoreOpenState(openState, item.child(c), key)
 
     def restorePrefs(self, pref):
-        """
-            :remarks	Restore settings if they exist in the provided prefs file.
-            :param		pref	<blurdev.prefs.Preference>	The pref file to restore from.
+        """Restore settings if they exist in the provided prefs file.
+
+        Args:
+            pref (blurdev.prefs.Preference): The pref file to restore from.
         """
         self.restoreColumnVisibility(
             pref.restoreProperty(self.prefName('ColumnVis'), {})
@@ -735,15 +730,14 @@ class BlurTreeWidget(LockableTreeWidget):
         return self._saveColumnWidths
 
     def setColumnCount(self, columns):
-        """
-            :remarks    overloaded from QTreeWidget.setColumnCount( int columns ).
-            Invalidates column name index before setting column count.
+        """Overloaded from QTreeWidget.setColumnCount( int columns ). Invalidates
+        column name index before setting column count.
         """
         self._indexBuilt = False
         QTreeWidget.setColumnCount(self, columns)
 
     def setDelegate(self, delegate):
-        """ Sets a override delegate for this tree and its ItemDelegate. This allows you
+        """Sets a override delegate for this tree and its ItemDelegate. This allows you
         to override methods without needing to subclass them.
 
         All override delegate methods implemented should take a tree argument as the
@@ -784,13 +778,12 @@ class BlurTreeWidget(LockableTreeWidget):
         self.setGridsDelegate(delegate)
 
     def setGridsDelegate(self, delegate):
-        """
-            :remarks    If the Grid Delegate is enabled set its delegate to delegate.
-                        Seting this allows you to define delegate methods in the
-                        controling class instead of subclassing
-                        <trax.gui.delegates.griddelegate.GridDelegate>.
-            :return     <bool>  Grid Delegate is enabled and its delegate is now set to
-                        delegate
+        """If the Grid Delegate is enabled set its delegate to delegate. Setting this
+        allows you to define delegate methods in the controlling class instead of
+        subclassing :py:meth:`blurdev.gui.delegates.griddelegate.GridDelegate`.
+
+        Returns:
+            bool: Grid Delegate is enabled and its delegate is now set to delegate
         """
         if self.isGridDelegateEnabled():
             self.itemDelegate().setDelegate(delegate)
@@ -804,27 +797,22 @@ class BlurTreeWidget(LockableTreeWidget):
         self._enableGradiated = state
 
     def setHeaderItem(self, item):
-        """
-            :remarks    overloaded from QTreeWidget.setHeaderItem (self, QTreeWidgetItem
-                        item). Invalidates column name index before setting header item
+        """overloaded from QTreeWidget.setHeaderItem (self, QTreeWidgetItem item).
+        Invalidates column name index before setting header item
         """
         self._indexBuilt = False
         QTreeWidget.setHeaderItem(self, item)
 
     def setHeaderLabel(self, alabel):
-        """
-            :remarks    overloaded from QTreeWidget.setHeaderLabel (self, QString
-                        alabel). Invalidates column name index before setting header
-                        item
+        """overloaded from QTreeWidget.setHeaderLabel (self, QString label).
+        Invalidates column name index before setting header item
         """
         self._indexBuilt = False
         QTreeWidget.setHeaderLabel(self, alabel)
 
     def setHeaderLabels(self, labels):
-        """
-            :remarks    overloaded from QTreeWidget.setHeaderLabels (self, QStringList
-                        labels). Invalidates column name index before setting header
-                        item
+        """overloaded from QTreeWidget.setHeaderLabels (self, QStringList labels).
+        Invalidates column name index before setting header item
         """
         self._indexBuilt = False
         QTreeWidget.setHeaderLabels(self, labels)
@@ -896,7 +884,7 @@ class BlurTreeWidget(LockableTreeWidget):
 
     @Slot()
     def showHeaderMenu(self):
-        """ Shows the header menu if the header menu is enabled. It populates the menu
+        """Shows the header menu if the header menu is enabled. It populates the menu
         with column visibility if this is enabled. If a delegate is set, it will pass
         the menu item to `headerMenu(menu)`. You can customize the menu in this delegate
         function, `headerMenu(menu)` must return a `bool` if the menu is to be shown.
@@ -970,9 +958,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return self.__call_delegate__('startDrag', supportedActions)
 
     def treeWidth(self):
-        """
-            :remarks	Calculates the width of the tree's contents
-        """
+        """Calculates the width of the tree's contents"""
         treeWidth = 0.0
         for column in range(self.columnCount()):
             treeWidth += self.columnWidth(column)
@@ -983,7 +969,7 @@ class BlurTreeWidget(LockableTreeWidget):
         format=QImage.Format_RGB32,
         flags=QWidget.DrawWindowBackground | QWidget.DrawChildren | QWidget.IgnoreMask,
     ):
-        """ Renders the entire contents of the BlurTreeWidget to a QImage.
+        """Renders the entire contents of the BlurTreeWidget to a QImage.
 
         This should correctly size the image to the visible rows and columns.
 
@@ -1050,10 +1036,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return image
 
     def topLevelItems(self):
-        r"""
-            :remarks	Returns a list of all top level items.
-            :return 	<list>
-        """
+        """Returns a list of all top level items."""
         return [self.topLevelItem(index) for index in range(self.topLevelItemCount())]
 
     def updateColumnVisibility(self):
@@ -1091,7 +1074,7 @@ class BlurTreeWidget(LockableTreeWidget):
         return None
 
     def wheelEvent(self, event):
-        """ Receives wheel events for the widget.
+        """Receives wheel events for the widget.
 
         Args:
             event (Qt.QtGui.QWheelEvent):

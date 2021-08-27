@@ -64,13 +64,12 @@ class ConfigDialog(Dialog):
         self.uiPluginsTREE.itemSelectionChanged.connect(self.refreshWidget)
 
     def accept(self):
-        """ commits the config information and then closes down """
+        """commits the config information and then closes down"""
         if self.commit():
             Dialog.accept(self)
 
     def checkForSave(self):
-        """ tries to run the active config widget's checkForSave method, if it exists
-        """
+        """tries to run the active config widget's checkForSave method, if it exists"""
         widget = self.uiWidgetAREA.widget()
 
         if widget:
@@ -78,7 +77,7 @@ class ConfigDialog(Dialog):
         return True
 
     def commit(self):
-        """ tries to run the active config widget's commit method, if it exists """
+        """tries to run the active config widget's commit method, if it exists"""
 
         success = True
 
@@ -149,13 +148,13 @@ class ConfigDialog(Dialog):
         self.uiPluginsTREE.setUpdatesEnabled(True)
 
     def reject(self):
-        """ checks this system to make sure the current widget has been saved before
-        exiting """
+        """checks this system to make sure the current widget has been saved before
+        exiting"""
         if self.checkForSave():
             Dialog.reject(self)
 
     def refreshWidget(self):
-        """ reloads this dialog with the current plugin instance """
+        """reloads this dialog with the current plugin instance"""
         self.uiPluginsTREE.blockSignals(True)
 
         item = self.uiPluginsTREE.currentItem()
@@ -182,7 +181,7 @@ class ConfigDialog(Dialog):
         return True
 
     def reset(self):
-        """ resets the data for the current widget """
+        """resets the data for the current widget"""
         widget = self.uiWidgetAREA.widget()
 
         if widget:
@@ -192,7 +191,7 @@ class ConfigDialog(Dialog):
         return True
 
     def selectItem(self, name):
-        """ selects the widget item whose name matches the inputed name """
+        """selects the widget item whose name matches the inputed name"""
         # go through the group level
         for i in range(self.uiPluginsTREE.topLevelItemCount()):
             item = self.uiPluginsTREE.topLevelItem(i)

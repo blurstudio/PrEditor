@@ -39,8 +39,8 @@ class NukeCore(Core):
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a
-        QCoreApplication. """
+        """If true, no Qt gui elements should be used because python is running a
+        QCoreApplication."""
         return not nuke.GUI
 
     def shouldReportException(self, exc_type, exc_value, exc_traceback, actions=None):
@@ -77,8 +77,7 @@ class NukeCore(Core):
         )
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the NukeCore has shutdown called
-        """
+        """Qt should not be closed when the NukeCore has shutdown called"""
         return False
 
     def errorCoreText(self):
@@ -93,7 +92,7 @@ class NukeCore(Core):
             return ''
 
     def eventFilter(self, obj, event):
-        """ `QApplication.aboutToQuit` is only fired after the rootWindow is closed
+        """`QApplication.aboutToQuit` is only fired after the rootWindow is closed
         so we can't save visibility prefs. This event fires each time someone
         tries to close nuke, but **before** the user has a chance to cancel the close.
         This means we can't shutdown blurdev here.
@@ -108,13 +107,12 @@ class NukeCore(Core):
         return super(NukeCore, self).eventFilter(obj, event)
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 
     def recordToolbars(self):
-        """ Records settings for all found toolbars.
+        """Records settings for all found toolbars.
 
         See Also:
             :py:meth:`blurdev.cores.core.Core.recordToolbars`.  This override does not
@@ -131,7 +129,7 @@ class NukeCore(Core):
             toolbar_class.instanceRecordSettings(gui=False)
 
     def rootWindow(self):
-        """ Returns the nuke main window. """
+        """Returns the nuke main window."""
         if self._rootWindow is not None:
             return self._rootWindow
 
@@ -146,7 +144,7 @@ class NukeCore(Core):
         return self._rootWindow
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
-        """ Disabled for Nuke. Attempting to set a useful stylesheet on QApplication
+        """Disabled for Nuke. Attempting to set a useful stylesheet on QApplication
         causes Nuke 11 to crash.
         """
         return

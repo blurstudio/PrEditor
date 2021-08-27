@@ -50,11 +50,11 @@ if blurdev.core.objectName() == 'softimage':
 
 class ErrorLog(QObject, Win32ComFix):
     def flush(self):
-        """ flush the logger instance """
+        """flush the logger instance"""
         pass
 
     def write(self, msg):
-        """ log an error message """
+        """log an error message"""
         self.parent().write(msg, error=True)
 
 
@@ -180,8 +180,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def keyReleaseEvent(self, event):
         """Override of keyReleaseEvent to determine when to end navigation of
-            previous commands
-            """
+        previous commands
+        """
         if event.key() == Qt.Key_Alt:
             self._prevCommandIndex = 0
         else:
@@ -197,9 +197,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         window = self.window()
 
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
-        doHyperlink = (hasattr(window, 'uiErrorHyperlinksACT')
-                       and window.uiErrorHyperlinksACT.isChecked()
-                       and self.anchor)
+        doHyperlink = (
+            hasattr(window, 'uiErrorHyperlinksACT')
+            and window.uiErrorHyperlinksACT.isChecked()
+            and self.anchor
+        )
         if not doHyperlink:
             return
 
@@ -239,9 +241,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             # Attempt to create command from template and run the command
             try:
                 command = cmdTempl.format(
-                    exePath=exePath,
-                    modulePath=modulePath,
-                    lineNum=lineNum
+                    exePath=exePath, modulePath=modulePath, lineNum=lineNum
                 )
                 subprocess.Popen(command)
             except (ValueError, OSError):
@@ -288,7 +288,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.setTextCursor(cursor)
 
     def clear(self):
-        """ clears the text in the editor """
+        """clears the text in the editor"""
         QTextEdit.clear(self)
         self.startInputLine()
 
@@ -302,7 +302,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # Check if the last line is a empty prompt. If so, then preform two finds so we
         # find the prompt we are looking for instead of this empty prompt
         findCount = (
-            2 if self.toPlainText()[-len(self.prompt()):] == self.prompt() else 1
+            2 if self.toPlainText()[-len(self.prompt()) :] == self.prompt() else 1
         )
         for _ in range(findCount):
             self.find(self.prompt(), QTextDocument.FindBackward)
@@ -325,7 +325,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self._commentColor = color
 
     def completer(self):
-        """ returns the completer instance that is associated with this editor """
+        """returns the completer instance that is associated with this editor"""
         return self._completer
 
     def errorMessageColor(self):
@@ -366,7 +366,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         return cmdresult, wasEval
 
     def executeCommand(self):
-        """ executes the current line of code """
+        """executes the current line of code"""
         # grab the command from the line
         block = self.textCursor().block().text()
         p = '{prompt}(.*)'.format(prompt=re.escape(self.prompt()))
@@ -386,7 +386,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 if hasText and notPrevCmd:
                     self._prevCommands.append(commandText)
                 # limit length of prevCommand list to max number of prev commands
-                self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax:]
+                self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax :]
 
                 if self._pdbMode:
                     if commandText:
@@ -425,14 +425,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         pass
 
     def focusInEvent(self, event):
-        """ overload the focus in event to ensure the completer has the proper widget
-        """
+        """overload the focus in event to ensure the completer has the proper widget"""
         if self.completer():
             self.completer().setWidget(self)
         QTextEdit.focusInEvent(self, event)
 
     def insertCompletion(self, completion):
-        """ inserts the completion text into the editor """
+        """inserts the completion text into the editor"""
         if self.completer().widget() == self:
             cursor = self.textCursor()
             cursor.select(QTextCursor.WordUnderCursor)
@@ -456,10 +455,12 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
         txt = doc.toPlainText()
 
-        exp = re.compile((
-            r'[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:'
-            r'\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
-        ))
+        exp = re.compile(
+            (
+                r'[^A-Za-z0-9\~\!\@\#\$\%\^\&\*\(\)\_\+\{\}\|\:'
+                r'\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
+            )
+        )
         newText = text(txt)
         for each in exp.findall(newText):
             newText = newText.replace(each, '?')
@@ -467,8 +468,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.insertPlainText(newText)
 
     def isatty(self):
-        """ Return True if the stream is interactive (i.e., connected to a terminal/tty
-            device).
+        """Return True if the stream is interactive (i.e., connected to a terminal/tty
+        device).
         """
         # This method is required for pytest to run in a DCC. Returns False so the
         # output does not contain cursor control characters that disrupt the visual
@@ -487,7 +488,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             return ''
 
     def keyPressEvent(self, event):
-        """ overload the key press event to handle custom events """
+        """overload the key press event to handle custom events"""
 
         completer = self.completer()
 
@@ -591,7 +592,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self._keywordColor = color
 
     def moveToHome(self):
-        """ moves the cursor to the home location """
+        """moves the cursor to the home location"""
         mode = QTextCursor.MoveAnchor
         # select the home
         if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
@@ -609,8 +610,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.setTextCursor(cursor)
 
     def outputPrompt(self):
-        """ The prompt used to output a result.
-        """
+        """The prompt used to output a result."""
         return self._outputPrompt
 
     def pdbContinue(self):
@@ -664,7 +664,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self._resultColor = color
 
     def setCompleter(self, completer):
-        """ sets the completer instance for this widget """
+        """sets the completer instance for this widget"""
         if completer:
             self._completer = completer
             completer.setWidget(self)
@@ -679,11 +679,11 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         super(ConsoleEdit, self).showEvent(event)
 
     def startInputLine(self):
-        """ create a new command prompt line """
+        """create a new command prompt line"""
         self.startPrompt(self.prompt())
 
     def startPrompt(self, prompt):
-        """ create a new command prompt line with the given prompt
+        """create a new command prompt line with the given prompt
 
         Args:
             prompt(str): The prompt to start the line with. If this prompt
@@ -703,7 +703,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self.insertPlainText(inputstr)
 
     def startOutputLine(self):
-        """ Create a new line to show output text. """
+        """Create a new line to show output text."""
         self.startPrompt(self._outputPrompt)
 
     def stdoutColor(self):
@@ -745,13 +745,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                 'filename': filename,
                 'fileStart': 8,
                 'fileEnd': filenameEnd,
-                'lineNum': lineNum
+                'lineNum': lineNum,
             }
 
         return ret
 
     def write(self, msg, error=False):
-        """ write the message to the logger """
+        """write the message to the logger"""
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
         if QtCompat.isValid(self):

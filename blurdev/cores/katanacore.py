@@ -19,8 +19,7 @@ class KatanaCore(Core):
         self._useAppUserModelID = False
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 

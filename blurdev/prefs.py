@@ -35,18 +35,18 @@ class Preference(XMLDocument):
         return self._coreName
 
     def load(self, filename=''):
-        """ loads the preferences from the file, using the current stored filename """
+        """loads the preferences from the file, using the current stored filename"""
         if not filename:
             filename = self.filename()
         return XMLDocument.load(self, filename)
 
     def name(self):
-        """ return the name attribute """
+        """return the name attribute"""
         return self._name
 
     def filename(self):
-        """ return this documents filename, deriving the default filename from its name
-        and standard preference location  """
+        """return this documents filename, deriving the default filename from its name
+        and standard preference location"""
         if not self._filename:
             key = self.name().lower().replace(' ', '-')
             self._filename = os.path.join(
@@ -56,7 +56,7 @@ class Preference(XMLDocument):
 
     @classmethod
     def path(cls, coreName='', shared=False):
-        """ return the path to the application's prefrences folder """
+        """return the path to the application's prefrences folder"""
         # use the core
         if not coreName and blurdev.core:
             coreName = blurdev.core.objectName()
@@ -73,11 +73,11 @@ class Preference(XMLDocument):
         return os.path.join(path, 'app_%s' % coreName)
 
     def recordProperty(self, key, value):
-        """ connects to the root recordProperty method """
+        """connects to the root recordProperty method"""
         return self.root().recordProperty(key, value)
 
     def recordModule(self, module):
-        """ record the variables in the inputed module from its dict """
+        """record the variables in the inputed module from its dict"""
         for key, value in module.__dict__.items():
             # ignore built-ints
             if key.startswith('__'):
@@ -85,7 +85,7 @@ class Preference(XMLDocument):
             self.recordProperty(key, value)
 
     def restoreModule(self, module):
-        """ restore proeprties in the module's variables from its dict """
+        """restore proeprties in the module's variables from its dict"""
         for key, value in module.__dict__.items():
             # ignore built-ins
             if key.startswith('__'):
@@ -93,11 +93,11 @@ class Preference(XMLDocument):
             module.__dict__[key] = self.restoreProperty(key, value)
 
     def restoreProperty(self, key, default=None):
-        """ connects to the root restoreProperty method """
+        """connects to the root restoreProperty method"""
         return self.root().restoreProperty(key, default)
 
     def save(self, filename=''):
-        """ save the preference file """
+        """save the preference file"""
         if not filename:
             filename = self.filename()
         path = os.path.split(filename)[0]
@@ -110,21 +110,21 @@ class Preference(XMLDocument):
         self._coreName = coreName
 
     def setName(self, name):
-        """ sets the name of this Preference """
+        """sets the name of this Preference"""
         self._name = name
 
     def setShared(self, shared):
         self._shared = shared
 
     def setVersion(self, version):
-        """ sets the version number of this preferene """
+        """sets the version number of this preferene"""
         self.root().setAttribute('version', version)
 
     def shared(self, shared):
         return self._shared
 
     def version(self):
-        """ returns the current version of this preference """
+        """returns the current version of this preference"""
         return float(self.root().attribute('version', 1.0))
 
 

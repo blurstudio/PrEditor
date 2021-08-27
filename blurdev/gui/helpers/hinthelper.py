@@ -83,7 +83,7 @@ class HintHelper(QLabel):
         self.toggleVisibility()
 
     def toggleVisibility(self):
-        """ Toggles the visibility of the hint based on the state of the widget """
+        """Toggles the visibility of the hint based on the state of the widget"""
         if not self.isEnabled():
             QLabel.setVisible(self, False)
         parent = self.parent()

@@ -31,12 +31,10 @@ class Delayable(QObject):
 
 
 class RangeDelayable(Delayable):
-    """ Delayable designed to take a start and stop range as its first arguments.
-
-    """
+    """Delayable designed to take a start and stop range as its first arguments."""
 
     def merge_args(self, args1, args2):
-        """ Uses the lowest start argument value. The end argument returns None if
+        """Uses the lowest start argument value. The end argument returns None if
         one of them is None otherwise the largest is returned. All other arguments
         of from args2 are used.
 
@@ -83,6 +81,5 @@ class SearchDelayable(Delayable):
         self.engine.enqueue(document, self.key, find_state, *args)
 
     def text_found(self, document, start, end, find_state):
-        """ Called each time text is found.
-        """
+        """Called each time text is found."""
         raise NotImplementedError('SearchDelayable.text_found should be subclassed.')

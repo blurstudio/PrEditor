@@ -38,10 +38,7 @@ class WorkboxWidget(DocumentEditor):
         return self._console
 
     def execAll(self):
-        """
-            \remarks    reimplement the DocumentEditor.exec_ method to run this code
-            without saving
-        """
+        """re-implement the DocumentEditor.exec_ method to run this code without saving"""
         txt = self.toUnixLineEndings(self.text()).rstrip()
         idx = self.parent().indexOf(self)
         filename = '<WorkboxWidget>:{}'.format(idx)
@@ -215,6 +212,5 @@ class WorkboxWidget(DocumentEditor):
 
     @classmethod
     def toUnixLineEndings(cls, txt):
-        """ Replaces all windows and then mac line endings with unix line endings.
-        """
+        """Replaces all windows and then mac line endings with unix line endings."""
         return txt.replace('\r\n', '\n').replace('\r', '\n')

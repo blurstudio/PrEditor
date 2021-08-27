@@ -56,7 +56,7 @@ class ToolbarAction(QAction):
 
 
 class ToolsToolbar(BlurdevToolbar):
-    """ Baseclass for creating a toolbar for treegrunt tools.
+    """Baseclass for creating a toolbar for treegrunt tools.
 
     In most cases when subclassing you only need to implement the ``_name``
     property and the ``populate()`` function.
@@ -93,7 +93,7 @@ class ToolsToolbar(BlurdevToolbar):
         return self.addAction(action)
 
     def dragEnterEvent(self, event):
-        """ filter drag events for specific items, treegrunt tools or script files """
+        """filter drag events for specific items, treegrunt tools or script files"""
         data = event.mimeData()
 
         # accept tool item drag/drop events
@@ -101,7 +101,7 @@ class ToolsToolbar(BlurdevToolbar):
             event.acceptProposedAction()
 
     def dropEvent(self, event):
-        """ Handle the drop event for this item. """
+        """Handle the drop event for this item."""
         data = event.mimeData()
         text = data.text()
 
@@ -116,7 +116,7 @@ class ToolsToolbar(BlurdevToolbar):
                     self.addTool(tool)
 
     def mousePressEvent(self, event):
-        """ Overload the mouse press event to handle custom context menus
+        """Overload the mouse press event to handle custom context menus
         clicked on toolbuttons.
         """
         # On a right click, show the menu.
@@ -134,9 +134,11 @@ class ToolsToolbar(BlurdevToolbar):
             sep.setObjectName('uiTitleSEP')
 
             action = self.actionAt(event.x(), event.y())
-            if (action and action not in self._protected_actions and not isinstance(
-                action, QWidgetAction
-            )):
+            if (
+                action
+                and action not in self._protected_actions
+                and not isinstance(action, QWidgetAction)
+            ):
                 if isinstance(action, ToolbarAction):
 
                     # Toolbar separators don't have defaultAction.
@@ -155,22 +157,20 @@ class ToolsToolbar(BlurdevToolbar):
                 if self._editable:
 
                     act = menu.addAction('Move Back')
-                    act.setIcon(self._iconFactory.getIcon(
-                        'google', name='chevron_left'
-                    ))
+                    act.setIcon(
+                        self._iconFactory.getIcon('google', name='chevron_left')
+                    )
                     act.triggered.connect(lambda: self.moveActionBack(action))
 
                     act = menu.addAction('Move Forward')
-                    act.setIcon(self._iconFactory.getIcon(
-                        'google', name='chevron_right'
-                    ))
+                    act.setIcon(
+                        self._iconFactory.getIcon('google', name='chevron_right')
+                    )
                     act.triggered.connect(lambda: self.moveActionForward(action))
 
                     menu.addSeparator()
                     act = menu.addAction('Insert Separator')
-                    act.setIcon(self._iconFactory.getIcon(
-                        'google', name='space_bar'
-                    ))
+                    act.setIcon(self._iconFactory.getIcon('google', name='space_bar'))
                     act.triggered.connect(lambda: self.insertSeparator(action))
 
                     act = menu.addAction('Remove')
@@ -252,7 +252,7 @@ class ToolsToolbar(BlurdevToolbar):
         self.insertAction(self.nextVisibleAction(before), action)
 
     def populate(self):
-        """ This function should be sub-classed to populate the toolbar.
+        """This function should be sub-classed to populate the toolbar.
 
         This function does not need to hide tools based on toolTypes, that
         is taken care of by updateToolVisibility.
@@ -260,7 +260,7 @@ class ToolsToolbar(BlurdevToolbar):
         return False
 
     def recordSettings(self, save=True, gui=True):
-        """ Records settings to be used for another session.
+        """Records settings to be used for another session.
 
         Args:
             save (bool, optional): Save the settings. This is mostly used by sub-classes
@@ -279,8 +279,7 @@ class ToolsToolbar(BlurdevToolbar):
         return pref
 
     def collapseSeparators(self):
-        """Will only keep one separator visible when more than one are juxtaposed.
-        """
+        """Will only keep one separator visible when more than one are juxtaposed."""
         previousAction = None
         for action in self.actions():
             if previousAction and action.isSeparator() and previousAction.isSeparator():
@@ -298,12 +297,11 @@ class ToolsToolbar(BlurdevToolbar):
         action.deleteLater()
 
     def runAction(self, action):
-        """ runs the tool or script action associated with the inputted action """
+        """runs the tool or script action associated with the inputted action"""
         action.exec_()
 
     def toolIDs(self):
-        """ Returns a list of the tool ids used to find and launch the tools.
-        """
+        """Returns a list of the tool ids used to find and launch the tools."""
         toolIDs = []
         for tool in self.tools():
             if tool:
@@ -313,8 +311,7 @@ class ToolsToolbar(BlurdevToolbar):
         return toolIDs
 
     def tools(self):
-        """ Returns the tools shown by the toolbar.
-        """
+        """Returns the tools shown by the toolbar."""
         tools = []
         for action in self.actions():
             if action in self._protected_actions:
@@ -326,7 +323,7 @@ class ToolsToolbar(BlurdevToolbar):
         return tools
 
     def updateToolVisibility(self):
-        """ Hides tool buttons that should not be visible based on user settings.
+        """Hides tool buttons that should not be visible based on user settings.
 
         This hides the action but does not remove it. self.tools() will still return all
         of the tools populate added to the toolbar.
@@ -337,8 +334,7 @@ class ToolsToolbar(BlurdevToolbar):
 
 
 class FavoritesToolbar(ToolsToolbar):
-    """ Creates a toolbar that contains favorite Treegrunt tools.
-    """
+    """Creates a toolbar that contains favorite Treegrunt tools."""
 
     _name = 'Favorites'
 

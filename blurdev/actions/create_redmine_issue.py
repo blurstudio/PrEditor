@@ -52,7 +52,10 @@ class CreateRedmineIssue(Action):
     project = argproperty(atype=six.string_types, default='pipeline')
     redmine = argproperty(
         atype=(six.string_types, Redmine),
-        default=os.environ.get('BDEV_REDMINE_URL', 'https://redmine.blur.com',),
+        default=os.environ.get(
+            'BDEV_REDMINE_URL',
+            'https://redmine.blur.com',
+        ),
     )
     screenshot = argproperty(atype=bool, default=False)
     subject = argproperty(atype=six.string_types)
@@ -74,10 +77,16 @@ class CreateRedmineIssue(Action):
         else:
             # If the password is past we try to login using username password.
             if self.password:
-                kwargs = dict(username=str(self.username), password=str(self.password),)
+                kwargs = dict(
+                    username=str(self.username),
+                    password=str(self.password),
+                )
             else:
                 # Otherwise we try to impersonate the user.
-                kwargs = dict(key=self.apiKey, impersonate=self.username,)
+                kwargs = dict(
+                    key=self.apiKey,
+                    impersonate=self.username,
+                )
             redmine = (
                 self.redmine
                 if isinstance(self.redmine, Redmine)

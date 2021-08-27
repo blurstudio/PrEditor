@@ -33,7 +33,7 @@ except ImportError:
 
 
 def monitorForCrash(pid, conn):
-    """ Multiprocessing function used to clean up temp files if the parent process is
+    """Multiprocessing function used to clean up temp files if the parent process is
     killed.
     """
     # Note: importing inside this function can cause dll errors when running inside a
@@ -88,7 +88,7 @@ def monitorForCrash(pid, conn):
 
 
 class TempFilesContext(object):
-    """ Context to create multiple temp files and directories that will be removed.
+    """Context to create multiple temp files and directories that will be removed.
 
     This class is used to manage generation of multiple temp files and directories.
     The files and directories created by makeTempDirectory and makeTempFile will
@@ -184,7 +184,7 @@ class TempFilesContext(object):
         return self._dirname
 
     def makeTempDirectory(self, *args, **kwargs):
-        """ Creates a temporary directory and returns its file path.
+        """Creates a temporary directory and returns its file path.
 
         This directory and all of its contents are removed on exit.
         args and kwargs are passed to tempfile.NamedTemporaryFile after the
@@ -220,7 +220,7 @@ class TempFilesContext(object):
         return self._tempDirs[key]
 
     def makeTempFile(self, *args, **kwargs):
-        """ Creates a tempfile using tempfile.mkstemp and returns the path to the file.
+        """Creates a tempfile using tempfile.mkstemp and returns the path to the file.
 
         This file will only be valid till the context exits. Any args and kwargs are
         passed to tempfile.mkstemp after any extra keyword arguments are removed from
@@ -303,7 +303,7 @@ class TempFilesContext(object):
 
 
 class ErrorReport(object):
-    """ Allows you to provide additional debug info if a error happens in this context.
+    """Allows you to provide additional debug info if a error happens in this context.
 
     The blurdev Python Logger can send a error email when any python error is raised.
     Sometimes just a traceback does not provide enough information to debug the
@@ -388,7 +388,7 @@ class ErrorReport(object):
 
     @classmethod
     def clearReports(cls):
-        """ Removes all of the currently stored callbacks.
+        """Removes all of the currently stored callbacks.
 
         This should be called after all error reporting is finished, or if a error
         happened and there is nothing to report it. If you set cls.enabled to True,
@@ -399,7 +399,7 @@ class ErrorReport(object):
 
     @classmethod
     def generateReport(cls, fmt='{result}'):
-        """ Executes and returns all of the currently stored callbacks.
+        """Executes and returns all of the currently stored callbacks.
         Args:
 
             ftm (str, Optional): The results of the callbacks will be inserted into this

@@ -37,7 +37,7 @@ class DocumentConfig(ConfigSectionWidget):
                 QMessageBox.warning(self, "Spell-Check", "{}".format(e))
 
     def recordUi(self):
-        """ records the latest ui settings to the data """
+        """records the latest ui settings to the data"""
         section = self.section()
         # record section values
         section.setValue('autoIndent', self.uiAutoIndentCHK.isChecked())
@@ -66,7 +66,7 @@ class DocumentConfig(ConfigSectionWidget):
         section.setValue('backspaceUnindents', self.uiBackspaceUnindentsCHK.isChecked())
 
     def refreshUi(self):
-        """ refrshes the ui with the latest data settings """
+        """refrshes the ui with the latest data settings"""
         section = self.section()
         # restore section values
         self.uiAutoIndentCHK.setChecked(section.value('autoIndent'))
@@ -90,6 +90,7 @@ class DocumentConfig(ConfigSectionWidget):
         self.uiOpenFileMonitorCHK.setChecked(section.value('openFileMonitor'))
         try:
             import aspell  # noqa: F401
+
             self.uiSpellCheckCHK.setChecked(section.value('spellCheck'))
         except ImportError:
             self.uiSpellCheckCHK.setDisabled(True)
@@ -98,9 +99,9 @@ class DocumentConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """ registers one or many new sections to the config system
-        Args:
-            configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
+    """registers one or many new sections to the config system
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section

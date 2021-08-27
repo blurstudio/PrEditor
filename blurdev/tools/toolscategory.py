@@ -6,8 +6,7 @@ import blurdev.tools.tool
 
 
 class ToolsCategory(QObject):
-    """ Creates the ToolsCategory class for grouping tools together
-    """
+    """Creates the ToolsCategory class for grouping tools together"""
 
     def __init__(self, parent, name=None):
         QObject.__init__(self, parent)
@@ -17,8 +16,7 @@ class ToolsCategory(QObject):
             self.setObjectName(name)
 
     def addTool(self, tool):
-        """ adds the tool to the cache
-        """
+        """adds the tool to the cache"""
         tool.setParent(self)
         self._toolType |= tool.toolType()
 
@@ -27,21 +25,18 @@ class ToolsCategory(QObject):
         return name.replace('_', ' ').strip()
 
     def index(self):
-        """ returns the index from which this category is instantiated
-        """
+        """returns the index from which this category is instantiated"""
         output = self.parent()
         while output and not isinstance(output, blurdev.tools.toolsindex.ToolsIndex):
             output = output.parent()
         return output
 
     def subcategories(self):
-        """ returns a list of the sub-categories for this category
-        """
+        """returns a list of the sub-categories for this category"""
         return [child for child in self.children() if isinstance(child, ToolsCategory)]
 
     def tools(self, toolType=None):
-        """ returns a list of the tools for this category
-        """
+        """returns a list of the tools for this category"""
         return [
             child
             for child in self.children()
@@ -49,8 +44,7 @@ class ToolsCategory(QObject):
         ]
 
     def toolType(self):
-        """ returns the toolType for this category
-        """
+        """returns the toolType for this category"""
         if not self._toolTypeLoaded:
             self._toolTypeLoaded = True
             for cat in self.subcategories():

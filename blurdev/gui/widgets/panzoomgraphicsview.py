@@ -6,7 +6,7 @@ from blurdev.gui import QtPropertyInit
 
 
 class PanZoomGraphicsView(QGraphicsView):
-    """ A QGraphicsView that enables panning and zooming.
+    """A QGraphicsView that enables panning and zooming.
 
     There are several properties that control enabling pan and zoom. You can override
     the panEnabled method to customize enabling pan mode, and zoomEnabled to customize
@@ -45,8 +45,7 @@ class PanZoomGraphicsView(QGraphicsView):
         self.addAction(self.uiFitOnScreenACT)
 
     def _showContextMenu(self, pos):
-        """ The default context menu.
-        """
+        """The default context menu."""
         menu = QMenu(self)
         menu.addAction(self.uiActualPixelsACT)
         menu.addAction(self.uiFitOnScreenACT)
@@ -54,7 +53,7 @@ class PanZoomGraphicsView(QGraphicsView):
         menu.popup(self.mapToGlobal(pos))
 
     def customizeContextMenu(self, menu):
-        """ Allows customizing the right click menu.
+        """Allows customizing the right click menu.
 
         Override this method to customize the right click menu when
         not clicking on a item.
@@ -66,8 +65,7 @@ class PanZoomGraphicsView(QGraphicsView):
         menu.addAction('Load Background Image')
 
     def actualPixels(self):
-        """ Set the scene scale to 100%.
-        """
+        """Set the scene scale to 100%."""
         transform = self.transform()
         self.scale(1 / transform.m11(), 1 / transform.m22())
 
@@ -80,13 +78,11 @@ class PanZoomGraphicsView(QGraphicsView):
             event.setAccepted(True)
 
     def fitOnScreen(self):
-        """ Zoom the view to fit the scene without the need to scroll.
-        """
+        """Zoom the view to fit the scene without the need to scroll."""
         self.fitInView(self.scene().sceneRect(), Qt.KeepAspectRatio)
 
     def keyPressEvent(self, event):
-        """ Enable paning if the correct key button was pressed.
-        """
+        """Enable paning if the correct key button was pressed."""
         if self.panEnabled(key=event.key()) and not event.isAutoRepeat():
             if self._lastDragMode is None:
                 # Prevent loosing lastDragMode if the user activates both the
@@ -98,8 +94,7 @@ class PanZoomGraphicsView(QGraphicsView):
         super(PanZoomGraphicsView, self).keyPressEvent(event)
 
     def keyReleaseEvent(self, event):
-        """ Enable paning if the correct key button was released.
-        """
+        """Enable paning if the correct key button was released."""
         if self.panEnabled(key=event.key()) and not event.isAutoRepeat():
             if self._lastDragMode is not None:
                 self.setDragMode(self._lastDragMode)
@@ -109,8 +104,7 @@ class PanZoomGraphicsView(QGraphicsView):
         super(PanZoomGraphicsView, self).keyReleaseEvent(event)
 
     def mousePressEvent(self, event):
-        """ Enable paning if the correct mouse button was pressed.
-        """
+        """Enable paning if the correct mouse button was pressed."""
         if self.panEnabled(mouse=event.button()):
             if self._lastDragMode is None:
                 # Prevent loosing lastDragMode if the user activates both the
@@ -131,8 +125,7 @@ class PanZoomGraphicsView(QGraphicsView):
         super(PanZoomGraphicsView, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """ Disable paning if the correct mouse button was released.
-        """
+        """Disable paning if the correct mouse button was released."""
         if self.panEnabled(mouse=event.button()):
             if self._lastDragMode is not None:
                 self.setDragMode(self._lastDragMode)
@@ -151,7 +144,7 @@ class PanZoomGraphicsView(QGraphicsView):
         super(PanZoomGraphicsView, self).mouseReleaseEvent(event)
 
     def panEnabled(self, key=None, mouse=None):
-        """ Override this method to customize when panning is enabled.
+        """Override this method to customize when panning is enabled.
 
         Args:
             key (Qt.Key or None, optional): If not None(default), returns True if this
@@ -198,7 +191,7 @@ class PanZoomGraphicsView(QGraphicsView):
             super(PanZoomGraphicsView, self).wheelEvent(event)
 
     def zoomEnabled(self):
-        """ Override this method to customize when zooming is enabled
+        """Override this method to customize when zooming is enabled
 
         Returns:
             bool: If QApplication's current keyboardModifiers is equal to

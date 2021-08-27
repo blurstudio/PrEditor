@@ -12,7 +12,7 @@ __all__ = [
 
 
 def _blurdev_exe(pyw=True):
-    """ Gets the path to blurdevw or blurdev executable.
+    """Gets the path to blurdevw or blurdev executable.
 
     Uses ``distutils.spawn.find_executable`` so the path is consistent with the system.
     If blurdevw is not found with this, ``_scrips_path`` is used for the base path and
@@ -36,7 +36,7 @@ def _blurdev_exe(pyw=True):
 
 
 def _scrips_path(*relative):
-    """ Build the full path to the scripts folder of python.
+    """Build the full path to the scripts folder of python.
     Uses blurdev.osystem.pythonPath so this points to the python directory defined in
     the registry, not a virtualenv path (at least on windows).
 
@@ -61,7 +61,7 @@ def createShortcutPythonLogger(
     description='Opens the Python Logger.',
     common=0,
 ):
-    """ Creates a shortcut that launches the Python Logger as a standalone application.
+    """Creates a shortcut that launches the Python Logger as a standalone application.
 
     Args:
         path (str or None, optional): Where to create the shortcut. If None(default) it
@@ -88,7 +88,7 @@ def createShortcutPythonLogger(
 def createShortcutBlurIDE(
     path=None, name='Blur IDE', target=None, description='Opens Blur IDE.', common=0
 ):
-    """ Creates a shortcut that launches the Blur IDE as a standalone application.
+    """Creates a shortcut that launches the Blur IDE as a standalone application.
 
     Args:
         path (str or None, optional): Where to create the shortcut. If None(default) it
@@ -119,7 +119,7 @@ def createShortcutTreegrunt(
     description='Opens Treegrunt tool launcher.',
     common=0,
 ):
-    """ Creates a shortcut that launches Treegrunt as a standalone application.
+    """Creates a shortcut that launches Treegrunt as a standalone application.
 
     Args:
         path (str or None, optional): Where to create the shortcut. If None(default) it
@@ -144,9 +144,12 @@ def createShortcutTreegrunt(
 
 
 def createShortcutTool(
-    tool, path=None, target=None, common=0,
+    tool,
+    path=None,
+    target=None,
+    common=0,
 ):
-    """ Creates a shortcut that launches a treegrunt tool as a standalone application.
+    """Creates a shortcut that launches a treegrunt tool as a standalone application.
 
     Args:
         tool (blurdev.tools.tool.Tool): The tool this shortcut will launch.

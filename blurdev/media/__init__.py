@@ -27,7 +27,7 @@ _imageFileTypes = {
 
 
 class ColumnLine(list):
-    """ Used in conjunction with blurdev.media.columnize for complex column/page
+    """Used in conjunction with blurdev.media.columnize for complex column/page
     generation"""
 
     def __init__(self, contents, parent=None, blank=False, tags=None):
@@ -96,7 +96,7 @@ def columnize(data, columns=2, maxLen=60, blank=None):
 
 
 def convertImageToBase64(image, ext=None):
-    """ Convert the given image to a base64 encoded string suitable for web.
+    """Convert the given image to a base64 encoded string suitable for web.
 
     Converts the image to base64 encoding and adds the proper header for use in
     a html <img src="data:image/<ext>;base64,<data>"> tag.
@@ -174,10 +174,10 @@ def get32bitProgramFiles():
 
 @deprecated(
     version='2.55.0',
-    reason='html2textile is ancient and the future module does not support it.'
+    reason='html2textile is ancient and the future module does not support it.',
 )
 def html2textile(html, clearStyle=True):
-    """ Converts the provided html text to textile markup using html2textile.
+    """Converts the provided html text to textile markup using html2textile.
 
     Imports the module html2textile and uses it to convert the HTML to textile markup.
 
@@ -235,7 +235,7 @@ def imageMagick(source, destination, exe='convert', flags=''):
 
 
 def escapeForGlob(text):
-    """ Glob treats [] as escapes or number ranges, replaces these with escape characters.
+    """Glob treats [] as escapes or number ranges, replaces these with escape characters.
 
     http://stackoverflow.com/a/2595162 We have to escape any additional [ or ] or glob
     will not find any matches.
@@ -293,7 +293,7 @@ def imageSequenceFromFileName(fileName):
 
 
 def imageSequenceInfo(path, osystem=None, ospath=None):
-    """ Return a re.Match object that separates the file path into pre/frame/post.
+    """Return a re.Match object that separates the file path into pre/frame/post.
 
     Args:
         path (str): The path to split
@@ -351,7 +351,7 @@ def imageSequenceInfo(path, osystem=None, ospath=None):
 def imageSequenceRepr(
     files, strFormat='{pre}[{firstNum}:{lastNum}]{post}', forceRepr=False
 ):
-    """ Takes a list of files and creates a string that represents the sequence.
+    """Takes a list of files and creates a string that represents the sequence.
 
     Args:
         files (list): A list of files in the image sequence.
@@ -586,7 +586,7 @@ def spoolText(**kwargs):
 
 
 def spoolFileName(prefix, host='thor', folders=('new',), uid=''):
-    r""" Generate a unique filename for a spool message on the given host.
+    r"""Generate a unique filename for a spool message on the given host.
 
     Builds a full path for a .msg file. It uses uuid.uuid4 to ensure
     a unique file name.
@@ -617,8 +617,8 @@ def spoolFileName(prefix, host='thor', folders=('new',), uid=''):
 
 
 def naturalSort(ls):
-    """ taken from: http://blog.codinghorror.com/sorting-for-humans-natural-sort-order/
-    """
+    """taken from: http://blog.codinghorror.com/sorting-for-humans-natural-sort-order/"""
+
     def convert(text):
         return int(text) if text.isdigit() else text.lower()
 
@@ -629,7 +629,7 @@ def naturalSort(ls):
 
 
 def sizeof_fmt(num, suffix='B', iec=False):
-    """ Convert the given number of bytes into the nicest MB, GB, etc value.
+    """Convert the given number of bytes into the nicest MB, GB, etc value.
 
     Original source: http://stackoverflow.com/a/1094933 Author: Sridhar Ratnakumar
 

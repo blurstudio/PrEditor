@@ -13,7 +13,7 @@ from __future__ import absolute_import
 
 
 class InvalidHandlerError(Exception):
-    """ Returned to the pipe if a invalid request was provided """
+    """Returned to the pipe if a invalid request was provided"""
 
     pass
 
@@ -31,7 +31,7 @@ class BaseProtocolHandler(object):
 
     @classmethod
     def evalParams(cls, params):
-        """ Takes a dict, evals and re-sets all the values and returns the dict. """
+        """Takes a dict, evals and re-sets all the values and returns the dict."""
         for key, value in params.items():
             try:
                 if isinstance(value, list):
@@ -46,7 +46,7 @@ class BaseProtocolHandler(object):
 
     @classmethod
     def findHandler(cls, name, command, params):
-        """ Returns the handler class based off the handler name.
+        """Returns the handler class based off the handler name.
 
         Loops through BaseProtocolHandler.__subclasses__() and checks if name matches
         and returns the a instance of the first match.

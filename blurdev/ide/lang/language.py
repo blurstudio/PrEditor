@@ -109,7 +109,8 @@ class Language(object):
                             (
                                 '[blurdev.ide.lexers.Language.createLexer() Error] '
                                 'Could not import %s module'
-                            ) % self._lexerModule
+                            )
+                            % self._lexerModule
                         )
                         self._lexerClass = None
                         return None

@@ -43,26 +43,24 @@ class RVCore(Core):
         # NOTE: DO NOT CALL SUPER for this reason on windows.
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the RVCore has shutdown called
-        """
+        """Qt should not be closed when the RVCore has shutdown called"""
         return False
 
     def refreshStyleSheet(self):
-        """ Reloading stylesheets in RV breaks the interface. """
+        """Reloading stylesheets in RV breaks the interface."""
         # For now, modifying the stylesheet causes undesireable side affects to the RV
         # interface don't modify the stylesheet with blurdev.
         pass
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
-        """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet.  If given None, it will remove the
-            stylesheet.
+        """Accepts the name of a stylesheet included with blurdev, or a full
+        path to any stylesheet.  If given None, it will remove the
+        stylesheet.
         """
         # For now, modifying the stylesheet causes undesireable side affects to the RV
         # interface don't modify the stylesheet with blurdev.

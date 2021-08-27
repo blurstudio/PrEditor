@@ -48,7 +48,7 @@ class MotionBuilderCore(Core):
         return window
 
     def addLibraryPaths(self):
-        """ There is no need to add library paths for motion builder """
+        """There is no need to add library paths for motion builder"""
         return
 
     def createSystemMenu(self):
@@ -84,25 +84,22 @@ class MotionBuilderCore(Core):
         toolbarsMenu.Menu.OnMenuActivate.Add(eventToolbarsMenu)
 
     def init(self):
-        """ Initializes the core system
-        """
+        """Initializes the core system"""
         ret = super(MotionBuilderCore, self).init()
         self.initGui()
         return ret
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the MayaCore has shutdown called
-        """
+        """Qt should not be closed when the MayaCore has shutdown called"""
         return False
 
     def shutdownToolbars(self):
-        """ This core doesn't shutdown toolbar plugins.
+        """This core doesn't shutdown toolbar plugins.
 
         If we shutdown the toolbar plugins, motion builder won't properly restore
         their position and floating next time it's launched.

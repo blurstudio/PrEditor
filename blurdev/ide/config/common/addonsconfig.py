@@ -31,15 +31,11 @@ class AddonsConfig(ConfigSectionWidget):
         QtCompat.QHeaderView.setSectionResizeMode(header, 1, header.ResizeToContents)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         pass
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refreshes the ui with the latest data settings"""
         from blurdev.ide.ideaddon import IdeAddon
 
         modules = IdeAddon.modules.values()

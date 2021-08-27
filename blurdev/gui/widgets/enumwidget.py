@@ -28,12 +28,13 @@ class EnumWidget(QWidget):
     valueChanged = Signal(int)
 
     def __init__(self, parent, enumType=None, columnCount=1, value=0):
-        """
-            :remarks	Creates a dynamic widget for dealing with enumerated value types
-            :param		parent			<QWidget>
-            :param		enumType		<blurdev.enum.enum>
-            :param		columnCount		<int>				number of columns to split the values into
-            :param		value			<int>				current state of the widget
+        """Creates a dynamic widget for dealing with enumerated value types
+
+        Args:
+            parent (QWidget):
+            enumType (blurdev.enum.enum):
+            columnCount (int): number of columns to split the values into
+            value (int): current state of the widget
         """
         QWidget.__init__(self, parent)
         # set the custom propreties
@@ -46,15 +47,15 @@ class EnumWidget(QWidget):
         self.setEnumType(enumType)
 
     def columnCount(self):
-        """ returns the number of columns for the grid """
+        """returns the number of columns for the grid"""
         return self._columnCount
 
     def enumType(self):
-        """ returns the enum class type set for this widget """
+        """returns the enum class type set for this widget"""
         return self._enumType
 
     def recalculateGrid(self):
-        """	regenerates the grid layout with all the appropriate checkboxes """
+        """regenerates the grid layout with all the appropriate checkboxes"""
         # collect the checkboxes and remove them
         for widget in self.findChildren(QCheckBox):
             self.layout().removeWidget(widget)
@@ -99,8 +100,7 @@ class EnumWidget(QWidget):
         self.layout().setRowStretch(row + 1, 1)
 
     def recalculateValue(self):
-        """ goes through the checkboxes and calculates the current state of the widget
-        """
+        """goes through the checkboxes and calculates the current state of the widget"""
         value = 0
         for child in self.findChildren(QCheckBox):
             if child.isChecked():
@@ -114,8 +114,7 @@ class EnumWidget(QWidget):
         self.valueChanged.emit(value)
 
     def setColumnCount(self, count):
-        """ sets the column count for this widget, recalculating the grid on completion
-        """
+        """sets the column count for this widget, recalculating the grid on completion"""
         self._columnCount = count
         self.recalculateGrid()
 
@@ -148,7 +147,7 @@ class EnumWidget(QWidget):
         self.enumTypeList = self.enumTypeList
 
     def setValue(self, value):
-        """ sets the value for this widget """
+        """sets the value for this widget"""
         self._value = value
         self.blockSignals(True)
         for child in self.findChildren(QCheckBox):
@@ -162,7 +161,7 @@ class EnumWidget(QWidget):
         self.recalculateValue()
 
     def value(self):
-        """ returns the current value state for this widget """
+        """returns the current value state for this widget"""
         return self._value
 
     pyColumnCount = Property('int', columnCount, setColumnCount)

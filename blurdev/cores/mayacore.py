@@ -32,7 +32,7 @@ class MayaCore(Core):
         self._disable_libstone_qt_library_path()
 
     def errorCoreText(self):
-        """ Returns text that is included in the error email for the active core.
+        """Returns text that is included in the error email for the active core.
         If a empty string is returned this line will not be shown in the error email.
         """
         path = maya.cmds.file(query=True, sceneName=True)
@@ -47,27 +47,24 @@ class MayaCore(Core):
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a
-        QCoreApplication. """
+        """If true, no Qt gui elements should be used because python is running a
+        QCoreApplication."""
         basename = os.path.splitext(os.path.basename(sys.executable).lower())[0]
         return basename in ('mayabatch', 'mayapy')
 
     def init(self):
-        """ Initializes the core system
-        """
+        """Initializes the core system"""
         ret = super(MayaCore, self).init()
         self.initGui()
         return ret
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the MayaCore has shutdown called
-        """
+        """Qt should not be closed when the MayaCore has shutdown called"""
         return False
 
     def restoreToolbars(self):

@@ -91,7 +91,7 @@ Traceback Printout
 
 
 def insertLineNumbers(html):
-    ''' Insert line numbers into the html formatting '''
+    '''Insert line numbers into the html formatting'''
     match = re.search('(<pre[^>]*>)(.*)(</pre>)', html, re.DOTALL)
     if not match:
         return html
@@ -111,7 +111,7 @@ def insertLineNumbers(html):
 
 
 def highlightCodeHtml(code, lexer, style, linenos=False, divstyles=None):
-    ''' Add python hilighting to the html output '''
+    '''Add python hilighting to the html output'''
     try:
         from pygments import highlight
         from pygments.lexers import get_lexer_by_name
@@ -250,7 +250,7 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
     prefix = 'BDEV_EMAILINFO_'
     for key in sorted(os.environ):
         if key.startswith(prefix):
-            infoList[key[len(prefix):].replace('_', ' ').lower()] = os.environ[key]
+            infoList[key[len(prefix) :].replace('_', ' ').lower()] = os.environ[key]
 
     if fmt == 'html':
         errorstr = highlightCodeHtml(text(error), 'pytb', 'default')
@@ -330,7 +330,7 @@ def buildErrorMessage(error, subject=None, information=None, fmt='html'):
 
 
 def emailError(emails, error, subject=None, information=None):
-    ''' Send an email on an error '''
+    '''Send an email on an error'''
     if not error:
         return
 

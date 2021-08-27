@@ -124,7 +124,8 @@ class Action(with_metaclass(_ActionMeta, object)):
         if self._hasExecuteHook and not self._executeHook:
             raise NotImplementedError(
                 'Action {0} has not been implemented for application: {1}'.format(
-                    str(self), str(self._currentApplication),
+                    str(self),
+                    str(self._currentApplication),
                 )
             )
         self._registerChildActions(*self._args, **self._kwargs)
@@ -156,8 +157,7 @@ class Action(with_metaclass(_ActionMeta, object)):
         return self._childActions
 
     def kwargs(self):
-        """Returns key value pairs of argproperties.
-        """
+        """Returns key value pairs of argproperties."""
         return {pd._name: pd.getValue() for pd in self.getDescriptors()}
 
     def addChildActions(self, children):
@@ -361,7 +361,10 @@ class Action(with_metaclass(_ActionMeta, object)):
                 childActions.append(method._childaction__container)
         if not childActions:
             return
-        childActions = sorted(childActions, key=lambda c: c._childaction__order,)
+        childActions = sorted(
+            childActions,
+            key=lambda c: c._childaction__order,
+        )
         for container in childActions:
             cls = container.childClass
             childAction = cls(
@@ -477,7 +480,10 @@ class Action(with_metaclass(_ActionMeta, object)):
         # class.  This will ensure that if ordered arguments are provided
         # when the action is instantiated that they may be given in the
         # argument definition order of the action.
-        argumentMethods = sorted(argumentMethods, key=lambda a: a._argproperty__order,)
+        argumentMethods = sorted(
+            argumentMethods,
+            key=lambda a: a._argproperty__order,
+        )
         for method in argumentMethods:
             arguments.append(method._argproperty__actionArgument)
 
@@ -558,7 +564,9 @@ class Action(with_metaclass(_ActionMeta, object)):
                     **argument.kwargs
                 )
                 setattr(
-                    self, argument.propertyName, ad,
+                    self,
+                    argument.propertyName,
+                    ad,
                 )
         for argument in arguments:
             argument.__del__()
@@ -585,19 +593,23 @@ class Action(with_metaclass(_ActionMeta, object)):
         # one of each allowed.
         if self._preChildHooks:
             self._preChildHooks = sorted(
-                self._preChildHooks, key=lambda h: h._prechildhook__order,
+                self._preChildHooks,
+                key=lambda h: h._prechildhook__order,
             )
         if self._postChildHooks:
             self._postChildHooks = sorted(
-                self._postChildHooks, key=lambda h: h._postchildhook__order,
+                self._postChildHooks,
+                key=lambda h: h._postchildhook__order,
             )
         if self._preExecuteHooks:
             self._preExecuteHooks = sorted(
-                self._preExecuteHooks, key=lambda h: h._preexecutehook__order,
+                self._preExecuteHooks,
+                key=lambda h: h._preexecutehook__order,
             )
         if self._postExecuteHooks:
             self._postExecuteHooks = sorted(
-                self._postExecuteHooks, key=lambda h: h._postexecutehook__order,
+                self._postExecuteHooks,
+                key=lambda h: h._postexecutehook__order,
             )
 
     def _unimplementedApplicationMethod(self, *args, **kwargs):
@@ -620,7 +632,8 @@ class Action(with_metaclass(_ActionMeta, object)):
         if not self._enterHook and not self._exitHook:
             if self._hasContextHooks:
                 msg = 'No "{0}" support for context manager {1}'.format(
-                    str(self.currentApplication), str(self),
+                    str(self.currentApplication),
+                    str(self),
                 )
             else:
                 msg = 'Action {} is not implemented as a context manager.'.format(
@@ -646,7 +659,8 @@ class Action(with_metaclass(_ActionMeta, object)):
 
     def __repr__(self):
         return '<{mdl}.{cls}()>'.format(
-            mdl=self.__class__.__module__, cls=self.__class__.__name__,
+            mdl=self.__class__.__module__,
+            cls=self.__class__.__name__,
         )
 
     def __setattr__(self, name, value):
@@ -691,7 +705,8 @@ class _PropertyDescriptor(object):
         if not self._settable:
             raise AttributeError(
                 'Attribute "{0}.{1}" is not settable.'.format(
-                    type(self._parent).__name__, self._name,
+                    type(self._parent).__name__,
+                    self._name,
                 )
             )
 

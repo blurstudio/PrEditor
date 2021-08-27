@@ -24,7 +24,9 @@ class RedmineLoginDialog(QDialog):
         self._password = self.uiPasswordLineEdit.text()
         try:
             self._redmine = Redmine(
-                self._redmineUrl, username=self._username, password=self._password,
+                self._redmineUrl,
+                username=self._username,
+                password=self._password,
             )
             # Forces the connection and potential AuthError.
             users = self._redmine.user.all().values_list()

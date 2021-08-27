@@ -29,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToolsIndex(QObject):
-    """ Defines the indexing system for the tools package
-    """
+    """Defines the indexing system for the tools package"""
 
     def __init__(self, environment):
         super(ToolsIndex, self).__init__(environment)
@@ -44,16 +43,14 @@ class ToolsIndex(QObject):
         self._tool_root_paths = []
 
     def baseCategories(self):
-        """ returns the categories that are parented to this index
-        """
+        """returns the categories that are parented to this index"""
         self.load()
         output = [cat for cat in self._categoryCache.values() if cat.parent() == self]
         output.sort(key=lambda x: x.objectName())
         return output
 
     def clear(self):
-        """ clears the current cache of information
-        """
+        """clears the current cache of information"""
         # save the favorites first
         self.saveFavorites()
         # reload the data
@@ -74,26 +71,22 @@ class ToolsIndex(QObject):
             child.deleteLater()
 
     def categories(self):
-        """ returns the current categories for this index
-        """
+        """returns the current categories for this index"""
         self.load()
         output = self._categoryCache.values()
         output.sort(key=lambda x: x.objectName())
         return output
 
     def cacheCategory(self, category):
-        """ caches the category
-        """
+        """caches the category"""
         self._categoryCache[str(category.objectName())] = category
 
     def cacheTool(self, tool):
-        """ caches the inputed tool by its name
-        """
+        """caches the inputed tool by its name"""
         self._toolCache[str(tool.objectName())] = tool
 
     def editable_install_paths(self):
-        """ Generates a set of all paths contained in all .egg-link files on sys.path
-        """
+        """Generates a set of all paths contained in all .egg-link files on sys.path"""
         repo_roots = set()
         for path in sys.path:
             for link in glob.glob(os.path.join(path, '*.egg-link')):
@@ -105,8 +98,7 @@ class ToolsIndex(QObject):
         return repo_roots
 
     def editable_tools_package_ids(self):
-        """ Returns the name and module_name for editable blurdev.tools.paths installs.
-        """
+        """Returns the name and module_name for editable blurdev.tools.paths installs."""
         # importing pkg_resources takes ~0.8 seconds only import it if we need to.
         import pkg_resources
 
@@ -121,7 +113,7 @@ class ToolsIndex(QObject):
         return editable
 
     def packages(self):
-        """ A list of entry point data resolved when the index was last rebuilt.
+        """A list of entry point data resolved when the index was last rebuilt.
 
         Each item is a list with the name, module_name, and args of a resolved
         `blurdev.tools.paths` entry point.
@@ -148,12 +140,11 @@ class ToolsIndex(QObject):
         return self._packages
 
     def environment(self):
-        """ returns this index's environment
-        """
+        """returns this index's environment"""
         return self.parent()
 
     def rebuild(self, filename=None, configFilename=True, path_replace=None):
-        """ rebuilds the index from the file system.
+        """rebuilds the index from the file system.
 
         This does not create any necessary directory structure to save the files.
 
@@ -240,7 +231,7 @@ class ToolsIndex(QObject):
             )
 
     def _rebuild_entry_points(self):
-        """ Update the entry_points definitions for this environment.
+        """Update the entry_points definitions for this environment.
 
         Creates a new pkg_resources.WorkingSet object to search for any
         'blurdev.tools.paths' entry points and stores that info in
@@ -314,8 +305,8 @@ class ToolsIndex(QObject):
         editable_ids = self.editable_tools_package_ids()
         for package in self.packages():
             if not package.tool_index():
-                logger.info('tool_index for "{}" added to shared index'.format(
-                    package.name())
+                logger.info(
+                    'tool_index for "{}" added to shared index'.format(package.name())
                 )
                 for tool_path in package.tool_paths():
                     # If legacy wasn't passed we can assume its not a legacy
@@ -422,7 +413,7 @@ class ToolsIndex(QObject):
         isdir = os.path.isdir(path)
 
         def addToolCategory(category):
-            """ Update the categories dict to include this category
+            """Update the categories dict to include this category
 
             if passed 'External_Tools::Production_Tools::Proxy Tools', build this
             output.
@@ -479,7 +470,10 @@ class ToolsIndex(QObject):
                     tool_folder = tool_folder.replace(*path_replace)
                 if relative_root:
                     tool_folder = os.path.relpath(tool_folder, relative_root)
-                ret = OrderedDict(name=toolId, path=tool_folder,)
+                ret = OrderedDict(
+                    name=toolId,
+                    path=tool_folder,
+                )
                 ret = loadProperties(xml, ret)
                 return ret
 
@@ -580,7 +574,7 @@ class ToolsIndex(QObject):
         self.loadFavorites()
 
     def favoriteToolIds(self):
-        """ The tool id's the user has favorited.
+        """The tool id's the user has favorited.
 
         This is stored as a set of tool ids so we can store tool ids that are not valid
         for the current treegrunt environment. This allows you to keep your favorites
@@ -594,8 +588,7 @@ class ToolsIndex(QObject):
         return self._favorite_tool_ids
 
     def favoriteTools(self):
-        """ Returns a list of ``blurdev.tools.Tool`` that the user has favorited.
-        """
+        """Returns a list of ``blurdev.tools.Tool`` that the user has favorited."""
         ret = []
         for tool_id in self.favoriteToolIds():
             tool = self._toolCache.get(str(tool_id))
@@ -604,7 +597,7 @@ class ToolsIndex(QObject):
         return ret
 
     def filename(self, **kwargs):
-        """ returns the filename for this index
+        """returns the filename for this index
 
         Args:
             filename (str, optional): Use this filename instead of the default
@@ -614,7 +607,7 @@ class ToolsIndex(QObject):
         return self.environment().relativePath(filename)
 
     def load(self, toolId=None):
-        """ loads the current index from the system.
+        """loads the current index from the system.
 
         Args:
             toolId (str or None, optional): If provided, then only the tool
@@ -705,22 +698,21 @@ class ToolsIndex(QObject):
                     tool.setFavorite(True)
 
     def findCategory(self, name):
-        """ returns the tool based on the inputed name, returning the default option if
+        """returns the tool based on the inputed name, returning the default option if
         no tool is found
         """
         self.load()
         return self._categoryCache.get(str(name))
 
     def findTool(self, name):
-        """ returns the tool based on the inputed name, returning the default option if
+        """returns the tool based on the inputed name, returning the default option if
         no tool is found
         """
         self.load(name)
         return self._toolCache.get(str(name), Tool())
 
     def findToolsByCategory(self, name):
-        """ looks up the tools based on the inputed category name
-        """
+        """looks up the tools based on the inputed category name"""
         self.load()
         output = [
             tool for tool in self._toolCache.values() if tool.categoryName() == name
@@ -729,8 +721,7 @@ class ToolsIndex(QObject):
         return output
 
     def findToolsByLetter(self, letter):
-        """ looks up tools based on the inputed letter
-        """
+        """looks up tools based on the inputed letter"""
         self.load()
 
         if letter == '#':
@@ -748,8 +739,8 @@ class ToolsIndex(QObject):
         return output
 
     def findToolsByRedistributable(self, state):
-        """ Return a list of tools with redistributable set to the provided boolean
-        value """
+        """Return a list of tools with redistributable set to the provided boolean
+        value"""
         return [
             tool
             for tool in blurdev.activeEnvironment().index().tools()
@@ -770,7 +761,7 @@ class ToolsIndex(QObject):
             pref.save()
 
     def search(self, searchString):
-        """ looks up tools by the inputed search string
+        """looks up tools by the inputed search string
 
         This function implements a fuzzy search. The name matches if the characters
         in the search string appear in the same order in the tool name.
@@ -808,7 +799,7 @@ class ToolsIndex(QObject):
         return self._toolCache.keys()
 
     def toolRootPaths(self):
-        """ A list of paths to search for tools when rebuild is called.
+        """A list of paths to search for tools when rebuild is called.
 
         Each item in this list should be a list/tuple of the path to search for tools
         and a bool to indicate if its a legacy tool structure.

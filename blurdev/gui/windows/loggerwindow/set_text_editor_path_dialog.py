@@ -10,6 +10,7 @@ class SetTextEditorPathDialog(QDialog):
     'command template', which allows for the various ways text editor's may implement
     opening a file at a given line number via Command Prompt.
     """
+
     def __init__(self, parent=None, redmineUrl=None):
         super(SetTextEditorPathDialog, self).__init__(parent)
         blurdev.gui.loadUi(__file__, self)

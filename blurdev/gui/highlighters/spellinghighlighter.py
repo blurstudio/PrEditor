@@ -115,15 +115,15 @@ class SpellingHighlighter(QSyntaxHighlighter):
         return menu
 
     def isActive(self):
-        """ checks to see if this highlighter is in console mode """
+        """checks to see if this highlighter is in console mode"""
         return self._active
 
     def isValid(self):
         return aspell is not None and self._speller is not None
 
     def highlightBlock(self, txt):
-        """ highlights the inputed text block based on the rules of this code
-        highlighter """
+        """highlights the inputed text block based on the rules of this code
+        highlighter"""
         if self.isValid() and self.isActive():
 
             # create the format
@@ -141,7 +141,7 @@ class SpellingHighlighter(QSyntaxHighlighter):
                 length = len(expr.cap())
 
                 # extract the txt chunk for highlighting
-                chunk = txt[pos: pos + length]
+                chunk = txt[pos : pos + length]
 
                 if not (
                     any(letter in string.digits for letter in chunk)
@@ -155,13 +155,13 @@ class SpellingHighlighter(QSyntaxHighlighter):
                 pos = expr.indexIn(txt, pos + matched)
 
     def setActive(self, state=True):
-        """ sets the highlighter to only apply to console strings (lines starting with
-        >>>) """
+        """sets the highlighter to only apply to console strings (lines starting with
+        >>>)"""
         self._active = state
         self.rehighlight()
 
     def setLanguage(self, lang):
-        """ sets the language of the highlighter by loading """
+        """sets the language of the highlighter by loading"""
         if self.isValid():
             self._speller.setConfigKey("lang", lang)
             return True

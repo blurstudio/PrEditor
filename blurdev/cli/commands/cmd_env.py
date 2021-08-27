@@ -6,7 +6,7 @@ from tabulate import tabulate
 
 @click.group()
 def cli():
-    """ Manage treegrunt environments. """
+    """Manage treegrunt environments."""
     pass
 
 
@@ -19,7 +19,7 @@ def cli():
     help="Set the active environment for this core name.",
 )
 def activate(env, core_name):
-    """ Change the currently selected treegrunt environment """
+    """Change the currently selected treegrunt environment"""
 
     success = blurdev.activeEnvironment(coreName=core_name) == env
     if not success:
@@ -41,7 +41,7 @@ def activate(env, core_name):
     help="Get the currently active environment for this core name.",
 )
 def active(core_name):
-    """ Returns the currently selected treegrunt environment """
+    """Returns the currently selected treegrunt environment"""
     click.echo(
         'Active Environment: {} for core name: {}'.format(
             blurdev.activeEnvironment(coreName=core_name).objectName(), core_name
@@ -63,7 +63,7 @@ def active(core_name):
     "as regular users.",
 )
 def rebuild(name, replace):
-    """ Rebuild this treegrunt environment's index """
+    """Rebuild this treegrunt environment's index"""
 
     active = blurdev.activeEnvironment()
     if name is None:
@@ -89,7 +89,7 @@ def rebuild(name, replace):
 
 @cli.command('list')
 def list_environments():
-    """ Show info about treegrunt environments """
+    """Show info about treegrunt environments"""
 
     if list:
         rows = []

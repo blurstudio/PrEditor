@@ -41,20 +41,19 @@ class XMLElement:
     """
 
     def __eq__(self, other):
-        """ checks to see if the wrapper <xml.dom.minidom.Element> instance is the same
-        """
+        """checks to see if the wrapper <xml.dom.minidom.Element> instance is the same"""
         result = False
         if isinstance(other, XMLElement):
             result = self._object == other._object
         return result
 
     def __getattr__(self, key):
-        """ pass along all unknown attributes to the <xml.dom.minidom.Element> class
-        instance """
+        """pass along all unknown attributes to the <xml.dom.minidom.Element> class
+        instance"""
         return getattr(self._object, key)
 
     def __init__(self, object, filename=''):
-        """ initialize the class with an <xml.dom.minidom.Element> instance """
+        """initialize the class with an <xml.dom.minidom.Element> instance"""
         if object is None:
             object = xml.dom.minidom.Element(None)
             object.ownerDocument = None
@@ -64,16 +63,15 @@ class XMLElement:
         self.allowEmptyAttrs = False
 
     def _document(self):
-        """ recursese up the hierarchy to find the parent who is a
-        <xml.dom.minidom.Document> class """
+        """recursese up the hierarchy to find the parent who is a
+        <xml.dom.minidom.Document> class"""
         out = self._object
         while out and not isinstance(out, xml.dom.minidom.Document):
             out = out.parentNode
         return out
 
     def _children(self):
-        """ collects the minidom child nodes which are <xml.dom.minidom.Element> types
-        """
+        """collects the minidom child nodes which are <xml.dom.minidom.Element> types"""
         if self._object:
             return [
                 child

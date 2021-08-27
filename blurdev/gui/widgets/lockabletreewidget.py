@@ -130,11 +130,9 @@ class LockableTreeWidget(QTreeWidget):
         return self._enableAutoHeight
 
     def bindTreeWidgetItem(self, item):
-        """
-            :remarks    Overrides the setHidden and setExpanded methods for
-                        QTreeWidgetItems recursively. Should be replaced with a subclass
-                        of QTreeWidget that can update the model without this method as
-                        it may introduce memory leaks.
+        """Overrides the setHidden and setExpanded methods for QTreeWidgetItems
+        recursively. Should be replaced with a subclass of QTreeWidget that can update
+        the model without this method as it may introduce memory leaks.
         """
         blurdev.bindMethod(item, 'setHidden', self.setHiddenForItem)
         blurdev.bindMethod(item, 'setExpanded', self.setExpandedForItem)
@@ -158,10 +156,11 @@ class LockableTreeWidget(QTreeWidget):
         self.customContextMenuRequested.emit(point)
 
     def enableAutoHeight(self, state):
-        """
-            :remarks    Controls if updateSizeHintForItem(recursive=True) is called when
-                        a item is expaned. Disable for quicker expansion.
-            :param		state	<bool>
+        """Controls if updateSizeHintForItem(recursive=True) is called when a item is
+        expanded. Disable for quicker expansion.
+
+        Args:
+            state (bool):
         """
         self._enableAutoHeight = state
 
@@ -278,7 +277,7 @@ class LockableTreeWidget(QTreeWidget):
 
     def setItemHidden(self, item, hide):
         """
-            overrides QTreeWidget.setItemHidden (self, QTreeWidgetItem item, bool hide)
+        overrides QTreeWidget.setItemHidden (self, QTreeWidgetItem item, bool hide)
         """
         index = self.indexFromItem(item)
         for view, _ in self._lockedViews.values():
@@ -383,14 +382,15 @@ class LockableTreeWidget(QTreeWidget):
                     self.updateSizeHintForItem(item, column, recursive=True)
 
     def updateSizeHintForItem(self, item, column, recursive=0):
-        """
-            :remarks    Updates the size hint of a QTreeWidgetItem's column, optionaly
-                        recursively. recursive is reduced for each child, so you can
-                        specify the number of recursions. If recursive is -1 then it
-                        will not expire
-            :param		item		<QTreeWidgetItem>
-            :param		column		<int>
-            :param		recursive	<int>				Number of recursions
+        """Updates the size hint of a QTreeWidgetItem's column, optionaly
+                    recursively. recursive is reduced for each child, so you can
+                    specify the number of recursions. If recursive is -1 then it
+                    will not expire
+
+        Args:
+            item (QTreeWidgetItem):
+            column (int):
+            recursive (int): Number of recursions
         """
         if not QtCompat.isValid(item):
             # The item has been deleted so we have no need to update the sizeHint.
@@ -602,9 +602,8 @@ class LockableTreeWidget(QTreeWidget):
             v.setGeometry(x, y, w, h)
 
     def viewClicked(self, index):
-        """
-            :remarks        convert the QTreeView.clicked to a QTreeView.itemClicked
-                            signal for transparent mapping
+        """convert the QTreeView.clicked to a QTreeView.itemClicked signal for
+        transparent mapping
         """
         item = self.itemFromIndex(index)
         self.itemClicked.emit(item, index.column())

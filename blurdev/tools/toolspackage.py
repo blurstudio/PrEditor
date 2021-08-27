@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToolsPackage(object):
-    """ Manages how treegrunt entry points are loaded.
+    """Manages how treegrunt entry points are loaded.
 
     Args:
         entry_point (list): A valid entry_point definition. Contains the name of the
@@ -14,11 +14,12 @@ class ToolsPackage(object):
             (the object to call). This list should have 3 items, The name of the entry
             point, the module it requires to be imported, and the function to call.
     """
+
     def __init__(self, entry_point):
         self.entry_point = entry_point
 
     def _resolve(self):
-        """ Resolve the entry point information. This is called automatically
+        """Resolve the entry point information. This is called automatically
         when required. If called in __init__ module will not resolve correctly.
         """
         logger.debug('Processing entry point: {}'.format(self.entry_point))
@@ -50,12 +51,11 @@ class ToolsPackage(object):
             self._tool_index = tool_info[2]
 
     def attrs(self):
-        """ The name of the function to call. This is the 3rd item of the entry point.
-        """
+        """The name of the function to call. This is the 3rd item of the entry point."""
         return self.entry_point[2]
 
     def function(self):
-        """ The python function being specified by the entry point. """
+        """The python function being specified by the entry point."""
         # Copied from the `pkg_resources.EntryPoint.resolve` function
         try:
             return functools.reduce(getattr, self.attrs(), self.module())
@@ -63,23 +63,23 @@ class ToolsPackage(object):
             raise ImportError(str(exc))
 
     def module(self):
-        """ Imports and returns the python module specified by module_name. """
+        """Imports and returns the python module specified by module_name."""
         # Copied from the `pkg_resources.EntryPoint.resolve` function
         module = __import__(self.module_name(), fromlist=['__name__'], level=0)
         return module
 
     def module_name(self):
-        """ The name of the python module that will be imported.
+        """The name of the python module that will be imported.
         This is the 2nd item of the entry point.
         """
         return self.entry_point[1]
 
     def name(self):
-        """ The name of the entry point. This is the 1st item of the entry point. """
+        """The name of the entry point. This is the 1st item of the entry point."""
         return self.entry_point[0]
 
     def sys_paths(self):
-        """ A list of paths that need added to sys.path to add imports. """
+        """A list of paths that need added to sys.path to add imports."""
         try:
             return self._sys_paths
         except AttributeError:
@@ -87,7 +87,7 @@ class ToolsPackage(object):
             return self._sys_paths
 
     def tool_index(self):
-        """ The path used to store a tools index specific to the package.
+        """The path used to store a tools index specific to the package.
 
         This is optional and may be set to None. If set this is the path to a json file
         built with :py:meth:`ToolsIndex.buildIndexForToolsPackage` or
@@ -100,7 +100,7 @@ class ToolsPackage(object):
             return self._tool_index
 
     def tool_paths(self):
-        """ A list of paths treegrunt should scan for tools.
+        """A list of paths treegrunt should scan for tools.
 
         You can pass directory paths or a specific __meta__.xml file if your package
         only has one tool.

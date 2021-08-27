@@ -151,7 +151,7 @@ class Core(QObject):
 
     @classmethod
     def _disable_libstone_qt_library_path(cls):
-        """ By default libstone adds "C:\\Windows\\System32\\blur64" or "C:\\blur\\common"
+        """By default libstone adds "C:\\Windows\\System32\\blur64" or "C:\\blur\\common"
         to QApplication.libraryPaths(). This works well for external python applications
         but doesn't work well in DCC's. If Qt5 is installed globally its msvc compiled
         version may conflict with the DCC's msvc compile and cause it to crash.
@@ -163,8 +163,7 @@ class Core(QObject):
         os.environ["LIBSTONE_QT_LIBRARY_PATH"] = "false"
 
     def aboutBlurdev(self):
-        """ Useful info about blurdev and its dependencies as a string.
-        """
+        """Useful info about blurdev and its dependencies as a string."""
         from Qt import (
             __binding__,
             __binding_version__,
@@ -217,7 +216,7 @@ class Core(QObject):
         return None
 
     def addLibraryPaths(self):
-        """ Add default Qt plugin paths to the QCoreApplication.
+        """Add default Qt plugin paths to the QCoreApplication.
 
         It is safe to call this multiple times as addLibraryPath won't add the
         same path twice.
@@ -232,19 +231,19 @@ class Core(QObject):
             QCoreApplication.addLibraryPath("c:/blur/common/")
 
     def configUpdated(self):
-        """ Preform any core specific updating of config. Returns if any actions were
+        """Preform any core specific updating of config. Returns if any actions were
         taken.
         """
         return False
 
     def connectAppSignals(self):
-        """ Connect the signals emitted by the application we're in to the blurdev core
+        """Connect the signals emitted by the application we're in to the blurdev core
         system
         """
         pass
 
     def connectPlugin(self, hInstance, hwnd, style=None, palette=None, stylesheet=''):
-        """ Creates a QMfcApp instance for the inputted plugin and window if no
+        """Creates a QMfcApp instance for the inputted plugin and window if no
         app is currently running.
 
         Args:
@@ -286,7 +285,7 @@ class Core(QObject):
         return False
 
     def createToolMacro(self, tool, macro_name):
-        """ Method to create macros for a tool.
+        """Method to create macros for a tool.
 
         Creates a shortcut if `self.macroNames()` has any names. If a DCC
         supports macros, it should override this function with its own implementation.
@@ -324,7 +323,7 @@ class Core(QObject):
         )
 
     def defaultStyle(self):
-        """ The default style name used when setting up the QApplication.
+        """The default style name used when setting up the QApplication.
 
         In Qt4 this is Plastique, in Qt5 this is Fusion.
         """
@@ -339,8 +338,7 @@ class Core(QObject):
         self._keysEnabled = False
 
     def dispatch(self, signal, *args):
-        """ Dispatches a string based signal through the system from an application
-        """
+        """Dispatches a string based signal through the system from an application"""
         if self.signalsBlocked():
             return
 
@@ -382,7 +380,7 @@ class Core(QObject):
         self._keysEnabled = True
 
     def flashWindow(self, window=None, dwFlags=None, count=1, timeout=0, hwnd=None):
-        """ Flashes the application depending on the os.
+        """Flashes the application depending on the os.
 
         On Windows this calls FlashWindowEx. See this documentation.
         http://docs.activestate.com/activepython/2.7/pywin32/win32gui__FlashWindowEx_meth.html
@@ -426,7 +424,7 @@ class Core(QObject):
         return False
 
     def runOnDccStartup(self):
-        """ When starting a DCC like 3ds Max, execute this code on startup.
+        """When starting a DCC like 3ds Max, execute this code on startup.
 
         This provides a location for defining additional startup behavior when a DCC is
         initalized. Currently it is used to check if trax should be imported on startup
@@ -444,6 +442,7 @@ class Core(QObject):
                 # A full trax install is required to work with the blur specific blur3d
                 # api
                 import trax
+
                 if trax.isValid:
                     # Initializing the pipe layer of blur3d. On import trax.api will be
                     # imported and pipeline specific signals will be connected. See the
@@ -454,9 +453,9 @@ class Core(QObject):
                 pass
 
     def errorCoreText(self):
-        """ Returns text that is included in the error email for the active core.
-            Override in subclasses to provide extra data. If a empty string is returned
-            this line will not be shown in the error email.
+        """Returns text that is included in the error email for the active core.
+        Override in subclasses to provide extra data. If a empty string is returned
+        this line will not be shown in the error email.
         """
         return ''
 
@@ -487,9 +486,9 @@ class Core(QObject):
         return QObject.eventFilter(self, object, event)
 
     def linkSignals(self, signal, trigger):
-        """ Creates a dependency so that when the inputed signal is dispatched, the
-            dependent trigger signal is also dispatched.  This will only work for
-            trigger signals that do not take any arguments for the dispatch.
+        """Creates a dependency so that when the inputed signal is dispatched, the
+        dependent trigger signal is also dispatched.  This will only work for
+        trigger signals that do not take any arguments for the dispatch.
         """
         if signal not in self._linkedSignals:
             self._linkedSignals[signal] = [trigger]
@@ -526,8 +525,7 @@ class Core(QObject):
         return actions
 
     def init(self):
-        """ Initializes the core system
-        """
+        """Initializes the core system"""
         ret = self.initCore()
         return ret
 
@@ -602,7 +600,7 @@ class Core(QObject):
         return output
 
     def initGui(self):
-        """ Initialize the portions of the core that require GUI initialization to have
+        """Initialize the portions of the core that require GUI initialization to have
             completed.
 
         This function should be called by each subclass of Core if needed, or by
@@ -666,8 +664,8 @@ class Core(QObject):
 
     @property
     def headless(self):
-        """ If true, no Qt gui elements should be used because python is running a
-            QCoreApplication.
+        """If true, no Qt gui elements should be used because python is running a
+        QCoreApplication.
         """
         return self._headless
 
@@ -688,26 +686,25 @@ class Core(QObject):
         return self._lastFileName
 
     def logger(self, parent=None):
-        """ Creates and returns the logger instance
-        """
+        """Creates and returns the logger instance"""
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
 
     def macroNames(self):
-        """ Returns the names to display for the create macro action in treegrunt.
+        """Returns the names to display for the create macro action in treegrunt.
 
         The selected name is passed to the macro_name argument of createToolMacro.
         """
         return ('Create Start Menu Shortcut', 'Create Desktop Shortcut')
 
     def mainWindowGeometry(self):
-        """ QWinWidget doesn't properly center its children.
+        """QWinWidget doesn't properly center its children.
 
-            In MFC apps this function returns the size of the main window.
+        In MFC apps this function returns the size of the main window.
 
-            Note: Qt doesn't include the titlebar so the position may be off by that
-            ammount.
+        Note: Qt doesn't include the titlebar so the position may be off by that
+        ammount.
         """
         if self.headless:
             raise Exception('You are showing a gui in a headless environment. STOP IT!')
@@ -847,7 +844,7 @@ class Core(QObject):
         pref.save()
 
     def recordCoreSettings(self):
-        """ Returns a prefs object recording standard core settings.
+        """Returns a prefs object recording standard core settings.
 
         This function does not actually save the preferences, you must call save.
         """
@@ -869,8 +866,7 @@ class Core(QObject):
         return pref
 
     def recordToolbars(self):
-        """ Records settings for all found toolbars.
-        """
+        """Records settings for all found toolbars."""
         if self.headless:
             # If running headless, the toolbars were not created, and prefs don't need
             # to be saved
@@ -880,8 +876,7 @@ class Core(QObject):
             toolbar_class.instanceRecordSettings()
 
     def refreshStyleSheet(self):
-        """ Reload the current stylesheet to force a update of the display of widgets.
-        """
+        """Reload the current stylesheet to force a update of the display of widgets."""
         app = QApplication.instance()
         if app and isinstance(
             app, QApplication
@@ -1024,8 +1019,7 @@ class Core(QObject):
         return pref
 
     def restoreToolbars(self):
-        """ Create and restore the settings for any toolbar plugins.
-        """
+        """Create and restore the settings for any toolbar plugins."""
         if self.headless:
             # If running headless, do not try to create gui elements
             return
@@ -1206,7 +1200,7 @@ class Core(QObject):
     def runScript(
         self, filename='', scope=None, argv=None, tool=None, architecture=None
     ):
-        """ Runs an inputted file in the best way this core knows how
+        """Runs an inputted file in the best way this core knows how
 
         Args:
             filename (str, optional): The filename of the script to run. If not
@@ -1372,7 +1366,7 @@ class Core(QObject):
         self._maxDelayPerCycle = seconds
 
     def emailAddressMd5Hash(self, text, address=None):
-        """ Turns the text into a md5 string and inserts it in the address.
+        """Turns the text into a md5 string and inserts it in the address.
 
         This is useful for controlling how messages are threaded into conversations on
         gmail.
@@ -1399,7 +1393,7 @@ class Core(QObject):
     def sendEmail(
         self, sender, targets, subject, message, attachments=None, refId=None
     ):
-        """ Sends an email.
+        """Sends an email.
         Args:
             sender (str): The source email address.
 
@@ -1501,7 +1495,7 @@ class Core(QObject):
             self.restoreSettings()
 
     def readStyleSheet(self, stylesheet='', path=None):
-        """ Returns the contents of the requested stylesheet.
+        """Returns the contents of the requested stylesheet.
 
         Args:
 
@@ -1530,13 +1524,13 @@ class Core(QObject):
         self.setStyleSheet(self.styleSheet())
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
-        """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet.  If given None, it will remove the
-            stylesheet.
+        """Accepts the name of a stylesheet included with blurdev, or a full
+        path to any stylesheet.  If given None, it will remove the
+        stylesheet.
         """
 
         def mergeDefaultStyleSheet(newSheet):
-            """ If the core has backed up a stylesheet, always include it. """
+            """If the core has backed up a stylesheet, always include it."""
             return self._defaultStyleSheet + newSheet
 
         app = QApplication.instance()
@@ -1587,12 +1581,11 @@ class Core(QObject):
         return os.path.join(*components)
 
     def styleSheet(self):
-        """ Returns the name of the current stylesheet.
-        """
+        """Returns the name of the current stylesheet."""
         return self._stylesheet
 
     def styleSheets(self, subFolder=None):
-        """ Returns a list of installed stylesheet names.
+        """Returns a list of installed stylesheet names.
 
         Args:
             subFolder (str or None, optional): Use this to access sub-folders of
@@ -1614,7 +1607,7 @@ class Core(QObject):
         return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
 
     def quitQtOnShutdown(self):
-        """ If true is returned, all windows will be closed and
+        """If true is returned, all windows will be closed and
         QApplication.instance().quit() will be called. This can be overridden in cores
         to prevent shutdown.
         """
@@ -1646,8 +1639,7 @@ class Core(QObject):
             LoggerWindow.instanceShutdown()
 
     def shutdownToolbars(self):
-        """ Shutdown toolbar plugins.
-        """
+        """Shutdown toolbar plugins."""
         for toolbar in self.toolbars():
             toolbar.instanceShutdown()
 
@@ -1658,7 +1650,7 @@ class Core(QObject):
 
     @pendingdeprecation("Use blurdev.core.showToolbar('Favorites')")
     def showLovebar(self, parent=None):
-        """ TODO: Remove this function. It was left here so this code works with
+        """TODO: Remove this function. It was left here so this code works with
         existing dcc integration's. Remove it once these have been updated.
         """
         self.toolbar('Favorites').instance().show()
@@ -1667,7 +1659,7 @@ class Core(QObject):
         self.pyular(parent).show()
 
     def showToolbar(self, name='User'):
-        """ Show a toolbar by its name.
+        """Show a toolbar by its name.
 
         Args:
             name (str): The name of the toolbar to show.
@@ -1714,7 +1706,7 @@ class Core(QObject):
             self._protectedModules.remove(key)
 
     def updateApplicationName(self, application=None, name=None):
-        """ Sets the application name based on the environment.
+        """Sets the application name based on the environment.
 
         Args:
             application (
@@ -1750,7 +1742,7 @@ class Core(QObject):
         return False
 
     def uuid(self):
-        """ Application specific unique identifier
+        """Application specific unique identifier
 
         Returns:
             None:
@@ -1758,7 +1750,7 @@ class Core(QObject):
         return None
 
     def toolbar(self, name):
-        """ Returns the toolbar plugin class for the given name or None.
+        """Returns the toolbar plugin class for the given name or None.
 
         In most cases you will want to call ``.instance()`` on the return to get
         the toolbar used in the application. If ``restoreToolbars``` was not called
@@ -1770,7 +1762,7 @@ class Core(QObject):
         return None
 
     def toolbars(self):
-        """ Returns a list of toolbars using the blurdev.toolbars entry_point.
+        """Returns a list of toolbars using the blurdev.toolbars entry_point.
 
         All toolbars in the entry_point are added to the main window of the application.
         To register a toolbar you need to add a ``blurdev.toolbars`` section in your
@@ -1805,7 +1797,7 @@ class Core(QObject):
         return ToolType.External | ToolType.LegacyExternal
 
     def selectedToolTypes(self):
-        """ Returns a user updated list of ToolTypes to show.
+        """Returns a user updated list of ToolTypes to show.
         Returns self.toolTypes() if the user has not set selected tool types.
         """
         if self._selected_tool_types is None:
@@ -1813,7 +1805,7 @@ class Core(QObject):
         return self._selected_tool_types
 
     def setSelectedToolTypes(self, tool_types):
-        """ Updates selectedToolTypes to the provided list of ToolTypes.
+        """Updates selectedToolTypes to the provided list of ToolTypes.
 
         Args:
             tool_types (blurdev.tools.tool.ToolType): One or more ToolTypes
@@ -1823,15 +1815,14 @@ class Core(QObject):
         self.selectedToolTypesChanged.emit()
 
     def treegrunt(self, parent=None):
-        """ Creates and returns the logger instance
-        """
+        """Creates and returns the logger instance"""
         from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
         return TreegruntDialog.instance(parent)
 
     def useAppUserModelID(self):
-        """ Returns a boolean value controlling if calling blurdev.setAppUserModelID
-        will do anyting. """
+        """Returns a boolean value controlling if calling blurdev.setAppUserModelID
+        will do anyting."""
         # Core subclasses Can simply set _useAppUserModelID to True or False if they
         # want to blanket enable or disable setAppUserModelID.
         if self._useAppUserModelID is None:

@@ -189,10 +189,12 @@ if __name__ == '__main__':
         doc.save(destXML)
 
     else:
-        f.write((
-            '!define OUTPUT_FILENAME "bin\\${MUI_PRODUCT}'
-            '-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
-        ))
+        f.write(
+            (
+                '!define OUTPUT_FILENAME "bin\\${MUI_PRODUCT}'
+                '-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
+            )
+        )
 
     f.close()
 

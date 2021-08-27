@@ -67,10 +67,12 @@ class FilePickerWidget(QWidget):
         self.uiFilenameTXT.setEditable(True)
         self.uiPickFileBTN = QToolButton(self)
         self.uiPickFileBTN.setText('...')
-        self.uiPickFileBTN.setToolTip((
-            '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to '
-            'current path.</p></body></html>'
-        ))
+        self.uiPickFileBTN.setToolTip(
+            (
+                '<html><head/><body><p>Browse to a file path.</p><p>Ctrl + LMB: Explore to '
+                'current path.</p></body></html>'
+            )
+        )
         # Make this widget focusable and pass the widget focus to uiFilenameTXT
         self.setFocusProxy(self.uiFilenameTXT)
         self.setFocusPolicy(Qt.StrongFocus)
@@ -223,8 +225,7 @@ class FilePickerWidget(QWidget):
         self.resolve()
 
     def clearFilePathHistory(self):
-        """Clears the path history.
-        """
+        """Clears the path history."""
         self.uiFilenameTXT.blockSignals(True)
         self.uiFilenameTXT.lineEdit().blockSignals(True)
         txt = self.uiFilenameTXT.currentText()
@@ -270,7 +271,7 @@ class FilePickerWidget(QWidget):
 
     @Slot(bool)
     def setDropDownVisible(self, dropDownVisible):
-        """ Sets
+        """Sets
 
         Args:
             dropDownVisible (TYPE): Description
@@ -290,7 +291,7 @@ class FilePickerWidget(QWidget):
 
     @Slot(bool)
     def setNotResolvePath(self, state):
-        """ Set resolvePath to the oposite of state. """
+        """Set resolvePath to the oposite of state."""
         self.setResolvePath(not state)
 
     @Slot(bool)
@@ -303,7 +304,7 @@ class FilePickerWidget(QWidget):
 
     @Slot(bool)
     def setNotImageSequence(self, state):
-        """ Set resolvePath to the oposite of state. """
+        """Set resolvePath to the oposite of state."""
         self.setImageSequence(not state)
 
     @Slot(bool)

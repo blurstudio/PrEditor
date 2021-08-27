@@ -103,7 +103,7 @@ class MaxscriptLexer(QsciLexerCustom):
             pos = chunk.find('*/')
             if pos != -1:
                 self.setStyling(pos + 2, self.Comment)
-                return self.processChunk(chunk[pos + 2:], self.Default, keywords)
+                return self.processChunk(chunk[pos + 2 :], self.Default, keywords)
             else:
                 self.setStyling(length, self.Comment)
                 return (self.Comment, 0)
@@ -121,7 +121,7 @@ class MaxscriptLexer(QsciLexerCustom):
             pos = chunk.find('"')
             if pos != -1:
                 self.setStyling(pos + 1, self.String)
-                return self.processChunk(chunk[pos + 1:], self.Default, keywords)
+                return self.processChunk(chunk[pos + 1 :], self.Default, keywords)
             else:
                 self.setStyling(length, self.String)
                 return (self.String, 0)
@@ -145,7 +145,7 @@ class MaxscriptLexer(QsciLexerCustom):
                     state, folding = self.processChunk(chunk[:i], lastState, keywords)
                     self.setStyling(1, self.String)
                     newstate, newfolding = self.processChunk(
-                        chunk[i + 1:], self.String, keywords
+                        chunk[i + 1 :], self.String, keywords
                     )
                     return (newstate, newfolding + folding)
 
@@ -160,7 +160,7 @@ class MaxscriptLexer(QsciLexerCustom):
                     state, folding = self.processChunk(chunk[:i], lastState, keywords)
                     self.setStyling(2, self.Comment)
                     newstate, newfolding = self.processChunk(
-                        chunk[i + 2:], self.Comment, keywords
+                        chunk[i + 2 :], self.Comment, keywords
                     )
                     return (newstate, newfolding + folding)
 

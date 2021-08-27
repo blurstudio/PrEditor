@@ -12,7 +12,7 @@ SPLASH_DIR = os.environ.get('BDEV_SPLASHSCREEN_SOURCE_DIR')
 
 
 def getSplashScreenDirectory(toolname='default'):
-    """ Get the splashscreen directory for the requested toolname.
+    """Get the splashscreen directory for the requested toolname.
 
     Args:
         toolname (str): The name of a sub-directory of the directory defined in
@@ -25,7 +25,7 @@ def getSplashScreenDirectory(toolname='default'):
 
 
 def randomSplashScreen(toolname='default', minsize=128, allowDefault=True):
-    """ Randomly picks a image for the provided toolname and returns a QSplashScreen or
+    """Randomly picks a image for the provided toolname and returns a QSplashScreen or
     None.
 
     The QSplashScreen will have show() called on it when it is returned.

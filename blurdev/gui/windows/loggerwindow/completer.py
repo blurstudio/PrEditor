@@ -33,6 +33,7 @@ class CompleterMode(Enum):
 
     Matches respect case-sensitivity, which is set separately
     """
+
     STARTS_WITH = 0
     OUTER_FUZZY = 1
     FULL_FUZZY = 2
@@ -137,7 +138,7 @@ class PythonCompleter(QCompleter):
         QToolTip.hideText()
 
     def refreshList(self, scope=None):
-        """ refreshes the string list based on the cursor word """
+        """refreshes the string list based on the cursor word"""
         object, prefix = self.currentObject(scope)
 
         # Only show hidden method/variable names if the hidden character '_' is typed
@@ -192,7 +193,7 @@ class PythonCompleter(QCompleter):
         self._enabled = state
 
     def textUnderCursor(self, useParens=False):
-        """ pulls out the text underneath the cursor of this items widget """
+        """pulls out the text underneath the cursor of this items widget"""
         from Qt.QtGui import QTextCursor
 
         cursor = self.widget().textCursor()

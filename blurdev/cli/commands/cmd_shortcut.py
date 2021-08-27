@@ -5,7 +5,7 @@ import click
 
 @click.group()
 def cli():
-    """ Create Shortcut. """
+    """Create Shortcut."""
     pass
 
 
@@ -17,10 +17,7 @@ def cli():
     help="Set the target path for this shortcut.",
 )
 @click.option(
-    '-p',
-    '--path',
-    default=None,
-    help="Set the destination path of this shortcut."
+    '-p', '--path', default=None, help="Set the destination path of this shortcut."
 )
 @click.argument(
     'title',
@@ -31,8 +28,7 @@ def cli():
     # required=False,
 )
 def create(title, target, path):
-    """ Creates a Shortcut. Title is the name of the created shortcut.
-    """
+    """Creates a Shortcut. Title is the name of the created shortcut."""
 
     msg = ['Created {title} shortcut']
 

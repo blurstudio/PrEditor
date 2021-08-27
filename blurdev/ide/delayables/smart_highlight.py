@@ -39,7 +39,7 @@ class SmartHighlight(SearchDelayable):
         document.selectionChanged.connect(self.signal_mapper.map)
 
     def clear_markings(self, document):
-        """ Remove markings made by this Delayable for the given document.
+        """Remove markings made by this Delayable for the given document.
 
         Args:
             document (blurdev.ide.documenteditor.DocumentEditor): The document

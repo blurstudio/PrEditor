@@ -20,7 +20,7 @@ except ImportError:
 else:
 
     class SpellCheckDelayable(RangeDelayable):
-        """ Spell check some text in the document.
+        """Spell check some text in the document.
 
         IF the document is not visible, the spell check will be skipped.
 
@@ -64,7 +64,7 @@ else:
             return [m.group(0) for m in self.camel_case_re.finditer(identifier)]
 
         def clear_markings(self, document):
-            """ Remove markings made by this Delayable for the given document.
+            """Remove markings made by this Delayable for the given document.
 
             Args:
                 document (blurdev.ide.documenteditor.DocumentEditor): The document
@@ -129,8 +129,7 @@ else:
             self.clear_markings(document)
 
         def reset_session(self, document):
-            """ Resets the speller dictionary and adds document language specific words
-            """
+            """Resets the speller dictionary and adds document language specific words"""
             if document.__speller__ is None:
                 return
             elif not document.lexer() or not document._language:

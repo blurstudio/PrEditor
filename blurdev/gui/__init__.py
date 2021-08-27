@@ -233,7 +233,7 @@ def compPixmap(imageData):
 
 
 def loadUi(filename, widget, uiname=''):
-    """ use's Qt's uic loader to load dynamic interafces onto the inputed widget
+    """use's Qt's uic loader to load dynamic interafces onto the inputed widget
 
     Args:
         filename (str): The python filename. Its basename will be split off, and a
@@ -280,7 +280,7 @@ def findPixmap(filename, thumbSize=None):
 def connectLogger(
     parent, start=True, sequence='F2', text='Show Logger', objName='uiShowLoggerACT'
 ):
-    """ Optionally starts the logger, and creates a QAction on the provided parent with
+    """Optionally starts the logger, and creates a QAction on the provided parent with
         the provided keyboard shortcut to run it.
 
     Args:

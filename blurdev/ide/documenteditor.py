@@ -3,9 +3,9 @@
 #   \remarks    This dialog allows the user to create new python classes and packages
 #               based on plugin templates
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		08/19/10
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       08/19/10
 #
 
 from __future__ import absolute_import
@@ -371,7 +371,7 @@ class DocumentEditor(QsciScintilla):
         return True
 
     def copy(self):
-        """ Copies the selected text.
+        """Copies the selected text.
 
         If copyIndentsAsSpaces and self.indentationsUseTabs() is True it will convert
         any indents to spaces before copying the text.
@@ -426,7 +426,7 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(txt)
 
     def copySpaceIndentation(self):
-        """ Copy the selected text with any tab indents converted to space indents.
+        """Copy the selected text with any tab indents converted to space indents.
 
         If indentationsUseTabs is False it will just copy the text
         """
@@ -440,7 +440,7 @@ class DocumentEditor(QsciScintilla):
         QApplication.clipboard().setText(ret)
 
     def copyHtml(self):
-        """ Copy's the selected text, but formats it using pygments if installed into
+        """Copy's the selected text, but formats it using pygments if installed into
         html."""
         text = self.selectedText()
         from blurdev.utils.errorEmail import highlightCodeHtml
@@ -553,7 +553,7 @@ class DocumentEditor(QsciScintilla):
             window.uiFindInFilesACT.triggered.emit(False)
 
     def foldMarginColors(self):
-        """ Returns the fold margin's foreground and background QColor
+        """Returns the fold margin's foreground and background QColor
 
         Returns:
             foreground(QColor): The foreground color
@@ -562,7 +562,7 @@ class DocumentEditor(QsciScintilla):
         return self._foldMarginForegroundColor, self._foldMarginBackgroundColor
 
     def setFoldMarginColors(self, foreground, background):
-        """ Sets the fold margins foreground and background QColor
+        """Sets the fold margins foreground and background QColor
 
         Args:
             foreground(QColor): The forground color of the checkerboard
@@ -680,7 +680,7 @@ class DocumentEditor(QsciScintilla):
         return result
 
     def find_simple(self, find_state):
-        """ Python implementation of QsciScintilla.simpleFind.
+        """Python implementation of QsciScintilla.simpleFind.
 
         Args:
             find_state (blurdev.ide.FindState): A find state used to manage the find.
@@ -700,7 +700,7 @@ class DocumentEditor(QsciScintilla):
         return self.SendScintilla(self.SCI_SEARCHINTARGET, len(expr), expr)
 
     def find_text(self, find_state):
-        """ Finds text in the document without changing the selection.
+        """Finds text in the document without changing the selection.
 
         Args:
             find_state (blurdev.ide.FindState): A find state used to manage the find.
@@ -753,7 +753,7 @@ class DocumentEditor(QsciScintilla):
         return target_start, target_end
 
     def find_text_from_cursor(self, find_state):
-        """ Starting from the current cursor position wrapping around, return all
+        """Starting from the current cursor position wrapping around, return all
         matches to the provided find_state.
 
         Args:
@@ -820,8 +820,7 @@ class DocumentEditor(QsciScintilla):
             return super(DocumentEditor, self).keyReleaseEvent(event)
 
     def initSettings(self, first_time=False):
-        """ Set/reset settings using the IDE section settings.
-        """
+        """Set/reset settings using the IDE section settings."""
         # grab the document settings config set
         configSet = IdeEditor.documentConfigSet()
 
@@ -877,8 +876,8 @@ class DocumentEditor(QsciScintilla):
 
     def markerLoad(self, input):
         r"""
-            \remarks    Takes a list of line numbers and adds a marker to each of them
-            in the file.
+        \remarks    Takes a list of line numbers and adds a marker to each of them
+        in the file.
         """
         for line in input:
             marker = self.markerDefine(self.Circle)
@@ -907,15 +906,15 @@ class DocumentEditor(QsciScintilla):
         return self._marginsFont
 
     def multipleSelection(self):
-        """ Returns if multiple selection is enabled. """
+        """Returns if multiple selection is enabled."""
         return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
 
     def multipleSelectionAdditionalSelectionTyping(self):
-        """ Returns if multiple selection allows additional typing. """
+        """Returns if multiple selection allows additional typing."""
         return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
 
     def multipleSelectionMultiPaste(self):
-        """ Paste into all multiple selections. """
+        """Paste into all multiple selections."""
         return self.SendScintilla(self.SCI_GETMULTIPASTE)
 
     def paste(self):
@@ -1161,7 +1160,7 @@ class DocumentEditor(QsciScintilla):
         super(DocumentEditor, self).setSelectionForegroundColor(color)
 
     def selection_is_word(self):
-        """ Checks if the current selection is a single word.
+        """Checks if the current selection is a single word.
 
         Returns:
             bool: The selected text is a single word.
@@ -1172,7 +1171,7 @@ class DocumentEditor(QsciScintilla):
         return self.is_word(start, end)
 
     def is_word(self, start, end):
-        """ Checks if the text between start and end position is a word
+        """Checks if the text between start and end position is a word
 
         Args:
             start (int): Start of text offset index position.
@@ -1262,7 +1261,7 @@ class DocumentEditor(QsciScintilla):
         self._marginsFont = font
 
     def setMultipleSelection(self, state):
-        """ Enables or disables multiple selection
+        """Enables or disables multiple selection
 
         Args:
             state (bool): Enable or disable multiple selection. When multiple
@@ -1273,7 +1272,7 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_SETMULTIPLESELECTION, state)
 
     def setMultipleSelectionAdditionalSelectionTyping(self, state):
-        """ Enables or disables multiple selection allows additional typing.
+        """Enables or disables multiple selection allows additional typing.
 
         Args:
             state (bool): Whether typing, new line, cursor left/right/up/down,
@@ -1284,7 +1283,7 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_SETADDITIONALSELECTIONTYPING, state)
 
     def setMultipleSelectionMultiPaste(self, state):
-        """ Enables or disables multiple selection allows additional typing.
+        """Enables or disables multiple selection allows additional typing.
 
         Args:
             state (int): When pasting into multiple selections, the pasted text
@@ -1325,12 +1324,11 @@ class DocumentEditor(QsciScintilla):
             self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
 
     def spellCheckEnabled(self):
-        """ Is spellcheck is enabled for this document.
-        """
+        """Is spellcheck is enabled for this document."""
         return self.delayable_engine.delayable_enabled('spell_check')
 
     def setSpellCheckEnabled(self, state):
-        """ Enable/disable spellcheck if spellcheck can be enabled.
+        """Enable/disable spellcheck if spellcheck can be enabled.
         This changes spellcheck for all documents attached to this
         documents delayable_engine.
         """
@@ -1351,7 +1349,7 @@ class DocumentEditor(QsciScintilla):
         self.endUndoAction()
 
     def spellCheck(self, start_pos, end_pos):
-        """ Check spelling for some text in the document.
+        """Check spelling for some text in the document.
 
         Args:
             start_pos (int): The document position to start spell checking.
@@ -1627,8 +1625,8 @@ class DocumentEditor(QsciScintilla):
         self.endUndoAction()
 
     def updateColorScheme(self):
-        """ Sets the DocumentEditor's lexer colors, see colorScheme for a compatible
-            dict
+        """Sets the DocumentEditor's lexer colors, see colorScheme for a compatible
+        dict
         """
         # lookup the language
         language = lang.byName(self.language())
@@ -1768,11 +1766,11 @@ class DocumentEditor(QsciScintilla):
         self._autoReloadOnChange = state
 
     def setHighlightedKeywords(self, lexer, keywords):
-        """
-            :remarks	Updates the lexers highlighted keywords
-            :param      lexer       <QSciLexer> Update this lexer and set as the lexer
-            on the document.
-            :param		keywords	<str>	keywords to highlight
+        """Updates the lexers highlighted keywords
+
+        Args:
+            lexer (QSciLexer): Update this lexer and set as the lexer on the document.
+            keywords (str): keywords to highlight
         """
 
     #        self.updateColorScheme()
@@ -1923,11 +1921,11 @@ class DocumentEditor(QsciScintilla):
     # Color Setters required because QSci doesn't expose getters.
     # --------------------------------------------------------------------------------
     def edgeColor(self):
-        """ This is subclassed so we can create a Property of it"""
+        """This is subclassed so we can create a Property of it"""
         return super(DocumentEditor, self).edgeColor()
 
     def setEdgeColor(self, color):
-        """ This is subclassed so we can create a Property of it"""
+        """This is subclassed so we can create a Property of it"""
         super(DocumentEditor, self).setEdgeColor(color)
 
     # Because foreground and background must be set together, this cant use

@@ -907,8 +907,7 @@ class FileLogger:
             self.clear()
 
     def clear(self, stamp=False):
-        """ Removes the contents of the log file.
-        """
+        """Removes the contents of the log file."""
         open(self._logfile, 'w').close()
         if stamp:
             msg = '--------- Date: {today} Version: {version} ---------'
@@ -926,7 +925,7 @@ class FileLogger:
 
 
 def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
-    """ Redirect all stdout and/or stderr output to a log file.
+    """Redirect all stdout and/or stderr output to a log file.
 
     Creates a FileLogger class for stdout and stderr and installs itself in python.
     All output will be logged to the file path. Prints the current datetime and
@@ -1109,7 +1108,7 @@ _blurPdb = None
 
 
 def getPdb():
-    """ Creates or returns a instance of pdb that works when normal pdb doesnt.
+    """Creates or returns a instance of pdb that works when normal pdb doesnt.
 
     The first time this is called it creates a pdb instance using PdbInput and PdbOutput
     for stdin and stdout. Any future calls to getPdb will return this same pdb. If pdb
@@ -1133,7 +1132,7 @@ def getPdb():
 
 
 def set_trace():
-    """ Call getPdb().set_trace().
+    """Call getPdb().set_trace().
 
     Enter the debugger at the calling stack frame. This is useful to hard-code a
     breakpoint at a given point in a program, even if the code is not otherwise being
@@ -1147,7 +1146,7 @@ def set_trace():
 
 
 def post_mortem(t=None):
-    """ Call getPdb().post_mortem().
+    """Call getPdb().post_mortem().
 
     Enter post-mortem debugging of the given traceback object. If no traceback is given,
     it uses the exception that is currently being handled (for the default to be used,
@@ -1176,8 +1175,7 @@ def post_mortem(t=None):
 
 
 def pm():
-    """ Calls blurdev.debug.post_mortem passing in sys.last_traceback.
-    """
+    """Calls blurdev.debug.post_mortem passing in sys.last_traceback."""
     post_mortem(sys.last_traceback)
 
 
@@ -1208,7 +1206,7 @@ def debugMsg(msg, level=2, fmt=None):
 
 
 def debugObject(object, msg, level=2, fmt=None):
-    """ Uses :func:`debugMsg` to output to the stdout a debug message
+    """Uses :func:`debugMsg` to output to the stdout a debug message
     including the reference of where the object calling the method is located.
 
     Args: object (object): the object to include in the output message. msg (str):
@@ -1246,7 +1244,7 @@ def debugObjectString(object, msg):
 
 
 def debugStubMethod(object, msg, level=2):
-    """ Uses :func:`debugObject` to display that a stub method has not been provided
+    """Uses :func:`debugObject` to display that a stub method has not been provided
     functionality.
 
     Args:
@@ -1261,7 +1259,7 @@ def debugStubMethod(object, msg, level=2):
 
 
 def debugVirtualMethod(cls, object):
-    """ Uses :func:`debugObject` to display that a virtual function has not been overloaded
+    """Uses :func:`debugObject` to display that a virtual function has not been overloaded
 
     Args:
         cls: the class object where the "virtual" method is defined
@@ -1282,7 +1280,7 @@ def emailList():
 
 
 def errorsReported():
-    """ Returns whether or not the error report is empty
+    """Returns whether or not the error report is empty
 
     Returns:
         bool:
@@ -1291,7 +1289,7 @@ def errorsReported():
 
 
 def isDebugLevel(level):
-    """ Checks to see if the current debug level greater than or equal to the inputed level
+    """Checks to see if the current debug level greater than or equal to the inputed level
 
     Args:
         level (blurdev.debug.DebugLevel):
@@ -1305,7 +1303,7 @@ def isDebugLevel(level):
 
 
 def printCallingFunction(compact=False):
-    """ Prints and returns info about the calling function
+    """Prints and returns info about the calling function
 
     Args:
         compact (bool): If set to True, prints a more compact printout
@@ -1348,7 +1346,7 @@ def printCallingFunction(compact=False):
 
 
 def mroDump(obj, nice=True, joinString='\n'):
-    """ Formats inspect.getmro into text.
+    """Formats inspect.getmro into text.
 
     For the given class object or instance of a class, use inspect to return the Method
     Resolution Order.
@@ -1379,7 +1377,7 @@ def mroDump(obj, nice=True, joinString='\n'):
 
 
 def recycleGui(cls, *args, **kwargs):
-    """ Closes the last gui of the provided class, suppressing any errors and returns
+    """Closes the last gui of the provided class, suppressing any errors and returns
     a new instance of the class.
 
     Args:
@@ -1400,7 +1398,7 @@ def recycleGui(cls, *args, **kwargs):
 
 
 def reportError(msg, debugLevel=1):
-    """ Adds the inputed message to the debug report
+    """Adds the inputed message to the debug report
 
     Args:
         msg (str): the message to add to the debug report.
@@ -1430,7 +1428,7 @@ def showErrorReport(
 
 
 def setDebugLevel(level):
-    """ Sets the debug level for the blurdev system module
+    """Sets the debug level for the blurdev system module
 
     Args:
         level (blurdev.debug.DebugLevel): Value to set the debug level to.

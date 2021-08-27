@@ -39,8 +39,7 @@ class MariCore(Core):
             QApplication.setLibraryPaths(paths)
 
     def quitQtOnShutdown(self):
-        """ Qt should not be closed when the MariCore has shutdown called
-        """
+        """Qt should not be closed when the MariCore has shutdown called"""
         return False
 
     def errorCoreText(self):
@@ -61,8 +60,7 @@ class MariCore(Core):
         return super(MariCore, self).eventFilter(obj, event)
 
     def macroNames(self):
-        """ Returns True if the current blurdev core create a tool macro.
-        """
+        """Returns True if the current blurdev core create a tool macro."""
         # Blurdev can not currently make a macro for this DCC.
         return tuple()
 

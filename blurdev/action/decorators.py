@@ -65,7 +65,9 @@ class _Argument(object):
             if not valid:
                 msg = 'Invalid defaultFunction return type for {cls}.{name}: {tpe}'
                 msg = msg.format(
-                    cls=type(self.parent).__name__, name=self.name, tpe=type(dvalue),
+                    cls=type(self.parent).__name__,
+                    name=self.name,
+                    tpe=type(dvalue),
                 )
                 raise exc(msg)
             return dvalue
@@ -75,12 +77,15 @@ class _Argument(object):
                 return atype()
             else:
                 msg = 'Invalid leading argument type for {cls}.{name}: {tpe}'.format(
-                    cls=type(self.parent).__name__, name=self.name, tpe=atype,
+                    cls=type(self.parent).__name__,
+                    name=self.name,
+                    tpe=atype,
                 )
                 raise TypeError(msg)
         elif isinstance(self._default, _ArgNoDefault):
             msg = 'Required argument {cls}.{name} not provided'.format(
-                cls=type(self.parent).__name__, name=self.name,
+                cls=type(self.parent).__name__,
+                name=self.name,
             )
             raise ArgumentHasNoDefaultError(msg)
         else:
@@ -228,8 +233,7 @@ class _ChildActionContainer(object):
 
 
 class __BaseApplicationDecorator(object):
-    """The base class for application-abstractable decorators.
-    """
+    """The base class for application-abstractable decorators."""
 
     def __init__(self, app=Apps.All):
         """Initializes the application-abstraction portion of the decorator.
@@ -253,8 +257,7 @@ class __BaseApplicationDecorator(object):
 
 
 class argproperty(object):  # noqa: N801
-    """Decorator class that is used to add an argument to an `Action`.
-    """
+    """Decorator class that is used to add an argument to an `Action`."""
 
     __order = 0
 
@@ -411,8 +414,7 @@ class applicationimporter(__BaseApplicationDecorator):  # noqa: N801
 
 
 class childaction(object):  # noqa: N801
-    """Decorator class that is used to add a child to an `Action`.
-    """
+    """Decorator class that is used to add a child to an `Action`."""
 
     __order = 0
 
@@ -459,8 +461,7 @@ class childaction(object):  # noqa: N801
 
 
 class enterhook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being the action's enter hook.
-    """
+    """Decorator that tags a method as being the action's enter hook."""
 
     __order = 0
 
@@ -476,8 +477,7 @@ class enterhook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class exithook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being the action's exit hook.
-    """
+    """Decorator that tags a method as being the action's exit hook."""
 
     __order = 0
 
@@ -493,8 +493,7 @@ class exithook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class executehook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being the action's execute hook.
-    """
+    """Decorator that tags a method as being the action's execute hook."""
 
     __order = 0
 
@@ -510,8 +509,7 @@ class executehook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class prechildhook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being a pre-child hook.
-    """
+    """Decorator that tags a method as being a pre-child hook."""
 
     __order = 0
 
@@ -527,8 +525,7 @@ class prechildhook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class postchildhook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being a post-child hook.
-    """
+    """Decorator that tags a method as being a post-child hook."""
 
     __order = 0
 
@@ -544,8 +541,7 @@ class postchildhook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class preexecutehook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being a pre-execute hook.
-    """
+    """Decorator that tags a method as being a pre-execute hook."""
 
     __order = 0
 
@@ -561,8 +557,7 @@ class preexecutehook(__BaseApplicationDecorator):  # noqa: N801
 
 
 class postexecutehook(__BaseApplicationDecorator):  # noqa: N801
-    """Decorator that tags a method as being a post-execute hook.
-    """
+    """Decorator that tags a method as being a post-execute hook."""
 
     __order = 0
 

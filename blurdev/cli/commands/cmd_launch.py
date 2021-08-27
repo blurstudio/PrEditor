@@ -14,8 +14,7 @@ from tabulate import tabulate
 
 
 class LaunchAlias(click.Group):
-    """ Lazily handle the cli for the requested tool id.
-    """
+    """Lazily handle the cli for the requested tool id."""
 
     def get_command(self, ctx, name):
         tool = blurdev.findTool(name)
@@ -43,13 +42,13 @@ class LaunchAlias(click.Group):
 
 @click.command(cls=LaunchAlias)
 def cli():
-    """ Run the tool based on the given tool id """
+    """Run the tool based on the given tool id"""
 
 
 @click.command()
 @click.pass_context
 def launch_tool(ctx):
-    """ Run the requested external treegrunt tool """
+    """Run the requested external treegrunt tool"""
     # Generic tool loader if no cli for the tool was defined
 
     # Get the tool id from the parent context
@@ -87,7 +86,7 @@ def launch_tool(ctx):
 @cli.command('list')
 @click.argument('search', required=False)
 def list_tools(search):
-    """ Show a list of tools that can be launched externally. Tool Id is the command
+    """Show a list of tools that can be launched externally. Tool Id is the command
     you pass to "blurdev launch [Tool Id]".
 
     The  optional search term can be specified to filter the results in the same way

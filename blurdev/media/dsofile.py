@@ -100,8 +100,7 @@ class DSOFile(object):
         self.dso.close()
 
     def addCustomProperty(self, key, value):
-        """Adds a custom property with the given key, value pair.
-        """
+        """Adds a custom property with the given key, value pair."""
         return self.dso.CustomProperties.Add(key, value)
 
     def clear(self):

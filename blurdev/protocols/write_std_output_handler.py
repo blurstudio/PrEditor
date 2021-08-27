@@ -9,7 +9,7 @@ import six
 
 
 class WriteStdOutputHandler(BaseProtocolHandler):
-    """ Writes the msg param to the requested output
+    """Writes the msg param to the requested output
 
     Valid commands are 'stdout', 'print', 'stderr'. stdout and stderr write to their sys
     counterparts. print(calls print. You must pass the parameter 'msg' as a string, this

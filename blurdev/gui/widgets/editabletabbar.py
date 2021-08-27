@@ -15,13 +15,12 @@ from Qt.QtWidgets import QLineEdit, QTabBar
 
 
 class EscapeLineEdit(QLineEdit):
-    """
-        :remarks    Subclass of QLineEdit that will emit editingCanceled if the escape
-                    key is pressed.
-        :param		text		<str>			Text shown in the widget. Default: ''
-        :param		parent		<QWidget>||None	The parent of the widget. Default: None
-        :param      selected    <QWidget>       If True the text will be selected.
-                                                Default: True
+    """Subclass of QLineEdit that will emit editingCanceled if the escape key is pressed.
+
+    Args:
+        text (str): Text shown in the widget. Default: ''
+        parent (QWidget, optional): The parent of the widget. Default: None
+        selected (QWidget, optional): If True the text will be selected. Default: True
     """
 
     editingCanceled = Signal()
@@ -41,11 +40,11 @@ class EscapeLineEdit(QLineEdit):
 
 
 class EditableTabBar(QTabBar):
-    """
-        :remarks    This tab bar allows you to double click on a tab and rename it
-                    without extra dialogs. Commit the change by pressing enter, discard
-                    the change by pressing escape.
-        :param		parent	<QWidget>||None
+    """This tab bar allows you to double click on a tab and rename it without extra
+    dialogs. Commit the change by pressing enter, discard the change by pressing escape.
+
+    Args:
+        parent (QWidget, optional):
     """
 
     def __init__(self, parent=None):

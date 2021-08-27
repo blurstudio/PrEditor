@@ -58,7 +58,7 @@ def version_string(major, minor, build, prepend_v=True):
 
 
 def url(major=None, minor=None, current_build=None, currentBuild=None):
-    """ Generate a url to documentation.
+    """Generate a url to documentation.
 
     Args:
         major (int, optional):

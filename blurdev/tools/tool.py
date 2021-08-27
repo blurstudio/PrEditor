@@ -32,8 +32,7 @@ ToolType = enum(
 
 
 class Tool(QObject):
-    """ Creates the ToolsCategory class for grouping tools together
-    """
+    """Creates the ToolsCategory class for grouping tools together"""
 
     def __init__(self):
         QObject.__init__(self)
@@ -55,7 +54,7 @@ class Tool(QObject):
         self._cli_module = ''
 
     def architecture(self):
-        """ This tool needs to run in this architecture (32bit or 64bit) when running externally
+        """This tool needs to run in this architecture (32bit or 64bit) when running externally
 
         If this tool is run by external treegrunt, launch the tool with this version of
         python if possible. If None the system default will be used.
@@ -68,7 +67,7 @@ class Tool(QObject):
         self._architecture = architecture
 
     def cli_module(self):
-        """ Optional module import name defining a custom cli for the tool.
+        """Optional module import name defining a custom cli for the tool.
 
         This module needs to implement a cli function using the click python module.
         If not defined, then a default cli will be used to launch the tool.
@@ -89,9 +88,10 @@ class Tool(QObject):
             return output.replace('_', ' ').strip()
 
     def exec_(self, macro=''):
-        """ Runs this tool with the inputed macro command
+        """Runs this tool with the inputted macro command
 
-            :param str macro: macro
+        Args:
+            macro (str):
         """
         # The external Treegrunt tool sometimes gets deleted before we can collect
         # usage stats. Capture the name before we launch(exec_) the tool.
@@ -125,7 +125,7 @@ class Tool(QObject):
         return path
 
     def image(self, replace=None):
-        """ Returns a QImage of the icon including any alpha channel """
+        """Returns a QImage of the icon including any alpha channel"""
         from Qt.QtGui import QImage
 
         iconName = self.icon()
@@ -147,7 +147,7 @@ class Tool(QObject):
         )
 
     def isVisible(self):
-        """ Returns False if the tool should be hidden based on filters.
+        """Returns False if the tool should be hidden based on filters.
 
         Returns:
 
@@ -160,8 +160,10 @@ class Tool(QObject):
         return self.toolType() & blurdev.core.selectedToolTypes()
 
     def index(self):
-        """ returns the index from which this category is instantiated
-            \return		<blurdev.tools.ToolIndex>
+        """returns the index from which this category is instantiated
+
+        Returns:
+            blurdev.tools.ToolIndex:
         """
         output = self.parent()
         while output and not isinstance(output, blurdev.tools.toolsindex.ToolsIndex):
@@ -177,7 +179,7 @@ class Tool(QObject):
         return self.relativePath('%s.blurproj' % self.displayName())
 
     def redistributable(self):
-        """ If False, this tool should be excluded from offsite distro. """
+        """If False, this tool should be excluded from offsite distro."""
         return self._redistributable
 
     def setRedistributable(self, state):
@@ -222,8 +224,8 @@ class Tool(QObject):
         self._toolTip = tip
 
     def setToolType(self, toolType):
-        """ sets the current tools type
-            :param toolType: ToolType
+        """sets the current tools type
+        :param toolType: ToolType
 
         """
         self._toolType = toolType
@@ -255,8 +257,7 @@ class Tool(QObject):
             return self._toolTip
 
     def toolType(self):
-        """ returns the toolType for this category
-        """
+        """returns the toolType for this category"""
         return self._toolType
 
     def usagestatsEnabled(self):
@@ -276,7 +277,7 @@ class Tool(QObject):
 
     @classmethod
     def fromIndex(cls, index, data, relative_root=None):
-        """ Creates a new tool record based on the provided information for the given
+        """Creates a new tool record based on the provided information for the given
         index.
 
         Args:

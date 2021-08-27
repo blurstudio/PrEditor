@@ -7,8 +7,7 @@ import blurdev
 
 
 def getPrefs(limit=None, allUsers=False):
-    """ Gather the prefs arguments needed to find old style treegrunt favorites
-    """
+    """Gather the prefs arguments needed to find old style treegrunt favorites"""
     roots = [os.path.dirname(blurdev.prefs.Preference.path())]
     if allUsers:
         # Handle the migration user folders like magma.0000, etc
@@ -31,8 +30,7 @@ def getPrefs(limit=None, allUsers=False):
 
 
 def getFavorites(path, root, coreName, favorites):
-    """ Extract favorites from a prefs file.
-    """
+    """Extract favorites from a prefs file."""
     prefs = findPref(path, root, coreName)
     children = prefs.root().children()
     for child in children:
@@ -41,7 +39,7 @@ def getFavorites(path, root, coreName, favorites):
 
 
 def mergePrefs(all_prefs):
-    """ Combine all the old per treegrunt environment favorites to a single
+    """Combine all the old per treegrunt environment favorites to a single
     favorites file.
     """
     for root in all_prefs:
@@ -74,8 +72,7 @@ def mergePrefs(all_prefs):
 
 
 def findPref(name, root_path, coreName):
-    """ Get a Preference object for any user given its root_path
-    """
+    """Get a Preference object for any user given its root_path"""
     key = str(name).replace(' ', '-').lower()
     filename = os.path.join(root_path, 'app_{}'.format(coreName), '%s.pref' % key)
     # create a new preference record

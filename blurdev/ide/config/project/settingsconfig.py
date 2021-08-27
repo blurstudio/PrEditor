@@ -254,7 +254,8 @@ class SettingsConfig(ConfigSectionWidget):
                     (
                         'Please specify a valid path for your project. '
                         'Cannot create the project at: %s'
-                    ) % path,
+                    )
+                    % path,
                 )
                 return False
 

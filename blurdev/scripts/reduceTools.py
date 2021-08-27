@@ -25,7 +25,7 @@ except Exception:
 
 
 def reduceCode(rootPath):
-    """ Master function to flatten the treegrunt structure """
+    """Master function to flatten the treegrunt structure"""
     for folder in os.listdir(rootPath):
         if folder != '.svn':
             path = os.path.join(rootPath, folder)
@@ -33,15 +33,13 @@ def reduceCode(rootPath):
 
 
 def reducePath(path, rootPath, dest=None):
-    """
-        :remarks    Process recursively the contents of a folder and svn move it to the
-                    destination.
-        :param		path		<str>			The folder to process.
-        :param      rootPath    <str>           Start building the category id from this
-                                                folder.
-        :param      dest        <str>||None     If provided it and pysvn is installed it
-                                                will svn move all tools into this
-                                                directory.
+    """Process recursively the contents of a folder and svn move it to the destination.
+
+    Args:
+        path (str): The folder to process.
+        rootPath (str): Start building the category id from this folder.
+        dest (str, optional): If provided it and pysvn is installed it will svn move
+            all tools into this directory.
     """
 
     """

@@ -30,7 +30,7 @@ class Highlighter(QSyntaxHighlighter):
         widget.setFont(font)
 
     def commentFormat(self):
-        """ returns the comments QTextCharFormat for this highlighter """
+        """returns the comments QTextCharFormat for this highlighter"""
         from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()
@@ -40,12 +40,12 @@ class Highlighter(QSyntaxHighlighter):
         return format
 
     def isConsoleMode(self):
-        """ checks to see if this highlighter is in console mode """
+        """checks to see if this highlighter is in console mode"""
         return self._consoleMode
 
     def highlightBlock(self, text):
-        """ highlights the inputed text block based on the rules of this code
-        highlighter """
+        """highlights the inputed text block based on the rules of this code
+        highlighter"""
         if not self.isConsoleMode() or str(text).startswith('>>>'):
             from Qt.QtCore import QRegExp
 
@@ -100,7 +100,7 @@ class Highlighter(QSyntaxHighlighter):
             pos = expr.indexIn(text, pos + matched)
 
     def keywordFormat(self):
-        """ returns the keywords QTextCharFormat for this highlighter """
+        """returns the keywords QTextCharFormat for this highlighter"""
         from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()
@@ -109,13 +109,13 @@ class Highlighter(QSyntaxHighlighter):
         return format
 
     def setConsoleMode(self, state=False):
-        """ sets the highlighter to only apply to console strings
-            (lines starting with >>>)
+        """sets the highlighter to only apply to console strings
+        (lines starting with >>>)
         """
         self._consoleMode = state
 
     def setLanguage(self, lang):
-        """ sets the language of the highlighter by loading the XML definition """
+        """sets the language of the highlighter by loading the XML definition"""
         from blurdev.XML import XMLDocument
 
         import blurdev
@@ -153,7 +153,7 @@ class Highlighter(QSyntaxHighlighter):
         return False
 
     def stringFormat(self):
-        """ returns the keywords QTextCharFormat for this highligter """
+        """returns the keywords QTextCharFormat for this highligter"""
         from Qt.QtGui import QColor, QTextCharFormat
 
         format = QTextCharFormat()

@@ -7,7 +7,7 @@ from blurdev.tools.toolsindex import ToolsIndex
 
 
 class _ToolsIndex(Command):
-    """ Builds the treegrunt index for the provided entry_point information.
+    """Builds the treegrunt index for the provided entry_point information.
     This class should not be used directly, but sub-classed by the buildCmdFactory
     function. This is required because each setup.py needs to set its own tools_package
     data and setuptools requires passing a class not a instance to cmdclass.
@@ -41,7 +41,7 @@ class _ToolsIndex(Command):
 
 
 class BaseBuildToolsIndex(build_py):
-    """ Override of build_py that calls the tools_index build command. """
+    """Override of build_py that calls the tools_index build command."""
 
     def run(self):
         self.run_command('tools_index')
@@ -50,7 +50,7 @@ class BaseBuildToolsIndex(build_py):
 
 
 class BaseDevelopToolsIndex(develop):
-    """ Override of develop that calls the tools_index build command. """
+    """Override of develop that calls the tools_index build command."""
 
     def run(self):
         self.run_command('tools_index')
@@ -59,7 +59,7 @@ class BaseDevelopToolsIndex(develop):
 
 
 def buildCmdFactory(tools_package, additional=None):
-    """ Creates a few cmdclass overrides that automatically builds a treegrunt tool
+    """Creates a few cmdclass overrides that automatically builds a treegrunt tool
     index file.
 
     This class adds the tools_index command and updates the the setuptools build_py and

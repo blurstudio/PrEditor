@@ -1,11 +1,11 @@
 ##
-# 	\namespace	blurdev.ide.ideeditor
+#   \namespace  blurdev.ide.ideeditor
 #
-# 	\remarks	This is the main ide window
+#   \remarks    This is the main ide window
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		08/19/10
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       08/19/10
 #
 
 from __future__ import absolute_import
@@ -768,7 +768,7 @@ class IdeEditor(Window):
             doc.selectToMatchingBrace()
 
     def documentStyleSheet(self):
-        """ The stylesheet applied to open documents """
+        """The stylesheet applied to open documents"""
         return self._documentStylesheet
 
     def documentToLowercase(self):
@@ -937,7 +937,7 @@ class IdeEditor(Window):
         return False
 
     def initialize(self):
-        """ initialize the settings once the application has loaded """
+        """initialize the settings once the application has loaded"""
 
         # restore initial files in the same order
         for filename in self._initfiles:
@@ -1463,7 +1463,7 @@ class IdeEditor(Window):
         return self._searchText
 
     def selectProjectItem(self, filename):
-        """ For a given filename attempt to select it in the project tree.
+        """For a given filename attempt to select it in the project tree.
 
         Args:
             filename (str): The filepath of the item you want to select
@@ -1873,8 +1873,8 @@ class IdeEditor(Window):
             pass
 
     def setDocumentStyleSheet(self, stylesheet, recordPrefs=True):
-        """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet. If given None, it will default to Bright.
+        """Accepts the name of a stylesheet included with blurdev, or a full
+        path to any stylesheet. If given None, it will default to Bright.
         """
         sheet = None
         if stylesheet is None:

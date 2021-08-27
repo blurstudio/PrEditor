@@ -59,10 +59,7 @@ class FindFilesThread(QThread):
         return self._results
 
     def resultsCount(self):
-        """
-            \remarks	returns the total number of lines containing the search text
-            \return		<int>
-        """
+        """returns the total number of lines containing the search text"""
         return self._resultsCount
 
     def run(self):
@@ -492,7 +489,7 @@ class FindFilesDialog(Dialog):
         self.uiSearchTXT.setText(dlg.expression())
 
     def refreshFeedbackLabel(self, fileCount, resultCount, searchedCount):
-        """ Updates the file count label """
+        """Updates the file count label"""
         self.uiFeedbackLBL.setText(
             'Found %i times in %s files out of %s files searched.'
             % (resultCount, fileCount, searchedCount)
@@ -501,7 +498,7 @@ class FindFilesDialog(Dialog):
         self.uiCopyResultsBTN.setVisible(fileCount)
 
     def setResultsCount(self, count):
-        """ Updates the results count label """
+        """Updates the results count label"""
         self.uiResultsCountLBL.setText('Instances: %i' % count)
 
     def setSearchedCount(self, count):

@@ -7,7 +7,7 @@ from pdb import Pdb
 
 class BlurPdb(Pdb):
     def currentLine(self):
-        """ Returns the current frame's filename and line number
+        """Returns the current frame's filename and line number
 
         Returns:
             str: The filename pdb is currently at.
@@ -56,7 +56,7 @@ class BlurPdb(Pdb):
 
 class PdbBase(object):
     def external(self):
-        """ Opens the logger in a sub process if it is not open and returns the
+        """Opens the logger in a sub process if it is not open and returns the
         connection
 
         Returns:

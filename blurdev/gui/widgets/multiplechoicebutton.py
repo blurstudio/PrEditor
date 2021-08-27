@@ -23,9 +23,7 @@ from Qt.QtWidgets import QAbstractButton
 
 class MultipleChoiceButton(QAbstractButton):
     currentChoiceChanged = Signal(str)  # emitted when the current choice is changed
-    currentValueChanged = Signal(
-        int
-    )
+    currentValueChanged = Signal(int)
     # emitted when the current choice is changed, only if an enum instance is provided
     # for the system
 

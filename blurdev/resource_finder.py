@@ -4,8 +4,8 @@ from pillar.resource_finder import ResourceFinder as PillarResourceFinder
 
 class ResourceFinder(PillarResourceFinder):
 
-    """ Subclass that adds child finders for the production library and blurdevs own
-        resource folder.
+    """Subclass that adds child finders for the production library and blurdevs own
+    resource folder.
     """
 
     def __init__(self):

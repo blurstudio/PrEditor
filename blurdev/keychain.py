@@ -28,11 +28,7 @@ def getKey(name, default=None, path=None):
     value = keys.get(name, default)
     if value is None:
         msg = 'Unable to find the key "{name}" in the provided keychain. "{keychain}"'
-        raise KeyError(
-            msg.format(
-                name=name, keychain=path
-            )
-        )
+        raise KeyError(msg.format(name=name, keychain=path))
     return value
 
 

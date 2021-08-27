@@ -66,7 +66,8 @@ class IdeAboutDialog(Dialog):
                 (
                     '<tr><td>%s</td><td> . </td><td align="center">%s</td><td> . '
                     '</td><td>%s</td>'
-                ) % credit
+                )
+                % credit
                 for credit in credits
             ]
         )

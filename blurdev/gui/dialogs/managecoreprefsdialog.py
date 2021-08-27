@@ -90,7 +90,7 @@ class ManageCorePrefsDialog(Dialog):
         return None
 
     def corenames(self):
-        """ Returns a list of all corename folders in the prefs system.
+        """Returns a list of all corename folders in the prefs system.
 
         Checks the filesystem for blurdev corename prefs folders.
 
@@ -115,9 +115,7 @@ class ManageCorePrefsDialog(Dialog):
             else:
                 activeEnv = blurdev.activeEnvironment(corename)
 
-            _prefs = blurdev.prefs.find(
-                "blurdev/core", coreName=corename, reload=True
-            )
+            _prefs = blurdev.prefs.find("blurdev/core", coreName=corename, reload=True)
             debugLevel = _prefs.restoreProperty("debugLevel", 0)
             item = QTreeWidgetItem(
                 self.uiEnvironmentTREE,
@@ -154,8 +152,7 @@ class ManageCorePrefsDialog(Dialog):
             editor.showPopup()
 
     def recordSettings(self):
-        """ records settings to be used for another session
-        """
+        """records settings to be used for another session"""
         from blurdev import prefs
 
         pref = prefs.find('blurdev/managecoreprefsdialog')
@@ -167,8 +164,7 @@ class ManageCorePrefsDialog(Dialog):
         pref.save()
 
     def restoreSettings(self):
-        """ restores settings that were saved by a previous session
-        """
+        """restores settings that were saved by a previous session"""
         from blurdev import prefs
 
         pref = prefs.find('blurdev/managecoreprefsdialog')

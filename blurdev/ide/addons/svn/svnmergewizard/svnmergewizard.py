@@ -11,7 +11,8 @@
 
 from __future__ import absolute_import
 from blurdev.ide.addons.svn.threads.mergethread import (
-    MergeRangesThread, MergeReintegrateThread,
+    MergeRangesThread,
+    MergeReintegrateThread,
 )
 
 from blurdev.gui import Wizard
@@ -22,7 +23,7 @@ class SvnMergeWizard(Wizard):
     Pages = enum('Type', 'Ranges', 'Reintegrate', 'Tree', 'Options')
 
     def initWizardPages(self):
-        """ overloaded from the Wizard class, this method allows a user to define the
+        """overloaded from the Wizard class, this method allows a user to define the
         pages that are going to be used for this wizard.  Look up QWizard in the Qt
         Assistant for more advanced options and controlling flows for your wizard.
 

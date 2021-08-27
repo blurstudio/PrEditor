@@ -12,8 +12,7 @@ from builtins import str as text
 
 
 class _MetaEnumGroup(type):
-    """An EnumGroup metaclass.
-    """
+    """An EnumGroup metaclass."""
 
     def __new__(cls, className, bases, classDict):
         newCls = type.__new__(cls, className, bases, classDict)
@@ -469,7 +468,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
 
     @classmethod
     def copy(cls, name=None):
-        """ Returns a new class type from this class without any Enums assigned.
+        """Returns a new class type from this class without any Enums assigned.
 
         If name is not provided it will automatically generate a new class name.
         For example if the EnumGroup class named DefaultEnums has been copied
@@ -698,7 +697,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
 
 # =============================================================================
 class Incrementer(object):
-    """ A class that behaves similarly to c i++ or ++i.
+    """A class that behaves similarly to c i++ or ++i.
 
     Once you init this class, every time you call it it will update count and return the
     previous value like c's i++. If you pass True to pre, it will increment then return
@@ -775,7 +774,7 @@ class enum(object):  # noqa: N801
             raise AttributeError(key)
 
     def __init__(self, *args, **kwds):
-        """ Takes the provided arguments adds them as properties of this object. For
+        """Takes the provided arguments adds them as properties of this object. For
         each argument you pass in it will assign binary values starting with the first
         argument, 1, 2, 4, 8, 16, .... If you pass in any keyword arguments it will
         store the value.
@@ -819,13 +818,13 @@ class enum(object):  # noqa: N801
         return len(self._keys)
 
     def description(self, value):
-        """ Returns the description string for the provided value
+        """Returns the description string for the provided value
         :param value: The binary value of the description you want
         """
         return self._descr.get(value, '')
 
     def matches(self, a, b):  # noqa: N804
-        """ Does a binary and on a and b
+        """Does a binary and on a and b
         :param a: First item
         :param b: Second item
         :returns: boolean
@@ -836,7 +835,7 @@ class enum(object):  # noqa: N801
         return key in self._keys
 
     def labels(self, byVal=False):
-        """ Returns a list of all provided parameters.
+        """Returns a list of all provided parameters.
         :param byVal: Sorts the labels by their values. Defaults to False
         :returns: A list of labels as strings
         """
@@ -848,21 +847,21 @@ class enum(object):  # noqa: N801
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 
     def labelByValue(self, value):
-        """ Returns the label for a specific value. Labels automatically add spaces
+        """Returns the label for a specific value. Labels automatically add spaces
         for every capital letter after the first.
         :param value: The value you want the label for
         """
         return ' '.join(re.findall('[A-Z]+[^A-Z]*', self.keyByValue(value)))
 
     def isValid(self, value):
-        """ Returns True if this value is stored in the parameters.
+        """Returns True if this value is stored in the parameters.
         :param value: The value to check
         :return: boolean. Is the value stored in a parameter.
         """
         return self.keyByValue(value) != ''
 
     def keyByIndex(self, index):
-        """ Finds the key based on a index. This index contains the *args in the order
+        """Finds the key based on a index. This index contains the *args in the order
         they were passed in then any **kwargs's keys in the order **kwargs.keys()
         returned. This index is created when the class is initialized.
 
@@ -874,7 +873,7 @@ class enum(object):  # noqa: N801
         return ''
 
     def keyByValue(self, value):
-        """ Return the parameter name for a specific value. If not found returns a empty string.
+        """Return the parameter name for a specific value. If not found returns a empty string.
         :param value: The value to find the parameter name of.
         :returns: String. The parameter name or empty string.
         """
@@ -884,12 +883,11 @@ class enum(object):  # noqa: N801
         return ''
 
     def keys(self):
-        """ Returns a list of parameter names
-        """
+        """Returns a list of parameter names"""
         return self._keys
 
     def value(self, key, caseSensitive=True):
-        """ Return the value for a parameter name
+        """Return the value for a parameter name
         :param key: The key to get the value for
         :param caseSensitive: Defaults to True
         :returns: The value for the key, or zero if it was not found
@@ -904,8 +902,7 @@ class enum(object):  # noqa: N801
             return 0
 
     def values(self):
-        """ Returns a list of all values for stored parameters
-        """
+        """Returns a list of all values for stored parameters"""
         return [self.__dict__[key] for key in self.keys()]
 
     def valueByLabel(self, label, caseSensitive=True):
@@ -918,14 +915,14 @@ class enum(object):  # noqa: N801
         return self.value(''.join(str(label).split(' ')), caseSensitive=caseSensitive)
 
     def valueByIndex(self, index):
-        """ Returns the stored value for the index of a parameter.
+        """Returns the stored value for the index of a parameter.
         .. seealso:: :meth:`keyByValue`
         .. seealso:: :meth:`value`
         """
         return self.value(self.keyByIndex(index))
 
     def index(self, key):
-        """ Return the index for a key.
+        """Return the index for a key.
         :param key: The key to find the index for
         :returns: Int, The index for the key or -1
         .. seealso:: :meth:`keyByValue`
@@ -935,7 +932,7 @@ class enum(object):  # noqa: N801
         return -1
 
     def indexByValue(self, value):
-        """ Return the index for a value.
+        """Return the index for a value.
         :param value: The value to find the index for
         :returns: Int, the index of the value or -1
         .. seealso:: :meth:`keyByValue`
@@ -946,7 +943,7 @@ class enum(object):  # noqa: N801
         return -1
 
     def toString(self, value, default='None', sep=' '):
-        """ For the provided value return the parameter name(s) seperated by sep. If you
+        """For the provided value return the parameter name(s) seperated by sep. If you
         provide a int that represents two or more binary values, it will return all
         parameter names that binary value represents seperated by sep. If no meaningful
         value is found it will return the provided default.
@@ -966,7 +963,7 @@ class enum(object):  # noqa: N801
         return default
 
     def fromString(self, labels, sep=' '):
-        """ Returns the value for a given string. This function binary or's the
+        """Returns the value for a given string. This function binary or's the
         parameters, so it may not work well when using **kwargs
         :param labels: A string of parameter names.
         :param sep: The seperator used to seperate the provided parameters.
@@ -981,7 +978,7 @@ class enum(object):  # noqa: N801
         return value
 
     def setDescription(self, value, descr):
-        """ Used to set a description string for a value.
+        """Used to set a description string for a value.
         :param value: The parameter value to set the description on
         :param descr: The description string to set on a parameter
         """

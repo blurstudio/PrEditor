@@ -23,7 +23,7 @@ TEMPORARY_TOOLS_ENV = 'TEMPORARY'
 
 
 def logUsage(info):
-    """ Log that a tool was launched.
+    """Log that a tool was launched.
 
     Attempts to log tool usage using the modulename defined in the BDEV_USE_LOG_CLASS
     environment variable. The module should accept a dictonary arugment containing the
@@ -68,7 +68,7 @@ def logUsage(info):
 
 
 def toolPaths():
-    """ Entry point returning paths treegrunt needs to find imports and tools.
+    """Entry point returning paths treegrunt needs to find imports and tools.
 
     Returns:
         sys_paths: A list of paths that need added to sys.path to add imports.

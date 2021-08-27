@@ -38,8 +38,7 @@ USER_ENVIRONMENT_FILE = 'c:/blur/common/user_environments.xml'
 
 
 class ToolsEnvironment(QObject):
-    """ Defines the ToolsEnvironment class for the tools package
-    """
+    """Defines the ToolsEnvironment class for the tools package"""
 
     # static members
     environments = []
@@ -96,7 +95,7 @@ class ToolsEnvironment(QObject):
         return '<ToolsEnvironment ({})>'.format(self.objectName())
 
     def _environmentToolPaths(self):
-        """ Returns the blurdev treegrunt environment path info
+        """Returns the blurdev treegrunt environment path info
 
         See `registerPaths` for more info.
 
@@ -133,12 +132,11 @@ class ToolsEnvironment(QObject):
         return sys_paths, []
 
     def _get_project(self):
-        """ Used by blur.Projects.customize to identify the environment project if set
-        """
+        """Used by blur.Projects.customize to identify the environment project if set"""
         return self.project()
 
     def clearPathSymbols(self, onlyDeactivate=False):
-        """ Removes the path symbols from the environment.
+        """Removes the path symbols from the environment.
 
         Args:
             onlyDeactivate (bool): If True, call deactivateProject and return without
@@ -448,7 +446,7 @@ class ToolsEnvironment(QObject):
         blurdev.core.emitEnvironmentActivated()
 
     def setActive(self, silent=False, force=False):
-        """ Sets this environment as the active environment.
+        """Sets this environment as the active environment.
 
         It also switches the currently running modules from the system by removing the
         old environment path from sys.path and sys.modules. It then adds the paths for
@@ -576,7 +574,10 @@ class ToolsEnvironment(QObject):
             )
             if os.path.exists(codeRootPath):
                 blurdev.ini.SetINISetting(
-                    blurdev.ini.configFile, legacy, 'codeRoot', codeRootPath,
+                    blurdev.ini.configFile,
+                    legacy,
+                    'codeRoot',
+                    codeRootPath,
                 )
                 blurdev.ini.SetINISetting(
                     blurdev.ini.configFile,
@@ -702,7 +703,7 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def findEnvironment(name, path=None):
-        """ Looks up the environment by the inputted name or base path.
+        """Looks up the environment by the inputted name or base path.
 
         Args:
 
@@ -891,7 +892,7 @@ class ToolsEnvironment(QObject):
         return paths
 
     def registerPaths(self):
-        """ Update sys.path with all required tool paths.
+        """Update sys.path with all required tool paths.
 
         Uses the paths defined by installed blurdev.tools.paths entry points.
         The entry points are cached from the last time `self.index().rebuild()`

@@ -85,9 +85,8 @@ class PyularWidget(QWidget):
         return self.uiCountSPN.value()
 
     def errorLog(self):
-        """
-            :remarks    If a exception is called from this class, the email generated
-                        will contain this information
+        """If a exception is called from this class, the email generated will contain
+        this information
         """
         msg = []
         msg.append('Pyular')
@@ -105,9 +104,7 @@ class PyularWidget(QWidget):
         return self.uiFlagsTXT.text()
 
     def parseFlags(self):
-        """
-            :remarks	Parses the regular expression options
-        """
+        """Parses the regular expression options"""
         self.flags = 0
         out = set()
         for item in list(self.uiFlagsTXT.text().upper()):
@@ -186,9 +183,7 @@ class PyularWidget(QWidget):
                 if sys.version_info.major < 2 or sys.version_info.minor < 7:
                     flags = ''
                 txt = "split(r'{pattern}', r'{stri}', maxsplit={count}{flags})"
-                code += txt.format(
-                    pattern=pattern, stri=txt, count=count, flags=flags
-                )
+                code += txt.format(pattern=pattern, stri=txt, count=count, flags=flags)
                 self.uiCodeTXT.setText(code)
             else:  # Sub
                 replace = self.uiReplaceTXT.text()

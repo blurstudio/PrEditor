@@ -45,7 +45,7 @@ class ADelayable(Delayable):
 
 @pytest.fixture()
 def engine():
-    """ Creates a test DelayableEngine and DocumentEditor.
+    """Creates a test DelayableEngine and DocumentEditor.
     The DocumentEditor can be accessd by using `engine.test_doc`.
     """
     engine = DelayableEngine('test_engine')
@@ -109,8 +109,7 @@ def test_merge_args(engine, args1, args2, merged):
 
 
 def test_remove_documents(engine):
-    """ Check that a document can be removed and added correctly.
-    """
+    """Check that a document can be removed and added correctly."""
     delayable = RangeTestDelayable(engine)
     engine.add_delayable(delayable)
 
@@ -134,8 +133,7 @@ def test_remove_documents(engine):
 
 
 def test_remove_delayables(engine):
-    """ Check that a delayable can be added and removed correctly.
-    """
+    """Check that a delayable can be added and removed correctly."""
     delayable = ADelayable(engine)
     engine.add_delayable(delayable)
 

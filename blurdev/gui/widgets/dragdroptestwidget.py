@@ -96,7 +96,8 @@ class DragDropTestWidget(QTextEdit):
                         (
                             '&nbsp;&nbsp;&nbsp;&nbsp;<small><b>%s: '
                             '</b></small><b>UnicodeDecodeError</b>'
-                        ) % cgi.escape(f)
+                        )
+                        % cgi.escape(f)
                     )
 
         self.setText('<br>'.join(html))

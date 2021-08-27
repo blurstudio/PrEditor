@@ -65,7 +65,7 @@ class WidgetEventHelper(QObject):
         return QObject.eventFilter(self, object, event)
 
     def handleDragEnterEvent(widget, event):  # noqa: N805,B902
-        """ bound method to handle the drag enter event for the widget
+        """bound method to handle the drag enter event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')
@@ -78,7 +78,7 @@ class WidgetEventHelper(QObject):
         widget.__class__.dragEnterEvent(widget, event)
 
     def handleDragMoveEvent(widget, event):  # noqa: N805,B902
-        """ bound method to handle the drag move event for the widget
+        """bound method to handle the drag move event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')
@@ -91,7 +91,7 @@ class WidgetEventHelper(QObject):
         widget.__class__.dragMoveEvent(widget, event)
 
     def handleDropEvent(widget, event):  # noqa: N805,B902
-        """ bound method to handle the drop event for the widget
+        """bound method to handle the drop event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """
         handler = widget.findChild(WidgetEventHelper, 'eventHelper')

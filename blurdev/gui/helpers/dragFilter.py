@@ -6,7 +6,7 @@ from Qt.QtWidgets import QApplication
 
 
 class DragFilter(QObject):
-    """ Drag Event Filter
+    """Drag Event Filter
 
     This class provides an event filter that can be installed
     on a Qt Widget to take click/drag events and give them slider

@@ -50,18 +50,22 @@ class PreviewScene(QGraphicsScene):
         self.reset()
 
     def activeLayer(self):
-        """
-            :remarks	return the current active layer for this scene
-            :return		<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>
+        """return the current active layer for this scene
+
+        Returns:
+            blurdev.gui.widgets.previewwidget.AbstractPreviewLayer:
         """
         return self._activeLayer
 
     def addLayer(self, layer):
-        """
-            :remarks    adds a layer to the scene with the inputed name if there is not
-                        already a layer of that name
-            :param		layer	<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>
-            :return		<bool> success
+        """adds a layer to the scene with the inputted name if there is not already a
+        layer of that name
+
+        Args:
+            layer (blurdev.gui.widgets.previewwidget.AbstractPreviewLayer):
+
+        Returns:
+            bool: success
         """
         if layer not in self._layers:
             self._layers.append(layer)
@@ -103,16 +107,15 @@ class PreviewScene(QGraphicsScene):
         return layer
 
     def canvasSize(self):
-        """
-            :remarks	return the current canvas size for the preview widget
-            :return		<QSize>
+        """return the current canvas size for the preview widget
+
+        Returns:
+            QSize:
         """
         return self._canvasSize
 
     def clear(self):
-        """
-            :remarks	clears out all the data currently on this scene
-        """
+        """clears out all the data currently on this scene"""
         self.blockSignals(True)
         for layer in self._layers:
             layer.remove()
@@ -131,10 +134,11 @@ class PreviewScene(QGraphicsScene):
             self.activeLayerChanged.emit()
 
     def emitCanvasSizeChanged(self, size):
-        """
-            :remarks    emit the canvasSizeChanged signal for this scene provided the
-                        signals are not currently blocked
-            :param		size	<QSize>
+        """emit the canvasSizeChanged signal for this scene provided the signals are
+        not currently blocked
+
+        Args:
+            size (QSize):
         """
         if not self.signalsBlocked():
             self.canvasSizeChanged.emit(size)
@@ -148,10 +152,11 @@ class PreviewScene(QGraphicsScene):
             self.layerRemoved.emit(layer)
 
     def emitInteractionModeChanged(self, mode):
-        """
-            :remarks    emit the interactionModeChanged signal for this scene provided
-                        the signals are not currently blocked
-            :param		mode	<int>
+        """emit the interactionModeChanged signal for this scene provided the signals
+        are not currently blocked
+
+        Args:
+            mode: int
         """
         if not self.signalsBlocked():
             self.interactionModeChanged.emit(mode)
@@ -188,11 +193,7 @@ class PreviewScene(QGraphicsScene):
         return len(self._layers)
 
     def layers(self):
-        """
-            :remarks	return a list of the current layers for this scene
-            :return     <list>
-                        [<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>, ..]
-        """
+        """return a list of the current layers for this scene"""
         return self._layers
 
     def interactionMode(self):
@@ -235,11 +236,14 @@ class PreviewScene(QGraphicsScene):
         return self._previewWidget
 
     def renameLayer(self, oldname, newname):
-        """
-            :remarks	renames the layer at the oldname to the new name
-            :param		oldname		<str>
-            :param		newname		<str>
-            :return		<bool> success
+        """renames the layer at the oldname to the new name
+
+        Args:
+            oldname (str):
+            newname (str):
+
+        Returns:
+            bool: success
         """
         layer = self._layers.get(str(oldname))
         newname = str(newname)
@@ -258,10 +262,13 @@ class PreviewScene(QGraphicsScene):
         return self._pencilWidth
 
     def setActiveLayer(self, layer):
-        """
-            :remarks	set the active layer for the scene to the inputed layer
-            :param		layer	<blurdev.gui.widgets.previewwidget.AbstractPreviewLayer>
-            :return		<bool> changed
+        """set the active layer for the scene to the inputed layer
+
+        Args:
+            layer (blurdev.gui.widgets.previewwidget.AbstractPreviewLayer):
+
+        Returns:
+            bool: changed
         """
         if self._activeLayer == layer:
             return False
@@ -286,10 +293,13 @@ class PreviewScene(QGraphicsScene):
         self._brushWidth = width
 
     def setCanvasSize(self, size):
-        """
-            :remarks	change the current canvas size for the items on the widget
-            :param		size	<QSize>
-            :return		<bool> changed
+        """change the current canvas size for the items on the widget
+
+        Args:
+            size (QSize):
+
+        Return:
+            bool: changed
         """
         if size == self._canvasSize:
             return False
@@ -310,10 +320,13 @@ class PreviewScene(QGraphicsScene):
         self._foregroundColor = color
 
     def setInteractionMode(self, mode):
-        """
-            :remarks	change the current interaction mode for the preview widget
-            :param		mode	<blurdev.gui.widgets.previewwidget.InteractionMode>
-            :return		<bool> changed
+        """change the current interaction mode for the preview widget
+
+        Args:
+            mode (blurdev.gui.widgets.previewwidget.InteractionMode)
+
+        Return:
+            bool: changed
         """
         if mode == self._interactionMode:
             return False
@@ -341,10 +354,10 @@ class PreviewScene(QGraphicsScene):
         return self.setInteractionMode(InteractionMode.Selection)
 
     def wheelEvent(self, event):
-        """
-            :remarks    reimplements QGraphicsScene.wheelEvent to zoom in & out during
-                        wheel events
-            :param		event	<QWheelEvent>
+        """re-implements QGraphicsScene.wheelEvent to zoom in & out during wheel events
+
+        Args:
+            event: QWheelEvent
         """
         if event.delta() < 0:
             self._previewWidget.scale(0.9, 0.9)

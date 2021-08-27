@@ -76,7 +76,7 @@ EXTENSION_MAP = {}
 
 
 def app_id_for_shortcut(shortcut):
-    """ Gets the AppUserModel.ID for the given shortcut.
+    """Gets the AppUserModel.ID for the given shortcut.
 
     This will allow windows to group windows with the same app id on a shortcut pinned
     to the taskbar. Use :py:meth:`blurdev.setAppUserModelID` to set the app id for a
@@ -179,9 +179,7 @@ def expandPath(path):
 
 
 def console(filename):
-    """Starts a console window at the given path
-
-    """
+    """Starts a console window at the given path"""
     # pull the filpath from the inputed filename
     fpath = str(filename)
     if not os.path.isdir(fpath):
@@ -210,7 +208,7 @@ def createShortcut(
     path=None,
     description='',
     common=1,
-    app_id=None
+    app_id=None,
 ):
     """Creates a shortcut.
 
@@ -336,7 +334,7 @@ def createShortcut(
 
 
 def explore(filename, dirFallback=False):
-    """ Launches the provided filename in the prefered editor for the specific platform.
+    """Launches the provided filename in the prefered editor for the specific platform.
 
     Args: filename (str): The filepath to explore to. dirFallback (bool): If True, and
         the file path does not exist, explore to the deepest folder that does exist.
@@ -373,7 +371,7 @@ def explore(filename, dirFallback=False):
 
 
 def forOS(windows=None, linux=None, mac=None):
-    """ Use this function to return a specific value for the OS blurdev is currently
+    """Use this function to return a specific value for the OS blurdev is currently
     running on.
 
     Args:
@@ -393,9 +391,10 @@ def forOS(windows=None, linux=None, mac=None):
 
 
 def programFilesPath(path=''):
-    """ Returns the path to 32bit program files on windows.
+    """Returns the path to 32bit program files on windows.
 
-        :param path: this string is appended to the path
+    Args:
+        path (str): this string is appended to the path
     """
     if getPointerSize() == 64:
         progF = 'ProgramFiles(x86)'
@@ -405,7 +404,7 @@ def programFilesPath(path=''):
 
 
 def set_app_id_for_shortcut(shortcut, app_id):
-    """ Sets AppUserModel.ID info for a windows shortcut.
+    """Sets AppUserModel.ID info for a windows shortcut.
 
     Note: This doesn't seem to work on a pinned taskbar shortcut. Set it on a desktop
     shortcut then pin that shortcut.
@@ -491,7 +490,7 @@ def shell(command, basepath='', persistent=False):
 
 
 def subprocessEnvironment(env=None):
-    """ Returns a copy of the environment that will restore a new python instance to
+    """Returns a copy of the environment that will restore a new python instance to
     current state.
 
     Provides a environment dict that can be passed to subprocess.Popen that will restore
@@ -542,6 +541,7 @@ def subprocessEnvironment(env=None):
     # removing those path variables from the environment being passed to subprocess.
     def normalize(i):
         return os.path.normpath(os.path.normcase(i))
+
     removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
 
     # blurpath records any paths it adds to the PATH variable and other env variable
@@ -602,7 +602,7 @@ def subprocessEnvironment(env=None):
 def startfile(
     filename, debugLevel=None, basePath='', cmd=None, architecture=None, env=None
 ):
-    """ Runs the filename.
+    """Runs the filename.
 
     Runs the filename in a shell with proper commands given, or passes the command to
     the shell. (CMD in windows) the current platform
@@ -797,10 +797,11 @@ class FlashTime(Enum):
 
 
 class FlashTimes(EnumGroup):
-    """ Windows arguments for blurdev.core.flashWindow().
+    """Windows arguments for blurdev.core.flashWindow().
 
     https://docs.microsoft.com/en-us/windows/desktop/api/winuser/ns-winuser-flashwinfo
     """
+
     description = 'Stop flashing. The system restores the window to its original state.'
     FLASHW_STOP = FlashTime(0, description=description)
     FLASHW_CAPTION = FlashTime(0x00000001, description='Flash the window caption.')
@@ -825,7 +826,7 @@ class FlashTimes(EnumGroup):
 # 								Read registy values
 # --------------------------------------------------------------------------------
 def getRegKey(registry, key, architecture=None, write=False):
-    """ Returns a winreg hkey or none.
+    """Returns a winreg hkey or none.
 
     Args: registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
 
@@ -860,7 +861,7 @@ def getRegKey(registry, key, architecture=None, write=False):
 
 
 def listRegKeyValues(registry, key, architecture=None):
-    """ Returns a list of child keys and their values as tuples.
+    """Returns a list of child keys and their values as tuples.
 
     Each tuple contains 3 items. A string that identifies the value name An object that
         holds the value data, and whose type depends on the underlying registry type An
@@ -905,7 +906,7 @@ def listRegKeys(registry, key, architecture=None):
 
 
 def registryValue(registry, key, value_name, architecture=None):
-    """ Returns the value and type of the provided registry key's value name.
+    """Returns the value and type of the provided registry key's value name.
 
     Args:
 
@@ -943,7 +944,7 @@ def setRegistryValue(
     notify=None,
     overwrite=True,
 ):
-    """ Stores a value in the registry for the provided registy key's name.
+    """Stores a value in the registry for the provided registy key's name.
 
     Args:
 
@@ -1139,7 +1140,7 @@ def getEnvironmentPath(machine=False):
 
 
 def setEnvironmentPath(value_name, value, system=True, varType=None):
-    """ Method to easily set the path variable using the registry.
+    """Method to easily set the path variable using the registry.
 
     Args:
 
@@ -1159,7 +1160,7 @@ def setEnvironmentPath(value_name, value, system=True, varType=None):
 
 
 def getEnvironmentVariable(value_name, system=None, default=None, architecture=None):
-    """ Returns the environment variable stored in the windows registry.
+    """Returns the environment variable stored in the windows registry.
 
     Args:
         value_name (str): The name of the environment variable to get the value of.

@@ -18,13 +18,16 @@ class Window(QMainWindow):
 
     @classmethod
     def instance(cls, parent=None):
-        """
-            :remarks    If you only want to have one instance of a window, use this
-                        method instead of creating a new window. It will only create a
-                        new instance of the class if the class variable _instance is
-                        none.
-            :param		parent	<QWidget>||None		The parent widget
-            :return		<Window>
+        """If you only want to have one instance of a window, use this
+                    method instead of creating a new window. It will only create a
+                    new instance of the class if the class variable _instance is
+                    none.
+
+        Args:
+            parent (QWidget, optional): The parent widget
+
+        Returns:
+            Window:
         """
         if not cls._instance:
             import blurdev
@@ -106,7 +109,7 @@ class Window(QMainWindow):
             pass
 
     def _shouldDisableAccelerators(self, old, now):
-        """ Used to enable typing in DCC's that require it(Max 2018).
+        """Used to enable typing in DCC's that require it(Max 2018).
 
         Args:
             old (QWidget or None): The QWidget that lost focus.
@@ -189,7 +192,7 @@ class Window(QMainWindow):
 
     @classmethod
     def instanceShutdown(cls):
-        """ Call shutdown on this class instance only if the class was instantiated.
+        """Call shutdown on this class instance only if the class was instantiated.
 
         Returns:
             bool: if cls.instance().shutdown() needed to be called.

@@ -51,7 +51,7 @@ from future.utils import iteritems
 @click.command()
 @click.argument('url')
 def cli(url):
-    """ Process the passed in `blurdev://...` url """
+    """Process the passed in `blurdev://...` url"""
 
     # Log to a file so we can debug problems.
     basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
@@ -71,10 +71,10 @@ def cli(url):
 
 
 def parseURL(url):
-    """ Accepts a url and returns the protocol, handler, command, and parameters
+    """Accepts a url and returns the protocol, handler, command, and parameters
 
-        If pyeval is True, it will try to eval the param values instead of
-        returning them as strings.
+    If pyeval is True, it will try to eval the param values instead of
+    returning them as strings.
 
     """
     parsed = parse.urlsplit(url)

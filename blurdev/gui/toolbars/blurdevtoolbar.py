@@ -5,7 +5,7 @@ from Qt.QtWidgets import QToolBar
 
 
 class BlurdevToolbar(QToolBar):
-    """ A base class used to add QToolBar's to applications.
+    """A base class used to add QToolBar's to applications.
 
     This class is able to record and restore preferences and supports instancing.
     All toolbars used by the blurdev.toolbars entry point should use this as a base
@@ -33,7 +33,7 @@ class BlurdevToolbar(QToolBar):
 
     @classmethod
     def name(cls):
-        """ Returns the nice name of this toolbar. """
+        """Returns the nice name of this toolbar."""
         return cls._name
 
     def preferences(self):
@@ -44,7 +44,7 @@ class BlurdevToolbar(QToolBar):
         self.setIconSize(QSize(size, size))
 
     def recordSettings(self, save=True, gui=True):
-        """ Records settings to be used for another session.
+        """Records settings to be used for another session.
 
         Args:
             save (bool, optional): Save the settings. This is mostly used by sub-classes
@@ -74,8 +74,7 @@ class BlurdevToolbar(QToolBar):
         return pref
 
     def restoreSettings(self):
-        """ restores settings that were saved by a previous session
-        """
+        """restores settings that were saved by a previous session"""
         pref = self.preferences()
         self._iconsSize = pref.restoreProperty('icons_size', 32)
         if blurdev.core.isMfcApp() or not hasattr(self.parent(), 'addToolBar'):
@@ -90,7 +89,7 @@ class BlurdevToolbar(QToolBar):
         self.setVisible(pref.restoreProperty('isVisible', False))
 
     def shutdown(self):
-        """ If this item is the class instance properly close it and remove it
+        """If this item is the class instance properly close it and remove it
         from memory so it can be recreated.
         """
         # allow the global instance to be cleared
@@ -118,7 +117,7 @@ class BlurdevToolbar(QToolBar):
 
     @classmethod
     def instanceRecordSettings(cls, save=True, gui=True):
-        """ Only if a instance is created, call recordSettings on it.
+        """Only if a instance is created, call recordSettings on it.
 
         Args:
             save (bool, optional): Only save the prefs if True(the default).
@@ -134,7 +133,7 @@ class BlurdevToolbar(QToolBar):
 
     @classmethod
     def instanceShutdown(cls):
-        """ Faster way to shutdown the instance of BlurdevToolbar if it was not used.
+        """Faster way to shutdown the instance of BlurdevToolbar if it was not used.
 
         Returns:
             bool: Shutdown was required

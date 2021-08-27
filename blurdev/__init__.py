@@ -11,6 +11,7 @@ from __future__ import print_function
 
 # Override the base logging class.
 import blurdev.logger
+
 blurdev.logger.patchLogger()
 
 try:
@@ -100,12 +101,13 @@ logger.addHandler(logging.NullHandler())
 if os.environ.get("BDEV_SENTRY_AT_STARTUP"):
     import sentry_bootstrap
     from blurdev.utils.error import sentry_before_send_callback
+
     sentry_bootstrap.init_sentry()
     sentry_bootstrap.add_external_callback(sentry_before_send_callback)
 
 
 def activeEnvironment(coreName=None):
-    """ Returns the current active Tools Environment as part of the blurdev.tools system.
+    """Returns the current active Tools Environment as part of the blurdev.tools system.
 
     Args:
         coreName (str or None, optional): If None(default) it will return the currently
@@ -122,10 +124,10 @@ def activeEnvironment(coreName=None):
 
 
 def appUserModelID():
-    """ Returns the current Windows 7+ app user model id used for taskbar grouping.
-    """
+    """Returns the current Windows 7+ app user model id used for taskbar grouping."""
     import ctypes
     from ctypes import wintypes
+
     lpBuffer = wintypes.LPWSTR()
     AppUserModelID = ctypes.windll.shell32.GetCurrentProcessExplicitAppUserModelID
     AppUserModelID(ctypes.cast(ctypes.byref(lpBuffer), wintypes.LPWSTR))
@@ -173,7 +175,7 @@ def findTool(name, environment=''):
 
 
 def runtime(*args):
-    """ Return the full path to this file in blurdev's runtime folder.
+    """Return the full path to this file in blurdev's runtime folder.
 
     Returns:
         The os.path.join of all the blurdev runtimes folder and any passed in args.
@@ -337,7 +339,7 @@ def launch(
 
 
 def startApplication(windowIcon=None):
-    """ Starts blurdev.application if it hasn't already been started. """
+    """Starts blurdev.application if it hasn't already been started."""
     global _appHasExec
     if application and not _appHasExec:
         if windowIcon:
@@ -420,8 +422,8 @@ def relativePath(path, additional=''):
 
 def resetWindowPos():
     """
-        Reset any top level widgets(windows) to 0,0 use this to find windows that are
-        offscreen.
+    Reset any top level widgets(windows) to 0,0 use this to find windows that are
+    offscreen.
     """
     for widget in QApplication.instance().topLevelWidgets():
         if widget.isVisible():
@@ -445,7 +447,7 @@ def resourcePath(relpath=''):
 
 
 def runTool(toolId, macro=""):
-    """ Runs the tool with the given tool id.
+    """Runs the tool with the given tool id.
 
     Finds the tool with the given tool id name for the activeEnvironment if it exists.
     You can pass a macro to the tool.exec_ call.
@@ -472,7 +474,7 @@ def runTool(toolId, macro=""):
 
 
 def setActiveEnvironment(envName, coreName=None):
-    """ Set the active treegrunt environment to this name.
+    """Set the active treegrunt environment to this name.
 
     Args:
         envName (str): The name of a valid treegrunt environment. Case sensitive.
@@ -511,7 +513,7 @@ def setActiveEnvironment(envName, coreName=None):
 
 
 def setAppUserModelID(appId, prefix='Blur'):
-    """ Controls Windows taskbar grouping.
+    """Controls Windows taskbar grouping.
 
     Specifies a Explicit App User Model ID that Windows 7+ uses to control grouping of
     windows on the taskbar.  This must be set before any ui is displayed. The best place
@@ -541,6 +543,7 @@ def setAppUserModelID(appId, prefix='Blur'):
 
     # https://stackoverflow.com/a/27872625
     import ctypes
+
     myappid = u'%s.%s' % (prefix, appId)
     return not ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 

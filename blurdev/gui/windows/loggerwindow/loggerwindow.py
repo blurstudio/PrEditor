@@ -106,11 +106,13 @@ class LoggerWindow(Window):
         # Create additional buttons in toolbar.
         self.uiDebugLevelBTN = DebugLevelButton(self)
         self.uiConsoleTOOLBAR.insertWidget(
-            self.uiResetPathsACT, self.uiDebugLevelBTN,
+            self.uiResetPathsACT,
+            self.uiDebugLevelBTN,
         )
         self.uiLoggingLevelBTN = LoggingLevelButton(self)
         self.uiConsoleTOOLBAR.insertWidget(
-            self.uiResetPathsACT, self.uiLoggingLevelBTN,
+            self.uiResetPathsACT,
+            self.uiLoggingLevelBTN,
         )
         self.uiConsoleTOOLBAR.insertSeparator(self.uiResetPathsACT)
 
@@ -159,8 +161,7 @@ class LoggerWindow(Window):
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
 
-        self.uiAutoCompleteCaseSensitiveACT.toggled.connect(
-            self.setCaseSensitive)
+        self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
 
         # Setup ability to cycle completer mode, and create action for each mode
         self.completerModeCycle = itertools.cycle(CompleterMode)
@@ -386,13 +387,13 @@ class LoggerWindow(Window):
         text = cursor.selectedText()
         prompt = console.prompt()
         if text.startswith(prompt):
-            text = text[len(prompt):]
+            text = text[len(prompt) :]
         text = text.lstrip()
 
         outputPrompt = console.outputPrompt()
         outputPrompt = outputPrompt.rstrip()
         if text.startswith(outputPrompt):
-            text = text[len(outputPrompt):]
+            text = text[len(outputPrompt) :]
         text = text.lstrip()
 
         if not text:
@@ -570,8 +571,7 @@ class LoggerWindow(Window):
         self.uiConsoleTXT.clear()
 
     def clearLogToFile(self):
-        """ If installLogToFile has been called, clear the stdout.
-        """
+        """If installLogToFile has been called, clear the stdout."""
         if self._stds:
             self._stds[0].clear(stamp=True)
 
@@ -617,9 +617,7 @@ class LoggerWindow(Window):
         self.createShortcut(shortcut.createShortcutTreegrunt)
 
     def execAll(self):
-        """
-            \remarks    Clears the console before executing all workbox code
-        """
+        """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execAll()
@@ -630,9 +628,7 @@ class LoggerWindow(Window):
             console.startPrompt(prompt)
 
     def execSelected(self):
-        """
-            \remarks    Clears the console before executing selected workbox code
-        """
+        """Clears the console before executing selected workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execSelected()
@@ -655,11 +651,9 @@ class LoggerWindow(Window):
             super(LoggerWindow, self).keyPressEvent(event)
 
     def overrideKeyboardShortcuts(self):
-        """
-            \remarks    If a specific software has limitations preventing keyboard
-                        shortcuts from working, they can be overidden here Example:
-                        Softimage treats both enter keys as Qt.Key_Enter, It ignores
-                        Qt.Key_Return
+        """If a specific software has limitations preventing keyboard shortcuts from
+        working, they can be overidden here Example: Softimage treats both enter keys
+        as Qt.Key_Enter, It ignores Qt.Key_Return
         """
         if self._software == 'softimage':
             self.uiRunSelectedACT.setShortcut(
@@ -686,7 +680,7 @@ class LoggerWindow(Window):
             self.clearLog()
 
     def reportExecutionTime(self, seconds):
-        """ Update status text with seconds passed in. """
+        """Update status text with seconds passed in."""
         self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
 
     def resetPaths(self):
@@ -723,9 +717,7 @@ class LoggerWindow(Window):
             'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
         )
 
-        pref.recordProperty(
-            'uiAutoPromptACT', self.uiAutoPromptACT.isChecked()
-        )
+        pref.recordProperty('uiAutoPromptACT', self.uiAutoPromptACT.isChecked())
         pref.recordProperty(
             'uiLinesInNewWorkboxACT', self.uiLinesInNewWorkboxACT.isChecked()
         )
@@ -821,9 +813,7 @@ class LoggerWindow(Window):
             pref.restoreProperty('uiAutoSaveSettingssACT', True)
         )
 
-        self.uiAutoPromptACT.setChecked(
-            pref.restoreProperty('uiAutoPromptACT', False)
-        )
+        self.uiAutoPromptACT.setChecked(pref.restoreProperty('uiAutoPromptACT', False))
         self.uiLinesInNewWorkboxACT.setChecked(
             pref.restoreProperty('uiLinesInNewWorkboxACT', False)
         )
@@ -961,7 +951,7 @@ class LoggerWindow(Window):
             sentry_bootstrap.disable()
 
     def setStatusText(self, txt):
-        """ Set the text shown in the menu corner of the menu bar.
+        """Set the text shown in the menu corner of the menu bar.
 
         Args:
             txt (str): The text to show in the status text label.
@@ -982,8 +972,8 @@ class LoggerWindow(Window):
         self.statusTimer.start()
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
-        """ Accepts the name of a stylesheet included with blurdev, or a full
-            path to any stylesheet. If given None, it will default to Bright.
+        """Accepts the name of a stylesheet included with blurdev, or a full
+        path to any stylesheet. If given None, it will default to Bright.
         """
         sheet = None
         if stylesheet is None:
@@ -1079,13 +1069,13 @@ class LoggerWindow(Window):
         self.setCompleterMode(mode)
 
     def reportCaseChange(self, state):
-        """ Update status text with current Case Sensitivity Mode """
+        """Update status text with current Case Sensitivity Mode"""
         text = "Case Sensitive " if state else "Case Insensitive "
         self.setStatusText(text)
         self.autoHideStatusText()
 
     def reportCompleterModeChange(self, mode):
-        """ Update status text with current Completer Mode """
+        """Update status text with current Completer Mode"""
         self.setStatusText('Completer Mode: {} '.format(mode.displayName()))
         self.autoHideStatusText()
 
@@ -1305,7 +1295,7 @@ class LoggerWindow(Window):
         return LoggerWindow._instance
 
     def installLogToFile(self):
-        """ All stdout/stderr output is also appended to this file.
+        """All stdout/stderr output is also appended to this file.
 
         This uses blurdev.debug.logToFile(path, useOldStd=True).
         """
@@ -1330,7 +1320,7 @@ class LoggerWindow(Window):
 
     @classmethod
     def instanceSetPdbMode(cls, mode, msg=''):
-        """ Sets the instance of LoggerWindow to pdb mode if the logger instance has
+        """Sets the instance of LoggerWindow to pdb mode if the logger instance has
         been created.
 
         Args:
@@ -1385,7 +1375,7 @@ class LoggerWindow(Window):
 
     @classmethod
     def instanceShutdown(cls):
-        """ Faster way to shutdown the instance of LoggerWindow if it possibly was not used.
+        """Faster way to shutdown the instance of LoggerWindow if it possibly was not used.
 
         Returns:
             bool: If a shutdown was required

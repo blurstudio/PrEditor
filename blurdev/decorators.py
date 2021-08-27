@@ -12,10 +12,8 @@ from Qt import QtCompat
 
 
 def abstractmethod(function):
-    """
-        \remarks    This method should be overidden in a subclass. If it is not, a
-                    message will be printed in Medium debug, and a exception will be
-                    thrown in high debug.
+    """This method should be overridden in a subclass. If it is not, a message will be
+    printed in Medium debug, and a exception will be thrown in high debug.
     """
 
     def newFunction(*args, **kwargs):
@@ -33,7 +31,7 @@ def abstractmethod(function):
 
 
 class EnvironmentVariable(object):
-    """ Update environment variable only while this context/decorator is active.
+    """Update environment variable only while this context/decorator is active.
 
     Args:
         key (str): The environment variable key.
@@ -224,7 +222,7 @@ def pendingdeprecation(args):
 def stopwatch(
     text='', debugLevel=debug.DebugLevel.Low, acceptArgs=True, useClock=False
 ):
-    """ Generate a stopwatch you can use to time code execution time.
+    """Generate a stopwatch you can use to time code execution time.
 
     Generate a blurdev.debug.Stopwatch that tells how long it takes the
     decorated function to run.  You can access the Stopwatch object by calling
@@ -286,7 +284,7 @@ def stopwatch(
 
 
 class singleShot(QObject):  # noqa: N801
-    """ Decorator class used to implement a QTimer.singleShot(0, function)
+    """Decorator class used to implement a QTimer.singleShot(0, function)
 
     # TODO: Pascal case this class name.
 
@@ -349,14 +347,14 @@ class singleShot(QObject):  # noqa: N801
 
 
 class recursionBlock(object):  # noqa: N801
-    """ Decorator that only allows the function to be processed every other call.
+    """Decorator that only allows the function to be processed every other call.
 
     # TODO: Pascal case this class name.
 
     Functions decorated with this are intended to do something that will result in
     the calling of this function again in a way that doesn't block signals.
 
-    For	example when you use the callback of blurdev.gui.pyqtProcessInit to call a
+    For example when you use the callback of blurdev.gui.pyqtProcessInit to call a
     function that updates the widget stylesheet which triggers your callback, etc.
     In this case your function will always be called twice and this prevents the
     second call from executing.
