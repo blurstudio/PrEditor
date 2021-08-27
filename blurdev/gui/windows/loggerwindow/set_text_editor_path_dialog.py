@@ -24,10 +24,12 @@ class SetTextEditorPathDialog(QDialog):
         if cmdTempl:
             self.uiTextEditorCommandPatternLE.setText(cmdTempl)
 
-        toolTip = ("Examples:\n"
+        toolTip = (
+            "Examples:\n"
             "SublimeText: {exePath} {modulePath}:{lineNum}\n"
             "notepad++: {exePath} {modulePath} -n{lineNum}\n"
-            "vim: {exePath} +{lineNum} {modulePath}")
+            "vim: {exePath} +{lineNum} {modulePath}"
+        )
         self.uiTextEditorCommandPatternLE.setToolTip(toolTip)
 
     def accept(self):

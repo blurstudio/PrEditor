@@ -28,7 +28,7 @@ class FindState(object):
         self.end_pos = None
 
 
-from .ideeditor import IdeEditor  # noqa: F401
-from .ideproject import IdeProject  # noqa: F401
-from .ideaddon import IdeAddon  # noqa: F401
-from .ideregistry import RegistryType  # noqa: F401
+from .ideeditor import IdeEditor  # noqa: F401,E402
+from .ideproject import IdeProject  # noqa: F401,E402
+from .ideaddon import IdeAddon  # noqa: F401,E402
+from .ideregistry import RegistryType  # noqa: F401,E402

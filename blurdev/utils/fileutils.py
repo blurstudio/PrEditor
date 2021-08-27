@@ -20,7 +20,7 @@ def listdirs(path):
 def rglob(treeroot, pattern):
     """Recursive glob an entire directory tree."""
     results = []
-    for root, dirs, files in os.walk(treeroot):
+    for root, _, files in os.walk(treeroot):
         goodfiles = fnmatch.filter(files, pattern)
         results.extend([os.path.join(root, f) for f in goodfiles])
     return results

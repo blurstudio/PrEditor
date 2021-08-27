@@ -131,7 +131,7 @@ try:
             return inner
 
         # in case this is defined as "@profile" instead of "@profile()"
-        if hasattr(sort, '__call__'):
+        if callable(sort):
             fun = sort
             sort = 'cumulative'
             outer = outer(fun)
@@ -181,7 +181,7 @@ except ImportError:
             return inner
 
         # in case this is defined as "@profile" instead of "@profile()"
-        if hasattr(sort, '__call__'):
+        if callable(sort):
             fun = sort
             sort = 'cumulative'
             outer = outer(fun)
@@ -251,13 +251,12 @@ def stopwatch(
             time.sleep(1)
     """
     msg = text
-    if hasattr(text, '__call__'):
+    if callable(text):
         msg = ''
 
     def deco(function):
-        """
-            \Remarks    This decorator is used to warn that a api call will be
-            depricated at a future date.
+        """This decorator is used to warn that a api call will be deprecated at a
+        future date.
         """
         nMsg = function.__name__
         if debugLevel:
@@ -281,7 +280,7 @@ def stopwatch(
         newFunction.__dict__ = function.__dict__
         return newFunction
 
-    if hasattr(text, '__call__'):
+    if callable(text):
         return deco(text)
     return deco
 

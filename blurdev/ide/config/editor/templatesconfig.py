@@ -105,15 +105,11 @@ class TemplatesConfig(ConfigSectionWidget):
         self.uiTemplateTXT.setText(data)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         self.saveTemplate()
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refreshes the ui with the latest data settings"""
 
         # add the user templates
         self.uiUserTemplateTREE.clear()
@@ -185,9 +181,10 @@ class TemplatesConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section
@@ -195,9 +192,7 @@ def registerSections(configSet):
     section = 'Templates'
     icon = blurdev.relativePath(__file__, 'img/templatesconfig.png')
     cls = TemplatesConfig
-    params = {
-        # 		'param': 'test',
-    }
+    params = {}
 
     # register the section to the configset
     configSet.registerSection(section, cls, params, group=group, icon=icon)

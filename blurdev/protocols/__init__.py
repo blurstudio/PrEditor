@@ -8,12 +8,10 @@
 #   :author     Blur Studio
 #   :date       01/12/15
 #
-
-
 from __future__ import print_function
-
-
 from __future__ import absolute_import
+
+
 class InvalidHandlerError(Exception):
     """ Returned to the pipe if a invalid request was provided """
 

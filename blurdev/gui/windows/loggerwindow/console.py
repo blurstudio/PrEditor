@@ -304,7 +304,7 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         findCount = (
             2 if self.toPlainText()[-len(self.prompt()):] == self.prompt() else 1
         )
-        for i in range(findCount):
+        for _ in range(findCount):
             self.find(self.prompt(), QTextDocument.FindBackward)
         # move to the end of the found line, select the rest of the text and remove it
         # preserving history if there is anything to remove.
@@ -804,8 +804,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     fileEnd = info.get("fileEnd")
                     lineNum = info.get("lineNum")
 
-                    isWorkbox = ('<WorkboxSelection>' in filename
-                        or '<WorkboxWidget>' in filename)
+                    isWorkbox = (
+                        '<WorkboxSelection>' in filename
+                        or '<WorkboxWidget>' in filename
+                    )
                     if isWorkbox:
                         split = filename.split(':')
                         workboxIdx = split[-1]

@@ -16,8 +16,6 @@ from blurdev.enum import enum
 
 ThumbnailHighlightMode = enum('Boxed', 'Text', 'Grayscale')
 
-# -------------------------------------------------------------------------------------------------------------
-
 
 class ThumbnailItem(QGraphicsRectItem):
     def __init__(self, filename):

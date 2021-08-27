@@ -2,9 +2,9 @@
 # 	\namespace	python.blurdev.gui.delegates.blurgriddelegate
 #
 #   \remarks    This module provides a simple way to draw grids for trees
-#               If you need to make complex editing controlled by a diffrent class you
-#               can use setDelegate. If you set delegate the delegate should impliment
-#               any of the folowing functions, they are optional.
+#               If you need to make complex editing controlled by a different class you
+#               can use setDelegate. If you set delegate the delegate should implement
+#               any of the following functions, they are optional.
 #
 # 					def createEditor( self, parent, option, index ):
 # 					def setEditorData( self, editor, index ):
@@ -105,9 +105,7 @@ class GridDelegate(QStyledItemDelegate):
         Returns:
             Qt.QtWidgets.QWidget: The editor widget to show or None.
 
-        See Also: This is a
-            :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate`
-            method.
+        See Also: This is a :py:meth:`.BlurTreeWidget.setDelegate` method.
         """
         self._editor = self.__call_delegate__('createEditor', parent, option, index)
 
@@ -178,12 +176,14 @@ class GridDelegate(QStyledItemDelegate):
         return self._identifier
 
     def identifierName(self, name):
-        """
-            \Remarks    Returns the name. If self._identifier is set it will return
-                        place the identifier before name and capitalize the first letter
-                        of name.
-            \param		name		<str>
-            \Return		<str>		"identifierName" || 'name'
+        """Returns the name. If self._identifier is set it will return place the
+        identifier before name and capitalize the first letter of name.
+
+        Args:
+            name (str):
+
+        Returns:
+            str: "identifierName" || 'name'
         """
         if self._identifier:
             name = self._identifier + name[0].upper() + name[1:]
@@ -226,9 +226,7 @@ class GridDelegate(QStyledItemDelegate):
 
     def setEditorData(self, editor, index):
         """
-        See Also: This is a
-            :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate`
-            method.
+        See Also: This is a :py:meth:`.BlurTreeWidget.setDelegate` method.
         """
         self.__call_delegate__('setEditorData', editor, index)
 
@@ -256,9 +254,7 @@ class GridDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor, model, index):
         """
-        See Also: This is a
-            :py:meth:`blurdev.gui.widgets.blurtreewidget.blurtreewidget.BlurTreeWidget.setDelegate`
-            method.
+        See Also: This is a :py:meth:`.BlurTreeWidget.setDelegate` method.
         """
         self.__call_delegate__('setModelData', editor, model, index)
         # We need to clear the reference to prevent crashes trying to clear the

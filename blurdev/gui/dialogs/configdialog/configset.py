@@ -20,8 +20,10 @@ from Qt.QtCore import QObject, Signal
 
 class ConfigSection(object):
     def __init__(
-        self, configSet, name, widgetClass, properties={}, group='Default', icon=''
+        self, configSet, name, widgetClass, properties=None, group='Default', icon=''
     ):
+        if properties is None:
+            properties = {}
         self._configSet = configSet
         self._name = name
         self._properties = dict(properties)
@@ -124,8 +126,10 @@ class ConfigSet(QObject):
                     configmod.registerSections(self)
 
     def registerSection(
-        self, name, widgetClass, properties={}, group='Default', icon=''
+        self, name, widgetClass, properties=None, group='Default', icon=''
     ):
+        if properties is None:
+            properties = {}
         section = ConfigSection(self, name, widgetClass, properties, group, icon)
         if not group:
             group = 'Default'

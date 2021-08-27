@@ -37,9 +37,10 @@ class AuthorConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers the classes in this module to the inputed configSet instance
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """Registers the classes in this module to the inputed configSet instance
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # create the properties

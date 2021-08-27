@@ -24,9 +24,10 @@ class CleanupThread(ActionThread):
         return self._filepath
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Checkin the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         client.cleanup(self._filepath)
         self.notify(

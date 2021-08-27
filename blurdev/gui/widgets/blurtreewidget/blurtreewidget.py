@@ -15,7 +15,7 @@
 #   :author     Blur Studio
 #   :date       03/05/11
 #
-#:Example view, the BlurTreeWidget is added in the UI file
+# :Example view, the BlurTreeWidget is added in the UI file
 #
 # from Qt.QtGui import QWidget
 #
@@ -413,7 +413,7 @@ class BlurTreeWidget(LockableTreeWidget):
             :Return		<int>
         """
         total = 0
-        for item in self.itemIterator():
+        for _ in self.itemIterator():
             total += 1
         return total
 
@@ -1023,7 +1023,7 @@ class BlurTreeWidget(LockableTreeWidget):
             )
             while itr.isValid():
                 height += self.rowHeight(itr.current())
-                itr.next()
+                next(itr)
 
         # Include the header height
         height += header.height()

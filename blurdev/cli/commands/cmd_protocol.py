@@ -31,7 +31,6 @@
 """
 
 from __future__ import print_function
-
 from __future__ import absolute_import
 import os
 import click
@@ -46,6 +45,7 @@ except ImportError:
     import urlparse as parse
 
 from blurdev.protocols import BaseProtocolHandler
+from future.utils import iteritems
 
 
 @click.command()
@@ -87,7 +87,7 @@ def parseURL(url):
     # The old parseURL code only returned lists of values if a key was used more than
     # once
     query = {}
-    for key, value in parse.parse_qs(parsed.query).iteritems():
+    for key, value in iteritems(parse.parse_qs(parsed.query)):
         if len(value) == 1:
             query[key] = value[0]
         else:
@@ -160,7 +160,7 @@ def _test():
         ),
     }
 
-    for url, answer in tests.iteritems():
+    for url, answer in iteritems(tests):
         try:
             assert parseURL(url) == answer
         except Exception:

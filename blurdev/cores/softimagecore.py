@@ -9,12 +9,12 @@ import win32gui
 import win32com.client
 from win32com.client import constants
 
-xsi = win32com.client.Dispatch('XSI.Application').Application
-
 from blurdev.cores.core import Core
 import blurdev
 import blurdev.tools.toolsenvironment
 import blurdev.tools.tool
+
+xsi = win32com.client.Dispatch('XSI.Application').Application
 
 SOFTIMAGE_MACRO_TEMPLATE = """
 import win32com.client
@@ -79,9 +79,9 @@ class SoftimageCore(Core):
     def init(self):
         # BlurApplication is used to connect QApplication to Softimage
         if blurdev.osystem.getPointerSize() == 64:
-            plugin = blurdev.resourcePath('softimage\BlurApplication64.dll')
+            plugin = blurdev.resourcePath(r'softimage\BlurApplication64.dll')
         else:
-            plugin = blurdev.resourcePath('softimage\BlurApplication.dll')
+            plugin = blurdev.resourcePath(r'softimage\BlurApplication.dll')
         xsi.loadPlugin(plugin)
         # connect the plugin to Softimage
         self.connectPlugin(xsi.GetPluginInstance(), xsi.GetWindowHandle())

@@ -313,7 +313,7 @@ def toSystemPath(path, os_type=OS_TYPE):
 
     Returns:
         All replacements in `pathReplacements` applied to path, with `os.path.normpath`
-        called on it for Windows. For Linux all `\` are converted to forward slashes.
+        called on it for Windows. For Linux all `\\` are converted to forward slashes.
     """
     replacements = pathReplacements()
     if os_type == 'Windows':

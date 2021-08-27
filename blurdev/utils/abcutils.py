@@ -11,7 +11,7 @@ import logging
 
 # set the exocortex license server env var
 os.environ["EXOCORTEX_LICENSE"] = "5053@mandarin004"
-import _ExocortexAlembicPython as Alembic
+import _ExocortexAlembicPython as Alembic  # noqa: E402
 
 
 def copyArchive(src, dst):

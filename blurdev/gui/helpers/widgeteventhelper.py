@@ -36,19 +36,23 @@ class WidgetEventHelper(QObject):
         widget.installEventFilter(self)
 
     def eventConnect(self, eventType, slot):
-        """
-            \remarks	Connects a specific event type to run the inputed slot function
-            \param		eventType	<QEvent.Type>
-            \param		slot		<function> || <method>
+        """Connects a specific event type to run the inputed slot function
+
+        Args:
+            eventType (QEvent.Type):
+            slot (function):
         """
         self._connections[int(eventType)] = slot
 
     def eventFilter(self, object, event):
-        """
-            \remarks	overloaded the event filter for this item
-            \param		object	<QObject>
-            \param		event	<QEvent>
-            \return		<bool> accept
+        """Overloaded the event filter for this item
+
+        Args:
+            object (QObject):
+            event (QEvent):
+
+        Returns:
+            bool: accept
         """
 
         # run the slot for the event type
@@ -60,7 +64,7 @@ class WidgetEventHelper(QObject):
         # if the event did not tell this to eat the event, then continue
         return QObject.eventFilter(self, object, event)
 
-    def handleDragEnterEvent(widget, event):  # noqa: N805
+    def handleDragEnterEvent(widget, event):  # noqa: N805,B902
         """ bound method to handle the drag enter event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """
@@ -73,7 +77,7 @@ class WidgetEventHelper(QObject):
         # otherwise, filter this object properly
         widget.__class__.dragEnterEvent(widget, event)
 
-    def handleDragMoveEvent(widget, event):  # noqa: N805
+    def handleDragMoveEvent(widget, event):  # noqa: N805,B902
         """ bound method to handle the drag move event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """
@@ -86,7 +90,7 @@ class WidgetEventHelper(QObject):
         # otherwise, filter this object properly
         widget.__class__.dragMoveEvent(widget, event)
 
-    def handleDropEvent(widget, event):  # noqa: N805
+    def handleDropEvent(widget, event):  # noqa: N805,B902
         """ bound method to handle the drop event for the widget
         See :py:meth:`blurdev.bindMethod`.
         """

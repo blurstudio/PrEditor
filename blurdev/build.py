@@ -9,8 +9,9 @@
 #
 
 from __future__ import print_function
-
 from __future__ import absolute_import
+
+
 if __name__ == '__main__':
     import sys
 
@@ -78,7 +79,7 @@ if __name__ == '__main__':
 
     if dictionary['offline'] == '1':
         f.write(
-            '!define OUTPUT_FILENAME "bin\offline\${MUI_PRODUCT}'
+            '!define OUTPUT_FILENAME "bin\\offline\\${MUI_PRODUCT}'
             '-install-${INSTALL_VERSION}.${MUI_SVNREV}-offline.exe"\n'
         )
         # When Building a offline build of blurdev, update the dummy records that are
@@ -189,7 +190,7 @@ if __name__ == '__main__':
 
     else:
         f.write((
-            '!define OUTPUT_FILENAME "bin\${MUI_PRODUCT}'
+            '!define OUTPUT_FILENAME "bin\\${MUI_PRODUCT}'
             '-install-${INSTALL_VERSION}.${MUI_SVNREV}.exe"\n'
         ))
 
@@ -220,7 +221,7 @@ if __name__ == '__main__':
 
     import re
 
-    results = re.search('!define MUI_SVNREV "(\d+)"', lines)
+    results = re.search('!define MUI_SVNREV "(\\d+)"', lines)
 
     if results:
 

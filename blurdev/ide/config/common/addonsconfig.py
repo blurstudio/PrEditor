@@ -78,9 +78,10 @@ class AddonsConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """Registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section

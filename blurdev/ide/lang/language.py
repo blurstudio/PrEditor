@@ -226,7 +226,7 @@ class Language(object):
 
         for option in options:
             expr = parser.get('DESCRIPTORS', option)
-            option = re.match('([^\d]*)\d*', option).groups()[0]
+            option = re.match(r'([^\d]*)\d*', option).groups()[0]
             plugin._descriptors.append(MethodDescriptor(option, expr))
 
         # load the different color map options

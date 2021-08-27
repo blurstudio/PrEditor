@@ -100,9 +100,8 @@ class LogThread(QThread):
 
 
 class ActionThread(QThread):
-    """
-        \remarks	this base class is to be used with the SvnActionDialog
-                    to manage various SVN actions that will need to occur
+    """This base class is to be used with the SvnActionDialog to manage various
+    SVN actions that will need to occur
     """
 
     updated = Signal(str, str, str, int)
@@ -114,23 +113,23 @@ class ActionThread(QThread):
         self._title = 'Action'
 
     def connectClient(self, client):
-        """
-            \remarks	connects the callbacks for the client for this thread
-                        can be sub-classed for custom callbacks
+        """Connects the callbacks for the client for this thread can be sub-classed
+        for custom callbacks
         """
         client.callback_notify = self.notify
         client.callback_get_login = svn.login
 
     def notify(self, event_dict):
-        """
-            \remarks	triggers the updated event based on the inputed event dictionary
-            \param		event_dict		<dict> { <str> key, <str> value }
-                        should contain:
-                            'action'		<str>
-                            'path'			<str>
-                            'mime_type'		<str> || None 		(optional)
-                            'revision'		<pysvn.Revision>	(optional)
-                            'error' 		<str> 				(optional)
+        """Triggers the updated event based on the inputed event dictionary
+
+        Args:
+            event_dict (dict):
+                should contain:
+                    'action'		<str>
+                    'path'			<str>
+                    'mime_type'		<str> || None 		(optional)
+                    'revision'		<pysvn.Revision>	(optional)
+                    'error' 		<str> 				(optional)
         """
         # look for errors
         if event_dict.get('error'):
@@ -162,10 +161,9 @@ class ActionThread(QThread):
         self._title = title
 
     def run(self):
-        """
-            \remarks    main method for the thread.  this will create the client,
-                        connect the required callbacks, and then call the runAction
-                        method that should be defined in subclasses
+        """Main method for the thread.  this will create the client, connect the
+        required callbacks, and then call the runAction method that should be defined
+        in subclasses.
         """
         # create the callbacks
         client = pysvn.Client()
@@ -173,8 +171,8 @@ class ActionThread(QThread):
 
         try:
             self.runClient(client)
-        except pysvn.ClientError as e:
-            self.notify({'error': str(e.message)})
+        except pysvn.ClientError as error:
+            self.notify({'error': str(error)})
         except Exception:
             self.notify(
                 {'error': 'Unknown python error occurred.\n' + traceback.format_exc()}
@@ -185,9 +183,10 @@ class ActionThread(QThread):
 
     @abstractmethod
     def runClient(self, client):
-        """
-            \remarks	method to apply the action for this thread to the client
-            \param		client	<pysvn.Client>
+        """Method to apply the action for this thread to the client
+
+        Args:
+            client (pysvn.Client):
         """
         self.notify(
             {'error': 'The ActionThread.runClient method is not defined properly.'}

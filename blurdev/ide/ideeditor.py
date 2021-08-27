@@ -504,11 +504,11 @@ class IdeEditor(Window):
                 break
 
     def documentCloseAllExcept(self, current=None):
-        """
-            \Remarks    Closes all open subWindows except the current window or the
-                        passed in window. If no window is passed in it will take the
-                        current window.
-            \param		current		<Qt.QtGui.QMdiSubWindow> || None
+        """Closes all open subWindows except the current window or the passed in window.
+        If no window is passed in it will take the current window.
+
+        Args:
+            current (Qt.QtGui.QMdiSubWindow):
         """
         if not current:
             current = self.uiWindowsAREA.activeSubWindow()
@@ -837,14 +837,16 @@ class IdeEditor(Window):
                     self.setCurrentProject(IdeProject.fromTool(tool))
 
     def duplicateAction(self, menu, source, trigger=None):
-        """
-            \remarks    Creates a new action with the same name and icon and adds it to
-                        the provided menu. Optionaly connect triggered to the new
-                        action.
-            \param		menu	<QMenu>
-            \param		source	<QAction>
-            \param		trigger	<function> || <None>
-            \return		<QAction>
+        """Creates a new action with the same name and icon and adds it to the provided
+        menu. Optionally connect triggered to the new action.
+
+        Args:
+            menu (QMenu):
+            source (QAction):
+            trigger (function, optional):
+
+        Returns:
+            QAction:
         """
         act = menu.addAction(source.text())
         act.setIcon(source.icon())
@@ -964,10 +966,11 @@ class IdeEditor(Window):
         osystem.console(filename)
 
     def lastSavedFilename(self):
-        """
-            :remarks    Returns the filename of the last save. This is used to provide
-                        the default directory for file open and save dialogs.
-            :return		<str>
+        """Returns the filename of the last save. This is used to provide the default
+        directory for file open and save dialogs.
+
+        Returns:
+            str:
         """
         return self._lastSavedFilename
 
@@ -1137,10 +1140,10 @@ class IdeEditor(Window):
                 return True
 
     def openFileMonitor(self):
-        """
-            \Remarks    Returns the file system monitor so documents can connect to it,
-                        or none
-            \Return 	<QFileSystemWatcher>||<None>
+        """Returns the file system monitor so documents can connect to it, or none
+
+        Returns:
+            QFileSystemWatcher: May return None
         """
         return self._openFileMonitor
 
@@ -1961,7 +1964,7 @@ class IdeEditor(Window):
             environ['BDEV_AUTHOR_INITIALS'] = str(author.value('initials'))
 
         # set the environment
-        os.environ = environ
+        os.environ = environ  # noqa: B003
 
     def toggleLineWrap(self):
         doc = self.currentDocument()
@@ -2204,10 +2207,10 @@ class IdeEditor(Window):
 
     @staticmethod
     def instanceShutdown():
-        """
-            \remarks    Faster way to shutdown the instance of IdeEditor if it possibly
-                        was not used. Returns if shutdown was required.
-            \return		<bool>
+        """Faster way to shutdown the instance of IdeEditor if it possibly was not used.
+
+        Returns:
+            bool: if shutdown was required.
         """
         instance = IdeEditor._instance
         if instance:

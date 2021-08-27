@@ -68,9 +68,7 @@ class SchemeConfig(ConfigSectionWidget):
             item.setColor(color)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         section = self.section()
 
         # record application settings
@@ -160,9 +158,10 @@ class SchemeConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section

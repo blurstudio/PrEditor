@@ -734,7 +734,7 @@ class ToolsIndex(QObject):
         self.load()
 
         if letter == '#':
-            regex = re.compile('\d')
+            regex = re.compile(r'\d')
         else:
             regex = re.compile('[%s%s]' % (str(letter.upper()), str(letter.lower())))
 

@@ -32,31 +32,19 @@ class ShortcutsConfig(ConfigSectionWidget):
         self.setLayout(layout)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         self.section()
-
-        # record section values
-
-    # 		section.setValue( 'param',  str(self.uiParamTXT.text()) )
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refrshes the ui with the latest data settings"""
         self.section()
-
-        # restore section values
-
-
-# 		self.uiParamTXT.setText(section.value('param'))
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section
@@ -64,9 +52,7 @@ def registerSections(configSet):
     section = 'Shortcuts'
     icon = blurdev.relativePath(__file__, 'img/shortcutsconfig.png')
     cls = ShortcutsConfig
-    params = {
-        # 		'param': 'test',
-    }
+    params = {}
 
     # register the section to the configset
     configSet.registerSection(section, cls, params, group=group, icon=icon)

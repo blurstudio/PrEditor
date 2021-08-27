@@ -7,15 +7,18 @@
 # 	\author		Blur Studio
 # 	\date		03/21/11
 #
-
-
 from __future__ import absolute_import
+
+
 def packageFiles(files, outputfile):
-    """
-        \remarks	packages the inputed files to the output file location
-        \param		files		<list> [ <str> filename, .. ]
-        \param		outputfile	<str>
-        \return		<bool> success
+    """Packages the inputed files to the output file location
+
+    Args:
+        files (list): [ <str> filename, .. ]
+        outputfile (str):
+
+    Returns:
+        bool: success
     """
     if not files:
         return False
@@ -44,12 +47,14 @@ def packageFiles(files, outputfile):
 
 
 def packagePath(path, outputfile):
-    """
-        \remarks    packages all the information at the inputed path to the output file
-        location
-        \param		path		<str>
-        \param		outputfile	<str>
-        \return		<bool> success
+    """Packages all the information at the inputed path to the output file location
+
+    Args:
+        path (str):
+        outputfile (str):
+
+    Returns:
+        bool: success
     """
     from blurdev import debug
     import os

@@ -132,7 +132,7 @@ class EnumWidget(QWidget):
     @enumTypeList.setter
     def enumTypeList(self, values):
         enumType = EnumWidgetEnum.copy(self._enumTypeListName)
-        for i, name in enumerate(values):
+        for name in values:
             setattr(enumType, name, Enum())
         enumType.__init_enums__()
         self.setEnumType(enumType)

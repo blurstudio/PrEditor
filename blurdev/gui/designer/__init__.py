@@ -10,8 +10,14 @@
 #
 
 from __future__ import print_function
-
 from __future__ import absolute_import
+import blurdev
+from blurdev import osystem
+import glob
+import os
+import sys
+
+
 plugindef = """##
 #   \\namespace blurdev.gui.designer.%(class)s
 #
@@ -23,6 +29,7 @@ plugindef = """##
 #
 
 from Qt.QtDesigner import QPyDesignerCustomWidgetPlugin
+import blurdev.gui.designer
 
 
 class %(class)sPlugin(QPyDesignerCustomWidgetPlugin):
@@ -41,7 +48,7 @@ class %(class)sPlugin(QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        from %(module)s import %(class)s  # noqa: E501
+        from %(module)s import %(class)s  # noqa: E501,B950
         return %(class)s(parent=parent)
 
     def name(self):
@@ -69,32 +76,23 @@ class %(class)sPlugin(QPyDesignerCustomWidgetPlugin):
     def domXml(self):
         # Allow the class to specify its own xml. This is useful for containers that
         # subclass from other subclassed containers.
-        from %(module)s import %(class)s  # noqa: E501
+        from %(module)s import %(class)s  # noqa: E501,B950
         if hasattr(%(class)s, '_qDesignerDomXML'):
             return %(class)s._qDesignerDomXML()
         xml = []
-        xml.append('<widget class="%(class)s" name="%(class)s"/>')  # noqa: E501
+        xml.append('<widget class="%(class)s" name="%(class)s"/>')  # noqa: E501,B950
         return '\\n'.join(xml)
 
 
-import blurdev.gui.designer
 blurdev.gui.designer.register(
     '%(class)sPlugin',
     %(class)sPlugin
 )
 """
 
-import glob
-import os
-import sys
-
-from blurdev import osystem
-
 
 def init():
     # load the installed modules
-    import blurdev
-
     loadPlugins(blurdev.resourcePath("designer_plugins.xml"))
 
     # load the user modules

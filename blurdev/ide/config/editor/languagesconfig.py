@@ -83,15 +83,11 @@ class LanguagesConfig(ConfigSectionWidget):
         IdeLanguageDialog.edit(item.language(), self)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """Records the latest ui settings to the data"""
         self.section()
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refreshes the ui with the latest data settings"""
         self.section()
 
         self.uiLanguageTREE.clear()
@@ -130,9 +126,10 @@ class LanguagesConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section

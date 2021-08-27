@@ -343,8 +343,12 @@ class IdeProjectItem(QTreeWidgetItem):
 
     @staticmethod
     def createFolderItem(
-        folder, iconprovider=None, fileTypes=[], exclude=[], overlayFinder=None
+        folder, iconprovider=None, fileTypes=None, exclude=None, overlayFinder=None
     ):
+        if fileTypes is None:
+            fileTypes = []
+        if exclude is None:
+            exclude = []
 
         if not iconprovider:
             iconprovider = QFileIconProvider()
@@ -457,7 +461,7 @@ class IdeProject(IdeProjectItem):
 
         # restore the system variables
         if self._origEnv is not None:
-            os.environ = self._origEnv
+            os.environ = self._origEnv  # noqa: B003
         if self._origSys is not None:
             sys.path = self._origSys
 

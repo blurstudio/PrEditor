@@ -15,7 +15,8 @@ To install the dll on a system call "regsvr32 dsofile.dll" from cmd.exe
 in the folder of the dll's I renamed the 64bit dll to dsofile64.dll
 
 Max documentation for editing dso properties:
-    http://docs.autodesk.com/3DSMAX/16/ENU/MAXScript-Help/index.html?url=files/GUID-A8663B8E-7E30-474E-B3DB-E21585F125B1.htm,topicNumber=d30e705809
+    http://docs.autodesk.com/3DSMAX/16/ENU/MAXScript-Help/index.html?url=files/
+    GUID-A8663B8E-7E30-474E-B3DB-E21585F125B1.htm,topicNumber=d30e705809
 
 """
 

@@ -97,20 +97,19 @@ class ConfigDialog(Dialog):
         return success
 
     def configData(self, key, default=None):
-        """
-            \remarks	returns the custom value for the inputed key based on the
-                        current config set
-            \param		key			<str>
-            \param		default		<variant>
+        """Returns the custom value for the inputed key based on the current config set
 
-            \return		<variant>
+        Args:
+            key (str):
+            default (variant):
         """
         return self._configSet.customData(key, default)
 
     def setConfigSet(self, configSet):
-        """
-            \remarks	sets the config set that should be edited
-            \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
+        """Sets the config set that should be edited
+
+        Args:
+            configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
         """
 
         self._configSet = configSet
@@ -210,19 +209,19 @@ class ConfigDialog(Dialog):
         return False
 
     def setConfigData(self, key, value):
-        """
-            \remarks	sets the custom data on the config set to the inputed value
+        """Sets the custom data on the config set to the inputed value
 
-            \param		key		<str>
-            \param		value	<variant>
+        Args:
+            key (str):
+            value (variant):
         """
         return self._configSet.setCustomData(key, value)
 
     def setCurrentSection(self, section):
-        """
-            \remarks	sets the current section based on the inputed section id
+        """Sets the current section based on the inputed section id
 
-            \param		section 	<str>
+        Args:
+            section (str):
         """
         found = False
         for i in range(self.uiPluginsTREE.topLevelItemCount()):
@@ -238,9 +237,10 @@ class ConfigDialog(Dialog):
 
     @staticmethod
     def edit(configSet, parent=None, defaultSection=''):
-        """
-            \remarks 	creates a modal config dialog using the specified plugins
-            \param		configSet	<blurdev.gui.dialogs.configdialog.ConfigSet>
+        """Creates a modal config dialog using the specified plugins
+
+        Args:
+            configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
         """
         dialog = ConfigDialog(parent)
         dialog.setConfigSet(configSet)

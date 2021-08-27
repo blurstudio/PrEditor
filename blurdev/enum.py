@@ -275,7 +275,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
         name = '{0}_{1}'.format(str(self), str(other))
 
         class CompositeEnum(Enum):
-            def __init__(ss, number, lbl, name):  # noqa: N805
+            def __init__(ss, number, lbl, name):  # noqa: N805,B902
                 super(CompositeEnum, ss).__init__(number, lbl)
                 ss._name = name
 
@@ -459,7 +459,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
             raise ValueError('Enums given as ordered arguments must have a label.')
         for e in args:
             setattr(cls, cls._labelToVarName(e.label), e)
-        for n, e in kwargs.iteritems():
+        for n, e in iteritems(kwargs):
             setattr(cls, n, e)
         # reset All and Nothing -- this is necessary so that All is regenerated
         # and so that Nothing is not included when finding the member Enums.

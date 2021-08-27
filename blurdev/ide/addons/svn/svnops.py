@@ -18,9 +18,10 @@ from Qt.QtWidgets import QInputDialog, QLineEdit, QMessageBox
 
 
 def add(filepath):
-    """
-        \remarks	adds the filepath using the SvnAddDialog gui
-        \param		filepath	<str>
+    """Adds the filepath using the SvnAddDialog gui
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
 
@@ -62,10 +63,13 @@ def branch(filepath):
 
 
 def browse(filepath='', url=''):
-    """
-        \remarks	allows the user to browse the repository
-        \param		url		<str>	url to start from
-        \return		<str>		(will be blank if the user does not complete selection)
+    """Allows the user to browse the repository
+
+    Args:
+        url (str) url to start from
+
+    Returns:
+        str: will be blank if the user does not complete selection
     """
     if filepath:
         url = findUrl(filepath)
@@ -76,10 +80,11 @@ def browse(filepath='', url=''):
 
 
 def checkout(filepath):
-    """
-        \remarks	checkout a repository to the inputed filepath directory using
-                    the SvnCheckoutDialog gui
-        \param		filepath	<str>
+    """Checkout a repository to the inputed filepath directory using the
+    SvnCheckoutDialog gui
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
 
@@ -89,10 +94,11 @@ def checkout(filepath):
 
 
 def cleanup(filepath):
-    """
-        \remarks	cleans the filepath at the inputed location using the SvnActionDialog
-                    interface to display feedback
-        \param		filepath	<str>
+    """Cleans the filepath at the inputed location using the SvnActionDialog
+    interface to display feedback
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
 
@@ -109,13 +115,15 @@ def cleanup(filepath):
 
 
 def createFolder(url, folderName=''):
-    """
-        \remarks	creates a new folder at the given url with the inputed folder name
-                    if a blank folder name is supplied, the user will be prompted to
-                    enter one
-        \param		url				<str>
-        \param		folderName		<str>
-        \return		<bool> success
+    """Creates a new folder at the given url with the inputed folder name if a blank
+    folder name is supplied, the user will be prompted to enter one
+
+    Args:
+        url (str):
+        folderName (str):
+
+    Returns:
+        bool: success
     """
     if not folderName:
         folderName, accepted = QInputDialog.getText(
@@ -136,9 +144,10 @@ def createFolder(url, folderName=''):
 
 
 def commit(filepath):
-    """
-        \remarks	commits the filepath using the SvnCommitDialog gui
-        \param		filepath	<str>
+    """Commits the filepath using the SvnCommitDialog gui
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
     from .svncommitdialog import SvnCommitDialog
@@ -147,12 +156,15 @@ def commit(filepath):
 
 
 def compare(filepath, old=None, new=None):
-    """
-        \remarks	prompts the user for changes to compare given the inputed filepath
-        \param		filepath	<str>
-        \param      old         <int> || None   <old revision>
-        \param      new         <int> || None   <new revision>
-        \return		<bool> accepted
+    """Prompts the user for changes to compare given the inputed filepath
+
+    Args:
+        filepath (str):
+        old (int, optional): old revision
+        new (int, optional): new revision
+
+    Returns:
+        bool: accepted
     """
     if old is None:
         revision = 'HEAD'
@@ -182,10 +194,13 @@ def getRevisions(url):
 
 
 def getUrl(url=''):
-    """
-        \remarks	prompts the user to select a url from the svn repository
-        \param		url		<str>	url to start from
-        \return		<str>		(will be blank if the user does not complete selection)
+    """Prompts the user to select a url from the svn repository
+
+    Args:
+        url (str): url to start from
+
+    Returns:
+        str: will be blank if the user does not complete selection
     """
     from .svnrepobrowserdialog import SvnRepoBrowserDialog
 
@@ -199,10 +214,13 @@ def merge(filepath):
 
 
 def findUrl(filepath):
-    """
-        \remarks	returns the url for the inputed filepath
-        \param		filepath	<str>
-        \return		<str> url || <str> ''
+    """Returns the url for the inputed filepath
+
+    Args:
+        filepath: str
+
+    Returns:
+        str: url
     """
     client = pysvn.Client()
 
@@ -219,10 +237,13 @@ def findUrl(filepath):
 
 
 def rename(basepath):
-    """
-        \remarks	prompts the user for a new name for the inputed base path
-        \param		basepath	<str>
-        \return		<str>		new path
+    """Prompts the user for a new name for the inputed base path
+
+    Args:
+        basepath (str):
+
+    Returns:
+        str: new path
     """
     ide = blurdev.core.rootWindow()
     basepath = str(basepath)
@@ -248,10 +269,13 @@ def rename(basepath):
 
 
 def remove(filepath):
-    """
-        \remarks	removes the inptued filepath from svn
-        \param		filepath
-        \return		<bool> success
+    """Removes the inptued filepath from svn
+
+    Args:
+        filepath:
+
+    Returns:
+        bool: success
     """
     if (
         QMessageBox.question(
@@ -271,10 +295,10 @@ def remove(filepath):
 
 
 def revert(filepath):
-    """
-        \remarks	prompts the user to revert changes using the SvnRevertDialog
-                    interface
-        \param		filepath	<str>
+    """Prompts the user to revert changes using the SvnRevertDialog interface
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
     # promp the user to select non-versioned files
@@ -313,10 +337,11 @@ def showLog(filepath):
 
 
 def update(filepath):
-    """
-        \remarks	updates the filepath at the inputed location using the SvnActionDialog
-                    interface to display feedback
-        \param		filepath	<str>
+    """Updates the filepath at the inputed location using the SvnActionDialog
+    interface to display feedback
+
+    Args:
+        filepath (str):
     """
     ide = blurdev.core.rootWindow()
 

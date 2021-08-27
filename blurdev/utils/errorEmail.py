@@ -1,5 +1,4 @@
 ''' Install the blur error handler '''
-# pylint:disable=no-member,wrong-import-order,ungrouped-imports,too-many-branches,too-many-nested-blocks,too-many-locals,too-many-arguments
 from __future__ import print_function
 
 from __future__ import absolute_import

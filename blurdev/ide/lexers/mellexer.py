@@ -322,7 +322,7 @@ class MelLexer(QsciLexerCPP):
     # Items in this list will be highlighted using the color for self.GlobalClass
     _highlightedKeywords = ''
     # Mel uses $varName for variables, so we have to allow them in words
-    selectionValidator = re.compile('[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%"\\~&{}|=<>\']')
+    selectionValidator = re.compile(r'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%"\\~&{}|=<>\']')
     wordCharactersOverride = (
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_$'
     )

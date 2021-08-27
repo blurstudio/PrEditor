@@ -99,17 +99,14 @@ class CodeHighlighter(QSyntaxHighlighter):
                 self.highlightText(text, QRegExp(comment), format)
 
     def highlightText(self, text, expr, format, offset=0, includeLast=False):
-        """
-            \remarks	Highlights a text group with an expression and format
+        """Highlights a text group with an expression and format
 
-            \param	text <str> text to highlight
-            \param	expr <QRegExp> search parameter
-            \param	format <QTextCharFormat> formatting rule
-            \param	offset <int> number of characters to offset by when highlighting
-            \param  includeLast <bool> whether or not the last character should be
-                highlighted
-
-            \return		<void>
+        Args:
+            text (str): text to highlight
+            expr (QRegExp): search parameter
+            format (QTextCharFormat): formatting rule
+            offset (int): number of characters to offset by when highlighting
+            includeLast (bool): whether or not the last character should be highlighted
         """
         pos = expr.indexIn(text, 0)
 

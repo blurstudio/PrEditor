@@ -209,7 +209,7 @@ class PythonCompleter(QCompleter):
 
         while -1 < pos:
             char = block[pos]
-            if not re.match("^[a-zA-Z0-9_\.\(\)'\"]$", char):
+            if not re.match(r"^[a-zA-Z0-9_\.\(\)'\"]$", char):
                 break
             word = char + word
             pos -= 1

@@ -80,7 +80,7 @@ def monitorForCrash(pid, conn):
                 os.remove(tempFile)
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print('[monitorForCrash] File already deleted', e.message, tempFile)
+                    print('[monitorForCrash] File already deleted', str(e), tempFile)
     except Exception:
         traceback.print_exc()
         time.sleep(20)
@@ -288,12 +288,12 @@ class TempFilesContext(object):
             try:
                 os.close(tempFile[0])
             except OSError as e:
-                print('Problem closing tempfile', e, e.message)
+                print('Problem closing tempfile', e, str(e))
             try:
                 os.remove(tempFile[1])
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print('File already deleted {}'.format(e.message))
+                    print('File already deleted {}'.format(e))
         self._tempFiles = {}
         if self.crashMonitor:
             # Tell the crashMonitor that the temp files have been deleted and it can

@@ -21,14 +21,14 @@
 # 	print('before')
 # 	QtCore.pyqtRemoveInputHook()
 # 	mypdb.set_trace()
-##	QtCore.pyqtRestoreInputHook()
+# 	QtCore.pyqtRestoreInputHook()
 # 	print('after')
 
 
 from __future__ import print_function
-
-
 from __future__ import absolute_import
+
+
 def stuff():
     for i in range(100):
         print(i)

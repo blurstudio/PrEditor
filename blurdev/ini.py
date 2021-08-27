@@ -10,6 +10,10 @@ from __future__ import absolute_import
 from future.utils import iteritems
 from builtins import str as text
 from imp import reload
+import sys
+import os
+from contextlib import contextmanager
+import copy
 import six
 
 _configParserKwargs = dict()
@@ -25,11 +29,6 @@ try:
     _configParserKwargs = dict(strict=False, interpolation=None)
 except Exception:
     import ConfigParser as configparser  # noqa: N813
-
-import sys
-import os
-from contextlib import contextmanager
-import copy
 
 
 configFile = os.getenv(
@@ -560,9 +559,11 @@ def GetEnvironment(environmentID):
     return None
 
 
-def GetEnvironmentIDs(verifyPathIDsExist=[]):
+def GetEnvironmentIDs(verifyPathIDsExist=None):
     """Returns all available environment IDs from the global environments dictionary
     """
+    if verifyPathIDsExist is None:
+        verifyPathIDsExist = []
     outEnvironmentIDs = []
     for tEnvironment in environments.values():
         if tEnvironment.GetName() != 'DEFAULT':
@@ -634,11 +635,13 @@ def GetPaths(inEnvironment='', inPathSeparator='/'):
     return outPaths
 
 
-def IsEnvironmentValid(environmentID='', verifyPathIDsExist=[]):
+def IsEnvironmentValid(environmentID='', verifyPathIDsExist=None):
     """ Checks to see if the given environment exists by checking the paths associated
         with it, if the pathIDs array is blank, then all the paths are checked,
         otherwise only those specified are checked.
     """
+    if verifyPathIDsExist is None:
+        verifyPathIDsExist = []
     if not environmentID:
         environmentID = activeEnvironment
 
@@ -737,10 +740,12 @@ def RestoreConfig(fileName, msg=None):
     return False
 
 
-def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys={}):
+def RemovePathTemplates(inPath, inEnvironment='', inCustomKeys=None):
     """ Removes templates from the inputed path - this way paths can be built using
         symbolic links
     """
+    if inCustomKeys is None:
+        inCustomKeys = {}
     tSplit = inPath.replace('[', ']').split(']')
     outName = ''
     for tPart in tSplit:
@@ -774,7 +779,7 @@ def SetActiveEnvironment(inEnvironment):
 def ReloadAllModules():
     """ Reloads all modules in memory
     """
-    for module in sys.modules.itervalues():
+    for module in sys.modules.values():
         if (module is not None) and module.__name__.find("blur") != -1:
             try:
                 if module.__name__ not in ["blurdev.ini"]:

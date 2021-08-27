@@ -24,9 +24,10 @@ class AddThread(ActionThread):
         return self._filepaths
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Checkin the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         for path in self._filepaths:
             client.add(path)

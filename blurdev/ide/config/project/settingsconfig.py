@@ -239,9 +239,7 @@ class SettingsConfig(ConfigSectionWidget):
             self.uiCommandTREE.setCurrentItem(item)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         path = str(self.uiProjectPATH.filePath())
         name = str(self.uiProjectNameTXT.text())
 
@@ -364,9 +362,10 @@ class SettingsConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section
@@ -374,9 +373,7 @@ def registerSections(configSet):
     section = 'Settings'
     icon = blurdev.relativePath(__file__, 'img/settingsconfig.png')
     cls = SettingsConfig
-    params = {
-        # 		'param': 'test',
-    }
+    params = {}
 
     # register the section to the configset
     configSet.registerSection(section, cls, params, group=group, icon=icon)

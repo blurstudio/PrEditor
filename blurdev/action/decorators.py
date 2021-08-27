@@ -263,7 +263,8 @@ class argproperty(object):  # noqa: N801
         atype,
         name=None,
         allowNone=False,
-        default=_ArgNoDefault(),
+        # TODO: figure out how to resolve the B008 error on _ArgNoDefault
+        default=_ArgNoDefault(),  # noqa: B008
         valid=None,
         settable=True,
         defaultInstance=False,

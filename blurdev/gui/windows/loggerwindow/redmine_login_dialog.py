@@ -28,7 +28,7 @@ class RedmineLoginDialog(QDialog):
             )
             # Forces the connection and potential AuthError.
             users = self._redmine.user.all().values_list()
-            users.next()
+            next(users)
             return super(RedmineLoginDialog, self).accept()
         except AuthError:
             self.uiPromptLabel.setStyleSheet("QLabel {color : red;}")

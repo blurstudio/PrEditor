@@ -41,7 +41,7 @@ import inspect
 
 from collections import OrderedDict
 from contextlib import contextmanager
-from future.utils import with_metaclass
+from future.utils import with_metaclass, itervalues
 
 import blurdev
 import blurdev.debug
@@ -466,7 +466,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
         if self._children:
             msg = tabbing + '------------------------------------------'
             output.append(msg)
-            for key, child in self._children.iteritems():
+            for child in itervalues(self._children):
                 output.append(child.format_lap(depth + 1, self))
 
         return '\n'.join(output)
@@ -836,7 +836,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
             end = self._now()
 
         # End children
-        for key, child in self._running_children.iteritems():
+        for child in itervalues(self._running_children):
             if child.running():
                 child.stop(end)
         self._running_children = OrderedDict()

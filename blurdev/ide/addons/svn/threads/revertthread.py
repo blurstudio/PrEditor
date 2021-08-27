@@ -24,9 +24,10 @@ class RevertThread(ActionThread):
         return self._filepaths
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Check-in the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         for path in self._filepaths:
             client.revert(path)

@@ -40,9 +40,10 @@ class CopyThread(ActionThread):
         return self._revision
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Check-in the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         client.copy(self._source, self._target, self._revision)
         self.notify({'action': 'Completed', 'path': 'Copy has completed successfully.'})

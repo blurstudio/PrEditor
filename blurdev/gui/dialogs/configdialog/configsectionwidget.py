@@ -36,27 +36,30 @@ class ConfigSectionWidget(QWidget):
         self.refreshUi()
 
     def checkForSave(self):
-        """
-            \remarks	checks the widget to see if the data stored is invalid
-            \return     <bool>  if the data is successfully saved or ready to otherwise
-            close/update
+        """Checks the widget to see if the data stored is invalid
+
+        Returns:
+            bool: if the data is successfully saved or ready to otherwise close/update
         """
         return True
 
     def commit(self):
-        """
-            \remarks	saves the current config values to the system
-                        this method will be called by the config dialog's Save/Save &
-                        Exit buttons
-            \return		<bool> 	should return True if the commit was successful
+        """Saves the current config values to the system this method will be called by
+        the config dialog's Save/Save & Exit buttons
+
+        Returns:
+            bool: should return True if the commit was successful
         """
         return True
 
     def configData(self, key, default=None):
-        """
-            \remarks    returns the data set on the main config window for the given key
-            \param      key     <str>
-            \return     <variant>
+        """Returns the data set on the main config window for the given key
+
+        Args:
+            key (str):
+
+        Returns:
+            variant:
         """
         return self.window().configData(key, default)
 
@@ -67,22 +70,19 @@ class ConfigSectionWidget(QWidget):
         pass
 
     def recordUi(self):
-        """
-            \remarks	records the ui to the current data
-        """
+        """Records the ui to the current data"""
         pass
 
     def refreshUi(self):
-        """
-            \remarks	refreshes the ui to match the latest data
-        """
+        """Refreshes the ui to match the latest data"""
         pass
 
     def reset(self):
-        """
-            \remarks	resets the config values to their default
-                        this method will be called by the config dialog's Reset button
-            \return		<bool> 	should return True if the reset was successful
+        """Resets the config values to their default this method will be called by the
+        config dialog's Reset button
+
+        Returns:
+            bool: should return True if the reset was successful
         """
         self._section._properties = copy.deepcopy(self._defaults)
         self.refreshUi()
@@ -91,9 +91,10 @@ class ConfigSectionWidget(QWidget):
         return self._section
 
     def setConfigData(self, key, value):
-        """
-            \remarks	sets the global data for the given key to the inputed value
-            \param		key
-            \param		value
+        """Sets the global data for the given key to the inputed value
+
+        Args:
+            key:
+            value:
         """
         self.window().setConfigData(key, value)

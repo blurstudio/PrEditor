@@ -311,10 +311,7 @@ class XMLElement:
         return unescape(self._object.getAttribute(attr)) or fail
 
     def attributeDict(self):
-        """
-            \Remarks	Returns a dictionary of attributes
-            \Return		<dict>
-        """
+        """Returns a dictionary of attributes"""
         out = {}
         for item in self.attributes.values():
             out.update({item.name: item.value})

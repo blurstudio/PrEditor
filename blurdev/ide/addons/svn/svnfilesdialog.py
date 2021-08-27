@@ -221,8 +221,10 @@ class SvnFilesDialog(Dialog):
     # define static methods
     @staticmethod
     def collect(
-        parent, filepath, statusFilters=[], title='Collect Files', emptyMessage=''
+        parent, filepath, statusFilters=None, title='Collect Files', emptyMessage=''
     ):
+        if statusFilters is None:
+            statusFilters = []
         dlg = SvnFilesDialog(parent)
         dlg.setWindowTitle('SVN %s' % title)
         dlg.setStatusFilters(statusFilters)

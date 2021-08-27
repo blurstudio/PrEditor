@@ -30,7 +30,9 @@ class ColumnLine(list):
     """ Used in conjunction with blurdev.media.columnize for complex column/page
     generation"""
 
-    def __init__(self, contents, parent=[], blank=False, tags=None):
+    def __init__(self, contents, parent=None, blank=False, tags=None):
+        if parent is None:
+            parent = []
         super(ColumnLine, self).__init__(contents)
         self.parent = parent
         self.blank = blank
@@ -39,7 +41,7 @@ class ColumnLine(list):
         self.tags = tags
 
 
-def columnize(data, columns=2, maxLen=60, blank=[]):
+def columnize(data, columns=2, maxLen=60, blank=None):
     """
     Given a list of ColumnLine's generate pages of columns.
     :param data: List of ColumnLine's
@@ -50,6 +52,8 @@ def columnize(data, columns=2, maxLen=60, blank=[]):
 
     :returns List of tuples of the source lines
     """
+    if blank is None:
+        blank = []
     index = 0
     pages = []
     while index < len(data):
@@ -73,7 +77,7 @@ def columnize(data, columns=2, maxLen=60, blank=[]):
         rowCount = min(maxLen * columns, len(data) - index + 1)
         if rowCount > 4:
             # build data to be ziped
-            for i in range(columns):
+            for _ in range(columns):
                 newIndex = index + (rowCount / columns)
                 if newIndex >= len(data):
                     newIndex = len(data)
@@ -247,8 +251,8 @@ def escapeForGlob(text):
         return '[{}]'.format(match.group(0))
 
     checks = [
-        '(?<!\[)\[(?![\]\[])',  # [ but not [[]
-        '(?<![\]\[])\](?!\])',  # ] but not []]
+        r'(?<!\[)\[(?![\]\[])',  # [ but not [[]
+        r'(?<![\]\[])\](?!\])',  # ] but not []]
     ]
     return re.sub('|'.join(checks), replaceText, text)
 
@@ -581,7 +585,7 @@ def spoolText(**kwargs):
     return '{\n\t%s\n}' % ',\n\t'.join(data)
 
 
-def spoolFileName(prefix, host='thor', folders=['new'], uid=''):
+def spoolFileName(prefix, host='thor', folders=('new',), uid=''):
     r""" Generate a unique filename for a spool message on the given host.
 
     Builds a full path for a .msg file. It uses uuid.uuid4 to ensure

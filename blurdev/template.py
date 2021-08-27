@@ -12,6 +12,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 import glob
+import re
 from builtins import str as text
 
 from blurdev import osystem
@@ -43,7 +44,9 @@ def templFilename(templname, key='default'):
     return os.path.join(osystem.expandvars(path), '%s.templ' % templname)
 
 
-def templ(templname, options={}):
+def templ(templname, options=None):
+    if options is None:
+        options = {}
     import blurdev
 
     # look for the user template
@@ -99,7 +102,9 @@ def templNames():
     return names
 
 
-def fromFile(filename, options={}):
+def fromFile(filename, options=None):
+    if options is None:
+        options = {}
     try:
         f = open(filename, 'r')
         data = f.read()
@@ -111,7 +116,9 @@ def fromFile(filename, options={}):
     return formatText(data, options)
 
 
-def formatFile(input, output, options={}):
+def formatFile(input, output, options=None):
+    if options is None:
+        options = {}
     try:
         # load the data
         f = open(input, 'r')
@@ -134,14 +141,15 @@ def formatFile(input, output, options={}):
     return False
 
 
-def formatText(txt, options={}):
-    import re
+def formatText(txt, options=None):
+    if options is None:
+        options = {}
 
     # replace the document indent with preferenced spacing
     txt = txt.replace('[  ]', os.environ.get('BDEV_DOCUMENT_INDENT', '    '))
 
     # process templates
-    results = re.findall('\[([a-zA-Z:_-]+)\]', txt)
+    results = re.findall(r'\[([a-zA-Z:_-]+)\]', txt)
 
     from Qt.QtCore import QDate, QDateTime
 
@@ -234,7 +242,7 @@ def formatText(txt, options={}):
             txt = txt.replace('[%s]' % result, text(repl))
 
     # replace placeholder []'s
-    txt = txt.replace('\[', '[').replace('\]', ']')
+    txt = txt.replace(r'\[', '[').replace(r'\]', ']')
 
     # process code snippets
     results = re.findall('{!.*(?=!})!}', txt)

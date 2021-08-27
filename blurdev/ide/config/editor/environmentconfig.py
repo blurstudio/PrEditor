@@ -105,17 +105,13 @@ class EnvironmentConfig(ConfigSectionWidget):
         self.uiRemoveBTN.clicked.connect(self.removeVariable)
 
     def createVariable(self):
-        """
-            \remarks	prompts the user to create a new variable
-        """
+        """prompts the user to create a new variable"""
         dlg = EnvironmentVariableDialog(self)
         if dlg.exec_():
             self.uiEditorTREE.addTopLevelItem(QTreeWidgetItem(dlg.variable()))
 
     def editVariable(self):
-        """
-            \remarks	edits the current variable
-        """
+        """edits the current variable"""
         item = self.uiEditorTREE.currentItem()
         if not item:
             return False
@@ -128,9 +124,7 @@ class EnvironmentConfig(ConfigSectionWidget):
             item.setText(1, value)
 
     def recordUi(self):
-        """
-            \remarks	records the latest ui settings to the data
-        """
+        """records the latest ui settings to the data"""
         section = self.section()
 
         # record section values
@@ -142,9 +136,7 @@ class EnvironmentConfig(ConfigSectionWidget):
         section.setValue('variables', data)
 
     def refreshUi(self):
-        """
-            \remarks	refrshes the ui with the latest data settings
-        """
+        """refreshes the ui with the latest data settings"""
         section = self.section()
 
         # load system environment variables
@@ -185,9 +177,10 @@ class EnvironmentConfig(ConfigSectionWidget):
 
 
 def registerSections(configSet):
-    """
-        \remarks	registers one or many new sections to the config system
-        \param		configSet 	<blurdev.gui.dialogs.configdialog.ConfigSet>
+    """Registers one or many new sections to the config system
+
+    Args:
+        configSet (blurdev.gui.dialogs.configdialog.ConfigSet):
     """
 
     # define section

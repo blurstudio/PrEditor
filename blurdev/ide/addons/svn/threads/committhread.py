@@ -28,9 +28,10 @@ class CommitThread(ActionThread):
         return self._filepaths
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Check-in the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         client.checkin(self._filepaths, self._comments)
         self.notify(

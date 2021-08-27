@@ -116,7 +116,7 @@ def expandvars(text, cache=None):
 
     # return the cleaned variable
     output = str(text)
-    keys = re.findall('\$(\w+)|\${(\w+)\}|\%(\w+)\%', text)
+    keys = re.findall(r'\$(\w+)|\${(\w+)\}|\%(\w+)\%', text)
 
     for first, second, third in keys:
         repl = ''
@@ -218,8 +218,8 @@ def createShortcut(
     as the provided icon.  If it can't find a .ico file it will attempt to
     create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick
     should be installed to the 32bit program files
-    (64Bit Windows: C:\Program Files (x86)\ImageMagick,
-    32Bit Windows: C:\Program Files\ImageMagick)
+    (64Bit Windows: C:\\Program Files (x86)\\ImageMagick,
+    32Bit Windows: C:\\Program Files\\ImageMagick)
 
     Args:
         title (str): the title for the shortcut
@@ -829,7 +829,7 @@ def getRegKey(registry, key, architecture=None, write=False):
 
     Args: registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
 
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+        key (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for
             example
 
         architecture (int | None): 32 or 64 bit. If None use system default.
@@ -870,7 +870,7 @@ def listRegKeyValues(registry, key, architecture=None):
     Args:
 
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example key
-        (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for example
+        (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for example
         architecture (int | None): 32 or 64 bit. If None use system default. Defaults to
         None
 
@@ -911,7 +911,7 @@ def registryValue(registry, key, value_name, architecture=None):
 
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
 
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+        key (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for
             example
 
         value_name (str): The name of the value to read. To read the '(Default)' key
@@ -949,7 +949,7 @@ def setRegistryValue(
 
         registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
 
-        key (str): The key to open. r'Software\Autodesk\Softimage\InstallPaths' for
+        key (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for
         example
 
         value_name (str): The name of the value to read. To read the '(Default)' key

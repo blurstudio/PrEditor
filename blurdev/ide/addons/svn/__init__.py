@@ -25,11 +25,13 @@ STATUS_ORDER = {
 
 class SvnAddon(IdeAddon):
     def activate(self, ide):
-        """
-            \remarks    registers the SvnFileMenu as the default file menu for the IDE
-                        editor
-            \param		ide		<blurdev.ide.IdeEditor>
-            \return		<bool> success
+        """Registers the SvnFileMenu as the default file menu for the IDE editor
+
+        Args:
+            ide (blurdev.ide.IdeEditor):
+
+        Returns:
+            bool: success
         """
         # make sure that we can import the pysvn module
 
@@ -110,11 +112,13 @@ class SvnAddon(IdeAddon):
         return OVERLAYS.get(last_status, '')
 
     def deactivate(self, ide):
-        """
-            \remarks    unregisters the SvnFileMenu as the default file menu for the IDE
-                        Editor
-            \param		ide		<blurdev.ide.IdeEditor>
-            \return		<bool> success
+        """Unregisters the SvnFileMenu as the default file menu for the IDE Editor
+
+        Args:
+            ide (blurdev.ide.IdeEditor):
+
+        Returns:
+            bool: success
         """
         # disconnect the filemenu class
         from blurdev.ide.idefilemenu import IdeFileMenu

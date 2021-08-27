@@ -80,7 +80,7 @@ else:
         def loop(self, document, start_pos, end_pos):
             # If end_pos is None, use the whole document
             end_pos = len(document.text()) if end_pos is None else end_pos
-            match = self.chunk_re.finditer(document.text(start_pos, end_pos)).next()
+            match = next(self.chunk_re.finditer(document.text(start_pos, end_pos)))
             if match:
                 start = start_pos
                 space, result = tuple(match.groups())

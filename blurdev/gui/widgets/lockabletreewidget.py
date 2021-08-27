@@ -146,7 +146,7 @@ class LockableTreeWidget(QTreeWidget):
             self.bindTreeWidgetItem(self.topLevelItem(index))
 
     def closeEvent(self, event):
-        for view, span in self._lockedViews.values():
+        for view, _ in self._lockedViews.values():
             view.close()
             view.setParent(None)
             view.deleteLater()
@@ -216,7 +216,7 @@ class LockableTreeWidget(QTreeWidget):
                 bar.setValue(bar.maximum())
                 bar.blockSignals(False)
 
-    def setExpandedForItem(item, expanded):  # noqa: N805
+    def setExpandedForItem(item, expanded):  # noqa: N805,B902
         # item.treeWidget().setItemExpanded( item, expanded )
         QTreeWidgetItem.setExpanded(item, expanded)
         tree = item.treeWidget()
@@ -226,7 +226,7 @@ class LockableTreeWidget(QTreeWidget):
             else:
                 tree.updateItemCollapsed(item)
 
-    def setHiddenForItem(item, hidden):  # noqa: N805
+    def setHiddenForItem(item, hidden):  # noqa: N805,B902
         item.treeWidget().setItemHidden(item, hidden)
         # QTreeWidgetItem.setHidden( item )
 
@@ -281,7 +281,7 @@ class LockableTreeWidget(QTreeWidget):
             overrides QTreeWidget.setItemHidden (self, QTreeWidgetItem item, bool hide)
         """
         index = self.indexFromItem(item)
-        for view, span in self._lockedViews.values():
+        for view, _ in self._lockedViews.values():
             # view.setRowHidden (self, int row, QModelIndex parent, bool hide)
             view.setRowHidden(index.row(), index.parent(), hide)
         # self.blockSignals( True )
@@ -290,11 +290,11 @@ class LockableTreeWidget(QTreeWidget):
 
     def setPalette(self, palette):
         super(LockableTreeWidget, self).setPalette(palette)
-        for view, span in self._lockedViews.values():
+        for view, _ in self._lockedViews.values():
             view.setPalette(palette)
 
     def setRowHidden(self, row, parent, hide):
-        for view, span in self._lockedViews.values():
+        for view, _ in self._lockedViews.values():
             view.setRowHidden(row, parent, hide)
         # self.blockSignals( True )
         QTreeWidget.setRowHidden(self, row, parent, hide)
@@ -346,7 +346,7 @@ class LockableTreeWidget(QTreeWidget):
 
     def updateItemCollapsed(self, item):
         index = self.indexFromItem(item, 0)
-        for view, span in self._lockedViews.values():
+        for view, _ in self._lockedViews.values():
             # view.blockSignals( True )
             view.setExpanded(index, False)
             # view.blockSignals( False )
@@ -362,7 +362,7 @@ class LockableTreeWidget(QTreeWidget):
     def updateSectionWidth(self, index, oldSize, newSize):
         # update locked views
 
-        for v, span in self._lockedViews.values():
+        for v, _ in self._lockedViews.values():
             v.setColumnWidth(index, newSize)
 
         self.updateLockedGeometry()

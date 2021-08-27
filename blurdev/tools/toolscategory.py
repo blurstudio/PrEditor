@@ -58,7 +58,9 @@ class ToolsCategory(QObject):
         return self._toolType
 
     @classmethod
-    def fromIndex(cls, index, parent, name=None, children={}):
+    def fromIndex(cls, index, parent, name=None, children=None):
+        if children is None:
+            children = {}
         # Check if the category already exists and create it if it doesn't
         output = index.findCategory(name)
         if not output:

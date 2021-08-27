@@ -30,10 +30,13 @@ class IdeRegistry(object):
         return self._commands
 
     def findCommand(self, filename):
-        """
-            \remarks	looks up the command based on the inputed filename
-            \param		filename	<str>
-            \return		<str> || <method> || None
+        """Looks up the command based on the inputted filename
+
+        Args:
+            filename (str):
+
+        Returns:
+            str:
         """
         filename = str(filename)
         ext = os.path.splitext(filename)[-1]
@@ -51,15 +54,15 @@ class IdeRegistry(object):
         return None
 
     def find(self, registryType, expression):
-        """
-            \remarks	searches the registry for the inputed registry command
-                        based on the type and regex
+        """searches the registry for the inputted registry command based on the type
+        and regex
 
-            \param		registryType	<blurdev.ide.ideregistry.RegistryType>
-            \param		expression		<str>		text to compare against regex in registry
+        Args:
+            registryType (blurdev.ide.ideregistry.RegistryType):
+            expression (str): text to compare against regex in registry
 
-            \return     <tuple> ( <str> || <function> || None command, <str> args, <str>
-                        startpath )
+        Returns:
+             tuple:
         """
         cmds = self._commands.get(registryType)
         if cmds:
@@ -69,9 +72,7 @@ class IdeRegistry(object):
         return None
 
     def flush(self, registryType):
-        """
-            \remarks	clears the registry type based on the inputed class
-        """
+        """Clears the registry type based on the inputted class"""
         self._commands[registryType] = {}
 
     def registerDefaults(self):
@@ -92,25 +93,23 @@ class IdeRegistry(object):
         self._commands[RegistryType.Filename] = filenames
 
     def register(self, registryType, regex, command):
-        """
-            \remarks	registers the inputed command for the given type
-                        to the registry
+        """Registers the inputted command for the given type to the registry
 
-            \param		registryType	<blurdev.ide.ideregistry.IdeRegistry>
-            \param		regex			<str> 		regular expression to search for in the registry
-            \param      command         <tuple> ( <str> || <function> command, <str>
-                                        args, <str> startpath )
+        Args:
+            registryType (blurdev.ide.ideregistry.IdeRegistry):
+            regex (str): regular expression to search for in the registry
+            command (tuple):
         """
         self._commands.setdefault(registryType, {})
         self._commands[registryType][regex] = command
 
     def unregister(self, registryType, regex):
-        """
-            \remarks	removes the inputed command from the registry based
-                        on the type and extension
+        """Removes the inputted command from the registry based on the type
+        and extension
 
-            \param		registryType	<blurdev.ide.registry.IdeRegistry>
-            \param		regex			<str>		regular expression to search for in the registry
+        Args:
+            registryType (blurdev.ide.registry.IdeRegistry):
+            regex (str): regular expression to search for in the registry
         """
         if registryType in self._commands and regex in self._commands[registryType]:
             self._commands[registryType].pop(regex)

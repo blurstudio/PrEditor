@@ -22,17 +22,17 @@ except ImportError:
 __DOCMODE__ = False
 
 # track the install path
-import os
-import sys
-import copy
-import logging
-import types
-import re
-import weakref
+import os  # noqa: E402
+import sys  # noqa: E402
+import copy  # noqa: E402
+import logging  # noqa: E402
+import types  # noqa: E402
+import re  # noqa: E402
+import weakref  # noqa: E402
 
-from deprecated import deprecated
+from deprecated import deprecated  # noqa: E402
 
-from Qt.QtWidgets import (
+from Qt.QtWidgets import (  # noqa: E402
     QApplication,
     QDialog,
     QDockWidget,
@@ -40,22 +40,22 @@ from Qt.QtWidgets import (
     QMessageBox,
     QVBoxLayout,
 )
-from Qt.QtCore import Qt, QDateTime
+from Qt.QtCore import Qt, QDateTime  # noqa: E402
 
 # TODO: It is probably unnecessary to import most of these subpackages in the root
 # package.
-import blurdev.version
+import blurdev.version  # noqa: E402
 
 __version__ = blurdev.version.to_string(prepend_v=False)
-import blurdev.settings
-import blurdev.enum
-import blurdev.debug
-import blurdev.osystem
-import blurdev.media
-import blurdev.XML
-import blurdev.prefs
-import blurdev.tools
-import blurdev.ini
+import blurdev.settings  # noqa: E402
+import blurdev.enum  # noqa: E402
+import blurdev.debug  # noqa: E402
+import blurdev.osystem  # noqa: E402
+import blurdev.media  # noqa: E402
+import blurdev.XML  # noqa: E402
+import blurdev.prefs  # noqa: E402
+import blurdev.tools  # noqa: E402
+import blurdev.ini  # noqa: E402
 
 
 installPath = os.path.dirname(__file__)
@@ -142,8 +142,8 @@ def bindMethod(object, name, method):
 
     In most cases we don't use the self argument in these functions. It's
     referencing a different object than the class its defined on so this
-    reminds you to not think of it as such. You should add the N805 noqa
-    to these functions to silence flake8 errors.
+    reminds you to not think of it as such. You should add the N805,B902
+    noqa to these functions to silence flake8 errors.
     """
     # Passing (method.__func__, object) should work in python 2 and 3.
     object.__dict__[name] = types.MethodType(method.__func__, object)
@@ -352,7 +352,7 @@ def quickReload(modulename):
     based on the imported module.
 
     """
-    expr = re.compile(modulename.replace('.', '\.').replace('*', '[A-Za-z0-9_]*'))
+    expr = re.compile(modulename.replace('.', r'\.').replace('*', '[A-Za-z0-9_]*'))
 
     # reload longer chains first
     keys = sys.modules.keys()
@@ -545,19 +545,16 @@ def setAppUserModelID(appId, prefix='Blur'):
     return not ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
-def signalInspector(item, prefix='----', ignore=[]):
-    """
-    Connects to all signals of the provided item, and prints the name of
+def signalInspector(item, prefix='----', ignore=None):
+    """Connects to all signals of the provided item, and prints the name of
     each signal.  When that signal is activated it will print the prefix,
     the name of the signal, and any arguments passed. These connections
     will persist for the life of the object.
 
-    :param item: QObject to inspect signals on.
-    :type item: :class:`Qt.QtCore.QObject`
-    :param prefix: The prefix to display when a signal is emitted.
-    :param ignore: A list of signal names to ignore
-    :type ignore: list
-
+    Args:
+        item (Qt.QtCore.QObject): QObject to inspect signals on.
+        prefix (str, optional): The prefix to display when a signal is emitted.
+        ignore (list, optional): A list of signal names to ignore
     """
 
     def create(attr):
@@ -565,6 +562,9 @@ def signalInspector(item, prefix='----', ignore=[]):
             print(prefix, 'Signal:', attr, 'ARGS:', args, kwargs)
 
         return handler
+
+    if ignore is None:
+        ignore = []
 
     for attr in dir(item):
         if (

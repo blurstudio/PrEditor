@@ -20,30 +20,36 @@ class ObjectTreeModel(QAbstractItemModel):
         self._rootObject = object
 
     def childrenOf(self, parent):
+        """Returns a list of the children for the inputed object, by default will
+        return the QObject's children
 
-        """
-            \remarks    returns a list of the children for the inputed object, by
-                        default will return the QObject's children
-            \param		parent	<QObject>
-            \return		<list> [ <QObject>, .. ]
+        Args:
+            parent (QObject):
+
+        Returns:
+            list:
         """
         return parent.children()
 
     def columnCount(self, index):
 
-        """
-            \remarks	returns the number of columns the inputed model has
-            \param		index	<QModelIndex>
-            \return		<int>
+        """Returns the number of columns the inputed model has
+
+        Args:
+            index (QModelIndex):
+
+        Returns:
+            int:
         """
         return 1
 
     def data(self, index, role):
-        """
-            \remarks    returns a variant containing the information for the inputed
-                        index and the given role
-            \param		index	<QModelIndex>
-            \param		role	<Qt::Role>
+        """Returns a variant containing the information for the inputed index and
+        the given role
+
+        Args:
+            index (QModelIndex):
+            role (Qt::Role):
         """
 
         # return the name of the object
@@ -54,44 +60,52 @@ class ObjectTreeModel(QAbstractItemModel):
         return None
 
     def object(self, index):
+        """Returns the object that the index contains
 
-        """
-            \remarks	returns the object that the index contains
-            \param		index	<QModelIndex>
-            \return		<QObject>
+        Args:
+            index (QModelIndex):
+
+        Returns:
+            QObject:
         """
         if index and index.isValid():
             return index.internalPointer()
         return None
 
     def indexOf(self, object, column=0):
+        """Returns a model index representing the inputed object at the given column
 
-        """
-            \remarks    returns a model index representing the inputed object at the
-                        given column
-            \param		object		<QObject>
-            \param		column		<int>
-            \return		<QModelIndex>
+        Args:
+            object (QObject)
+            column (int)
+
+        Returns:
+            QModelIndex):
         """
 
         return self.createIndex(self.rowForObject(object), column, object)
 
     def findObjectAtRow(self, parent, row):
+        """Returns the child object of the inputed parent at the given row
 
-        """
-            \remarks	returns the child object of the inputed parent at the given row
-            \param		parent		<QObject>
-            \param		column		<int>
-            \return		<QModelIndex>
+        Args:
+            parent (QObject):
+            column (int):
+
+        Returns:
+            QModelIndex:
         """
         return self.childrenOf(parent)[row]
 
     def flags(self, index):
 
-        """
-            \remarks	returns the item flags for the inputed index
-            \param		index		<QModelIndex>
-            \return		<QModelIndex>
+        """Returns the item flags for the inputted index
+
+        Args:
+            index (QModelIndex):
+
+        Returns:
+            QModelIndex:
         """
         if not index.isValid():
             return Qt.NoItemFlags

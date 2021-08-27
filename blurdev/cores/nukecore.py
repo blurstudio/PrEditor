@@ -43,7 +43,7 @@ class NukeCore(Core):
         QCoreApplication. """
         return not nuke.GUI
 
-    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions={}):
+    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions=None):
         """
         Allow core to control how exceptions are handled. Currently being used
         by `BlurExcepthook`, informing which excepthooks should or should not
@@ -64,6 +64,8 @@ class NukeCore(Core):
             dict: Boolean values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
+        if actions is None:
+            actions = {}
         if (
             isinstance(exc_value, RuntimeError)
             and exc_value.message in self.ignore_messages

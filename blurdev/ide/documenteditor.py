@@ -482,12 +482,12 @@ class DocumentEditor(QsciScintilla):
             self.setPermaHighlight(text.split(' '))
 
     def enableFileWatching(self, state):
-        """
-            \Remarks    Enables/Disables open file change monitoring. If enabled, A
-                        dialog will pop up when ever the open file is changed
-                        externally. If file monitoring is disabled in the IDE settings
-                        it will be ignored.
-            \Return		<bool>
+        """Enables/Disables open file change monitoring. If enabled, A dialog will pop
+        up when ever the open file is changed externally. If file monitoring is
+        disabled in the IDE settings it will be ignored.
+
+        Returns:
+            bool:
         """
         # if file monitoring is enabled and we have a file name then set up the file
         # monitoring
@@ -968,11 +968,12 @@ class DocumentEditor(QsciScintilla):
         )
 
     def reloadChange(self):
-        """
-            \Remarks    Callback for file monitoring. If a file was modified or deleted
-                        this method is called when Open File Monitoring is enabled.
-                        Returns if the file was updated or left open
-            \Return     <bool>
+        """Callback for file monitoring. If a file was modified or deleted this method
+        is called when Open File Monitoring is enabled. Returns if the file was updated
+        or left open
+
+        Returns:
+            bool:
         """
         debugMsg(
             'Reload Change called: %0.3f Dialog Shown: %r'
@@ -1294,13 +1295,13 @@ class DocumentEditor(QsciScintilla):
         self.SendScintilla(self.SCI_SETMULTIPASTE, state)
 
     def setSmartHighlightingRegEx(
-        self, exp='[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
+        self, exp=r'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
     ):
-        r"""
-            \remarks    Set the regular expression used to control if a selection is
-                        considered valid for smart highlighting.
-            \param		exp	<str> Default:
-                            '[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>]'
+        """Set the regular expression used to control if a selection is considered
+        valid for smart highlighting.
+
+        Args:
+            exp (str):
         """
         self._smartHighlightingRegEx = exp
         self.selectionValidator = re.compile(exp)

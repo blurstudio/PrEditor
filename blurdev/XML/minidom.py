@@ -25,14 +25,18 @@ escape_dict = {
 }
 
 
-def escape(data, entities={}):
+def escape(data, entities=None):
+    if entities is None:
+        entities = {}
     data = text(data)
     for k, v in iteritems(escape_dict):
         data = data.replace(k, v)
     return data
 
 
-def unescape(data, entities={}):
+def unescape(data, entities=None):
+    if entities is None:
+        entities = {}
     for k, v in iteritems(escape_dict):
         if k == '&':
             continue

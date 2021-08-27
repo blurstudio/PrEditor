@@ -160,7 +160,7 @@ class IdeLanguageDialog(QDialog):
         if dlg.exec_():
             self.uiDescriptorTREE.addTopLevelItem(QTreeWidgetItem(dlg.descriptor()))
 
-    def handleDropEvent(object, event):  # noqa: N805
+    def handleDropEvent(object, event):  # noqa: N805,B902
         self = object.window()
         dragItem = event.source().currentItem()
         if not dragItem:
@@ -196,12 +196,7 @@ class IdeLanguageDialog(QDialog):
             targetItem.addChild(dragItem)
             targetItem.setExpanded(True)
 
-    # define instance methods
     def language(self):
-        """
-            \remarks	returns the value for my parameter
-            \return		<variant>
-        """
         return self._language
 
     def recordUi(self, language):
@@ -267,7 +262,7 @@ class IdeLanguageDialog(QDialog):
 
             for k in dir(lexer):
                 val = getattr(lexer, k)
-                if re.match('^[A-Z]\w+$', k) and type(val) == int:
+                if re.match(r'^[A-Z]\w+$', k) and type(val) == int:
                     data_map[val] = k
 
         # clear the data options from the tree
@@ -294,7 +289,7 @@ class IdeLanguageDialog(QDialog):
             item.setExpanded(True)
 
         # add unprocessed data
-        for data, key in data_map.items():
+        for data, _ in data_map.items():
             if data not in processed:
                 child = QTreeWidgetItem([str(data_map.get(data, data))])
                 child.setData(0, Qt.UserRole, data)
@@ -359,9 +354,10 @@ class IdeLanguageDialog(QDialog):
                 self.refreshUi(language)
 
     def setLanguage(self, language):
-        """
-            \remarks	sets the value for my parameter to the inputed value
-            \param		value	<variant>
+        """Sets the value for my parameter to the inputted value
+
+        Args:
+            value (variant):
         """
         self._language = language
         self.uiSaveBTN.setEnabled(language.isCustom())

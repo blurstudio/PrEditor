@@ -256,13 +256,13 @@ def loadUi(filename, widget, uiname=''):
 
 
 def findPixmap(filename, thumbSize=None):
-    """
-        \remarks    looks up a pixmap based on the inputed filename using the
-                    QPixmapCache system.  If the autoLoad parameter is true, then it
-                    will automatically load the pixmap and return it
-        \param		filename	<str>
-        \param      thumbSize   <QSize>     size to scale the item to if desired (will
-                                            affect the search key)
+    """Looks up a pixmap based on the inputed filename using the QPixmapCache system.
+    If the autoLoad parameter is true, then it will automatically load the pixmap and
+    return it.
+
+    Args:
+        filename (str):
+        thumbSize (QSize):size to scale the item to if desired (will affect the search key)
     """
     from Qt.QtCore import Qt
     from Qt.QtGui import QPixmap
@@ -283,20 +283,18 @@ def connectLogger(
     """ Optionally starts the logger, and creates a QAction on the provided parent with
         the provided keyboard shortcut to run it.
 
-        :param parent: The parent widget, normally a window
-
-        :param start: Start logging immediately. Defaults to True. Disable if you don't
-            want to redirect immediately.
-
-        :param sequence: A string representing the keyboard shortcut associated with the
-            QAction. Defaults to 'F2'
-
-        :param text: The display text for the QAction. Defaults to 'Show Logger'
-
-        :param objName: Set the QAction's objectName to this value. Defaults to
+    Args:
+        parent: The parent widget, normally a window
+        start (bool, optional): Start logging immediately. Defaults to True. Disable if
+            you don't want to redirect immediately.
+        sequence (str, optional): A string representing the keyboard shortcut associated
+            with the QAction. Defaults to 'F2'
+        text (str, optional): The display text for the QAction. Defaults to 'Show Logger'
+        objName (str, optional): Set the QAction's objectName to this value. Defaults to
             'uiShowLoggerACT'
 
-        :return : The created QAction
+    Returns:
+        QAction: The created QAction
     """
     import blurdev
     from Qt.QtGui import QKeySequence

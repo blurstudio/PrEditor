@@ -302,9 +302,10 @@ class ToolsEnvironment(QObject):
         return self._emailOnError
 
     def index(self):
-        """
-            \remarks	returns the index of tools for this environment
-            \return		<blurdev.tools.index.Index>
+        """returns the index of tools for this environment
+
+        Returns:
+            blurdev.tools.index.Index:
         """
         if not self._index:
             self._index = blurdev.tools.toolsindex.ToolsIndex(self)
@@ -427,9 +428,10 @@ class ToolsEnvironment(QObject):
             envxml.setAttribute(':'.join(self._emailOnError))
 
     def relativePath(self, path):
-        """
-            \remarks	returns the relative path from the inputed path to this environment
-            \return		<str>
+        """Returns the relative path from the inputted path to this environment
+
+        Returns:
+            str:
         """
         if not self.isEmpty():
             # posixpath.normpath does not convert windows slashes to prevent problems
@@ -543,9 +545,10 @@ class ToolsEnvironment(QObject):
         return self._sourcefile
 
     def stripRelativePath(self, path):
-        """
-            \remarks	removes this environments path from the inputed path
-            \return		<str>
+        """removes this environments path from the inputted path
+
+        Returns:
+            str:
         """
         return (
             self.normalizePath(path)
@@ -619,9 +622,10 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def activeEnvironment():
-        """
-            \remarks	looks up the active environment for the system
-            \return		<ToolsEnvironment>
+        """Looks up the active environment for the system
+
+        Return:
+            ToolsEnvironment:
         """
         for env in ToolsEnvironment.environments:
             if env.isActive():
@@ -638,23 +642,24 @@ class ToolsEnvironment(QObject):
         environmentFile='',
         legacyName=None,
     ):
-        """
-            :remarks    Adds a new environment to the list of environments. It does not
-            save this environment to user_environments.
-            :param		name			<str>	The name of the new environment
-            :param		path			<str>	The base path to the environment
-            :param      default         <bool>  This environment should be treated as
-                                                default. There should only be one env
-                                                with this set to true. This is ignored
-                                                in user_environments.xml
-            :param		development		<bool>
-            :param		offline			<bool>
-            :param      environmentFile <str>   The source file. Defaults to
-                blurdev.tools.toolsenvironment.USER_ENVIRONMENT_FILE
-            :param      legacyName      <str>   The name of the legacy environment
-                defined in c:\blur\config.ini
+        """Adds a new environment to the list of environments. It does not save this
+        environment to user_environments.
 
-            :return		<ToolsEnvironment>
+        Args:
+            name (str):	The name of the new environment
+            path (str):	The base path to the environment
+            default (bool): This environment should be treated as default. There
+                should only be one env with this set to true. This is ignored in
+                user_environments.xml
+            development (bool):
+            offline (bool):
+            environmentFile (str): The source file. Defaults to
+                `blurdev.tools.toolsenvironment.USER_ENVIRONMENT_FILE`
+            legacyName (str): The name of the legacy environment defined in
+                `c:\\blur\\config.ini`
+
+            Returns:
+                ToolsEnvironment:
         """
         output = ToolsEnvironment()
 
@@ -681,9 +686,10 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def defaultEnvironment():
-        """
-            \remarks	looks up the default environment for the system
-            \return		<ToolsEnvironment>
+        """looks up the default environment for the system
+
+        Returns:
+            ToolsEnvironment:
         """
         for env in ToolsEnvironment.environments:
             if env.isDefault():
@@ -696,7 +702,7 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def findEnvironment(name, path=None):
-        """ Looks up the environment by the inputed name or base path.
+        """ Looks up the environment by the inputted name or base path.
 
         Args:
 
@@ -729,11 +735,13 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def fromXml(xml):
-        """
-            \remarks    generates a new tools environment based on the inputed xml
-                        information
-            \param		xml		<blurdev.XML.XMLElement>
-            \return		<ToolsEnvironment>
+        """Generates a new tools environment based on the inputted xml information
+
+        Args:
+            xml (blurdev.XML.XMLElement):
+
+        Returns:
+            ToolsEnvironment:
         """
         output = ToolsEnvironment()
 
@@ -755,22 +763,30 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def normalizePath(path):
-        """
-            \remarks    returns a normalized path for this environment to use when
-                        registering paths to the sys path
-            \warning	deprecated method - use blurdev.settings.normalizePath
-            \param		path		<str> || <QString>
-            \return		<str>
+        """Returns a normalized path for this environment to use when registering paths
+        to the sys path
+
+        Warning:
+            deprecated method - use blurdev.settings.normalizePath
+
+        Args:
+            path (str):
+
+        Returns:
+            str:
         """
         return blurdev.settings.normalizePath(path)
 
     @staticmethod
     def loadConfig(filename, included=False):
-        """
-            \remarks    loads the environments from the inputed config file
-            \param		filename		<str>
-            \param		included		<bool> 	marks whether or not this is an included file
-            \return		<bool> success
+        """Loads the environments from the inputted config file
+
+        Args:
+            filename (str)
+            included (bool) marks whether or not this is an included file
+
+        Returns:
+            bool: success
         """
         doc = blurdev.XML.XMLDocument()
         # Expand any environment variables and user directory shortcuts. For example you
@@ -842,11 +858,16 @@ class ToolsEnvironment(QObject):
 
     @staticmethod
     def registerPath(path):
-        """
-            \remarks	registers the inputed path to the system
-            \warning	deprecated method - use blurdev.settings.registerPath
-            \param		path		<str>
-            \return		<bool> success
+        """Registers the inputted path to the system
+
+        Warning:
+            deprecated method - use blurdev.settings.registerPath
+
+        Args:
+            path (str):
+
+        Returns:
+            bool: success
         """
         blurdev.settings.registerPath(path)
 

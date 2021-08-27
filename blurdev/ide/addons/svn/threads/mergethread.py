@@ -84,9 +84,10 @@ class MergeRangesThread(MergeThread):
         return self._ranges
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Check-in the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         self.notify({'action': 'Merge from', 'path': self.url()})
         self.notify({'action': 'Merge to', 'path': self.targetPath()})
@@ -178,9 +179,10 @@ class MergeReintegrateThread(MergeThread):
         self._targetPath = ''
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Check-in the information to the client
+
+        Args:
+            client (pysvn.Client):
         """
         client.merge_reintegrate(
             self.url(),

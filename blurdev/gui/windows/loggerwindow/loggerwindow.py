@@ -853,7 +853,7 @@ class LoggerWindow(Window):
 
         # Restore the workboxes
         count = pref.restoreProperty('WorkboxCount', 1)
-        for index in range(count - self.uiWorkboxTAB.count()):
+        for _ in range(count - self.uiWorkboxTAB.count()):
             # create each of the workbox tabs
             self.addWorkbox(self.uiWorkboxTAB)
         for index in range(count):
@@ -1043,7 +1043,7 @@ class LoggerWindow(Window):
         Args:
         completerMode: Chosen CompleterMode ENUM member
         """
-        for idx in range(len(CompleterMode)):
+        for _ in range(len(CompleterMode)):
             tempMode = next(self.completerModeCycle)
             if tempMode == completerMode:
                 break

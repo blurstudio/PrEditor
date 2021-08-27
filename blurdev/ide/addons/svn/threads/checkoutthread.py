@@ -43,9 +43,10 @@ class CheckoutThread(ActionThread):
         return self._revision
 
     def runClient(self, client):
-        """
-            \remarks	checkin the information to the client
-            \param		client		<pysvn.Client>
+        """Checkin the information to the client
+
+        Args:
+            client (pysvn.Client)
         """
         if not self.url():
             self.notify({'error': 'No url was specified to checkout from.'})

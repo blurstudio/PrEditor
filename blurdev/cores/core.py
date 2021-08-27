@@ -151,7 +151,7 @@ class Core(QObject):
 
     @classmethod
     def _disable_libstone_qt_library_path(cls):
-        """ By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common"
+        """ By default libstone adds "C:\\Windows\\System32\\blur64" or "C:\\blur\\common"
         to QApplication.libraryPaths(). This works well for external python applications
         but doesn't work well in DCC's. If Qt5 is installed globally its msvc compiled
         version may conflict with the DCC's msvc compile and cause it to crash.
@@ -496,7 +496,7 @@ class Core(QObject):
         elif trigger not in self._linkedSignals[signal]:
             self._linkedSignals[signal].append(trigger)
 
-    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions={}):
+    def shouldReportException(self, exc_type, exc_value, exc_traceback, actions=None):
         """
         Allow core to control how exceptions are handled. Currently being used
         by `BlurExcepthook`, informing which excepthooks should or should not
@@ -513,7 +513,8 @@ class Core(QObject):
             dict: Boolean values representing whether to perform excepthook
                 action, keyed to the name of the excepthook
         """
-
+        if actions is None:
+            actions = {}
         # Create a shallow copy so we don't modify the passed in dict and don't
         # need to use a default value of None
         actions = actions.copy()
@@ -1055,7 +1056,8 @@ class Core(QObject):
             # WDestructiveClose is Qt3's version of Qt.WA_DeleteOnClose(The docs are out
             # of date) This means that as soon as a widget with WA_DeleteOnClose set is
             # closed the cached self._rootWindow is garbage collected.
-            # https://github.com/qtproject/qt-solutions/blob/master/qtwinmigrate/doc/html/qwinwidget.html#L75
+            # https://github.com/qtproject/qt-solutions/blob/master/qtwinmigrate/doc/
+            # html/qwinwidget.html#L75
             from blurdev.gui.winwidget import WinWidget
 
             return WinWidget.newInstance(self.hwnd())

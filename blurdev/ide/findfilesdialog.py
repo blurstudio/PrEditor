@@ -68,7 +68,7 @@ class FindFilesThread(QThread):
     def run(self):
         # create expressions
         exprs = [
-            re.compile(os.path.splitext(ftype)[0].replace('*', '[^\.]*'))
+            re.compile(os.path.splitext(ftype)[0].replace('*', r'[^\.]*'))
             for ftype in self._filetypes.split(';')
         ]
         filetypes = set(
@@ -89,7 +89,7 @@ class FindFilesThread(QThread):
             # doesn't have results appended before the previous results
             for basepath in sorted(set(basepaths)):
                 self._output.append('Searching Basepath: %s' % basepath)
-                for (path, dirs, files) in os.walk(basepath):
+                for (path, _, files) in os.walk(basepath):
                     self._output.append('Checking Directory: %s' % path)
                     for file in files:
                         try:
@@ -201,7 +201,9 @@ class FindFilesThread(QThread):
 
 
 class FindFilesOutputDialog(Dialog):
-    def __init__(self, parent=None, lines=[]):
+    def __init__(self, parent=None, lines=None):
+        if lines is None:
+            lines = []
         super(FindFilesOutputDialog, self).__init__(parent)
         self.setWindowTitle('Search output')
         self.uiDocumentWGT = QTextEdit(self)

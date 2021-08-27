@@ -1,7 +1,7 @@
 # pylint: disable=protected-access
 
 from __future__ import absolute_import
-from future.utils import iteritems, with_metaclass
+from future.utils import iteritems, with_metaclass, itervalues
 import inspect
 import os.path
 import sys
@@ -333,9 +333,9 @@ class Action(with_metaclass(_ActionMeta, object)):
             if not inspect.ismethod(method):
                 continue
             elif hasattr(method, '_applicationmethod__appMethodName'):
-                supportedApp = getattr(method, '_applicationmethod__appMethodApp')
+                supportedApp = method._applicationmethod__appMethodApp
                 currentApp = self.currentApplication
-                mName = getattr(method, '_applicationmethod__appMethodName')
+                mName = method._applicationmethod__appMethodName
                 if supportedApp & currentApp:
                     appMethods[mName] = method
                 elif mName not in appMethods:
@@ -358,7 +358,7 @@ class Action(with_metaclass(_ActionMeta, object)):
             if not inspect.ismethod(method):
                 continue
             elif hasattr(method, '_childaction__container'):
-                childActions.append(getattr(method, '_childaction__container'))
+                childActions.append(method._childaction__container)
         if not childActions:
             return
         childActions = sorted(childActions, key=lambda c: c._childaction__order,)
@@ -479,7 +479,7 @@ class Action(with_metaclass(_ActionMeta, object)):
         # argument definition order of the action.
         argumentMethods = sorted(argumentMethods, key=lambda a: a._argproperty__order,)
         for method in argumentMethods:
-            arguments.append(getattr(method, '_argproperty__actionArgument'))
+            arguments.append(method._argproperty__actionArgument)
 
         # Now that we have our argument objects we can process each
         # one.	The way we do this is to first look for positional
@@ -569,7 +569,7 @@ class Action(with_metaclass(_ActionMeta, object)):
         # check for the programmer defined `kwargs` property
         # Search for 'noPickle' in FarmAction for an example usecase
         desc = []
-        for attrName, attr in iteritems(self.__dict__):
+        for attr in itervalues(self.__dict__):
             if isinstance(attr, _PropertyDescriptor):
                 desc.append(attr)
         return desc
