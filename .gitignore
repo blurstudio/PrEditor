@@ -1,17 +1,17 @@
 *.pyc
 *.pyo
 *.rej
-*.*.swp
+*.swp
 .DS_Store
 
 /.project
 /.pydevproject
 /build.txt
-/blur_blurdev.egg-info/
+*.egg-info
+.eggs/
 /build/
 /dist/
 /venv/
-requirements.txt
 *.sublime-*
 
 # Ignore the majority of the docs folder
@@ -22,10 +22,10 @@ requirements.txt
 !/docs/source/conf.py
 !/docs/source/index.rst
 
-# Used by ci to download files required for testing
-/downloads/
-/shared-venv/
-/.tox/
+# Used by the ci
+downloads/
+shared-venv/
+.tox/
 
 # /blurdev
 /blurdev/version.txt
