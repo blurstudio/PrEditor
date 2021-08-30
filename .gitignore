@@ -23,6 +23,7 @@
 !/docs/source/index.rst
 
 # Used by the ci
+.cache/
 downloads/
 shared-venv/
 .tox/
