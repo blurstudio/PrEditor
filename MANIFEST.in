@@ -3,14 +3,12 @@ graft blurdev/resource
 graft blurdev/runtimes
 graft blurdev/traxoffline/trax/api/data/source
 
-recursive-include blurdev/gui/widgets/richtexteditor/ui *.qrc
 recursive-include blurdev/ide/wizards/environmentwizard/templ *.blurproj
 recursive-include blurdev/ide/wizards/toolwizard/templ *.blurproj
 recursive-include blurdev/traxoffline/trax/gui/dialogs/infodialog/ui *.ui
 
 recursive-include blurdev/gui *.ui
 recursive-include blurdev/gui *.png
-recursive-include blurdev/gui *.bmp
 recursive-include blurdev/gui *.yaml
 
 recursive-include blurdev/ide *.png
