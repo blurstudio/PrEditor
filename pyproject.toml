@@ -7,7 +7,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "blurdev/version.txt"
+write_to = "blurdev/version.py"
 version_scheme = "release-branch-semver"
 
 [tool.black]

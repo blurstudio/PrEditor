@@ -1,6 +1,3 @@
-include blurdev/version.txt
-include blurdev/hash.txt
-
 graft blurdev/lang
 graft blurdev/resource
 graft blurdev/runtimes

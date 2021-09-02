@@ -6,7 +6,6 @@ import subprocess
 import configparser
 import time
 import datetime
-from blurdev import version
 from blurdev.utils import shortcut
 
 
@@ -175,7 +174,7 @@ def update_settings_ini():
         '%s %s %s %s:%s:%s %s'
         % (day_of_week, month, day_of_month, hour, minute, seconds, year),
     )
-    config.set('blurdev', 'version', version.to_string(prepend_v=False))
+    config.set('blurdev', 'version', blurdev.__version__)
 
     with open(r'c:\blur\software.ini', 'w') as configfile:
         config.write(configfile)

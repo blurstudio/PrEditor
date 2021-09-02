@@ -6,7 +6,6 @@
 
 /.project
 /.pydevproject
-/build.txt
 *.egg-info
 .eggs/
 /build/
@@ -29,9 +28,7 @@ shared-venv/
 .tox/
 
 # /blurdev
-/blurdev/version.txt
-/blurdev/hash.txt
-/blurdev/build.txt
+/blurdev/version.py
 
 # Coverage
 .coverage

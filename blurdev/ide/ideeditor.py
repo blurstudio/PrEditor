@@ -50,7 +50,7 @@ from .languagecombobox import LanguageComboBox
 from .delayable_engine import DelayableEngine
 from blurdev.debug import DebugLevel, debugLevel, debugObject, setDebugLevel
 
-from blurdev import osystem, settings, version
+from blurdev import osystem, settings
 
 
 class IdeEditor(Window):
@@ -2029,7 +2029,7 @@ class IdeEditor(Window):
                     blurdev.core.objectName().capitalize(),
                     projtext,
                     path,
-                    version.to_string(),
+                    blurdev.__version__,
                 )
             )
             self.uiLanguageDDL.blockSignals(True)
@@ -2042,7 +2042,7 @@ class IdeEditor(Window):
                 % (
                     blurdev.core.objectName().capitalize(),
                     projtext,
-                    version.to_string(),
+                    blurdev.__version__,
                 )
             )
             self.uiLanguageDDL.blockSignals(True)

@@ -43,11 +43,10 @@ from Qt.QtWidgets import (  # noqa: E402
 )
 from Qt.QtCore import Qt, QDateTime  # noqa: E402
 
+from .version import version as __version__  # noqa: E402,F401
+
 # TODO: It is probably unnecessary to import most of these subpackages in the root
 # package.
-import blurdev.version  # noqa: E402
-
-__version__ = blurdev.version.to_string(prepend_v=False)
 import blurdev.settings  # noqa: E402
 import blurdev.enum  # noqa: E402
 import blurdev.debug  # noqa: E402
@@ -184,7 +183,7 @@ def runtime(*args):
 
 
 def init():
-    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.version.to_string()
+    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.__version__
     pythonw_print_bugfix()
     blurdev.settings.init()
     blurdev.ini.LoadConfigData()
