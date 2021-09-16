@@ -77,8 +77,10 @@ class MayaCore(Core):
         Override of core rootWindow function; uses Maya's main window pointer
         to derive rootWindow due to cases where plugins end up as root.
         """
-        pointer = int(OpenMayaUI.MQtUtil.mainWindow())
-        self._rootWindow = QtCompat.wrapInstance(pointer)
+        ptr = OpenMayaUI.MQtUtil.mainWindow()
+        if ptr is not None:
+            pointer = int(ptr)
+            self._rootWindow = QtCompat.wrapInstance(pointer)
         return self._rootWindow
 
     def shutdown(self):
