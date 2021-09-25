@@ -3,5 +3,5 @@
     <!-- load local user environments -->
     <include loc="c:/blur/common/user_environments.xml"/>
     <!-- load studio standard environments -->
-    <environment default="True" loc="c:/blur/dev/offline" name="Blur Offline" offline="True" legacyName="Offline"/>
+    <environment default="True" loc="c:/blur/dev/offline/lib/site-packages" name="Blur Offline" offline="True" legacyName="Offline"/>
 </tools_environments>
