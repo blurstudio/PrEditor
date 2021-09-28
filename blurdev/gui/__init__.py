@@ -1,22 +1,20 @@
 ##
-# 	\namespace	blurdev.gui
+#   \namespace  blurdev.gui
 #
-# 	\remarks	Contains gui components and interfaces
+#   \remarks    Contains gui components and interfaces
 #
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/15/10
+#   \author     beta@blur.com
+#   \author     Blur Studio
+#   \date       06/15/10
 #
 
 from __future__ import absolute_import
 import os
-import glob
-import random
 
 import Qt
 from Qt.QtCore import Property
 from Qt.QtGui import QPixmap
-from Qt.QtWidgets import QSplashScreen
+from deprecated import deprecated
 
 from .. import core
 from .icon_factory import IconFactory
@@ -106,18 +104,13 @@ if Qt.__binding__ == 'PyQt4':
 # --------------------------------------------------------------------------------
 
 
+@deprecated(
+    version='2.69.0', reason='Use blurdev.gui.splashscreen.randomSplashScreen instead.'
+)
 def randomSplashScreen(toolname='default'):
-    splash_dir = os.path.join(SPLASH_DIR, toolname)
+    from . import splashscreen
 
-    if os.path.isdir(splash_dir):
-        splash_filepaths = glob.glob(os.path.join(splash_dir, '*.*'))
-        if splash_filepaths:
-            pixmap = QPixmap(random.choice(splash_filepaths))
-            splash = QSplashScreen(pixmap)
-            splash.show()
-            return splash
-
-    return None
+    return splashscreen.randomSplashScreen(toolname=toolname)
 
 
 def readCSS(path, translateUrls=True, cwd=None):
