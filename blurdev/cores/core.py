@@ -954,9 +954,9 @@ class Core(QObject):
             return None
 
     def restoreSettings(self):
+        from blurdev.tools.toolsenvironment import ToolsEnvironment
+
         self.blockSignals(True)
-        TEMPORARY_TOOLS_ENV = blurdev.tools.TEMPORARY_TOOLS_ENV
-        ToolsEnvironment = blurdev.tools.toolsenvironment.ToolsEnvironment
 
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
@@ -964,38 +964,10 @@ class Core(QObject):
         if not env.isEmpty():
             env.setActive()
         else:
-            # If the environment variable BLURDEV_PATH is defined create a custom
-            # environment instead of using the loaded environment
-            environPath = os.environ.get('BLURDEV_PATH')
-            if environPath:
-                env = ToolsEnvironment.findEnvironment(
-                    TEMPORARY_TOOLS_ENV, path=environPath
-                )
-                if env.isEmpty():
-                    devel = (
-                        os.environ.get('BDEV_ENVIRONMENT_DEVEL', 'False').lower()
-                        == 'true'
-                    )
-                    offline = (
-                        os.environ.get('BDEV_ENVIRONMENT_OFFLINE', 'False').lower()
-                        == 'true'
-                    )
-                    environFile = os.environ.get('BDEV_ENVIRONMENT_ENVIRON_FILE', '')
-                    env = ToolsEnvironment.createNewEnvironment(
-                        TEMPORARY_TOOLS_ENV,
-                        environPath,
-                        development=devel,
-                        offline=offline,
-                        environmentFile=environFile,
-                    )
-                    env.setEmailOnError([os.environ.get('BLURDEV_ERROR_EMAIL')])
-                    env.setTemporary(True)
-                env.setActive()
-            else:
-                # restore the active environment
-                env = pref.restoreProperty('environment')
-                if env:
-                    ToolsEnvironment.findEnvironment(env).setActive()
+            # restore the active environment
+            env = pref.restoreProperty('environment')
+            if env:
+                ToolsEnvironment.findEnvironment(env).setActive()
 
         # restore the active style
         self.setStyleSheet(

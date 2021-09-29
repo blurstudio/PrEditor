@@ -813,18 +813,7 @@ class ToolsEnvironment(QObject):
                         env.setActive(silent=True)
                         return True
 
-                # If the environment variable BLURDEV_PATH is defined create a custom
-                # environment instead of using the loaded environment
-                environPath = os.environ.get('BLURDEV_PATH')
-                found = False
-                if environPath:
-                    env = ToolsEnvironment.findEnvironment(
-                        blurdev.tools.TEMPORARY_TOOLS_ENV
-                    )
-                    if env.isEmpty():
-                        found = True
-                if not found:
-                    ToolsEnvironment.defaultEnvironment().setActive(silent=True)
+                ToolsEnvironment.defaultEnvironment().setActive(silent=True)
             return True
 
         return False
