@@ -336,18 +336,20 @@ def createShortcut(
 def explore(filename, dirFallback=False):
     """Launches the provided filename in the prefered editor for the specific platform.
 
-    Args: filename (str): The filepath to explore to. dirFallback (bool): If True, and
-        the file path does not exist, explore to the deepest folder that does exist.
+    Args:
+        filename (str): The file path to explore to.
+        dirFallback (bool): If True, and the file path does not exist, explore to
+            the deepest folder that does exist.
 
     Returns:
         bool: If it was able to explore the filename.
     """
-    # pull the filpath from the inputed filename
+    # pull the file path from the inputed filename
     fpath = os.path.normpath(filename)
 
     if dirFallback:
         # If the provided filename does not exist, recursively check each parent folder
-        # for existance.
+        # for existence.
         while not os.path.exists(fpath) and not os.path.ismount(fpath):
             fpath = os.path.split(fpath)[0]
 

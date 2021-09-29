@@ -17,7 +17,7 @@
 #
 # :Example view, the BlurTreeWidget is added in the UI file
 #
-# from Qt.QtGui import QWidget
+# from Qt.QtWidgets import QWidget
 #
 # class TestWidgetView( QWidget ):
 #
@@ -48,7 +48,7 @@
 #       QWidget.closeEvent( self, event )
 #
 #   def createEditor( self, parent, option, index, tree=None ):
-#       from Qt.QtGui import QComboBox
+#       from Qt.QtWidgets import QComboBox
 #       editor = QComboBox( parent )
 #       return editor
 #

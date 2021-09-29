@@ -17,6 +17,7 @@ from Qt.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
     QLineEdit,
+    QSizePolicy,
     QToolButton,
     QWidget,
     QComboBox,
@@ -98,6 +99,10 @@ class FilePickerWidget(QWidget):
         self.uiFilenameTXT.currentIndexChanged.connect(self.emitFilenameChanged)
         self.uiPickFileBTN.clicked.connect(self.pickPath)
         self.resolvedStylesheet = resolvedStylesheetDefault
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+        self.uiFilenameTXT.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.uiPickFileBTN.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Preferred)
 
         self.resolve()
 

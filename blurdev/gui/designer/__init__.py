@@ -18,16 +18,8 @@ import os
 import sys
 
 
-plugindef = """##
-#   \\namespace blurdev.gui.designer.%(class)s
-#
-#   \\remarks   Defines a plugin file for the %(class)s widget
-#
-#   \\author        beta@blur.com
-#   \\author        Blur Studio
-#   \\date      12/07/08
-#
-
+plugindef = """
+from __future__ import absolute_import
 from Qt.QtDesigner import QPyDesignerCustomWidgetPlugin
 import blurdev.gui.designer
 

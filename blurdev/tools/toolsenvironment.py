@@ -1,12 +1,3 @@
-# #
-# 	\namespace	blurdev.tools.ToolsEnvironment
-#
-# 	\remarks	Defines the ToolsEnvironment class for the tools package
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		06/11/10
-#
 from __future__ import absolute_import
 from __future__ import print_function
 import glob
@@ -150,7 +141,7 @@ class ToolsEnvironment(QObject):
             return False
 
         # If this environment has a project make sure we unload the project settings
-        # if neccissary before we clear the path symbols.
+        # if necessary before we clear the path symbols.
         self.deactivateProject()
 
         if onlyDeactivate:
@@ -181,7 +172,7 @@ class ToolsEnvironment(QObject):
         for spath in sys.path:
             npath = self.normalizePath(spath)
             if path in npath:
-                # If this path is inside the treeegrunt folder structure, add any
+                # If this path is inside the treegrunt folder structure, add any
                 # egg-link paths so we can remove them from python
                 removepaths.add(spath)
                 paths, skipped, pths = blurdev.settings.pthPaths(spath)
@@ -479,7 +470,7 @@ class ToolsEnvironment(QObject):
             # set the legacy environment active
             blurdev.ini.SetActiveEnvironment(self.legacyName())
 
-            # emit the environment activateion change signal
+            # emit the environment activation change signal
             if not silent:
                 # core can be defined as None at this point in if this was called during
                 # blurdev.core init.
@@ -716,7 +707,7 @@ class ToolsEnvironment(QObject):
             blurdev.tools.ToolsEnvironment: The environment found. Use env.isEmpty() to
             check if it is a valid environment.
         """
-        # Find the environmet by name.
+        # Find the environment by name.
         for env in ToolsEnvironment.environments:
             if env.objectName() == name:
                 return env
@@ -903,7 +894,7 @@ class ToolsEnvironment(QObject):
         not raised and no path manipulation will happen for that entry point.
         """
 
-        # Update sys.path with the treeegrunt environment paths
+        # Update sys.path with the treegrunt environment paths
         index = self.index()
         all_tool_paths = []
         for tools_package in index.packages():
