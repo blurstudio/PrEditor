@@ -114,11 +114,10 @@ def activeEnvironment(coreName=None):
             return the treegrunt environment stored in prefs for coreName.
     """
     if coreName is not None:
-        # Update the saved preference so the next time the core is loaded it will
-        # use the requested environment if the environment is valid.
+        # Return the saved preference for the requested core
         pref = blurdev.prefs.find('blurdev/core', reload=True, coreName=coreName)
         envName = pref.restoreProperty('environment')
-        return blurdev.tools.ToolsEnvironment.findEnvironment(envName)
+        return blurdev.tools.ToolsEnvironment.findEnvironment(envName, default=True)
     return blurdev.tools.ToolsEnvironment.activeEnvironment()
 
 
@@ -167,7 +166,7 @@ def findTool(name, environment=''):
     if not environment:
         env = blurdev.tools.ToolsEnvironment.activeEnvironment()
     else:
-        env = blurdev.tools.ToolsEnvironment.findEnvironment(environment)
+        env = blurdev.tools.ToolsEnvironment.findEnvironment(environment, default=True)
     if env:
         return env.index().findTool(name)
     return blurdev.tools.Tool()

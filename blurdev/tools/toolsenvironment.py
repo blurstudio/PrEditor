@@ -692,7 +692,7 @@ class ToolsEnvironment(QObject):
         return self._description
 
     @staticmethod
-    def findEnvironment(name, path=None):
+    def findEnvironment(name, path=None, default=None):
         """Looks up the environment by the inputted name or base path.
 
         Args:
@@ -701,6 +701,9 @@ class ToolsEnvironment(QObject):
 
             path (str): If provided try to find a environment with this path. This is
             only used if the environment was not found by name. Defaults to None.
+            default (bool, ToolsEnvironmet, optional): If the environment is not found
+                and True is passed it will return the default environment. If None an
+                empty ToolsEnvironment is returned, otherwise the value is returned.
 
         Returns:
             blurdev.tools.ToolsEnvironment: The environment found. Use env.isEmpty() to
@@ -715,6 +718,10 @@ class ToolsEnvironment(QObject):
             for env in ToolsEnvironment.environments:
                 if path and os.path.normpath(path) == os.path.normpath(env.path()):
                     return env
+        if default is True:
+            return ToolsEnvironment.defaultEnvironment()
+        elif default:
+            return default
         return ToolsEnvironment()
 
     @staticmethod

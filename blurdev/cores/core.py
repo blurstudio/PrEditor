@@ -654,7 +654,9 @@ class Core(QObject):
         )
         if last_timestamp and last_timestamp >= timestamp:
             return
-        blurdev.tools.toolsenvironment.ToolsEnvironment.findEnvironment(env).setActive()
+        blurdev.tools.toolsenvironment.ToolsEnvironment.findEnvironment(
+            env, default=True
+        ).setActive()
         pref.recordProperty(
             'last_environment_override_timestamp', QDateTime.currentDateTime()
         )
@@ -965,10 +967,9 @@ class Core(QObject):
         if not env.isEmpty():
             env.setActive()
         else:
-            # restore the active environment
+            # restore the active environment or the default
             env = pref.restoreProperty('environment')
-            if env:
-                ToolsEnvironment.findEnvironment(env).setActive()
+            ToolsEnvironment.findEnvironment(env, default=True).setActive()
 
         # restore the active style
         self.setStyleSheet(
@@ -1078,11 +1079,11 @@ class Core(QObject):
         | #A simplified code example of what is happening.
         | queue = []
         | for i in range(100): queue.append(myFunction)
-        | while True:	# program event loop
-        | 	updateUI()	# update the programs ui
-        |	if queue:
-        |		item = queue.pop(0)	# remove the first item in the list
-        |		item()	# call the stored function
+        | while True:   # program event loop
+        |   updateUI()  # update the programs ui
+        |   if queue:
+        |       item = queue.pop(0) # remove the first item in the list
+        |       item()  # call the stored function
 
         """
         self._runDelayed(function, False, *args, **kargs)
@@ -1124,11 +1125,11 @@ class Core(QObject):
         | #A simplified code example of what is happening.
         | queue = []
         | for i in range(100): queue.append(myFunction)
-        | while True:	# program event loop
-        | 	updateUI()	# update the programs ui
-        |	if queue:
-        |		item = queue.pop(0)	# remove the first item in the list
-        |		item()	# call the stored function
+        | while True:   # program event loop
+        |   updateUI()  # update the programs ui
+        |   if queue:
+        |       item = queue.pop(0) # remove the first item in the list
+        |       item()  # call the stored function
 
         """
         isProcessing = bool(self._itemQueue)
