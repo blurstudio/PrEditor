@@ -978,7 +978,7 @@ class ToolsEnvironment(QObject):
         default = None
         # Iterate over the environments and create them
         for environments in config.values():
-            for env_config in environments['environments']:
+            for env_config in environments.get('environments', {}):
                 env = ToolsEnvironment(config=env_config)
                 if env.isDefault():
                     if default is None:
