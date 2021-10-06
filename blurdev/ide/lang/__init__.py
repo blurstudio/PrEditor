@@ -37,14 +37,11 @@ def byExtension(extension):
 
 
 def languages():
-    keys = _plugins.keys()
-    keys.sort()
-    return keys
+    return sorted(_plugins.keys())
 
 
 def filetypes():
-    keys = _plugins.keys()
-    keys.sort()
+    keys = sorted(_plugins.keys())
 
     output = []
     output.append('All Files (*.*)')

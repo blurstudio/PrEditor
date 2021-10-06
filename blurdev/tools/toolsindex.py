@@ -73,8 +73,7 @@ class ToolsIndex(QObject):
     def categories(self):
         """returns the current categories for this index"""
         self.load()
-        output = self._categoryCache.values()
-        output.sort(key=lambda x: x.objectName())
+        output = sorted(self._categoryCache.values(), key=lambda x: x.objectName())
         return output
 
     def cacheCategory(self, category):

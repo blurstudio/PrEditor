@@ -257,11 +257,7 @@ class ThumbnailScene(QGraphicsScene):
                 return item
             return item.sortData()
 
-        keys = grp_map.keys()
-        keys.sort(key=sort_key)
-
-        if self.reverseSort():
-            keys.reverse()
+        keys = sorted(grp_map.keys(), key=sort_key, reverse=self.reverseSort())
 
         ypos = padding.height()
         for key in keys:

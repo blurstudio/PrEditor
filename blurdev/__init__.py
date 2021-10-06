@@ -355,9 +355,7 @@ def quickReload(modulename):
     expr = re.compile(modulename.replace('.', r'\.').replace('*', '[A-Za-z0-9_]*'))
 
     # reload longer chains first
-    keys = sys.modules.keys()
-    keys.sort()
-    keys.reverse()
+    keys = sorted(sys.modules.keys(), reverse=True)
 
     for key in keys:
         module = sys.modules[key]

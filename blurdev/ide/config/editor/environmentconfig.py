@@ -140,8 +140,7 @@ class EnvironmentConfig(ConfigSectionWidget):
         section = self.section()
 
         # load system environment variables
-        keys = settings.startup_environ.keys()
-        keys.sort()
+        keys = sorted(settings.startup_environ.keys())
 
         self.uiSystemTREE.clear()
         for key in keys:
@@ -151,8 +150,7 @@ class EnvironmentConfig(ConfigSectionWidget):
 
         # load editor environment variables
         vars = section.value('variables')
-        keys = vars.keys()
-        keys.sort()
+        keys = sorted(vars.keys())
 
         self.uiEditorTREE.clear()
         for key in keys:

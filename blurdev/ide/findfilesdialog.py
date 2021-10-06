@@ -389,8 +389,7 @@ class FindFilesDialog(Dialog):
         self._allResultsText = baseText
         self._resultsFileText = baseText
 
-        filenames = results.keys()
-        filenames.sort()
+        filenames = sorted(results.keys())
         for filename in filenames:
             lines = results[filename]
 

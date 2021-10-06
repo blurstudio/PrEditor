@@ -52,8 +52,7 @@ def templ(templname, options=None):
     # look for the user template
     fname = blurdev.prefPath('templ/%s.templ' % templname)
 
-    keys = _templPaths.keys()
-    keys.sort()
+    keys = sorted(_templPaths.keys())
     index = 0
 
     # make sure to use the default templates last

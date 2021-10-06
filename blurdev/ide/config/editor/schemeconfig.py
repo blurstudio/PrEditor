@@ -142,8 +142,7 @@ class SchemeConfig(ConfigSectionWidget):
         self.uiDocumentColorGRP.setChecked(section.value('document_override_colors'))
 
         # restore colors
-        keys = section.properties()
-        keys.sort()
+        keys = sorted(section.properties())
         for key in keys:
             if '_color_' not in key:
                 continue

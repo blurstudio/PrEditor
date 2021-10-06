@@ -129,8 +129,7 @@ class ABCArchive(object):
                         sub_prop, oprop.getProperty(sub_prop.name, sub_prop.type)
                     )
 
-        oids = self.objects.keys()
-        oids.sort()
+        oids = sorted(self.objects.keys())
         for oid in oids:
             obj = self.objects[oid]
             oobj = oarchive.createObject(obj.type, obj.id)
