@@ -538,6 +538,18 @@ def subprocessEnvironment(env=None):
                 # If the registry is not set, then remove the variable
                 del env['PYTHONPATH']
 
+    # If PYTHONHOME is used, just remove it. This variable is supposed to point
+    # to a folder relative to the python stdlib
+    # Applications like Houdini add PYTHONHOME, and it breaks the subprocesses
+    if env.get('PYTHONHOME'):
+        if settings.OS_TYPE == 'Windows':
+            try:
+                # Store the 'PYTHONHOME' from the system registry if set
+                env['PYTHONHOME'] = getEnvironmentVariable('PYTHONHOME')
+            except WindowsError:
+                # If the registry is not set, then remove the variable
+                del env['PYTHONHOME']
+
     # Some DCC's require inserting or appending path variables. When using subprocess
     # these path variables may cause problems with the target application. This allows
     # removing those path variables from the environment being passed to subprocess.
