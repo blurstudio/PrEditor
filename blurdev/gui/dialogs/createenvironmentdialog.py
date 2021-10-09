@@ -112,7 +112,7 @@ class CreateEnvironmentDialog(blurdev.gui.Dialog):
 
         # 3. Add the new environment to the config
         env = ToolsEnvironment.create_env(name, path, email=self.uiEmailTXT.text())
-        self.config[self.filename]['environments'].append(env)
+        self.config[self.filename].setdefault('environments', []).append(env)
         # Save the config changes to disk
         ToolsEnvironment.save_config(self.config)
 

@@ -168,7 +168,7 @@ class TreegruntEnvironmentEditor(QWidget):
                     )
                     include_item.setText(Columns.Path, include.get('filename'))
 
-            for environment in config['environments']:
+            for environment in config.get('environments', []):
                 EnvironmentTreeWidgetItem(parent, environment)
 
         self.uiMainTREE.expandToDepth(1)
