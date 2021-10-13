@@ -125,7 +125,9 @@ class CreateEnvironmentDialog(blurdev.gui.Dialog):
 
             # 5. Rebuild the treegrunt index
             proc = LiveSubprocess(
-                ["blurdev", "env", "rebuild", '--name', name], callback=self.writeText
+                ["blurdev", "env", "rebuild", '--name', name],
+                callback=self.writeText,
+                env=blurdev.osystem.subprocessEnvironment(),
             )
             proc.wait()
             if proc.returncode:

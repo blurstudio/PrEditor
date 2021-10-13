@@ -145,7 +145,10 @@ class TreegruntEnvironmentEditor(QWidget):
 
         # Rebuild the selected index, using a subprocess prevents needing to switch
         # treegrunt environments in the current program.
-        proc = LiveSubprocess(["blurdev", "env", "rebuild", '--name', name])
+        proc = LiveSubprocess(
+            ["blurdev", "env", "rebuild", '--name', name],
+            env=blurdev.osystem.subprocessEnvironment(),
+        )
         proc.wait()
         if proc.returncode:
             QMessageBox.critical(
