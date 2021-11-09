@@ -14,4 +14,4 @@ QScintilla>=2.11.4;python_version>="3.5" and platform_system=="Windows"
 signalslot>=0.1.2
 tabulate>=0.8.7
 urllib3>=1.25.7
-winshell>=0.6
+winshell>=0.6;platform_system=="Windows"
