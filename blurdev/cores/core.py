@@ -1614,6 +1614,9 @@ class Core(QObject):
 
     def shutdownToolbars(self):
         """Shutdown toolbar plugins."""
+        if self._toolbars is None:
+            # Nothing to shutdown
+            return
         for toolbar in self.toolbars():
             toolbar.instanceShutdown()
 
