@@ -15,7 +15,7 @@ import traceback
 
 from Qt import QtCompat
 from Qt.QtCore import QObject, QPoint, Qt
-from Qt.QtGui import QColor, QTextCharFormat, QTextCursor, QTextDocument
+from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
 import blurdev
@@ -141,6 +141,17 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         self.clickPos = None
         self.anchor = None
 
+    def setConsoleFont(self, font):
+        """Set the console's font and adjust the tabStopWidth"""
+        self.setFont(font)
+
+        # Set the setTabStopWidth for the console's font
+        tabWidth = 4
+        if hasattr(self, "window") and "LoggerWindow" in str(type(self.window())):
+            tabWidth = self.window().uiWorkboxTAB.widget(0).tabWidth()
+        fontPixelWidth = QFontMetrics(font).width(" ")
+        self.setTabStopWidth(fontPixelWidth * tabWidth)
+
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can
         check release position. If it's the same (ie user clicked vs click-drag to
@@ -172,7 +183,6 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # May not want to import LoggerWindow, so perhaps
         # check by str(type())
         ctrlPressed = event.modifiers() == Qt.ControlModifier
-        # if ctrlPressed and isinstance(self.window(), "LoggerWindow"):
         if ctrlPressed and "LoggerWindow" in str(type(self.window())):
             self.window().wheelEvent(event)
         else:

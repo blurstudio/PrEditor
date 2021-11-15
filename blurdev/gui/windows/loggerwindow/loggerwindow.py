@@ -531,7 +531,7 @@ class LoggerWindow(Window):
             newSize = max(min(newSize, maxSize), minSize)
 
             font.setPointSize(newSize)
-            self.console().setFont(font)
+            self.console().setConsoleFont(font)
 
             for index in range(self.uiWorkboxTAB.count()):
                 workbox = self.uiWorkboxTAB.widget(index)
@@ -587,7 +587,7 @@ class LoggerWindow(Window):
         family = action.text()
         font = self.console().font()
         font.setFamily(family)
-        self.console().setFont(font)
+        self.console().setConsoleFont(font)
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
@@ -931,7 +931,7 @@ class LoggerWindow(Window):
 
         font = pref.restoreProperty('consoleFont', None)
         if font:
-            self.console().setFont(font)
+            self.console().setConsoleFont(font)
 
         # Restore the workboxes
         count = pref.restoreProperty('WorkboxCount', 1)
