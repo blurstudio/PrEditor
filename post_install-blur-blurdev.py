@@ -199,7 +199,7 @@ def updateEnvirons(verbose=False):
         )
         if verbose:
             print('Processing:', env.path(), codeRootPath)
-        if os.path.exists(codeRootPath):
+        if os.path.exists(codeRootPath) and env.legacyName():
             blurdev.ini.SetINISetting(
                 blurdev.ini.configFile, env.legacyName(), 'codeRoot', codeRootPath
             )
