@@ -299,6 +299,7 @@ class StudiomaxCore(Core):
         else:
             app = QApplication.instance()
             app.focusChanged.connect(_focusChanged)
+        self._disable_libstone_qt_library_path()
 
         old_stdout = sys.stdout
         # initialize the logger
@@ -334,6 +335,13 @@ class StudiomaxCore(Core):
         return ret
 
     def initGui(self):
+        if mxs.IsNetServer() or mxs.maxops.isInNonInteractiveMode():
+            # IsNetServer only returns True if max was started with 3dsmaxcmd.exe
+            # There is no need to init the gui for render mode.
+            # `maxops.isInNonInteractiveMode` returns True if max was launched with
+            # 3dsmaxbatch.exe.
+            return
+
         super(StudiomaxCore, self).initGui()
         # CSS style workarounds for Max 2019
         # Update the stylesheet if we haven't already done so
