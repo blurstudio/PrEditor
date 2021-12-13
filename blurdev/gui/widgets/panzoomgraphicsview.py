@@ -175,7 +175,7 @@ class PanZoomGraphicsView(QGraphicsView):
             oldPos = self.mapToScene(event.pos())
 
             # Zoom
-            if event.delta() > 0:
+            if event.angleDelta().y() > 0:
                 zoomFactor = zoomInFactor
             else:
                 zoomFactor = zoomOutFactor

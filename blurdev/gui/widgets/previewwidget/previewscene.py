@@ -359,7 +359,7 @@ class PreviewScene(QGraphicsScene):
         Args:
             event: QWheelEvent
         """
-        if event.delta() < 0:
+        if event.angleDelta().y() < 0:
             self._previewWidget.scale(0.9, 0.9)
         else:
             self._previewWidget.scale(1.1, 1.1)
