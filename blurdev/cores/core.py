@@ -4,6 +4,7 @@ import sys
 import time
 import os
 import glob
+import six
 from past.builtins import execfile
 
 from Qt.QtCore import QCoreApplication, QDateTime, QEvent, QObject, QRect, Qt, Signal
@@ -226,10 +227,14 @@ class Core(QObject):
         # if needed
         if sys.platform != 'win32':
             return
-        if blurdev.osystem.getPointerSize() == 64:
-            QCoreApplication.addLibraryPath("c:/windows/system32/blur64/")
-        else:
-            QCoreApplication.addLibraryPath("c:/blur/common/")
+        if six.PY2:
+            # The python 3 installs include all of the required plugins as part of the
+            # pip install, so there is no need to do this anymore. The external c++ Qt
+            # applications can use qt.conf to configure this information if required.
+            if blurdev.osystem.getPointerSize() == 64:
+                QCoreApplication.addLibraryPath("c:/windows/system32/blur64/")
+            else:
+                QCoreApplication.addLibraryPath("c:/blur/common/")
 
     def configUpdated(self):
         """Preform any core specific updating of config. Returns if any actions were
