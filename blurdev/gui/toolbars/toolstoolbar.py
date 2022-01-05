@@ -52,7 +52,7 @@ class ToolbarAction(QAction):
             webbrowser.open(url_template % self._tool.displayName().replace(' ', '_'))
 
     def explore(self):
-        os.startfile(self._tool._path)
+        os.startfile(self._tool.path())
 
 
 class ToolsToolbar(BlurdevToolbar):
