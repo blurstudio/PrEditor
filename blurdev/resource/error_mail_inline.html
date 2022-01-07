@@ -6,10 +6,10 @@
         <div class="information" style="margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;" >
             <h2 style="font-family:'Trebuchet MS', Verdana, sans-serif;margin-top:0;margin-bottom:10px;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;font-size:15px;" >Debug Information</h2>
 
-            {% for label, section_dict in info_dict.iteritems() %}
+            {% for label, section_dict in info_dict.items() %}
             <h3 style="font-family:'Trebuchet MS', Verdana, sans-serif;margin-top:0;margin-bottom:10px;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;font-size:14px;" >{{ label }}</h3>
             <ul style="margin-top:0;margin-bottom:10px;margin-right:0;margin-left:10px;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;list-style-type:none;list-style-position:outside;list-style-image:none;" >
-                {% for key, value in section_dict.iteritems() %}
+                {% for key, value in section_dict.items() %}
                 <li style="margin-top:0;margin-bottom:0;margin-right:0;margin-left:0;padding-top:0;padding-bottom:0;padding-right:0;padding-left:0;" ><span style="font-weight:bold;" >{{ key }}:</span> {{ value }}</li>
                 {% endfor %}
             </ul>

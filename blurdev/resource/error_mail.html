@@ -50,10 +50,10 @@
         <div class="information">
             <h2>Debug Information</h2>
 
-            {% for label, section_dict in info_dict.iteritems() %}
+            {% for label, section_dict in info_dict.items() %}
             <h3>{{ label }}</h3>
             <ul>
-                {% for key, value in section_dict.iteritems() %}
+                {% for key, value in section_dict.items() %}
                 <li><span style="font-weight:bold">{{ key }}:</span> {{ value }}</li>
                 {% endfor %}
             </ul>
