@@ -17,6 +17,7 @@ import six
 import sys
 import time
 import warnings
+from datetime import datetime, timedelta
 
 import blurdev
 
@@ -68,6 +69,10 @@ class LoggerWindow(Window):
         # Create timer to autohide status messages
         self.statusTimer = QTimer()
         self.statusTimer.setSingleShot(True)
+
+        # Store the previous time a font-resize wheel event was triggered to prevent
+        # rapid-fire WheelEvents. Initialize to the current time.
+        self.previousFontResizeTime = datetime.now()
 
         import blurdev.gui
 
@@ -516,14 +521,24 @@ class LoggerWindow(Window):
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
         if event.modifiers() == Qt.ControlModifier:
+            # WheelEvents can be emitted in a cluster, but we only want one at a time
+            # (ie to change font size by 1, rather than 2 or 3). Let's bail if previous
+            # font-resize wheel event was within a certain threshhold.
+            now = datetime.now()
+            elapsed = now - self.previousFontResizeTime
+            tolerance = timedelta(microseconds=100000)
+            if elapsed < tolerance:
+                return
+            self.previousFontResizeTime = now
+
             # QT4 presents QWheelEvent.delta(), QT5 has QWheelEvent.angleDelta().y()
             if hasattr(event, 'delta'):  # Qt4
                 delta = event.delta()
             else:  # QT5
                 delta = event.angleDelta().y()
+
             # convert delta to +1 or -1, depending
             delta = delta / abs(delta)
-
             minSize = 5
             maxSize = 50
             font = self.console().font()
