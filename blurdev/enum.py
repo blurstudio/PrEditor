@@ -452,7 +452,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         Raises:
             ValueError
         """
-        if [e for e in (list(args) + kwargs.values()) if not isinstance(e, Enum)]:
+        if [e for e in (list(args) + list(kwargs.values())) if not isinstance(e, Enum)]:
             raise ValueError('Given items must be of class Enum.')
         if [e for e in args if not e.label]:
             raise ValueError('Enums given as ordered arguments must have a label.')
@@ -797,7 +797,7 @@ class enum(object):  # noqa: N801
         """
         super(enum, self).__init__()
         self._keys = list(args) + list(kwds.keys())
-        self._compound = kwds.keys()
+        self._compound = list(kwds.keys())
         self._descr = {}
         key = 1
         for i in range(len(args)):
@@ -842,7 +842,7 @@ class enum(object):  # noqa: N801
         if byVal:
             return [
                 ' '.join(re.findall('[A-Z]+[^A-Z]*', key))
-                for key in sorted(self.keys(), key=lambda i: getattr(self, i))
+                for key in sorted(list(self.keys()), key=lambda i: getattr(self, i))
             ]
         return [' '.join(re.findall('[A-Z]+[^A-Z]*', key)) for key in self.keys()]
 

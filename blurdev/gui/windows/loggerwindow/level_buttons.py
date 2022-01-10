@@ -299,7 +299,7 @@ class LoggingLevelButton(QToolButton):
             (accessed via `logging.getLogger`) and lies in-between an ancestor
             and one of its descendants that has been initialized.
         """
-        logger_dict = logging.root.manager.loggerDict.items()
+        logger_dict = list(logging.root.manager.loggerDict.items())
         for name, logger in sorted(logger_dict, key=lambda x: x[0].lower()):
             if isinstance(logger, logging.PlaceHolder):
                 logger = logging.getLogger(name)

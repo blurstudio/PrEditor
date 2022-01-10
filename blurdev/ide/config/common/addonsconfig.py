@@ -38,7 +38,7 @@ class AddonsConfig(ConfigSectionWidget):
         """refreshes the ui with the latest data settings"""
         from blurdev.ide.ideaddon import IdeAddon
 
-        modules = sorted(IdeAddon.modules.values(), key=lambda x: x.name())
+        modules = sorted(list(IdeAddon.modules.values()), key=lambda x: x.name())
         for module in modules:
             moditem = QTreeWidgetItem([module.name(), module.status()])
             if module.isEnabled():

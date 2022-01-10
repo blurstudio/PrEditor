@@ -47,7 +47,7 @@ class ConfigSection(object):
         return self._name
 
     def properties(self):
-        return self._properties.keys()
+        return list(self._properties.keys())
 
     def recordToXml(self, xml):
         xsection = xml.addNode('section')
@@ -186,7 +186,7 @@ class ConfigSet(QObject):
         return self._sections.get(str(name))
 
     def sections(self):
-        return self._sections.values()
+        return list(self._sections.values())
 
     def sectionGroups(self):
         output = list(set([section.group() for section in self.sections()]))

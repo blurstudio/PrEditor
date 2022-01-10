@@ -95,7 +95,7 @@ def init():
     _inited = True
 
     # register default paths
-    for key in sorted(os.environ.keys(), reverse=True):
+    for key in sorted(list(os.environ.keys()), reverse=True):
         if key.startswith('BDEV_INCLUDE_'):
             path = os.environ[key]
             if not path:

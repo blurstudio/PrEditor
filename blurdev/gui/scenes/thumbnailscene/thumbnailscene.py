@@ -101,7 +101,7 @@ class ThumbnailScene(QGraphicsScene):
         if event.key() == Qt.Key_Left:
             selection = self.selectedItems()
             if selection:
-                items = self.items()
+                items = list(self.items())
                 item = selection[0]
                 if item in items:
                     index = items.index(item)
@@ -125,7 +125,7 @@ class ThumbnailScene(QGraphicsScene):
         elif event.key() == Qt.Key_Right:
             selection = self.selectedItems()
             if selection:
-                items = self.items()
+                items = list(self.items())
                 item = selection[0]
                 if item in items:
                     index = items.index(item)
@@ -236,7 +236,7 @@ class ThumbnailScene(QGraphicsScene):
         right = 0
 
         # load the thumbnails and groups
-        items = self.items()
+        items = list(self.items())
         grp_map = {}
         for item in items:
             # process a thumbnail item
@@ -257,7 +257,7 @@ class ThumbnailScene(QGraphicsScene):
                 return item
             return item.sortData()
 
-        keys = sorted(grp_map.keys(), key=sort_key, reverse=self.reverseSort())
+        keys = sorted(list(grp_map.keys()), key=sort_key, reverse=self.reverseSort())
 
         ypos = padding.height()
         for key in keys:

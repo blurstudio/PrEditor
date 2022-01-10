@@ -238,7 +238,7 @@ class PyularWidget(QWidget):
             groupDict = results.groupdict()
             # swap the keys for items, so we can do the look up on the value of
             # results.groups()
-            invert = dict(zip(groupDict.values(), groupDict.keys()))
+            invert = dict(zip(list(groupDict.values()), list(groupDict.keys())))
             out = []
             for index in range(len(results.groups()) + 1):
                 item = results.group(index)

@@ -231,10 +231,10 @@ class SectionClass(object):
 
     def GetPropNames(self):
         """Returns the _properties dictionary keys"""
-        return self._properties.keys()
+        return list(self._properties.keys())
 
     def GetPropValues(self):
-        return self._properties.values()
+        return list(self._properties.values())
 
     def Load(self, parser):
         """Loads the data from the inputed parser if it has a section whose name

@@ -298,14 +298,14 @@ class SettingsConfig(ConfigSectionWidget):
     def refreshArgumentList(self):
         self.uiArgumentTREE.clear()
         argList = self._project.argumentList()
-        for key in sorted(argList.keys(), key=lambda i: argList[i][0]):
+        for key in sorted(list(argList.keys()), key=lambda i: argList[i][0]):
             item = QTreeWidgetItem([key, argList[key][1]])
             self.uiArgumentTREE.addTopLevelItem(item)
 
     def refreshCommandList(self):
         self.uiCommandTREE.clear()
         cmdList = self._project.commandList()
-        for key in sorted(cmdList.keys(), key=lambda i: cmdList[i][0]):
+        for key in sorted(list(cmdList.keys()), key=lambda i: cmdList[i][0]):
             item = QTreeWidgetItem()
             item.setText(0, key)
             item.setText(1, cmdList[key][1])

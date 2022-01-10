@@ -73,7 +73,9 @@ class ToolsIndex(QObject):
     def categories(self):
         """returns the current categories for this index"""
         self.load()
-        output = sorted(self._categoryCache.values(), key=lambda x: x.objectName())
+        output = sorted(
+            list(self._categoryCache.values()), key=lambda x: x.objectName()
+        )
         return output
 
     def cacheCategory(self, category):
@@ -279,7 +281,7 @@ class ToolsIndex(QObject):
         # Convert the dict to a list for saving: We use a dictionary so we can use the
         # entry point name to ensure unique values especially when using the
         # environment variable.
-        entry_points = entry_points.values()
+        entry_points = list(entry_points.values())
 
         # Ensure that the blurdev's entry point is processed first, we need to add
         # its paths before we try to load any of the other entry_points that are
@@ -792,10 +794,10 @@ class ToolsIndex(QObject):
         return output
 
     def tools(self):
-        return self._toolCache.values()
+        return list(self._toolCache.values())
 
     def toolNames(self):
-        return self._toolCache.keys()
+        return list(self._toolCache.keys())
 
     def toolRootPaths(self):
         """A list of paths to search for tools when rebuild is called.

@@ -394,7 +394,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
         Returns:
             list:
         """
-        return self._children.values()
+        return list(self._children.values())
 
     def debug_level(self):
         """
@@ -754,7 +754,7 @@ class Stopwatch(with_metaclass(_StopwatchMeta, object)):
             return
 
         while self._running_children:
-            key = self._running_children.keys()[-1]
+            key = list(self._running_children.keys())[-1]
             child = self._running_children.pop(key)
             if child.running():
                 child.stop(end)

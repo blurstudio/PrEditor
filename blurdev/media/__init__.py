@@ -479,7 +479,8 @@ def fileTypes():
         ['All File Types (*.*)']
         + [
             '%s (*%s)' % (value[0], key)
-            for key, value in _imageFileTypes.items() + _movieFileTypes.items()
+            for key, value in list(_imageFileTypes.items())
+            + list(_movieFileTypes.items())
         ]
     )
 

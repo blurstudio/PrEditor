@@ -70,7 +70,7 @@ class EnumWidget(QWidget):
                 # EnumGroup.keys returns the label value, not the name value.
                 keys = [et.name for et in self._enumType]
             else:
-                keys = self._enumType.keys()
+                keys = list(self._enumType.keys())
             for key in keys:
                 # create a new row when the column requires it
                 if column == self.columnCount():

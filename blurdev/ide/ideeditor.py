@@ -1823,7 +1823,7 @@ class IdeEditor(Window):
                 cmds = project.argumentList()
                 offset = self.uiCommandArgsDDL.count()
                 for index, key in enumerate(
-                    sorted(cmds.keys(), key=lambda i: cmds[i][0])
+                    sorted(list(cmds.keys()), key=lambda i: cmds[i][0])
                 ):
                     if key.startswith("!Separator!"):
                         self.uiCommandArgsDDL.insertSeparator(index + offset)
@@ -1842,7 +1842,7 @@ class IdeEditor(Window):
             if project:
                 cmds = project.commandList()
                 for index, key in enumerate(
-                    sorted(cmds.keys(), key=lambda i: cmds[i][0])
+                    sorted(list(cmds.keys()), key=lambda i: cmds[i][0])
                 ):
                     if key.startswith("!Separator!"):
                         self.uiCommandDDL.insertSeparator(index)

@@ -36,7 +36,7 @@ class ManageCorePrefsDialog(Dialog):
         self.uiEnvironmentTREE.setDelegate(self)
         self._debugLevels = None
 
-        self.uiSetAllDebugDDL.addItems(self.debugLevels.values())
+        self.uiSetAllDebugDDL.addItems(list(self.debugLevels.values()))
         self.uiSetAllDebugDDL.setCurrentIndex(-1)
 
         # restore settings from last session
@@ -83,7 +83,7 @@ class ManageCorePrefsDialog(Dialog):
         # debug level column
         elif index.column() == 2:
             editor = QComboBox(parent)
-            editor.addItems(self.debugLevels.values())
+            editor.addItems(list(self.debugLevels.values()))
             editor.setCurrentIndex(editor.findText(index.data(Qt.DisplayRole)))
             return editor
 
