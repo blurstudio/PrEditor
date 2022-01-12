@@ -584,8 +584,10 @@ def subprocessEnvironment(env=None):
 
     path = env.get('PATH')
     if path:
-        paths = [x for x in path.split(';') if normalize(x) not in removePaths]
-        path = ';'.join(paths)
+        paths = [
+            x for x in path.split(os.path.pathsep) if normalize(x) not in removePaths
+        ]
+        path = os.path.pathsep.join(paths)
         # subprocess does not accept unicode in python 2
         if sys.version_info[0] == 2 and isinstance(path, text):
             path = path.encode('utf8')
@@ -837,7 +839,7 @@ class FlashTimes(EnumGroup):
 
 
 # --------------------------------------------------------------------------------
-# 								Read registy values
+#                               Read registy values
 # --------------------------------------------------------------------------------
 def getRegKey(registry, key, architecture=None, write=False):
     """Returns a winreg hkey or none.
@@ -1077,9 +1079,9 @@ def getEnvironmentRegKey(machine=False):
     return registry, key
 
 
-def processPath(path, cb, sep=';'):
-    """A little helper function for prcoessing paths.  Use a cb function to
-    process each path seperated by the specified separator.
+def processPath(path, cb, sep=os.path.pathsep):
+    """A little helper function for processing paths.  Use a cb function to
+    process each path separated by the specified separator.
 
     Args:
         path (str): The path value to process
@@ -1087,7 +1089,7 @@ def processPath(path, cb, sep=';'):
         cb (callable): The callback to call to process each path.  This is expected to
             take a string (path) as input, and return a string or None.
 
-        sep (str, optional): The OS's seperator for joinging paths in an environment
+        sep (str, optional): The OS's separator for joining paths in an environment
             variable.
 
     Returns:
