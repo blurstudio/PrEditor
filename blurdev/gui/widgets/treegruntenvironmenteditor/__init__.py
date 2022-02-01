@@ -251,9 +251,11 @@ class TreegruntEnvironmentEditor(QWidget):
         elif is_env:
             menu.addSeparator()
             menu.addAction('Rebuild Index').triggered.connect(self.rebuild_index)
-            menu.addAction('Open Python Environment Manager').triggered.connect(
-                self.open_python_environment_manager
-            )
+            # TODO: Figure out why this has issues with corrupting the venv when
+            # run from inside treegrunt.
+            # menu.addAction('Open Python Environment Manager').triggered.connect(
+            #     self.open_python_environment_manager
+            # )
             if not item.read_only:
                 menu.addSeparator()
                 menu.addAction('Remove Environment').triggered.connect(
