@@ -816,10 +816,10 @@ class ToolsEnvironment(QObject):
         base, ext = os.path.splitext(filename)
         if ext.lower() == '.xml':
             json_name = '{}.json'.format(base)
-            if os.path.exists(json_name):
+            if os.path.exists(json_name) or not os.path.exists(filename):
                 filename = json_name
 
-        if filename in config or not os.path.isfile(filename):
+        if filename in config:
             # Don't reprocess the same file if there is are circular includes
             return config
 
@@ -829,8 +829,13 @@ class ToolsEnvironment(QObject):
         config['{}.json'.format(base)] = current
 
         if os.path.splitext(filename.lower())[-1] == '.json':
-            with open(filename) as fh:
-                data = json.load(fh, object_pairs_hook=OrderedDict)
+            if os.path.isfile(filename):
+                with open(filename) as fh:
+                    data = json.load(fh, object_pairs_hook=OrderedDict)
+            else:
+                # If the file doesn't exist, add an empty node so the UI can show it
+                # allowing the user to add environments to it/creating the file.
+                data = {}
             name = include_name if include_name else 'Environment'
             current['name'] = data.get('name', name)
             current['read_only'] = data.get('read_only', False)
