@@ -195,16 +195,30 @@ class Core(QObject):
                 )
 
         msg.append('Qt: {}'.format(__qt_version__))
-        msg.append('{qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__))
-        msg.append('Qt.py: {}'.format(qtpy_version))
+        msg.append('    Qt.py: {}, binding: {}'.format(qtpy_version, __binding__))
 
         try:
             # QtSiteConfig is optional
             import QtSiteConfig
 
-            msg.append('QtSiteConfig: {}'.format(QtSiteConfig.__version__))
+            msg.append('    QtSiteConfig: {}'.format(QtSiteConfig.__version__))
         except (ImportError, AttributeError):
             pass
+
+        # Legacy Qt 4 support
+        if __binding__ not in ('PyQt5', 'PySide2'):
+            msg.append(
+                '    {qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__)
+            )
+        # Add info for all Qt5 bindings that have been imported somewhere
+        if 'PyQt5.QtCore' in sys.modules:
+            msg.append(
+                '    PyQt5: {}'.format(sys.modules['PyQt5.QtCore'].PYQT_VERSION_STR)
+            )
+        if 'PySide2.QtCore' in sys.modules:
+            msg.append(
+                '    PySide2: {}'.format(sys.modules['PySide2.QtCore'].qVersion())
+            )
 
         # Include the python version info
         msg.append('Python:')
