@@ -31,6 +31,8 @@ try:
 except ImportError:
     psutil = None
 
+_LOGGER = logging.getLogger(__name__)
+
 
 def monitorForCrash(pid, conn):
     """Multiprocessing function used to clean up temp files if the parent process is
@@ -41,23 +43,29 @@ def monitorForCrash(pid, conn):
     try:
         tempFiles = []
         tempDirs = []
-        print('[monitorForCrash] Checking pid', pid, (Stone, psutil))
+        _LOGGER.info(
+            '[monitorForCrash] Checking pid, {}, {}'.format(pid, (Stone, psutil))
+        )
         while (Stone and Stone.isRunning(pid)) or psutil and psutil.pid_exists(pid):
             try:
                 if conn.poll():
                     data = conn.recv()
                     if data[0] == 'tempFile':
                         tempFiles.append(data[1])
-                        print('[monitorForCrash] Adding tempFile', data[1])
+                        _LOGGER.info(
+                            '[monitorForCrash] Adding tempFile, {}'.format(data[1])
+                        )
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'tempDir':
                         tempDirs.append(data[1])
-                        print('[monitorForCrash] Adding tempDir', data[1])
+                        _LOGGER.info(
+                            '[monitorForCrash] Adding tempDir, {}'.format(data[1])
+                        )
                         # Check for more data instead of sleeping
                         continue
                     elif data[0] == 'finished':
-                        print(
+                        _LOGGER.info(
                             '[monitorForCrash] Parent process is done, '
                             'exiting without doing anything'
                         )
@@ -65,12 +73,12 @@ def monitorForCrash(pid, conn):
             except IOError as e:
                 if e.errno == 109:
                     # The pipe has been ended, assume the parent process was killed
-                    print('[monitorForCrash] IOError 109')
+                    _LOGGER.info('[monitorForCrash] IOError 109')
                     break
             time.sleep(1)
 
-        print('[monitorForCrash] Removing tempFiles', tempFiles)
-        print('[monitorForCrash] Removing tempDirs', tempDirs)
+        _LOGGER.info('[monitorForCrash] Removing tempFiles, {}'.format(tempFiles))
+        _LOGGER.info('[monitorForCrash] Removing tempDirs, {}'.format(tempDirs))
         # Remove any created folders from disk and their contents
         for tempDir in tempDirs:
             shutil.rmtree(tempDir, ignore_errors=True)
@@ -80,7 +88,11 @@ def monitorForCrash(pid, conn):
                 os.remove(tempFile)
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print('[monitorForCrash] File already deleted', str(e), tempFile)
+                    _LOGGER.info(
+                        '[monitorForCrash] File already deleted, {}, {}'.format(
+                            e, tempFile
+                        )
+                    )
     except Exception:
         traceback.print_exc()
         time.sleep(20)
@@ -100,7 +112,7 @@ class TempFilesContext(object):
     If the environment variable "BDEV_KEEP_TEMPFILESCONTEXT" is set to "true", then
     the temp files and directories will not be removed when the context exits. This
     forces crashMonitor to False, and must be set before the Context is created. When
-    the context exits, it will print a list of all temp directories and files that
+    the context exits, it will log a list of all temp directories and files that
     were created and not deleted.
 
     Note:
@@ -123,7 +135,7 @@ class TempFilesContext(object):
             context.
         pythonw (bool): If True multiprocessing.set_executable will be set to
             pythonw.exe. If False (default) it will be set to python.exe. If False
-            the print statements in the monitorForCrash() child process appear to
+            the log statements in the monitorForCrash() child process appear to
             be redirected back to the parent process. This is useful for debugging.
     """
 
@@ -140,7 +152,7 @@ class TempFilesContext(object):
             warning = (
                 'Use dirname argument instead of defaultDir with TempFilesContext.'
             )
-            logging.warn(warning)
+            _LOGGER.warning(warning)
             dirname = defaultDir
         self.keyed = keyed
         self._dirname = dirname
@@ -178,7 +190,9 @@ class TempFilesContext(object):
                     sys.argv = argv
             else:
                 self.crashMonitor = False
-                print('blur.Stone or psutil not installed crashMonitor disabled.')
+                _LOGGER.warning(
+                    'blur.Stone or psutil not installed, crashMonitor disabled.'
+                )
 
     def dirname(self):
         return self._dirname
@@ -211,7 +225,9 @@ class TempFilesContext(object):
             # If a dirname was provided, make sure its included
             if self._dirname is not None and 'dir' not in kwargs:
                 kwargs['dir'] = self._dirname
-                print('makeTempDirectory adding dirname {}'.format(self._dirname))
+                _LOGGER.info(
+                    'makeTempDirectory adding dirname {}'.format(self._dirname)
+                )
 
             tempDir = tempfile.mkdtemp(*args, **kwargs)
             self._tempDirs[key] = tempDir
@@ -250,10 +266,11 @@ class TempFilesContext(object):
 
         if key not in self._tempFiles:
             # If a dirname was provided, make sure its included
-            print('DEFAULT DIR {}'.format([self._dirname, kwargs]))
-            if self._dirname is not None and 'dir' not in kwargs:
-                kwargs['dir'] = self._dirname
-                print('makeTempFile adding dirname {}'.format(self._dirname))
+            if self._dirname is not None:
+                _LOGGER.info('DEFAULT DIR {}'.format([self._dirname, kwargs]))
+                if 'dir' not in kwargs:
+                    kwargs['dir'] = self._dirname
+                    _LOGGER.info('makeTempFile adding dirname {}'.format(self._dirname))
 
             tempFile = tempfile.mkstemp(*args, **kwargs)
             self._tempFiles[key] = tempFile
@@ -267,16 +284,16 @@ class TempFilesContext(object):
         return self
 
     def __exit__(self, *args):
-        # If using the environment variable to keep files around, print some useful
+        # If using the environment variable to keep files around, log some useful
         # debug info and exit without removing the files.
         if self.keepTempFiles:
-            from pprint import pprint
+            from pprint import pformat
 
-            print('\nBDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.')
-            print('--- Orphaned Directories:')
-            pprint(self._tempDirs)
-            print('--- Orphaned Files:')
-            pprint(self._tempFiles)
+            _LOGGER.info('\nBDEV_KEEP_TEMPFILESCONTEXT is True, keeping temp files.')
+            _LOGGER.info('--- Orphaned Directories:')
+            _LOGGER.info(pformat(self._tempDirs))
+            _LOGGER.info('--- Orphaned Files:')
+            _LOGGER.info(pformat(self._tempFiles))
             return
         # Remove any created folders from disk and their contents
         for tempDir in self._tempDirs.values():
@@ -284,16 +301,16 @@ class TempFilesContext(object):
         self._tempDirs = {}
         # Remove any created temp files
         for tempFile in self._tempFiles.values():
-            print(tempFile)
+            _LOGGER.debug("tempFile removed: {}".format(tempFile))
             try:
                 os.close(tempFile[0])
             except OSError as e:
-                print('Problem closing tempfile', e, str(e))
+                _LOGGER.warning('Problem closing tempfile, {}'.format(e))
             try:
                 os.remove(tempFile[1])
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    print('File already deleted {}'.format(e))
+                    _LOGGER.info('File already deleted {}'.format(e))
         self._tempFiles = {}
         if self.crashMonitor:
             # Tell the crashMonitor that the temp files have been deleted and it can
