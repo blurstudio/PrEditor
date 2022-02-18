@@ -66,7 +66,7 @@ def launch_tool(ctx):
         # in this process even if the core prefs want to load a different environment.
         # It also prevents changing the core's environment if core.shutdown() is called.
         os.environ['BDEV_TOOL_ENVIRONMENT'] = blurdev.settings.environStr(
-            pref.restoreProperty('environment')
+            pref.restoreProperty('environment', '')
         )
 
     # blurdev.launch will call this automatically. By setting it here, we prevent a
