@@ -1622,6 +1622,12 @@ class Core(QObject):
 
             # Make sure to close the toolbar plugins
             self.shutdownToolbars()
+
+            # Make sure any open tools are saving their preferences. This is important
+            # for instance tools because they may not trigger their pref saving when
+            # closed(aka hidden), just when their shutdown is called.
+            self.aboutToClearPaths.emit()
+
             # Make sure to close Treegrunt
             from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
 
