@@ -92,10 +92,15 @@ def app_id_for_shortcut(shortcut):
         return store.GetValue(key).GetValue()
 
 
-def defaultLogFile():
-    """Returns a default log file path often used for redirecting stdout/err to."""
+def defaultLogFile(filename='blurdevProtocol.log'):
+    """Returns a default log file path often used for redirecting stdout/err to.
+    Uses the `BDEV_PATH_BLUR` environment variable as the basepath.
+
+    Args:
+        filename (str, optional): filename to log to.
+    """
     basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
-    return os.path.join(basepath, 'blurdevProtocol.log')
+    return os.path.join(basepath, filename)
 
 
 def expandvars(text, cache=None):
