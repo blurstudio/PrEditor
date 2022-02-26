@@ -1429,8 +1429,7 @@ class LoggerWindow(Window):
         This uses blurdev.debug.logToFile(path, useOldStd=True).
         """
         if self._logToFilePath is None:
-            basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
-            path = os.path.join(basepath, 'blurdevProtocol.log')
+            path = blurdev.osystem.defaultLogFile()
             path, _ = QtCompat.QFileDialog.getOpenFileName(
                 self, "Log Output to File", path
             )

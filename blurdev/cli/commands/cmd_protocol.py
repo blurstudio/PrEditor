@@ -32,7 +32,6 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
-import os
 import click
 import blurdev
 import blurdev.osystem
@@ -54,10 +53,7 @@ def cli(url):
     """Process the passed in `blurdev://...` url"""
 
     # Log to a file so we can debug problems.
-    basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
-    blurdev.debug.logToFile(
-        os.path.join(basepath, 'blurdevProtocol.log'), useOldStd=True
-    )
+    blurdev.debug.logToFile(blurdev.osystem.defaultLogFile(), useOldStd=True)
 
     print(
         ('Treegrunt Environment: {}'.format(blurdev.activeEnvironment().objectName()))

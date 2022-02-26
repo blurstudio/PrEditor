@@ -92,6 +92,12 @@ def app_id_for_shortcut(shortcut):
         return store.GetValue(key).GetValue()
 
 
+def defaultLogFile():
+    """Returns a default log file path often used for redirecting stdout/err to."""
+    basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
+    return os.path.join(basepath, 'blurdevProtocol.log')
+
+
 def expandvars(text, cache=None):
     """
     Recursively expands the text variables, vs. the os.path.expandvars
