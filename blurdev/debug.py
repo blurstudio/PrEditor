@@ -951,6 +951,12 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
         if clearLog:
             sys.stdout.clear(stamp=True)
 
+    # Update any StreamHandler's that were setup using the old stdout/err
+    if stdout:
+        blurdev.logger.replaceStreamForStreamHandlers(sys.stdout._stdhandle, sys.stdout)
+    if stderr:
+        blurdev.logger.replaceStreamForStreamHandlers(sys.stderr._stdhandle, sys.stderr)
+
 
 # --------------------------------------------------------------------------------
 

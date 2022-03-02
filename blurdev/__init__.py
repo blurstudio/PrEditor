@@ -88,13 +88,13 @@ been deleted.
 protocolSplash = None
 
 # Create the root blurdev module logging object.
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
-# Add a NullHandler to suppress the "No handlers could be found for logger"
+# Add a NullHandler to suppress the "No handlers could be found for _logger"
 # warnings from being printed to stderr. Studiomax and possibly other DCC's
 # tend to treat any text written to stderr as a error when running headless.
 # We also don't want this warning showing up in production anyway.
-logger.addHandler(logging.NullHandler())
+_logger.addHandler(logging.NullHandler())
 
 # initialize sentry if environment variable present
 if os.environ.get("BDEV_SENTRY_AT_STARTUP"):

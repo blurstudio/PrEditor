@@ -92,6 +92,10 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             self._errorLog = sys.stderr
             BlurExcepthook.install()
 
+            # Update any StreamHandler's that were setup using the old stdout/err
+            blurdev.logger.replaceStreamForStreamHandlers(self.stdout, self)
+            blurdev.logger.replaceStreamForStreamHandlers(self.stderr, sys.stderr)
+
         # create the highlighter
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')

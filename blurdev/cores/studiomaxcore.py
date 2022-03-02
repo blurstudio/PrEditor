@@ -319,16 +319,7 @@ class StudiomaxCore(Core):
             ):
                 # Update the stream handler so we can see logging output in the
                 # Python Logger, not just the maxscript listener.
-                if sys.version_info[0] > 2:
-                    handler.setStream(sys.stdout)
-                else:
-                    # Copied from python 3's logging's setStream to work in python 2
-                    handler.acquire()
-                    try:
-                        handler.flush()
-                        handler.stream = sys.stdout
-                    finally:
-                        handler.release()
+                blurdev.logger.setStreamHandlerStream(handler, sys.stdout)
 
         # init the base class
         ret = super(StudiomaxCore, self).init()
