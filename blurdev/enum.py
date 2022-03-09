@@ -613,7 +613,11 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         default_enum = None
 
         orderedEnums = sorted(
-            [(k, v) for k, v in iteritems(cls.__dict__) if isinstance(v, Enum)],
+            [
+                (k, v)
+                for k, v in iteritems(cls.__dict__)
+                if isinstance(v, Enum) and k not in ('All', 'Nothing')
+            ],
             key=lambda i: i[1]._creationOrder,
         )
         for name, value in orderedEnums:
