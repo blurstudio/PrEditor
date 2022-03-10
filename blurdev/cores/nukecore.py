@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import six
 import blurdev
 import blurdev.tools.tool
 import nuke
@@ -68,7 +69,7 @@ class NukeCore(Core):
             actions = {}
         if (
             isinstance(exc_value, RuntimeError)
-            and exc_value.message in self.ignore_messages
+            and six.text_type(exc_value) in self.ignore_messages
         ):
             return dict(email=False, prompt=False, sentry=False)
 
