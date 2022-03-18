@@ -14,17 +14,23 @@ class ResourceFinder(PillarResourceFinder):
 
     def __init__(self):
         # Set the resource cache for local resource caching.
-        cache = os.getenv('BDEV_RESOURCES_CACHE')
-        if cache:
-            cache_path = Path(cache)
+        cache_root = os.getenv('BDEV_RESOURCES_CACHE')
+        use_caching = os.getenv('BDEV_CACHE_RESOURCES', 'true')
+        allow_caching = use_caching.lower() in ('true', 'yes')
+        if cache_root and allow_caching:
+            cache_path = Path(cache_root)
             cache_path = cache_path / 'blurdev'
             cache = str(cache_path)
+        else:
+            cache = None
 
         super(ResourceFinder, self).__init__('blurdev', '', cache_paths=cache)
 
         # Build blurdev resource finder.
         path = Path(__file__).parents[0] / 'resource'
-        PillarResourceFinder('resources', str(path), parent=self)
+        PillarResourceFinder(
+            'resources', str(path), cache_paths="resources", parent=self
+        )
 
         # Build library finder.
         PillarResourceFinder(
