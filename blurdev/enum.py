@@ -4,7 +4,7 @@ import abc
 import re
 from numbers import Number
 from builtins import str as text
-
+from past.builtins import long
 
 # =============================================================================
 # CLASSES
@@ -234,7 +234,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
             return False
         if isinstance(value, Enum):
             return self.number == value.number
-        if isinstance(value, int):
+        if isinstance(value, (int, long)):
             return self.number == value
         if isinstance(value, str) or isinstance(value, text):
             if self._compareStr(value):
