@@ -186,12 +186,16 @@ class Core(QObject):
                 from trax.api.data import Database, User
                 import getpass
 
+                connection = Database.current().connection()
                 msg.append('    {}'.format(os.path.dirname(trax.__file__)))
+                msg.append('    db driver: {}'.format(connection.db().driverName()))
                 msg.append('    Usernames:')
                 msg.append('        os: {}'.format(getpass.getuser()))
                 msg.append('        trax: {}'.format(User.currentUser().username()))
                 msg.append(
-                    '        db: {}'.format(Database.current().connection().userName())
+                    '        connection: {}, ini: {}'.format(
+                        connection.db().userName(), connection.userName()
+                    )
                 )
 
         msg.append('Qt: {}'.format(__qt_version__))
