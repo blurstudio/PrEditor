@@ -3,8 +3,11 @@ import atexit
 import blurdev
 import blurdev.tools.tool
 from blurdev.cores.core import Core
+from blurdev.debug import BlurExcepthook
+from blurdev.settings import OS_TYPE
+from pillar import stream
 import hou
-from Qt import QtCompat
+from Qt import QtCompat, QtCore
 from builtins import int
 
 
@@ -53,7 +56,29 @@ class HoudiniCore(Core):
         Added initializing the logger. This helps with tool error reporting and prevents
         houdini crashes.
         """
-        blurdev.core.logger()
+        # Capture python output so we can show it in the Python Logger if its shown.
+        # This should have already been called by the hsite plugin, but calling it now
+        # makes sure we capture the output.
+        stream.install_to_std()
+
+        def install_excepthook():
+            # Install the BlurExcepthook so we can capture, report and tell the user
+            # about errors
+            BlurExcepthook.install()
+
+        # NOTE: On linux if the Python Logger is initialized at this point, it will
+        # cause a segfault applying stylesheets. After a minimum of 20ms delay when
+        # using a QTimer, houdini will no longer crash. Disable the prompt on error
+        # feature till well after this minimum delay.
+        if OS_TYPE == 'Linux':
+            # TODO: Using a QTimer like this is a bit of a hack, find a better way
+            # to provide this delay. This makes it so we can't show the message box
+            # if a error happens before the timer expires. However we are able to
+            # include the error text in the Python Logger when it is shown.
+            QtCore.QTimer.singleShot(2000, install_excepthook)
+        else:
+            install_excepthook()
+
         super(HoudiniCore, self).initGui()
 
     def quitQtOnShutdown(self):

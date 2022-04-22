@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 from __future__ import absolute_import
+import logging
 import re
 import string
 
@@ -10,13 +11,14 @@ from Qt.Qsci import QsciScintilla
 from . import RangeDelayable
 from .. import lang
 
+logger = logging.getLogger(__name__)
+
 
 try:  # noqa: C901
     import aspell
 except ImportError:
     # if we can't import aspell don't define the SpellCheckDelayable class
-    pass
-    print('Unable to import aspell')
+    logger.debug('Unable to import aspell')
 else:
 
     class SpellCheckDelayable(RangeDelayable):
