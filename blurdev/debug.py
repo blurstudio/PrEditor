@@ -42,6 +42,7 @@ import inspect
 from collections import OrderedDict
 from contextlib import contextmanager
 from future.utils import with_metaclass, itervalues
+from Qt import QtCompat
 
 import blurdev
 import blurdev.debug
@@ -1051,21 +1052,21 @@ class BlurExcepthook(object):
         from blurdev.gui.windows.loggerwindow import LoggerWindow
         from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
         from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
-        from Qt import QtCompat
 
-        instance = LoggerWindow.instance()
+        instance = LoggerWindow.instance(create=False)
 
-        # logger reference deleted, fallback and print to console
-        if not QtCompat.isValid(instance):
-            print("[LoggerWindow] LoggerWindow object has been deleted.")
-            print(traceback)
-            return
+        if instance:
+            # logger reference deleted, fallback and print to console
+            if not QtCompat.isValid(instance):
+                print("[LoggerWindow] LoggerWindow object has been deleted.")
+                print(traceback)
+                return
 
-        # logger is visble
-        if instance.isVisible():
-            if instance.uiAutoPromptACT.isChecked():
-                instance.console().startInputLine()
-            return
+            # logger is visible
+            if instance.isVisible():
+                if instance.uiAutoPromptACT.isChecked():
+                    instance.console().startInputLine()
+                return
 
         # quiet mode active
         if blurdev.core.quietMode():

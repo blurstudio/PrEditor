@@ -1402,9 +1402,25 @@ class LoggerWindow(Window):
         return self._openFileMonitor
 
     @staticmethod
-    def instance(parent=None, runWorkbox=False):
+    def instance(parent=None, runWorkbox=False, create=True):
+        """Returns the existing instance of the python logger creating it on first call.
+
+        Args:
+            parent (QWidget, optional): If the instance hasn't been created yet, create
+                it and parent it to this object.
+            runWorkbox (bool, optional): If the instance hasn't been created yet, this
+                will execute the active workbox's code once fully initialized.
+            create (bool, optional): Returns None if the instance has not been created.
+
+        Returns:
+            Returns a fully initialized instance of the Python Logger. If called more
+            than once, the same instance will be returned. If create is False, it may
+            return None.
+        """
         # create the instance for the logger
         if not LoggerWindow._instance:
+            if not create:
+                return None
 
             # create the logger instance
             inst = LoggerWindow(parent, runWorkbox=runWorkbox)

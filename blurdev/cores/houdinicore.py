@@ -66,16 +66,17 @@ class HoudiniCore(Core):
             # about errors
             BlurExcepthook.install()
 
+        # RESPECT THE 5 SECOND RULE!
         # NOTE: On linux if the Python Logger is initialized at this point, it will
-        # cause a segfault applying stylesheets. After a minimum of 20ms delay when
-        # using a QTimer, houdini will no longer crash. Disable the prompt on error
-        # feature till well after this minimum delay.
+        # cause a segfault applying stylesheets. After a few seconds of delay using
+        # a QTimer, houdini will no longer crash. Disable the prompt on error feature
+        # till well after this delay. Initial testing requires ~5 seconds.
         if OS_TYPE == 'Linux':
             # TODO: Using a QTimer like this is a bit of a hack, find a better way
             # to provide this delay. This makes it so we can't show the message box
             # if a error happens before the timer expires. However we are able to
             # include the error text in the Python Logger when it is shown.
-            QtCore.QTimer.singleShot(2000, install_excepthook)
+            QtCore.QTimer.singleShot(5000, install_excepthook)
         else:
             install_excepthook()
 
