@@ -174,7 +174,7 @@ class Core(QObject):
         )
 
         msg = [
-            'blurdev: {}'.format(blurdev.__version__),
+            'blurdev: {} ({})'.format(blurdev.__version__, self.objectName()),
             '    {}'.format(os.path.dirname(blurdev.__file__)),
         ]
         # When trax is imported it creates this env var for error reporting. We don't
