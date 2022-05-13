@@ -25,6 +25,8 @@ from .completer import PythonCompleter
 from builtins import str as text
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
 import blurdev.gui.windows.loggerwindow
+from pillar import stream
+from pillar.streamhandler_helper import StreamHandlerHelper
 
 
 SafeOutput = None
@@ -69,6 +71,15 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # store the error buffer
         self._completer = None
 
+        # If populated, also write to this interface
+        self.outputPipe = None
+
+        self._stdoutColor = QColor(17, 154, 255)
+        self._commentColor = QColor(0, 206, 52)
+        self._keywordColor = QColor(17, 154, 255)
+        self._stringColor = QColor(255, 128, 0)
+        self._resultColor = QColor(128, 128, 128)
+
         # create the completer
         self.setCompleter(PythonCompleter(self))
 
@@ -83,32 +94,28 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
             os.path.basename(sys.executable) != 'python.exe'
             or debug.debugLevel() != debug.DebugLevel.High
         ):
+            self.stream_manager = stream.install_to_std()
+            # Redirect future writes directly to the console, add any previous writes
+            # to the console and free up the memory consumed by previous writes as we
+            # assume this is likely to be the only callback added to the manager.
+            self.stream_manager.add_callback(
+                self.write, replay=True, disable_writes=True, clear=True
+            )
             # Store the current outputs
             self.stdout = sys.stdout
             self.stderr = sys.stderr
-            # insert our own outputs
-            sys.stdout = self
-            sys.stderr = ErrorLog(self)
             self._errorLog = sys.stderr
             BlurExcepthook.install()
 
             # Update any StreamHandler's that were setup using the old stdout/err
-            blurdev.logger.replaceStreamForStreamHandlers(self.stdout, self)
-            blurdev.logger.replaceStreamForStreamHandlers(self.stderr, sys.stderr)
+            StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
+            StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
 
         # create the highlighter
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
         self.uiCodeHighlighter = highlight
 
-        # If populated, also write to this interface
-        self.outputPipe = None
-
-        self._stdoutColor = QColor(17, 154, 255)
-        self._commentColor = QColor(0, 206, 52)
-        self._keywordColor = QColor(17, 154, 255)
-        self._stringColor = QColor(255, 128, 0)
-        self._resultColor = QColor(128, 128, 128)
         # These variables are used to enable pdb mode. This is a special mode used by
         # the logger if it is launched externally via getPdb, set_trace, or post_mortem
         # in blurdev.debug.
@@ -789,6 +796,8 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
 
     def write(self, msg, error=False):
         """write the message to the logger"""
+        # Convert the stream_manager's stream to the boolean value this function expects
+        error = error == stream.STDERR
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
         if QtCompat.isValid(self):
@@ -891,14 +900,3 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         # if a outputPipe was provided, write the message to that pipe
         if self.outputPipe:
             self.outputPipe(msg, error=error)
-
-        # Pass data along to the original stdout
-        try:
-            if sys.stderr and error:
-                self.stderr.write(msg)
-            elif self.stdout:
-                self.stdout.write(msg)
-            else:
-                sys.__stdout__.write(msg)
-        except Exception:
-            pass

@@ -951,11 +951,13 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
         if clearLog:
             sys.stdout.clear(stamp=True)
 
+    from pillar.streamhandler_helper import StreamHandlerHelper
+
     # Update any StreamHandler's that were setup using the old stdout/err
     if stdout:
-        blurdev.logger.replaceStreamForStreamHandlers(sys.stdout._stdhandle, sys.stdout)
+        StreamHandlerHelper.replace_stream(sys.stdout._stdhandle, sys.stdout)
     if stderr:
-        blurdev.logger.replaceStreamForStreamHandlers(sys.stderr._stdhandle, sys.stderr)
+        StreamHandlerHelper.replace_stream(sys.stderr._stdhandle, sys.stderr)
 
 
 # --------------------------------------------------------------------------------

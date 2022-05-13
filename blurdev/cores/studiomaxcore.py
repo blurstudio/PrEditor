@@ -18,6 +18,7 @@ import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 from blurdev.cores.core import Core
 from builtins import int
+from pillar.streamhandler_helper import StreamHandlerHelper
 
 # 3ds max version breakdown = {version: year, 16: 2014, 18:2016, 20: 2018}
 _maxVersion = mxs.maxVersion()[0] / 1000
@@ -312,14 +313,7 @@ class StudiomaxCore(Core):
         # calls `logging.basicConfig` so we redirect the logging as early as possible
         # to prevent false errors. This code makes it so we can see the logging
         # messages in the python logger.
-        for handler in logging.getLogger().handlers:
-            if (
-                isinstance(handler, logging.StreamHandler)
-                and handler.stream == old_stdout
-            ):
-                # Update the stream handler so we can see logging output in the
-                # Python Logger, not just the maxscript listener.
-                blurdev.logger.setStreamHandlerStream(handler, sys.stdout)
+        StreamHandlerHelper.replace_stream(old_stdout, sys.stdout)
 
         # init the base class
         ret = super(StudiomaxCore, self).init()
