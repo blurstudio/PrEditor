@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import logging
 import os
 import sys
 from Qt import QtCompat
@@ -26,6 +27,8 @@ class MayaCore(Core):
         # Shutdown blurdev when Maya closes
         if QApplication.instance():
             QApplication.instance().aboutToQuit.connect(self.shutdown)
+
+        self._logger_window_handler_installed = False
 
     def addLibraryPaths(self):
         # Do not add default library paths
@@ -57,6 +60,20 @@ class MayaCore(Core):
         ret = super(MayaCore, self).init()
         self.initGui()
         return ret
+
+    def logger(self, parent=None):
+        """Creates and returns the logger instance"""
+        logger = super(MayaCore, self).logger(parent=parent)
+
+        # Make it so we can see python logging messages in the Python Logger
+        if not self._logger_window_handler_installed:
+            from blurdev.gui.windows.loggerwindow.logger_window_handler import (
+                LoggerWindowHandler,
+            )
+
+            self._logger_window_handler_installed = True
+            logging.getLogger().addHandler(LoggerWindowHandler(True))
+        return logger
 
     def macroNames(self):
         """Returns True if the current blurdev core create a tool macro."""
