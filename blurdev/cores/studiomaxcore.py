@@ -25,8 +25,12 @@ _maxVersion = mxs.maxVersion()[0] / 1000
 
 # These modules are needed for 3ds Max 2017 or newer(19+)
 if _maxVersion > 18:
-    import MaxPlus
-    import PySide2
+    if _maxVersion >= 22:
+        import qtmax
+        import shiboken2
+    else:
+        import MaxPlus
+        import PySide2
 
 STUDIOMAX_MACRO_TEMPLATE = """
 macroscript %(studioName)s_%(id)s_Macro
@@ -299,7 +303,9 @@ class StudiomaxCore(Core):
 
         else:
             app = QApplication.instance()
-            app.focusChanged.connect(_focusChanged)
+            if self.dccVersion < 22:
+                # This was only needed for 2019
+                app.focusChanged.connect(_focusChanged)
         self._disable_libstone_qt_library_path()
 
         old_stdout = sys.stdout
@@ -447,8 +453,13 @@ class StudiomaxCore(Core):
     def rootWindow(self):
         # Max 2017+ is Qt based and makes it simple to find the root max window.
         if self.dccVersion > 18 and self._rootWindow is None:
+            if self.dccVersion >= 22:
+                main_window = qtmax.GetQMaxMainWindow()
+                ids = shiboken2.getCppPointer(main_window)
+            else:
+                main_window = MaxPlus.GetQMaxMainWindow()
+                ids = PySide2.shiboken2.getCppPointer(main_window)
             # Max returns the main window as a PySide2 widget, get its c++ pointer
-            ids = PySide2.shiboken2.getCppPointer(MaxPlus.GetQMaxMainWindow())
             if ids:
                 # Convert the c++ pointer to a PyQt5 widget
                 self._rootWindow = QtCompat.wrapInstance(int(ids[0]), QMainWindow)
