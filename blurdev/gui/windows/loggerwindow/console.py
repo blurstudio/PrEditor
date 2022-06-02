@@ -380,12 +380,13 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
         startTime = time.time()
         try:
             compiled = compile(commandText, filename, 'eval')
+            wasEval = True
         except Exception:
             compiled = compile(commandText, filename, 'exec')
-            exec(compiled, __main__.__dict__, __main__.__dict__)
-        else:
+        if wasEval:
             cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
-            wasEval = True
+        else:
+            exec(compiled, __main__.__dict__, __main__.__dict__)
         # Provide user feedback when running long code execution.
         delta = time.time() - startTime
         if self.flashTime and delta >= self.flashTime:
