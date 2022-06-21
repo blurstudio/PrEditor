@@ -101,12 +101,6 @@ def init():
             if not path:
                 # If set to a empty value, don't register the path
                 continue
-            if key == 'BDEV_INCLUDE_TRAX':
-                # check if trax is installed, if not then register the offline trax
-                # classes
-                if not os.path.isfile(r'%s\trax\__init__.py' % path):
-                    registerPath(r'%s\traxoffline' % os.path.split(__file__)[0])
-                    continue
             registerPath(path)
 
 
