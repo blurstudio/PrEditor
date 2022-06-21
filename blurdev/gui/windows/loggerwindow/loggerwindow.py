@@ -24,7 +24,7 @@ import blurdev
 from functools import partial
 
 from Qt import QtCore, QtWidgets
-from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer
+from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer, QSize
 from Qt.QtGui import QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
@@ -33,19 +33,18 @@ from Qt.QtWidgets import (
     QLabel,
     QMenu,
     QMessageBox,
+    QSpinBox,
     QTextBrowser,
     QToolTip,
     QVBoxLayout,
 )
 
 from Qt import QtCompat
-import sentry_bootstrap
 
 from blurdev import prefs
 from blurdev.logger import saveLoggerConfiguration
 
 from blurdev.gui import Window, Dialog
-from blurdev.gui.widgets.dragspinbox import DragSpinBox
 from blurdev.ide.delayable_engine import DelayableEngine
 
 from blurdev.gui import iconFactory
@@ -129,20 +128,15 @@ class LoggerWindow(Window):
         self.uiPdbExecuteCountLBL = QLabel('x', self.uiPdbTOOLBAR)
         self.uiPdbExecuteCountLBL.setObjectName('uiPdbExecuteCountLBL')
         self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountLBL)
-        self.uiPdbExecuteCountDDL = DragSpinBox(self.uiPdbTOOLBAR)
+        self.uiPdbExecuteCountDDL = QSpinBox(self.uiPdbTOOLBAR)
         self.uiPdbExecuteCountDDL.setObjectName('uiPdbExecuteCountDDL')
         self.uiPdbExecuteCountDDL.setValue(1)
-        self.uiPdbExecuteCountDDL.setDefaultValue(1)
         self.uiPdbExecuteCountDDL.setRange(1, 10000)
         msg = (
             'When the "next" and "step" buttons are pressed call them this many times.'
         )
         self.uiPdbExecuteCountDDL.setToolTip(msg)
         self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountDDL)
-
-        # Store the software name so we can handle custom keyboard shortcuts based on
-        # software
-        self._software = blurdev.core.objectName()
 
         # Initial configuration of the logToFile feature
         self._logToFilePath = None
@@ -151,11 +145,6 @@ class LoggerWindow(Window):
 
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
-        self.uiNewScriptACT.triggered.connect(blurdev.core.newScript)
-        self.uiOpenScriptACT.triggered.connect(blurdev.core.openScript)
-        self.uiOpenIdeACT.triggered.connect(blurdev.core.showIdeEditor)
-        self.uiRunScriptACT.triggered.connect(blurdev.core.runScript)
-        self.uiGotoErrorACT.triggered.connect(self.gotoError)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
@@ -257,8 +246,6 @@ class LoggerWindow(Window):
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
         self.uiClearLogACT.triggered.connect(self.clearLog)
-        self.uiToggleSentryACT.toggled.connect(self.setSentryEnabled)
-        self.uiToggleSentryACT.setChecked(sentry_bootstrap.is_enabled())
         self.uiSaveConsoleSettingsACT.triggered.connect(
             lambda: self.recordPrefs(manual=True)
         )
@@ -285,20 +272,6 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
-        if blurdev.settings.OS_TYPE == 'Windows':
-            self.uiBlurIdeShortcutACT.triggered.connect(self.createShortcutBlurIDE)
-            self.uiPythonLoggerShortcutACT.triggered.connect(
-                self.createShortcutPythonLogger
-            )
-            self.uiTreegruntShortcutACT.triggered.connect(self.createShortcutTreegrunt)
-        else:
-            # We can't currently create desktop shortcuts on posix systems.
-            self.uiShortcutsMENU.menuAction().setVisible(False)
-
-        self.uiNewScriptACT.setIcon(iconFactory.getIcon('new'))
-        self.uiOpenScriptACT.setIcon(iconFactory.getIcon('open'))
-        self.uiOpenIdeACT.setIcon(iconFactory.getIcon('ide'))
-        self.uiRunScriptACT.setIcon(iconFactory.getIcon('play_circle_filled'))
         self.uiResetPathsACT.setIcon(iconFactory.getIcon('return'))
         self.uiClearLogACT.setIcon(iconFactory.getIcon('clear'))
         self.uiSaveConsoleSettingsACT.setIcon(iconFactory.getIcon('save'))
@@ -312,7 +285,6 @@ class LoggerWindow(Window):
         self.uiPdbDownACT.setIcon(iconFactory.getIcon('down'))
 
         # Setting toolbar icon size.
-        from Qt.QtCore import QSize
 
         self.uiConsoleTOOLBAR.setIconSize(QSize(18, 18))
 
@@ -353,7 +325,6 @@ class LoggerWindow(Window):
             action.setChecked(self._stylesheet == style_name)
             action.triggered.connect(partial(self.setStyleSheet, style_name))
 
-        self.overrideKeyboardShortcuts()
         self.uiConsoleTOOLBAR.show()
         loggerName = QApplication.instance().translate(
             'PythonLoggerWindow', 'Python Logger'
@@ -708,21 +679,6 @@ class LoggerWindow(Window):
             public = result == QMessageBox.Yes
             function(common=int(public))
 
-    def createShortcutBlurIDE(self):
-        from blurdev.utils import shortcut
-
-        self.createShortcut(shortcut.createShortcutBlurIDE)
-
-    def createShortcutPythonLogger(self):
-        from blurdev.utils import shortcut
-
-        self.createShortcut(shortcut.createShortcutPythonLogger)
-
-    def createShortcutTreegrunt(self):
-        from blurdev.utils import shortcut
-
-        self.createShortcut(shortcut.createShortcutTreegrunt)
-
     def execAll(self):
         """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
@@ -740,35 +696,12 @@ class LoggerWindow(Window):
             self.clearLog()
         self.uiWorkboxTAB.currentWidget().execSelected()
 
-    def gotoError(self):
-        text = self.uiConsoleTXT.textCursor().selectedText()
-        results = re.match(r'[ \t]*File "([^"]+)", line (\d+)', text)
-        if results:
-            from blurdev.ide import IdeEditor
-
-            IdeEditor.instance().show()
-            filename, lineno = results.groups()
-            IdeEditor.instance().load(filename, int(lineno))
-
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
         if event.modifiers() & (Qt.AltModifier | Qt.ControlModifier | Qt.ShiftModifier):
             pass
         else:
             super(LoggerWindow, self).keyPressEvent(event)
-
-    def overrideKeyboardShortcuts(self):
-        """If a specific software has limitations preventing keyboard shortcuts from
-        working, they can be overidden here Example: Softimage treats both enter keys
-        as Qt.Key_Enter, It ignores Qt.Key_Return
-        """
-        if self._software == 'softimage':
-            self.uiRunSelectedACT.setShortcut(
-                QKeySequence(Qt.Key_Enter + Qt.ShiftModifier)
-            )
-            self.uiRunAllACT.setShortcut(
-                QKeySequence(Qt.Key_Enter + Qt.ControlModifier)
-            )
 
     def pdbRepeat(self, commandText):
         # If we need to repeat the command store that info
@@ -1043,19 +976,6 @@ class LoggerWindow(Window):
                 QMessageBox.warning(
                     self, "Spell-Check", 'Unable to activate spell check.'
                 )
-
-    def setSentryEnabled(self, state):
-        """
-        Control whether Sentry will track errors and logging events.
-
-        Args:
-            state (bool): Enable (True) or disable (False) Sentry Error
-                Tracking.
-        """
-        if state is True:
-            sentry_bootstrap.enable()
-        elif state is False:
-            sentry_bootstrap.disable()
 
     def setStatusText(self, txt):
         """Set the text shown in the menu corner of the menu bar.

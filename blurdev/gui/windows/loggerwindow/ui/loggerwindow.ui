@@ -34,7 +34,16 @@
        </property>
        <widget class="QWidget" name="Workbox">
         <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
           <number>0</number>
          </property>
          <item>
@@ -44,7 +53,16 @@
        </widget>
        <widget class="QWidget" name="PDB">
         <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="margin">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
           <number>0</number>
          </property>
          <item>
@@ -67,16 +85,14 @@
      <x>0</x>
      <y>0</y>
      <width>891</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
     <property name="title">
      <string>Debug</string>
     </property>
-    <addaction name="uiGotoErrorACT"/>
     <addaction name="uiResetPathsACT"/>
-    <addaction name="uiToggleSentryACT"/>
     <addaction name="separator"/>
     <addaction name="uiResetWarningFiltersACT"/>
     <addaction name="separator"/>
@@ -87,12 +103,6 @@
     <property name="title">
      <string comment="File Menu">&amp;File</string>
     </property>
-    <addaction name="uiNewScriptACT"/>
-    <addaction name="uiOpenScriptACT"/>
-    <addaction name="uiOpenIdeACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiRunScriptACT"/>
-    <addaction name="separator"/>
     <addaction name="uiNewWorkboxACT"/>
     <addaction name="uiCloseWorkboxACT"/>
     <addaction name="separator"/>
@@ -103,14 +113,6 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <widget class="QMenu" name="uiShortcutsMENU">
-     <property name="title">
-      <string>Desktop Shortcuts</string>
-     </property>
-     <addaction name="uiBlurIdeShortcutACT"/>
-     <addaction name="uiPythonLoggerShortcutACT"/>
-     <addaction name="uiTreegruntShortcutACT"/>
-    </widget>
     <widget class="QMenu" name="menuPreferences">
      <property name="title">
       <string>Preferences</string>
@@ -118,8 +120,6 @@
      <addaction name="uiBrowseLocalPreferencesACT"/>
      <addaction name="uiBrowseSharedPreferencesACT"/>
     </widget>
-    <addaction name="uiShortcutsMENU"/>
-    <addaction name="separator"/>
     <addaction name="menuPreferences"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
@@ -264,11 +264,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="uiNewScriptACT"/>
-   <addaction name="uiOpenScriptACT"/>
-   <addaction name="uiOpenIdeACT"/>
-   <addaction name="uiRunScriptACT"/>
-   <addaction name="separator"/>
    <addaction name="uiResetPathsACT"/>
    <addaction name="separator"/>
    <addaction name="uiRunSelectedACT"/>
@@ -347,39 +342,6 @@
     <string>Ctrl+Alt+Shift+D</string>
    </property>
   </action>
-  <action name="uiNewScriptACT">
-   <property name="text">
-    <string>&amp;New Script...</string>
-   </property>
-   <property name="toolTip">
-    <string>Start a new script in the Blur IDE</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+N</string>
-   </property>
-  </action>
-  <action name="uiOpenScriptACT">
-   <property name="text">
-    <string>&amp;Open Script...</string>
-   </property>
-   <property name="toolTip">
-    <string>Open an existing script in the Blur IDE</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+O</string>
-   </property>
-  </action>
-  <action name="uiRunScriptACT">
-   <property name="text">
-    <string>&amp;Run Script...</string>
-   </property>
-   <property name="toolTip">
-    <string>Select and run an existing script</string>
-   </property>
-   <property name="shortcut">
-    <string>F5</string>
-   </property>
-  </action>
   <action name="uiAutoCompleteEnabledACT">
    <property name="checkable">
     <bool>true</bool>
@@ -389,17 +351,6 @@
    </property>
    <property name="text">
     <string>Use &amp;Auto-Complete</string>
-   </property>
-  </action>
-  <action name="uiGotoErrorACT">
-   <property name="text">
-    <string>Goto Error...</string>
-   </property>
-   <property name="toolTip">
-    <string>Highlight 'File &quot;...&quot;, line XXX' to open that file at the line in the Blur IDE</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+G</string>
    </property>
   </action>
   <action name="uiResetPathsACT">
@@ -432,20 +383,6 @@
   <action name="uiClearWorkspaceACT">
    <property name="text">
     <string>Clear Workspace...</string>
-   </property>
-  </action>
-  <action name="uiToggleSentryACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Use Sentry Error Tracking</string>
-   </property>
-   <property name="toolTip">
-    <string>Control whether tracebacks and/or logging events are sent to Sentry.</string>
    </property>
   </action>
   <action name="uiRunSelectedACT">
@@ -520,14 +457,6 @@
    </property>
    <property name="toolTip">
     <string>Editor Vertical</string>
-   </property>
-  </action>
-  <action name="uiOpenIdeACT">
-   <property name="text">
-    <string>Open IDE</string>
-   </property>
-   <property name="toolTip">
-    <string>Open the Blur IDE</string>
    </property>
   </action>
   <action name="uiClearLogOnRefreshACT">

@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import os
-import blurdev
+import blurdev.gui
 
 from Qt.QtWidgets import QDialog, QMessageBox
 

@@ -10,11 +10,13 @@
 
 from __future__ import absolute_import
 import inspect
+import re
+import sys                    
 
 from enum import Enum
 
 from Qt.QtCore import Qt, QRegExp, QSortFilterProxyModel, QStringListModel
-from Qt.QtGui import QCursor
+from Qt.QtGui import QCursor, QTextCursor
 from Qt.QtWidgets import QCompleter, QToolTip
 
 
@@ -127,8 +129,6 @@ class PythonCompleter(QCompleter):
                     pass
 
                 if object is None:
-                    import sys
-
                     if symbol in sys.modules:
                         object = sys.modules[symbol]
 
@@ -201,7 +201,6 @@ class PythonCompleter(QCompleter):
 
     def textUnderCursor(self, useParens=False):
         """pulls out the text underneath the cursor of this items widget"""
-        from Qt.QtGui import QTextCursor
 
         cursor = self.widget().textCursor()
         cursor.select(QTextCursor.WordUnderCursor)
@@ -212,8 +211,6 @@ class PythonCompleter(QCompleter):
 
         # lookup previous words using '.'
         pos = cursor.position() - cursor.block().position() - len(word) - 1
-
-        import re
 
         while -1 < pos:
             char = block[pos]
