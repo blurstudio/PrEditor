@@ -16,18 +16,11 @@ from Qt.QtCore import Property
 from Qt.QtGui import QPixmap
 from deprecated import deprecated
 
-from .. import core
-from .icon_factory import IconFactory
 from .window import Window  # noqa: F401
 from .dialog import Dialog  # noqa: F401
 from .dockwidget import DockWidget  # noqa: F401
 from .wizard import Wizard  # noqa: F401
 from functools import partial
-
-# IconFactory.customize creates QWidgets which does not work in headless mode
-iconFactory = IconFactory()
-if not core.headless:
-    iconFactory = iconFactory.customize(iconClass='StyledIcon')
 
 SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 

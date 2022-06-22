@@ -47,7 +47,6 @@ from blurdev.logger import saveLoggerConfiguration
 from blurdev.gui import Window, Dialog
 from blurdev.ide.delayable_engine import DelayableEngine
 
-from blurdev.gui import iconFactory
 from .workboxwidget import WorkboxWidget
 
 from .completer import CompleterMode
@@ -144,7 +143,6 @@ class LoggerWindow(Window):
         self.uiLogToFileClearACT.setVisible(False)
 
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
-
 
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
@@ -272,17 +270,31 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
-        self.uiResetPathsACT.setIcon(iconFactory.getIcon('return'))
-        self.uiClearLogACT.setIcon(iconFactory.getIcon('clear'))
-        self.uiSaveConsoleSettingsACT.setIcon(iconFactory.getIcon('save'))
-        self.uiAboutBlurdevACT.setIcon(iconFactory.getIcon('about'))
-        self.uiCloseLoggerACT.setIcon(iconFactory.getIcon('close'))
+        self.uiResetPathsACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/return.png'))
+        )
+        self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/logger/clear.png')))
+        self.uiSaveConsoleSettingsACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/save.png'))
+        )
+        self.uiAboutBlurdevACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/about.png'))
+        )
+        self.uiCloseLoggerACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/close.png'))
+        )
 
-        self.uiPdbContinueACT.setIcon(iconFactory.getIcon('play'))
-        self.uiPdbStepACT.setIcon(iconFactory.getIcon('arrow_forward'))
-        self.uiPdbNextACT.setIcon(iconFactory.getIcon('subdirectory_arrow_right'))
-        self.uiPdbUpACT.setIcon(iconFactory.getIcon('up'))
-        self.uiPdbDownACT.setIcon(iconFactory.getIcon('down'))
+        self.uiPdbContinueACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/play.png'))
+        )
+        self.uiPdbStepACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/arrow_forward.png'))
+        )
+        self.uiPdbNextACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/subdirectory_arrow_right.png'))
+        )
+        self.uiPdbUpACT.setIcon(QIcon(blurdev.resourcePath('img/logger/up.png')))
+        self.uiPdbDownACT.setIcon(QIcon(blurdev.resourcePath('img/logger/down.png')))
 
         # Setting toolbar icon size.
 
@@ -581,20 +593,6 @@ class LoggerWindow(Window):
             workbox.documentFont = font
             workbox.setMarginsFont(font)
             workbox.setWorkboxFont(font)
-
-    def _getDebugIcon(self, filepath, color):
-        icf = iconFactory.customize(
-            iconClass='StyledIcon',
-            baseColor=color,
-            baseContrast=-0.2,
-            activeColor=color,
-            activeContrast=0,
-            toggleColor=color,
-            toggleContrast=0,
-            highlightColor=color,
-            highlightContrast=0.2,
-        )
-        return icf.getIcon(path=filepath)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -1107,12 +1105,10 @@ class LoggerWindow(Window):
         self.autoHideStatusText()
 
     def setClearBeforeRunning(self, state):
-        if state:
-            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
-        else:
-            self.uiRunSelectedACT.setIcon(iconFactory.getIcon('playlist_play'))
-            self.uiRunAllACT.setIcon(iconFactory.getIcon('run'))
+        self.uiRunSelectedACT.setIcon(
+            QIcon(blurdev.resourcePath('img/logger/playlist_play.png'))
+        )
+        self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/logger/play.png')))
 
     def setFlashWindowInterval(self):
         value = self.uiConsoleTXT.flashTime

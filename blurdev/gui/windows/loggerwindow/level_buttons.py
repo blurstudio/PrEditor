@@ -5,12 +5,12 @@ import logging
 
 # third-party imports
 from Qt.QtCore import QSignalMapper
+from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
 # blur imports
 import blurdev
 from blurdev.enum import Enum, EnumGroup
-from blurdev.gui import iconFactory
 from blurdev.logger import LoggerWithSignals
 
 
@@ -48,78 +48,68 @@ class Level(Enum):
         the `get_icon`-method and cached for later use.
 
         Returns:
-            cute.icons.styled_icon.StyledIcon: Description
+            QIcon:
         """
         if not self.cached_icon:
-            self.cached_icon = self.get_icon(self.icon_name, self.color)
+            self.cached_icon = self.get_icon(self.icon_name, self.level)
         return self.cached_icon
 
-    def get_icon(self, name, color):
+    def get_icon(self, name, level):
         """
-        Retrieves the icon of `name` and, using an `iconFactory`, colors it
-        according to the `color` argument, returning the recolored icon object.
+        Retrieves the icon of `name` and level.
 
         Args:
-            name (str): Icon to retrieve customized StyledIcon for.
-            color (str): Color (in hex) to set set icon to.
+            name (str): Icon to retrieve QIcon for.
+            level (str): Level name to apply.
 
         Returns:
-            cute.icons.styled_icon.StyledIcon: Instantiated icon object of
-                `name`, colored accordingly.
+            QIcon: Correct instantiated QIcon.
         """
-        path = iconFactory.getIconPath(name)
-        factory = iconFactory.customize(
-            iconClass="StyledIcon",
-            baseColor=color,
-            baseContrast=0,
-            activeColor=color,
-            activeContrast=0,
-            toggleColor=color,
-            toggleContrast=0,
-            highlightColor=color,
-            highlightContrast=0,
+        return QIcon(
+            blurdev.resourcePath(
+                'img/logger/{name}_{level}.png'.format(name=name, level=level)
+            )
         )
-        return factory.getIcon(path=path)
 
 
 class LoggerLevel(Level):
     """A Logger level `Enum` using the 'format_align_left' icon."""
 
-    icon_name = "format_align_left"
+    icon_name = "logging"
 
 
 class DebugLevel(Level):
     """A Debug level `Enum` using the 'bug_report' icon."""
 
-    icon_name = "bug_report"
+    icon_name = "debug"
 
 
 class LoggerLevels(EnumGroup):
     """
     Logger levels with their implementation level name and number & custom
-    icon color.
+    icon level.
     """
 
     Disabled = LoggerLevel(
-        friendly_name="Not Set / Inherited", label="NOTSET", number=0, color="#808080"
+        friendly_name="Not Set / Inherited", label="NOTSET", number=0, level="not_set"
     )
-    Critical = LoggerLevel(label="CRITICAL", number=50, color="#E74C46")
-    Error = LoggerLevel(label="ERROR", number=40, color="#EF8341")
-    Warning = LoggerLevel(label="WARNING", number=30, color="#EEC041")
-    Info = LoggerLevel(label="INFO", number=20, color="#038CFC")
-    Debug = LoggerLevel(label="DEBUG", number=10, color="#AF45D9")
+    Critical = LoggerLevel(label="CRITICAL", number=50, level="critical")
+    Error = LoggerLevel(label="ERROR", number=40, level="error")
+    Warning = LoggerLevel(label="WARNING", number=30, level="warning")
+    Info = LoggerLevel(label="INFO", number=20, level="info")
+    Debug = LoggerLevel(label="DEBUG", number=10, level="debug")
 
 
 class DebugLevels(EnumGroup):
     """
     Debug levels with their implementation level name and number & custom
-    icon color.
+    icon level.
     """
 
-    Disabled = DebugLevel(label="", number=0, color="#808080")
-    Low = DebugLevel(label="Low", number=1, color="#EEC041")
-    Mid = DebugLevel(label="Mid", number=2, color="#EF8341")
-    High = DebugLevel(label="High", number=4, color="#E74C46")
+    Disabled = DebugLevel(label="", number=0, level="disabled")
+    Low = DebugLevel(label="Low", number=1, level="low")
+    Mid = DebugLevel(label="Mid", number=2, level="mid")
+    High = DebugLevel(label="High", number=4, level="high")
 
 
 class DebugLevelButton(QToolButton):

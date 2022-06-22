@@ -13,9 +13,9 @@ import re
 import blurdev
 
 from Qt.QtCore import Qt
+from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction
 from blurdev.ide.documenteditor import DocumentEditor
-from blurdev.gui import iconFactory
 
 
 class WorkboxWidget(DocumentEditor):
@@ -136,16 +136,17 @@ class WorkboxWidget(DocumentEditor):
         """
         from blurdev.ide.finddialog import FindDialog
 
-        self.uiFindACT = QAction(iconFactory.getIcon('find'), 'Find...', self)
+        icon = QIcon(blurdev.resourcePath('img/logger/find.png'))
+        self.uiFindACT = QAction(icon, 'Find...', self)
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
 
-        icon = iconFactory.getIcon('previous')
+        icon = QIcon(blurdev.resourcePath('img/logger/previous.png'))
         self.uiFindPrevACT = QAction(icon, 'Find Prev', self)
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
 
-        icon = iconFactory.getIcon('next')
+        icon = QIcon(blurdev.resourcePath('img/logger/next.png'))
         self.uiFindNextACT = QAction(icon, 'Find Next', self)
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)

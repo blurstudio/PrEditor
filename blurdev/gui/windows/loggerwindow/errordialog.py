@@ -10,14 +10,9 @@ from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
 from blurdev.gui.windows.loggerwindow.redmine_login_dialog import RedmineLoginDialog
-from blurdev.gui.icon_factory import IconFactory
 
 
 class ErrorDialog(Dialog):
-
-    _iconFactory = IconFactory().customize(
-        icon_class='StyledIcon', finders=['library-icons.google']
-    )
 
     def __init__(self, parent):
         super(ErrorDialog, self).__init__(parent)
