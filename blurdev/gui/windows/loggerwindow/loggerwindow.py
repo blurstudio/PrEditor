@@ -11,6 +11,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import itertools
+import json
 import os
 import re
 import six
@@ -23,9 +24,9 @@ import blurdev
 
 from functools import partial
 
+from Qt.QtCore import Qt, QByteArray, QFileSystemWatcher, QFileInfo, QTimer, QSize
 from Qt import QtCore, QtWidgets
-from Qt.QtCore import Qt, QFileSystemWatcher, QFileInfo, QTimer, QSize
-from Qt.QtGui import QCursor, QFontDatabase, QIcon, QKeySequence, QTextCursor
+from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFileIconProvider,
@@ -724,71 +725,70 @@ class LoggerWindow(Window):
     def resetPaths(self):
         blurdev.activeEnvironment().resetPaths()
 
+    def prefs_path(self):
+        """The path the logger's preferences are saved as a json file.
+
+        The enviroment variable `LOGGER_PREF_PATH` is used if set, otherwise
+        it is saved in one of the user folders.
+        """
+        if "LOGGER_PREF_PATH" in os.environ:
+            ret = os.environ["LOGGER_PREF_PATH"]
+        else:
+            if sys.platform == "win32":
+                ret = "%appdata%/blur/logger/logger_pref.json"
+            else:
+                ret = "$HOME/.blur/logger/logger_pref.json"
+        return os.path.normpath(os.path.expandvars(os.path.expanduser(ret)))
+
     def recordPrefs(self, manual=False):
         if not manual and not self.uiAutoSaveSettingssACT.isChecked():
             return
 
-        pref = prefs.find(r'blurdev\LoggerWindow')
-        pref.recordProperty('loggergeom', self.geometry())
-        pref.recordProperty('windowState', self.windowState().__int__())
-        pref.recordProperty('SplitterVertical', self.uiEditorVerticalACT.isChecked())
-        pref.recordProperty('SplitterSize', self.uiSplitterSPLIT.sizes())
-        pref.recordProperty('tabIndent', self.uiIndentationsTabsACT.isChecked())
-        pref.recordProperty(
-            'copyIndentsAsSpaces', self.uiCopyTabsToSpacesACT.isChecked()
-        )
-        pref.recordProperty('hintingEnabled', self.uiAutoCompleteEnabledACT.isChecked())
-        pref.recordProperty(
-            'spellCheckEnabled', self.uiSpellCheckEnabledACT.isChecked()
-        )
-        pref.recordProperty('wordWrap', self.uiWordWrapACT.isChecked())
-        pref.recordProperty(
-            'clearBeforeRunning', self.uiClearBeforeRunningACT.isChecked()
-        )
-        pref.recordProperty(
-            'clearBeforeEnvRefresh', self.uiClearLogOnRefreshACT.isChecked()
-        )
-        # pref.recordProperty('toolbarStates', self.saveState())
-        pref.recordProperty('consoleFont', self.console().font())
-
-        pref.recordProperty(
-            'uiAutoSaveSettingssACT', self.uiAutoSaveSettingssACT.isChecked()
-        )
-
-        pref.recordProperty('uiAutoPromptACT', self.uiAutoPromptACT.isChecked())
-        pref.recordProperty(
-            'uiLinesInNewWorkboxACT', self.uiLinesInNewWorkboxACT.isChecked()
-        )
-        pref.recordProperty(
-            'uiErrorHyperlinksACT', self.uiErrorHyperlinksACT.isChecked()
-        )
-        pref.recordProperty('textEditorPath', self.textEditorPath)
-        pref.recordProperty('textEditorCmdTempl', self.textEditorCmdTempl)
+        geo = self.geometry()
+        _prefs = {
+            'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
+            'windowState': int(self.windowState()),
+            'SplitterVertical': self.uiEditorVerticalACT.isChecked(),
+            'SplitterSize': self.uiSplitterSPLIT.sizes(),
+            'tabIndent': self.uiIndentationsTabsACT.isChecked(),
+            'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
+            'hintingEnabled': self.uiAutoCompleteEnabledACT.isChecked(),
+            'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
+            'wordWrap': self.uiWordWrapACT.isChecked(),
+            'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
+            'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
+            'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
+            'consoleFont': self.console().font().toString(),
+            'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
+            'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
+            'uiLinesInNewWorkboxACT': self.uiLinesInNewWorkboxACT.isChecked(),
+            'uiErrorHyperlinksACT': self.uiErrorHyperlinksACT.isChecked(),
+            'textEditorPath': self.textEditorPath,
+            'textEditorCmdTempl': self.textEditorCmdTempl,
+            'currentStyleSheet': self._stylesheet,
+            'flashTime': self.uiConsoleTXT.flashTime,
+        }
 
         # completer settings
         completer = self.console().completer()
-        sensitive = completer.caseSensitive()
-        completerMode = completer.completerMode()
-        completerModeValue = completerMode.value
-        pref.recordProperty("caseSensitive", sensitive)
-        pref.recordProperty("completerMode", completerModeValue)
+        _prefs["caseSensitive"] = completer.caseSensitive()
+        _prefs["completerMode"] = completer.completerMode().value
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
-            pref.recordProperty(self._genPrefName('WorkboxText', index), workbox.text())
+            _prefs[self._genPrefName('WorkboxText', index)] = workbox.text()
             lexer = workbox.lexer()
             if lexer:
                 font = lexer.font(0)
             else:
                 font = workbox.font()
-            pref.recordProperty(self._genPrefName('workboxFont', index), font)
-            pref.recordProperty(
-                self._genPrefName('workboxMarginFont', index), workbox.marginsFont()
-            )
-            pref.recordProperty(
-                self._genPrefName('workboxTabTitle', index),
-                self.uiWorkboxTAB.tabBar().tabText(index),
-            )
+            _prefs[self._genPrefName('workboxFont', index)] = font.toString()
+            _prefs[
+                self._genPrefName('workboxMarginFont', index)
+            ] = workbox.marginsFont().toString()
+            _prefs[
+                self._genPrefName('workboxTabTitle', index)
+            ] = self.uiWorkboxTAB.tabBar().tabText(index)
 
             linkPath = ''
             if workbox._fileMonitoringActive:
@@ -798,140 +798,134 @@ class LoggerWindow(Window):
                 else:
                     self.unlinkTab(index)
 
-            pref.recordProperty(self._genPrefName('workboxPath', index), linkPath)
-        pref.recordProperty('WorkboxCount', self.uiWorkboxTAB.count())
-        pref.recordProperty('WorkboxCurrentIndex', self.uiWorkboxTAB.currentIndex())
+            _prefs[self._genPrefName('workboxPath', index)] = linkPath
 
-        pref.recordProperty('currentStyleSheet', self._stylesheet)
+        _prefs['WorkboxCount']: self.uiWorkboxTAB.count()
+        _prefs['WorkboxCurrentIndex']: self.uiWorkboxTAB.currentIndex()
+
         if self._stylesheet == 'Custom':
-            pref.recordProperty('styleSheet', self.styleSheet())
-        pref.recordProperty('flashTime', self.uiConsoleTXT.flashTime)
+            _prefs['styleSheet']: self.styleSheet()
 
-        pref.save()
+        # Save preferences to disk
+        prefs_path = self.prefs_path()
+        dirname = os.path.dirname(prefs_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        with open(prefs_path, 'w') as fp:
+            json.dump(_prefs, fp, indent=4)
+
+    def load_prefs(self):
+        prefs_path = self.prefs_path()
+        if os.path.exists(prefs_path):
+            with open(prefs_path) as fp:
+                return json.load(fp)
+        return {}
 
     def restorePrefs(self):
-        from blurdev.XML.minidom import unescape
+        prefs = self.load_prefs()
 
-        pref = prefs.find(r'blurdev\LoggerWindow')
-        rect = pref.restoreProperty('loggergeom')
-        if rect and not rect.isNull():
-            self.setGeometry(rect)
-        self.uiEditorVerticalACT.setChecked(
-            pref.restoreProperty('SplitterVertical', False)
-        )
+        if 'loggergeom' in prefs:
+            self.setGeometry(*prefs['loggergeom'])
+        self.uiEditorVerticalACT.setChecked(prefs.get('SplitterVertical', False))
         self.adjustWorkboxOrientation(self.uiEditorVerticalACT.isChecked())
-        sizes = pref.restoreProperty('SplitterSize', None)
+
+        sizes = prefs.get('SplitterSize')
         if sizes:
             self.uiSplitterSPLIT.setSizes(sizes)
-        self.setWindowState(Qt.WindowStates(pref.restoreProperty('windowState', 0)))
-        self.uiIndentationsTabsACT.setChecked(pref.restoreProperty('tabIndent', True))
-        self.uiCopyTabsToSpacesACT.setChecked(
-            pref.restoreProperty('copyIndentsAsSpaces', False)
-        )
-        self.uiAutoCompleteEnabledACT.setChecked(
-            pref.restoreProperty('hintingEnabled', True)
-        )
+        self.setWindowState(Qt.WindowStates(prefs.get('windowState', 0)))
+        self.uiIndentationsTabsACT.setChecked(prefs.get('tabIndent', True))
+        self.uiCopyTabsToSpacesACT.setChecked(prefs.get('copyIndentsAsSpaces', False))
+        self.uiAutoCompleteEnabledACT.setChecked(prefs.get('hintingEnabled', True))
 
         # completer settings
-        caseSensitive = pref.restoreProperty('caseSensitive', True)
-        self.setCaseSensitive(caseSensitive)
-        completerModeValue = pref.restoreProperty('completerMode', 0)
-        completerMode = CompleterMode(completerModeValue)
+        self.setCaseSensitive(prefs.get('caseSensitive', True))
+        completerMode = CompleterMode(prefs.get('completerMode', 0))
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
-        self.uiSpellCheckEnabledACT.setChecked(
-            pref.restoreProperty('spellCheckEnabled', False)
-        )
+        self.uiSpellCheckEnabledACT.setChecked(prefs.get('spellCheckEnabled', False))
         self.uiConsoleTXT.completer().setEnabled(
             self.uiAutoCompleteEnabledACT.isChecked()
         )
         self.uiAutoSaveSettingssACT.setChecked(
-            pref.restoreProperty('uiAutoSaveSettingssACT', True)
+            prefs.get('uiAutoSaveSettingssACT', True)
         )
 
-        self.uiAutoPromptACT.setChecked(pref.restoreProperty('uiAutoPromptACT', False))
+        self.uiAutoPromptACT.setChecked(prefs.get('uiAutoPromptACT', False))
         self.uiLinesInNewWorkboxACT.setChecked(
-            pref.restoreProperty('uiLinesInNewWorkboxACT', False)
+            prefs.get('uiLinesInNewWorkboxACT', False)
         )
-        self.uiErrorHyperlinksACT.setChecked(
-            pref.restoreProperty('uiErrorHyperlinksACT', True)
-        )
+        self.uiErrorHyperlinksACT.setChecked(prefs.get('uiErrorHyperlinksACT', True))
 
         # External text editor filepath and command template
         defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"
         defaultCmd = r"{exePath} {modulePath}:{lineNum}"
-        self.textEditorPath = pref.restoreProperty('textEditorPath', defaultExePath)
-        self.textEditorCmdTempl = pref.restoreProperty('textEditorCmdTempl', defaultCmd)
+        self.textEditorPath = prefs.get('textEditorPath', defaultExePath)
+        self.textEditorCmdTempl = prefs.get('textEditorCmdTempl', defaultCmd)
 
-        self.uiWordWrapACT.setChecked(pref.restoreProperty('wordWrap', True))
+        self.uiWordWrapACT.setChecked(prefs.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
-        self.uiClearBeforeRunningACT.setChecked(
-            pref.restoreProperty('clearBeforeRunning', False)
-        )
+        self.uiClearBeforeRunningACT.setChecked(prefs.get('clearBeforeRunning', False))
         self.uiClearLogOnRefreshACT.setChecked(
-            pref.restoreProperty('clearBeforeEnvRefresh', False)
+            prefs.get('clearBeforeEnvRefresh', False)
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
 
-        font = pref.restoreProperty('consoleFont', None)
-        if font:
-            self.console().setConsoleFont(font)
+        _font = prefs.get('consoleFont', None)
+        if _font:
+            font = QFont()
+            if font.fromString(_font):
+                self.console().setConsoleFont(font)
 
         # Restore the workboxes
-        count = pref.restoreProperty('WorkboxCount', 1)
+        count = prefs.get('WorkboxCount', 1)
         for _ in range(count - self.uiWorkboxTAB.count()):
             # create each of the workbox tabs
             self.addWorkbox(self.uiWorkboxTAB)
         for index in range(count):
             workbox = self.uiWorkboxTAB.widget(index)
-            workbox.setText(
-                unescape(
-                    pref.restoreProperty(self._genPrefName('WorkboxText', index), '')
-                )
-            )
+            workbox.setText(prefs.get(self._genPrefName('WorkboxText', index), ''))
 
-            workboxPath = pref.restoreProperty(
-                self._genPrefName('workboxPath', index), ''
-            )
+            workboxPath = prefs.get(self._genPrefName('workboxPath', index), '')
             if os.path.isfile(workboxPath):
                 self.linkTab(index, workboxPath)
 
-            font = pref.restoreProperty(self._genPrefName('workboxFont', index), None)
-            if font:
-                lexer = workbox.lexer()
-                if lexer:
-                    font = lexer.setFont(font)
-                else:
-                    font = workbox.setFont(font)
-            font = pref.restoreProperty(
-                self._genPrefName('workboxMarginFont', index), None
-            )
-            if font:
-                workbox.setMarginsFont(font)
-            tabText = pref.restoreProperty(
-                self._genPrefName('workboxTabTitle', index), 'Workbox'
-            )
+            _font = prefs.get(self._genPrefName('workboxFont', index), None)
+            if _font:
+                font = QFont()
+                if font.fromString(_font):
+                    lexer = workbox.lexer()
+                    if lexer:
+                        font = lexer.setFont(font)
+                    else:
+                        font = workbox.setFont(font)
+            _font = prefs.get(self._genPrefName('workboxMarginFont', index), None)
+            if _font:
+                font = QFont()
+                if font.fromString(_font):
+                    workbox.setMarginsFont(font)
+            tabText = prefs.get(self._genPrefName('workboxTabTitle', index), 'Workbox')
             self.uiWorkboxTAB.tabBar().setTabText(index, tabText)
 
-        self.uiWorkboxTAB.setCurrentIndex(
-            pref.restoreProperty('WorkboxCurrentIndex', 0)
-        )
+        self.uiWorkboxTAB.setCurrentIndex(prefs.get('WorkboxCurrentIndex', 0))
 
-        self._stylesheet = pref.restoreProperty('currentStyleSheet', 'Bright')
+        self._stylesheet = prefs.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
-            self.setStyleSheet(unescape(pref.restoreProperty('styleSheet', '')))
+            self.setStyleSheet(prefs.get('styleSheet', ''))
         else:
             self.setStyleSheet(self._stylesheet)
-        self.uiConsoleTXT.flashTime = pref.restoreProperty('flashTime', 1.0)
+        self.uiConsoleTXT.flashTime = prefs.get('flashTime', 1.0)
 
-        self.restoreToolbars()
+        self.restoreToolbars(prefs=prefs)
 
-    def restoreToolbars(self):
-        pref = prefs.find(r'blurdev\LoggerWindow')
-        state = pref.restoreProperty('toolbarStates', None)
+    def restoreToolbars(self, prefs=None):
+        if prefs is None:
+            prefs = self.load_prefs()
+
+        state = prefs.get('toolbarStates', None)
         if state:
+            state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
             # Ensure uiPdbTOOLBAR respects the current pdb mode
             self.uiConsoleTXT.setPdbMode(self.uiConsoleTXT.pdbMode())
