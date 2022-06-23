@@ -18,9 +18,6 @@ from Qt.QtGui import QPixmap, QIcon
 from Qt.QtWidgets import QItemDelegate, QTreeWidgetItem, QFileIconProvider
 from Qt import QtCompat
 
-import blurdev.ide.config.common
-import blurdev.ide.config.project
-
 
 class IdeProjectDelegate(QItemDelegate):
     def __init__(self, tree):
@@ -427,8 +424,6 @@ class IdeProject(IdeProjectItem):
         from blurdev.gui.dialogs.configdialog import ConfigSet
 
         self._configSet = ConfigSet()
-        self._configSet.loadPlugins(blurdev.ide.config.common)
-        self._configSet.loadPlugins(blurdev.ide.config.project)
 
         # record project specific environment variables and sys.paths
         self._envvars = {}

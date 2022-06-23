@@ -9,20 +9,11 @@
 #
 
 from __future__ import absolute_import
-import os
-
-import Qt
 from Qt.QtCore import Property
-from Qt.QtGui import QPixmap
-from deprecated import deprecated
 
 from .window import Window  # noqa: F401
 from .dialog import Dialog  # noqa: F401
-from .dockwidget import DockWidget  # noqa: F401
-from .wizard import Wizard  # noqa: F401
 from functools import partial
-
-SPLASH_DIR = r'\\source\source\dev\share_all\splash'
 
 
 def QtPropertyInit(name, default, callback=None, typ=None):
@@ -77,147 +68,6 @@ def QtPropertyInit(name, default, callback=None, typ=None):
     return Property(typ, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)))
 
 
-# --------------------------------------------------------------------------------
-# pyqtPropertyInit is being removed. I'm leaving a version of it for PyQt4 to make
-# migrating easier. This function will not be available in PyQt5 to encourage migrating
-# to QtPropertyInit.
-if Qt.__binding__ == 'PyQt4':
-
-    def pyqtPropertyInit(name, default, callback=None):
-        import warnings
-
-        msg = (
-            "Use blurdev.gui.QtPropertyInit instead of blurdev.gui.pyqtPropertyInit. "
-            "It is only valid for PyQt4"
-        )
-        warnings.warn(msg, DeprecationWarning, stacklevel=2)
-        return QtPropertyInit(name, default, callback=callback)
-
-
-# --------------------------------------------------------------------------------
-
-
-@deprecated(
-    version='2.69.0', reason='Use blurdev.gui.splashscreen.randomSplashScreen instead.'
-)
-def randomSplashScreen(toolname='default'):
-    from . import splashscreen
-
-    return splashscreen.randomSplashScreen(toolname=toolname)
-
-
-def readCSS(path, translateUrls=True, cwd=None):
-    """Loads a CSS file from the path specified, and optionally translates paths
-    and replaces relative paths.
-
-    Args:
-        path (str): Path to the CSS file to read.
-        translateUrls (bool, optional): If True, URLs in the CSS file will be
-            translated for the current OS using trax.api.data.Mapping.translatePath().
-            Defaults to True.
-        cwd (None, optional): If specified, relative paths in the CSS file will
-            be made absolute with cwd as the base directory.  Otherwise relative
-            paths will be left untouched.  Defaults to None.
-
-    Returns:
-        str: The contents of the CSS file after the requested path modifications
-            have been performed.
-    """
-    if translateUrls:
-        try:
-            from trax.api.data import Mapping
-        except ImportError:
-            translateUrls = False
-    import re
-
-    if not os.path.isfile(path):
-        raise IOError('Specified CSS file ({}) not found.'.format(path))
-    with open(path) as f:
-        css = f.read()
-
-    if cwd:
-        if translateUrls:
-            # if cwd is specified and we're translating paths, translate it
-            cwd = Mapping.translatePath(cwd)
-        if not os.path.exists(cwd):
-            # if cwd does not exist, we will ignore it.
-            cwd = None
-    if translateUrls or cwd:
-        # if translation or custom CWD are enabled, we'll substitute accordingly
-        def _replace(match, translate=translateUrls, cwd=cwd):
-            ret = r'url({})'
-            url = match.group(1)
-            if translate or cwd:
-                if url.startswith(':/'):
-                    # it's a resource path.  Do nothing.
-                    pass
-                elif re.match(r'^(?:[a-zA-Z]:(?:\\|/)|/).*', url):
-                    # it's an absolute path.  Translate it.
-                    if translate:
-                        url = Mapping.translatePath(url)
-                else:
-                    # it should be a relative path.
-                    if translate:
-                        # if path translation is enabled, translate the path
-                        # (this should really just be switching slash dir
-                        # like os.path.normpath at this point, but we'll call
-                        # translatePath in case it needs to do more in the future.)
-                        url = Mapping.translatePath(url)
-                    if cwd:
-                        # if we have a custom cwd, join it now.
-                        url = os.path.join(cwd, url)
-                # Qt don't play with no backslashes.
-                url = url.replace('\\', '/')
-            return ret.format(url)
-
-        # iterate over url matches with our replacement function.
-        css = re.sub(r'url\((.+?)\)', _replace, css)
-    return css
-
-
-def compPixmap(imageData):
-    """
-    Composites the given pixmaps or image paths into a single pixmap. It takes a list of
-    lists containing a image path or a pixmap and optionaly a list of cordinate data.
-    The cordinate data can be just position [5, 5] or position and size [5, 5, 10, 10].
-    The first item in the list becomes the base canvas being drawn on and ignores the
-    cordinate data.
-
-    Example of two step compositing::
-    data = [[trax.gui.findIconFile(r'employeeReview\1')],
-            [trax.gui.findIconFile(r'employeeReview\alert'), [5, 5]]]
-    map = compPixmap(data)
-    data = [[trax.gui.findIconFile(r'employeeReview\blank')],
-            [map, [4,2]]]
-    map = compPixmap(data)
-    """
-    from Qt.QtGui import QPainter
-
-    if isinstance(imageData[0][0], QPixmap):
-        map = imageData[0][0]
-    else:
-        map = QPixmap(imageData[0][0])
-    imageData.pop(0)
-    painter = QPainter()
-    painter.begin(map)
-    for data in imageData:
-        if isinstance(data[0], QPixmap):
-            overlay = data[0]
-        else:
-            overlay = QPixmap(data[0])
-        rect = map.rect()
-        oRect = overlay.rect()
-        rect.setSize(oRect.size())
-        if len(data) > 1:
-            rect.moveTo(data[1][0], data[1][1])
-            if len(data[1]) > 2:
-                rect.setWidth(data[1][2])
-                rect.setHeight(data[1][3])
-        painter.drawPixmap(rect, overlay, oRect)
-    painter.end()
-    return map
-
-
 def loadUi(filename, widget, uiname=''):
     """use's Qt's uic loader to load dynamic interafces onto the inputed widget
 
@@ -239,28 +89,6 @@ def loadUi(filename, widget, uiname=''):
         uiname = os.path.basename(filename).split('.')[0]
 
     QtCompat.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
-
-
-def findPixmap(filename, thumbSize=None):
-    """Looks up a pixmap based on the inputed filename using the QPixmapCache system.
-    If the autoLoad parameter is true, then it will automatically load the pixmap and
-    return it.
-
-    Args:
-        filename (str):
-        thumbSize (QSize):size to scale the item to if desired (will affect the search key)
-    """
-    from Qt.QtCore import Qt
-    from Qt.QtGui import QPixmap
-
-    # create the thumbnail size
-    thumb = QPixmap()
-    thumb.load(filename)
-
-    if thumbSize:
-        thumb = thumb.scaled(thumbSize, Qt.KeepAspectRatio)
-
-        return thumb
 
 
 def connectLogger(
