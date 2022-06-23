@@ -30,10 +30,9 @@ from Qt.QtWidgets import (  # noqa: E402
     QMainWindow,
     QVBoxLayout,
 )
-from Qt.QtCore import Qt, QDateTime  # noqa: E402
+from Qt.QtCore import Qt  # noqa: E402
 
 from .version import version as __version__  # noqa: E402,F401
-import blurdev.ini  # noqa: E402
 
 
 installPath = os.path.dirname(__file__)
@@ -75,22 +74,6 @@ _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
 
 
-def activeEnvironment(coreName=None):
-    """Returns the current active Tools Environment as part of the blurdev.tools system.
-
-    Args:
-        coreName (str or None, optional): If None(default) it will return the currently
-            active treegrunt environment for this instance of python. Otherwise it will
-            return the treegrunt environment stored in prefs for coreName.
-    """
-    if coreName is not None:
-        # Return the saved preference for the requested core
-        pref = blurdev.prefs.find('blurdev/core', reload=True, coreName=coreName)
-        envName = pref.restoreProperty('environment')
-        return blurdev.tools.ToolsEnvironment.findEnvironment(envName, default=True)
-    return blurdev.tools.ToolsEnvironment.activeEnvironment()
-
-
 def appUserModelID():
     """Returns the current Windows 7+ app user model id used for taskbar grouping."""
     import ctypes
@@ -108,7 +91,6 @@ def init():
     os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.__version__
     pythonw_print_bugfix()
     blurdev.settings.init()
-    blurdev.ini.LoadConfigData()
     global core, application
     # create the core and application
     if not core:
@@ -166,15 +148,7 @@ def launch(
 
     if application:
         application.setStyle(core.defaultStyle())
-
-        # See ToolsEnvironment._resetIfSamePath for more info on why this is being set.
-        current = blurdev.tools.ToolsEnvironment._resetIfSamePath
-        try:
-            blurdev.tools.ToolsEnvironment._resetIfSamePath = False
-            core.setObjectName(coreName)
-        finally:
-            blurdev.tools.ToolsEnvironment._resetIfSamePath = current
-
+ 
     if instance and hasattr(ctor, 'instance') and not modal:
         # use the instance method if requested
         widget = ctor.instance()
@@ -292,10 +266,6 @@ def pythonw_print_bugfix():
             sys.stderr = open(os.devnull, 'w')
 
 
-def registerScriptPath(filename):
-    blurdev.tools.ToolsEnvironment.registerScriptPath(filename)
-
-
 def relativePath(path, additional=''):
     """
     Replaces the last element in the path with the passed in additional path.
@@ -313,45 +283,6 @@ def resourcePath(relpath=''):
     :return str: The modified path
     """
     return os.path.join(relativePath(__file__), 'resource', relpath)
-
-
-def setActiveEnvironment(envName, coreName=None):
-    """Set the active treegrunt environment to this name.
-
-    Args:
-        envName (str): The name of a valid treegrunt environment. Case sensitive.
-
-        coreName (str or None, optional): Update the saved environment preference for
-            the given coreName. Ignored if coreName matches the current coreName. This
-            change will take effect the next time that core is loaded as long as some
-            other instance of python doesn't update it after this call.
-
-    Returns:
-        bool: The environment was changed successfully. Returns False if the current
-            environment is already envName, or if envName is not a valid environment.
-    """
-    env = blurdev.tools.ToolsEnvironment.findEnvironment(envName)
-    if coreName is not None:
-        # There is no need to update the environment this way if its the current
-        # environment.
-        if not env.isEmpty():
-            # Update the saved preference so the next time the core is loaded it will
-            # use the requested environment if the environment is valid.
-            pref = blurdev.prefs.find('blurdev/core', reload=True, coreName=coreName)
-            if pref.restoreProperty('environment') == envName:
-                # If the environment is already set to this, do not reset the timestamp
-                return False
-            pref.recordProperty('environment', envName)
-            pref.recordProperty(
-                'environment_set_timestamp', QDateTime.currentDateTime()
-            )
-            pref.save()
-            if coreName == blurdev.core.objectName():
-                return env.setActive()
-            return True
-        # not a valid treegrunt environment
-        return False
-    return env.setActive()
 
 
 def setAppUserModelID(appId, prefix='Blur'):

@@ -113,15 +113,15 @@ class LoggerWindow(Window):
         # Create additional buttons in toolbar.
         self.uiDebugLevelBTN = DebugLevelButton(self)
         self.uiConsoleTOOLBAR.insertWidget(
-            self.uiResetPathsACT,
+            self.uiRunSelectedACT,
             self.uiDebugLevelBTN,
         )
         self.uiLoggingLevelBTN = LoggingLevelButton(self)
         self.uiConsoleTOOLBAR.insertWidget(
-            self.uiResetPathsACT,
+            self.uiRunSelectedACT,
             self.uiLoggingLevelBTN,
         )
-        self.uiConsoleTOOLBAR.insertSeparator(self.uiResetPathsACT)
+        self.uiConsoleTOOLBAR.insertSeparator(self.uiRunSelectedACT)
 
         # create the pdb count widget
         self._pdbContinue = None
@@ -240,7 +240,6 @@ class LoggerWindow(Window):
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
         self.uiCopyTabsToSpacesACT.toggled.connect(self.updateCopyIndentsAsSpaces)
         self.uiWordWrapACT.toggled.connect(self.setWordWrap)
-        self.uiResetPathsACT.triggered.connect(self.resetPaths)
         self.uiResetWarningFiltersACT.triggered.connect(warnings.resetwarnings)
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
@@ -271,9 +270,6 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
-        self.uiResetPathsACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/return.png'))
-        )
         self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/logger/clear.png')))
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(blurdev.resourcePath('img/logger/save.png'))
@@ -721,9 +717,6 @@ class LoggerWindow(Window):
     def reportExecutionTime(self, seconds):
         """Update status text with seconds passed in."""
         self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
-
-    def resetPaths(self):
-        blurdev.activeEnvironment().resetPaths()
 
     def prefs_path(self):
         """The path the logger's preferences are saved as a json file.

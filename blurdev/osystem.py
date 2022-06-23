@@ -373,10 +373,6 @@ def subprocessEnvironment(env=None):
     """
     if env is None:
         env = os.environ.copy()
-    # blurpath.resetEnvVars should be called after blurdev specific env mods
-    actEnv = blurdev.activeEnvironment()
-    if actEnv.path():
-        env['BDEV_TOOL_ENVIRONMENT'] = str(actEnv.objectName())
 
     # Sets the stylesheet env variable so that launched applications can use it.
     stylesheet = blurdev.core.styleSheet()

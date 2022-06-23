@@ -5,14 +5,12 @@ import time
 import os
 import glob
 import six
-from past.builtins import execfile
 
 from Qt.QtCore import QCoreApplication, QDateTime, QEvent, QObject, QRect, Qt, Signal
 from Qt.QtWidgets import (
     QApplication,
     QDialog,
     QMainWindow,
-    QMessageBox,
     QSplashScreen,
 )
 from Qt import QtCompat
@@ -22,9 +20,6 @@ import blurdev
 import blurdev.prefs
 import blurdev.debug
 import blurdev.osystem
-import blurdev.tools
-import blurdev.tools.tool
-import blurdev.tools.toolsenvironment
 import blurdev.cores.application
 import blurdev.settings
 from blurdev.utils.error import sentry_before_send_callback
@@ -45,7 +40,6 @@ class Core(QObject):
     fileCheckedOut = Signal(str)
     aboutToClearPaths = Signal()  # Emitted before environment is changed or reloaded
     styleSheetChanged = Signal(str)
-    selectedToolTypesChanged = Signal()  # Emitted if selectedToolTypes is changed
 
     # ----------------------------------------------------------------
     # 3d Application Signals (common)
@@ -117,7 +111,6 @@ class Core(QObject):
         self._headless = False
         self._useAppUserModelID = None
         self._rootWindow = None
-        self._toolbars = None
         self._selected_tool_types = None
 
         # Controls if launching a treegrunt tool in external python will use a
@@ -146,7 +139,6 @@ class Core(QObject):
         self.fusionApp = None
 
         # create the connection to the environment activation signal
-        self.environmentActivated.connect(self.registerPaths)
         self.environmentActivated.connect(self.recordSettings)
         self.debugLevelChanged.connect(self.recordSettings)
 
@@ -286,38 +278,6 @@ class Core(QObject):
 
                 return True
         return False
-
-    def createToolMacro(self, tool, macro_name):
-        """Method to create macros for a tool.
-
-        Creates a shortcut if `self.macroNames()` has any names. If a DCC
-        supports macros, it should override this function with its own implementation.
-
-        Args:
-            tool (blurdev.tools.tool.Tool): The tool to create the desktop shortcut for.
-            macro_name (str): One of the returned strings of the `macroNames` method.
-                This is used to create the macro for the requested menu item.
-
-        Returns:
-            bool: If a macro was created.
-        """
-        if not self.macroNames():
-            return False
-
-        from ..utils import shortcut
-
-        # If the user requested a start menu shortcut, create it in the blur folder.
-        if macro_name == 'Create Start Menu Shortcut':
-            path = ('start menu', 'Blur')
-        else:
-            # Otherwise create it on the desktop
-            path = ('desktop',)
-
-        # Using treegrunt-tool makes it so the desktop shortcuts launch using the same
-        # treegrunt environment used by external treegrunt.
-        shortcut.createShortcutTool(tool, path=path)
-
-        return True
 
     def defaultEnvironmentPath(self):
         return os.path.normpath(
@@ -548,7 +508,6 @@ class Core(QObject):
         # in their tools virtualenv to aid in installing other pip packages.
         self.protectModule('pillar')
         # pkg_resources is found in the tools virtualenv and we use it when switching
-        # treegrunt environments to find `blurdev.tools.paths` entry_points.
         self.protectModule('pkg_resources')
 
         # initialize sentry client
@@ -575,7 +534,6 @@ class Core(QObject):
                 app.setEffectEnabled(Qt.UI_AnimateTooltip, False)
                 app.setEffectEnabled(Qt.UI_FadeTooltip, False)
                 app.setEffectEnabled(Qt.UI_AnimateToolBox, False)
-                app.aboutToQuit.connect(self.recordToolbars)
                 app.installEventFilter(self)
 
         # create a new application
@@ -592,11 +550,6 @@ class Core(QObject):
 
         self.updateApplicationName(output)
 
-        # initialize the tools environments after the applicationName is set.
-        blurdev.tools.toolsenvironment.ToolsEnvironment.loadConfig(
-            self.defaultEnvironmentPath()
-        )
-
         # restore the core settings
         self.restoreSettings()
         self.connectAppSignals()
@@ -609,60 +562,6 @@ class Core(QObject):
         This function should be called by each subclass of Core if needed, or by
         a dcc plugin implementation when it is safe to initialize gui objects.
         """
-        self.restoreToolbars()
-
-    def applyEnvironmentTimeouts(self):
-        """
-        Checks the current environment to see if has a timeout and if it has
-        exceeded that timeout.  If so, it will reset the environment to the
-        default environment.
-
-        """
-        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
-        threshold_time = env.timeoutThreshold()
-        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
-        last_timestamp = pref.restoreProperty('environment_set_timestamp', None)
-
-        if not last_timestamp or not threshold_time:
-            return
-
-        if last_timestamp < threshold_time:
-            env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
-            print(
-                'Environment timeout exceeded, Resetting to default environment:',
-                env.objectName(),
-            )
-            env.setActive()
-            pref.recordProperty(
-                'environment_set_timestamp', QDateTime.currentDateTime()
-            )
-            pref.save()
-
-    def applyStudioOverrides(self):
-        """
-        Checks a studio environment override file.  If there
-
-        """
-        # Checks for the studio environment override file
-        override_dict = self.getEnvironmentOverride()
-        if not override_dict:
-            return
-
-        env = override_dict['environment']
-        timestamp = override_dict['timestamp']
-        pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
-        last_timestamp = pref.restoreProperty(
-            'last_environment_override_timestamp', None
-        )
-        if last_timestamp and last_timestamp >= timestamp:
-            return
-        blurdev.tools.toolsenvironment.ToolsEnvironment.findEnvironment(
-            env, default=True
-        ).setActive()
-        pref.recordProperty(
-            'last_environment_override_timestamp', QDateTime.currentDateTime()
-        )
-        pref.save()
 
     def isMfcApp(self):
         return self._mfcApp
@@ -695,13 +594,6 @@ class Core(QObject):
         from blurdev.gui.windows.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
-
-    def macroNames(self):
-        """Returns the names to display for the create macro action in treegrunt.
-
-        The selected name is passed to the macro_name argument of createToolMacro.
-        """
-        return ('Create Start Menu Shortcut', 'Create Desktop Shortcut')
 
     def mainWindowGeometry(self):
         """QWinWidget doesn't properly center its children.
@@ -815,32 +707,6 @@ class Core(QObject):
         """
         return False
 
-    def registerPaths(self):
-        """
-        Registers the paths that are needed based on this core
-        """
-        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
-
-        # Canonical way to check 64-bitness of python interpreter
-        # http://docs.python.org/2/library/platform.html#platform.architecture
-        is_64bits = hasattr(sys, 'maxsize') and sys.maxsize > (2**32)
-        # Add Python24 specific libraries
-        if sys.version_info[:2] == (2, 4):
-            path = 'code/python/lib_python24'
-            env.registerPath(env.relativePath(path))
-        # Add Python26 specific libraries
-        elif sys.version_info[:2] == (2, 6):
-            path = 'code/python/lib_python26'
-            if is_64bits:
-                path = 'code/python/lib_python26_64'
-            env.registerPath(env.relativePath(path))
-        # Add Python27 specific libraries
-        elif sys.version_info[:2] == (2, 7):
-            path = 'code/python/lib_python27'
-            if is_64bits:
-                path = 'code/python/lib_python27_64'
-            env.registerPath(env.relativePath(path))
-
     def recordSettings(self):
         """
         Subclasses can reimplement this to add data before it is saved
@@ -855,12 +721,6 @@ class Core(QObject):
         """
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
 
-        # record the tools environment
-        env = blurdev.tools.toolsenvironment.ToolsEnvironment.activeEnvironment()
-        envName = env.objectName()
-        if envName != os.environ.get('BDEV_TOOL_ENVIRONMENT'):
-            pref.recordProperty('environment', envName)
-
         # record the debug if it was not set by the environment variable
         if 'BDEV_DEBUG_LEVEL' not in os.environ:
             pref.recordProperty('debugLevel', blurdev.debug.debugLevel())
@@ -870,16 +730,6 @@ class Core(QObject):
 
         return pref
 
-    def recordToolbars(self):
-        """Records settings for all found toolbars."""
-        if self.headless:
-            # If running headless, the toolbars were not created, and prefs don't need
-            # to be saved
-            return
-
-        for toolbar_class in self.toolbars():
-            toolbar_class.instanceRecordSettings()
-
     def refreshStyleSheet(self):
         """Reload the current stylesheet to force a update of the display of widgets."""
         app = QApplication.instance()
@@ -887,31 +737,6 @@ class Core(QObject):
             app, QApplication
         ):  # Don't set stylesheet if QCoreApplication
             app.setStyleSheet(app.styleSheet())
-
-    def createEnvironmentOverride(self, env=None, timestamp=None):
-        from blurdev.XML import XMLDocument
-
-        if env is None:
-            env = blurdev.tools.toolsenvironment.ToolsEnvironment.defaultEnvironment()
-            env = env.objectName()
-
-        if timestamp is None:
-            timestamp = QDateTime.currentDateTime()
-
-        fp = self.environment_override_filepath
-        if not fp:
-            return
-
-        doc = XMLDocument()
-        root = doc.addNode('environment_overrides')
-        root.setAttribute('version', 1.0)
-        el = root.addNode('environment_override')
-        el.setAttribute('environment', env)
-        el.setAttribute('timestamp', timestamp.toString('yyyy-MM-dd hh:mm:ss'))
-        try:
-            doc.save(fp)
-        except Exception:
-            pass
 
     def getEnvironmentOverride(self):
         from blurdev.XML import XMLDocument
@@ -959,19 +784,9 @@ class Core(QObject):
             return None
 
     def restoreSettings(self):
-        from blurdev.tools.toolsenvironment import ToolsEnvironment
-
         self.blockSignals(True)
 
         pref = blurdev.prefs.find('blurdev/core', coreName=self.objectName())
-
-        env = ToolsEnvironment.findEnvironment(os.environ.get('BDEV_TOOL_ENVIRONMENT'))
-        if not env.isEmpty():
-            env.setActive()
-        else:
-            # restore the active environment or the default
-            env = pref.restoreProperty('environment')
-            ToolsEnvironment.findEnvironment(env, default=True).setActive()
 
         # restore the active style
         self.setStyleSheet(
@@ -987,29 +802,7 @@ class Core(QObject):
             if level is not None:
                 blurdev.debug.setDebugLevel(level)
 
-        self.applyEnvironmentTimeouts()
-        self.applyStudioOverrides()
-        # Ensure the core has its paths registered
-        self.registerPaths()
-
         return pref
-
-    def restoreToolbars(self):
-        """Create and restore the settings for any toolbar plugins."""
-        if self.headless:
-            # If running headless, do not try to create gui elements
-            return
-
-        # The toolbars will end up calling findTool(tool_name). This doesn't end up
-        # fully loading the index and results in multiple json file reads. This can
-        # cause duplicate tools to show up in the index. This is visible in the
-        # Treegrunt category view. Calling load here prevents all of this and means
-        # we only need to parse the json files once.
-        blurdev.activeEnvironment().index().load()
-
-        for toolbar_class in self.toolbars():
-            toolbar = toolbar_class.instance(blurdev.core.rootWindow())
-            toolbar.restoreSettings()
 
     def rootWindow(self):
         """
@@ -1172,149 +965,6 @@ class Core(QObject):
         blurdev.osystem.startfile(
             filename, debugLevel, basePath, architecture=architecture, env=env
         )
-
-    def runScript(
-        self, filename='', scope=None, argv=None, tool=None, architecture=None
-    ):
-        """Runs an inputted file in the best way this core knows how
-
-        Args:
-            filename (str, optional): The filename of the script to run. If not
-                provided, open a QFileDialog that the user can pick a script to run.
-            scope (dict or None, optional): The scope to run the script in
-                (ie. locals(), globals()). Defaults to None.
-            argv (list or None, optional): Commands to pass to the script at run time
-            tool (blurdev.tools.Tool or None, optional): If specified, then additional
-                info is used to control how the script is run. This is used to populate
-                the BDEV_APPLICATION_NAME env variable when launching a external tool.
-            architecture (int or None, optional): 32 or 64 bit. If None use system
-                default. Defaults to None.
-
-        Returns:
-            success (bool or None): True is returned if the script was run. None is
-                returned if filename was blank and the user didn't select a file.
-        """
-        if not filename:
-            # make sure there is a QApplication running
-            if QApplication.instance():
-                filename, _ = QtCompat.QFileDialog.getOpenFileName(
-                    None,
-                    'Select Script File',
-                    self._lastFileName,
-                    'Python Files (*.py);;Maxscript Files (*.ms);;All Files (*.*)',
-                )
-                if not filename:
-                    return
-
-        if not argv:
-            argv = []
-
-        if not filename:
-            return False
-
-        # build the scope
-        if scope is None:
-            scope = {}
-
-        filename = str(filename)
-
-        # run the script
-        if filename and os.path.exists(filename):
-            self._lastFileName = filename
-            ext = os.path.splitext(filename)[1]
-
-            # run a python file
-            if ext.startswith('.py'):
-                if self.launchExternalInProcess == 'once':
-                    self.launchExternalInProcess = True
-                    launchExternalInProcess = False
-                else:
-                    launchExternalInProcess = self.launchExternalInProcess
-                # if running in external mode, run a standalone version for python files
-                # - this way they won't try to parent to the treegrunt
-                if launchExternalInProcess and self.objectName() in (
-                    'external',
-                    'treegrunt',
-                    'logger',
-                ):
-                    self.runStandalone(filename, architecture=architecture, tool=tool)
-                else:
-                    # create a local copy of the sys variables as they stand right now
-                    path_bak = list(sys.path)
-                    try:
-                        argv_bak = sys.argv
-                    except AttributeError:
-                        argv_bak = None
-
-                    # if the path does not exist, then register it
-                    blurdev.tools.toolsenvironment.ToolsEnvironment.registerScriptPath(
-                        filename
-                    )
-
-                    scope['__name__'] = '__main__'
-                    scope['__file__'] = filename
-                    sys.argv = [filename] + argv
-                    scope['sys'] = sys
-
-                    execfile(filename, scope)
-
-                    # restore the system information
-                    sys.path = path_bak
-                    if argv_bak:
-                        sys.argv = argv_bak
-
-                return True
-
-            # run a fusion script
-            elif ext.startswith('.eyeonscript'):
-
-                # Moved import here because even attempting this import causes
-                # win32 errors in Motionbuilder.
-                try:
-                    import PeyeonScript
-                except ImportError:
-                    PeyeonScript = None
-
-                if PeyeonScript:
-                    fusion = PeyeonScript.scriptapp('Fusion')
-                    if fusion:
-                        comp = fusion.GetCurrentComp()
-                        if comp:
-                            comp.RunScript(str(filename))
-                        else:
-                            QMessageBox.critical(
-                                None,
-                                'No Fusion Comp',
-                                'There is no comp running in your Fusion.',
-                            )
-                    else:
-                        QMessageBox.critical(
-                            None,
-                            'Fusion Not Found',
-                            'You need to have Fusion running to run this file.',
-                        )
-                else:
-                    QMessageBox.critical(
-                        None,
-                        'PeyonScript Missing',
-                        'Could not import Fusion Python Libraries.',
-                    )
-                return True
-
-            # run an external link
-            elif ext.startswith('.lnk'):
-                os.startfile(filename)
-                return True
-
-            # report an unknown format
-            else:
-                msg = (
-                    '[blurdev.cores.core.Core.runScript] '
-                    'Cannot run scripts of type (*%s)'
-                )
-                print(msg % ext)
-
-        return False
 
     def setLastFileName(self, filename):
         return self._lastFileName
@@ -1584,7 +1234,6 @@ class Core(QObject):
 
     def shutdown(self):
         # record the settings
-        self.recordToolbars()
         self.recordSettings()
 
         if self.quitQtOnShutdown():
@@ -1595,9 +1244,6 @@ class Core(QObject):
             # The app is probably nuke, maya or Motionbuilder, so closing all windows,
             # and killing the app is not what we want to do. This saves prefs and closes
             # any of the instance windows if they are active
-
-            # Make sure to close the toolbar plugins
-            self.shutdownToolbars()
 
             # Make sure any open tools are saving their preferences. This is important
             # for instance tools because they may not trigger their pref saving when
@@ -1613,26 +1259,10 @@ class Core(QObject):
 
             LoggerWindow.instanceShutdown()
 
-    def shutdownToolbars(self):
-        """Shutdown toolbar plugins."""
-        if self._toolbars is None:
-            # Nothing to shutdown
-            return
-        for toolbar in self.toolbars():
-            toolbar.instanceShutdown()
-
     def showIdeEditor(self):
         from blurdev.ide.ideeditor import IdeEditor
 
         IdeEditor.instance().edit()
-
-    def showTreegrunt(self):
-        treegrunt = self.treegrunt()
-        treegrunt.show()
-        treegrunt.raise_()
-        treegrunt.setWindowState(
-            treegrunt.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
-        )
 
     def showLogger(self):
         """
@@ -1698,77 +1328,6 @@ class Core(QObject):
             None:
         """
         return None
-
-    def toolbar(self, name):
-        """Returns the toolbar plugin class for the given name or None.
-
-        In most cases you will want to call ``.instance()`` on the return to get
-        the toolbar used in the application. If ``restoreToolbars``` was not called
-        you should pass the desired toolbar parent to ``.instance(parent)```.
-        """
-        for toolbar in self.toolbars():
-            if toolbar._name == name:
-                return toolbar
-        return None
-
-    def toolbars(self):
-        """Returns a list of toolbars using the blurdev.toolbars entry_point.
-
-        All toolbars in the entry_point are added to the main window of the application.
-        To register a toolbar you need to add a ``blurdev.toolbars`` section in your
-        codes setup.py ``entry_point`` section. The key should match your toolbar's
-        _name property and the value should be ``the.import.path:ToolbarClass``. See
-        blurdev's setup.py for a example.
-        """
-        if self._toolbars is None:
-            # importing pkg_resources takes ~0.8 seconds only import it
-            # if we need to.
-            import pkg_resources
-
-            bars = pkg_resources.iter_entry_points('blurdev.toolbars')
-            # Remove duplicate toolbar definitions. If the pip package is found
-            # in sys.path it will show up more than once in bars.
-            # example key: `User = blurdev.gui.toolbars.toolstoolbar:UserToolbar`
-            entries = {str(entry_point): entry_point for entry_point in bars}
-            # Sort the entries alphabetically and resolve the imports
-            self._toolbars = [entries[key].load() for key in sorted(entries)]
-        return self._toolbars
-
-    def toolTypes(self):
-        """
-        Determines what types of tools that the treegrunt system should be looking at
-        """
-        ToolType = blurdev.tools.tool.ToolType
-        if self.objectName() == 'multiprocessing':
-            import blurdev.external as external
-
-            if external.External().parentCore == 'fusion':
-                return ToolType.Fusion
-        return ToolType.External | ToolType.LegacyExternal
-
-    def selectedToolTypes(self):
-        """Returns a user updated list of ToolTypes to show.
-        Returns self.toolTypes() if the user has not set selected tool types.
-        """
-        if self._selected_tool_types is None:
-            return self.toolTypes()
-        return self._selected_tool_types
-
-    def setSelectedToolTypes(self, tool_types):
-        """Updates selectedToolTypes to the provided list of ToolTypes.
-
-        Args:
-            tool_types (blurdev.tools.tool.ToolType): One or more ToolTypes
-                |'ed together. None will reset to self.toolTypes()
-        """
-        self._selected_tool_types = tool_types
-        self.selectedToolTypesChanged.emit()
-
-    def treegrunt(self, parent=None):
-        """Creates and returns the logger instance"""
-        from blurdev.gui.dialogs.treegruntdialog import TreegruntDialog
-
-        return TreegruntDialog.instance(parent)
 
     def useAppUserModelID(self):
         """Returns a boolean value controlling if calling blurdev.setAppUserModelID

@@ -618,10 +618,6 @@ class DocumentEditor(QsciScintilla):
                 self, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
             )
 
-    def exec_(self):
-        if self.save():
-            blurdev.core.runScript(self.filename())
-
     def execStandalone(self):
         if self.save():
             os.startfile(str(self.filename()))

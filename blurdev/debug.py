@@ -189,10 +189,9 @@ class BlurExcepthook(object):
         if not self.actions.get("email", False):
             return
 
-        from blurdev.tools import ToolsEnvironment
         from blurdev.utils.error import ErrorEmail
 
-        email_addresses = ToolsEnvironment.activeEnvironment().emailOnError()
+        email_addresses = os.getenv('BDEV_ERROR_EMAIL')
         if email_addresses:
             mailer = ErrorEmail(*exc_info)
             mailer.send(email_addresses)
@@ -437,10 +436,6 @@ def debugVirtualMethod(cls, object):
 def debugLevel():
     """Returns the current debugging level"""
     return _currentLevel
-
-
-def emailList():
-    return blurdev.activeEnvironment().emailOnError()
 
 
 def errorsReported():

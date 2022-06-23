@@ -396,7 +396,7 @@ class LoggingLevelMenu(QMenu):
             action = QAction(logger_level.icon, logger_level.name, self)
             action.setCheckable(True)
 
-            # tooltip example: "Set 'blurdev.tools' to level Warning")
+            # tooltip example: "Set 'blurdev.debug' to level Warning")
             action.setToolTip(
                 "Set '{}' to level {}".format(self.logger.name, logger_level.name)
             )

@@ -98,12 +98,9 @@ def get_environment_information(refresh=False):
 
     if _environment_information is None or refresh:
 
-        active_environment = blurdev.activeEnvironment()
         _environment_information = OrderedDict(
             [
                 ("core", blurdev.core.objectName()),
-                ("environment", active_environment.objectName()),
-                ("environment.path", active_environment.path()),
                 ("exe", sys.executable),
                 ("python", "{}.{}.{}".format(*sys.version_info[:3])),
             ]

@@ -92,7 +92,6 @@
     <property name="title">
      <string>Debug</string>
     </property>
-    <addaction name="uiResetPathsACT"/>
     <addaction name="separator"/>
     <addaction name="uiResetWarningFiltersACT"/>
     <addaction name="separator"/>
@@ -264,8 +263,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="uiResetPathsACT"/>
-   <addaction name="separator"/>
    <addaction name="uiRunSelectedACT"/>
    <addaction name="uiRunAllACT"/>
    <addaction name="separator"/>
@@ -351,14 +348,6 @@
    </property>
    <property name="text">
     <string>Use &amp;Auto-Complete</string>
-   </property>
-  </action>
-  <action name="uiResetPathsACT">
-   <property name="text">
-    <string>Reset Paths</string>
-   </property>
-   <property name="toolTip">
-    <string>Clear the import paths</string>
    </property>
   </action>
   <action name="uiRunLineACT">
