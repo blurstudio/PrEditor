@@ -33,6 +33,7 @@ from Qt.QtWidgets import (  # noqa: E402
 from Qt.QtCore import Qt  # noqa: E402
 
 from .version import version as __version__  # noqa: E402,F401
+import blurdev.settings  # noqa: E402
 
 
 installPath = os.path.dirname(__file__)
