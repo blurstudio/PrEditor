@@ -211,13 +211,6 @@ class External(object):
         if parentCore != "studiomax":
             blurdev.core.setHwnd(hwnd)
             blurdev.core._mfcApp = True
-        if compid:
-            # If a compid was passed, in create a connection to fusion
-            import PeyeonScript
-
-            blurdev.core.fusionApp = PeyeonScript.scriptapp(
-                "Fusion", "localhost", 0.0, compid
-            )
         if childPipe:
             # Monitor the pipe for communications from the parent application
             instance._childPipe = childPipe

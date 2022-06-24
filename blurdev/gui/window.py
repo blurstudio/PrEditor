@@ -45,12 +45,7 @@ class Window(QMainWindow):
 
         # if there is no root, create
         if not parent:
-            if blurdev.core.isMfcApp():
-                from .winwidget import WinWidget
-
-                parent = WinWidget.newInstance(blurdev.core.hwnd())
-            else:
-                parent = blurdev.core.rootWindow()
+            parent = blurdev.core.rootWindow()
 
         # create a QMainWindow
         if flags:

@@ -222,10 +222,6 @@ class BlurExcepthook(object):
                     instance.console().startInputLine()
                 return
 
-        # quiet mode active
-        if blurdev.core.quietMode():
-            return
-
         # error already prompted
         if ConsoleEdit._errorPrompted:
             return
@@ -586,15 +582,11 @@ def setDebugLevel(level):
     # clear the debug level
     if not level:
         _currentLevel = 0
-        if blurdev.core:
-            blurdev.core.emitDebugLevelChanged()
         return True
 
     # assign the debug flag
     if DebugLevel.isValid(level):
         _currentLevel = level
-        if blurdev.core:
-            blurdev.core.emitDebugLevelChanged()
         return True
     else:
         debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)
