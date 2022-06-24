@@ -23,12 +23,9 @@ import types
 import subprocess
 from builtins import str as text
 
-from Qt.QtCore import QProcess
-
 import blurdev
 from . import settings
 from blurdev.enum import Enum, EnumGroup
-import six
 
 
 def getPointerSize():
@@ -52,21 +49,10 @@ def getPointerSize():
 def pythonPath(pyw=False, architecture=None):
     if settings.OS_TYPE != 'Windows':
         return 'python'
-    # Attempt to get the basepath from the registry
-    try:
-        basepath, typ = blurdev.osystem.registryValue(
-            'HKEY_LOCAL_MACHINE',
-            r'SOFTWARE\Python\PythonCore\2.7\InstallPath',
-            '',
-            architecture=architecture,
-        )
-    except WindowsError:
-        basepath = ''
-    if not basepath:
-        from distutils.sysconfig import get_python_inc
+    from distutils.sysconfig import get_python_inc
 
-        # Unable to pull the path from the registry just use the current python path
-        basepath = os.path.split(get_python_inc())[0]
+    # Unable to pull the path from the registry just use the current python path
+    basepath = os.path.split(get_python_inc())[0]
     # build the path to the python executable. If requested use pythonw instead of
     # python
     return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
@@ -160,53 +146,6 @@ def expandvars(text, cache=None):
         output = output.replace(repl, value)
 
     return output
-
-
-def expandPath(path):
-    """Expands tilde-shortened Windows paths to full pathname.
-
-    If no shortenings were found, the expanded path is longer than the Windows
-    260-character maximum path length, or windll is not available, the input path
-    (cast to unicode) will be returned.
-
-    Args:
-        path (str): Input path to expand, will be cast to unicode prior to expansion.
-
-    Returns:
-        unicode: Input path with any tilde-shortenings expanded.
-    """
-    try:
-        from ctypes import windll, create_unicode_buffer
-
-        buf = create_unicode_buffer(260)
-        GetLongPathName = windll.kernel32.GetLongPathNameW
-        rv = GetLongPathName(text(path), buf, 260)
-        if rv == 0 or rv > 260:
-            return path
-        else:
-            return buf.value
-    except ImportError:
-        return text(path)
-
-
-def console(filename):
-    """Starts a console window at the given path"""
-    # pull the filpath from the inputed filename
-    fpath = str(filename)
-    if not os.path.isdir(fpath):
-        fpath = os.path.dirname(fpath)
-
-    # run the file in windows
-    cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_BROWSE', ''))
-    if not cmd:
-        return False
-
-    if settings.OS_TYPE != 'Windows':
-        subprocess.Popen(cmd % {'filepath': fpath}, shell=True)
-    else:
-        QProcess.startDetached('cmd.exe', [], fpath)
-
-    return True
 
 
 def createShortcut(
@@ -383,39 +322,6 @@ def explore(filename, dirFallback=False):
     return False
 
 
-def forOS(windows=None, linux=None, mac=None):
-    """Use this function to return a specific value for the OS blurdev is currently
-    running on.
-
-    Args:
-        windows: Value returned if running on Windows. Defaults to None.
-        linux: Value returned if running on Linux. Defaults to None.
-        mac: Value returned if running on MacOS. Defaults to None.
-
-    Returns:
-        The value provided for the current OS or None.
-    """
-    if settings.OS_TYPE == 'Windows':
-        return windows
-    if settings.OS_TYPE == 'Linux':
-        return linux
-    if settings.OS_TYPE == 'MacOS':
-        return mac
-
-
-def programFilesPath(path=''):
-    """Returns the path to 32bit program files on windows.
-
-    Args:
-        path (str): this string is appended to the path
-    """
-    if getPointerSize() == 64:
-        progF = 'ProgramFiles(x86)'
-    else:
-        progF = 'programfiles'
-    return r'%s\%s' % (os.getenv(progF), path)
-
-
 def set_app_id_for_shortcut(shortcut, app_id):
     """Sets AppUserModel.ID info for a windows shortcut.
 
@@ -446,60 +352,6 @@ def set_app_id_for_shortcut(shortcut, app_id):
         newValue = propsys.PROPVARIANTType(app_id, pythoncom.VT_BSTR)
         store.SetValue(key, newValue)
         store.Commit()
-
-
-def shell(command, basepath='', persistent=False):
-    """
-    Runs the given shell command in its own window.  The command will be run
-    from the current working directory, or from *basepath*, if given.
-    If persistent is True, the shell will stay open after the command is run.
-
-    """
-    if not basepath:
-        basepath = os.curdir
-
-    # run it in debug mode for windows
-    if settings.OS_TYPE == 'Windows':
-        if persistent:
-            success, value = QProcess.startDetached(
-                'cmd.exe', ['/k', command], basepath
-            )
-        else:
-            success, value = QProcess.startDetached(
-                'cmd.exe', ['/c', command], basepath
-            )
-
-    # run it for Linux systems
-    elif settings.OS_TYPE == 'Linux':
-        shellcmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXEC', ''))
-        if not shellcmd:
-            return False
-
-        # create a temp shell file
-        temppath = os.environ.get('BDEV_PATH_TEMP', '')
-        if not temppath:
-            return False
-
-        if not os.path.exists(temppath):
-            os.mkdir(temppath)
-
-        # write a temp shell command
-        tempfilename = os.path.join(temppath, 'debug.sh')
-        tempfile = open(tempfilename, 'w')
-        tempfile.write('echo "running command: %s"\n' % (command))
-        tempfile.write(command)
-        tempfile.close()
-
-        # make sure the system can run the file
-        os.system('chmod 0755 %s' % tempfilename)
-
-        # run the file
-        success = subprocess.Popen(
-            shellcmd % {'basepath': basepath, 'command': command}, shell=True
-        )
-    else:
-        return False
-    return success
 
 
 def subprocessEnvironment(env=None):
@@ -797,28 +649,6 @@ def startfile(
     return success
 
 
-def tempfile(filepath):
-    return os.path.join(os.environ.get('BDEV_PATH_TEMP', ''), filepath)
-
-
-def username():
-    """
-    This function checks the environment variables LOGNAME, USER, LNAME and
-    USERNAME, in order, and returns the value of the first one which is set
-    to a non-empty string. If none are set, the login name from the
-    password database is returned on systems which support the pwd module;
-    otherwise, returns an empty string.
-
-    """
-    import getpass
-
-    try:
-        return getpass.getuser()
-    except getpass.GetPassWarning:
-        pass
-    return ''
-
-
 class FlashTime(Enum):
     pass
 
@@ -887,51 +717,6 @@ def getRegKey(registry, key, architecture=None, write=False):
     return regKey
 
 
-def listRegKeyValues(registry, key, architecture=None):
-    """Returns a list of child keys and their values as tuples.
-
-    Each tuple contains 3 items. A string that identifies the value name An object that
-        holds the value data, and whose type depends on the underlying registry type An
-        integer that identifies the type of the value data (see table in docs for
-        winreg.SetValueEx)
-
-    Args:
-
-        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example key
-        (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for example
-        architecture (int | None): 32 or 64 bit. If None use system default. Defaults to
-        None
-
-    Returns:
-        List of tuples
-    """
-    import winreg
-
-    regKey = getRegKey(registry, key, architecture=architecture)
-    ret = []
-    if regKey:
-        subKeys, valueCount, modified = winreg.QueryInfoKey(regKey)
-        for index in range(valueCount):
-            ret.append(winreg.EnumValue(regKey, index))
-    return ret
-
-
-def listRegKeys(registry, key, architecture=None):
-    import winreg
-
-    regKey = getRegKey(registry, key, architecture=architecture)
-    ret = []
-    if regKey:
-        index = 0
-        while True:
-            try:
-                ret.append(winreg.EnumKey(regKey, index))
-                index += 1
-            except WindowsError:
-                break
-    return ret
-
-
 def registryValue(registry, key, value_name, architecture=None):
     """Returns the value and type of the provided registry key's value name.
 
@@ -961,114 +746,6 @@ def registryValue(registry, key, value_name, architecture=None):
     return '', 0
 
 
-def setRegistryValue(
-    registry,
-    key,
-    value_name,
-    value,
-    valueType=None,
-    architecture=None,
-    notify=None,
-    overwrite=True,
-):
-    """Stores a value in the registry for the provided registy key's name.
-
-    Args:
-
-        registry (str): The registry to look in. 'HKEY_LOCAL_MACHINE' for example
-
-        key (str): The key to open. r'Software\\Autodesk\\Softimage\\InstallPaths' for
-        example
-
-        value_name (str): The name of the value to read. To read the '(Default)' key
-            pass a empty string.
-
-        value: The value to store in the registry.
-
-        valueType (str or int or None): The Type of the data being stored. If a string
-            is passed in it must be listed in
-            https://docs.python.org/2/library/_winreg.html#value-types. See
-            blurdev.osystem.registryValue's second return value.
-
-        architecture (int or None): 32 or 64 bit. If None use system default. Defaults
-        to None
-
-        notify (bool or None): Defaults to None. If None and the key appears to be
-            editing the environment it will default to True. Sends a message to the
-            system telling them the environment has changed. This allows applications,
-            such as the shell, to pick up your updates.
-
-        overwrite (bool): Defaults to True which will write the key, even if the key
-            already exists, when set to False, the value will only be written when the
-            key doesn't already exist
-
-    Returns:
-        bool: It was able to store the registry value.
-    """
-    try:
-        import winreg
-
-        regKey = getRegKey(registry, key, architecture=architecture)
-        if (not overwrite) and regKey:
-            # regKey already exists and overwrite is False,
-            # don't do anything and return False
-            return False
-        aReg = winreg.ConnectRegistry(None, getattr(winreg, registry))
-        winreg.CreateKey(aReg, key)
-        regKey = getRegKey(registry, key, architecture=architecture, write=True)
-        if isinstance(valueType, six.string_types):
-            valueType = getattr(winreg, valueType)
-        # Store the value in the registry
-        winreg.SetValueEx(regKey, value_name, 0, valueType, value)
-        # Auto-detect if we should notify the system that the environment has changed.
-        if notify is None:
-            if registry == 'HKEY_LOCAL_MACHINE':
-                if (
-                    key.lower()
-                    == r'system\currentcontrolset\control\session manager\environment'
-                ):
-                    notify = True
-            elif registry == 'HKEY_CURRENT_USER':
-                if key.lower() == r'environment':
-                    notify = True
-        if notify:
-            try:
-                # notify the system about the changes
-                import win32gui
-                import win32con
-
-                # Use SendMessageTimeout to avoid hanging if applications fail
-                # to respond to the broadcast.
-                win32gui.SendMessageTimeout(
-                    win32con.HWND_BROADCAST,
-                    win32con.WM_SETTINGCHANGE,
-                    0,
-                    'Environment',
-                    win32con.SMTO_ABORTIFHUNG,
-                    1000,
-                )
-            except ImportError:
-                pass
-        return True
-    except WindowsError:
-        return False
-
-
-def canonicalWinPath(path):
-    """Expands and normalizes a Windows path as much as possible.
-
-    Removes internal relative paths, expands variables, and normalizes
-    seperators and case.
-
-    Args:
-        path (str): The path to normalize
-
-    Returns:
-        str: The normalized path.
-    """
-    return os.path.normpath(blurdev.osystem.expandPath(os.path.expandvars(path)))
-
-
 def getEnvironmentRegKey(machine=False):
     """Get the Registry Path and Key for the environment, either of the current
     user or the system.
@@ -1088,102 +765,6 @@ def getEnvironmentRegKey(machine=False):
         registry = 'HKEY_LOCAL_MACHINE'
         key = r'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     return registry, key
-
-
-def processPath(path, cb, sep=os.path.pathsep):
-    """A little helper function for processing paths.  Use a cb function to
-    process each path separated by the specified separator.
-
-    Args:
-        path (str): The path value to process
-
-        cb (callable): The callback to call to process each path.  This is expected to
-            take a string (path) as input, and return a string or None.
-
-        sep (str, optional): The OS's separator for joining paths in an environment
-            variable.
-
-    Returns:
-        str: The updated and recombined path value.
-    """
-    paths = path.split(sep)
-    retPaths = []
-    for path in paths:
-        outPath = cb(path)
-        if outPath:
-            retPaths.append(outPath)
-    return sep.join(retPaths)
-
-
-def pathReplace(inputPath, replace, replaceWith, normalize=False, useRegex=False):
-    """Replace instances of a path in the inputPath with a replacement path.
-
-    Args:
-        inputPath (str): The path to replace values in.
-        replace (str): The value to be replaced
-        replaceWith (str): The value to replace with
-        normalize (bool, optional): If True, the replacement path will be
-            normalized before being inserted.
-        useRegex (bool, optional): If True, the replacement will be treated as a
-            regex replacement.
-
-    Returns:
-        str: The updated path, with values replaced and recombined.
-    """
-    # we'll perform comparisons on normalized paths, so normalize the string
-    # to be replaced
-    import re
-
-    if not useRegex:
-        replace = canonicalWinPath(replace)
-
-    def _replFn(path):
-        if useRegex:
-            return re.sub(replace, replaceWith, path)
-        if canonicalWinPath(path) == replace:
-            if normalize:
-                # normalize the replacement if the normalize flag is set
-                return canonicalWinPath(replaceWith)
-            # otherwise use the value as passed.
-            return replaceWith
-        return path
-
-    return processPath(inputPath, _replFn)
-
-
-def getEnvironmentPath(machine=False):
-    """Get the PATH variable for either the User or System Environment.
-
-    Args:
-        machine (bool, optional): If True, the system Environment PATH will
-            be returned.  Otherwise, the Environment PATH for the current user
-            will be returned.  Defaults to False.
-
-    Returns:
-        str: The value of the PATH.
-    """
-    registry, key = getEnvironmentRegKey(machine)
-    return blurdev.osystem.registryValue(registry, key, 'PATH')[0]
-
-
-def setEnvironmentPath(value_name, value, system=True, varType=None):
-    """Method to easily set the path variable using the registry.
-
-    Args:
-
-        path (str): The new value for the PATH variable.
-
-        system (bool): If True(default) Set the system variable, otherwise set the user
-            variable.
-
-    Returns:
-        If it was able to set the path environment variable.
-    """
-    import winreg
-
-    registry, key = getEnvironmentRegKey(system)
-    varType = varType if varType is not None else winreg.REG_EXPAND_SZ
-    return setRegistryValue(registry, key, value_name, value, valueType=varType)
 
 
 def getEnvironmentVariable(value_name, system=None, default=None, architecture=None):

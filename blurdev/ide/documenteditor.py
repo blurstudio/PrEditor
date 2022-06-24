@@ -709,11 +709,6 @@ class DocumentEditor(QsciScintilla):
             window.uiLanguageDDL.setCurrentLanguage(action.text())
             window.uiLanguageDDL.blockSignals(False)
 
-    def launchConsole(self):
-        if not self._filename:
-            return False
-        blurdev.osystem.console(self._filename)
-
     def lineMarginWidth(self):
         return self.marginWidth(self.SymbolMargin)
 

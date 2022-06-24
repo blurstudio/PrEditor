@@ -1,16 +1,11 @@
 """
 Functions to read through and initialize the paths for Blur Studios.
 Also has functions for accessing & setting INI information.
-
-
 """
-
 from __future__ import print_function
 from __future__ import absolute_import
 from future.utils import iteritems
 from builtins import str as text
-from imp import reload
-import sys
 import os
 from contextlib import contextmanager
 import copy
@@ -38,41 +33,6 @@ environments = {}
 activeEnvironment = 'production'
 blurConfigFile = None
 fallbackEncoding = 'utf-16'
-
-
-def GetINISetting(inFileName, inSection="", inKey="", lowercaseOptions=True):
-    """Gets the value of the inputted key found in the given section of an INI file, if
-    it exists and the key is specified.  If the key is not specified, but the
-    section exists, then the function will return a list of all the keys in that
-    section.
-
-    Args:
-        inFileName: The ini file to read from.
-        inSection: The section to read from.
-        inKey: The key(option) to read from.
-        lowercaseOptions (bool, optional): If True, then all keys(options) will be
-            treated as lowercase. This is how python's configparser handles ini
-            files. You may want to set this to False if editing 3ds max ini files.
-
-    Returns:
-        string: A string or list of strings.
-    """
-    if os.path.isfile(inFileName):
-        tParser = ToolParserClass(lowercaseOptions=lowercaseOptions)
-        tParser.read(inFileName)
-        inSection = text(inSection)
-        inKey = text(inKey)
-        if inSection:
-            if tParser.has_section(inSection):
-                if inKey:
-                    if tParser.has_option(inSection, inKey):
-                        return tParser.get(inSection, inKey)
-                else:
-                    tItemList = tParser.items(inSection)
-                    return [tItem[0] for tItem in tItemList]
-        else:
-            return tParser.sections()
-    return ""
 
 
 def SetINISetting(
@@ -135,56 +95,6 @@ def SetINISetting(
         f.close()
         return True
     return tParser.Save(inFileName)
-
-
-def DelINISetting(inFileName, inSection, inKey=""):
-    """Delets the given section & key ( if specified ) from the inputed file, if the
-    file exists.
-
-        :returns: bool
-    """
-    if os.path.isfile(inFileName):
-        tParser = ToolParserClass()
-        tParser.read(inFileName)
-        inSection = text(inSection)
-        inKey = text(inKey)
-
-        if tParser.has_section(inSection):
-            if inKey:
-                tParser.remove_option(inSection, inKey)
-            else:
-                tParser.remove_section(inSection)
-            return tParser.Save(inFileName)
-    return False
-
-
-def EndINIFn():
-    return None
-
-
-class switch(object):  # noqa: N801
-    """Provides a switch call that mimics that of C/C++.
-
-    Returns:
-        bool:
-    """
-
-    def __init__(self, value):
-        self.value = value
-        self.fall = False
-
-    def __iter__(self):
-        yield self.match
-        raise StopIteration
-
-    def match(self, *args):
-        if self.fall or not args:
-            return True
-        elif self.value in args:  # changed for v1.5, see below
-            self.fall = True
-            return True
-        else:
-            return False
 
 
 class SectionClass(object):
@@ -504,73 +414,6 @@ def _normEnv(environmentID):
     return environmentID
 
 
-def addSysPath(path):
-    if path:
-        path = os.path.normpath(path.lower())
-        if path not in sys.path:
-            sys.path.append(path)
-            return True
-    return False
-
-
-def AddResourcePath(inRelativePath):
-    """Adds a relative path to the sys.path list, combining the inputed path with the
-    current GetCodePath results.
-    """
-    tPath = os.path.normpath(os.path.join(GetCodePath(), inRelativePath).lower())
-    if tPath not in sys.path:
-        sys.path.append(tPath)
-        return True
-    return False
-
-
-def GetActiveEnvironment():
-    """Returns the active environment SectionClass"""
-    return environments[activeEnvironment]
-
-
-def GetActiveEnvironmentID():
-    """Returns the id of the active environment"""
-    return GetActiveEnvironment().GetName()
-
-
-def GetCodePath(inEnvironment=''):
-    """Returns the 'codeRoot' pathID value for the given environment.  If no
-    environment is specified, then the current active environment is used.
-    """
-    return GetPath('codeRoot', inEnvironment=inEnvironment)
-
-
-def GetEnvironment(environmentID):
-    """Returns the SectionClass instance whose ID matches the inputed envrionment ID
-    from the global environments list (if a match is found)
-    """
-    if not environmentID:
-        environmentID = activeEnvironment
-
-    environmentID = _normEnv(environmentID)
-
-    if environmentID in environments:
-        return environments[environmentID]
-    return None
-
-
-def GetEnvironmentIDs(verifyPathIDsExist=None):
-    """Returns all available environment IDs from the global environments dictionary"""
-    if verifyPathIDsExist is None:
-        verifyPathIDsExist = []
-    outEnvironmentIDs = []
-    for tEnvironment in environments.values():
-        if tEnvironment.GetName() != 'DEFAULT':
-            if not verifyPathIDsExist or IsEnvironmentValid(
-                environmentID=tEnvironment.GetName(),
-                verifyPathIDsExist=verifyPathIDsExist,
-            ):
-                outEnvironmentIDs.append(tEnvironment.GetName())
-    outEnvironmentIDs.sort()
-    return outEnvironmentIDs
-
-
 def GetPath(
     inPathKey, inEnvironment='', inPathSeparator='/', inIncludeLastSeparator=True
 ):
@@ -618,44 +461,6 @@ def GetPathIDs(inEnvironment=''):
     return outPropNames
 
 
-def GetPaths(inEnvironment='', inPathSeparator='/'):
-    """Collects all the available paths for the inputed environment, using the active
-    environment if no input is specified.  Combines the given environment and the
-    default values (which are available for any environment)
-    """
-    outPaths = []
-    for tPathID in GetPathIDs(inEnvironment=inEnvironment):
-        outPaths.append(GetPath(tPathID, inEnvironment=inEnvironment))
-
-    return outPaths
-
-
-def IsEnvironmentValid(environmentID='', verifyPathIDsExist=None):
-    """Checks to see if the given environment exists by checking the paths associated
-    with it, if the pathIDs array is blank, then all the paths are checked,
-    otherwise only those specified are checked.
-    """
-    if verifyPathIDsExist is None:
-        verifyPathIDsExist = []
-    if not environmentID:
-        environmentID = activeEnvironment
-
-    environmentID = _normEnv(environmentID)
-
-    if environmentID in environments:
-        for pathID in verifyPathIDsExist:
-            path = GetPath(pathID, inEnvironment=environmentID)
-            if not (path and os.path.exists(path)):
-                return False
-        return True
-    return False
-
-
-def IsOffsite():
-    """Checks to see if the current active environment is set to being offsite"""
-    return activeEnvironment == 'Offline'
-
-
 def IsPath(pathID, inEnvironment=''):
     """Checks to see if the inputed ID is in the list of available path IDs for the
     specified environment
@@ -664,13 +469,6 @@ def IsPath(pathID, inEnvironment=''):
         if tPathID.lower() == pathID.lower():
             return True
     return False
-
-
-def IsScripter():
-    """Checks to see if the code path for the development environment exists on the
-    user's machine
-    """
-    return os.path.exists(GetCodePath(inEnvironment='development'))
 
 
 def LoadConfigData():
@@ -769,47 +567,6 @@ def SetActiveEnvironment(inEnvironment):
     return False
 
 
-def ReloadAllModules():
-    """Reloads all modules in memory"""
-    for module in sys.modules.values():
-        if (module is not None) and module.__name__.find("blur") != -1:
-            try:
-                if module.__name__ not in ["blurdev.ini"]:
-                    reload(module)
-                # xsi.LogMessage( "Reloaded:  " + module.__name__ )
-            except Exception:
-                pass
-                # xsi.LogMessage( "No Module Named:  " + module.__name__ )
-    return True
-
-
-def SetCodePath(inEnvironment, reloadModules=False):
-    """Sets the current active environment to the inputed value, replacing the code
-    path within the sys path info for importing libraries from the right environment
-    """
-    oldCodePath = GetCodePath()
-    outCodePath = oldCodePath
-    success = SetActiveEnvironment(inEnvironment)
-
-    if success:
-        newCodePath = outCodePath = GetCodePath()
-
-        normNewPath = os.path.normpath(newCodePath.lower())
-        normOldPath = os.path.normpath(oldCodePath.lower())
-
-        for i in range(len(sys.path)):
-            if sys.path[i]:
-                sys.path[i] = sys.path[i].replace(normOldPath, normNewPath)
-
-        if not normNewPath + '\\lib' in sys.path:
-            addSysPath(normNewPath + '\\lib')
-
-        if reloadModules:
-            ReloadAllModules()
-
-    return outCodePath
-
-
 def NormPath(inPath, inPathSeparator="/", inIncludeLastSeparator=True):
     """Normalizes the inputed path"""
     if inPath == "":
@@ -832,28 +589,6 @@ def NormPath(inPath, inPathSeparator="/", inIncludeLastSeparator=True):
         return tUNCPath + outNormPath
 
     return tUNCPath + outNormPath + inPathSeparator
-
-
-def EndGlobalsFN():
-    return None
-
-
-def IsInt(inString):
-    """Checks if the inputed string is a valid int type"""
-    try:
-        int(inString)
-        return True
-    except Exception:
-        return False
-
-
-def IsFloat(inString):
-    """Checks if the inputed string is a valid float type"""
-    try:
-        float(inString)
-        return True
-    except Exception:
-        return False
 
 
 @contextmanager

@@ -14,11 +14,6 @@ import blurdev.logger
 
 blurdev.logger.patchLogger()
 
-try:
-    from importlib import reload
-except ImportError:
-    from imp import reload
-
 # this variable will be set when loading information for documentation purposes
 __DOCMODE__ = False
 
@@ -27,34 +22,17 @@ import os  # noqa: E402
 import sys  # noqa: E402
 import copy  # noqa: E402
 import logging  # noqa: E402
-import types  # noqa: E402
-import re  # noqa: E402
 import weakref  # noqa: E402
 
-from deprecated import deprecated  # noqa: E402
-
 from Qt.QtWidgets import (  # noqa: E402
-    QApplication,
     QDialog,
     QDockWidget,
     QMainWindow,
-    QMessageBox,
     QVBoxLayout,
 )
 from Qt.QtCore import Qt, QDateTime  # noqa: E402
 
 from .version import version as __version__  # noqa: E402,F401
-
-# TODO: It is probably unnecessary to import most of these subpackages in the root
-# package.
-import blurdev.settings  # noqa: E402
-import blurdev.enum  # noqa: E402
-import blurdev.debug  # noqa: E402
-import blurdev.osystem  # noqa: E402
-import blurdev.media  # noqa: E402
-import blurdev.XML  # noqa: E402
-import blurdev.prefs  # noqa: E402
-import blurdev.tools  # noqa: E402
 import blurdev.ini  # noqa: E402
 
 
@@ -96,14 +74,6 @@ _logger = logging.getLogger(__name__)
 # We also don't want this warning showing up in production anyway.
 _logger.addHandler(logging.NullHandler())
 
-# initialize sentry if environment variable present
-if os.environ.get("BDEV_SENTRY_AT_STARTUP"):
-    import sentry_bootstrap
-    from blurdev.utils.error import sentry_before_send_callback
-
-    sentry_bootstrap.init_sentry()
-    sentry_bootstrap.add_external_callback(sentry_before_send_callback)
-
 
 def activeEnvironment(coreName=None):
     """Returns the current active Tools Environment as part of the blurdev.tools system.
@@ -132,53 +102,6 @@ def appUserModelID():
     appid = lpBuffer.value
     ctypes.windll.kernel32.LocalFree(lpBuffer)
     return appid
-
-
-def bindMethod(object, name, method):
-    """
-    Properly binds a new python method to an existing C++ object as a
-    dirty alternative to sub-classing when not possible. Object must
-    be a instance, not a class.
-
-    In most cases we don't use the self argument in these functions. It's
-    referencing a different object than the class its defined on so this
-    reminds you to not think of it as such. You should add the N805,B902
-    noqa to these functions to silence flake8 errors.
-    """
-    # Passing (method.__func__, object) should work in python 2 and 3.
-    object.__dict__[name] = types.MethodType(method.__func__, object)
-
-
-@deprecated(
-    version='2.28.0', reason='Use cute.functions.ensureWindowIsVisible instead.'
-)
-def ensureWindowIsVisible(widget):
-    import cute
-
-    return cute.functions.ensureWindowIsVisible(widget)
-
-
-def findDevelopmentEnvironment():
-    return blurdev.tools.ToolsEnvironment.findDevelopmentEnvironment()
-
-
-def findTool(name, environment=''):
-    if not environment:
-        env = blurdev.tools.ToolsEnvironment.activeEnvironment()
-    else:
-        env = blurdev.tools.ToolsEnvironment.findEnvironment(environment, default=True)
-    if env:
-        return env.index().findTool(name)
-    return blurdev.tools.Tool()
-
-
-def runtime(*args):
-    """Return the full path to this file in blurdev's runtime folder.
-
-    Returns:
-        The os.path.join of all the blurdev runtimes folder and any passed in args.
-    """
-    return os.path.join(installPath, 'runtimes', *args)
 
 
 def init():
@@ -346,39 +269,6 @@ def startApplication(windowIcon=None):
         application.exec_()
 
 
-def quickReload(modulename):
-    """
-    Searches through the loaded sys modules and looks up matching module names
-    based on the imported module.
-
-    """
-    expr = re.compile(modulename.replace('.', r'\.').replace('*', '[A-Za-z0-9_]*'))
-
-    # reload longer chains first
-    keys = sorted(list(sys.modules.keys()), reverse=True)
-
-    for key in keys:
-        module = sys.modules[key]
-        if expr.match(key) and module is not None:
-            print('reloading', key)
-            reload(module)
-
-
-def packageForPath(path):
-    splt = os.path.normpath(path).split(os.path.sep)
-    index = 1
-
-    filename = os.path.join(path, '__init__.py')
-    package = []
-    while os.path.exists(filename):
-        package.append(splt[-index])
-        filename = os.path.join(os.path.sep.join(splt[:-index]), '__init__.py')
-        index += 1
-
-    package.reverse()
-    return '.'.join(package)
-
-
 def prefPath(relpath, coreName=''):
     # use the core
     if not coreName and core:
@@ -416,23 +306,6 @@ def relativePath(path, additional=''):
     return os.path.join(os.path.dirname(path), additional)
 
 
-def resetWindowPos():
-    """
-    Reset any top level widgets(windows) to 0,0 use this to find windows that are
-    offscreen.
-    """
-    for widget in QApplication.instance().topLevelWidgets():
-        if widget.isVisible():
-            geo = widget.geometry()
-            width = geo.width()
-            height = geo.height()
-            geo.setX(8)
-            geo.setY(30)
-            geo.setWidth(width)
-            geo.setHeight(height)
-            widget.setGeometry(geo)
-
-
 def resourcePath(relpath=''):
     """
     Returns the full path to the file inside the blurdev\resource folder
@@ -440,33 +313,6 @@ def resourcePath(relpath=''):
     :return str: The modified path
     """
     return os.path.join(relativePath(__file__), 'resource', relpath)
-
-
-def runTool(toolId, macro=""):
-    """Runs the tool with the given tool id.
-
-    Finds the tool with the given tool id name for the activeEnvironment if it exists.
-    You can pass a macro to the tool.exec_ call.
-
-    Args:
-        toolId(str): The tool Id for the tool. See Tool.objectName()
-
-        macro(str): I have no idea what this is for. Looks like it was from when
-                    treegrunt was moved to blurdev.
-    """
-    # load the tool
-    tool = blurdev.tools.ToolsEnvironment.activeEnvironment().index().findTool(toolId)
-    if not tool.isNull():
-        tool.exec_(macro)
-
-    # let the user know the tool could not be found
-    elif QApplication.instance():
-        QMessageBox.critical(
-            None,
-            'Tool Not Found',
-            '%s is not a tool in %s environment.'
-            % (toolId, blurdev.tools.ToolsEnvironment.activeEnvironment().objectName()),
-        )
 
 
 def setActiveEnvironment(envName, coreName=None):
@@ -572,12 +418,6 @@ def signalInspector(item, prefix='----', ignore=None):
         ):
             print(attr)
             getattr(item, attr).connect(create(attr))
-
-
-def startProgress(title='Progress', parent=None):
-    from blurdev.gui.dialogs.multiprogressdialog import MultiProgressDialog
-
-    return MultiProgressDialog.start(title)
 
 
 # initialize the core

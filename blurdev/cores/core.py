@@ -27,7 +27,6 @@ import blurdev.tools.tool
 import blurdev.tools.toolsenvironment
 import blurdev.cores.application
 import blurdev.settings
-from blurdev.decorators import pendingdeprecation
 from blurdev.utils.error import sentry_before_send_callback
 
 
@@ -177,26 +176,6 @@ class Core(QObject):
             'blurdev: {} ({})'.format(blurdev.__version__, self.objectName()),
             '    {}'.format(os.path.dirname(blurdev.__file__)),
         ]
-        # When trax is imported it creates this env var for error reporting. We don't
-        # want to inport trax to generate version info, but show it if possible.
-        if os.getenv('BDEV_EMAILINFO_TRAX_VERSION'):
-            msg.append('trax: {}'.format(os.getenv('BDEV_EMAILINFO_TRAX_VERSION')))
-            if 'trax' in sys.modules:
-                import trax
-                from trax.api.data import Database, User
-                import getpass
-
-                connection = Database.current().connection()
-                msg.append('    {}'.format(os.path.dirname(trax.__file__)))
-                msg.append('    db driver: {}'.format(connection.db().driverName()))
-                msg.append('    Usernames:')
-                msg.append('        os: {}'.format(getpass.getuser()))
-                msg.append('        trax: {}'.format(User.currentUser().username()))
-                msg.append(
-                    '        connection: {}, ini: {}'.format(
-                        connection.db().userName(), connection.userName()
-                    )
-                )
 
         msg.append('Qt: {}'.format(__qt_version__))
         msg.append('    Qt.py: {}, binding: {}'.format(qtpy_version, __binding__))
@@ -1277,14 +1256,7 @@ class Core(QObject):
                     sys.argv = [filename] + argv
                     scope['sys'] = sys
 
-                    # create a tool stopwatch used to debug
-                    env = blurdev.activeEnvironment()
-                    if env.stopwatchEnabled:
-                        toolName = filename if tool is None else tool.displayName()
-                        env.stopwatch = blurdev.debug.Stopwatch(toolName)
                     execfile(filename, scope)
-                    if env.stopwatchEnabled:
-                        env.stopwatch.stop()
 
                     # restore the system information
                     sys.path = path_bak
@@ -1653,34 +1625,6 @@ class Core(QObject):
         from blurdev.ide.ideeditor import IdeEditor
 
         IdeEditor.instance().edit()
-
-    @pendingdeprecation("Use blurdev.core.showToolbar('Favorites')")
-    def showLovebar(self, parent=None):
-        """TODO: Remove this function. It was left here so this code works with
-        existing dcc integration's. Remove it once these have been updated.
-        """
-        self.toolbar('Favorites').instance().show()
-
-    def showPyular(self, parent=None):
-        self.pyular(parent).show()
-
-    def showToolbar(self, name='User'):
-        """Show a toolbar by its name.
-
-        Args:
-            name (str): The name of the toolbar to show.
-
-        Returns:
-            bool: If the toolbar was found and show called on it.
-        """
-        # TODO: name should not be optional. It is currently defaulting to User
-        # to emulate the old showToolbar method currently being used by dcc
-        # integration's. Remove it once these have been updated.
-        toolbar = self.toolbar(name)
-        if toolbar:
-            toolbar.instance().show()
-            return True
-        return False
 
     def showTreegrunt(self):
         treegrunt = self.treegrunt()

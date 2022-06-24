@@ -78,14 +78,6 @@ class ToolsEnvironment(QObject):
         self._keychain = config.get('keychain', '')
         self._project = config.get('project', '')
         self._description = config.get('description', '')
-        # Set blurdev.activeEnvironment().stopwatchEnabled to True to enable the
-        # environment tool stopwatch this will start a stopwatch every time
-        # blurdev.core.runScript is called and stop it once that script has
-        # finished(this should include showEvent). This will allow you to time how long
-        # it takes to launch a tool. You can add laps by calling
-        # blurdev.activeEnvironment().stopwatch.newLap('info text')
-        self.stopwatchEnabled = False
-        self.stopwatch = blurdev.debug.Stopwatch('Default tool')
 
     def __str__(self):
         return '<ToolsEnvironment ({})>'.format(self.objectName())
@@ -723,13 +715,6 @@ class ToolsEnvironment(QObject):
         elif default:
             return default
         return ToolsEnvironment()
-
-    @staticmethod
-    def findDevelopmentEnvironment():
-        for env in ToolsEnvironment.environments:
-            if env.isDevelopment():
-                return env
-        return ToolsEnvironment.activeEnvironment()
 
     @staticmethod
     def fromXml(xml):

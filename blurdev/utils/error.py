@@ -5,6 +5,7 @@ from __future__ import absolute_import
 from collections import OrderedDict
 from datetime import datetime
 import os
+import getpass
 import traceback
 import sys
 import platform
@@ -72,28 +73,7 @@ def get_user_information(refresh=False):
     global _user_information
 
     if _user_information is None or refresh:
-
-        try:
-            from trax.api.data import User, Employee
-
-        # trax not importable
-        except ImportError:
-            import getpass
-
-            _user_information = OrderedDict([("username", getpass.getuser())])
-
-        # successful import
-        else:
-            _user_information = OrderedDict()
-            user = User.currentUser()
-            if user.isRecord() and isinstance(user, Employee):
-                _user_information["name"] = user.fullName()
-                _user_information["username"] = user.username()
-                _user_information["email"] = user.email()
-
-            # non-employee users lack name and email fields
-            else:
-                _user_information["username"] = user.username()
+        _user_information = OrderedDict([("username", getpass.getuser())])
 
     return _user_information
 

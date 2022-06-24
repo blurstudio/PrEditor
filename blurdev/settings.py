@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-
 from __future__ import absolute_import
-import copy
 import os
 import sys
 import site
@@ -76,16 +74,6 @@ for section in _SECTIONS_TO_ADD:
 # store the blurdev path in the environment
 os.environ['BDEV_PATH'] = environStr(os.path.dirname(__file__))
 
-# setup defaults
-os.environ.setdefault('BDEV_PARAM_BLURQT', '1')
-
-# store the environment variables as the startup variables
-startup_environ = copy.deepcopy(os.environ)
-
-
-def current():
-    return _currentEnv
-
 
 # define environment loading/restoring methods
 def init():
@@ -111,13 +99,6 @@ def normalizePath(path):
     if OS_TYPE == 'Windows':
         path = path.lower()
     return path
-
-
-def registerVariable(key, value):
-    """Add the key value pair to both the current os.environ, and the startup_environ"""
-    value = environStr(value)
-    os.environ[key] = value
-    startup_environ[key] = value
 
 
 def registerPath(path):
