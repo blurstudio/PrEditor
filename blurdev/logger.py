@@ -10,7 +10,7 @@ import sys
 from signalslot import Signal
 
 # blur imports
-from blurdev.prefs import Preference
+from blurdev.prefs import prefs_path
 
 
 CORE_MAPPINGS = {
@@ -196,8 +196,7 @@ def loadLoggerConfiguration(force=False):
 
     if force or not logger_config:
         core_name = getCoreName()
-        config_path = Preference.path(coreName=core_name)
-        logger_config_path = os.path.join(config_path, "loggers.json")
+        logger_config_path = prefs_path("loggers.json", core_name=core_name)
 
         if os.path.exists(logger_config_path):
             try:
@@ -221,7 +220,7 @@ def saveLoggerConfiguration():
 
     # derive config location
     core_name = getCoreName()
-    config_path = Preference.path(coreName=core_name)
+    config_path = prefs_path(core_name=core_name)
     logger_config_path = os.path.join(config_path, "loggers.json")
     temp_logger_config_path = logger_config_path + ".temp"
 

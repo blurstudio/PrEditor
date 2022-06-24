@@ -21,6 +21,7 @@ import warnings
 from datetime import datetime, timedelta
 
 import blurdev
+import blurdev.prefs
 
 from functools import partial
 
@@ -42,7 +43,6 @@ from Qt.QtWidgets import (
 
 from Qt import QtCompat
 
-from blurdev import prefs
 from blurdev.logger import saveLoggerConfiguration
 
 from blurdev.gui import Window, Dialog
@@ -250,12 +250,7 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
-        self.uiBrowseLocalPreferencesACT.triggered.connect(
-            lambda: self.browsePreferences(False)
-        )
-        self.uiBrowseSharedPreferencesACT.triggered.connect(
-            lambda: self.browsePreferences(True)
-        )
+        self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
         self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
         blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
@@ -632,9 +627,8 @@ class LoggerWindow(Window):
         else:
             self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
 
-    def browsePreferences(self, shared=False):
-        pref = blurdev.prefs.Preference()
-        path = pref.path(shared=shared)
+    def browsePreferences(self):
+        path = blurdev.prefs.prefs_path()
         blurdev.osystem.explore(path)
 
     def console(self):
@@ -718,49 +712,37 @@ class LoggerWindow(Window):
         """Update status text with seconds passed in."""
         self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
 
-    def prefs_path(self):
-        """The path the logger's preferences are saved as a json file.
-
-        The enviroment variable `LOGGER_PREF_PATH` is used if set, otherwise
-        it is saved in one of the user folders.
-        """
-        if "LOGGER_PREF_PATH" in os.environ:
-            ret = os.environ["LOGGER_PREF_PATH"]
-        else:
-            if sys.platform == "win32":
-                ret = "%appdata%/blur/logger/logger_pref.json"
-            else:
-                ret = "$HOME/.blur/logger/logger_pref.json"
-        return os.path.normpath(os.path.expandvars(os.path.expanduser(ret)))
-
     def recordPrefs(self, manual=False):
         if not manual and not self.uiAutoSaveSettingssACT.isChecked():
             return
 
+        _prefs = self.load_prefs()
         geo = self.geometry()
-        _prefs = {
-            'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
-            'windowState': int(self.windowState()),
-            'SplitterVertical': self.uiEditorVerticalACT.isChecked(),
-            'SplitterSize': self.uiSplitterSPLIT.sizes(),
-            'tabIndent': self.uiIndentationsTabsACT.isChecked(),
-            'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
-            'hintingEnabled': self.uiAutoCompleteEnabledACT.isChecked(),
-            'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
-            'wordWrap': self.uiWordWrapACT.isChecked(),
-            'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
-            'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
-            'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
-            'consoleFont': self.console().font().toString(),
-            'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
-            'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
-            'uiLinesInNewWorkboxACT': self.uiLinesInNewWorkboxACT.isChecked(),
-            'uiErrorHyperlinksACT': self.uiErrorHyperlinksACT.isChecked(),
-            'textEditorPath': self.textEditorPath,
-            'textEditorCmdTempl': self.textEditorCmdTempl,
-            'currentStyleSheet': self._stylesheet,
-            'flashTime': self.uiConsoleTXT.flashTime,
-        }
+        _prefs.update(
+            {
+                'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
+                'windowState': int(self.windowState()),
+                'SplitterVertical': self.uiEditorVerticalACT.isChecked(),
+                'SplitterSize': self.uiSplitterSPLIT.sizes(),
+                'tabIndent': self.uiIndentationsTabsACT.isChecked(),
+                'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
+                'hintingEnabled': self.uiAutoCompleteEnabledACT.isChecked(),
+                'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
+                'wordWrap': self.uiWordWrapACT.isChecked(),
+                'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
+                'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
+                'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
+                'consoleFont': self.console().font().toString(),
+                'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
+                'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
+                'uiLinesInNewWorkboxACT': self.uiLinesInNewWorkboxACT.isChecked(),
+                'uiErrorHyperlinksACT': self.uiErrorHyperlinksACT.isChecked(),
+                'textEditorPath': self.textEditorPath,
+                'textEditorCmdTempl': self.textEditorCmdTempl,
+                'currentStyleSheet': self._stylesheet,
+                'flashTime': self.uiConsoleTXT.flashTime,
+            }
+        )
 
         # completer settings
         completer = self.console().completer()
@@ -793,26 +775,29 @@ class LoggerWindow(Window):
 
             _prefs[self._genPrefName('workboxPath', index)] = linkPath
 
-        _prefs['WorkboxCount']: self.uiWorkboxTAB.count()
-        _prefs['WorkboxCurrentIndex']: self.uiWorkboxTAB.currentIndex()
+        _prefs['WorkboxCount'] = self.uiWorkboxTAB.count()
+        _prefs['WorkboxCurrentIndex'] = self.uiWorkboxTAB.currentIndex()
 
         if self._stylesheet == 'Custom':
-            _prefs['styleSheet']: self.styleSheet()
+            _prefs['styleSheet'] = self.styleSheet()
 
+        self.save_prefs(_prefs)
+
+    def load_prefs(self):
+        prefs_path = blurdev.prefs.prefs_path('logger_pref.json')
+        if os.path.exists(prefs_path):
+            with open(prefs_path) as fp:
+                return json.load(fp)
+        return {}
+
+    def save_prefs(self, _prefs):
         # Save preferences to disk
-        prefs_path = self.prefs_path()
+        prefs_path = blurdev.prefs.prefs_path('logger_pref.json')
         dirname = os.path.dirname(prefs_path)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         with open(prefs_path, 'w') as fp:
             json.dump(_prefs, fp, indent=4)
-
-    def load_prefs(self):
-        prefs_path = self.prefs_path()
-        if os.path.exists(prefs_path):
-            with open(prefs_path) as fp:
-                return json.load(fp)
-        return {}
 
     def restorePrefs(self):
         prefs = self.load_prefs()
@@ -1229,10 +1214,8 @@ class LoggerWindow(Window):
     def linkCurrentTab(self):
         if self._currentTab != -1:
             # get the previous path
-            pref = prefs.find(r'blurdev\LoggerWindow')
-            prevPath = pref.restoreProperty(
-                'linkFolder', os.path.join(os.path.expanduser('~'))
-            )
+            pref = self.load_prefs()
+            prevPath = pref.get('linkFolder', os.path.join(os.path.expanduser('~')))
 
             # Handle the file dialog
             filters = "Python Files (*.py);;All Files (*.*)"
@@ -1241,8 +1224,9 @@ class LoggerWindow(Window):
             )
             if not path:
                 return
-            pref.recordProperty('linkFolder', os.path.dirname(path))
-            pref.save()
+
+            pref['linkFolder'] = os.path.dirname(path)
+            self.save_prefs(pref)
 
             self.linkTab(self._currentTab, path)
 

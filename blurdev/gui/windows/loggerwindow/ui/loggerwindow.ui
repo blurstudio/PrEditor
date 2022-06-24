@@ -112,14 +112,7 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <widget class="QMenu" name="menuPreferences">
-     <property name="title">
-      <string>Preferences</string>
-     </property>
-     <addaction name="uiBrowseLocalPreferencesACT"/>
-     <addaction name="uiBrowseSharedPreferencesACT"/>
-    </widget>
-    <addaction name="menuPreferences"/>
+    <addaction name="uiBrowsePreferencesACT"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
     <addaction name="uiAboutBlurdevACT"/>
@@ -602,14 +595,12 @@
     <string>Clear Output File</string>
    </property>
   </action>
-  <action name="uiBrowseLocalPreferencesACT">
+  <action name="uiBrowsePreferencesACT">
    <property name="text">
-    <string>Browse Local Preferences</string>
+    <string>Browse Preferences</string>
    </property>
-  </action>
-  <action name="uiBrowseSharedPreferencesACT">
-   <property name="text">
-    <string>Browse Shared Preferences</string>
+   <property name="toolTip">
+    <string>Browse Preferences</string>
    </property>
   </action>
   <action name="uiAutoCompleteCaseSensitiveACT">
