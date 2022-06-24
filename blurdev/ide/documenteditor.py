@@ -33,7 +33,6 @@ from blurdev.enum import enum
 from blurdev.ide import lang
 from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
-from .ideeditor import IdeEditor
 from .delayable_engine import DelayableEngine
 import re
 import string
@@ -267,16 +266,6 @@ class DocumentEditor(QsciScintilla):
         parent = self.parent()
         if parent and parent.inherits('QMdiSubWindow'):
             parent.close()
-
-    def closeAllExcept(self):
-        window = self.window()
-        parent = self.parent()
-        if (
-            (isinstance(window, IdeEditor))
-            and parent
-            and parent.inherits('QMdiSubWindow')
-        ):
-            window.documentCloseAllExcept(self.parent())
 
     def commentCheck(self):
         # collect the language
@@ -622,23 +611,6 @@ class DocumentEditor(QsciScintilla):
         if self.save():
             os.startfile(str(self.filename()))
 
-    def findInFiles(self, state=False):
-        window = self.window()
-        if isinstance(window, IdeEditor):
-            window.searchFileDialog().setSearchText(self.selectedText())
-            window.uiFindInFilesACT.triggered.emit(False)
-
-    def findInFilesPath(self):
-        path = self._filename
-        if os.path.isfile(path):
-            path = os.path.split(path)[0]
-
-        window = self.window()
-        if isinstance(window, IdeEditor):
-            if os.path.exists(path):
-                window.searchFileDialog().setBasePath(path)
-            window.uiFindInFilesACT.triggered.emit(False)
-
     def foldMarginColors(self):
         """Returns the fold margin's foreground and background QColor
 
@@ -903,48 +875,30 @@ class DocumentEditor(QsciScintilla):
 
     def initSettings(self, first_time=False):
         """Set/reset settings using the IDE section settings."""
-        # grab the document settings config set
-        configSet = IdeEditor.documentConfigSet()
-
-        # set the document settings
-        section = configSet.section('Common::Document')
 
         # set visibility settings
-        self.setAutoIndent(section.value('autoIndent'))
+        self.setAutoIndent(True)
         if first_time:
-            self.setIndentationsUseTabs(section.value('indentationsUseTabs'))
-        self.setTabIndents(section.value('tabIndents'))
-        self.copyIndentsAsSpaces = section.value('copyIndentsAsSpaces')
-        self.setTabWidth(section.value('tabWidth'))
-        self.setCaretLineVisible(section.value('caretLineVisible'))
-        self.setShowWhitespaces(section.value('showWhitespaces'))
-        self.setMarginLineNumbers(0, section.value('showLineNumbers'))
-        self.setIndentationGuides(section.value('showIndentations'))
-        self.setEolVisibility(section.value('showEol'))
-        self.setShowSmartHighlighting(section.value('smartHighlighting'))
-        self.setBackspaceUnindents(section.value('backspaceUnindents'))
+            self.setIndentationsUseTabs(True)
+        self.setTabIndents(True)
+        self.setTabWidth(4)
+        self.setCaretLineVisible(False)
+        self.setShowWhitespaces(False)
+        self.setMarginLineNumbers(0, True)
+        self.setIndentationGuides(False)
+        self.setEolVisibility(False)
+        self.setShowSmartHighlighting(True)
+        self.setBackspaceUnindents(True)
 
-        if section.value('showLimitColumn'):
-            self.setEdgeMode(self.EdgeLine)
-            self.setEdgeColumn(section.value('limitColumn'))
-        else:
-            self.setEdgeMode(self.EdgeNone)
+        self.setEdgeMode(self.EdgeNone)
 
         # set autocompletion settings
-        if section.value('autoComplete'):
-            self.setAutoCompletionSource(QsciScintilla.AcsAll)
-        else:
-            self.setAutoCompletionSource(QsciScintilla.AcsNone)
-
-        self.setAutoCompletionThreshold(section.value('autoCompleteThreshold'))
-
-        # set the scheme settings
-        scheme = configSet.section('Editor::Scheme')
+        self.setAutoCompletionSource(QsciScintilla.AcsAll)
+        self.setAutoCompletionThreshold(3)
 
         self.setFont(self.documentFont)
         self.setMarginsFont(self.marginsFont())
         self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
-        self._enableFontResizing = scheme.value('document_EnableFontResize')
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -973,16 +927,6 @@ class DocumentEditor(QsciScintilla):
             self.markerAdd(line, marker)
         else:
             self.markerDelete(line)
-        # update the dictionary that stores the document markers when the ide is closed.
-        window = self.window()
-        if isinstance(window, IdeEditor):
-            if self._filename in window.documentMarkrerDict:
-                if line in window.documentMarkrerDict[self._filename]:
-                    window.documentMarkrerDict[self._filename].remove(line)
-                else:
-                    window.documentMarkrerDict[self._filename].append(line)
-            else:
-                window.documentMarkrerDict[self._filename] = [line]
 
     def marginsFont(self):
         return self._marginsFont
@@ -1180,11 +1124,6 @@ class DocumentEditor(QsciScintilla):
         if not filename:
             newFile = True
             filename = self.filename()
-            if not filename:
-                window = self.window()
-                if isinstance(window, IdeEditor):
-                    if window.lastSavedFilename():
-                        filename = os.path.split(window.lastSavedFilename())[0]
             filename, extFilter = QtCompat.QFileDialog.getSaveFileName(
                 self.window(), 'Save File as...', filename
             )
@@ -1533,10 +1472,6 @@ class DocumentEditor(QsciScintilla):
                         wordStartPosition += lengthWord
                 wordStartPosition += lengthSpace
 
-        act = menu.addAction('Find in Files...')
-        act.triggered.connect(self.findInFiles)
-        # act.setShortcut('Ctrl+Alt+F')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/folder_find.png')))
         act = menu.addAction('Goto')
         # act.setShortcut('Ctrl+G')
         act.triggered.connect(self.goToLine)

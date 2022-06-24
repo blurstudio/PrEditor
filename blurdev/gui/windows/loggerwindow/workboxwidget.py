@@ -130,10 +130,7 @@ class WorkboxWidget(DocumentEditor):
                 DocumentEditor.keyPressEvent(self, event)
 
     def initShortcuts(self):
-        """
-        Use this to set up shortcuts when the DocumentEditor is not being used in the
-        IdeEditor.
-        """
+        """Use this to set up shortcuts when the DocumentEditor"""
         from blurdev.ide.finddialog import FindDialog
 
         icon = QIcon(blurdev.resourcePath('img/logger/find.png'))
