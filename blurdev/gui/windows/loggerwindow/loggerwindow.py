@@ -1117,7 +1117,7 @@ class LoggerWindow(Window):
             'the window will flash if it is not in focus.\n'
             'Setting the value to zero will disable flashing.'
         )
-        value, success = QInputDialog.getDouble(None, 'Set flash window', msg, value)
+        value, success = QInputDialog.getDouble(self, 'Set flash window', msg, value)
         if success:
             self.uiConsoleTXT.flashTime = value
 

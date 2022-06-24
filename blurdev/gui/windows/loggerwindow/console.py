@@ -14,7 +14,7 @@ import time
 import traceback
 
 from Qt import QtCompat
-from Qt.QtCore import QObject, QPoint, Qt
+from Qt.QtCore import QPoint, Qt
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
@@ -24,43 +24,11 @@ from blurdev.debug import BlurExcepthook
 from .completer import PythonCompleter
 from builtins import str as text
 from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
-import blurdev.gui.windows.loggerwindow
 from pillar import stream
 from pillar.streamhandler_helper import StreamHandlerHelper
 
 
-SafeOutput = None
-
-
-class Win32ComFix(object):
-    pass
-
-
-# win32com's redirects all sys.stderr output to sys.stdout if the existing sys.stdout is
-# not a instance of its SafeOutput Make our logger classes inherit from SafeOutput so
-# they don't get replaced by win32com This is only neccissary for Softimage
-if blurdev.core.objectName() == 'softimage':
-    try:
-        from win32com.axscript.client.framework import SafeOutput
-
-        class Win32ComFix(SafeOutput):  # noqa: F811
-            pass
-
-    except ImportError:
-        pass
-
-
-class ErrorLog(QObject, Win32ComFix):
-    def flush(self):
-        """flush the logger instance"""
-        pass
-
-    def write(self, msg):
-        """log an error message"""
-        self.parent().write(msg, error=True)
-
-
-class ConsoleEdit(QTextEdit, Win32ComFix):
+class ConsoleEdit(QTextEdit):
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
     # the color error messages are displayed in, can be set by stylesheets
@@ -839,64 +807,51 @@ class ConsoleEdit(QTextEdit, Win32ComFix):
                     cursor.insertText("\n")
                     msg = "{}\n".format(line)
 
-            try:
-                # If showing Error Hyperlinks, display underline output, otherwise
-                # display normal output. Exclude ConsoleEdits
-                info = info if info else self.parseErrorHyperLinkInfo(msg)
-                filename = info.get("filename", "") if info else ""
-                isConsoleEdit = '<ConsoleEdit>' in filename
+            # If showing Error Hyperlinks, display underline output, otherwise
+            # display normal output. Exclude ConsoleEdits
+            info = info if info else self.parseErrorHyperLinkInfo(msg)
+            filename = info.get("filename", "") if info else ""
+            isConsoleEdit = '<ConsoleEdit>' in filename
 
-                if info and doHyperlink and not isConsoleEdit:
-                    fileStart = info.get("fileStart")
-                    fileEnd = info.get("fileEnd")
-                    lineNum = info.get("lineNum")
+            if info and doHyperlink and not isConsoleEdit:
+                fileStart = info.get("fileStart")
+                fileEnd = info.get("fileEnd")
+                lineNum = info.get("lineNum")
 
-                    isWorkbox = (
-                        '<WorkboxSelection>' in filename
-                        or '<WorkboxWidget>' in filename
-                    )
-                    if isWorkbox:
-                        split = filename.split(':')
-                        workboxIdx = split[-1]
-                        filename = ''
-                    else:
-                        filename = filename
-                        workboxIdx = ''
-                    href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
-
-                    # Insert initial, non-underlined text
-                    cursor.insertText(msg[:fileStart])
-
-                    # Insert hyperlink
-                    fmt = cursor.charFormat()
-                    fmt.setAnchor(True)
-                    fmt.setAnchorHref(href)
-                    fmt.setFontUnderline(True)
-                    toolTip = "Open {} at line number {}".format(filename, lineNum)
-                    fmt.setToolTip(toolTip)
-                    cursor.insertText(msg[fileStart:fileEnd], fmt)
-
-                    # Insert the rest of the msg
-                    fmt.setAnchor(False)
-                    fmt.setAnchorHref('')
-                    fmt.setFontUnderline(False)
-                    fmt.setToolTip('')
-                    cursor.insertText(msg[fileEnd:], fmt)
+                isWorkbox = (
+                    '<WorkboxSelection>' in filename
+                    or '<WorkboxWidget>' in filename
+                )
+                if isWorkbox:
+                    split = filename.split(':')
+                    workboxIdx = split[-1]
+                    filename = ''
                 else:
-                    # Non-hyperlink output
-                    self.insertPlainText(msg)
+                    filename = filename
+                    workboxIdx = ''
+                href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
 
-            except Exception:
-                if SafeOutput:
-                    # win32com writes to the debugger if it is unable to print, so
-                    # ensure it still does this.
-                    SafeOutput.write(self, msg)
+                # Insert initial, non-underlined text
+                cursor.insertText(msg[:fileStart])
 
-        else:
-            if SafeOutput:
-                # win32com writes to the debugger if it is unable to print, so ensure it
-                # still does this.
-                SafeOutput.write(self, msg)
+                # Insert hyperlink
+                fmt = cursor.charFormat()
+                fmt.setAnchor(True)
+                fmt.setAnchorHref(href)
+                fmt.setFontUnderline(True)
+                toolTip = "Open {} at line number {}".format(filename, lineNum)
+                fmt.setToolTip(toolTip)
+                cursor.insertText(msg[fileStart:fileEnd], fmt)
+
+                # Insert the rest of the msg
+                fmt.setAnchor(False)
+                fmt.setAnchorHref('')
+                fmt.setFontUnderline(False)
+                fmt.setToolTip('')
+                cursor.insertText(msg[fileEnd:], fmt)
+            else:
+                # Non-hyperlink output
+                self.insertPlainText(msg)
 
         # if a outputPipe was provided, write the message to that pipe
         if self.outputPipe:
