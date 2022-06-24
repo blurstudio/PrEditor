@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>891</width>
-    <height>256</height>
+    <width>878</width>
+    <height>448</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,18 +20,8 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="ConsoleEdit" name="uiConsoleTXT">
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>1</height>
-        </size>
-       </property>
-      </widget>
+      <widget class="ConsoleEdit" name="uiConsoleTXT"/>
       <widget class="QStackedWidget" name="uiWorkboxSTACK">
-       <property name="currentIndex">
-        <number>0</number>
-       </property>
        <widget class="QWidget" name="Workbox">
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="leftMargin">
@@ -84,7 +74,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>891</width>
+     <width>878</width>
      <height>22</height>
     </rect>
    </property>
