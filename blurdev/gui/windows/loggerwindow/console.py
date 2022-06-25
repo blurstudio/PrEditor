@@ -48,6 +48,33 @@ class ConsoleEdit(QTextEdit):
         self._stringColor = QColor(255, 128, 0)
         self._resultColor = QColor(128, 128, 128)
 
+        # These variables are used to enable pdb mode. This is a special mode used by
+        # the logger if it is launched externally via getPdb, set_trace, or post_mortem
+        # in blurdev.debug.
+        self._pdbPrompt = '(Pdb) '
+        self._consolePrompt = '>>> '
+        # Note: Changing _outputPrompt may require updating resource\lang\python.xml
+        # If still using a #
+        self._outputPrompt = '#Result: '
+        self._pdbMode = False
+        # if populated when setPdbMode is called, this action will be enabled and its
+        # check state will match the current pdbMode.
+        self.pdbModeAction = None
+        # Method used to update the gui when pdb mode changes
+        self.pdbUpdateVisibility = None
+        # Method used to update the gui when code is executed
+        self.reportExecutionTime = None
+
+        self._firstShow = True
+
+        # When executing code, that takes longer than this seconds, flash the window
+        self.flashTime = 1.0
+
+        # Store previous commands to retrieve easily
+        self._prevCommands = []
+        self._prevCommandIndex = 0
+        self._prevCommandsMax = 100
+
         # create the completer
         self.setCompleter(PythonCompleter(self))
 
@@ -83,33 +110,6 @@ class ConsoleEdit(QTextEdit):
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
         self.uiCodeHighlighter = highlight
-
-        # These variables are used to enable pdb mode. This is a special mode used by
-        # the logger if it is launched externally via getPdb, set_trace, or post_mortem
-        # in blurdev.debug.
-        self._pdbPrompt = '(Pdb) '
-        self._consolePrompt = '>>> '
-        # Note: Changing _outputPrompt may require updating resource\lang\python.xml
-        # If still using a #
-        self._outputPrompt = '#Result: '
-        self._pdbMode = False
-        # if populated when setPdbMode is called, this action will be enabled and its
-        # check state will match the current pdbMode.
-        self.pdbModeAction = None
-        # Method used to update the gui when pdb mode changes
-        self.pdbUpdateVisibility = None
-        # Method used to update the gui when code is executed
-        self.reportExecutionTime = None
-
-        self._firstShow = True
-
-        # When executing code, that takes longer than this seconds, flash the window
-        self.flashTime = 1.0
-
-        # Store previous commands to retrieve easily
-        self._prevCommands = []
-        self._prevCommandIndex = 0
-        self._prevCommandsMax = 100
 
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)

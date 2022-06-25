@@ -1,9 +1,9 @@
 ##
 # 	\namespace	blurdev.gui.highlighter
 #
-# 	\remarks	Handles generic code highlighting based on an XML file
+# 	\remarks	Handles generic code highlighting based on an json file
 #               The language definitions files for blurdev can be found in
-#               [blurdev]/config/lang/*.xml
+#               [blurdev]/config/lang/*.json
 #
 # 	\author		beta@blur.com
 # 	\author		Blur Studio
@@ -11,9 +11,13 @@
 #
 
 from __future__ import absolute_import
+import json
+import os
 import re
 from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
+
+import blurdev
 
 
 class CodeHighlighter(QSyntaxHighlighter):
@@ -180,38 +184,14 @@ class CodeHighlighter(QSyntaxHighlighter):
         self._consoleMode = state
 
     def setLanguage(self, lang):
-        """sets the language of the highlighter by loading the XML definition"""
-        from blurdev.XML import XMLDocument
-        import blurdev
-
-        doc = XMLDocument()
-        if doc.load(blurdev.resourcePath('lang/%s.xml' % lang.lower())):
-            # clear out the current definition
-            root = doc.root()
-            self.setObjectName(root.attribute('name'))
-
-            # clear the current definitions
-            self._keywords = []
-            self._comments = []
-            self._strings = []
-
-            # load the keywords
-            kwds = root.findChild('keywords')
-            if kwds:
-                for kwd in kwds.children():
-                    self._keywords.append(kwd.attribute('value'))
-
-            # load the comments
-            comments = root.findChild('comments')
-            if comments:
-                for comment in comments.children():
-                    self._comments.append(comment.attribute('value'))
-
-            # load the strings
-            strings = root.findChild('strings')
-            if strings:
-                for string in strings.children():
-                    self._strings.append(string.attribute('value'))
+        """sets the language of the highlighter by loading the json definition"""
+        filename = blurdev.resourcePath('lang/%s.json' % lang.lower())
+        if os.path.exists(filename):
+            data = json.load(open(filename))
+            self.setObjectName(data.get('name', ''))
+            self._keywords = data.get('keywords', [])
+            self._comments = data.get('comments', [])
+            self._strings = data.get('strings', [])
 
             return True
         return False

@@ -1,0 +1,30 @@
+{
+	"language": "Python",
+	"ext": ".py;.pys;.pyw",
+	"comments": [
+		"#(?!Result: )[^\\n]*"
+	],
+	"strings": [
+		"'",
+		"\""
+	],
+	"keywords": [
+		"class",
+		"def",
+		"elif",
+		"else",
+		"except",
+		"False",
+		"for",
+		"from",
+		"if",
+		"import",
+		"in",
+		"pass",
+		"print",
+		"self",
+		"True",
+		"try",
+		"while"
+	]
+}
