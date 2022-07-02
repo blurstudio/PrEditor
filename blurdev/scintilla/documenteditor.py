@@ -30,9 +30,9 @@ from collections import OrderedDict
 
 import blurdev
 from blurdev.enum import enum
-from blurdev.ide import lang
 from blurdev.gui import QtPropertyInit
 from blurdev.debug import debugMsg, DebugLevel
+from . import lang
 from .delayable_engine import DelayableEngine
 import re
 import string
@@ -737,7 +737,7 @@ class DocumentEditor(QsciScintilla):
         """Python implementation of QsciScintilla.simpleFind.
 
         Args:
-            find_state (blurdev.ide.FindState): A find state used to manage the find.
+            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
 
         https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
         """
@@ -757,7 +757,7 @@ class DocumentEditor(QsciScintilla):
         """Finds text in the document without changing the selection.
 
         Args:
-            find_state (blurdev.ide.FindState): A find state used to manage the find.
+            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
 
         Based on QsciScintilla.doFind.
         https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
@@ -811,7 +811,7 @@ class DocumentEditor(QsciScintilla):
         matches to the provided find_state.
 
         Args:
-            find_state (blurdev.ide.FindState): A find state used to manage the find.
+            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
         """
         # Start searching from the cursor, wrap past the end and stop where we started
         current_position = self.positionFromLineIndex(*self.getCursorPosition())

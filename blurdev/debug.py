@@ -203,9 +203,9 @@ class BlurExcepthook(object):
         if not self.actions.get("prompt", False):
             return
 
-        from blurdev.gui.windows.loggerwindow import LoggerWindow
-        from blurdev.gui.windows.loggerwindow.console import ConsoleEdit
-        from blurdev.gui.windows.loggerwindow.errordialog import ErrorDialog
+        from blurdev.gui.loggerwindow import LoggerWindow
+        from blurdev.gui.console import ConsoleEdit
+        from blurdev.gui.errordialog import ErrorDialog
 
         instance = LoggerWindow.instance(create=False)
 

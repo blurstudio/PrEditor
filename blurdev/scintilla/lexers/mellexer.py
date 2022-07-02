@@ -1,13 +1,3 @@
-##
-#   :namespace  python.blurdev.ide.lexers.mellexer
-#
-#   :remarks    A lexer for Maya Mel scripts
-#
-#   :author     mikeh@blur.com
-#   :author     Blur Studio
-#   :date       10/03/14
-#
-
 from __future__ import absolute_import
 import re
 from Qt.Qsci import QsciLexerCPP

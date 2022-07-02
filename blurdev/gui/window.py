@@ -1,13 +1,3 @@
-##
-# 	\namespace	blurdev.gui.window
-#
-# 	\remarks	Defines the main Window instance for this system
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		12/05/08
-#
-
 from __future__ import absolute_import
 from Qt.QtWidgets import QMainWindow
 from Qt.QtCore import Qt

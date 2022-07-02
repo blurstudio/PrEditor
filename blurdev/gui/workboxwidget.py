@@ -1,12 +1,3 @@
-##
-#   \namespace  python.blurdev.gui.windows.loggerwindow.workboxwidget
-#
-#   \remarks    A area to save and run code past the existing session
-#
-#   \author     beta@blur.com
-#   \author     Blur Studio
-#   \date       03/17/11
-#
 from __future__ import print_function
 from __future__ import absolute_import
 import re
@@ -15,7 +6,8 @@ import blurdev
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction
-from blurdev.ide.documenteditor import DocumentEditor
+from ..scintilla.documenteditor import DocumentEditor
+from ..scintilla.finddialog import FindDialog
 
 
 class WorkboxWidget(DocumentEditor):
@@ -131,8 +123,6 @@ class WorkboxWidget(DocumentEditor):
 
     def initShortcuts(self):
         """Use this to set up shortcuts when the DocumentEditor"""
-        from blurdev.ide.finddialog import FindDialog
-
         icon = QIcon(blurdev.resourcePath('img/logger/find.png'))
         self.uiFindACT = QAction(icon, 'Find...', self)
         self.uiFindACT.setShortcut("Ctrl+F")

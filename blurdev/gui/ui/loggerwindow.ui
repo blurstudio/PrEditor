@@ -850,13 +850,13 @@ at the indicated line in the specified text editor.
   <customwidget>
    <class>NewTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>blurdev.gui.widgets.newtabwidget</header>
+   <header>blurdev.gui.newtabwidget</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConsoleEdit</class>
    <extends>QTextEdit</extends>
-   <header>blurdev.gui.windows.loggerwindow</header>
+   <header>blurdev.gui.console</header>
   </customwidget>
  </customwidgets>
  <resources/>

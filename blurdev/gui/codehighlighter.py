@@ -1,15 +1,3 @@
-##
-# 	\namespace	blurdev.gui.highlighter
-#
-# 	\remarks	Handles generic code highlighting based on an json file
-#               The language definitions files for blurdev can be found in
-#               [blurdev]/config/lang/*.json
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		11/12/08
-#
-
 from __future__ import absolute_import
 import json
 import os

@@ -1,13 +1,3 @@
-##
-#   \namespace  blurdev.gui.windows.loggerwindow.loggerwindow
-#
-#   \remarks    LoggerWindow class is an overloaded python interpreter for blurdev
-#
-#   \author     beta@blur.com
-#   \author     Blur Studio
-#   \date       01/15/08
-#
-
 from __future__ import print_function
 from __future__ import absolute_import
 import itertools
@@ -46,7 +36,7 @@ from Qt import QtCompat
 from blurdev.logger import saveLoggerConfiguration
 
 from blurdev.gui import Window, Dialog
-from blurdev.ide.delayable_engine import DelayableEngine
+from ..scintilla.delayable_engine import DelayableEngine
 
 from .workboxwidget import WorkboxWidget
 

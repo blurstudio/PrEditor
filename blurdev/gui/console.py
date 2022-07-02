@@ -23,7 +23,7 @@ from blurdev import debug
 from blurdev.debug import BlurExcepthook
 from .completer import PythonCompleter
 from builtins import str as text
-from blurdev.gui.highlighters.codehighlighter import CodeHighlighter
+from .codehighlighter import CodeHighlighter
 from pillar import stream
 from pillar.streamhandler_helper import StreamHandlerHelper
 

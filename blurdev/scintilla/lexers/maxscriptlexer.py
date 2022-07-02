@@ -1,13 +1,3 @@
-##
-# 	\namespace	blurdev.ide.lexers.maxscriptlexer
-#
-# 	\remarks	Defines a class for parsing maxscript files
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		08/19/10
-#
-
 from __future__ import absolute_import
 from future.utils import iteritems
 from builtins import str as text

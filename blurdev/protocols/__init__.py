@@ -1,13 +1,6 @@
-##
-#   :namespace  python.blurdev.protocols
-#
-#   :remarks    Handlers are classes that process the command and arguments into
-#               functioning code.
-#
-#   :author     mikeh@blur.com
-#   :author     Blur Studio
-#   :date       01/12/15
-#
+"""Handlers are classes that process the command and arguments into functioning
+code.
+"""
 from __future__ import print_function
 from __future__ import absolute_import
 

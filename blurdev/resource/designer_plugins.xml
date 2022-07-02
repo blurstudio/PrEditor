@@ -1,25 +1,9 @@
 <plugins>
 	<!-- standard widgets -->
-	<plugin module="blurdev.gui"						 		class="Dialog" 			container="True"/>
-	<plugin module="blurdev.gui"						 		class="Window" 			container="True"/>
-	<plugin module="blurdev.gui.widgets.accordianwidget" 		class="AccordianWidget" container="True"/>
-	<plugin module="blurdev.gui.widgets.newtabwidget" 			class="NewTabWidget" 	container="True"/>
-	<plugin module="blurdev.gui.widgets.filepickerwidget" 		class="FilePickerWidget"/>
-	<plugin module="blurdev.ide.documenteditor" 				class="DocumentEditor"/>
-	<plugin module="blurdev.gui.widgets.colorwidgets" 			class="ColorPickerWidget"/>
-	<plugin module="blurdev.gui.widgets.colorwidgets" 			class="ColorPickerButton"/>
-	<plugin module="blurdev.gui.widgets.previewwidget"			class="PreviewWidget"/>
-	<plugin module="blurdev.gui.widgets.blurtreewidget"			class="BlurTreeWidget"/>
-	<plugin module="blurdev.gui.widgets.multiplechoicebutton"	class="MultipleChoiceButton"/>
-	<plugin module="blurdev.gui.windows.loggerwindow"			class="WorkboxWidget"/>
-	<plugin module="blurdev.gui.windows.loggerwindow"			class="ConsoleEdit"/>
-	<plugin module="blurdev.gui.widgets.enumwidget"				class="EnumWidget"/>
-	<plugin module="blurdev.gui.widgets.spellchecktextbrowser"	class="SpellCheckTextBrowser"/>
-	<plugin module="blurdev.gui.widgets.clearabledateedit"		class="ClearableDateEdit"/>
-	<plugin module="blurdev.gui.widgets.dragdroptestwidget"		class="DragDropTestWidget"/>
-	<plugin module="blurdev.gui.widgets.envcombobox"			class="EnvComboBox"/>
-	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragSpinBox"/>
-	<plugin module="blurdev.gui.widgets.dragspinbox"			class="DragDoubleSpinBox"/>
-	<plugin module="blurdev.gui.widgets.richtexteditor"			class="RichTextEditor"/>
-	<plugin module="blurdev.gui.widgets.panzoomgraphicsview"	class="PanZoomGraphicsView"/>
+	<plugin module="blurdev.gui" class="Dialog" container="True"/>
+	<plugin module="blurdev.gui" class="Window" container="True"/>
+	<plugin module="blurdev.gui.newtabwidget" class="NewTabWidget" container="True"/>
+	<plugin module="blurdev.scintilla.documenteditor" class="DocumentEditor"/>
+	<plugin module="blurdev.gui.workboxwidget" class="WorkboxWidget"/>
+	<plugin module="blurdev.gui.console" class="ConsoleEdit"/>
 </plugins>

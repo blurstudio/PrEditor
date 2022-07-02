@@ -55,12 +55,12 @@ class WriteStdOutputHandler(BaseProtocolHandler):
                 return
         if pdbMode is True and msg.strip():
             # Don't trigger pdb mode if a empty(including new lines) string was sent
-            from blurdev.gui.windows.loggerwindow import LoggerWindow
+            from blurdev.gui.loggerwindow import LoggerWindow
 
             LoggerWindow.instanceSetPdbMode(pdbMode, msg)
         if pdbResult:
             # Some Pdb data was requested, have the logger handle it.
-            from blurdev.gui.windows.loggerwindow import LoggerWindow
+            from blurdev.gui.loggerwindow import LoggerWindow
 
             data = {}
             for key, value in iteritems(self.params):
@@ -78,6 +78,6 @@ class WriteStdOutputHandler(BaseProtocolHandler):
         if not pdbMode:
             # disable pdbMode after the message was written because the message often
             # contains the (pdb) prompt.
-            from blurdev.gui.windows.loggerwindow import LoggerWindow
+            from blurdev.gui.loggerwindow import LoggerWindow
 
             LoggerWindow.instanceSetPdbMode(pdbMode)

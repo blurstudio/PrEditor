@@ -1,13 +1,3 @@
-##
-# 	\namespace	blurdev.ide.lang
-#
-# 	\remarks	Manages the different programming languages that are supported by the IDE
-#
-# 	\author		eric@blur.com
-# 	\author		Blur Studio
-# 	\date		05/16/11
-#
-
 from __future__ import print_function
 from __future__ import absolute_import
 import glob
@@ -70,7 +60,7 @@ def loadPlugins(path, custom=False):
             plugin.setCustom(custom)
             _plugins[plugin.name()] = plugin
         else:
-            print('[blurdev.ide.lang Error] Could not import %s' % file)
+            print('[blurdev.scintilla.lang Error] Could not import %s' % file)
 
 
 def refresh():

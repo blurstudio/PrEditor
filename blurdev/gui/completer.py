@@ -1,13 +1,3 @@
-##
-# 	\namespace	blurapi.gui.windows.loggerwindow.completer
-#
-# 	\remarks	Custom Python completer for the logger
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		01/15/08
-#
-
 from __future__ import absolute_import
 import inspect
 import re

@@ -265,7 +265,7 @@ class Core(QObject):
 
     def logger(self, parent=None):
         """Creates and returns the logger instance"""
-        from blurdev.gui.windows.loggerwindow import LoggerWindow
+        from blurdev.gui.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
 

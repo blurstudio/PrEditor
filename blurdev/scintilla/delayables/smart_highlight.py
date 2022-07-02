@@ -42,7 +42,7 @@ class SmartHighlight(SearchDelayable):
         """Remove markings made by this Delayable for the given document.
 
         Args:
-            document (blurdev.ide.documenteditor.DocumentEditor): The document
+            document (blurdev.scintilla.documenteditor.DocumentEditor): The document
                 to clear spell check markings from.
         """
         document.SendScintilla(

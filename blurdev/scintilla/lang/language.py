@@ -1,13 +1,3 @@
-##
-# 	\namespace	blurdev.ide.lang.language
-#
-# 	\remarks	[desc::commented]
-#
-# 	\author		eric@blur.com
-# 	\author		Blur Studio
-# 	\date		05/16/11
-#
-
 from __future__ import print_function
 from __future__ import absolute_import
 import sys
@@ -107,7 +97,7 @@ class Language(object):
                     except Exception:
                         print(
                             (
-                                '[blurdev.ide.lexers.Language.createLexer() Error] '
+                                '[blurdev.scintilla.lexers.Language.createLexer() Error] '
                                 'Could not import %s module'
                             )
                             % self._lexerModule
@@ -124,7 +114,7 @@ class Language(object):
             if not self._lexerClass:
                 print(
                     (
-                        '[blurdev.ide.lexers.Language.createLexer() Error] '
+                        '[blurdev.scintilla.lexers.Language.createLexer() Error] '
                         'No %s class in %s'
                     )
                     % (self._lexerClassName, module.__name__)

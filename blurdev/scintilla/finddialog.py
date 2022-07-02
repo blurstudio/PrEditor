@@ -1,16 +1,6 @@
-##
-# 	\namespace	[FILENAME]
-#
-# 	\remarks	[ADD REMARKS]
-#
-# 	\author		beta@blur.com
-# 	\author		Blur Studio
-# 	\date		11/01/10
-#
-
 from __future__ import absolute_import
 from blurdev.gui import Dialog
-from blurdev.ide.documenteditor import DocumentEditor
+from .documenteditor import DocumentEditor
 
 
 class FindDialog(Dialog):

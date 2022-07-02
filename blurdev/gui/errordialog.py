@@ -9,7 +9,7 @@ from Qt.QtCore import Qt
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
-from blurdev.gui.windows.loggerwindow.redmine_login_dialog import RedmineLoginDialog
+from blurdev.gui.redmine_login_dialog import RedmineLoginDialog
 
 
 class ErrorDialog(Dialog):
@@ -55,7 +55,7 @@ class ErrorDialog(Dialog):
         )
 
     def showLogger(self):
-        inst = blurdev.gui.windows.loggerwindow.LoggerWindow.instance()
+        inst = blurdev.gui.loggerwindow.LoggerWindow.instance()
         inst.show()
         self.close()
 
