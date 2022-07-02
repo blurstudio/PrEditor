@@ -73,39 +73,6 @@ class _MetaEnumGroup(type):
     def __str__(cls):
         return '{0}({1})'.format(cls._clsName, cls.join())
 
-    def __getattr__(cls, name):
-        """This is entirely for backwards compatibility.
-
-        This should/will be removed once a full transition is made.
-        This is primarily required because there will be a period
-        of time when trax.api is going out using the new EnumGroup
-        setup, but there will be a time when not everyone has the
-        update installed.
-        """
-        # Construct an old enum from our EnumGroup.  If we have
-        # descriptions for our new-style Enums, which is not
-        # guaranteed, then we will set them.  Otherwise we will
-        # give it an empty string.
-        kwargs = dict()
-        descriptions = dict()
-        for e in cls._ENUMERATORS:
-            kwargs[e.name] = e.number
-            try:
-                descriptions[e.name] = e.description
-            except AttributeError:
-                descriptions[e.number] = ''
-        oldEnum = enum(**kwargs)
-        for number, desc in iteritems(descriptions):
-            oldEnum.setDescription(number, desc)
-        # Try and return the attribute from the old-style enum.
-        try:
-            return getattr(oldEnum, name)
-        except AttributeError:
-            raise AttributeError(
-                "'EnumGroup' object has no attribute '{}'".format(name)
-            )
-
-
 # =============================================================================
 
 
@@ -752,8 +719,8 @@ class Incrementer(object):
 class enum(object):  # noqa: N801
     """DEPRECATED: Python based enumerator class.
 
-    This class is deprecated and should be replaced by blurdev.enum.Enum and
-    blurdev.enum.EnumGroup.
+    This class is deprecated and should be replaced by preditor.enum.Enum and
+    preditor.enum.EnumGroup.
 
     A short example::
 

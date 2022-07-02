@@ -42,13 +42,21 @@ from Qt import QtCompat
 
 from . import core
 from .contexts import ErrorReport
-from .enum import enum
+from .enum import Enum, EnumGroup
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
 _debugLogger = None
 _errorReport = []
 
-DebugLevel = enum('Low', 'Mid', 'High')
+
+class DebugLevelEnum(Enum):
+    pass
+
+
+class DebugLevel(EnumGroup):
+    Low = DebugLevelEnum()
+    Mid = DebugLevelEnum()
+    High = DebugLevelEnum()
 
 
 class FileLogger:
@@ -451,7 +459,7 @@ def isDebugLevel(level):
         bool: the current debug level is greater than or equal to level
     """
     if isinstance(level, six.string_types):
-        level = DebugLevel.value(str(level))
+        level = DebugLevel[level]
     return level <= debugLevel()
 
 
@@ -571,11 +579,13 @@ def setDebugLevel(level):
 
     # check for the debug value if a string is passed in
     if isinstance(level, six.string_types):
+        if not level:
+            level = "0"
         try:
             # Check if a int value was passed as a string
             level = int(level)
         except ValueError:
-            level = DebugLevel.value(str(level))
+            level = int(DebugLevel[level])
 
     # clear the debug level
     if not level:
@@ -583,7 +593,7 @@ def setDebugLevel(level):
         return True
 
     # assign the debug flag
-    if DebugLevel.isValid(level):
+    if level in DebugLevel:
         _currentLevel = level
         return True
     else:

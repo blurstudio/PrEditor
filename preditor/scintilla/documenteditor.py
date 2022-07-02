@@ -34,14 +34,25 @@ from collections import OrderedDict
 from . import lang
 from .. import core, osystem, resourcePath
 from ..debug import debugMsg, DebugLevel
-from ..enum import enum
+from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
 from .delayable_engine import DelayableEngine
 
 
+class SearchDirection(EnumGroup):
+    First = Enum()
+    Forward = Enum()
+    Backward = Enum()
+
+
+class SearchOptions(EnumGroup):
+    Backward = Enum()
+    CaseSensitive = Enum()
+    WholeWords = Enum()
+    QRegExp = Enum()
+
+
 class DocumentEditor(QsciScintilla):
-    SearchDirection = enum('First', 'Forward', 'Backward')
-    SearchOptions = enum('Backward', 'CaseSensitive', 'WholeWords', 'QRegExp')
     _defaultFont = QFont()
     _defaultFont.fromString('Courier New,9,-1,5,50,0,0,0,1,0')
 
@@ -68,7 +79,7 @@ class DocumentEditor(QsciScintilla):
         self._textCodec = None
         self._fileMonitoringActive = False
         self._marginsFont = self._defaultFont
-        self._lastSearchDirection = self.SearchDirection.First
+        self._lastSearchDirection = SearchDirection.First
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
         self._enableFontResizing = True
@@ -688,9 +699,9 @@ class DocumentEditor(QsciScintilla):
         return self._filename
 
     def findNext(self, text, flags):
-        re = (flags & self.SearchOptions.QRegExp) != 0
-        cs = (flags & self.SearchOptions.CaseSensitive) != 0
-        wo = (flags & self.SearchOptions.WholeWords) != 0
+        re = (flags & SearchOptions.QRegExp) != 0
+        cs = (flags & SearchOptions.CaseSensitive) != 0
+        wo = (flags & SearchOptions.WholeWords) != 0
         wrap = True
         forward = True
 
@@ -702,9 +713,9 @@ class DocumentEditor(QsciScintilla):
         return result
 
     def findPrev(self, text, flags):
-        re = (flags & self.SearchOptions.QRegExp) != 0
-        cs = (flags & self.SearchOptions.CaseSensitive) != 0
-        wo = (flags & self.SearchOptions.WholeWords) != 0
+        re = (flags & SearchOptions.QRegExp) != 0
+        cs = (flags & SearchOptions.CaseSensitive) != 0
+        wo = (flags & SearchOptions.WholeWords) != 0
         wrap = True
         forward = False
 

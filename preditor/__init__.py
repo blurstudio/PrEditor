@@ -79,7 +79,6 @@ def appUserModelID():
 def init():
     os.environ['BDEV_EMAILINFO_PREDITOR_VERSION'] = __version__
     pythonw_print_bugfix()
-    settings.init()
     global core, application
     # create the core and application
     if not core:

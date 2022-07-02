@@ -434,13 +434,6 @@ def subprocessEnvironment(env=None):
         except AttributeError:
             pass
 
-        # TODO: This is now tracked by blurpath v0.0.16, remove it This environment
-        # variable needs to be set on most dcc's to allow them to import the correct
-        # trax using blurpath. Removing this resets the subprocess to its default method
-        # of finding trax.
-        if 'BDEV_INCLUDE_TRAX' in env:
-            del env['BDEV_INCLUDE_TRAX']
-
     path = env.get('PATH')
     if path:
         paths = [

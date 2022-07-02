@@ -8,7 +8,7 @@ _LOGGER = logging.getLogger(__name__)
 class ErrorReport(object):
     """Allows you to provide additional debug info if a error happens in this context.
 
-    The blurdev Python Logger can send a error email when any python error is raised.
+    PrEditor can send a error email when any python error is raised.
     Sometimes just a traceback does not provide enough information to debug the
     traceback. This class allows you to provide additional information to the error
     report only if it is generated. For example if your treegrunt environment does not

@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 from ..gui import Dialog, loadUi
-from .documenteditor import DocumentEditor
+from .documenteditor import SearchOptions
 
 
 class FindDialog(Dialog):
@@ -10,14 +10,12 @@ class FindDialog(Dialog):
         loadUi(__file__, self)
 
         self.uiCaseSensitiveCHK.setChecked(
-            parent.searchFlags() & DocumentEditor.SearchOptions.CaseSensitive
+            parent.searchFlags() & SearchOptions.CaseSensitive
         )
         self.uiFindWholeWordsCHK.setChecked(
-            parent.searchFlags() & DocumentEditor.SearchOptions.WholeWords
+            parent.searchFlags() & SearchOptions.WholeWords
         )
-        self.uiQRegExpCHK.setChecked(
-            parent.searchFlags() & DocumentEditor.SearchOptions.QRegExp
-        )
+        self.uiQRegExpCHK.setChecked(parent.searchFlags() & SearchOptions.QRegExp)
         self.uiSearchTXT.setPlainText(parent.searchText())
 
         # update the signals
@@ -59,11 +57,11 @@ class FindDialog(Dialog):
         parent = self.parent()
         options = 0
         if self.uiCaseSensitiveCHK.isChecked():
-            options |= DocumentEditor.SearchOptions.CaseSensitive
+            options |= SearchOptions.CaseSensitive
         if self.uiFindWholeWordsCHK.isChecked():
-            options |= DocumentEditor.SearchOptions.WholeWords
+            options |= SearchOptions.WholeWords
         if self.uiQRegExpCHK.isChecked():
-            options |= DocumentEditor.SearchOptions.QRegExp
+            options |= SearchOptions.QRegExp
 
         parent.setSearchFlags(options)
         parent.setSearchText(self.uiSearchTXT.toPlainText())

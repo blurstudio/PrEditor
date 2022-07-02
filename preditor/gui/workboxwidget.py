@@ -7,7 +7,7 @@ from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction
 
 from .. import core, resourcePath
-from ..scintilla.documenteditor import DocumentEditor
+from ..scintilla.documenteditor import DocumentEditor, SearchOptions
 from ..scintilla.finddialog import FindDialog
 
 
@@ -166,7 +166,7 @@ class WorkboxWidget(DocumentEditor):
         # refresh the search text unless we are using regular expressions
         if (
             not self._searchDialog.isVisible()
-            and not self._searchFlags & self.SearchOptions.QRegExp
+            and not self._searchFlags & SearchOptions.QRegExp
         ):
             txt = self.selectedText()
             if txt:
