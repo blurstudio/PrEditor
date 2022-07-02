@@ -4,6 +4,7 @@ import glob
 import os.path
 
 from .language import Language
+from ... import osystem, prefPath
 
 _plugins = {}
 
@@ -46,8 +47,6 @@ def filetypes():
 
 
 def loadPlugins(path, custom=False):
-    from blurdev import osystem
-
     path = osystem.expandvars(path)
     if not os.path.exists(path):
         return False
@@ -60,12 +59,10 @@ def loadPlugins(path, custom=False):
             plugin.setCustom(custom)
             _plugins[plugin.name()] = plugin
         else:
-            print('[blurdev.scintilla.lang Error] Could not import %s' % file)
+            print('[preditor.scintilla.lang Error] Could not import %s' % file)
 
 
 def refresh():
-    import blurdev
-
     _plugins.clear()
 
     # load the installed plugins
@@ -77,7 +74,7 @@ def refresh():
             loadPlugins(os.environ[key])
 
     # load the user plugins
-    loadPlugins(blurdev.prefPath('lang'), True)
+    loadPlugins(prefPath('lang'), True)
 
 
 refresh()

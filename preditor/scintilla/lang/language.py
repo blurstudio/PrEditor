@@ -97,7 +97,7 @@ class Language(object):
                     except Exception:
                         print(
                             (
-                                '[blurdev.scintilla.lexers.Language.createLexer() Error] '
+                                '[preditor.scintilla.lexers.Language.createLexer() Error] '
                                 'Could not import %s module'
                             )
                             % self._lexerModule
@@ -114,7 +114,7 @@ class Language(object):
             if not self._lexerClass:
                 print(
                     (
-                        '[blurdev.scintilla.lexers.Language.createLexer() Error] '
+                        '[preditor.scintilla.lexers.Language.createLexer() Error] '
                         'No %s class in %s'
                     )
                     % (self._lexerClassName, module.__name__)

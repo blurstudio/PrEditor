@@ -1,6 +1,4 @@
-""" LoggerWindow class is an overloaded python interpreter for blurdev
-
-"""
+""" LoggerWindow class is an overloaded python interpreter for preditor"""
 
 from __future__ import print_function
 from __future__ import absolute_import
@@ -12,18 +10,16 @@ import subprocess
 import sys
 import time
 import traceback
+from builtins import str as text
 
 from Qt import QtCompat
 from Qt.QtCore import QPoint, Qt
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
-import blurdev
-from blurdev import debug
-from blurdev.debug import BlurExcepthook
-from .completer import PythonCompleter
-from builtins import str as text
+from .. import core, debug
 from .codehighlighter import CodeHighlighter
+from .completer import PythonCompleter
 from pillar import stream
 from pillar.streamhandler_helper import StreamHandlerHelper
 
@@ -50,7 +46,7 @@ class ConsoleEdit(QTextEdit):
 
         # These variables are used to enable pdb mode. This is a special mode used by
         # the logger if it is launched externally via getPdb, set_trace, or post_mortem
-        # in blurdev.debug.
+        # in preditor.debug.
         self._pdbPrompt = '(Pdb) '
         self._consolePrompt = '>>> '
         # Note: Changing _outputPrompt may require updating resource\lang\python.xml
@@ -100,7 +96,7 @@ class ConsoleEdit(QTextEdit):
             self.stdout = sys.stdout
             self.stderr = sys.stderr
             self._errorLog = sys.stderr
-            BlurExcepthook.install()
+            debug.BlurExcepthook.install()
 
             # Update any StreamHandler's that were setup using the old stdout/err
             StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
@@ -358,7 +354,7 @@ class ConsoleEdit(QTextEdit):
         # Provide user feedback when running long code execution.
         delta = time.time() - startTime
         if self.flashTime and delta >= self.flashTime:
-            blurdev.core.flashWindow()
+            core.flashWindow()
         # Report the total time it took to execute this code.
         if self.reportExecutionTime is not None:
             self.reportExecutionTime(delta)
@@ -650,7 +646,7 @@ class ConsoleEdit(QTextEdit):
                 # pdbModeAction is disabled by default, enable the action, so the user
                 # can switch between pdb and normal mode any time they want. pdbMode
                 # does nothing if this instance of python is not the child process of
-                # blurdev.external.External, and the parent process is in pdb mode.
+                # preditor.external.External, and the parent process is in pdb mode.
                 self.pdbModeAction.blockSignals(True)
                 self.pdbModeAction.setChecked(mode)
                 self.pdbModeAction.blockSignals(False)
@@ -661,9 +657,9 @@ class ConsoleEdit(QTextEdit):
         self.startInputLine()
 
     def pdbSendCommand(self, commandText):
-        import blurdev.external
+        from .. import external
 
-        blurdev.external.External(['pdb', '', {'msg': commandText}])
+        external.External(['pdb', '', {'msg': commandText}])
 
     def prompt(self):
         if self._pdbMode:

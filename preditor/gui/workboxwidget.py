@@ -1,11 +1,12 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import re
-import blurdev
 
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction
+
+from .. import core, resourcePath
 from ..scintilla.documenteditor import DocumentEditor
 from ..scintilla.finddialog import FindDialog
 
@@ -22,7 +23,7 @@ class WorkboxWidget(DocumentEditor):
 
         # Store the software name so we can handle custom keyboard shortcuts bassed on
         # software
-        self._software = blurdev.core.objectName()
+        self._software = core.objectName()
         self.regex = re.compile(r'\s+$')
         self.initShortcuts()
 
@@ -123,17 +124,17 @@ class WorkboxWidget(DocumentEditor):
 
     def initShortcuts(self):
         """Use this to set up shortcuts when the DocumentEditor"""
-        icon = QIcon(blurdev.resourcePath('img/logger/find.png'))
+        icon = QIcon(resourcePath('img/logger/find.png'))
         self.uiFindACT = QAction(icon, 'Find...', self)
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
 
-        icon = QIcon(blurdev.resourcePath('img/logger/previous.png'))
+        icon = QIcon(resourcePath('img/logger/previous.png'))
         self.uiFindPrevACT = QAction(icon, 'Find Prev', self)
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
 
-        icon = QIcon(blurdev.resourcePath('img/logger/next.png'))
+        icon = QIcon(resourcePath('img/logger/next.png'))
         self.uiFindNextACT = QAction(icon, 'Find Next', self)
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)

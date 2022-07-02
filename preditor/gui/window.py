@@ -2,6 +2,8 @@ from __future__ import absolute_import
 from Qt.QtWidgets import QMainWindow
 from Qt.QtCore import Qt
 
+from .. import core, relativePath
+
 
 class Window(QMainWindow):
     _instance = None
@@ -20,22 +22,18 @@ class Window(QMainWindow):
             Window:
         """
         if not cls._instance:
-            import blurdev
-
             cls._instance = cls(parent=parent)
             # protect the memory
             cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
             # but make sure that if we reload the environment, everything gets deleted
             # properly
-            blurdev.core.aboutToClearPaths.connect(cls._instance.shutdown)
+            core.aboutToClearPaths.connect(cls._instance.shutdown)
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
-        import blurdev
-
         # if there is no root, create
         if not parent:
-            parent = blurdev.core.rootWindow()
+            parent = core.rootWindow()
 
         # create a QMainWindow
         if flags:
@@ -76,7 +74,7 @@ class Window(QMainWindow):
         # adjust the geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
         # If this value is set to True the window will listen for
-        # blurdev.core.aboutToClearPaths and call shutdown on the window.
+        # preditor.core.aboutToClearPaths and call shutdown on the window.
         self.aboutToClearPathsEnabled = True
         # attempt to set the dialog icon
         import os
@@ -84,7 +82,7 @@ class Window(QMainWindow):
         from Qt.QtGui import QIcon
 
         try:
-            path = blurdev.relativePath(
+            path = relativePath(
                 os.path.abspath(sys.modules[self.__class__.__module__].__file__),
                 'img/icon.png',
             )
@@ -124,10 +122,8 @@ class Window(QMainWindow):
 
         # only disconnect here if deleting on close
         if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            import blurdev
-
             try:
-                blurdev.core.aboutToClearPaths.disconnect(self.shutdown)
+                core.aboutToClearPaths.disconnect(self.shutdown)
             except TypeError:
                 pass
 
@@ -147,9 +143,7 @@ class Window(QMainWindow):
         # listen for aboutToClearPaths signal if requested
         # but only connect here if deleting on close
         if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            import blurdev
-
-            blurdev.core.aboutToClearPaths.connect(self.shutdown)
+            core.aboutToClearPaths.connect(self.shutdown)
         super(Window, self).showEvent(event)
 
     def shutdown(self):
@@ -164,11 +158,9 @@ class Window(QMainWindow):
         """
         # allow the global instance to be cleared
         if this == cls._instance:
-            import blurdev
-
             cls._instance = None
             if this.aboutToClearPathsEnabled:
-                blurdev.core.aboutToClearPaths.disconnect(this.shutdown)
+                core.aboutToClearPaths.disconnect(this.shutdown)
             this.setAttribute(Qt.WA_DeleteOnClose, True)
         try:
             this.close()

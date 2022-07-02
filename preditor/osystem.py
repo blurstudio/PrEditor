@@ -23,9 +23,9 @@ import types
 import subprocess
 from builtins import str as text
 
-import blurdev
+import preditor
 from . import settings
-from blurdev.enum import Enum, EnumGroup
+from .enum import Enum, EnumGroup
 
 
 def getPointerSize():
@@ -65,7 +65,7 @@ def app_id_for_shortcut(shortcut):
     """Gets the AppUserModel.ID for the given shortcut.
 
     This will allow windows to group windows with the same app id on a shortcut pinned
-    to the taskbar. Use :py:meth:`blurdev.setAppUserModelID` to set the app id for a
+    to the taskbar. Use :py:meth:`preditor.setAppUserModelID` to set the app id for a
     running application.
     """
     if os.path.exists(shortcut):
@@ -78,14 +78,14 @@ def app_id_for_shortcut(shortcut):
         return store.GetValue(key).GetValue()
 
 
-def defaultLogFile(filename='blurdevProtocol.log'):
+def defaultLogFile(filename='preditorProtocol.log'):
     """Returns a default log file path often used for redirecting stdout/err to.
     Uses the `BDEV_PATH_BLUR` environment variable as the basepath.
 
     Args:
         filename (str, optional): filename to log to.
     """
-    basepath = blurdev.osystem.expandvars(os.environ['BDEV_PATH_BLUR'])
+    basepath = expandvars(os.environ['BDEV_PATH_BLUR'])
     return os.path.join(basepath, filename)
 
 
@@ -329,7 +329,7 @@ def set_app_id_for_shortcut(shortcut, app_id):
     shortcut then pin that shortcut.
 
     This will allow windows to group windows with the same app id on a shortcut pinned
-    to the taskbar. Use :py:meth:`blurdev.setAppUserModelID` to set the app id for a
+    to the taskbar. Use :py:meth:`preditor.setAppUserModelID` to set the app id for a
     running application.
 
     Args:
@@ -375,7 +375,7 @@ def subprocessEnvironment(env=None):
         env = os.environ.copy()
 
     # Sets the stylesheet env variable so that launched applications can use it.
-    stylesheet = blurdev.core.styleSheet()
+    stylesheet = preditor.core.styleSheet()
     if stylesheet:
         env['BDEV_STYLESHEET'] = str(stylesheet)
 
@@ -415,7 +415,7 @@ def subprocessEnvironment(env=None):
     def normalize(i):
         return os.path.normpath(os.path.normcase(i))
 
-    removePaths = set([normalize(x) for x in blurdev.core._removeFromPATHEnv])
+    removePaths = set([normalize(x) for x in preditor.core._removeFromPATHEnv])
 
     # blurpath records any paths it adds to the PATH variable and other env variable
     # modifications it makes, revert these changes.
@@ -452,7 +452,7 @@ def subprocessEnvironment(env=None):
             path = path.encode('utf8')
         env['PATH'] = path
 
-    # blurdev.settings.environStr does nothing in python3, so this code only needs
+    # settings.environStr does nothing in python3, so this code only needs
     # to run in python2
     if sys.version_info[0] < 3:
         # subprocess explodes if it receives unicode in Python2 and in Python3,
@@ -461,11 +461,11 @@ def subprocessEnvironment(env=None):
         for k, v in env.items():
             # Attempt to remove any unicode objects. Ignore any conversion failures
             try:
-                k = blurdev.settings.environStr(k)
+                k = settings.environStr(k)
             except Exception:
                 pass
             try:
-                v = blurdev.settings.environStr(v)
+                v = settings.environStr(v)
             except AttributeError:
                 pass
             temp[k] = v
@@ -485,8 +485,8 @@ def startfile(
     Args:
         filename (str): path to the file to execute
 
-        debugLevel (blurdev.debug.DebugLevel or None, optional): If not None(default),
-            override for the current value of blurdev.debug.debugLevel(). If
+        debugLevel (preditor.debug.DebugLevel or None, optional): If not None(default),
+            override for the current value of preditor.debug.debugLevel(). If
             DebugLevel.High, a persistent terminal will be opened allowing you see the
             output in case of a crash.
 
@@ -650,7 +650,7 @@ class FlashTime(Enum):
 
 
 class FlashTimes(EnumGroup):
-    """Windows arguments for blurdev.core.flashWindow().
+    """Windows arguments for preditor.core.flashWindow().
 
     https://docs.microsoft.com/en-us/windows/desktop/api/winuser/ns-winuser-flashwinfo
     """
@@ -790,9 +790,9 @@ def getEnvironmentVariable(value_name, system=None, default=None, architecture=N
         # system is None or False, so check user variables.
         registry, key = getEnvironmentRegKey(False)
         try:
-            return blurdev.osystem.registryValue(
-                registry, key, value_name, architecture=architecture
-            )[0]
+            return registryValue(registry, key, value_name, architecture=architecture)[
+                0
+            ]
         except WindowsError:
             pass
         if system is False:
@@ -804,9 +804,7 @@ def getEnvironmentVariable(value_name, system=None, default=None, architecture=N
 
     registry, key = getEnvironmentRegKey(True)
     try:
-        return blurdev.osystem.registryValue(
-            registry, key, value_name, architecture=architecture
-        )[0]
+        return registryValue(registry, key, value_name, architecture=architecture)[0]
     except WindowsError:
         if default is None:
             raise

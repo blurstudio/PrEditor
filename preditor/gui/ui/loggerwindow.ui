@@ -850,13 +850,13 @@ at the indicated line in the specified text editor.
   <customwidget>
    <class>NewTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>blurdev.gui.newtabwidget</header>
+   <header>preditor.gui.newtabwidget</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConsoleEdit</class>
    <extends>QTextEdit</extends>
-   <header>blurdev.gui.console</header>
+   <header>preditor.gui.console</header>
   </customwidget>
  </customwidgets>
  <resources/>

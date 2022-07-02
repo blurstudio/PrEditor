@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import os
-import blurdev.gui
+from . import loadUi
 
 from Qt.QtWidgets import QDialog, QMessageBox
 
@@ -13,7 +13,7 @@ class SetTextEditorPathDialog(QDialog):
 
     def __init__(self, parent=None, redmineUrl=None):
         super(SetTextEditorPathDialog, self).__init__(parent)
-        blurdev.gui.loadUi(__file__, self)
+        loadUi(__file__, self)
 
         # Rerieve existing data from LoggerWindow
         path = self.parent().textEditorPath

@@ -19,7 +19,7 @@ class ErrorReport(object):
     Examples:
         This example shows a class using both the with context and a decorated method.
 
-        from blurdev.contexts import ErrorReport
+        from preditor.contexts import ErrorReport
         class Test(object):
             def __init__(self):
                 self.value = None

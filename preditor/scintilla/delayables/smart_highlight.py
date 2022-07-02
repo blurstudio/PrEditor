@@ -1,11 +1,11 @@
 from __future__ import print_function
 from __future__ import absolute_import
-import blurdev
 from Qt.QtCore import QSignalMapper
 from Qt.QtWidgets import QWidget
 from Qt.Qsci import QsciScintilla
 from . import SearchDelayable
 from .. import FindState
+from ... import core
 
 
 class SmartHighlight(SearchDelayable):
@@ -18,7 +18,7 @@ class SmartHighlight(SearchDelayable):
         super(SmartHighlight, self).__init__(engine)
         self.signal_mapper = QSignalMapper(self)
         # Respect style sheet changes
-        blurdev.core.styleSheetChanged.connect(self.update_indicator_color)
+        core.styleSheetChanged.connect(self.update_indicator_color)
 
     def add_document(self, document):
         document.indicatorDefine(self.indicator_style, self.indicator_number)

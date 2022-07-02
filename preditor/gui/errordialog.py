@@ -1,15 +1,16 @@
 from __future__ import absolute_import
-import os
-import blurdev
-import traceback
 import getpass
+import os
+import traceback
 
-from blurdev.gui import Dialog
 from Qt.QtCore import Qt
 from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
-from blurdev.gui.redmine_login_dialog import RedmineLoginDialog
+
+from . import Dialog, loadUi
+from .. import __file__ as pfile
+from .redmine_login_dialog import RedmineLoginDialog
 
 
 class ErrorDialog(Dialog):
@@ -17,7 +18,7 @@ class ErrorDialog(Dialog):
     def __init__(self, parent):
         super(ErrorDialog, self).__init__(parent)
 
-        blurdev.gui.loadUi(__file__, self)
+        loadUi(__file__, self)
 
         self.parent_ = parent
         self.requestPimpPID = None
@@ -26,7 +27,7 @@ class ErrorDialog(Dialog):
         self.iconLabel.setPixmap(
             QPixmap(
                 os.path.join(
-                    os.path.dirname(blurdev.__file__),
+                    os.path.dirname(pfile),
                     'resource',
                     'img',
                     'warning-big.png',
@@ -55,16 +56,17 @@ class ErrorDialog(Dialog):
         )
 
     def showLogger(self):
-        inst = blurdev.gui.loggerwindow.LoggerWindow.instance()
+        from .loggerwindow import LoggerWindow
+        inst = LoggerWindow.instance()
         inst.show()
         self.close()
 
     def submitRequest(self):
-        from blurdev.utils.errorEmail import buildErrorMessage
+        from ..utils.errorEmail import buildErrorMessage
 
         subject, description = buildErrorMessage(self.traceback_msg, fmt='markdown')
         subject = self.traceback_msg.split('\n')[-2]
-        from blurdev.actions.create_redmine_issue import CreateRedmineIssue
+        from ..actions.create_redmine_issue import CreateRedmineIssue
 
         kwargs = {
             'subject': subject,

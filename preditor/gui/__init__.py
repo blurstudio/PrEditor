@@ -1,9 +1,13 @@
 from __future__ import absolute_import
-from Qt.QtCore import Property
+from functools import partial
 
+from Qt.QtCore import Property
+from Qt.QtGui import QKeySequence
+from Qt.QtWidgets import QAction
+
+from .. import core
 from .window import Window  # noqa: F401
 from .dialog import Dialog  # noqa: F401
-from functools import partial
 
 
 def QtPropertyInit(name, default, callback=None, typ=None):
@@ -11,7 +15,7 @@ def QtPropertyInit(name, default, callback=None, typ=None):
 
     You can optionally pass a function that will get called any time the property
     is set. If using the same callback for multiple properties, you may want to
-    use the blurdev.decorators.singleShot decorator to prevent your function getting
+    use the preditor.decorators.singleShot decorator to prevent your function getting
     called multiple times at once. This callback must accept the attribute name and
     value being set.
 
@@ -100,16 +104,12 @@ def connectLogger(
     Returns:
         QAction: The created QAction
     """
-    import blurdev
-    from Qt.QtGui import QKeySequence
-    from Qt.QtWidgets import QAction
-
     if start:
-        blurdev.core.logger(parent)
+        core.logger(parent)
     # Create shortcuts for launching the logger
     action = QAction(text, parent)
     action.setObjectName(objName)
-    action.triggered.connect(blurdev.core.showLogger)
+    action.triggered.connect(core.showLogger)
     action.setShortcut(QKeySequence(sequence))
     parent.addAction(action)
     return action

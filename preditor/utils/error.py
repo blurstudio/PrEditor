@@ -13,8 +13,8 @@ import socket
 import string
 
 # blur imports
-import blurdev
-from blurdev.contexts import ErrorReport
+from .. import core
+from ..contexts import ErrorReport
 
 _host_information = None
 _user_information = None
@@ -100,7 +100,7 @@ def get_environment_information(refresh=False):
 
         _environment_information = OrderedDict(
             [
-                ("core", blurdev.core.objectName()),
+                ("core", core.objectName()),
                 ("exe", sys.executable),
                 ("python", "{}.{}.{}".format(*sys.version_info[:3])),
             ]
@@ -126,7 +126,7 @@ def get_environment_information(refresh=False):
                 _environment_information[trimmed_key] = value
 
         # root application window
-        if not blurdev.core.headless:
+        if not core.headless:
             from Qt.QtWidgets import QApplication
 
             window = QApplication.activeWindow()
@@ -143,7 +143,7 @@ def get_environment_information(refresh=False):
                     _environment_information["window.class"] = window_class
 
     # core-specific message, checked per-error
-    core_message = blurdev.core.errorCoreText()
+    core_message = core.errorCoreText()
     if core_message:
         _environment_information["core.message"] = core_message
 
@@ -311,7 +311,7 @@ class ErrorEmail(object):
         Returns:
             str: unique "The Pipe" email address derived from subject
         """
-        return blurdev.core.emailAddressMd5Hash(self.subject())
+        return core.emailAddressMd5Hash(self.subject())
 
     def subject(self, max_length=150):
         """
@@ -384,6 +384,6 @@ class ErrorEmail(object):
         Args:
             recipients (list): email addresses of recipients for error email
         """
-        blurdev.core.sendEmail(
+        core.sendEmail(
             self.sender(), recipients, self.subject(), self.message()
         )

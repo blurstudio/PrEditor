@@ -10,7 +10,7 @@ import sys
 from signalslot import Signal
 
 # blur imports
-from blurdev.prefs import prefs_path
+from .prefs import prefs_path
 
 
 CORE_MAPPINGS = {

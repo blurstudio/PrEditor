@@ -1,16 +1,17 @@
 from __future__ import absolute_import
 import os
-import blurdev
 
 from Qt.QtWidgets import QDialog
 from redminelib import Redmine
 from redminelib.exceptions import AuthError
 
+from ..gui import loadUi
+
 
 class RedmineLoginDialog(QDialog):
     def __init__(self, parent=None, redmineUrl=None):
         super(RedmineLoginDialog, self).__init__(parent)
-        blurdev.gui.loadUi(__file__, self)
+        loadUi(__file__, self)
         self._redmineUrl = redmineUrl or os.environ.get(
             'BDEV_REDMINE_URL', 'https://redmine.blur.com'
         )

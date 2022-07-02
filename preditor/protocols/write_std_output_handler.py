@@ -1,11 +1,11 @@
 from __future__ import print_function
 from __future__ import absolute_import
+import six
 import sys
-
 from future.utils import iteritems
 
-from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
-import six
+from . import BaseProtocolHandler, InvalidHandlerError
+from ..gui.loggerwindow import LoggerWindow
 
 
 class WriteStdOutputHandler(BaseProtocolHandler):
@@ -36,9 +36,9 @@ class WriteStdOutputHandler(BaseProtocolHandler):
             errorMsg = (
                 'The wrapper "{wrapper}" could not be found in the message\n{msg}'
             )
-            import blurdev.external
+            from .. import external
 
-            blurdev.external.External(
+            external.External(
                 InvalidHandlerError(errorMsg.format(wrapper=wrapper, msg=msg))
             )
             return False, msg
@@ -55,13 +55,9 @@ class WriteStdOutputHandler(BaseProtocolHandler):
                 return
         if pdbMode is True and msg.strip():
             # Don't trigger pdb mode if a empty(including new lines) string was sent
-            from blurdev.gui.loggerwindow import LoggerWindow
-
             LoggerWindow.instanceSetPdbMode(pdbMode, msg)
         if pdbResult:
             # Some Pdb data was requested, have the logger handle it.
-            from blurdev.gui.loggerwindow import LoggerWindow
-
             data = {}
             for key, value in iteritems(self.params):
                 if isinstance(value, six.string_types):
@@ -78,6 +74,4 @@ class WriteStdOutputHandler(BaseProtocolHandler):
         if not pdbMode:
             # disable pdbMode after the message was written because the message often
             # contains the (pdb) prompt.
-            from blurdev.gui.loggerwindow import LoggerWindow
-
             LoggerWindow.instanceSetPdbMode(pdbMode)

@@ -9,9 +9,9 @@ from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
 # blur imports
-import blurdev
-from blurdev.enum import Enum, EnumGroup
-from blurdev.logger import LoggerWithSignals
+from .. import resourcePath, debug
+from ..enum import Enum, EnumGroup
+from ..logger import LoggerWithSignals
 
 
 class Level(Enum):
@@ -66,9 +66,7 @@ class Level(Enum):
             QIcon: Correct instantiated QIcon.
         """
         return QIcon(
-            blurdev.resourcePath(
-                'img/logger/{name}_{level}.png'.format(name=name, level=level)
-            )
+            resourcePath('img/logger/{name}_{level}.png'.format(name=name, level=level))
         )
 
 
@@ -115,12 +113,12 @@ class DebugLevels(EnumGroup):
 class DebugLevelButton(QToolButton):
 
     """
-    A drop down button to set blurdev's debug level.
+    A drop down button to set preditors's debug level.
     """
 
     def __init__(self, parent=None):
         """
-        Creates the default debug level menu actions for updating blurdev's
+        Creates the default debug level menu actions for updating preditors's
         debug level.
 
         Args:
@@ -140,7 +138,7 @@ class DebugLevelButton(QToolButton):
 
     def _initializeDebugActions(self):
         """
-        Creates actions that control the blurdev debug level.
+        Creates actions that control the preditors debug level.
         """
         for debug_level in DebugLevels:
             action = QAction(debug_level.icon, debug_level.name, self)
@@ -164,7 +162,7 @@ class DebugLevelButton(QToolButton):
         button's icon & tooltip, as well as the check-state of the debug level
         menu actions.
         """
-        level = DebugLevels.fromValue(blurdev.debug.debugLevel())
+        level = DebugLevels.fromValue(debug.debugLevel())
 
         self.setIcon(level)
         self.setCheckedAction(level)
@@ -184,7 +182,7 @@ class DebugLevelButton(QToolButton):
     def setIcon(self, level):
         """
         Updates the debug button's icon to display the current debug level
-        blurdev is set to.
+        preditor is set to.
 
         Args:
             level (DebugLevel): Debug level to change icon to represent.
@@ -193,12 +191,12 @@ class DebugLevelButton(QToolButton):
 
     def setLevel(self, level):
         """
-        Sets blurdev's debug level.
+        Sets preditor's debug level.
 
         Args:
-            level (str): Name of debug level to set blurdev to.
+            level (str): Name of debug level to set preditor to.
         """
-        blurdev.debug.setDebugLevel(level)
+        debug.setDebugLevel(level)
         self.refresh()
 
     def setToolTip(self, level):
@@ -396,7 +394,7 @@ class LoggingLevelMenu(QMenu):
             action = QAction(logger_level.icon, logger_level.name, self)
             action.setCheckable(True)
 
-            # tooltip example: "Set 'blurdev.debug' to level Warning")
+            # tooltip example: "Set 'preditor.debug' to level Warning")
             action.setToolTip(
                 "Set '{}' to level {}".format(self.logger.name, logger_level.name)
             )

@@ -5,7 +5,7 @@ import re
 from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 
-import blurdev
+from .. import resourcePath
 
 
 class CodeHighlighter(QSyntaxHighlighter):
@@ -173,7 +173,7 @@ class CodeHighlighter(QSyntaxHighlighter):
 
     def setLanguage(self, lang):
         """sets the language of the highlighter by loading the json definition"""
-        filename = blurdev.resourcePath('lang/%s.json' % lang.lower())
+        filename = resourcePath('lang/%s.json' % lang.lower())
         if os.path.exists(filename):
             data = json.load(open(filename))
             self.setObjectName(data.get('name', ''))

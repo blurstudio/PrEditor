@@ -9,10 +9,13 @@
 #
 
 from __future__ import absolute_import
-import sys
 import os
 import os.path
+import re
 import six
+import string
+import sys
+import time
 
 from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
 from Qt.Qsci import QsciScintilla
@@ -28,15 +31,12 @@ from Qt.QtWidgets import (
 from Qt import QtCompat
 from collections import OrderedDict
 
-import blurdev
-from blurdev.enum import enum
-from blurdev.gui import QtPropertyInit
-from blurdev.debug import debugMsg, DebugLevel
 from . import lang
+from .. import core, osystem, resourcePath
+from ..debug import debugMsg, DebugLevel
+from ..enum import enum
+from ..gui import QtPropertyInit
 from .delayable_engine import DelayableEngine
-import re
-import string
-import time
 
 
 class DocumentEditor(QsciScintilla):
@@ -121,10 +121,10 @@ class DocumentEditor(QsciScintilla):
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
         self.selectionChanged.connect(self.updateSelectionInfo)
-        blurdev.core.styleSheetChanged.connect(self.updateColorScheme)
+        core.styleSheetChanged.connect(self.updateColorScheme)
 
         # Create shortcuts
-        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
+        icon = QIcon(resourcePath('img/ide/copy.png'))
 
         # We have to re-create the copy shortcut so we can use our implementation
         self.uiCopyACT = QAction(icon, 'Copy', self)
@@ -132,15 +132,11 @@ class DocumentEditor(QsciScintilla):
         self.uiCopyACT.triggered.connect(self.copy)
         self.addAction(self.uiCopyACT)
 
-        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        iconlstrip = QIcon(resourcePath('img/ide/copylstrip.png'))
         self.uiCopyLstripACT = QAction(iconlstrip, 'Copy lstrip', self)
         self.uiCopyLstripACT.setShortcut('Ctrl+Shift+C')
         self.uiCopyLstripACT.triggered.connect(self.copyLstrip)
         self.addAction(self.uiCopyLstripACT)
-
-        self.uiCopyHtmlACT = QAction(icon, 'Copy Html', self)
-        self.uiCopyHtmlACT.triggered.connect(self.copyHtml)
-        self.addAction(self.uiCopyHtmlACT)
 
         self.uiCopySpaceIndentationACT = QAction(icon, 'Copy Tabs to Spaces', self)
         self.uiCopySpaceIndentationACT.setShortcut('Ctrl+Shift+Space')
@@ -519,15 +515,6 @@ class DocumentEditor(QsciScintilla):
         ret = re.sub('(?:^|\r\n?|\n)\t+', replacement, txt)
         QApplication.clipboard().setText(ret)
 
-    def copyHtml(self):
-        """Copy's the selected text, but formats it using pygments if installed into
-        html."""
-        text = self.selectedText()
-        from blurdev.utils.errorEmail import highlightCodeHtml
-
-        text = highlightCodeHtml(text, self.language(), None)
-        QApplication.clipboard().setText(text)
-
     def detectEndLine(self, text):
         newlineN = text.find('\n')
         newlineR = text.find('\r')
@@ -601,7 +588,7 @@ class DocumentEditor(QsciScintilla):
             path = os.path.split(path)[0]
 
         if os.path.exists(path):
-            blurdev.osystem.explore(path)
+            osystem.explore(path)
         else:
             QMessageBox.critical(
                 self, 'Missing Path', 'Could not find %s' % path.replace('/', '\\')
@@ -1475,49 +1462,45 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Goto')
         # act.setShortcut('Ctrl+G')
         act.triggered.connect(self.goToLine)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/goto.png')))
         act = menu.addAction('Go to Definition')
         # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/goto_def.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/goto_def.png')))
         if self.showSmartHighlighting():
             act = menu.addAction('Edit PermaHighlight')
-            act.setIcon(QIcon(blurdev.resourcePath('img/ide/highlighter.png')))
+            act.setIcon(QIcon(resourcePath('img/ide/highlighter.png')))
             act.triggered.connect(self.editPermaHighlight)
 
         menu.addSeparator()
 
         act = menu.addAction('Collapse/Expand All')
         act.triggered.connect(self.toggleFolding)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/plus_minus.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/plus_minus.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Cut')
         act.triggered.connect(self.cut)
         act.setShortcut('Ctrl+X')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/cut.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/cut.png')))
 
         act = menu.addAction('Copy')
         act.triggered.connect(self.copy)
         act.setShortcut('Ctrl+C')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/copy.png')))
 
         copyMenu = menu.addMenu('Advanced Copy')
 
         # Note: I cant use the actions defined above because they end up getting garbage
         # collected
-        iconlstrip = QIcon(blurdev.resourcePath('img/ide/copylstrip.png'))
+        iconlstrip = QIcon(resourcePath('img/ide/copylstrip.png'))
         act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
         act.setShortcut('Ctrl+Shift+C')
         act.triggered.connect(self.copyLstrip)
         copyMenu.addAction(act)
 
-        icon = QIcon(blurdev.resourcePath('img/ide/copy.png'))
-        act = QAction(icon, 'Copy Html', copyMenu)
-        act.triggered.connect(self.copyHtml)
-        copyMenu.addAction(act)
-
+        icon = QIcon(resourcePath('img/ide/copy.png'))
         act = QAction(icon, 'Copy Tabs to Spaces', copyMenu)
         act.setShortcut('Ctrl+Shift+Space')
         act.triggered.connect(self.copySpaceIndentation)
@@ -1526,46 +1509,46 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
         act.setShortcut('Ctrl+V')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/paste.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/paste.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Copy Line Reference')
         act.triggered.connect(self.copyLineReference)
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/copy.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/copy.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Comment Toggle')
         act.triggered.connect(self.commentToggle)
         act.setShortcut("Ctrl+/")
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/comment_toggle.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/comment_toggle.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('To Lowercase')
         act.triggered.connect(self.toLower)
         # act.setShortcut('Ctrl+L')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/lowercase.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/lowercase.png')))
         act = menu.addAction('To Uppercase')
         act.triggered.connect(self.toUpper)
         # act.setShortcut('Ctrl+U')
-        act.setIcon(QIcon(blurdev.resourcePath('img/ide/uppercase.png')))
+        act.setIcon(QIcon(resourcePath('img/ide/uppercase.png')))
 
         menu.addSeparator()
 
         submenu = menu.addMenu('View as...')
-        submenu.setIcon(QIcon(blurdev.resourcePath('img/ide/view_as.png')))
+        submenu.setIcon(QIcon(resourcePath('img/ide/view_as.png')))
         lg = self.language()
         act = submenu.addAction('Plain Text')
         if lg == "":
-            act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
+            act.setIcon(QIcon(resourcePath('img/ide/check.png')))
         submenu.addSeparator()
 
         for language in lang.languages():
             act = submenu.addAction(language)
             if language == lg:
-                act.setIcon(QIcon(blurdev.resourcePath('img/ide/check.png')))
+                act.setIcon(QIcon(resourcePath('img/ide/check.png')))
 
         submenu.triggered.connect(self.languageChosen)
 
@@ -1586,7 +1569,7 @@ class DocumentEditor(QsciScintilla):
             menu.addSeparator()
             act = menu.addAction('Autoformat (PEP 8)')
             act.triggered.connect(self.autoFormat)
-            act.setIcon(QIcon(blurdev.resourcePath('img/ide/python.png')))
+            act.setIcon(QIcon(resourcePath('img/ide/python.png')))
 
         menu.popup(self._clickPos)
 

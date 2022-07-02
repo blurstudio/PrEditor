@@ -1,14 +1,15 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import os
+import six
 import sys
 import time
 import multiprocessing
 from multiprocessing import Process, Pipe
-import blurdev
 from Qt.QtCore import QTimer
-from blurdev.protocols import BaseProtocolHandler, InvalidHandlerError
-import six
+
+from . import application, core, osystem, startApplication
+from .protocols import BaseProtocolHandler, InvalidHandlerError
 
 try:
     # Optional: In case blur.Stone is not installed,
@@ -22,7 +23,7 @@ class External(object):
     """Singleton class used for multiProcess communication.
 
     This class provides a easy way to spawn a secondary instance of python and run
-    Qt/blurdev. It also provides for two way communication between the two processes.
+    Qt/preditor. It also provides for two way communication between the two processes.
     Currently, the parent process does not check its pipe for data automatically, you
     will need to periodicly poll that data using checkPipe if you would like to receive
     that info.
@@ -36,7 +37,7 @@ class External(object):
 
     Attributes:
 
-        checkIfOrphaned (bool): If true, exit blurdev if the parent process terminates
+        checkIfOrphaned (bool): If true, exit preditor if the parent process terminates
 
         childProcess (multiprocessing.Process): Pointer to the child process
 
@@ -65,8 +66,8 @@ class External(object):
         the Python_Logger tool. In the child process, it would send the message back up
         the pipe to the parent process.
 
-        >>> import blurdev.external
-        >>> blurdev.external.External(['treegrunt', 'Python_Logger'])
+        >>> import preditor.external
+        >>> preditor.external.External(['treegrunt', 'Python_Logger'])
     """
 
     _instance = None
@@ -108,7 +109,7 @@ class External(object):
                 return True, data
         except IOError as e:
             if e.errno == 109:
-                # The pipe has been ended, shutdown blurdev and exit python even if the
+                # The pipe has been ended, shutdown preditor and exit python even if the
                 # parent process is still running
                 if self.checkIfOrphaned:
                     self.shutdownIfParentClosed(force=True)
@@ -118,7 +119,7 @@ class External(object):
         """Parses the data returned from the pipe and calls the proper handler.
 
         Processes data retreived from the pipe, and uses
-        blurdev.protocols.BaseProtocolHandler to process the contents of data. Valid
+        preditor.protocols.BaseProtocolHandler to process the contents of data. Valid
         data should be in the form of ['handlerName', 'handlerCommand'] or
         ['handlerName', 'handlerCommand', {'keyword', 'args'}]. It will also accept a
         Exception as the only data. If a Exception is received it will be raised. If a
@@ -179,8 +180,8 @@ class External(object):
     ):
         """Used to initialize a new instance of python and start the Qt Event loop.
 
-        This function configures blurdev and starts Qt. It calls QApplication.exec_()
-        and will not exit until blurdev is shutdown.
+        This function configures preditor and starts Qt. It calls QApplication.exec_()
+        and will not exit until preditor is shutdown.
 
         Args:
             hwnd(int): The win32 id used to parent Qt to the parent process
@@ -188,7 +189,7 @@ class External(object):
                 The Pipe used for inter-process communication.
                 Defaults to None.
             exitMonitorPid(int):
-                Shutdown blurdev when this pid becomes invalid.
+                Shutdown preditor when this pid becomes invalid.
                 Defaults to None.
             exitMonitorProcessName(str):
                 Used with exitMonitorPid.
@@ -209,8 +210,8 @@ class External(object):
         # so we need to identify them by their object name.
         parentCore = parentCore.lower()
         if parentCore != "studiomax":
-            blurdev.core.setHwnd(hwnd)
-            blurdev.core._mfcApp = True
+            core.setHwnd(hwnd)
+            core._mfcApp = True
         if childPipe:
             # Monitor the pipe for communications from the parent application
             instance._childPipe = childPipe
@@ -224,7 +225,7 @@ class External(object):
                 "blur.Stone is not installed, "
                 "so this will not close automatically, or properly save prefs"
             )
-        blurdev.core.setObjectName("multiprocessing")
+        core.setObjectName("multiprocessing")
         # Notes: studiomax: max crashes if app.quitOnLastWindowClosed is False.
         #       fusion:if True, closing any window/dialog will cause qt to close and
         #       python to exit external: pdb auto continue on close is not triggered if
@@ -234,14 +235,13 @@ class External(object):
         ):
             # If this is not set, Qt will close when ever a QDialog or QMainWindow is
             # closed
-            app = blurdev.application
-            app.setQuitOnLastWindowClosed(False)
+            application.setQuitOnLastWindowClosed(False)
         # This is neccissary as long as our stylesheets depend on Plastique as a base.
-        blurdev.application.setStyle(blurdev.core.defaultStyle())
+        application.setStyle(core.defaultStyle())
         # Initialize the logger
-        blurdev.core.logger()
+        core.logger()
         # Start Qt's event loop
-        blurdev.startApplication()
+        startApplication()
 
     def multiProcess(self):
         """Spawns or returns instance of python and the Pipe to communicate with.
@@ -267,16 +267,16 @@ class External(object):
         # Nuke's sys.exec_prefix is the root directory on windows. Should I just use
         # pythonPath?
         if not os.path.exists(exe):
-            exe = blurdev.osystem.pythonPath(pyw=bool(Stone))
+            exe = osystem.pythonPath(pyw=bool(Stone))
         multiprocessing.set_executable(exe)
         if not hasattr(sys, "argv"):
             # multiprocessing requires sys.argv so manually create it if it doesn't
             # already exist
             sys.argv = ['']
         # Get all neccissary info to properly parent, communicate and detect closing
-        hwnd = blurdev.core.hwnd()  # used to parent Qt to parent app
+        hwnd = core.hwnd()  # used to parent Qt to parent app
         compid = (
-            blurdev.core.uuid()
+            core.uuid()
         )  # Id used by 3rd party api's to connect to parent app
         pid = os.getpid()  # Detect if parent app was closed
 
@@ -284,7 +284,7 @@ class External(object):
         kwargs = {"compid": compid}
         kwargs["childPipe"] = self._childPipe
         kwargs["exitMonitorPid"] = pid
-        kwargs["parentCore"] = blurdev.core.objectName()
+        kwargs["parentCore"] = core.objectName()
         self.childProcess = Process(target=External.launch, args=(hwnd,), kwargs=kwargs)
         self.childProcess.daemon = daemon
         self.childProcess.start()
@@ -295,7 +295,7 @@ class External(object):
 
         If checkIfOrphaned is True, and exitMonitorPid is populated,
         it will check if the process is still running, if not,
-        it will call blurdev.core.shutdown() and allow python to close without
+        it will call core.shutdown() and allow python to close without
         processing any queued pipe items.
         """
         if self.checkIfOrphaned and self.exitMonitorPid:
@@ -325,7 +325,7 @@ class External(object):
         command to send to the handler.
         You can optionally pass a dictionary of kwargs as the third argument.
 
-        See Also: blurdev.protocols
+        See Also: preditor.protocols
 
         Args:
             data(list): Command to send.
@@ -340,23 +340,23 @@ class External(object):
         return False
 
     def shutdownIfParentClosed(self, force=False):
-        """Shutdown blurdev if parent process is closed.
+        """Shutdown preditor if parent process is closed.
 
         Uses blur.Stone to check if the parent process is still running, if not,
-        it calls blurdev.core.shutdown() to close qt and allow python to exit.
+        it calls core.shutdown() to close qt and allow python to exit.
 
         Args:
-            force(bool): Ignore blur.Stone check and force blurdev to shutdown.
+            force(bool): Ignore blur.Stone check and force preditor to shutdown.
         """
         if force or not Stone.isRunning(
             self.exitMonitorPid, self.exitMonitorProcessName
         ):
             args = {"app": self.parentCore.capitalize()}
-            msg = "{app} is no longer running, shutting down blurdev and saving prefs"
+            msg = "{app} is no longer running, shutting down preditor and saving prefs"
             print(msg.format(**args))
             if "python.exe" in sys.executable.lower():
                 time.sleep(1)
-            blurdev.core.shutdown()
+            core.shutdown()
             return True
         return False
 
@@ -369,7 +369,7 @@ class External(object):
             interval (int): The number of milliseconds between calling parsePipe
         """
         if not self.timerCommand:
-            self.timerCommand = QTimer(blurdev.core)
+            self.timerCommand = QTimer(core)
             self.timerCommand.timeout.connect(self.parsePipe)
         self.timerCommand.start(interval)
 

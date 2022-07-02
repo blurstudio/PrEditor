@@ -9,10 +9,6 @@ import sys
 import time
 import warnings
 from datetime import datetime, timedelta
-
-import blurdev
-import blurdev.prefs
-
 from functools import partial
 
 from Qt.QtCore import Qt, QByteArray, QFileSystemWatcher, QFileInfo, QTimer, QSize
@@ -33,16 +29,15 @@ from Qt.QtWidgets import (
 
 from Qt import QtCompat
 
-from blurdev.logger import saveLoggerConfiguration
-
-from blurdev.gui import Window, Dialog
+from .. import core, osystem, resourcePath, debug
+from ..gui import Window, Dialog, loadUi
+from ..logger import saveLoggerConfiguration
+from ..prefs import prefs_path
 from ..scintilla.delayable_engine import DelayableEngine
-
-from .workboxwidget import WorkboxWidget
-
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton, DebugLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
+from .workboxwidget import WorkboxWidget
 
 import __main__
 
@@ -63,10 +58,8 @@ class LoggerWindow(Window):
         # rapid-fire WheelEvents. Initialize to the current time.
         self.previousFontResizeTime = datetime.now()
 
-        import blurdev.gui
-
-        self.setWindowIcon(QIcon(blurdev.resourcePath('img/python_logger.png')))
-        blurdev.gui.loadUi(__file__, self)
+        self.setWindowIcon(QIcon(resourcePath('img/python_logger.png')))
+        loadUi(__file__, self)
 
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
         self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
@@ -242,7 +235,7 @@ class LoggerWindow(Window):
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
         self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
         self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
-        blurdev.core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
+        core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
         self.uiSetPreferredTextEditorPathACT.triggered.connect(
@@ -255,28 +248,20 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
-        self.uiClearLogACT.setIcon(QIcon(blurdev.resourcePath('img/logger/clear.png')))
+        self.uiClearLogACT.setIcon(QIcon(resourcePath('img/logger/clear.png')))
         self.uiSaveConsoleSettingsACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/save.png'))
+            QIcon(resourcePath('img/logger/save.png'))
         )
-        self.uiAboutBlurdevACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/about.png'))
-        )
-        self.uiCloseLoggerACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/close.png'))
-        )
+        self.uiAboutBlurdevACT.setIcon(QIcon(resourcePath('img/logger/about.png')))
+        self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/logger/close.png')))
 
-        self.uiPdbContinueACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/play.png'))
-        )
-        self.uiPdbStepACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/arrow_forward.png'))
-        )
+        self.uiPdbContinueACT.setIcon(QIcon(resourcePath('img/logger/play.png')))
+        self.uiPdbStepACT.setIcon(QIcon(resourcePath('img/logger/arrow_forward.png')))
         self.uiPdbNextACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/subdirectory_arrow_right.png'))
+            QIcon(resourcePath('img/logger/subdirectory_arrow_right.png'))
         )
-        self.uiPdbUpACT.setIcon(QIcon(blurdev.resourcePath('img/logger/up.png')))
-        self.uiPdbDownACT.setIcon(QIcon(blurdev.resourcePath('img/logger/down.png')))
+        self.uiPdbUpACT.setIcon(QIcon(resourcePath('img/logger/up.png')))
+        self.uiPdbDownACT.setIcon(QIcon(resourcePath('img/logger/down.png')))
 
         # Setting toolbar icon size.
 
@@ -312,7 +297,7 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.selectFont, action))
 
         # add stylesheet menu options.
-        for style_name in blurdev.core.styleSheets('logger'):
+        for style_name in core.styleSheets('logger'):
             action = self.uiStyleMENU.addAction(style_name)
             action.setObjectName('ui{}ACT'.format(style_name))
             action.setCheckable(True)
@@ -327,9 +312,9 @@ class LoggerWindow(Window):
             '%s - %s - %s %i-bit'
             % (
                 loggerName,
-                blurdev.core.objectName().capitalize(),
+                core.objectName().capitalize(),
                 '%i.%i.%i' % sys.version_info[:3],
-                blurdev.osystem.getPointerSize(),
+                osystem.getPointerSize(),
             )
         )
 
@@ -370,7 +355,7 @@ class LoggerWindow(Window):
             (from command line): blurdev launch Python_Logger --run_workbox
 
         """
-        pyLogger = blurdev.core.logger()
+        pyLogger = core.logger()
         workboxTab = pyLogger.uiWorkboxTAB
         workboxCount = workboxTab.count()
 
@@ -618,8 +603,8 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
 
     def browsePreferences(self):
-        path = blurdev.prefs.prefs_path()
-        blurdev.osystem.explore(path)
+        path = prefs_path()
+        osystem.explore(path)
 
     def console(self):
         return self.uiConsoleTXT
@@ -774,19 +759,19 @@ class LoggerWindow(Window):
         self.save_prefs(_prefs)
 
     def load_prefs(self):
-        prefs_path = blurdev.prefs.prefs_path('logger_pref.json')
-        if os.path.exists(prefs_path):
-            with open(prefs_path) as fp:
+        filename = prefs_path('logger_pref.json')
+        if os.path.exists(filename):
+            with open(filename) as fp:
                 return json.load(fp)
         return {}
 
     def save_prefs(self, _prefs):
         # Save preferences to disk
-        prefs_path = blurdev.prefs.prefs_path('logger_pref.json')
-        dirname = os.path.dirname(prefs_path)
+        filename = prefs_path('logger_pref.json')
+        dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        with open(prefs_path, 'w') as fp:
+        with open(filename, 'w') as fp:
             json.dump(_prefs, fp, indent=4)
 
     def restorePrefs(self):
@@ -972,7 +957,7 @@ class LoggerWindow(Window):
             self._stylesheet = stylesheet
         else:
             # Try to find an installed stylesheet with the given name
-            sheet, valid = blurdev.core.readStyleSheet('logger/{}'.format(stylesheet))
+            sheet, valid = core.readStyleSheet('logger/{}'.format(stylesheet))
             if valid:
                 self._stylesheet = stylesheet
             else:
@@ -991,7 +976,7 @@ class LoggerWindow(Window):
             act.setChecked(isCurrent)
 
         # Notify widgets that the styleSheet has changed
-        blurdev.core.styleSheetChanged.emit(blurdev.core.styleSheet())
+        core.styleSheetChanged.emit(core.styleSheet())
 
     def setCaseSensitive(self, state):
         """Set completer case-sensivity"""
@@ -1068,9 +1053,9 @@ class LoggerWindow(Window):
 
     def setClearBeforeRunning(self, state):
         self.uiRunSelectedACT.setIcon(
-            QIcon(blurdev.resourcePath('img/logger/playlist_play.png'))
+            QIcon(resourcePath('img/logger/playlist_play.png'))
         )
-        self.uiRunAllACT.setIcon(QIcon(blurdev.resourcePath('img/logger/play.png')))
+        self.uiRunAllACT.setIcon(QIcon(resourcePath('img/logger/play.png')))
 
     def setFlashWindowInterval(self):
         value = self.uiConsoleTXT.flashTime
@@ -1090,16 +1075,16 @@ class LoggerWindow(Window):
             self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
 
     def showAbout(self):
-        msg = blurdev.core.aboutBlurdev()
+        msg = core.aboutBlurdev()
         QMessageBox.information(self, 'About blurdev', msg)
 
     def showEnvironmentVars(self):
-        dlg = Dialog(blurdev.core.logger())
+        dlg = Dialog(core.logger())
         lyt = QVBoxLayout(dlg)
         lbl = QTextBrowser(dlg)
         lyt.addWidget(lbl)
         dlg.setWindowTitle('Blurdev Environment Variable Help')
-        with open(blurdev.resourcePath('environment_variables.html')) as f:
+        with open(resourcePath('environment_variables.html')) as f:
             lbl.setText(f.read().replace('\n', ''))
         dlg.setMinimumSize(600, 400)
         dlg.show()
@@ -1304,7 +1289,7 @@ class LoggerWindow(Window):
 
             # RV has a Unique window structure. It makes more sense to not parent a
             # singleton window than to parent it to a specific top level window.
-            if blurdev.core.objectName() == 'rv':
+            if core.objectName() == 'rv':
                 inst.setParent(None)
                 inst.setAttribute(Qt.WA_QuitOnClose, False)
 
@@ -1319,10 +1304,10 @@ class LoggerWindow(Window):
     def installLogToFile(self):
         """All stdout/stderr output is also appended to this file.
 
-        This uses blurdev.debug.logToFile(path, useOldStd=True).
+        This uses preditor.debug.logToFile(path, useOldStd=True).
         """
         if self._logToFilePath is None:
-            path = blurdev.osystem.defaultLogFile()
+            path = osystem.defaultLogFile()
             path, _ = QtCompat.QFileDialog.getOpenFileName(
                 self, "Log Output to File", path
             )
@@ -1330,7 +1315,7 @@ class LoggerWindow(Window):
                 return
             path = os.path.normpath(path)
             print('Output logged to: "{}"'.format(path))
-            blurdev.debug.logToFile(path, useOldStd=True)
+            debug.logToFile(path, useOldStd=True)
             # Store the std's so we can clear them later
             self._stds = (sys.stdout, sys.stderr)
             self.uiLogToFileACT.setText('Output Logged to File')
@@ -1351,10 +1336,10 @@ class LoggerWindow(Window):
             inst = cls._instance
             if inst.uiConsoleTXT.pdbMode() != mode:
                 inst.uiConsoleTXT.setPdbMode(mode)
-                import blurdev.external
+                from .. import external
 
-                blurdev.external.External(
-                    ['pdb', '', {'msg': 'blurdev.debug.getPdb().currentLine()'}]
+                external.External(
+                    ['pdb', '', {'msg': 'preditor.debug.getPdb().currentLine()'}]
                 )
             # Pdb returns its prompt automatically. If we detect the pdb prompt and
             # _pdbContinue is set re-run the command until it's count reaches zero.

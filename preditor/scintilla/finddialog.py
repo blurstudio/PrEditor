@@ -1,15 +1,13 @@
 from __future__ import absolute_import
-from blurdev.gui import Dialog
+from ..gui import Dialog, loadUi
 from .documenteditor import DocumentEditor
 
 
 class FindDialog(Dialog):
     def __init__(self, parent):
-        Dialog.__init__(self, parent)
+        super(FindDialog, self).__init__(parent)
 
-        import blurdev.gui
-
-        blurdev.gui.loadUi(__file__, self)
+        loadUi(__file__, self)
 
         self.uiCaseSensitiveCHK.setChecked(
             parent.searchFlags() & DocumentEditor.SearchOptions.CaseSensitive

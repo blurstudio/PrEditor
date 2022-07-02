@@ -15,11 +15,11 @@
 .. deprecated:: 2.0
 
 
-The blurdev debug module defines a handful of functions, as well as a single
+The preditor debug module defines a handful of functions, as well as a single
 enumerated type, and a single class, to help with the creation and printing
 of logging messages.
 
-The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
+The preditor debug module defines a single enumerated type -- :data:`DebugLevel`
 -- that is used to discriminate between the various types of logging messages.
 
 .. data:: DebugLevel
@@ -32,19 +32,17 @@ The blurdev debug module defines a single enumerated type -- :data:`DebugLevel`
 from __future__ import print_function
 from __future__ import absolute_import
 import datetime
+import inspect
 import os
+import six
 import sys
 import traceback
-import inspect
 
 from Qt import QtCompat
 
-import blurdev
-import blurdev.debug
-from blurdev.contexts import ErrorReport
-
+from . import core
+from .contexts import ErrorReport
 from .enum import enum
-import six
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
 _debugLogger = None
@@ -146,7 +144,7 @@ class BlurExcepthook(object):
     def __init__(self, base_excepthook=None):
         self.base_excepthook = base_excepthook or sys.__excepthook__
         # We can't show the prompt if running headless.
-        self.actions = dict(email=True, prompt=not blurdev.core.headless)
+        self.actions = dict(email=True, prompt=not core.headless)
 
     def __call__(self, *exc_info):
         """
@@ -157,7 +155,7 @@ class BlurExcepthook(object):
         example, uses exceptions to signal tradionally non-exception worthy
         events, such as when a user cancels an Open File dialog window.)
         """
-        self.actions = blurdev.core.shouldReportException(
+        self.actions = core.shouldReportException(
             *exc_info, actions=self.actions
         )
 
@@ -189,7 +187,7 @@ class BlurExcepthook(object):
         if not self.actions.get("email", False):
             return
 
-        from blurdev.utils.error import ErrorEmail
+        from .utils.error import ErrorEmail
 
         email_addresses = os.getenv('BDEV_ERROR_EMAIL')
         if email_addresses:
@@ -203,9 +201,9 @@ class BlurExcepthook(object):
         if not self.actions.get("prompt", False):
             return
 
-        from blurdev.gui.loggerwindow import LoggerWindow
-        from blurdev.gui.console import ConsoleEdit
-        from blurdev.gui.errordialog import ErrorDialog
+        from .gui.loggerwindow import LoggerWindow
+        from .gui.console import ConsoleEdit
+        from .gui.errordialog import ErrorDialog
 
         instance = LoggerWindow.instance(create=False)
 
@@ -231,7 +229,7 @@ class BlurExcepthook(object):
         # processing.
         try:
             ConsoleEdit._errorPrompted = True
-            errorDialog = ErrorDialog(blurdev.core.rootWindow())
+            errorDialog = ErrorDialog(core.rootWindow())
             errorDialog.setText(exc_info)
             errorDialog.exec_()
 
@@ -271,8 +269,8 @@ def getPdb():
 
     The first time this is called it creates a pdb instance using PdbInput and PdbOutput
     for stdin and stdout. Any future calls to getPdb will return this same pdb. If pdb
-    is activated, it will open the blurdev logger in a new instance of python using
-    blurdev.external, all pdb output will be routed to this new logger. Commands typed
+    is activated, it will open preditor in a new instance of python using
+    preditor.external, all pdb output will be routed to this new logger. Commands typed
     in this logger will be passed back to this instance of pdb.
 
     Returns:
@@ -280,7 +278,7 @@ def getPdb():
     """
     global _blurPdb
     if not _blurPdb:
-        from blurdev.utils.pdbio import PdbInput, PdbOutput, BlurPdb
+        from .utils.pdbio import PdbInput, PdbOutput, BlurPdb
 
         # Skip these modules because they are not being debugged. Generally this needs
         # to ignore the Logger Window modules because printing causes the next function
@@ -312,7 +310,7 @@ def post_mortem(t=None):
     this function must be called from within the except of a try/except statement.)
 
     See Also:
-        blurdev.debug.pm()
+        preditor.debug.pm()
 
     Args:
         t (traceback): exception to preform a post_mortem on.
@@ -334,7 +332,7 @@ def post_mortem(t=None):
 
 
 def pm():
-    """Calls blurdev.debug.post_mortem passing in sys.last_traceback."""
+    """Calls preditor.debug.post_mortem passing in sys.last_traceback."""
     post_mortem(sys.last_traceback)
 
 
@@ -351,7 +349,7 @@ def debugMsg(msg, level=2, fmt=None):
     """Prints out a debug message to the stdout if the inputed level is
     greater than or equal to the current debugging level
 
-    Args: msg (str): message to output level (blurdev.debug.DebugLevel, optional):
+    Args: msg (str): message to output level (preditor.debug.DebugLevel, optional):
         Minimum DebugLevel msg should be printed. Defaults to DebugLevel.Mid. fmt (str
         or None, optional): msg is formatted with this string. Fills in {level} and
         {msg} args. If None, a default string is used.
@@ -369,7 +367,7 @@ def debugObject(object, msg, level=2, fmt=None):
     including the reference of where the object calling the method is located.
 
     Args: object (object): the object to include in the output message. msg (str):
-        message to output level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel
+        message to output level (preditor.debug.DebugLevel, optional): Minimum DebugLevel
         msg should be printed. Defaults to DebugLevel.Mid. fmt (str or None, optional):
         msg is formatted with this string. Fills in {level} and {msg} args. If None, a
         default string is used.
@@ -411,7 +409,7 @@ def debugStubMethod(object, msg, level=2):
 
         msg (str): message to output
 
-        level (blurdev.debug.DebugLevel, optional): Minimum DebugLevel msg should be
+        level (preditor.debug.DebugLevel, optional): Minimum DebugLevel msg should be
             printed. Defaults to DebugLevel.Mid.
     """
     debugObject(object, 'Missing Functionality: %s' % msg, level)
@@ -447,7 +445,7 @@ def isDebugLevel(level):
     """Checks to see if the current debug level greater than or equal to the inputed level
 
     Args:
-        level (blurdev.debug.DebugLevel):
+        level (preditor.debug.DebugLevel):
 
     Returns
         bool: the current debug level is greater than or equal to level
@@ -536,7 +534,7 @@ def reportError(msg, debugLevel=1):
     Args:
         msg (str): the message to add to the debug report.
 
-        debugLevel (blurdev.debug.DebugLevel, optional): Only adds msg to the debug
+        debugLevel (preditor.debug.DebugLevel, optional): Only adds msg to the debug
             report if debugLevel is this level or higher. Defaults to DebugLevel.Low.
     """
     if isDebugLevel(debugLevel):
@@ -552,7 +550,7 @@ def showErrorReport(
 
         QMessageBox.critical(None, subject, message)
     else:
-        from blurdev.gui.dialogs.detailreportdialog import DetailReportDialog
+        from .gui.dialogs.detailreportdialog import DetailReportDialog
 
         DetailReportDialog.showReport(
             None, subject, message, '<br>'.join([str(r) for r in _errorReport])
@@ -561,10 +559,10 @@ def showErrorReport(
 
 
 def setDebugLevel(level):
-    """Sets the debug level for the blurdev system module
+    """Sets the debug level for the preditor system module
 
     Args:
-        level (blurdev.debug.DebugLevel): Value to set the debug level to.
+        level (preditor.debug.DebugLevel): Value to set the debug level to.
 
     Returns:
         bool: The debug level was changed.

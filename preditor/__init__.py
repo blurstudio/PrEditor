@@ -1,18 +1,10 @@
-""" The blurdev package is the core library methods for tools development at Blur Studio
-
-    The blurdev package is also the primary environment manager for blur tools.
-    It contains useful sub-packages for various tasks, such as media encoding,
-    and includes a Qt gui library.
-
-"""
-
 from __future__ import absolute_import
 from __future__ import print_function
 
 # Override the base logging class.
-import blurdev.logger
+from . import logger
 
-blurdev.logger.patchLogger()
+logger.patchLogger()
 
 # this variable will be set when loading information for documentation purposes
 __DOCMODE__ = False
@@ -33,11 +25,7 @@ from Qt.QtWidgets import (  # noqa: E402
 from Qt.QtCore import Qt  # noqa: E402
 
 from .version import version as __version__  # noqa: E402,F401
-import blurdev.settings  # noqa: E402
-
-
-installPath = os.path.dirname(__file__)
-"""Stores the full filepath of the blurdev installation directory."""
+from . import settings, osystem  # noqa: E402
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -89,13 +77,13 @@ def appUserModelID():
 
 
 def init():
-    os.environ['BDEV_EMAILINFO_BLURDEV_VERSION'] = blurdev.__version__
+    os.environ['BDEV_EMAILINFO_PREDITOR_VERSION'] = __version__
     pythonw_print_bugfix()
-    blurdev.settings.init()
+    settings.init()
     global core, application
     # create the core and application
     if not core:
-        from blurdev.cores import Core
+        from .cores import Core
 
         objectName = None
         _exe = os.path.basename(sys.executable).lower()
@@ -134,7 +122,7 @@ def launch(
                   access to calling gui elements).
     :param coreName: string to give to the core if the application is
                      going to be rooted under this widget
-    :param instance: If subclassed from blurdev.gui.Window or Dialog
+    :param instance: If subclassed from preditor.gui.Window or Dialog
                      it will show the existing instance instead of
                      creating a new instance. Ignored if modal == True.
     :param kwargs: A dict of keyword arguments to pass to the widget initialization
@@ -149,7 +137,7 @@ def launch(
 
     if application:
         application.setStyle(core.defaultStyle())
- 
+
     if instance and hasattr(ctor, 'instance') and not modal:
         # use the instance method if requested
         widget = ctor.instance()
@@ -170,7 +158,7 @@ def launch(
             # create the output instance from the class
             # If args or kwargs are defined, use those.  NOTE that if you pass any
             # args or kwargs, you will also have to supply the parent, which
-            # blurdev.launch previously had always set to None.
+            # preditor.launch previously had always set to None.
             if args or kwargs:
                 if args is None:
                     args = []
@@ -204,7 +192,7 @@ def launch(
         if wrapClass is not None:
             dlg = wrapClass(None)
         else:
-            from blurdev.gui.dialog import Dialog
+            from .gui.dialog import Dialog
 
             dlg = Dialog(None)
         layout = QVBoxLayout()
@@ -235,7 +223,7 @@ def launch(
 
 
 def startApplication(windowIcon=None):
-    """Starts blurdev.application if it hasn't already been started."""
+    """Starts preditor.application if it hasn't already been started."""
     global _appHasExec
     if application and not _appHasExec:
         if windowIcon:
@@ -249,7 +237,7 @@ def prefPath(relpath, coreName=''):
     if not coreName and core:
         coreName = core.objectName()
     basepath = os.path.join(
-        blurdev.osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
+        osystem.expandvars(os.environ['BDEV_PATH_PREFS']), 'app_%s/' % coreName
     )
     return os.path.normpath(os.path.join(basepath, relpath))
 
@@ -278,10 +266,14 @@ def relativePath(path, additional=''):
 
 
 def resourcePath(relpath=''):
-    """
-    Returns the full path to the file inside the blurdev\resource folder
-    :param relpath: The additional path added to the blurdev\resource folder path.
-    :return str: The modified path
+    """Returns the full path to the file inside the preditor/resource folder
+
+    Args:
+        relpath (str, optional): The additional path added to the
+            preditor/resource folder path.
+    
+    Returns:
+        str: The modified path
     """
     return os.path.join(relativePath(__file__), 'resource', relpath)
 
@@ -293,7 +285,7 @@ def setAppUserModelID(appId, prefix='Blur'):
     windows on the taskbar.  This must be set before any ui is displayed. The best place
     to call it is in the first widget to be displayed __init__ method.
 
-    See :py:meth:`blurdev.osystem.set_app_id_for_shortcut` to set the app id on a
+    See :py:meth:`preditor.osystem.set_app_id_for_shortcut` to set the app id on a
     windows shortcut.
 
     Args:
@@ -304,7 +296,7 @@ def setAppUserModelID(appId, prefix='Blur'):
             fooBar, the associated appId should be "Blur.FooBar". Defaults to "Blur".
     """
 
-    if blurdev.settings.OS_TYPE != 'Windows':
+    if settings.OS_TYPE != 'Windows':
         return False
 
     # If this function is run inside other applications, it can cause(unparented) new
@@ -312,7 +304,7 @@ def setAppUserModelID(appId, prefix='Blur'):
     # To test: Create a window calling setAppUserModelID before showing it. Use a unique
     # appId. Then create a unparented window and show it. The unparented window will
     # appear in a different taskbar group.
-    if not blurdev.core.useAppUserModelID():
+    if not core.useAppUserModelID():
         return False
 
     # https://stackoverflow.com/a/27872625

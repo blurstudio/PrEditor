@@ -1,11 +1,10 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import sys
-import time
 import os
 import glob
 
-from Qt.QtCore import QDateTime, QEvent, QObject, Qt, Signal
+from Qt.QtCore import QDateTime, QObject, Signal
 from Qt.QtWidgets import (
     QApplication,
     QDialog,
@@ -14,12 +13,9 @@ from Qt.QtWidgets import (
 )
 import sentry_bootstrap
 
-import blurdev
-import blurdev.debug
-import blurdev.osystem
-import blurdev.cores.application
-import blurdev.settings
-from blurdev.utils.error import sentry_before_send_callback
+from .. import osystem
+from .. import settings
+from ..utils.error import sentry_before_send_callback
 
 
 class Core(QObject):
@@ -58,7 +54,7 @@ class Core(QObject):
         self._defaultStyleSheet = ''
 
         # Paths in this variable will be removed in
-        # blurdev.osystem.subprocessEnvironment
+        # preditor.osystem.subprocessEnvironment
         self._removeFromPATHEnv = set()
         self.environment_override_filepath = os.environ.get(
             'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
@@ -73,9 +69,10 @@ class Core(QObject):
             __qt_version__,
         )
 
+        from .. import __version__, __file__ as pfile
         msg = [
-            'blurdev: {} ({})'.format(blurdev.__version__, self.objectName()),
-            '    {}'.format(os.path.dirname(blurdev.__file__)),
+            'blurdev: {} ({})'.format(__version__, self.objectName()),
+            '    {}'.format(os.path.dirname(pfile)),
         ]
 
         msg.append('Qt: {}'.format(__qt_version__))
@@ -131,7 +128,7 @@ class Core(QObject):
         Args: window (QWidget|None): This widget will be flashed. Attempts to get the
             hwnd from this widget. Note: This is ignored if hwnd is passed in.
 
-            dwFlags (blurdev.osystem.FlashTimes): A enum value used to control the
+            dwFlags (preditor.osystem.FlashTimes): A enum value used to control the
                 flashing behavior. See
                 https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
                 details. Defaults to FLASHW_TIMERNOFG.
@@ -142,16 +139,16 @@ class Core(QObject):
                 milliseconds. if zero is passed, the default cursor blink rate is used.
 
             hwnd (int or None): Flash this hwnd. If None(default) it will flash window
-                if provided, otherwise it will flash blurdev.core.rootWindow().
+                if provided, otherwise it will flash preditor.core.rootWindow().
 
         Returns:
             bool: Was anything attempted. On windows this always returns True.
         """
-        if blurdev.settings.OS_TYPE == 'Windows':
+        if settings.OS_TYPE == 'Windows':
             import ctypes
 
             if dwFlags is None:
-                dwFlags = blurdev.osystem.FlashTimes.FLASHW_TIMERNOFG
+                dwFlags = osystem.FlashTimes.FLASHW_TIMERNOFG
             if hwnd is None:
                 if window is None:
                     hwnd = self.rootWindow().winId().__int__()
@@ -215,7 +212,7 @@ class Core(QObject):
         # external tools from running if they use "if __name__ == '__main__':" as
         # __name__ will return None
         self.protectModule('__main__')
-        # Pillar is used by blurdev so reloading it breaks blurdev. Devs may have pillar
+        # Pillar is used by blurdev so reloading it breaks preditor. Devs may have pillar
         # in their tools virtualenv to aid in installing other pip packages.
         self.protectModule('pillar')
         # pkg_resources is found in the tools virtualenv and we use it when switching
@@ -237,10 +234,10 @@ class Core(QObject):
 
         if not app:
             # create a new application
-            from blurdev.cores.application import CoreApplication, Application
+            from ..cores.application import CoreApplication, Application
 
             # Check for headless environment's
-            if blurdev.settings.OS_TYPE == 'Linux':
+            if settings.OS_TYPE == 'Linux':
                 if os.environ.get('DISPLAY') is None:
                     output = CoreApplication([])
                     self._headless = True
@@ -265,7 +262,7 @@ class Core(QObject):
 
     def logger(self, parent=None):
         """Creates and returns the logger instance"""
-        from blurdev.gui.loggerwindow import LoggerWindow
+        from ..gui.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
 
@@ -452,7 +449,7 @@ class Core(QObject):
         Args:
 
             stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css
-                shipped with blurdev. Ignored if path is provided.
+                shipped with preditor. Ignored if path is provided.
 
             path (str): Return the contents of this file path.
 
@@ -584,14 +581,14 @@ class Core(QObject):
                 The Qt application that should have its name set to match the
                 BDEV_APPLICATION_NAME environment variable. This env variable is
                 removed by calling this function so it is not passed to child
-                subprocesses. If None is provided, then blurdev.application is used.
+                subprocesses. If None is provided, then preditor.application is used.
 
         Returns:
             bool: If the application name was set. This could be because the
                 application was None.
         """
         if application is None:
-            application = blurdev.application
+            from .. import application
         if application is None:
             return False
         # Remove the BDEV_APPLICATION_NAME variable if defined so it is not
@@ -620,7 +617,7 @@ class Core(QObject):
         return None
 
     def useAppUserModelID(self):
-        """Returns a boolean value controlling if calling blurdev.setAppUserModelID
+        """Returns a boolean value controlling if calling preditor.setAppUserModelID
         will do anyting."""
         # Core subclasses Can simply set _useAppUserModelID to True or False if they
         # want to blanket enable or disable setAppUserModelID.
