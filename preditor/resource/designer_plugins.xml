@@ -1,0 +1,9 @@
+<plugins>
+	<!-- standard widgets -->
+	<plugin module="blurdev.gui" class="Dialog" container="True"/>
+	<plugin module="blurdev.gui" class="Window" container="True"/>
+	<plugin module="blurdev.gui.newtabwidget" class="NewTabWidget" container="True"/>
+	<plugin module="blurdev.scintilla.documenteditor" class="DocumentEditor"/>
+	<plugin module="blurdev.gui.workboxwidget" class="WorkboxWidget"/>
+	<plugin module="blurdev.gui.console" class="ConsoleEdit"/>
+</plugins>

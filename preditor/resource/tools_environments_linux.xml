@@ -1,0 +1,11 @@
+<?xml version='1.0'?>
+<tools_environments version="1.0" name="Builtin">
+    <!-- load local user environments -->
+    <include loc="~/.blur/user_environments.xml"/>
+    <include loc="/mnt/dev/dev/share_all/studio_environments_linux.xml"/>
+    <!-- load studio standard environments -->
+    <environment default="True" emailOnError="errors@blur.com" description="This is the environment you should be using most of the time. It features the code that is meant to be used by artists." loc="/mnt/source/release/lib/python2.7/site-packages" name="Release"/>
+    <environment emailOnError="errors@blur.com" description="Very similar to Release but is exposing code that we plan to release soon." loc="/mnt/source/rc/lib/python2.7/site-packages" name="Release Candidate"/>
+    <environment emailOnError="errors@blur.com" description="The latest code. Reserved to users who want to beta test newer features." loc="/mnt/source/pre/lib/python2.7/site-packages" name="Pre-Release"/>
+    <environment emailOnError="errors@blur.com" description="Updated each day to match the Release environment from one week ago. You can switch to this environment if you are experiencing issues with Release." loc="/mnt/source/delayed/lib/python2.7/site-packages" name="Delayed"/>
+</tools_environments>
