@@ -362,7 +362,7 @@ class LoggerWindow(Window):
         # Determine workbox index
         index = None
 
-        # If indicator is True, run last workbox
+        # If indicator is True, run the current workbox
         if isinstance(indicator, bool):
             if indicator:
                 index = workboxCount - 1
@@ -382,7 +382,9 @@ class LoggerWindow(Window):
                     break
         if index is not None:
             workbox = workboxTab.widget(index)
-            if workbox.hasFocus():
+            # if indicator is True, its ok to run the workbox, this option
+            # is passed by the cli to run the current tab
+            if workbox.hasFocus() and indicator is not True:
                 raise Exception("Cannot call current workbox.")
             else:
                 workbox.execAll()
