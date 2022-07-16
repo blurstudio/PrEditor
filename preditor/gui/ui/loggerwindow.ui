@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PythonLoggerWindow</class>
- <widget class="QMainWindow" name="PythonLoggerWindow">
+ <class>PrEditorWindow</class>
+ <widget class="QMainWindow" name="PrEditorWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Python Logger</string>
+   <string>PrEditor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -316,7 +316,7 @@
     <string>&amp;Clear Python Console</string>
    </property>
    <property name="toolTip">
-    <string>Clears the top section of the Python Logger. This does not clear the workbox.</string>
+    <string>Clears the top section of PrEditor. This does not clear the workbox.</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+Shift+D</string>
@@ -572,7 +572,7 @@
   </action>
   <action name="uiPythonLoggerShortcutACT">
    <property name="text">
-    <string>Python Logger</string>
+    <string>PrEditor</string>
    </property>
   </action>
   <action name="uiBlurIdeShortcutACT">

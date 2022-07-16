@@ -13,7 +13,6 @@ import socket
 import string
 
 # blur imports
-from .. import core
 from ..contexts import ErrorReport
 
 _host_information = None
@@ -95,6 +94,7 @@ def get_environment_information(refresh=False):
         OrderedDict: various data regarding environment
     """
     global _environment_information
+    from .. import core
 
     if _environment_information is None or refresh:
 
@@ -311,6 +311,7 @@ class ErrorEmail(object):
         Returns:
             str: unique "The Pipe" email address derived from subject
         """
+        from .. import core
         return core.emailAddressMd5Hash(self.subject())
 
     def subject(self, max_length=150):
@@ -384,6 +385,7 @@ class ErrorEmail(object):
         Args:
             recipients (list): email addresses of recipients for error email
         """
+        from .. import core
         core.sendEmail(
             self.sender(), recipients, self.subject(), self.message()
         )

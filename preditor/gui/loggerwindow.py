@@ -306,7 +306,7 @@ class LoggerWindow(Window):
 
         self.uiConsoleTOOLBAR.show()
         loggerName = QApplication.instance().translate(
-            'PythonLoggerWindow', 'Python Logger'
+            'PrEditorWindow', 'PrEditor'
         )
         self.setWindowTitle(
             '%s - %s - %s %i-bit'
