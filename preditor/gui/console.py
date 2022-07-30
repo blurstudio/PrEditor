@@ -17,7 +17,7 @@ from Qt.QtCore import QPoint, Qt
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
-from .. import core, debug
+from .. import debug, settings
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
 from pillar import stream
@@ -64,7 +64,8 @@ class ConsoleEdit(QTextEdit):
         self._firstShow = True
 
         # When executing code, that takes longer than this seconds, flash the window
-        self.flashTime = 1.0
+        self.flash_time = 1.0
+        self.flash_window = None
 
         # Store previous commands to retrieve easily
         self._prevCommands = []
@@ -351,10 +352,15 @@ class ConsoleEdit(QTextEdit):
             cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
         else:
             exec(compiled, __main__.__dict__, __main__.__dict__)
+
         # Provide user feedback when running long code execution.
         delta = time.time() - startTime
-        if self.flashTime and delta >= self.flashTime:
-            core.flashWindow()
+        if self.flash_window and self.flash_time and delta >= self.flash_time:
+            if settings.OS_TYPE == "Windows":
+                from casement import utils
+                hwnd = int(self.flash_window.winId())
+                utils.flash_window(hwnd)
+
         # Report the total time it took to execute this code.
         if self.reportExecutionTime is not None:
             self.reportExecutionTime(delta)

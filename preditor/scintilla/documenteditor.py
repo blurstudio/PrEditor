@@ -32,7 +32,7 @@ from Qt import QtCompat
 from collections import OrderedDict
 
 from . import lang
-from .. import core, osystem, resourcePath
+from .. import osystem, resourcePath
 from ..debug import debugMsg, DebugLevel
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
@@ -132,7 +132,9 @@ class DocumentEditor(QsciScintilla):
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
         self.selectionChanged.connect(self.updateSelectionInfo)
-        core.styleSheetChanged.connect(self.updateColorScheme)
+        window = self.window()
+        if hasattr(window, 'openFileMonitor'):
+            window.styleSheetChanged.connect(self.updateColorScheme)
 
         # Create shortcuts
         icon = QIcon(resourcePath('img/ide/copy.png'))

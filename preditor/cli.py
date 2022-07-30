@@ -1,6 +1,8 @@
 import click
 import os
 
+from casement.app_id import AppId
+
 
 @click.command()
 @click.option(
@@ -18,13 +20,12 @@ def main(run_workbox):
     else:
         kwargs = None
 
-    from preditor import setAppUserModelID, launch
+    from preditor import launch
     from preditor.gui.loggerwindow import LoggerWindow
 
-    # Set the app user model id here not in the LoggerWindow.__init__ so
-    # if a external treegrunt tool calls setAppUserModelID then adds the
-    # logger it won't change the id to PythonLogger.
-    setAppUserModelID('PythonLogger')
+    # Set the app user model id here not in the window class so it doesn't
+    # try to set the app id for applications that already set the app id.
+    AppId.set_for_application("Preditor")
     launch(LoggerWindow.instance, coreName='logger', kwargs=kwargs)
 
 

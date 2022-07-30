@@ -11,7 +11,15 @@ import warnings
 from datetime import datetime, timedelta
 from functools import partial
 
-from Qt.QtCore import Qt, QByteArray, QFileSystemWatcher, QFileInfo, QTimer, QSize
+from Qt.QtCore import (
+    Qt,
+    QByteArray,
+    QFileSystemWatcher,
+    QFileInfo,
+    QTimer,
+    QSize,
+    Signal,
+)
 from Qt import QtCore, QtWidgets
 from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
@@ -29,7 +37,8 @@ from Qt.QtWidgets import (
 
 from Qt import QtCompat
 
-from .. import core, osystem, resourcePath, debug
+from .. import core, debug, osystem, resourcePath
+from ..utils import stylesheets
 from ..gui import Window, Dialog, loadUi
 from ..logger import saveLoggerConfiguration
 from ..prefs import prefs_path
@@ -44,6 +53,7 @@ import __main__
 
 class LoggerWindow(Window):
     _instance = None
+    styleSheetChanged = Signal(str)
 
     def __init__(self, parent, runWorkbox=False):
         super(LoggerWindow, self).__init__(parent=parent)
@@ -61,6 +71,7 @@ class LoggerWindow(Window):
         self.setWindowIcon(QIcon(resourcePath('img/python_logger.png')))
         loadUi(__file__, self)
 
+        self.uiConsoleTXT.flash_window = self
         self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
         self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
         self.updatePdbVisibility(False)
@@ -297,7 +308,7 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.selectFont, action))
 
         # add stylesheet menu options.
-        for style_name in core.styleSheets('logger'):
+        for style_name in stylesheets.stylesheets('logger'):
             action = self.uiStyleMENU.addAction(style_name)
             action.setObjectName('ui{}ACT'.format(style_name))
             action.setCheckable(True)
@@ -305,9 +316,7 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.setStyleSheet, style_name))
 
         self.uiConsoleTOOLBAR.show()
-        loggerName = QApplication.instance().translate(
-            'PrEditorWindow', 'PrEditor'
-        )
+        loggerName = QApplication.instance().translate('PrEditorWindow', 'PrEditor')
         self.setWindowTitle(
             '%s - %s - %s %i-bit'
             % (
@@ -630,21 +639,6 @@ class LoggerWindow(Window):
     def closeLogger(self):
         self.close()
 
-    def createShortcut(self, function):
-        msg = (
-            'Do you want to create a public shortcut? If not it will be '
-            'created on your user desktop.'
-        )
-        result = QMessageBox.question(
-            self,
-            'Create On Public?',
-            msg,
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
-        )
-        if result != QMessageBox.Cancel:
-            public = result == QMessageBox.Yes
-            function(common=int(public))
-
     def execAll(self):
         """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
@@ -717,7 +711,7 @@ class LoggerWindow(Window):
                 'textEditorPath': self.textEditorPath,
                 'textEditorCmdTempl': self.textEditorCmdTempl,
                 'currentStyleSheet': self._stylesheet,
-                'flashTime': self.uiConsoleTXT.flashTime,
+                'flash_time': self.uiConsoleTXT.flash_time,
             }
         )
 
@@ -870,7 +864,7 @@ class LoggerWindow(Window):
             self.setStyleSheet(prefs.get('styleSheet', ''))
         else:
             self.setStyleSheet(self._stylesheet)
-        self.uiConsoleTXT.flashTime = prefs.get('flashTime', 1.0)
+        self.uiConsoleTXT.flash_time = prefs.get('flash_time', 1.0)
 
         self.restoreToolbars(prefs=prefs)
 
@@ -959,7 +953,7 @@ class LoggerWindow(Window):
             self._stylesheet = stylesheet
         else:
             # Try to find an installed stylesheet with the given name
-            sheet, valid = core.readStyleSheet('logger/{}'.format(stylesheet))
+            sheet, valid = stylesheets.read_stylesheet('logger/{}'.format(stylesheet))
             if valid:
                 self._stylesheet = stylesheet
             else:
@@ -978,7 +972,7 @@ class LoggerWindow(Window):
             act.setChecked(isCurrent)
 
         # Notify widgets that the styleSheet has changed
-        core.styleSheetChanged.emit(core.styleSheet())
+        self.styleSheetChanged.emit(stylesheet)
 
     def setCaseSensitive(self, state):
         """Set completer case-sensivity"""
@@ -1060,7 +1054,7 @@ class LoggerWindow(Window):
         self.uiRunAllACT.setIcon(QIcon(resourcePath('img/logger/play.png')))
 
     def setFlashWindowInterval(self):
-        value = self.uiConsoleTXT.flashTime
+        value = self.uiConsoleTXT.flash_time
         msg = (
             'If running code in the logger takes X seconds or longer,\n'
             'the window will flash if it is not in focus.\n'
@@ -1068,7 +1062,7 @@ class LoggerWindow(Window):
         )
         value, success = QInputDialog.getDouble(self, 'Set flash window', msg, value)
         if success:
-            self.uiConsoleTXT.flashTime = value
+            self.uiConsoleTXT.flash_time = value
 
     def setWordWrap(self, state):
         if state:

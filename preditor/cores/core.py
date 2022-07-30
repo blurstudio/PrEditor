@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 import sys
 import os
-import glob
 
 from Qt.QtCore import QDateTime, QObject, Signal
 from Qt.QtWidgets import (
@@ -13,7 +12,6 @@ from Qt.QtWidgets import (
 )
 import sentry_bootstrap
 
-from .. import osystem
 from .. import settings
 from ..utils.error import sentry_before_send_callback
 
@@ -27,7 +25,6 @@ class Core(QObject):
     # ----------------------------------------------------------------
     # blurdev signals
     aboutToClearPaths = Signal()  # Emitted before environment is changed or reloaded
-    styleSheetChanged = Signal(str)
 
     # ----------------------------------------------------------------
 
@@ -38,27 +35,14 @@ class Core(QObject):
         QObject.setObjectName(self, objectName)
 
         # create custom properties
-        self._protectedModules = []
         self._hwnd = hwnd
         self._logger = None
-        self._stylesheet = None
         self._headless = False
-        self._useAppUserModelID = None
         self._rootWindow = None
-
-        # Applications like 3ds Max 2018 use stylesheets, when blurdev installs custom
-        # stylesheets it will automatically add this to the start of that stylesheet.
-        # This makes it so we don't have to include that stylesheet info into our
-        # stylesheets, but still don't cause horrible eye gouging things to happen to
-        # the application.
-        self._defaultStyleSheet = ''
 
         # Paths in this variable will be removed in
         # preditor.osystem.subprocessEnvironment
         self._removeFromPATHEnv = set()
-        self.environment_override_filepath = os.environ.get(
-            'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', ''
-        )
 
     def aboutBlurdev(self):
         """Useful info about blurdev and its dependencies as a string."""
@@ -118,47 +102,6 @@ class Core(QObject):
             return 'Plastique'
         return 'Fusion'
 
-    def flashWindow(self, window=None, dwFlags=None, count=1, timeout=0, hwnd=None):
-        """Flashes the application depending on the os.
-
-        On Windows this calls FlashWindowEx. See this documentation.
-        http://docs.activestate.com/activepython/2.7/pywin32/win32gui__FlashWindowEx_meth.html
-        https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx
-
-        Args: window (QWidget|None): This widget will be flashed. Attempts to get the
-            hwnd from this widget. Note: This is ignored if hwnd is passed in.
-
-            dwFlags (preditor.osystem.FlashTimes): A enum value used to control the
-                flashing behavior. See
-                https://msdn.microsoft.com/en-us/library/ms679348(v=vs.85).aspx for more
-                details. Defaults to FLASHW_TIMERNOFG.
-
-            count (int): The number of times to flash the window. Defaults to 1.
-
-            timeout (int): The rate at which the window is to be flashed in
-                milliseconds. if zero is passed, the default cursor blink rate is used.
-
-            hwnd (int or None): Flash this hwnd. If None(default) it will flash window
-                if provided, otherwise it will flash preditor.core.rootWindow().
-
-        Returns:
-            bool: Was anything attempted. On windows this always returns True.
-        """
-        if settings.OS_TYPE == 'Windows':
-            import ctypes
-
-            if dwFlags is None:
-                dwFlags = osystem.FlashTimes.FLASHW_TIMERNOFG
-            if hwnd is None:
-                if window is None:
-                    hwnd = self.rootWindow().winId().__int__()
-                else:
-                    hwnd = window.winId().__int__()
-
-            ctypes.windll.user32.FlashWindow(hwnd, int(dwFlags), count, timeout)
-            return True
-        return False
-
     def errorCoreText(self):
         """Returns text that is included in the error email for the active core.
         Override in subclasses to provide extra data. If a empty string is returned
@@ -205,28 +148,9 @@ class Core(QObject):
         apart allows the gui-dependant initialization to be delayed in applications
         where that is necessary by overloading init().
         """
-        # register protected modules
-        # do not want to affect this module during environment switching
-        self.protectModule('blurdev')
-        # we should never remove main. If we do in specific cases it will prevent
-        # external tools from running if they use "if __name__ == '__main__':" as
-        # __name__ will return None
-        self.protectModule('__main__')
-        # Pillar is used by blurdev so reloading it breaks preditor. Devs may have pillar
-        # in their tools virtualenv to aid in installing other pip packages.
-        self.protectModule('pillar')
-        # pkg_resources is found in the tools virtualenv and we use it when switching
-        self.protectModule('pkg_resources')
-
         # initialize sentry client
         sentry_bootstrap.init_sentry(force=True)
         sentry_bootstrap.add_external_callback(sentry_before_send_callback)
-
-        # Gets the override filepath, it is defined this way, instead of
-        # being defined in the class definition, so that we can change this
-        # path, or remove it entirely for offline installs.
-        # self.environment_override_filepath = os.environ.get(
-        #     'BDEV_ENVIRONMENT_OVERRIDE_FILEPATH', '')
 
         # initialize the application
         app = QApplication.instance()
@@ -265,21 +189,6 @@ class Core(QObject):
         from ..gui.loggerwindow import LoggerWindow
 
         return LoggerWindow.instance(parent)
-
-    def protectModule(self, moduleName):
-        """
-        Registers the inputed module name for protection from tools environment
-        switching
-        """
-        key = str(moduleName)
-        if key not in self._protectedModules:
-            self._protectedModules.append(str(moduleName))
-
-    def protectedModules(self):
-        """
-        Returns the modules that should not be affected when a tools environment changes
-        """
-        return self._protectedModules
 
     def rootWindow(self):
         """
@@ -443,112 +352,6 @@ class Core(QObject):
 
             raise
 
-    def readStyleSheet(self, stylesheet='', path=None):
-        """Returns the contents of the requested stylesheet.
-
-        Args:
-
-            stylesheet (str): the name of the stylesheet. Attempt to load stylesheet.css
-                shipped with preditor. Ignored if path is provided.
-
-            path (str): Return the contents of this file path.
-
-        Returns:
-            str: The contents of stylesheet or blank if stylesheet was not found.
-            valid: A stylesheet was found and loaded.
-        """
-        if path is None:
-            path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                'resource',
-                'stylesheet',
-                '{}.css'.format(stylesheet),
-            )
-        if os.path.isfile(path):
-            with open(path) as f:
-                return f.read(), True
-        return '', False
-
-    def setStyleSheet(self, stylesheet, recordPrefs=True):
-        """Accepts the name of a stylesheet included with blurdev, or a full
-        path to any stylesheet.  If given None, it will remove the
-        stylesheet.
-        """
-
-        def mergeDefaultStyleSheet(newSheet):
-            """If the core has backed up a stylesheet, always include it."""
-            return self._defaultStyleSheet + newSheet
-
-        app = QApplication.instance()
-        if app and isinstance(
-            app, QApplication
-        ):  # Don't set stylesheet if QCoreApplication
-            if stylesheet is None or stylesheet == 'None':
-                app.setStyleSheet(mergeDefaultStyleSheet(''))
-                self._stylesheet = None
-            elif os.path.isfile(stylesheet):
-                with open(stylesheet) as f:
-                    app.setStyleSheet(mergeDefaultStyleSheet(f.read()))
-                self._stylesheet = stylesheet
-            else:
-                # Try to find an installed stylesheet with the given name
-                sheet, valid = self.readStyleSheet(stylesheet)
-                if valid:
-                    self._stylesheet = stylesheet
-                app.setStyleSheet(mergeDefaultStyleSheet(sheet))
-                path = self.styleSheetPath(stylesheet)
-                if os.path.isfile(path):
-                    with open(path) as f:
-                        app.setStyleSheet(mergeDefaultStyleSheet(f.read()))
-                    self._stylesheet = stylesheet
-
-        if self.objectName() != 'blurdev':
-            # Storing the stylesheet as an environment variable for other external
-            # tools.
-            os.environ['BDEV_STYLESHEET'] = str(stylesheet)
-
-        # Notify widgets of the stylesheet change
-        self.styleSheetChanged.emit(str(stylesheet))
-
-    def styleSheetPath(self, styleSheet, subFolder=None):
-        if not styleSheet or styleSheet == 'None':
-            return ''
-        components = [
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'resource',
-            'stylesheet',
-        ]
-        if subFolder is not None:
-            components.append(subFolder)
-        components.append('{}.css'.format(styleSheet))
-        return os.path.join(*components)
-
-    def styleSheet(self):
-        """Returns the name of the current stylesheet."""
-        return self._stylesheet
-
-    def styleSheets(self, subFolder=None):
-        """Returns a list of installed stylesheet names.
-
-        Args:
-            subFolder (str or None, optional): Use this to access sub-folders of
-                the stylesheet resource directory.
-
-        Returns:
-            list: A list .css file paths in the target directory.
-        """
-        components = [
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-            'resource',
-            'stylesheet',
-        ]
-        if subFolder is not None:
-            components.append(subFolder)
-        cssdir = os.path.join(*components)
-        cssfiles = sorted(glob.glob(os.path.join(cssdir, '*.css')))
-        # Only return the filename without the .css extension
-        return [os.path.splitext(os.path.basename(fp))[0] for fp in cssfiles]
-
     def shutdown(self):
         if QApplication.instance():
             QApplication.instance().closeAllWindows()
@@ -563,14 +366,6 @@ class Core(QObject):
         logger.activateWindow()
         logger.raise_()
         logger.console().setFocus()
-
-    def unprotectModule(self, moduleName):
-        """
-        Removes the inputed module name from protection from tools environment switching
-        """
-        key = str(moduleName)
-        while key in self._protectedModules:
-            self._protectedModules.remove(key)
 
     def updateApplicationName(self, application=None, name=None):
         """Sets the application name based on the environment.
@@ -615,17 +410,3 @@ class Core(QObject):
             None:
         """
         return None
-
-    def useAppUserModelID(self):
-        """Returns a boolean value controlling if calling preditor.setAppUserModelID
-        will do anyting."""
-        # Core subclasses Can simply set _useAppUserModelID to True or False if they
-        # want to blanket enable or disable setAppUserModelID.
-        if self._useAppUserModelID is None:
-            # By default allow all core names. If a specific core name needs to be
-            # excluded, it should be added to this list.
-            return self.objectName() not in ('assfreezer', 'designer')
-        return self._useAppUserModelID
-
-    def setUseAppUserModelID(self, value):
-        self._useAppUserModelID = value

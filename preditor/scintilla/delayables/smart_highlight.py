@@ -5,7 +5,6 @@ from Qt.QtWidgets import QWidget
 from Qt.Qsci import QsciScintilla
 from . import SearchDelayable
 from .. import FindState
-from ... import core
 
 
 class SmartHighlight(SearchDelayable):
@@ -18,7 +17,8 @@ class SmartHighlight(SearchDelayable):
         super(SmartHighlight, self).__init__(engine)
         self.signal_mapper = QSignalMapper(self)
         # Respect style sheet changes
-        core.styleSheetChanged.connect(self.update_indicator_color)
+        # TODO: Correctly connect this signal
+        # LoggerWindow.styleSheetChanged.connect(self.update_indicator_color)
 
     def add_document(self, document):
         document.indicatorDefine(self.indicator_style, self.indicator_number)

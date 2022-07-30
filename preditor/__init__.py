@@ -25,7 +25,7 @@ from Qt.QtWidgets import (  # noqa: E402
 from Qt.QtCore import Qt  # noqa: E402
 
 from .version import version as __version__  # noqa: E402,F401
-from . import settings, osystem  # noqa: E402
+from . import osystem  # noqa: E402
 
 application = None  # create a managed QApplication
 _appHasExec = False
@@ -63,26 +63,13 @@ _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
 
 
-def appUserModelID():
-    """Returns the current Windows 7+ app user model id used for taskbar grouping."""
-    import ctypes
-    from ctypes import wintypes
-
-    lpBuffer = wintypes.LPWSTR()
-    AppUserModelID = ctypes.windll.shell32.GetCurrentProcessExplicitAppUserModelID
-    AppUserModelID(ctypes.cast(ctypes.byref(lpBuffer), wintypes.LPWSTR))
-    appid = lpBuffer.value
-    ctypes.windll.kernel32.LocalFree(lpBuffer)
-    return appid
-
-
 def init():
     os.environ['BDEV_EMAILINFO_PREDITOR_VERSION'] = __version__
     pythonw_print_bugfix()
     global core, application
     # create the core and application
     if not core:
-        from .cores import Core
+        from .cores.core import Core
 
         objectName = None
         _exe = os.path.basename(sys.executable).lower()
@@ -270,47 +257,11 @@ def resourcePath(relpath=''):
     Args:
         relpath (str, optional): The additional path added to the
             preditor/resource folder path.
-    
+
     Returns:
         str: The modified path
     """
     return os.path.join(relativePath(__file__), 'resource', relpath)
-
-
-def setAppUserModelID(appId, prefix='Blur'):
-    """Controls Windows taskbar grouping.
-
-    Specifies a Explicit App User Model ID that Windows 7+ uses to control grouping of
-    windows on the taskbar.  This must be set before any ui is displayed. The best place
-    to call it is in the first widget to be displayed __init__ method.
-
-    See :py:meth:`preditor.osystem.set_app_id_for_shortcut` to set the app id on a
-    windows shortcut.
-
-    Args:
-        appId (str): The id of the application. Should use full camel-case.
-            `http://msdn.microsoft.com/en-us/library/dd378459%28v=vs.85%29.aspx#how`_
-
-        prefix (str, optional): The prefix attached to the id.  For a blur tool called
-            fooBar, the associated appId should be "Blur.FooBar". Defaults to "Blur".
-    """
-
-    if settings.OS_TYPE != 'Windows':
-        return False
-
-    # If this function is run inside other applications, it can cause(unparented) new
-    # sub windows to parent with this id instead of the parent application in windows.
-    # To test: Create a window calling setAppUserModelID before showing it. Use a unique
-    # appId. Then create a unparented window and show it. The unparented window will
-    # appear in a different taskbar group.
-    if not core.useAppUserModelID():
-        return False
-
-    # https://stackoverflow.com/a/27872625
-    import ctypes
-
-    myappid = u'%s.%s' % (prefix, appId)
-    return not ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 
 def signalInspector(item, prefix='----', ignore=None):

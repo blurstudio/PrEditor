@@ -5,27 +5,17 @@ python or Qt modules for cross-platform usage.
 The osystem module provides a number of functions to make dealing with
 paths and other platform-specific things in a more abstract platform-agnostic
 way.
-
-.. data:: EXTENSION_MAP
-
-   Dictionary of (extension: blurdev_enviroment_variable) pairs used by
-   :func:`startfile` to execute scripts and other files.
-   This allows blurdev to associate filetypes with executable targets outside
-   of the normal windows file association mechanism.
-
 """
 
 from __future__ import print_function
 from __future__ import absolute_import
 import os
 import sys
-import types
 import subprocess
 from builtins import str as text
 
 import preditor
 from . import settings
-from .enum import Enum, EnumGroup
 
 
 def getPointerSize():
@@ -56,26 +46,6 @@ def pythonPath(pyw=False, architecture=None):
     # build the path to the python executable. If requested use pythonw instead of
     # python
     return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
-
-
-EXTENSION_MAP = {}
-
-
-def app_id_for_shortcut(shortcut):
-    """Gets the AppUserModel.ID for the given shortcut.
-
-    This will allow windows to group windows with the same app id on a shortcut pinned
-    to the taskbar. Use :py:meth:`preditor.setAppUserModelID` to set the app id for a
-    running application.
-    """
-    if os.path.exists(shortcut):
-        # These imports won't work inside python 2 DCC's
-        from win32com.propsys import propsys
-
-        # Original info from https://stackoverflow.com/a/61714895
-        key = propsys.PSGetPropertyKeyFromName("System.AppUserModel.ID")
-        store = propsys.SHGetPropertyStoreFromParsingName(shortcut)
-        return store.GetValue(key).GetValue()
 
 
 def defaultLogFile(filename='preditorProtocol.log'):
@@ -148,141 +118,6 @@ def expandvars(text, cache=None):
     return output
 
 
-def createShortcut(
-    title,
-    args,
-    startin=None,
-    target=None,
-    icon=None,
-    iconFilename=None,
-    path=None,
-    description='',
-    common=1,
-    app_id=None,
-):
-    """Creates a shortcut.
-
-    Windows: If icon is provided it looks for a .ico file with the same name
-    as the provided icon.  If it can't find a .ico file it will attempt to
-    create one using ImageMagick(http://www.imagemagick.org/).  ImageMagick
-    should be installed to the 32bit program files
-    (64Bit Windows: C:\\Program Files (x86)\\ImageMagick,
-    32Bit Windows: C:\\Program Files\\ImageMagick)
-
-    Args:
-        title (str): the title for the shortcut
-        args (str): argument string to pass to target command
-        startin (str, optional): path where the shortcut should run target command.
-            If None(default) then the dirname for the first argument in args is used.
-            If args is empty, then the dirname of target is used.
-        target (str or None, optional): the target for the shortcut. If None(default)
-            this will default to sys.executable.
-        icon (str or None, optional): path to the icon the shortcut should use
-        path (str or list, optional): path where the shortcut should be created. On
-            windows, if a list is passed it must have at least one string in it and the
-            list will be passed to os.path.join. The first string in the list will be
-            replaced if a key is used. `start menu` is replaced with the path to the
-            start menu. `desktop` is replaced with the path to the desktop. If None the
-            desktop path is used.
-        description (str, optional): helpful description for the shortcut
-        common (int, optional): If auto generating the path, this controls if the path
-            is generated for the user or shared. 1(default) is the public shared folde,
-            while 0 is the users folder. See path to control if the auto-generated path
-            is for the desktop or start menu.
-        app_id (bool, str or None): whether to set app ID on shortcut or not
-    """
-    if settings.OS_TYPE == 'Windows':
-        import winshell
-
-        if isinstance(path, (list, tuple)):
-            base = path[0]
-            if base == 'start menu':
-                base = os.path.join(winshell.start_menu(common), 'Programs')
-            elif base == 'desktop':
-                base = winshell.desktop(common)
-            # Add the remaining path structure
-            path = os.path.join(base, *path[1:])
-        elif not path:
-            path = winshell.desktop(common)
-        # Create any missing folders in the path structure
-        if path and not os.path.exists(path):
-            os.makedirs(path)
-
-        if not target:
-            target = sys.executable
-        if not startin:
-            # Set the start in directory to the directory of the first args if passed
-            # otherwise use the target directory
-            if args:
-                if isinstance(args, (list, tuple)):
-                    startin = os.path.dirname(args[0])
-                else:
-                    startin = os.path.dirname(args)
-            else:
-                startin = os.path.dirname(target)
-
-        if icon:
-            # On Windows "PROGRAMDATA" for all users, "APPDATA" for per user.
-            # See: https://www.microsoft.com/en-us/wdsi/help/folder-variables
-            dirname = 'PROGRAMDATA' if 1 == common else 'APPDATA'
-            dirname = os.getenv(dirname)
-            dirname = os.path.join(dirname, 'blur', 'icons')
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-
-            output = os.path.abspath(
-                os.path.join(dirname, (iconFilename or title) + '.ico')
-            )
-            basename, extension = os.path.splitext(icon)
-            ico = basename + '.ico'
-            if os.path.exists(ico):
-                import shutil
-
-                shutil.copyfile(ico, output)
-            else:
-                from PIL import Image
-
-                Image.open(icon).save(output)
-            icon = output if os.path.exists(output) else None
-
-        shortcut = os.path.join(path, title + '.lnk')
-        # If the shortcut description is longer than 260 characters, the target may end
-        # up with random unicode characters, and the icon is not set properly. The
-        # Properties dialog only shows 259 characters in the description, so we limit
-        # the description to 259 characters.
-        description = description[:259]
-
-        # If args is a list, convert it to a string using subprocess
-        if not isinstance(args, types.StringTypes):
-            args = subprocess.list2cmdline(args)
-        if icon:
-            winshell.CreateShortcut(
-                shortcut,
-                target,
-                Arguments=args,
-                StartIn=startin,
-                Icon=(icon, 0),
-                Description=description,
-            )
-        else:
-            winshell.CreateShortcut(
-                shortcut,
-                target,
-                Arguments=args,
-                StartIn=startin,
-                Description=description,
-            )
-        if app_id is True:
-            app_id = 'Blur.%s' % title.replace(' ', '')
-        if app_id:
-            set_app_id_for_shortcut(shortcut, app_id)
-
-        # Attempt to clear the windows icon cache so icon changes are displayed now
-        subprocess.Popen(
-            ['ie4uinit.exe', '-ClearIconCache'], env=subprocessEnvironment()
-        )
-
-
 def explore(filename, dirFallback=False):
     """Launches the provided filename in the prefered editor for the specific platform.
 
@@ -322,38 +157,6 @@ def explore(filename, dirFallback=False):
     return False
 
 
-def set_app_id_for_shortcut(shortcut, app_id):
-    """Sets AppUserModel.ID info for a windows shortcut.
-
-    Note: This doesn't seem to work on a pinned taskbar shortcut. Set it on a desktop
-    shortcut then pin that shortcut.
-
-    This will allow windows to group windows with the same app id on a shortcut pinned
-    to the taskbar. Use :py:meth:`preditor.setAppUserModelID` to set the app id for a
-    running application.
-
-    Args:
-        shortcut (str): The .lnk filename to set the app id on.
-        app_id (str): The app id to set on the shortcut
-    """
-    if os.path.exists(shortcut):
-        # Original info from https://stackoverflow.com/a/61714895
-
-        # These imports won't work inside python 2 DCC's
-        import pythoncom
-        from win32com.propsys import propsys
-        from win32com.shell import shellcon
-
-        key = propsys.PSGetPropertyKeyFromName("System.AppUserModel.ID")
-        store = propsys.SHGetPropertyStoreFromParsingName(
-            shortcut, None, shellcon.GPS_READWRITE, propsys.IID_IPropertyStore
-        )
-
-        newValue = propsys.PROPVARIANTType(app_id, pythoncom.VT_BSTR)
-        store.SetValue(key, newValue)
-        store.Commit()
-
-
 def subprocessEnvironment(env=None):
     """Returns a copy of the environment that will restore a new python instance to
     current state.
@@ -373,11 +176,6 @@ def subprocessEnvironment(env=None):
     """
     if env is None:
         env = os.environ.copy()
-
-    # Sets the stylesheet env variable so that launched applications can use it.
-    stylesheet = preditor.core.styleSheet()
-    if stylesheet:
-        env['BDEV_STYLESHEET'] = str(stylesheet)
 
     # By default libstone adds "C:\Windows\System32\blur64" or "C:\blur\common" to
     # QApplication.libraryPaths(), setting this env var to a invalid path disables that.
@@ -465,207 +263,6 @@ def subprocessEnvironment(env=None):
         env = temp
 
     return env
-
-
-def startfile(
-    filename, debugLevel=None, basePath='', cmd=None, architecture=None, env=None
-):
-    """Runs the filename.
-
-    Runs the filename in a shell with proper commands given, or passes the command to
-    the shell. (CMD in windows) the current platform
-
-    Args:
-        filename (str): path to the file to execute
-
-        debugLevel (preditor.debug.DebugLevel or None, optional): If not None(default),
-            override for the current value of preditor.debug.debugLevel(). If
-            DebugLevel.High, a persistent terminal will be opened allowing you see the
-            output in case of a crash.
-
-        basePath (str, optional): working directory where the command should be called
-            from.  If None(default), the current working directory is used.
-
-        cmd (str or list or None, optional): This will be passed to subprocess if
-            defined. You can use a couple of % formatting keywords. "%(filepath)s" will
-            be filled with filename. "%(basepath)s" will be filled with basePath.
-
-        architecture (int or None, optional): 32 or 64 bit. If None use system default.
-            Defaults to None
-
-        env (dict, optional): a copy of the environment variables passed to subprocess.
-            If not passed subprocessEnvironment is used.
-
-    Returns: bool or subprocess.Popen: In most cases it should return a Popen object.
-        However if it can't run filename for some reason it will return False. On
-        Windows if it has to resort to calling os.startfile it will return the state of
-        that command.
-    """
-    # determine the debug level
-    debug = blurdev.debug
-
-    success = False
-    filename = str(filename)
-
-    # make sure that the code we're running
-    if not (os.path.isfile(filename) or filename.startswith('http://')):
-        return False
-
-    if debugLevel is None:
-        debugLevel = debug.debugLevel()
-
-    # determine the base path for the system
-    filename = str(filename)
-    if not basePath:
-        basePath = os.path.split(filename)[0]
-
-    # strip out the information we need
-    ext = os.path.splitext(filename)[1]
-    if cmd is None:
-        if ext in (".py", ".pyw"):
-            cmd = (
-                pythonPath(pyw=ext == ".pyw", architecture=architecture)
-                + ' "%(filepath)s"'
-            )
-        else:
-            cmd = expandvars(os.environ.get(EXTENSION_MAP.get(ext, ''), ''))
-
-    options = {'filepath': filename, 'basepath': basePath}
-
-    def formatCmd(cmd, options, prefix=None):
-        if isinstance(cmd, list):
-            if prefix:
-                cmd = prefix + cmd
-            # Do a string format on all items in the list in case they are present.
-            return [c % options for c in cmd]
-        if prefix:
-            cmd = ' '.join(prefix) + ' ' + cmd
-        return cmd % options
-
-    # Pass along the current env and blurdev settings
-    if env is None:
-        env = subprocessEnvironment()
-
-    # if the debug level is high, run the command with a shell in the background
-    if ext == '.sh' or debugLevel == debug.DebugLevel.High:
-        # run it in debug mode for windows
-        if settings.OS_TYPE == 'Windows':
-            if ext == '.pyw':
-                # make sure .pyw files are opened with python.exe, not pythonw.exe so we
-                # can actually debug problems.
-                if isinstance(cmd, list):
-                    cmd[0] = cmd[0].replace('pythonw.exe', 'python.exe', 1)
-                else:
-                    cmd = cmd.replace('pythonw.exe', 'python.exe', 1)
-            if cmd:
-                # NOTE: cmd.exe ignores anything after a newline character.
-                cmd = formatCmd(cmd, options, prefix=['cmd.exe', '/k'])
-                success = subprocess.Popen(cmd, env=env, cwd=basePath)
-            else:
-                success = subprocess.Popen(
-                    'cmd.exe /k "%s"' % filename, env=env, cwd=basePath
-                )
-
-        # run it for Linux systems
-        elif settings.OS_TYPE == 'Linux':
-            debugcmd = expandvars(os.environ.get('BDEV_CMD_SHELL_DEBUG', ''))
-
-            # if there is a command associated with the inputed file, use that
-            if not cmd:
-                cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
-
-            # create a temp shell file
-            temppath = os.environ.get('BDEV_PATH_TEMP', '')
-            if not temppath:
-                return False
-
-            if not os.path.exists(temppath):
-                os.mkdir(temppath)
-
-            # write a temp shell command
-            tempfilename = os.path.join(temppath, 'debug.sh')
-            tempfile = open(tempfilename, 'w')
-            cmd = formatCmd(cmd, options)
-            if isinstance(cmd, list):
-                cmd = ' '.join(cmd)
-            tempfile.write('echo "running command: %s"\n' % cmd)
-            tempfile.write(cmd)
-            tempfile.close()
-
-            # make sure the system can run the file
-            os.system('chmod 0755 %s' % tempfilename)
-
-            # run the file
-            options['filepath'] = tempfilename
-            # TODO: I don't think this successfully passses the env var to the final
-            # command we should probably debug this
-            success = subprocess.Popen(debugcmd % options, env=env, shell=True)
-
-        return success
-    # otherwise run it directly
-    else:
-        # run the command in windows
-        if settings.OS_TYPE == 'Windows':
-            if cmd:
-                success = subprocess.Popen(
-                    formatCmd(cmd, options), shell=True, cwd=basePath, env=env
-                )
-            else:
-                success = subprocess.Popen(
-                    '"%s"' % filename, cwd=basePath, env=env, shell=True
-                )
-            if not success:
-                try:
-                    success = os.startfile(filename)
-                except Exception:
-                    pass
-
-        # in other platforms, we'll use subprocess.Popen
-        else:
-            if cmd:
-                success = subprocess.Popen(formatCmd(cmd, options), env=env, shell=True)
-            else:
-                # If the provided file is marked as executable just run it.
-                if os.access(filename, os.X_OK):
-                    success = subprocess.Popen(filename, env=env, shell=True)
-                else:
-                    cmd = expandvars(os.environ.get('BDEV_CMD_SHELL_EXECFILE', ''))
-                    if not cmd:
-                        return False
-                    success = subprocess.Popen(
-                        formatCmd(cmd, options), env=env, shell=True
-                    )
-    return success
-
-
-class FlashTime(Enum):
-    pass
-
-
-class FlashTimes(EnumGroup):
-    """Windows arguments for preditor.core.flashWindow().
-
-    https://docs.microsoft.com/en-us/windows/desktop/api/winuser/ns-winuser-flashwinfo
-    """
-
-    description = 'Stop flashing. The system restores the window to its original state.'
-    FLASHW_STOP = FlashTime(0, description=description)
-    FLASHW_CAPTION = FlashTime(0x00000001, description='Flash the window caption.')
-    FLASHW_TRAY = FlashTime(0x00000002, description='Flash the taskbar button.')
-    FLASHW_ALL = FlashTime(
-        0x00000003,
-        description=(
-            'Flash both the window caption and taskbar button. '
-            'This is equivalent to setting the FLASHW_CAPTION | FLASHW_TRAY flags.'
-        ),
-    )
-    FLASHW_TIMER = FlashTime(
-        0x00000004, description='Flash continuously, until the FLASHW_STOP flag is set.'
-    )
-    FLASHW_TIMERNOFG = FlashTime(
-        0x0000000C,
-        description='Flash continuously until the window comes to the foreground.',
-    )
 
 
 # --------------------------------------------------------------------------------
