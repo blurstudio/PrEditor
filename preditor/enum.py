@@ -73,6 +73,7 @@ class _MetaEnumGroup(type):
     def __str__(cls):
         return '{0}({1})'.format(cls._clsName, cls.join())
 
+
 # =============================================================================
 
 

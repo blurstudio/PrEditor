@@ -357,6 +357,7 @@ class ConsoleEdit(QTextEdit):
         if self.flash_window and self.flash_time and delta >= self.flash_time:
             if settings.OS_TYPE == "Windows":
                 from casement import utils
+
                 hwnd = int(self.flash_window.winId())
                 utils.flash_window(hwnd)
 
@@ -820,8 +821,7 @@ class ConsoleEdit(QTextEdit):
                 lineNum = info.get("lineNum")
 
                 isWorkbox = (
-                    '<WorkboxSelection>' in filename
-                    or '<WorkboxWidget>' in filename
+                    '<WorkboxSelection>' in filename or '<WorkboxWidget>' in filename
                 )
                 if isWorkbox:
                     split = filename.split(':')

@@ -163,9 +163,7 @@ class BlurExcepthook(object):
         example, uses exceptions to signal tradionally non-exception worthy
         events, such as when a user cancels an Open File dialog window.)
         """
-        self.actions = core.shouldReportException(
-            *exc_info, actions=self.actions
-        )
+        self.actions = core.shouldReportException(*exc_info, actions=self.actions)
 
         self.call_base_excepthook(exc_info)
         if debugLevel() == 0:

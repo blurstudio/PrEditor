@@ -275,9 +275,7 @@ class External(object):
             sys.argv = ['']
         # Get all neccissary info to properly parent, communicate and detect closing
         hwnd = core.hwnd()  # used to parent Qt to parent app
-        compid = (
-            core.uuid()
-        )  # Id used by 3rd party api's to connect to parent app
+        compid = core.uuid()  # Id used by 3rd party api's to connect to parent app
         pid = os.getpid()  # Detect if parent app was closed
 
         self._parentPipe, self._childPipe = Pipe()

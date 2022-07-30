@@ -54,6 +54,7 @@ class Core(QObject):
         )
 
         from .. import __version__, __file__ as pfile
+
         msg = [
             'blurdev: {} ({})'.format(__version__, self.objectName()),
             '    {}'.format(os.path.dirname(pfile)),

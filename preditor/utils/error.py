@@ -312,6 +312,7 @@ class ErrorEmail(object):
             str: unique "The Pipe" email address derived from subject
         """
         from .. import core
+
         return core.emailAddressMd5Hash(self.subject())
 
     def subject(self, max_length=150):
@@ -386,6 +387,5 @@ class ErrorEmail(object):
             recipients (list): email addresses of recipients for error email
         """
         from .. import core
-        core.sendEmail(
-            self.sender(), recipients, self.subject(), self.message()
-        )
+
+        core.sendEmail(self.sender(), recipients, self.subject(), self.message())

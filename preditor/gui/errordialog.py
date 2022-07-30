@@ -14,7 +14,6 @@ from .redmine_login_dialog import RedmineLoginDialog
 
 
 class ErrorDialog(Dialog):
-
     def __init__(self, parent):
         super(ErrorDialog, self).__init__(parent)
 
@@ -57,6 +56,7 @@ class ErrorDialog(Dialog):
 
     def showLogger(self):
         from .loggerwindow import LoggerWindow
+
         inst = LoggerWindow.instance()
         inst.show()
         self.close()
