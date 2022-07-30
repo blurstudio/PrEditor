@@ -113,7 +113,7 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
         if clearLog:
             sys.stdout.clear(stamp=True)
 
-    from pillar.streamhandler_helper import StreamHandlerHelper
+    from .streamhandler_helper import StreamHandlerHelper
 
     # Update any StreamHandler's that were setup using the old stdout/err
     if stdout:

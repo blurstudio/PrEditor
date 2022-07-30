@@ -17,11 +17,10 @@ from Qt.QtCore import QPoint, Qt
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
-from .. import debug, settings
+from .. import debug, settings, stream
+from ..streamhandler_helper import StreamHandlerHelper
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
-from pillar import stream
-from pillar.streamhandler_helper import StreamHandlerHelper
 
 
 class ConsoleEdit(QTextEdit):

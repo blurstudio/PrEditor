@@ -1304,7 +1304,7 @@ class LoggerWindow(Window):
         """
         if self._logToFilePath is None:
             path = osystem.defaultLogFile()
-            path, _ = QtCompat.QFileDialog.getOpenFileName(
+            path, _ = QtCompat.QFileDialog.getSaveFileName(
                 self, "Log Output to File", path
             )
             if not path:
