@@ -4,10 +4,6 @@ from builtins import str as text
 import re
 from Qt.Qsci import QsciLexerCustom
 
-import sys
-
-py26orNewer = sys.hexversion >= 0x02060000
-
 MS_KEYWORDS = """
 if then else not and or key collect
 do while for in with where
@@ -83,9 +79,8 @@ class MaxscriptLexer(QsciLexerCustom):
 
     def processChunk(self, chunk, lastState, keywords):
         # process the length of the chunk
-        if py26orNewer:
-            if isinstance(chunk, bytearray):
-                chunk = chunk.decode('utf8')
+        if isinstance(chunk, bytearray):
+            chunk = chunk.decode('utf8')
         length = len(chunk)
 
         # check to see if our last state was a block comment
@@ -198,12 +193,8 @@ class MaxscriptLexer(QsciLexerCustom):
         CURRFOLDLEVEL = QsciScintilla.SC_FOLDLEVELBASE
 
         if end > start:
-            if py26orNewer:
-                # faster when styling big files, but needs python 2.6
-                source = bytearray(end - start)
-                editor.SendScintilla(editor.SCI_GETTEXTRANGE, start, end, source)
-            else:
-                source = text(editor.text()).encode('utf-8')[start:end]
+            source = bytearray(end - start)
+            editor.SendScintilla(editor.SCI_GETTEXTRANGE, start, end, source)
 
         if not source:
             return

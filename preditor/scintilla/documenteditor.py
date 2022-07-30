@@ -114,7 +114,6 @@ class DocumentEditor(QsciScintilla):
         self._dialogShown = False
         # used to store perminately highlighted keywords
         self._permaHighlight = []
-        self._highlightedKeywords = ''
         self.setSmartHighlightingRegEx()
 
         # intialize settings
@@ -969,13 +968,6 @@ class DocumentEditor(QsciScintilla):
         if not isinstance(value, list):
             raise TypeError('PermaHighlight must be a list')
 
-    #        lexer = self.lexer()
-    #        if self._smartHighlightingSupported:
-    #            self._permaHighlight = value
-    #            self.setHighlightedKeywords(lexer, self._highlightedKeywords)
-    #        else:
-    #            raise TypeError('PermaHighlight is not supported by this lexer.')
-
     def refreshToolTip(self):
         # TODO: This will proably be removed once I add a user interface to
         # additionalFilenames.
@@ -1732,8 +1724,6 @@ class DocumentEditor(QsciScintilla):
                     if selection[1] and selection[1] != -1:
                         if validator.findall(text[selection[1] - 1]) == []:
                             return
-            # Make the lexer highlight words
-            self.setHighlightedKeywords(lexer, selectedText)
 
     def updateSelectionInfo(self):
         window = self.window()
@@ -1767,28 +1757,6 @@ class DocumentEditor(QsciScintilla):
 
     def setAutoReloadOnChange(self, state):
         self._autoReloadOnChange = state
-
-    def setHighlightedKeywords(self, lexer, keywords):
-        """Updates the lexers highlighted keywords
-
-        Args:
-            lexer (QSciLexer): Update this lexer and set as the lexer on the document.
-            keywords (str): keywords to highlight
-        """
-
-    #        self.updateColorScheme()
-    #        self._highlightedKeywords = keywords
-    #        lexer.highlightedKeywords = ' '.join(self._permaHighlight + [keywords])
-    #
-    #        # Clearing the lexer before re-setting the lexer seems to fix the
-    #          scroll/jump issue
-    #        # when using smartHighlighting near the end of the document.
-    #        self.setLexer(None)
-    #        self.setLexer(lexer)
-    #        # repaint appears to fix the problem with text being squashed when
-    #          smartHighlighting
-    #        # is activated by clicking and draging to select text.
-    #        self.repaint()
 
     def indentSelection(self, all=False):
         if all:

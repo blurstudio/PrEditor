@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 import inspect
 import re
-import sys                    
+import sys
 
 from enum import Enum
 
