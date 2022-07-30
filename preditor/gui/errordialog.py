@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 import getpass
 import os
 import traceback
@@ -8,8 +9,8 @@ from Qt.QtGui import QPixmap
 from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
 
-from . import Dialog, loadUi
 from .. import __file__ as pfile
+from . import Dialog, loadUi
 from .redmine_login_dialog import RedmineLoginDialog
 
 

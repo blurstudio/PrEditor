@@ -6,15 +6,15 @@ The osystem module provides a number of functions to make dealing with
 paths and other platform-specific things in a more abstract platform-agnostic
 way.
 """
+from __future__ import absolute_import, print_function
 
-from __future__ import print_function
-from __future__ import absolute_import
 import os
-import sys
 import subprocess
+import sys
 from builtins import str as text
 
 import preditor
+
 from . import settings
 
 

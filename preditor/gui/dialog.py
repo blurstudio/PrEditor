@@ -1,6 +1,7 @@
 from __future__ import absolute_import
-from Qt.QtWidgets import QDialog
+
 from Qt.QtCore import Qt
+from Qt.QtWidgets import QDialog
 
 from .. import core, relativePath
 
@@ -85,6 +86,7 @@ class Dialog(QDialog):
         # attempt to set the dialog icon
         import os
         import sys
+
         from Qt.QtGui import QIcon
 
         try:

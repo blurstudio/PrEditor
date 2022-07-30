@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from ..gui import Dialog, loadUi
 from .documenteditor import SearchOptions
 

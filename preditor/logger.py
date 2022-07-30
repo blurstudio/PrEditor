@@ -1,17 +1,14 @@
-# standard library imports
 from __future__ import absolute_import
+
 import json
 import logging
 import os
 import shutil
 import sys
 
-# third-party imports
 from signalslot import Signal
 
-# blur imports
 from .prefs import prefs_path
-
 
 CORE_MAPPINGS = {
     "fusion": ["fusion"],

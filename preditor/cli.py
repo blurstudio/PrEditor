@@ -1,10 +1,12 @@
 from __future__ import absolute_import
-import click
-from click_default_group import DefaultGroup
-from distutils.spawn import find_executable
+
 import logging
 import os
 import sys
+from distutils.spawn import find_executable
+
+import click
+from click_default_group import DefaultGroup
 
 import preditor
 from preditor.settings import OS_TYPE

@@ -1,10 +1,12 @@
-from __future__ import print_function
-import sys
-import pytest
-from blurdev.ide.delayables import Delayable, RangeDelayable
-from blurdev.ide.delayable_engine import DelayableEngine
-from blurdev.ide.documenteditor import DocumentEditor
+from __future__ import absolute_import, print_function
 
+import sys
+
+import pytest
+
+from preditor.scintilla.delayable_engine import DelayableEngine
+from preditor.scintilla.delayables import Delayable, RangeDelayable
+from preditor.scintilla.documenteditor import DocumentEditor
 
 # TODO: Re-enable these tests once they work on the gitlab runners
 pytestmark = pytest.mark.skipif(

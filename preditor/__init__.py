@@ -1,31 +1,26 @@
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-# Override the base logging class.
 from . import logger
 
+# Override the base logging class.
 logger.patchLogger()
 
 # this variable will be set when loading information for documentation purposes
 __DOCMODE__ = False
 
+import copy  # noqa: E402
+import logging  # noqa: E402
+
 # track the install path
 import os  # noqa: E402
 import sys  # noqa: E402
-import copy  # noqa: E402
-import logging  # noqa: E402
 import weakref  # noqa: E402
 
-from Qt.QtWidgets import (  # noqa: E402
-    QDialog,
-    QDockWidget,
-    QMainWindow,
-    QVBoxLayout,
-)
 from Qt.QtCore import Qt  # noqa: E402
+from Qt.QtWidgets import QDialog, QDockWidget, QMainWindow, QVBoxLayout  # noqa: E402
 
-from .version import version as __version__  # noqa: E402,F401
 from . import osystem  # noqa: E402
+from .version import version as __version__  # noqa: E402,F401
 
 application = None  # create a managed QApplication
 _appHasExec = False

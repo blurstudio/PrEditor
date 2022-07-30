@@ -1,8 +1,7 @@
 """Handlers are classes that process the command and arguments into functioning
 code.
 """
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 
 class InvalidHandlerError(Exception):

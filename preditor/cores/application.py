@@ -1,8 +1,10 @@
 from __future__ import absolute_import
+
 import sys
+
 import Qt
-from Qt.QtWidgets import QApplication
 from Qt.QtCore import QCoreApplication, Signal
+from Qt.QtWidgets import QApplication
 
 
 class CoreApplication(QCoreApplication):

@@ -1,8 +1,6 @@
 """ LoggerWindow class is an overloaded python interpreter for preditor"""
+from __future__ import absolute_import, print_function
 
-from __future__ import print_function
-from __future__ import absolute_import
-import __main__
 import os
 import re
 import string
@@ -12,6 +10,7 @@ import time
 import traceback
 from builtins import str as text
 
+import __main__
 from Qt import QtCompat
 from Qt.QtCore import QPoint, Qt
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument

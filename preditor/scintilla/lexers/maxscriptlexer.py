@@ -1,7 +1,9 @@
 from __future__ import absolute_import
-from future.utils import iteritems
-from builtins import str as text
+
 import re
+from builtins import str as text
+
+from future.utils import iteritems
 from Qt.Qsci import QsciLexerCustom
 
 MS_KEYWORDS = """
@@ -39,8 +41,8 @@ class MaxscriptLexer(QsciLexerCustom):
         return self._styles.get(style, '')
 
     def defaultColor(self, style):
-        from Qt.QtGui import QColor
         from Qt.QtCore import Qt
+        from Qt.QtGui import QColor
 
         if style in (self.Comment, self.CommentLine):
             return QColor(40, 160, 40)

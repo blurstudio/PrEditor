@@ -1,8 +1,11 @@
 from __future__ import absolute_import
-from preditor.stream import Director, Manager, install_to_std
+
+import sys
+
 import pytest
 import six
-import sys
+
+from preditor.stream import Director, Manager, install_to_std
 
 
 @pytest.fixture

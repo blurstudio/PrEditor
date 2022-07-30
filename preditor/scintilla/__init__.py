@@ -1,3 +1,6 @@
+from __future__ import absolute_import
+
+
 class FindState(object):
     """
     Arguments:

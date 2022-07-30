@@ -1,7 +1,9 @@
 from __future__ import absolute_import
+
 import json
 import os
 import re
+
 from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 

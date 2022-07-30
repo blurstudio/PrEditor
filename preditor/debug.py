@@ -28,16 +28,15 @@ The preditor debug module defines a single enumerated type -- :data:`DebugLevel`
    values are Low, Medium, and High
 
 """
+from __future__ import absolute_import, print_function
 
-from __future__ import print_function
-from __future__ import absolute_import
 import datetime
 import inspect
 import os
-import six
 import sys
 import traceback
 
+import six
 from Qt import QtCompat
 
 from . import core
@@ -207,9 +206,9 @@ class BlurExcepthook(object):
         if not self.actions.get("prompt", False):
             return
 
-        from .gui.loggerwindow import LoggerWindow
         from .gui.console import ConsoleEdit
         from .gui.errordialog import ErrorDialog
+        from .gui.loggerwindow import LoggerWindow
 
         instance = LoggerWindow.instance(create=False)
 
@@ -284,7 +283,7 @@ def getPdb():
     """
     global _blurPdb
     if not _blurPdb:
-        from .utils.pdbio import PdbInput, PdbOutput, BlurPdb
+        from .utils.pdbio import BlurPdb, PdbInput, PdbOutput
 
         # Skip these modules because they are not being debugged. Generally this needs
         # to ignore the Logger Window modules because printing causes the next function

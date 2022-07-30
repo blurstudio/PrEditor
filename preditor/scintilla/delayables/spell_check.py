@@ -1,15 +1,15 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
-from __future__ import absolute_import
 import logging
 import re
 import string
 
+from Qt.Qsci import QsciScintilla
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
-from Qt.Qsci import QsciScintilla
-from . import RangeDelayable
+
 from .. import lang
+from . import RangeDelayable
 
 logger = logging.getLogger(__name__)
 

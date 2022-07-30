@@ -1,7 +1,7 @@
-from __future__ import print_function
-from __future__ import absolute_import
-import sys
+from __future__ import absolute_import, print_function
+
 import re
+import sys
 
 try:
     from configparser import ConfigParser

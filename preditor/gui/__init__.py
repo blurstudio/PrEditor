@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 from functools import partial
 
 from Qt.QtCore import Property
@@ -6,8 +7,8 @@ from Qt.QtGui import QKeySequence
 from Qt.QtWidgets import QAction
 
 from .. import core
-from .window import Window  # noqa: F401
 from .dialog import Dialog  # noqa: F401
+from .window import Window  # noqa: F401
 
 
 def QtPropertyInit(name, default, callback=None, typ=None):
@@ -72,8 +73,9 @@ def loadUi(filename, widget, uiname=''):
         uiname (str, optional): Used instead of the basename. This is useful if
             filename is not the same as the ui file you want to load.
     """
-    from Qt import QtCompat
     import os.path
+
+    from Qt import QtCompat
 
     # first, inherit the palette of the parent
     if widget.parent():

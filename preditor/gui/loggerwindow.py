@@ -1,26 +1,27 @@
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
 import itertools
 import json
 import os
 import re
-import six
 import sys
 import time
 import warnings
 from datetime import datetime, timedelta
 from functools import partial
 
+import __main__
+import six
+from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import (
-    Qt,
     QByteArray,
-    QFileSystemWatcher,
     QFileInfo,
-    QTimer,
+    QFileSystemWatcher,
     QSize,
+    Qt,
+    QTimer,
     Signal,
 )
-from Qt import QtCore, QtWidgets
 from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
@@ -35,20 +36,16 @@ from Qt.QtWidgets import (
     QVBoxLayout,
 )
 
-from Qt import QtCompat
-
 from .. import core, debug, osystem, resourcePath
-from ..utils import stylesheets
-from ..gui import Window, Dialog, loadUi
+from ..gui import Dialog, Window, loadUi
 from ..logger import saveLoggerConfiguration
 from ..prefs import prefs_path
 from ..scintilla.delayable_engine import DelayableEngine
+from ..utils import stylesheets
 from .completer import CompleterMode
-from .level_buttons import LoggingLevelButton, DebugLevelButton
+from .level_buttons import DebugLevelButton, LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
 from .workboxwidget import WorkboxWidget
-
-import __main__
 
 
 class LoggerWindow(Window):

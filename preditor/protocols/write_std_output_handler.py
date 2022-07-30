@@ -1,11 +1,12 @@
-from __future__ import print_function
-from __future__ import absolute_import
-import six
+from __future__ import absolute_import, print_function
+
 import sys
+
+import six
 from future.utils import iteritems
 
-from . import BaseProtocolHandler, InvalidHandlerError
 from ..gui.loggerwindow import LoggerWindow
+from . import BaseProtocolHandler, InvalidHandlerError
 
 
 class WriteStdOutputHandler(BaseProtocolHandler):

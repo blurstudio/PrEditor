@@ -1,9 +1,9 @@
 """ Enables support for calling the preditor cli using `python -m preditor`
 """
-
 from __future__ import absolute_import
 
 import sys
+
 import preditor.cli
 
 if __name__ == '__main__':

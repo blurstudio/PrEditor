@@ -2,11 +2,10 @@
 Module for handling user interface preferences
 
 """
-
 from __future__ import absolute_import
+
 import os
 import sys
-
 
 # cache of all the preferences
 _cache = {}

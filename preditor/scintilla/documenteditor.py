@@ -7,35 +7,34 @@
 #   \author     Blur Studio
 #   \date       08/19/10
 #
-
 from __future__ import absolute_import
-import os
+
 import os.path
 import re
-import six
 import string
 import sys
 import time
-
-from Qt.QtCore import QFile, QTextCodec, Qt, Property, Signal, QPoint
-from Qt.Qsci import QsciScintilla
-from Qt.QtGui import QColor, QFont, QIcon, QFontMetrics
-from Qt.QtWidgets import (
-    QApplication,
-    QInputDialog,
-    QMessageBox,
-    QAction,
-    QMenu,
-    QShortcut,
-)
-from Qt import QtCompat
 from collections import OrderedDict
 
-from . import lang
+import six
+from Qt import QtCompat
+from Qt.Qsci import QsciScintilla
+from Qt.QtCore import Property, QFile, QPoint, Qt, QTextCodec, Signal
+from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
+from Qt.QtWidgets import (
+    QAction,
+    QApplication,
+    QInputDialog,
+    QMenu,
+    QMessageBox,
+    QShortcut,
+)
+
 from .. import osystem, resourcePath
-from ..debug import debugMsg, DebugLevel
+from ..debug import DebugLevel, debugMsg
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
+from . import lang
 from .delayable_engine import DelayableEngine
 
 

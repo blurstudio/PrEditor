@@ -12,3 +12,6 @@ version_scheme = "release-branch-semver"
 
 [tool.black]
 skip-string-normalization = true
+
+[tool.isort]
+profile = "black"

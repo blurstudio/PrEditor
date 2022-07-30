@@ -1,9 +1,11 @@
 from __future__ import absolute_import
-from future.utils import iteritems, with_metaclass
+
 import abc
 import re
-from numbers import Number
 from builtins import str as text
+from numbers import Number
+
+from future.utils import iteritems, with_metaclass
 from past.builtins import long
 
 # =============================================================================

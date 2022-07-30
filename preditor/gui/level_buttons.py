@@ -1,15 +1,13 @@
-# standard library imports
 from __future__ import absolute_import
-from functools import partial
-import logging
 
-# third-party imports
+import logging
+from functools import partial
+
 from Qt.QtCore import QSignalMapper
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
-# blur imports
-from .. import resourcePath, debug
+from .. import debug, resourcePath
 from ..enum import Enum, EnumGroup
 from ..logger import LoggerWithSignals
 

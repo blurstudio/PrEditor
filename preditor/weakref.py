@@ -22,10 +22,8 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-
 # Code pulled from the silx codebase
 # https://github.com/silx-kit/silx/blob/master/src/silx/utils/weakref.py
-
 """Weakref utils for compatibility between Python 2 and Python 3 or for
 extended features.
 """
@@ -36,9 +34,9 @@ __license__ = "MIT"
 __date__ = "15/09/2016"
 
 
-import weakref
-import types
 import inspect
+import types
+import weakref
 
 
 def ref(object, callback=None):

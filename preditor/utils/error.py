@@ -1,18 +1,16 @@
 #!/usr/bin/env python
-
-# standard library imports
 from __future__ import absolute_import
-from collections import OrderedDict
-from datetime import datetime
-import os
+
 import getpass
-import traceback
-import sys
+import os
 import platform
 import socket
 import string
+import sys
+import traceback
+from collections import OrderedDict
+from datetime import datetime
 
-# blur imports
 from ..contexts import ErrorReport
 
 _host_information = None
@@ -228,8 +226,8 @@ def highlight_code(code, linenos=False):
         str: valid HTML of syntax-highlighted exception with inline styles
     """
     import pygments
-    from pygments.lexers.python import PythonTracebackLexer
     from pygments.formatters import HtmlFormatter
+    from pygments.lexers.python import PythonTracebackLexer
 
     formatted_code = pygments.highlight(
         "".join(code),

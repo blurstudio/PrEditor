@@ -1,16 +1,11 @@
-from __future__ import print_function
-from __future__ import absolute_import
-import sys
-import os
+from __future__ import absolute_import, print_function
 
-from Qt.QtCore import QDateTime, QObject, Signal
-from Qt.QtWidgets import (
-    QApplication,
-    QDialog,
-    QMainWindow,
-    QSplashScreen,
-)
+import os
+import sys
+
 import sentry_bootstrap
+from Qt.QtCore import QDateTime, QObject, Signal
+from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
 from .. import settings
 from ..utils.error import sentry_before_send_callback
@@ -46,14 +41,11 @@ class Core(QObject):
 
     def aboutBlurdev(self):
         """Useful info about blurdev and its dependencies as a string."""
-        from Qt import (
-            __binding__,
-            __binding_version__,
-            __version__ as qtpy_version,
-            __qt_version__,
-        )
+        from Qt import __binding__, __binding_version__, __qt_version__
+        from Qt import __version__ as qtpy_version
 
-        from .. import __version__, __file__ as pfile
+        from .. import __file__ as pfile
+        from .. import __version__
 
         msg = [
             'blurdev: {} ({})'.format(__version__, self.objectName()),
@@ -159,7 +151,7 @@ class Core(QObject):
 
         if not app:
             # create a new application
-            from ..cores.application import CoreApplication, Application
+            from ..cores.application import Application, CoreApplication
 
             # Check for headless environment's
             if settings.OS_TYPE == 'Linux':
@@ -277,9 +269,9 @@ class Core(QObject):
         """
         try:
             from email import Encoders
-            from email.MIMEText import MIMEText
-            from email.MIMEMultipart import MIMEMultipart
             from email.MIMEBase import MIMEBase
+            from email.MIMEMultipart import MIMEMultipart
+            from email.MIMEText import MIMEText
         except ImportError:
             from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart

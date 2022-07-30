@@ -1,13 +1,15 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from collections import MutableSet, OrderedDict
-import weakref
+from __future__ import absolute_import, print_function
+
 import time
 import warnings
-from Qt.QtCore import QObject, QTimer, Signal
-from Qt import QtCompat
-from .delayables import Delayable
+import weakref
+from collections import MutableSet, OrderedDict
+
 import six
+from Qt import QtCompat
+from Qt.QtCore import QObject, QTimer, Signal
+
+from .delayables import Delayable
 
 
 # https://stackoverflow.com/a/7829569

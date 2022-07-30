@@ -1,11 +1,11 @@
 from __future__ import absolute_import
+
 import inspect
 import re
 import sys
-
 from enum import Enum
 
-from Qt.QtCore import Qt, QRegExp, QSortFilterProxyModel, QStringListModel
+from Qt.QtCore import QRegExp, QSortFilterProxyModel, QStringListModel, Qt
 from Qt.QtGui import QCursor, QTextCursor
 from Qt.QtWidgets import QCompleter, QToolTip
 

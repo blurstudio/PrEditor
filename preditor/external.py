@@ -1,11 +1,12 @@
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
+
+import multiprocessing
 import os
-import six
 import sys
 import time
-import multiprocessing
-from multiprocessing import Process, Pipe
+from multiprocessing import Pipe, Process
+
+import six
 from Qt.QtCore import QTimer
 
 from . import application, core, osystem, startApplication

@@ -1,8 +1,10 @@
 from __future__ import absolute_import
+
 import os
-from . import loadUi
 
 from Qt.QtWidgets import QDialog, QMessageBox
+
+from . import loadUi
 
 
 class SetTextEditorPathDialog(QDialog):
