@@ -5,48 +5,21 @@ from . import logger
 # Override the base logging class.
 logger.patchLogger()
 
-# this variable will be set when loading information for documentation purposes
-__DOCMODE__ = False
-
-import copy  # noqa: E402
 import logging  # noqa: E402
-
-# track the install path
 import os  # noqa: E402
 import sys  # noqa: E402
-import weakref  # noqa: E402
 
+import sentry_bootstrap  # noqa: E402
 from Qt.QtCore import Qt  # noqa: E402
-from Qt.QtWidgets import QDialog, QDockWidget, QMainWindow, QVBoxLayout  # noqa: E402
 
 from . import osystem  # noqa: E402
+from .utils.error import sentry_before_send_callback  # noqa: E402
 from .version import version as __version__  # noqa: E402,F401
-
-application = None  # create a managed QApplication
-_appHasExec = False
-"""
-The blurdev managed QApplication returned from :meth:`Core.init` as part
-of the :mod:`blurdev.cores` system.
-"""
 
 core = None  # create a managed Core instance
 """
 The blurdev managed :class:`Core` object from the :mod:`blurdev.cores` module.
 """
-# Weakref.ref does not accept None, and None is not callable. Passing the lambda
-# ensures the same functionality even if no tool has been launched yet.
-lastLaunched = weakref.ref(lambda: None)
-"""
-This is set any time blurdev.launch is called. It contains the Dialog or Window
-object. This is for debugging, and there is no guarantee that the object has not
-been deleted.
-"""
-
-# To show a splashscreen as soon as possible, the blurdev.protocols system
-# may store a splashscreen here. This will be None unless the protocol
-# system sets it, and it will be cleared the first time blurdev.launch
-# is called. blurdev.gui.splashscreen.randomSplashScreen checks this value
-protocolSplash = None
 
 # Create the root blurdev module logging object.
 _logger = logging.getLogger(__name__)
@@ -61,8 +34,8 @@ _logger.addHandler(logging.NullHandler())
 def init():
     os.environ['BDEV_EMAILINFO_PREDITOR_VERSION'] = __version__
     pythonw_print_bugfix()
-    global core, application
-    # create the core and application
+    global core
+    # create the core
     if not core:
         from .cores.core import Core
 
@@ -74,143 +47,51 @@ def init():
         elif 'assfreezer' in _exe:
             objectName = 'assfreezer'
         core = Core(objectName=objectName)
-        application = core.init()
+
+        # initialize sentry client
+        # TODO: Move this to a plugin/remove it
+        sentry_bootstrap.init_sentry(force=True)
+        sentry_bootstrap.add_external_callback(sentry_before_send_callback)
 
 
-def launch(
-    ctor,
-    modal=False,
-    coreName='external',
-    instance=False,
-    args=None,
-    kwargs=None,
-    splash=None,
-    wrapClass=None,
-    dockWidgetArea=Qt.RightDockWidgetArea,
-):
+def launch(modal=False, run_workbox=False, app_id=None):
+    """Launches the preditor gui creating the QApplication instance if not
+    already created.
+
+    Args:
+        modal (bool, optional): If True, preditor's gui will be created as a
+            modal window (ie. blocks current code execution while its shown).
+        run_workbox (bool, optional): After preditor's gui is shown, run its
+            current workbox text.
+        app_id (str, optional): Set the QApplication's applicationName to this
+            value. This is normally only used when launching a standalone
+            instance of the PrEditor gui.
+
+    Returns:
+        preditor.gui.loggerwindow.LoggerWindow: The instance of the PrEditor
+            gui that was created.
     """
-    This method is used to create an instance of a widget (dialog/window) to
-    be run inside the blurdev system.  Using this function call, blurdev will
-    determine what the application is and how the window should be
-    instantiated, this way if a tool is run as a standalone, a new
-    application instance will be created, otherwise it will run on top
-    of a currently running application.
+    from .gui.app import App
+    from .gui.loggerwindow import LoggerWindow
 
-    :param ctor: callable object that will return a widget instance, usually
-                 a :class:`QWidget` or :class:`QDialog` or a function that
-                 returns an instance of one.
-    :param modal: If True, widget will be created as a modal widget (ie. blocks
-                  access to calling gui elements).
-    :param coreName: string to give to the core if the application is
-                     going to be rooted under this widget
-    :param instance: If subclassed from preditor.gui.Window or Dialog
-                     it will show the existing instance instead of
-                     creating a new instance. Ignored if modal == True.
-    :param kwargs: A dict of keyword arguments to pass to the widget initialization
-    :param wrapClass: launch() requires a subclass of QDialog, QMainWindow or DockWidget
-        to work correctly. If you pass in a widget, it will automatically get wrapped in
-        a Dialog, unless you specify a class using this argument, in which case it will
-        be wrapped by that.
-    :param dockWidgetArea: If ctor is a QDockWidget
-    """
-    global lastLaunched
-    global protocolSplash
+    # Check if we can actually run the PrEditor gui and setup Qt if required
+    app = App(name=app_id)
+    widget = LoggerWindow.instance(run_workbox=run_workbox)
 
-    if application:
-        application.setStyle(core.defaultStyle())
-
-    if instance and hasattr(ctor, 'instance') and not modal:
-        # use the instance method if requested
-        widget = ctor.instance()
-    else:
-        # Handle any url arguments that were passed in using the environment.
-        urlArgs = os.environ.pop('BDEV_URL_ARGS', None)
-        oldkwargs = copy.copy(kwargs)
-        if urlArgs:
-            import cPickle
-
-            urlArgs = cPickle.loads(urlArgs)
-            if kwargs is None:
-                kwargs = urlArgs
-            else:
-                kwargs.update(urlArgs)
-
-        def launchWidget(ctor, args, kwargs):
-            # create the output instance from the class
-            # If args or kwargs are defined, use those.  NOTE that if you pass any
-            # args or kwargs, you will also have to supply the parent, which
-            # preditor.launch previously had always set to None.
-            if args or kwargs:
-                if args is None:
-                    args = []
-                if kwargs is None:
-                    kwargs = {}
-                widget = ctor(*args, **kwargs)
-            else:
-                global core
-                widget = ctor(core.rootWindow())
-            return widget
-
-        try:
-            widget = launchWidget(ctor, args, kwargs)
-        except TypeError:
-            # If url arguments are passed in that the tool doesn't accept, remove them.
-            widget = launchWidget(ctor, args, oldkwargs)
-
-    # Attach the protocolSplash.finish to the widget we are creating and
-    # remove the reference so we don't keep using it.
-    if protocolSplash is not None:
-        protocolSplash.finish(widget)
-        protocolSplash = None
-
-    if splash:
-        splash.finish(widget)
-
-    # If the passed in ctor is not a QDialog, QMainWindow or QDockWidget, wrap it in a
-    # dialog so that it displays correctly. It will get garbage collected and close
-    # otherwise
-    if not isinstance(widget, (QMainWindow, QDialog, QDockWidget)):
-        if wrapClass is not None:
-            dlg = wrapClass(None)
-        else:
-            from .gui.dialog import Dialog
-
-            dlg = Dialog(None)
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        dlg.setLayout(layout)
-        layout.addWidget(widget)
-        dlg.setWindowTitle(widget.windowTitle())
-        dlg.setWindowIcon(widget.windowIcon())
-        widget = dlg
-
-    # Store the last launched tool so a developer can easily find it to experiment with.
-    lastLaunched = weakref.ref(widget)
     # check to see if the tool is running modally and return the result
     if modal:
         widget.exec_()
     else:
-        if isinstance(widget, QDockWidget) and widget.parent() and dockWidgetArea:
-            widget.parent().addDockWidget(dockWidgetArea, widget)
         widget.show()
-        if instance:
-            widget.raise_()
-            widget.setWindowState(
-                widget.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
-            )
-        # run the application if this item controls it and it hasnt been run before
-        startApplication(widget.windowIcon())
+        # If the instance was already shown, raise it to the top and make
+        # it regain focus.
+        widget.raise_()
+        widget.setWindowState(
+            widget.windowState() & ~Qt.WindowMinimized | Qt.WindowActive
+        )
+        app.start()
+
     return widget
-
-
-def startApplication(windowIcon=None):
-    """Starts preditor.application if it hasn't already been started."""
-    global _appHasExec
-    if application and not _appHasExec:
-        if windowIcon:
-            application.setWindowIcon(windowIcon)
-        _appHasExec = True
-        application.exec_()
 
 
 def prefPath(relpath, coreName=''):

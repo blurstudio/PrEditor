@@ -172,12 +172,10 @@ class External(object):
     @classmethod
     def launch(
         cls,
-        hwnd,
         childPipe=None,
         exitMonitorPid=None,
         exitMonitorProcessName='',
         parentCore='',
-        compid=None,
     ):
         """Used to initialize a new instance of python and start the Qt Event loop.
 
@@ -185,7 +183,6 @@ class External(object):
         and will not exit until preditor is shutdown.
 
         Args:
-            hwnd(int): The win32 id used to parent Qt to the parent process
             childPipe(multiProcess.Pipe):
                 The Pipe used for inter-process communication.
                 Defaults to None.
@@ -198,9 +195,6 @@ class External(object):
                 does not invalidate the pid, but changes the process name, checking
                 both, allows us to detect that the process has closed
                 even though the pid is still valid. Defaults to None.
-            compid(string):
-                A unique id used by Fusion to connect to the correct fusion if more than
-                one fusion is open. Defaults to None.
         """
         instance = cls()
         instance.exitMonitorProcessName = exitMonitorProcessName
@@ -211,7 +205,6 @@ class External(object):
         # so we need to identify them by their object name.
         parentCore = parentCore.lower()
         if parentCore != "studiomax":
-            core.setHwnd(hwnd)
             core._mfcApp = True
         if childPipe:
             # Monitor the pipe for communications from the parent application
@@ -275,16 +268,14 @@ class External(object):
             # already exist
             sys.argv = ['']
         # Get all neccissary info to properly parent, communicate and detect closing
-        hwnd = core.hwnd()  # used to parent Qt to parent app
-        compid = core.uuid()  # Id used by 3rd party api's to connect to parent app
         pid = os.getpid()  # Detect if parent app was closed
 
         self._parentPipe, self._childPipe = Pipe()
-        kwargs = {"compid": compid}
+        kwargs = {}
         kwargs["childPipe"] = self._childPipe
         kwargs["exitMonitorPid"] = pid
         kwargs["parentCore"] = core.objectName()
-        self.childProcess = Process(target=External.launch, args=(hwnd,), kwargs=kwargs)
+        self.childProcess = Process(target=External.launch, kwargs=kwargs)
         self.childProcess.daemon = daemon
         self.childProcess.start()
         return self.childProcess, self._parentPipe

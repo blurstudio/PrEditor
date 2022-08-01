@@ -3,12 +3,8 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
-import sentry_bootstrap
 from Qt.QtCore import QDateTime, QObject, Signal
 from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
-
-from .. import settings
-from ..utils.error import sentry_before_send_callback
 
 
 class Core(QObject):
@@ -23,14 +19,13 @@ class Core(QObject):
 
     # ----------------------------------------------------------------
 
-    def __init__(self, hwnd=0, objectName=None):
+    def __init__(self, objectName=None):
         QObject.__init__(self)
         if objectName is None:
             objectName = 'blurdev'
         QObject.setObjectName(self, objectName)
 
         # create custom properties
-        self._hwnd = hwnd
         self._logger = None
         self._headless = False
         self._rootWindow = None
@@ -84,17 +79,6 @@ class Core(QObject):
 
         return '\n'.join(msg)
 
-    def defaultStyle(self):
-        """The default style name used when setting up the QApplication.
-
-        In Qt4 this is Plastique, in Qt5 this is Fusion.
-        """
-        from Qt import IsPyQt4, IsPySide
-
-        if IsPyQt4 or IsPySide:
-            return 'Plastique'
-        return 'Fusion'
-
     def errorCoreText(self):
         """Returns text that is included in the error email for the active core.
         Override in subclasses to provide extra data. If a empty string is returned
@@ -131,51 +115,12 @@ class Core(QObject):
         actions.setdefault('prompt', not self.headless)
         return actions
 
-    def init(self):
-        """Initializes the core system"""
-        ret = self.initCore()
-        return ret
-
-    def initCore(self):
-        """Work method to initialize the core system -- breaking the initialization
-        apart allows the gui-dependant initialization to be delayed in applications
-        where that is necessary by overloading init().
-        """
-        # initialize sentry client
-        sentry_bootstrap.init_sentry(force=True)
-        sentry_bootstrap.add_external_callback(sentry_before_send_callback)
-
-        # initialize the application
-        app = QApplication.instance()
-        output = None
-
-        if not app:
-            # create a new application
-            from ..cores.application import Application, CoreApplication
-
-            # Check for headless environment's
-            if settings.OS_TYPE == 'Linux':
-                if os.environ.get('DISPLAY') is None:
-                    output = CoreApplication([])
-                    self._headless = True
-            if output is None:
-                output = Application([])
-
-        self.updateApplicationName(output)
-
-        return output
-
     @property
     def headless(self):
         """If true, no Qt gui elements should be used because python is running a
         QCoreApplication.
         """
         return self._headless
-
-    def hwnd(self):
-        if self.objectName() == 'assfreezer':
-            return int(self.rootWindow().winId())
-        return self._hwnd
 
     def logger(self, parent=None):
         """Creates and returns the logger instance"""
@@ -220,9 +165,6 @@ class Core(QObject):
                     else:
                         self._rootWindow = parent
         return self._rootWindow
-
-    def setHwnd(self, hwnd):
-        self._hwnd = hwnd
 
     def emailAddressMd5Hash(self, text, address=None):
         """Turns the text into a md5 string and inserts it in the address.
@@ -359,47 +301,3 @@ class Core(QObject):
         logger.activateWindow()
         logger.raise_()
         logger.console().setFocus()
-
-    def updateApplicationName(self, application=None, name=None):
-        """Sets the application name based on the environment.
-
-        Args:
-            application (
-                Qt.QtCore.QCoreApplication or Qt.QtWidgets.QApplication, optional):
-                The Qt application that should have its name set to match the
-                BDEV_APPLICATION_NAME environment variable. This env variable is
-                removed by calling this function so it is not passed to child
-                subprocesses. If None is provided, then preditor.application is used.
-
-        Returns:
-            bool: If the application name was set. This could be because the
-                application was None.
-        """
-        if application is None:
-            from .. import application
-        if application is None:
-            return False
-        # Remove the BDEV_APPLICATION_NAME variable if defined so it is not
-        # passed to child processes.
-        appName = os.environ.pop('BDEV_APPLICATION_NAME', None)
-        if name is not None:
-            # If a name was passed in, use it instead of the env variable, but still
-            # remove the env variable so it doesn't affect child subprocesses.
-            appName = name
-        if application and appName:
-            # This name can be used in filePaths, so remove the invalid separator
-            # used by older tools.
-            appName = appName.replace('::', '_')
-            # If a application name was passed, update the QApplication's
-            # application name.
-            application.setApplicationName(appName)
-            return True
-        return False
-
-    def uuid(self):
-        """Application specific unique identifier
-
-        Returns:
-            None:
-        """
-        return None

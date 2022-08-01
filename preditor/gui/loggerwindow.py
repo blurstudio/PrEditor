@@ -52,7 +52,7 @@ class LoggerWindow(Window):
     _instance = None
     styleSheetChanged = Signal(str)
 
-    def __init__(self, parent, runWorkbox=False):
+    def __init__(self, parent, run_workbox=False):
         super(LoggerWindow, self).__init__(parent=parent)
         self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
@@ -327,13 +327,13 @@ class LoggerWindow(Window):
         self.setupRunWorkbox()
 
         # Run the current workbox after the LoggerWindow is shown.
-        if runWorkbox:
+        if run_workbox:
             # By using two singleShot timers, we can show and draw the LoggerWindow,
             # then call execAll. This makes it easier to see what code you are running
             # before it has finished running completely.
             # QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
             QTimer.singleShot(
-                0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(runWorkbox))
+                0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(run_workbox))
             )
 
     def commentToggle(self):
@@ -1257,13 +1257,13 @@ class LoggerWindow(Window):
         return self._openFileMonitor
 
     @staticmethod
-    def instance(parent=None, runWorkbox=False, create=True):
+    def instance(parent=None, run_workbox=False, create=True):
         """Returns the existing instance of the python logger creating it on first call.
 
         Args:
             parent (QWidget, optional): If the instance hasn't been created yet, create
                 it and parent it to this object.
-            runWorkbox (bool, optional): If the instance hasn't been created yet, this
+            run_workbox (bool, optional): If the instance hasn't been created yet, this
                 will execute the active workbox's code once fully initialized.
             create (bool, optional): Returns None if the instance has not been created.
 
@@ -1278,7 +1278,7 @@ class LoggerWindow(Window):
                 return None
 
             # create the logger instance
-            inst = LoggerWindow(parent, runWorkbox=runWorkbox)
+            inst = LoggerWindow(parent, run_workbox=run_workbox)
 
             # RV has a Unique window structure. It makes more sense to not parent a
             # singleton window than to parent it to a specific top level window.

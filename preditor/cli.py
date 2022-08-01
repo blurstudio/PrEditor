@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import logging
-import os
 import sys
 from distutils.spawn import find_executable
 
@@ -24,6 +23,11 @@ logger = logging.getLogger(__name__)
     context_settings=CONTEXT_SETTINGS,
 )
 def cli():
+    """PrEditor is a Qt based python console and code editor. It runs in many
+    DCC's like Maya, Houdini, Nuke, and 3ds Max.
+
+    To see help for launching the PrEditor gui, use `preditor launch -h`.
+    """
     pass
 
 
@@ -35,31 +39,8 @@ def cli():
     help='After the logger is shown, run the current workbox text.',
 )
 def launch(run_workbox):
-    """Open the PrEditor console."""
-    # When preditor is imported, it will set the ApplicationName to match this.
-    os.environ['BDEV_APPLICATION_NAME'] = 'PythonLogger'
-
-    if run_workbox:
-        kwargs = {'runWorkbox': True}
-    else:
-        kwargs = None
-
-    from preditor.gui.loggerwindow import LoggerWindow
-
-    if OS_TYPE == "Windows":
-        # Set the app user model id here not in the window class so it doesn't
-        # try to set the app id for applications that already set the app id.
-        try:
-            from casement.app_id import AppId
-        except ImportError:
-            logger.debug(
-                "Unable to configure taskbar grouping, use `pip install "
-                "casement` to enable this."
-            )
-        else:
-            AppId.set_for_application("Preditor")
-
-    preditor.launch(LoggerWindow.instance, coreName='logger', kwargs=kwargs)
+    """Run the PrEditor console's gui."""
+    preditor.launch(run_workbox=run_workbox, app_id="PrEditor")
 
 
 @cli.command()
