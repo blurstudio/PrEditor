@@ -189,49 +189,6 @@ class DocumentEditor(QsciScintilla):
         if lineno:
             self.setCursorPosition(lineno, 0)
 
-    def autoFormat(self):
-        try:
-            import autopep8
-        except ImportError:
-            QMessageBox.warning(
-                self.window(),
-                'autopep8 missing',
-                (
-                    'The autopep8 library is missing. '
-                    'To use this feature you must install it. '
-                    'https://pypi.python.org/pypi/autopep8/ '
-                ),
-                QMessageBox.Ok,
-            )
-            return
-        version = autopep8.__version__.split('.')
-        if version and version[0] < 1:
-            QMessageBox.warning(
-                self.window(),
-                'autopep8 out of date',
-                (
-                    'The autopep8 library is out of date and needs to be updated. '
-                    'To use this feature you must install it. '
-                    'https://pypi.python.org/pypi/autopep8/ '
-                ),
-                QMessageBox.Ok,
-            )
-            return
-        options = autopep8.parse_args([''])
-        options.max_line_length = self.edgeColumn()
-        fixed = autopep8.fix_code(self.text(), options=options)
-        self.beginUndoAction()
-        startLine, startCol, endLine, endCol = self.getSelection()
-        self.selectAll()
-        self.removeSelectedText()
-        self.insert(fixed)
-        if self.indentationsUseTabs():
-            # fix tab indentations
-            self.indentSelection(True)
-            self.unindentSelection(True)
-        self.setSelection(startLine, startCol + 1, endLine, endCol)
-        self.endUndoAction()
-
     def autoReloadOnChange(self):
         return self._autoReloadOnChange
 
@@ -1568,12 +1525,6 @@ class DocumentEditor(QsciScintilla):
             act.triggered.connect(self.setAutoReloadOnChange)
             act.setCheckable(True)
             act.setChecked(self._autoReloadOnChange)
-
-        if self.language() == 'Python':
-            menu.addSeparator()
-            act = menu.addAction('Autoformat (PEP 8)')
-            act.triggered.connect(self.autoFormat)
-            act.setIcon(QIcon(resourcePath('img/ide/python.png')))
 
         menu.popup(self._clickPos)
 
