@@ -111,7 +111,7 @@ def shortcut(path, public, title, target, args, description, app_id):
         args,
         target=target,
         # icon=None,
-        icon_source=preditor.resourcePath('img/python_logger.ico'),
+        icon_source=preditor.resourcePath('img/preditor.ico'),
         icon_filename="preditor",
         path=path,
         description=description,

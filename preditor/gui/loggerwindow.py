@@ -65,7 +65,7 @@ class LoggerWindow(Window):
         # rapid-fire WheelEvents. Initialize to the current time.
         self.previousFontResizeTime = datetime.now()
 
-        self.setWindowIcon(QIcon(resourcePath('img/python_logger.png')))
+        self.setWindowIcon(QIcon(resourcePath('img/preditor.png')))
         loadUi(__file__, self)
 
         self.uiConsoleTXT.flash_window = self

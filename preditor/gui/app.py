@@ -66,7 +66,7 @@ class App(object):
     def configure_standalone(self):
         """Update the QApplication for standalone running. Updates the icon and
         sets its style to default_style_name."""
-        self.app.setWindowIcon(QIcon(resourcePath('img/python_logger.png')))
+        self.app.setWindowIcon(QIcon(resourcePath('img/preditor.png')))
         self.app.setStyle(self.default_style_name())
 
     @staticmethod
