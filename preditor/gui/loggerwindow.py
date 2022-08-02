@@ -295,7 +295,7 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.selectFont, action))
 
         # add stylesheet menu options.
-        for style_name in stylesheets.stylesheets('logger'):
+        for style_name in stylesheets.stylesheets():
             action = self.uiStyleMENU.addAction(style_name)
             action.setObjectName('ui{}ACT'.format(style_name))
             action.setCheckable(True)
@@ -940,7 +940,7 @@ class LoggerWindow(Window):
             self._stylesheet = stylesheet
         else:
             # Try to find an installed stylesheet with the given name
-            sheet, valid = stylesheets.read_stylesheet('logger/{}'.format(stylesheet))
+            sheet, valid = stylesheets.read_stylesheet(stylesheet)
             if valid:
                 self._stylesheet = stylesheet
             else:
