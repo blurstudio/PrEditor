@@ -135,7 +135,7 @@ class DocumentEditor(QsciScintilla):
             window.styleSheetChanged.connect(self.updateColorScheme)
 
         # Create shortcuts
-        icon = QIcon(resourcePath('img/ide/copy.png'))
+        icon = QIcon(resourcePath('img/content-copy.png'))
 
         # We have to re-create the copy shortcut so we can use our implementation
         self.uiCopyACT = QAction(icon, 'Copy', self)
@@ -143,7 +143,7 @@ class DocumentEditor(QsciScintilla):
         self.uiCopyACT.triggered.connect(self.copy)
         self.addAction(self.uiCopyACT)
 
-        iconlstrip = QIcon(resourcePath('img/ide/copylstrip.png'))
+        iconlstrip = QIcon(resourcePath('img/content-duplicate.png'))
         self.uiCopyLstripACT = QAction(iconlstrip, 'Copy lstrip', self)
         self.uiCopyLstripACT.setShortcut('Ctrl+Shift+C')
         self.uiCopyLstripACT.triggered.connect(self.copyLstrip)
@@ -1423,45 +1423,45 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Goto')
         # act.setShortcut('Ctrl+G')
         act.triggered.connect(self.goToLine)
-        act.setIcon(QIcon(resourcePath('img/ide/goto.png')))
+        act.setIcon(QIcon(resourcePath('img/skip-next-outline.png')))
         act = menu.addAction('Go to Definition')
         # act.setShortcut('Ctrl+Shift+G')
         act.triggered.connect(self.goToDefinition)
-        act.setIcon(QIcon(resourcePath('img/ide/goto_def.png')))
+        act.setIcon(QIcon(resourcePath('img/skip-forward-outline.png')))
         if self.showSmartHighlighting():
             act = menu.addAction('Edit PermaHighlight')
-            act.setIcon(QIcon(resourcePath('img/ide/highlighter.png')))
+            act.setIcon(QIcon(resourcePath('img/marker.png')))
             act.triggered.connect(self.editPermaHighlight)
 
         menu.addSeparator()
 
         act = menu.addAction('Collapse/Expand All')
         act.triggered.connect(self.toggleFolding)
-        act.setIcon(QIcon(resourcePath('img/ide/plus_minus.png')))
+        act.setIcon(QIcon(resourcePath('img/plus-minus-variant.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Cut')
         act.triggered.connect(self.cut)
         act.setShortcut('Ctrl+X')
-        act.setIcon(QIcon(resourcePath('img/ide/cut.png')))
+        act.setIcon(QIcon(resourcePath('img/content-cut.png')))
 
         act = menu.addAction('Copy')
         act.triggered.connect(self.copy)
         act.setShortcut('Ctrl+C')
-        act.setIcon(QIcon(resourcePath('img/ide/copy.png')))
+        act.setIcon(QIcon(resourcePath('img/content-copy.png')))
 
         copyMenu = menu.addMenu('Advanced Copy')
 
         # Note: I cant use the actions defined above because they end up getting garbage
         # collected
-        iconlstrip = QIcon(resourcePath('img/ide/copylstrip.png'))
+        iconlstrip = QIcon(resourcePath('img/content-duplicate.png'))
         act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
         act.setShortcut('Ctrl+Shift+C')
         act.triggered.connect(self.copyLstrip)
         copyMenu.addAction(act)
 
-        icon = QIcon(resourcePath('img/ide/copy.png'))
+        icon = QIcon(resourcePath('img/content-copy.png'))
         act = QAction(icon, 'Copy Tabs to Spaces', copyMenu)
         act.setShortcut('Ctrl+Shift+Space')
         act.triggered.connect(self.copySpaceIndentation)
@@ -1470,46 +1470,46 @@ class DocumentEditor(QsciScintilla):
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
         act.setShortcut('Ctrl+V')
-        act.setIcon(QIcon(resourcePath('img/ide/paste.png')))
+        act.setIcon(QIcon(resourcePath('img/content-paste.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Copy Line Reference')
         act.triggered.connect(self.copyLineReference)
-        act.setIcon(QIcon(resourcePath('img/ide/copy.png')))
+        act.setIcon(QIcon(resourcePath('img/content-copy.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('Comment Toggle')
         act.triggered.connect(self.commentToggle)
         act.setShortcut("Ctrl+/")
-        act.setIcon(QIcon(resourcePath('img/ide/comment_toggle.png')))
+        act.setIcon(QIcon(resourcePath('img/comment-edit.png')))
 
         menu.addSeparator()
 
         act = menu.addAction('To Lowercase')
         act.triggered.connect(self.toLower)
         # act.setShortcut('Ctrl+L')
-        act.setIcon(QIcon(resourcePath('img/ide/lowercase.png')))
+        act.setIcon(QIcon(resourcePath('img/format-letter-case-lower.png')))
         act = menu.addAction('To Uppercase')
         act.triggered.connect(self.toUpper)
         # act.setShortcut('Ctrl+U')
-        act.setIcon(QIcon(resourcePath('img/ide/uppercase.png')))
+        act.setIcon(QIcon(resourcePath('img/format-letter-case-upper.png')))
 
         menu.addSeparator()
 
         submenu = menu.addMenu('View as...')
-        submenu.setIcon(QIcon(resourcePath('img/ide/view_as.png')))
+        submenu.setIcon(QIcon(resourcePath('img/eye-check.png')))
         lg = self.language()
         act = submenu.addAction('Plain Text')
         if lg == "":
-            act.setIcon(QIcon(resourcePath('img/ide/check.png')))
+            act.setIcon(QIcon(resourcePath('img/check-bold.png')))
         submenu.addSeparator()
 
         for language in lang.languages():
             act = submenu.addAction(language)
             if language == lg:
-                act.setIcon(QIcon(resourcePath('img/ide/check.png')))
+                act.setIcon(QIcon(resourcePath('img/check-bold.png')))
 
         submenu.triggered.connect(self.languageChosen)
 

@@ -124,17 +124,17 @@ class WorkboxWidget(DocumentEditor):
 
     def initShortcuts(self):
         """Use this to set up shortcuts when the DocumentEditor"""
-        icon = QIcon(resourcePath('img/logger/find.png'))
+        icon = QIcon(resourcePath('img/text-search-variant.png'))
         self.uiFindACT = QAction(icon, 'Find...', self)
         self.uiFindACT.setShortcut("Ctrl+F")
         self.addAction(self.uiFindACT)
 
-        icon = QIcon(resourcePath('img/logger/previous.png'))
+        icon = QIcon(resourcePath('img/skip-previous.png'))
         self.uiFindPrevACT = QAction(icon, 'Find Prev', self)
         self.uiFindPrevACT.setShortcut("Ctrl+F3")
         self.addAction(self.uiFindPrevACT)
 
-        icon = QIcon(resourcePath('img/logger/next.png'))
+        icon = QIcon(resourcePath('img/skip-next.png'))
         self.uiFindNextACT = QAction(icon, 'Find Next', self)
         self.uiFindNextACT.setShortcut("F3")
         self.addAction(self.uiFindNextACT)

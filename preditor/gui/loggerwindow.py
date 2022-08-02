@@ -13,15 +13,7 @@ from functools import partial
 import __main__
 import six
 from Qt import QtCompat, QtCore, QtWidgets
-from Qt.QtCore import (
-    QByteArray,
-    QFileInfo,
-    QFileSystemWatcher,
-    QSize,
-    Qt,
-    QTimer,
-    Signal,
-)
+from Qt.QtCore import QByteArray, QFileInfo, QFileSystemWatcher, Qt, QTimer, Signal
 from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
@@ -256,24 +248,22 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
-        self.uiClearLogACT.setIcon(QIcon(resourcePath('img/logger/clear.png')))
+        self.uiClearLogACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
+        self.uiNewWorkboxACT.setIcon(QIcon(resourcePath('img/file-plus.png')))
+        self.uiCloseWorkboxACT.setIcon(QIcon(resourcePath('img/file-remove.png')))
         self.uiSaveConsoleSettingsACT.setIcon(
-            QIcon(resourcePath('img/logger/save.png'))
+            QIcon(resourcePath('img/content-save.png'))
         )
-        self.uiAboutBlurdevACT.setIcon(QIcon(resourcePath('img/logger/about.png')))
-        self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/logger/close.png')))
+        self.uiAboutBlurdevACT.setIcon(QIcon(resourcePath('img/information.png')))
+        self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
 
-        self.uiPdbContinueACT.setIcon(QIcon(resourcePath('img/logger/play.png')))
-        self.uiPdbStepACT.setIcon(QIcon(resourcePath('img/logger/arrow_forward.png')))
+        self.uiPdbContinueACT.setIcon(QIcon(resourcePath('img/play.png')))
+        self.uiPdbStepACT.setIcon(QIcon(resourcePath('img/arrow_forward.png')))
         self.uiPdbNextACT.setIcon(
-            QIcon(resourcePath('img/logger/subdirectory_arrow_right.png'))
+            QIcon(resourcePath('img/subdirectory-arrow-right.png'))
         )
-        self.uiPdbUpACT.setIcon(QIcon(resourcePath('img/logger/up.png')))
-        self.uiPdbDownACT.setIcon(QIcon(resourcePath('img/logger/down.png')))
-
-        # Setting toolbar icon size.
-
-        self.uiConsoleTOOLBAR.setIconSize(QSize(18, 18))
+        self.uiPdbUpACT.setIcon(QIcon(resourcePath('img/chevron-up.png')))
+        self.uiPdbDownACT.setIcon(QIcon(resourcePath('img/chevron-down.png')))
 
         # Start the filesystem monitor
         self._openFileMonitor = QFileSystemWatcher(self)
@@ -1045,10 +1035,8 @@ class LoggerWindow(Window):
         self.autoHideStatusText()
 
     def setClearBeforeRunning(self, state):
-        self.uiRunSelectedACT.setIcon(
-            QIcon(resourcePath('img/logger/playlist_play.png'))
-        )
-        self.uiRunAllACT.setIcon(QIcon(resourcePath('img/logger/play.png')))
+        self.uiRunSelectedACT.setIcon(QIcon(resourcePath('img/playlist-play.png')))
+        self.uiRunAllACT.setIcon(QIcon(resourcePath('img/play.png')))
 
     def setFlashWindowInterval(self):
         value = self.uiConsoleTXT.flash_time

@@ -64,7 +64,7 @@ class Level(Enum):
             QIcon: Correct instantiated QIcon.
         """
         return QIcon(
-            resourcePath('img/logger/{name}_{level}.png'.format(name=name, level=level))
+            resourcePath('img/{name}_{level}.png'.format(name=name, level=level))
         )
 
 
