@@ -170,7 +170,7 @@ class Window(QMainWindow):
             pass
 
     @classmethod
-    def instanceShutdown(cls):
+    def instance_shutdown(cls):
         """Call shutdown on this class instance only if the class was instantiated.
 
         Returns:

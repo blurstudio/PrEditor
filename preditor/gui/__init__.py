@@ -3,10 +3,7 @@ from __future__ import absolute_import
 from functools import partial
 
 from Qt.QtCore import Property
-from Qt.QtGui import QKeySequence
-from Qt.QtWidgets import QAction
 
-from .. import core
 from .dialog import Dialog  # noqa: F401
 from .window import Window  # noqa: F401
 
@@ -85,33 +82,3 @@ def loadUi(filename, widget, uiname=''):
         uiname = os.path.basename(filename).split('.')[0]
 
     QtCompat.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
-
-
-def connectLogger(
-    parent, start=True, sequence='F2', text='Show Logger', objName='uiShowLoggerACT'
-):
-    """Optionally starts the logger, and creates a QAction on the provided parent with
-        the provided keyboard shortcut to run it.
-
-    Args:
-        parent: The parent widget, normally a window
-        start (bool, optional): Start logging immediately. Defaults to True. Disable if
-            you don't want to redirect immediately.
-        sequence (str, optional): A string representing the keyboard shortcut associated
-            with the QAction. Defaults to 'F2'
-        text (str, optional): The display text for the QAction. Defaults to 'Show Logger'
-        objName (str, optional): Set the QAction's objectName to this value. Defaults to
-            'uiShowLoggerACT'
-
-    Returns:
-        QAction: The created QAction
-    """
-    if start:
-        core.logger(parent)
-    # Create shortcuts for launching the logger
-    action = QAction(text, parent)
-    action.setObjectName(objName)
-    action.triggered.connect(core.showLogger)
-    action.setShortcut(QKeySequence(sequence))
-    parent.addAction(action)
-    return action

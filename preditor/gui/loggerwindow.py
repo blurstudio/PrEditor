@@ -329,7 +329,8 @@ class LoggerWindow(Window):
     def commentToggle(self):
         self.uiWorkboxTAB.currentWidget().commentToggle()
 
-    def runWorkbox(self, indicator):
+    @classmethod
+    def runWorkbox(cls, indicator):
         """This is a function which will be added to __main__, and therefore available
         to PythonLogger users. It will accept a python-like index (positive or
         negative), a string representing the name of the chosen Workbox, or a boolean
@@ -351,7 +352,7 @@ class LoggerWindow(Window):
             (from command line): blurdev launch Python_Logger --run_workbox
 
         """
-        pyLogger = core.logger()
+        pyLogger = cls.instance()
         workboxTab = pyLogger.uiWorkboxTAB
         workboxCount = workboxTab.count()
 
@@ -1060,7 +1061,7 @@ class LoggerWindow(Window):
         QMessageBox.information(self, 'About blurdev', msg)
 
     def showEnvironmentVars(self):
-        dlg = Dialog(core.logger())
+        dlg = Dialog(self)
         lyt = QVBoxLayout(dlg)
         lbl = QTextBrowser(dlg)
         lyt.addWidget(lbl)
@@ -1246,7 +1247,7 @@ class LoggerWindow(Window):
 
     @staticmethod
     def instance(parent=None, run_workbox=False, create=True):
-        """Returns the existing instance of the python logger creating it on first call.
+        """Returns the existing instance of the PrEditor gui creating it on first call.
 
         Args:
             parent (QWidget, optional): If the instance hasn't been created yet, create
@@ -1256,7 +1257,7 @@ class LoggerWindow(Window):
             create (bool, optional): Returns None if the instance has not been created.
 
         Returns:
-            Returns a fully initialized instance of the Python Logger. If called more
+            Returns a fully initialized instance of the PrEditor gui. If called more
             than once, the same instance will be returned. If create is False, it may
             return None.
         """
@@ -1361,8 +1362,8 @@ class LoggerWindow(Window):
                     doc._filename = ''
 
     @classmethod
-    def instanceShutdown(cls):
-        """Faster way to shutdown the instance of LoggerWindow if it possibly was not used.
+    def instance_shutdown(cls):
+        """Call shutdown the LoggerWindow instance only if it was instantiated.
 
         Returns:
             bool: If a shutdown was required

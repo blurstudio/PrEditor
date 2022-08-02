@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 import weakref
 
-from .. import core
+from .. import instance
 
 
 class LoggerWindowHandler(logging.Handler):
@@ -22,7 +22,7 @@ class LoggerWindowHandler(logging.Handler):
 
     def __init__(self, error=True, formatter=default_format):
         super(LoggerWindowHandler, self).__init__()
-        self.console = weakref.ref(core.logger().console())
+        self.console = weakref.ref(instance().console())
         self.error = error
         if formatter is not None:
             if not isinstance(formatter, logging.Formatter):

@@ -122,12 +122,6 @@ class Core(QObject):
         """
         return self._headless
 
-    def logger(self, parent=None):
-        """Creates and returns the logger instance"""
-        from ..gui.loggerwindow import LoggerWindow
-
-        return LoggerWindow.instance(parent)
-
     def rootWindow(self):
         """
         Returns the currently active window
@@ -286,18 +280,3 @@ class Core(QObject):
             )
 
             raise
-
-    def shutdown(self):
-        if QApplication.instance():
-            QApplication.instance().closeAllWindows()
-            QApplication.instance().quit()
-
-    def showLogger(self):
-        """
-        Creates the python logger and displays it
-        """
-        logger = self.logger()
-        logger.show()
-        logger.activateWindow()
-        logger.raise_()
-        logger.console().setFocus()

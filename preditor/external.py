@@ -9,7 +9,9 @@ from multiprocessing import Pipe, Process
 import six
 from Qt.QtCore import QTimer
 
-from . import application, core, osystem, startApplication
+from . import application, core
+from . import instance as preditor_instance
+from . import osystem, startApplication
 from .protocols import BaseProtocolHandler, InvalidHandlerError
 
 try:
@@ -232,8 +234,8 @@ class External(object):
             application.setQuitOnLastWindowClosed(False)
         # This is neccissary as long as our stylesheets depend on Plastique as a base.
         application.setStyle(core.defaultStyle())
-        # Initialize the logger
-        core.logger()
+        # Initialize the PrEditor gui
+        preditor_instance()
         # Start Qt's event loop
         startApplication()
 

@@ -140,34 +140,89 @@ def resourcePath(relpath=''):
     return os.path.join(relativePath(__file__), 'resource', relpath)
 
 
-def signalInspector(item, prefix='----', ignore=None):
-    """Connects to all signals of the provided item, and prints the name of
-    each signal.  When that signal is activated it will print the prefix,
-    the name of the signal, and any arguments passed. These connections
-    will persist for the life of the object.
+def connect_preditor(
+    parent, sequence='F2', text='Show PrEditor', obj_name='uiShowPreditorACT'
+):
+    """Creates a QAction that shows the PrEditor gui with a keyboard shortcut.
+    This will automatically call `preditor.stream.install_to_std` if it wasn't
+    already called capturing any `sys.stdout` and `sys.stderr` writes after
+    this call. This does not initialize the PrEditor gui instance until the
+    action is actually called.
 
     Args:
-        item (Qt.QtCore.QObject): QObject to inspect signals on.
-        prefix (str, optional): The prefix to display when a signal is emitted.
-        ignore (list, optional): A list of signal names to ignore
+        parent: The parent widget, normally a window
+        sequence (str, optional): A string representing the keyboard shortcut
+            associated with the QAction.
+        text (str, optional): The display text for the QAction.
+        obj_name (str, optional): Set the QAction's objectName to this value.
+
+    Returns:
+        QAction: The created QAction
     """
+    from Qt.QtGui import QKeySequence
+    from Qt.QtWidgets import QAction
 
-    def create(attr):
-        def handler(*args, **kwargs):
-            print(prefix, 'Signal:', attr, 'ARGS:', args, kwargs)
+    from . import stream
 
-        return handler
+    # Install the stream handlers if not already done.
+    stream.install_to_std()
 
-    if ignore is None:
-        ignore = []
+    # Create shortcut for launching the PrEditor gui.
+    action = QAction(text, parent)
+    action.setObjectName(obj_name)
+    action.triggered.connect(show)
+    action.setShortcut(QKeySequence(sequence))
+    parent.addAction(action)
+    return action
 
-    for attr in dir(item):
-        if (
-            type(getattr(item, attr)).__name__ == 'pyqtBoundSignal'
-            and attr not in ignore
-        ):
-            print(attr)
-            getattr(item, attr).connect(create(attr))
+
+def instance(parent=None, run_workbox=False, create=True):
+    """Returns the existing instance of the PrEditor gui creating it on first call.
+
+    Args:
+        parent (QWidget, optional): If the instance hasn't been created yet, create
+            it and parent it to this object.
+        run_workbox (bool, optional): If the instance hasn't been created yet, this
+            will execute the active workbox's code once fully initialized.
+        create (bool, optional): Returns None if the instance has not been created.
+
+    Returns:
+        Returns a fully initialized instance of the PrEditor gui. If called more
+        than once, the same instance will be returned. If create is False, it may
+        return None.
+    """
+    from .gui.loggerwindow import LoggerWindow
+
+    return LoggerWindow.instance(parent=parent, run_workbox=run_workbox, create=create)
+
+
+def show(parent=None, run_workbox=False, create=True):
+    """Display the main instance of the PrEditor gui, creating if required.
+    See `preditor.instance` for more details on the arguments."""
+    logger = instance(parent=parent, run_workbox=run_workbox, create=create)
+    logger.show()
+    logger.activateWindow()
+    logger.raise_()
+    logger.console().setFocus()
+
+
+def shutdown():
+    """Fully close and cleanup the PrEditor gui if it was created.
+
+    Call this when shutting down your application to ensure any unsaved changes
+    to the PrEditor gui are saved and the instance is actually closed instead
+    of just hidden.
+
+    If the PrEditor gui was never created, this does nothing so its safe to call
+    even if the user never showed the gui. It also won't add extra time creating
+    the gui just so it can "save any changes".
+
+    Returns:
+        bool: If a shutdown was required
+    """
+    from .gui.loggerwindow import LoggerWindow
+
+    return LoggerWindow.instance_shutdown()
 
 
 # initialize the core
