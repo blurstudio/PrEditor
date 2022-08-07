@@ -192,12 +192,11 @@ class BlurExcepthook(object):
         if not self.actions.get("email", False):
             return
 
-        from .utils.error import ErrorEmail
-
-        email_addresses = os.getenv('BDEV_ERROR_EMAIL')
-        if email_addresses:
-            mailer = ErrorEmail(*exc_info)
-            mailer.send(email_addresses)
+        # email_addresses = os.getenv('BDEV_ERROR_EMAIL')
+        # if email_addresses:
+        #     from .utils.error import ErrorEmail
+        #     mailer = ErrorEmail(*exc_info)
+        #     mailer.send(email_addresses)
 
     def send_logger_error(self, exc_info):
         """

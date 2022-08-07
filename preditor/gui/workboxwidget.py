@@ -103,7 +103,7 @@ class WorkboxWidget(DocumentEditor):
             # string is already short-enough
             return s
         # half of the size, minus the seperator
-        n_2 = int(n) / 2 - len(sep)
+        n_2 = int(n) // 2 - len(sep)
         # whatever's left
         n_1 = n - n_2 - len(sep)
         return '{0}{1}{2}'.format(s[:n_1], sep, s[-n_2:])

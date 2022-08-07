@@ -160,31 +160,6 @@ class Core(QObject):
                         self._rootWindow = parent
         return self._rootWindow
 
-    def emailAddressMd5Hash(self, text, address=None):
-        """Turns the text into a md5 string and inserts it in the address.
-
-        This is useful for controlling how messages are threaded into conversations on
-        gmail.
-
-        Args:
-            text (str): This text will be converted into a md5 hash.
-
-            address (str or None): The md5 hash will be inserted using str.format on the
-            "hash" key. If None, it will use the value stored in the BDEV_ERROR_EMAIL
-            environment variable.
-
-        Returns:
-            str: The formatted address.
-
-        """
-        import hashlib
-
-        m = hashlib.md5()
-        m.update(text.encode('utf-8'))
-        if address is None:
-            address = os.environ.get('BDEV_ERROR_EMAIL')
-        return address.format(hash=m.hexdigest())
-
     def sendEmail(
         self, sender, targets, subject, message, attachments=None, refId=None
     ):

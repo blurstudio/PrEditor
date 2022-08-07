@@ -9,11 +9,10 @@ import logging  # noqa: E402
 import os  # noqa: E402
 import sys  # noqa: E402
 
-import sentry_bootstrap  # noqa: E402
 from Qt.QtCore import Qt  # noqa: E402
 
 from . import osystem  # noqa: E402
-from .utils.error import sentry_before_send_callback  # noqa: E402
+from .plugins import Plugins  # noqa: E402
 from .version import version as __version__  # noqa: E402,F401
 
 core = None  # create a managed Core instance
@@ -29,6 +28,8 @@ _logger = logging.getLogger(__name__)
 # tend to treat any text written to stderr as a error when running headless.
 # We also don't want this warning showing up in production anyway.
 _logger.addHandler(logging.NullHandler())
+
+plugins = Plugins()
 
 
 def init():
@@ -48,10 +49,8 @@ def init():
             objectName = 'assfreezer'
         core = Core(objectName=objectName)
 
-        # initialize sentry client
-        # TODO: Move this to a plugin/remove it
-        sentry_bootstrap.init_sentry(force=True)
-        sentry_bootstrap.add_external_callback(sentry_before_send_callback)
+    for plugin in plugins.initialize():
+        plugin()
 
 
 def launch(modal=False, run_workbox=False, app_id=None):
