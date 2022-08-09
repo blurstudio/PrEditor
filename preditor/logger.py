@@ -155,9 +155,9 @@ def getCoreName(force=False):
                 core_name = name
                 break
 
-        # use "blurdev" as core name fallback
+        # use "preditor" as core name fallback
         if not core_name:
-            core_name = "blurdev"
+            core_name = "preditor"
 
     return core_name
 

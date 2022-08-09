@@ -743,7 +743,7 @@ class LoggerWindow(Window):
         self.save_prefs(_prefs)
 
     def load_prefs(self):
-        filename = prefs_path('logger_pref.json')
+        filename = prefs_path('preditor_pref.json')
         if os.path.exists(filename):
             with open(filename) as fp:
                 return json.load(fp)
@@ -751,7 +751,7 @@ class LoggerWindow(Window):
 
     def save_prefs(self, _prefs):
         # Save preferences to disk
-        filename = prefs_path('logger_pref.json')
+        filename = prefs_path('preditor_pref.json')
         dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
