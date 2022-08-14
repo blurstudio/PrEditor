@@ -32,6 +32,7 @@ from __future__ import absolute_import, print_function
 
 import datetime
 import inspect
+import logging
 import os
 import sys
 import traceback
@@ -44,8 +45,8 @@ from .contexts import ErrorReport
 from .enum import Enum, EnumGroup
 
 _currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
-_debugLogger = None
 _errorReport = []
+logger = logging.getLogger(__name__)
 
 
 class DebugLevelEnum(Enum):
@@ -349,88 +350,6 @@ def clearErrorReport():
     _errorReport = []
 
 
-def debugMsg(msg, level=2, fmt=None):
-    """Prints out a debug message to the stdout if the inputed level is
-    greater than or equal to the current debugging level
-
-    Args: msg (str): message to output level (preditor.debug.DebugLevel, optional):
-        Minimum DebugLevel msg should be printed. Defaults to DebugLevel.Mid. fmt (str
-        or None, optional): msg is formatted with this string. Fills in {level} and
-        {msg} args. If None, a default string is used.
-    """
-    if level <= debugLevel():
-        if fmt is None:
-            fmt = 'DEBUG ({level}) : {msg}'
-        if callable(msg):
-            msg = msg()
-        print(fmt.format(level=DebugLevel.keyByValue(level), msg=msg))
-
-
-def debugObject(object, msg, level=2, fmt=None):
-    """Uses :func:`debugMsg` to output to the stdout a debug message
-    including the reference of where the object calling the method is located.
-
-    Args: object (object): the object to include in the output message. msg (str):
-        message to output level (preditor.debug.DebugLevel, optional): Minimum DebugLevel
-        msg should be printed. Defaults to DebugLevel.Mid. fmt (str or None, optional):
-        msg is formatted with this string. Fills in {level} and {msg} args. If None, a
-        default string is used.
-    """
-    debugMsg(lambda: debugObjectString(object, msg), level, fmt=fmt)
-
-
-def debugObjectString(object, msg):
-    import inspect
-
-    # debug a module
-    if inspect.ismodule(object):
-        return '[%s module] :: %s' % (object.__name__, msg)
-
-    # debug a class
-    elif inspect.isclass(object):
-        return '[%s.%s class] :: %s' % (object.__module__, object.__name__, msg)
-
-    # debug an instance method
-    elif inspect.ismethod(object):
-        return '[%s.%s.%s method] :: %s' % (
-            object.im_class.__module__,
-            object.im_class.__name__,
-            object.__name__,
-            msg,
-        )
-
-    # debug a function
-    elif inspect.isfunction(object):
-        return '[%s.%s function] :: %s' % (object.__module__, object.__name__, msg)
-
-
-def debugStubMethod(object, msg, level=2):
-    """Uses :func:`debugObject` to display that a stub method has not been provided
-    functionality.
-
-    Args:
-        object (object): the object to include in the output message
-
-        msg (str): message to output
-
-        level (preditor.debug.DebugLevel, optional): Minimum DebugLevel msg should be
-            printed. Defaults to DebugLevel.Mid.
-    """
-    debugObject(object, 'Missing Functionality: %s' % msg, level)
-
-
-def debugVirtualMethod(cls, object):
-    """Uses :func:`debugObject` to display that a virtual function has not been overloaded
-
-    Args:
-        cls: the class object where the "virtual" method is defined
-        object: the "virtual" method include in the output message
-    """
-    debugObject(
-        object, 'Virtual method has not been overloaded from %s class' % cls.__name__
-    )
-
-
 def debugLevel():
     """Returns the current debugging level"""
     return _currentLevel
@@ -593,5 +512,5 @@ def setDebugLevel(level):
         _currentLevel = level
         return True
     else:
-        debugObject(setDebugLevel, '%s is not a valid <DebugLevel> value' % level)
+        logger.info('{} is not a valid <DebugLevel> value'.format(level))
         return False

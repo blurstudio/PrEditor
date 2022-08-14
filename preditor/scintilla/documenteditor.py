@@ -9,6 +9,7 @@
 #
 from __future__ import absolute_import
 
+import logging
 import os.path
 import re
 import string
@@ -31,11 +32,12 @@ from Qt.QtWidgets import (
 )
 
 from .. import osystem, resourcePath
-from ..debug import DebugLevel, debugMsg
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
 from . import lang
 from .delayable_engine import DelayableEngine
+
+logger = logging.getLogger(__name__)
 
 
 class SearchDirection(EnumGroup):
@@ -948,17 +950,16 @@ class DocumentEditor(QsciScintilla):
         Returns:
             bool:
         """
-        debugMsg(
+        logger.debug(
             'Reload Change called: %0.3f Dialog Shown: %r'
             % (self._saveTimer, self._dialogShown),
-            DebugLevel.High,
         )
         if time.time() - self._saveTimer < 0.5:
             # If we are saving no need to reload the file
-            debugMsg('timer has not expired', DebugLevel.High)
+            logger.debug('timer has not expired')
             return False
         if not os.path.isfile(self.filename()) and not self._dialogShown:
-            debugMsg('The file was deleted', DebugLevel.High)
+            logger.debug('The file was deleted')
             # the file was deleted, ask the user if they still want to keep the file in
             # the editor.
             self._dialogShown = True
@@ -971,21 +972,19 @@ class DocumentEditor(QsciScintilla):
             )
             self._dialogShown = False
             if result == QMessageBox.No:
-                debugMsg(
+                logger.debug(
                     'The file was deleted, removing document from editor',
-                    DebugLevel.High,
                 )
                 self.parent().close()
                 return False
             # TODO: The file no longer exists, and the document should be marked as
             # changed.
-            debugMsg(
+            logger.debug(
                 'The file was deleted, But the user left it in the editor',
-                DebugLevel.High,
             )
             self.enableFileWatching(False)
             return True
-        debugMsg('Defaulting to reload message', DebugLevel.High)
+        logger.debug('Defaulting to reload message')
         return self.reloadDialog(
             'File: %s has been changed.\nReload from disk?' % self.filename()
         )
@@ -1052,10 +1051,7 @@ class DocumentEditor(QsciScintilla):
             pass
 
     def save(self):
-        debugMsg(
-            ' Saved Called'.center(60, '-'),
-            DebugLevel.High,
-        )
+        logger.debug(' Saved Called'.center(60, '-'))
         ret = self.saveAs(self.filename())
         # If the user has provided additionalFilenames to save, process each of them
         # without switching the current filename.
@@ -1064,10 +1060,7 @@ class DocumentEditor(QsciScintilla):
         return ret
 
     def saveAs(self, filename='', setFilename=True):
-        debugMsg(
-            ' Save As Called '.center(60, '-'),
-            DebugLevel.High,
-        )
+        logger.debug(' Save As Called '.center(60, '-'))
         newFile = False
         if not filename:
             newFile = True
@@ -1083,7 +1076,7 @@ class DocumentEditor(QsciScintilla):
             f.open(QFile.WriteOnly)
             # make sure the file is writeable
             if f.error() != QFile.NoError:
-                debugMsg('An error occured while saving', DebugLevel.High)
+                logger.debug('An error occured while saving')
                 QMessageBox.question(
                     self.window(),
                     'Error saving file...',
