@@ -222,6 +222,10 @@ class DocumentEditor(QsciScintilla):
                 return False
         return True
 
+    def clear(self):
+        super(DocumentEditor, self).clear()
+        self._filename = ''
+
     def closeEvent(self, event):
         self.disableTitleUpdate()
         # unsubcribe the file from the open file monitor

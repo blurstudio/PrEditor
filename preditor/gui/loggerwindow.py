@@ -5,7 +5,6 @@ import json
 import os
 import re
 import sys
-import time
 import warnings
 from datetime import datetime, timedelta
 from functools import partial
@@ -217,7 +216,7 @@ class LoggerWindow(Window):
         self.uiTabLastACT.setShortcut(Qt.CTRL | Qt.Key_9)
 
         self.uiCommentToggleACT.setShortcut(Qt.CTRL | Qt.Key_Slash)
-        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
+        self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsACT.toggled.connect(self.updateIndentationsUseTabs)
@@ -272,7 +271,6 @@ class LoggerWindow(Window):
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
 
-        # calling setLanguage resets this value to False
         self.restorePrefs()
 
         # add font menu list
@@ -326,8 +324,8 @@ class LoggerWindow(Window):
                 0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(run_workbox))
             )
 
-    def commentToggle(self):
-        self.uiWorkboxTAB.currentWidget().commentToggle()
+    def comment_toggle(self):
+        self.uiWorkboxTAB.currentWidget().__comment_toggle__()
 
     @classmethod
     def runWorkbox(cls, indicator):
@@ -384,7 +382,7 @@ class LoggerWindow(Window):
             if workbox.hasFocus() and indicator is not True:
                 raise Exception("Cannot call current workbox.")
             else:
-                workbox.execAll()
+                workbox.__exec_all__()
 
     def setupRunWorkbox(self):
         """We will bind the runWordbox function on __main__, which makes is available to
@@ -410,10 +408,10 @@ class LoggerWindow(Window):
         if not workbox.hasFocus():
             return
 
-        text = workbox.selectedText()
+        text = workbox.__selected_text__()
         if not text:
-            line, index = workbox.getCursorPosition()
-            text = workbox.text(line)
+            line, index = workbox.__cursor_position__()
+            text = workbox.__text__(line)
         text = text.rstrip('\r\n')
         if not text:
             return
@@ -450,12 +448,12 @@ class LoggerWindow(Window):
             return
 
         workbox = self.uiWorkboxTAB.currentWidget()
-        workbox.removeSelectedText()
-        workbox.insert(text)
+        workbox.__remove_selected_text__()
+        workbox.__insert_text__(text)
 
-        line, index = workbox.getCursorPosition()
+        line, index = workbox.__cursor_position__()
         index += len(text)
-        workbox.setCursorPosition(line, index)
+        workbox.__set_cursor_position__(line, index)
 
         self.focusToWorkbox()
 
@@ -500,11 +498,11 @@ class LoggerWindow(Window):
             for index in range(self.uiWorkboxTAB.count()):
                 workbox = self.uiWorkboxTAB.widget(index)
 
-                marginsFont = workbox.marginsFont()
+                marginsFont = workbox.__margins_font__()
                 marginsFont.setPointSize(newSize)
-                workbox.setMarginsFont(marginsFont)
+                workbox.__set_margins_font__(marginsFont)
 
-                workbox.setWorkboxFont(font)
+                workbox.__set_font__(font)
         else:
             Window.wheelEvent(self, event)
 
@@ -536,10 +534,10 @@ class LoggerWindow(Window):
         return action
 
     def selectFont(self, action):
-        """
-        Set console and workbox font to current font
+        """Set console and workbox font to current font
+
         Args:
-        action: menu action associated with chosen font
+            action (QAction): menu action associated with chosen font
         """
 
         actions = self.uiMonospaceFontMENU.actions()
@@ -555,10 +553,8 @@ class LoggerWindow(Window):
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
-
-            workbox.documentFont = font
-            workbox.setMarginsFont(font)
-            workbox.setWorkboxFont(font)
+            workbox.__set_margins_font__(font)
+            workbox.__set_font__(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -570,28 +566,26 @@ class LoggerWindow(Window):
         if tabWidget is None:
             tabWidget = self.uiWorkboxTAB
         workbox = WorkboxWidget(tabWidget, delayable_engine=self.delayable_engine.name)
-        workbox.setConsole(self.uiConsoleTXT)
-        workbox.setMinimumHeight(1)
+        workbox.__set_console__(self.uiConsoleTXT)
         index = tabWidget.addTab(workbox, title)
-        workbox.setLanguage('Python')
 
-        # update the lexer
+        # update the font
         fontAction = self.findCurrentFontAction()
         if fontAction is not None:
             self.selectFont(fontAction)
         else:
-            workbox.setMarginsFont(workbox.font())
+            workbox.__set_margins_font__(workbox.__font__())
 
         if closable:
             # If only one tab is visible, don't show the close tab button
             tabWidget.setTabsClosable(tabWidget.count() != 1)
         tabWidget.setCurrentIndex(index)
-        workbox.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
-        workbox.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
+        workbox.__set_indentations_use_tabs__(self.uiIndentationsTabsACT.isChecked())
+        workbox.__set_copy_indents_as_spaces__(self.uiCopyTabsToSpacesACT.isChecked())
 
         workbox.setFocus()
         if self.uiLinesInNewWorkboxACT.isChecked():
-            workbox.setText("\n" * 19)
+            workbox.__set_text__("\n" * 19)
 
         return workbox
 
@@ -631,7 +625,7 @@ class LoggerWindow(Window):
         """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxTAB.currentWidget().execAll()
+        self.uiWorkboxTAB.currentWidget().__exec_all__()
 
         if self.uiAutoPromptACT.isChecked():
             console = self.console()
@@ -642,7 +636,7 @@ class LoggerWindow(Window):
         """Clears the console before executing selected workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxTAB.currentWidget().execSelected()
+        self.uiWorkboxTAB.currentWidget().__exec_selected__()
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
@@ -710,25 +704,21 @@ class LoggerWindow(Window):
 
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
-            _prefs[self._genPrefName('WorkboxText', index)] = workbox.text()
-            lexer = workbox.lexer()
-            if lexer:
-                font = lexer.font(0)
-            else:
-                font = workbox.font()
+            _prefs[self._genPrefName('WorkboxText', index)] = workbox.__text__()
+            font = workbox.__font__()
             _prefs[self._genPrefName('workboxFont', index)] = font.toString()
             _prefs[
                 self._genPrefName('workboxMarginFont', index)
-            ] = workbox.marginsFont().toString()
+            ] = workbox.__margins_font__().toString()
             _prefs[
                 self._genPrefName('workboxTabTitle', index)
             ] = self.uiWorkboxTAB.tabBar().tabText(index)
 
             linkPath = ''
-            if workbox._fileMonitoringActive:
-                linkPath = workbox.filename()
+            if workbox.__file_monitoring_enabled__():
+                linkPath = workbox.__filename__()
                 if os.path.isfile(linkPath):
-                    workbox.save()
+                    workbox.__save__()
                 else:
                     self.unlinkTab(index)
 
@@ -822,7 +812,7 @@ class LoggerWindow(Window):
             self.addWorkbox(self.uiWorkboxTAB)
         for index in range(count):
             workbox = self.uiWorkboxTAB.widget(index)
-            workbox.setText(prefs.get(self._genPrefName('WorkboxText', index), ''))
+            workbox.__set_text__(prefs.get(self._genPrefName('WorkboxText', index), ''))
 
             workboxPath = prefs.get(self._genPrefName('workboxPath', index), '')
             if os.path.isfile(workboxPath):
@@ -832,16 +822,12 @@ class LoggerWindow(Window):
             if _font:
                 font = QFont()
                 if font.fromString(_font):
-                    lexer = workbox.lexer()
-                    if lexer:
-                        font = lexer.setFont(font)
-                    else:
-                        font = workbox.setFont(font)
+                    font = workbox.__font__()
             _font = prefs.get(self._genPrefName('workboxMarginFont', index), None)
             if _font:
                 font = QFont()
                 if font.fromString(_font):
-                    workbox.setMarginsFont(font)
+                    workbox.__set_margins_font__(font)
             tabText = prefs.get(self._genPrefName('workboxTabTitle', index), 'Workbox')
             self.uiWorkboxTAB.tabBar().setTabText(index, tabText)
 
@@ -888,11 +874,8 @@ class LoggerWindow(Window):
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
         for index in range(self.uiWorkboxTAB.count()):
-            tab = self.uiWorkboxTAB.widget(index)
-            if state:
-                tab.setAutoCompletionSource(tab.AcsAll)
-            else:
-                tab.setAutoCompletionSource(tab.AcsNone)
+            workbox = self.uiWorkboxTAB.widget(index)
+            workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
         try:
@@ -1084,13 +1067,17 @@ class LoggerWindow(Window):
 
     def updateCopyIndentsAsSpaces(self):
         for index in range(self.uiWorkboxTAB.count()):
-            tab = self.uiWorkboxTAB.widget(index)
-            tab.copyIndentsAsSpaces = self.uiCopyTabsToSpacesACT.isChecked()
+            workbox = self.uiWorkboxTAB.widget(index)
+            workbox.__set_copy_indents_as_spaces__(
+                self.uiCopyTabsToSpacesACT.isChecked()
+            )
 
     def updateIndentationsUseTabs(self):
         for index in range(self.uiWorkboxTAB.count()):
-            tab = self.uiWorkboxTAB.widget(index)
-            tab.setIndentationsUseTabs(self.uiIndentationsTabsACT.isChecked())
+            workbox = self.uiWorkboxTAB.widget(index)
+            workbox.__set_indentations_use_tabs__(
+                self.uiIndentationsTabsACT.isChecked()
+            )
 
     def updatePdbVisibility(self, state):
         self.uiPdbMENU.menuAction().setVisible(state)
@@ -1188,29 +1175,27 @@ class LoggerWindow(Window):
             self.linkTab(self._currentTab, path)
 
     def linkTab(self, tabIdx, path):
-        wid = self.uiWorkboxTAB.widget(tabIdx)
-        tab = self.uiWorkboxTAB.tabBar()
+        workbox = self.uiWorkboxTAB.widget(tabIdx)
+        workbox.__load__(path)
+        workbox.__set_file_monitoring_enabled__(True)
+        font = self.console().font()
+        workbox.__set_font__(font)
 
-        wid.load(path)
-        wid.setAutoReloadOnChange(True)
+        tab = self.uiWorkboxTAB.tabBar()
         tab.setTabText(tabIdx, os.path.basename(path))
         tab.setTabToolTip(tabIdx, path)
         iconprovider = QFileIconProvider()
         tab.setTabIcon(tabIdx, iconprovider.icon(QFileInfo(path)))
-
-        font = self.console().font()
-        wid.setWorkboxFont(font)
 
     def unlinkCurrentTab(self):
         if self._currentTab != -1:
             self.unlinkTab(self._currentTab)
 
     def unlinkTab(self, tabIdx):
-        wid = self.uiWorkboxTAB.currentWidget()
-        tab = self.uiWorkboxTAB.tabBar()
+        workbox = self.uiWorkboxTAB.currentWidget()
+        workbox.__set_file_monitoring_enabled__(False)
 
-        wid.enableFileWatching(False)
-        wid.setAutoReloadOnChange(False)
+        tab = self.uiWorkboxTAB.tabBar()
         tab.setTabToolTip(tabIdx, '')
         tab.setTabIcon(tabIdx, QIcon())
 
@@ -1218,9 +1203,9 @@ class LoggerWindow(Window):
         font = self.console().font()
         for tabIndex in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(tabIndex)
-            if workbox.filename() == filename:
+            if workbox.__filename__() == filename:
                 self._reloadRequested.add(tabIndex)
-                self.uiWorkboxTAB.currentWidget().setFont(font)
+                self.uiWorkboxTAB.currentWidget().__set_font__(font)
 
         newIdx = self.uiWorkboxTAB.currentIndex()
         self.updateLink(newIdx)
@@ -1231,15 +1216,13 @@ class LoggerWindow(Window):
 
     def updateLink(self, tabIdx):
         if tabIdx in self._reloadRequested:
-            fn = self.uiWorkboxTAB.currentWidget().filename()
+            workbox = self.uiWorkboxTAB.currentWidget()
+            fn = workbox.__filename__()
             if not os.path.isfile(fn):
                 self.unlinkTab(tabIdx)
             else:
                 # Only reload the current widget if requested
-                time.sleep(0.1)  # loading the file too quickly misses any changes
-                self.uiWorkboxTAB.currentWidget().reloadChange()
-                font = self.console().font()
-                self.uiWorkboxTAB.currentWidget().setFont(font)
+                workbox.__reload_file__()
             self._reloadRequested.remove(tabIdx)
 
     def openFileMonitor(self):
@@ -1342,24 +1325,22 @@ class LoggerWindow(Window):
         if cls._instance:
             if data.get('msg') == 'pdb_currentLine':
                 filename = data.get('filename')
-                lineNo = data.get('lineNo')
-                doc = cls._instance.uiPdbTAB.currentWidget()
-                if not isinstance(doc, WorkboxWidget):
-                    doc = cls._instance.addWorkbox(
+                line = data.get('lineNo')
+                workbox = cls._instance.uiPdbTAB.currentWidget()
+                if not isinstance(workbox, WorkboxWidget):
+                    workbox = cls._instance.addWorkbox(
                         cls._instance.uiPdbTAB, closable=False
                     )
-                    cls._instance._pdb_marker = doc.markerDefine(doc.Circle)
                 cls._instance.uiPdbTAB.setTabText(
                     cls._instance.uiPdbTAB.currentIndex(), filename
                 )
-                doc.markerDeleteAll(cls._instance._pdb_marker)
+                workbox.__marker_clear_all__()
                 if os.path.exists(filename):
-                    doc.load(filename)
-                    doc.goToLine(lineNo)
-                    doc.markerAdd(lineNo, cls._instance._pdb_marker)
+                    workbox.__load__(filename)
+                    workbox.__goto_line__(line)
+                    workbox.__marker_add__(line)
                 else:
-                    doc.clear()
-                    doc._filename = ''
+                    workbox.__clear__()
 
     @classmethod
     def instance_shutdown(cls):
