@@ -137,7 +137,7 @@ class Window(QMainWindow):
         """
         super(Window, self).setGeometry(*args)
         if self.checkScreenGeo:
-            from cute.functions import ensureWindowIsVisible
+            from ..utils.cute import ensureWindowIsVisible
 
             ensureWindowIsVisible(self)
 

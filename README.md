@@ -53,3 +53,24 @@ preditor.show()
 # if the gui was never created.
 preditor.shutdown()
 ```
+
+# Installing
+
+`pip install preditor`
+
+## cli
+
+PrEditor is intended to be installed inside existing applications like Maya,
+Houdini, Nuke etc, so it doesn't make sense to require installing packages like
+click for those installs. If you are setting up a system wide install and want
+to use the cli interface, you will need to install the cli optional dependencies.
+
+`pip install preditor[cli,shortcut]`
+
+### Creating shortcuts
+
+If you want to be able to create desktop shortcuts from the cli to launch
+PrEditor, you will also need to include the `shortcut` dependencies. Currently
+this is only useful for windows.
+
+`pip install preditor[cli,shortcut]`

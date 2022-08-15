@@ -154,7 +154,7 @@ class Dialog(QDialog):
         """
         super(Dialog, self).setGeometry(*args)
         if self.checkScreenGeo:
-            from cute.functions import ensureWindowIsVisible
+            from ..utils.cute import ensureWindowIsVisible
 
             ensureWindowIsVisible(self)
 
