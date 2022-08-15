@@ -562,10 +562,24 @@ class LoggerWindow(Window):
             baseName = '{name}{index}'.format(name=baseName, index=index)
         return baseName
 
-    def addWorkbox(self, tabWidget=None, title='Workbox', closable=True):
+    def addWorkbox(self, tabWidget=None, title='Workbox', closable=True, cls=None):
+        """Add a new workbox tab.
+
+        Args:
+            tabWidget (QTabWidget, optional): The tab widget to add the workbox
+                if not set, then `self.uiWorkboxTAB` is used.
+            title (str, optional): The title of the new tab.
+            closable (bool, optional): Enable showing/hiding the close button
+                if more than one tab is shown.
+            cls (QWidget, optional): The widget class to init and add as the tab.
+                Uses the default workbox class if not specified.
+        """
         if tabWidget is None:
             tabWidget = self.uiWorkboxTAB
-        workbox = WorkboxWidget(tabWidget, delayable_engine=self.delayable_engine.name)
+        if cls is None:
+            cls = WorkboxWidget
+
+        workbox = cls(tabWidget, delayable_engine=self.delayable_engine.name)
         workbox.__set_console__(self.uiConsoleTXT)
         index = tabWidget.addTab(workbox, title)
 

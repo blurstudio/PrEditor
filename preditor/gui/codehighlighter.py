@@ -12,7 +12,7 @@ from .. import resourcePath
 
 class CodeHighlighter(QSyntaxHighlighter):
     def __init__(self, widget):
-        QSyntaxHighlighter.__init__(self, widget)
+        super(CodeHighlighter, self).__init__(widget)
 
         # setup the search rules
         self._keywords = []

@@ -3,6 +3,5 @@ click-default-group
 configparser>=4.0.2
 future>=0.18.2
 python-redmine>=2.1.1
-QScintilla>=2.11.4;python_version>="3.5"
 Qt.py
 signalslot>=0.1.2

@@ -23,9 +23,10 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
         # initialize the super class
         super(WorkboxWidget, self).__init__(parent, delayable_engine=delayable_engine)
 
-        # Store the software name so we can handle custom keyboard shortcuts bassed on
+        # Store the software name so we can handle custom keyboard shortcuts based on
         # software
         self._software = core.objectName()
+        # Used to remove any trailing whitespace when running selected text
         self.regex = re.compile(r'\s+$')
         self.initShortcuts()
         self.setLanguage('Python')
@@ -59,45 +60,10 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
 
     def __exec_all__(self):
         """re-implement the DocumentEditor.exec_ method to run this code without saving"""
-        txt = self.toUnixLineEndings(self.text()).rstrip()
+        txt = self.__unix_end_lines__(self.text()).rstrip()
         idx = self.parent().indexOf(self)
         filename = '<WorkboxWidget>:{}'.format(idx)
         self.__console__().executeString(txt, filename=filename)
-
-    def __exec_selected__(self):
-        # Get the first line number of the selection so we can report correct line
-        # numbers. If text is selected use it, otherwise use the text of the current
-        # line.
-        txt = self.__selected_text__()
-        if txt:
-            line, s, end, e = self.getSelection()
-        else:
-            line, index = self.getCursorPosition()
-            txt = self.text(line)
-
-        # Get rid of pesky \r's
-        txt = self.toUnixLineEndings(txt)
-
-        stripCommon = True
-        if stripCommon:
-            lines = txt.split('\n')
-            rep = self.findLeadingWhitespace(lines)
-            if rep:
-                lines = self.stripLeadingWhitespace(lines, rep)
-            txt = u'\n'.join(lines)
-
-        # Make workbox line numbers match the workbox line numbers.
-        txt = '\n' * line + txt
-
-        # execute the code
-        idx = self.parent().indexOf(self)
-        filename = '<WorkboxSelection>:{}'.format(idx)
-        ret, wasEval = self.__console__().executeString(txt, filename=filename)
-        if wasEval:
-            # If the selected code was a statement print the result of the statement.
-            ret = repr(ret)
-            self.__console__().startOutputLine()
-            print(self.truncate_middle(ret, 100))
 
     def __file_monitoring_enabled__(self):
         return self._fileMonitoringActive
@@ -171,8 +137,19 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
     def __save__(self):
         self.save()
 
-    def __selected_text__(self):
-        return self.regex.split(self.selectedText())[0]
+    def __selected_text__(self, start_of_line=False):
+        line, s, end, e = self.getSelection()
+        if line == -1:
+            # Nothing is selected, return the current line of text
+            line, index = self.getCursorPosition()
+            txt = self.text(line)
+        elif start_of_line:
+            ss = self.positionFromLineIndex(line, 0)
+            ee = self.positionFromLineIndex(end, e)
+            txt = self.text(ss, ee)
+        else:
+            txt = self.selectedText()
+        return self.regex.split(txt)[0]
 
     def __text__(self, line=None, start=None, end=None):
         """Returns the text in this widget, possibly limited in scope.
@@ -198,42 +175,6 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
     def __set_text__(self, txt):
         """Replace all of the current text with txt."""
         self.setText(txt)
-
-    def findLeadingWhitespace(self, lines):
-        # Find the first line that has text that isn't a comment
-        # We will then remove the leading whitespace from that line
-        # from all subsequent lines
-        for s in lines:
-            m = re.match(r'(\s*)([^#])', s)
-            # Only use leading whitespace if the match has text
-            if m and m.group(2).strip():
-                return m.group(1)
-        return ''
-
-    def stripLeadingWhitespace(self, lines, rep):
-        newLines = []
-        for line in lines:
-            if not line:
-                newLines.append(line)
-                continue
-
-            if line.startswith(rep):
-                nl = line.replace(rep, '', 1)
-                newLines.append(nl)
-            else:
-                raise IndentationError("Prefix Stripping Failed")
-        return newLines
-
-    def truncate_middle(self, s, n, sep=' ... '):
-        # https://www.xormedia.com/string-truncate-middle-with-ellipsis/
-        if len(s) <= n:
-            # string is already short-enough
-            return s
-        # half of the size, minus the seperator
-        n_2 = int(n) // 2 - len(sep)
-        # whatever's left
-        n_1 = n - n_2 - len(sep)
-        return '{0}{1}{2}'.format(s[:n_1], sep, s[-n_2:])
 
     def keyPressEvent(self, event):
         if self._software == 'softimage':
@@ -295,7 +236,7 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
             not self._searchDialog.isVisible()
             and not self._searchFlags & SearchOptions.QRegExp
         ):
-            txt = self.__selected_text__()
+            txt = self.selectedText()
             if txt:
                 self._searchText = txt
         return self._searchText
@@ -305,8 +246,3 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
 
     def setSearchText(self, txt):
         self._searchText = txt
-
-    @classmethod
-    def toUnixLineEndings(cls, txt):
-        """Replaces all windows and then mac line endings with unix line endings."""
-        return txt.replace('\r\n', '\n').replace('\r', '\n')
