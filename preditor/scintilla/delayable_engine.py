@@ -3,13 +3,21 @@ from __future__ import absolute_import, print_function
 import time
 import warnings
 import weakref
-from collections import MutableSet, OrderedDict
+from collections import OrderedDict
 
 import six
 from Qt import QtCompat
 from Qt.QtCore import QObject, QTimer, Signal
 
 from .delayables import Delayable
+
+try:
+    from collections.abc import MutableSet
+except ImportError:
+    # Due to the older versions of six installed by default with DCC's like
+    # Maya 2020, we can't rely on six.moves.collections_abc, so handle
+    # the py 2.7 import
+    from collections import MutableSet
 
 
 # https://stackoverflow.com/a/7829569
