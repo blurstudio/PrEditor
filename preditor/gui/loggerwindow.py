@@ -164,9 +164,7 @@ class LoggerWindow(Window):
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
         # Workbox add/remove
-        self.uiNewWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_N)
         self.uiNewWorkboxACT.triggered.connect(lambda: self.addWorkbox())
-        self.uiCloseWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_W)
         self.uiCloseWorkboxACT.triggered.connect(
             lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex())
         )

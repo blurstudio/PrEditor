@@ -683,6 +683,9 @@ Must manually save instead.</string>
    <property name="toolTip">
     <string>Create a new workbox</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="uiCloseWorkboxACT">
    <property name="text">
@@ -690,6 +693,9 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Close the current workbox</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
    </property>
   </action>
   <action name="uiGetPrevCmdACT">
