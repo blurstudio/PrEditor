@@ -18,6 +18,7 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
 
     def __init__(self, console, parent=None, delayable_engine='default'):
         super(WorkboxTextEdit, self).__init__(parent=parent)
+        self._filename = None
         self.__set_console__(console)
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
@@ -58,6 +59,11 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
     def __set_indentations_use_tabs__(self, state):
         logger.info("WorkboxTextEdit does not support using spaces for tabs.")
 
+    def __load__(self, filename):
+        self._filename = filename
+        txt = self.__open_file__(self._filename)
+        self.__set_text__(txt)
+
     def __margins_font__(self):
         return QFont()
 
@@ -68,6 +74,7 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
         return self.toPlainText()
 
     def __set_text__(self, text):
+        super(WorkboxTextEdit, self).__set_text__(text)
         self.setPlainText(text)
 
     def __selected_text__(self, start_of_line=False):

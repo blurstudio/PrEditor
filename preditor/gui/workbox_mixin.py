@@ -1,9 +1,19 @@
 from __future__ import absolute_import
 
+import os
+import tempfile
 import textwrap
+
+from ..prefs import prefs_path
 
 
 class WorkboxMixin(object):
+    def __init__(self, tempfile=None, filename=None):
+        self._filename_pref = filename
+        self._is_loaded = False
+        self._tempdir = None
+        self._tempfile = tempfile
+
     def __auto_complete_enabled__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
@@ -60,8 +70,8 @@ class WorkboxMixin(object):
         # execute the code
         idx = self.parent().indexOf(self)
         filename = '<WorkboxSelection>:{}'.format(idx)
-        ret, wasEval = self.__console__().executeString(txt, filename=filename)
-        if wasEval:
+        ret, was_eval = self.__console__().executeString(txt, filename=filename)
+        if was_eval:
             # If the selected code was a statement print the result of the statement.
             ret = repr(ret)
             self.__console__().startOutputLine()
@@ -149,8 +159,12 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __set_text__(self, txt):
-        """Replace all of the current text with txt."""
-        raise NotImplementedError("Mixin method not overridden.")
+        """Replace all of the current text with txt. This method should be overridden
+        by sub-classes, and call super to mark the widget as having been loaded.
+        If text is being set on the widget, it most likely should be marked as
+        having been loaded.
+        """
+        self._is_loaded = True
 
     def truncate_middle(self, s, n, sep=' ... '):
         """Truncates the provided text to a fixed length, putting the sep in the middle.
@@ -169,3 +183,79 @@ class WorkboxMixin(object):
     def __unix_end_lines__(cls, txt):
         """Replaces all windows and then mac line endings with unix line endings."""
         return txt.replace('\r\n', '\n').replace('\r', '\n')
+
+    def __restore_prefs__(self, prefs):
+        self._filename_pref = prefs.get('filename')
+        self._tempfile = prefs.get('tempfile')
+
+    def __save_prefs__(self, name, current=None):
+        ret = {}
+        # Hopefully the alphabetical sorting of this dict is preserved in py3
+        # to make it easy to diff the json pref file if ever required.
+        if current is not None:
+            ret['current'] = current
+        ret['filename'] = self._filename_pref
+        ret['name'] = name
+        ret['tempfile'] = self._tempfile
+
+        if not self._is_loaded:
+            return ret
+
+        if self._filename_pref:
+            self.__save__()
+        else:
+            if not self._tempfile:
+                self._tempfile = self.__create_tempfile__()
+                ret['tempfile'] = self._tempfile
+            self.__write_file__(
+                self.__tempfile__(create=True),
+                self.__text__(),
+            )
+
+        return ret
+
+    def __tempdir__(self, create=False):
+        if self._tempdir is None:
+            self._tempdir = prefs_path('workboxes')
+
+        if create and not os.path.exists(self._tempdir):
+            os.makedirs(self._tempdir)
+
+        return self._tempdir
+
+    def __tempfile__(self, create=False):
+        if self._tempfile:
+            return os.path.join(self.__tempdir__(create=create), self._tempfile)
+
+    def __create_tempfile__(self):
+        with tempfile.NamedTemporaryFile(
+            prefix='workbox_',
+            suffix='.py',
+            dir=self.__tempdir__(create=True),
+            delete=False,
+        ) as fle:
+            name = fle.name
+
+        return os.path.basename(name)
+
+    @classmethod
+    def __open_file__(cls, filename):
+        with open(filename) as fle:
+            return fle.read()
+        return ""
+
+    @classmethod
+    def __write_file__(cls, filename, txt):
+        with open(filename, 'w') as fle:
+            fle.write(txt)
+
+    def __show__(self):
+        if self._is_loaded:
+            return
+
+        self._is_loaded = True
+        if self._filename_pref:
+            self.__load__(self._filename_pref)
+        elif self._tempfile:
+            txt = self.__open_file__(self.__tempfile__())
+            self.__set_text__(txt)
