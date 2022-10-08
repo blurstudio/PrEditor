@@ -840,7 +840,7 @@ class DocumentEditor(QsciScintilla):
         # set visibility settings
         self.setAutoIndent(True)
         if first_time:
-            self.setIndentationsUseTabs(True)
+            self.setIndentationsUseTabs(False)
         self.setTabIndents(True)
         self.setTabWidth(4)
         self.setCaretLineVisible(False)
@@ -1364,7 +1364,7 @@ class DocumentEditor(QsciScintilla):
             else:
                 self.autoCompleteFromAll()  # Show the autoComplete list
 
-    def showMenu(self, pos):
+    def showMenu(self, pos, popup=True):
         menu = QMenu(self)
         pos = self.mapToGlobal(pos)
         self._clickPos = pos
@@ -1523,7 +1523,9 @@ class DocumentEditor(QsciScintilla):
             act.setCheckable(True)
             act.setChecked(self._autoReloadOnChange)
 
-        menu.popup(self._clickPos)
+        if popup:
+            menu.popup(self._clickPos)
+        return menu
 
     def showEvent(self, event):
         super(DocumentEditor, self).showEvent(event)

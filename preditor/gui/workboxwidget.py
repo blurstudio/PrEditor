@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import io
 import re
 import time
 
@@ -30,6 +31,8 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
         self.regex = re.compile(r'\s+$')
         self.initShortcuts()
         self.setLanguage('Python')
+        # Default to unix newlines
+        self.setEolMode(self.EolUnix)
 
     def __auto_complete_enabled__(self):
         return self.autoCompletionSource() == self.AcsAll
@@ -176,6 +179,12 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
         """Replace all of the current text with txt."""
         self.setText(txt)
 
+    @classmethod
+    def __write_file__(cls, filename, txt):
+        with io.open(filename, 'w', newline='\n') as fle:
+            # Save unix newlines for simplicity
+            fle.write(cls.__unix_end_lines__(txt))
+
     def keyPressEvent(self, event):
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
@@ -246,3 +255,19 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
 
     def setSearchText(self, txt):
         self._searchText = txt
+
+    def showMenu(self, pos):
+        menu = super(WorkboxWidget, self).showMenu(pos, popup=False)
+        menu.addSeparator()
+        submenu = menu.addMenu('Options')
+        act = submenu.addAction('Toggle end line visibility')
+        act.setCheckable(True)
+        act.setChecked(self.eolVisibility())
+        act.triggered.connect(self.setEolVisibility)
+
+        act = submenu.addAction('Show Whitespace')
+        act.setCheckable(True)
+        act.setChecked(self.showWhitespaces())
+        act.triggered.connect(self.setShowWhitespaces)
+
+        menu.popup(self._clickPos)
