@@ -3,6 +3,7 @@ blur-pillar>=0.40.0
 blur-sentry-bootstrap>=1.1.0
 certifi>=2019.9.11
 click>=7.1.2
+click-default-group
 configparser>=4.0.2
 Deprecated>=1.2.7
 future>=0.18.2
