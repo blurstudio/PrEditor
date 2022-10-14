@@ -7,9 +7,8 @@ from Qt.QtCore import QSignalMapper
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
-from .. import debug, resourcePath
+from .. import debug, plugins, resourcePath
 from ..enum import Enum, EnumGroup
-from ..logger import LoggerWithSignals
 
 
 class Level(Enum):
@@ -72,6 +71,10 @@ class LoggerLevel(Level):
     """A Logger level `Enum` using the 'format_align_left' icon."""
 
     icon_name = "logging"
+
+    def is_current(self, logger):
+        """Returns if the current logging level matches this label."""
+        return logging.getLevelName(logger.level) == self.label
 
 
 class DebugLevel(Level):
@@ -224,10 +227,6 @@ class LoggingLevelButton(QToolButton):
         Creates the root logger menu this button displays when clicked.
         Additionally, any pre-existing loggers and their menus are added.
 
-        The `logger_created` signal emitted by the `LoggerWithSignals` is
-        connected to the `createLoggerMenu`-method ensuring any newly
-        initialized loggers have a menu created.
-
         Args:
             parent (QWidget, optional): The parent widget for this button.
         """
@@ -236,105 +235,62 @@ class LoggingLevelButton(QToolButton):
 
         # create root logger menu
         root = logging.getLogger("")
-        root_menu = LoggingLevelMenu(name="", logger=root, parent=self)
+        root_menu = LoggingLevelMenu(name="root", logger=root, parent=self)
         self.setMenu(root_menu)
 
-        # track created logger menus; pre-populated with root logger menu
-        self.loggerMenus = {"": root_menu}
-        self._prexistingLoggerMenusInitialized = False
+        # TODO: Hook refresh up to a root logger signal
+        # Monkey patch root.setLogger to emit signal we connect to
+        # logging.getLogger("").level_changed.connect(self.refresh)
 
-        # pre-spawn of the root menu, create logger menus & refresh tree
-        root_menu.aboutToShow.connect(self.onMenuShow)
+    def refresh(self):
+        effective_level = logging.getLogger("").getEffectiveLevel()
+        effective_level_name = logging.getLevelName(effective_level)
+        level_enum = LoggerLevels.fromLabel(effective_level_name)
 
-        # automatically create logger menu on logger init
-        LoggerWithSignals.logger_created.connect(self.createLoggerMenu)
-
-    def onMenuShow(self):
-        """
-        When the menu associated with this toolbar button is activated, the
-        logger menus for any loggers that existed before the instantiation of
-        this button will be created (once). The underlying the menu also be
-        updated ensuring the logger menus within represent their current level
-        state.
-
-        Note: Triggering a refresh for every `aboutToShow` signal is necessary
-            because when a logger is initialized via `logging.getLogger` the
-            logger menu will be created as part of the overridden Logger class
-            `__init__` method (from `LoggerWithSignals`), before the parent has
-            been set. This results in an incorrect effective logging level as
-            it cannot inherit the level of its ancestor (new loggers default to
-            NOTSET).
-        """
-        if not self._prexistingLoggerMenusInitialized:
-            self._initializeLoggerMenus()
-            self._prexistingLoggerMenusInitialized = True
-
-        self.menu().refresh()
-
-    def _initializeLoggerMenus(self):
-        """
-        Creates logger menus for all loggers that currently exist.
-
-        While looping through the logger dict, if the logger is merely a
-        placeholder it will be initialized so it can be added to the menu
-        hierarchy. This ensures all ancestors exist for appropriate parenting
-        when descendants are added.
-
-        Note: A logger present in the logger dict will be of class
-            `logging.PlaceHolder` if the logger has not been initialized
-            (accessed via `logging.getLogger`) and lies in-between an ancestor
-            and one of its descendants that has been initialized.
-        """
-        logger_dict = list(logging.root.manager.loggerDict.items())
-        for name, logger in sorted(logger_dict, key=lambda x: x[0].lower()):
-            if isinstance(logger, logging.PlaceHolder):
-                logger = logging.getLogger(name)
-            self.createLoggerMenu(logger=logger)
-
-    def createLoggerMenu(self, logger=None, **kwargs):
-        """
-        Creates a `LoggingLevelMenu` instance for the specified logger and adds
-        it to the appropriate ancestor.
-
-        During initialization each logger menu traverses its ancestry
-        "top-down" ensuring menus exist for each ancestral logger. This ensures
-        there are no parenting issues when adding the logger menu to the
-        hierarchy.
-
-        Args:
-            logger (logging.Logger/LoggerWithSignals): Logger to create
-                `LoggingLevelMenu` with. Present as a keyword argument due to
-                requirement as slot a for signal to accept `**kwargs`.
-            **kwargs: Unused. An implementation detail of `signalslot`, the
-                keyword unpacking operator must be present in the signature of
-                any slots connected to `signalslot` signals.
-        """
-        if not logger:
-            return
-
-        parent = self.menu()
-
-        # iterate through parent logger names to ensure they exist
-        split_name = logger.name.split(".")
-        for index in range(1, len(split_name) + 1):
-            logger_name = ".".join(split_name[0:index])
-
-            # use pre-existing menu
-            menu = self.loggerMenus.get(logger_name)
-            if not menu:
-
-                # create new menu & add to parent
-                menu = LoggingLevelMenu(name=logger_name, logger=logger, parent=parent)
-                parent.addChildMenu(menu)
-
-                # track creation of menu
-                self.loggerMenus[logger_name] = menu
-
-            # set parent for subsequent loop iterations
-            parent = menu
+        self.setIcon(level_enum.icon)
+        self.setToolTip("Logger 'root' current level: {}".format(level_enum.name))
 
 
-class LoggingLevelMenu(QMenu):
+class LazyMenu(QMenu):
+    """A menu class that only calls self.refresh when it is about to be shown."""
+
+    def __init__(self, *args, **kwargs):
+        super(LazyMenu, self).__init__(*args, **kwargs)
+        self.aboutToShow.connect(self.refresh)
+
+
+class HandlerMenu(LazyMenu):
+    def __init__(self, logger, parent=None):
+        super(HandlerMenu, self).__init__(title="Handlers", parent=parent)
+        self.logger = logger
+
+    def install_handler(self, name):
+        for _, cls in plugins.logging_handlers(name):
+            handler = cls()
+            self.logger.addHandler(handler)
+
+    def refresh(self):
+        self.clear()
+        # Add the Install sub menu showing all logging_handler plugins
+        handler_install = self.addMenu('Install')
+        for name, cls in plugins.logging_handlers():
+            act = handler_install.addAction(name)
+            act.triggered.connect(partial(self.install_handler, name))
+            for h in self.logger.handlers:
+                if isinstance(h, cls):
+                    act.setEnabled(False)
+                    act.setToolTip('Already installed for this logger.')
+                    break
+
+        # Add a visual indication of all of the existing handlers
+        # TODO: Add ability to modify the formatters and auto-creation on startup
+        self.addSeparator()
+        for handler in self.logger.handlers:
+            act = self.addAction(repr(handler))
+            act.setEnabled(False)
+
+
+class LoggingLevelMenu(LazyMenu):
 
     """
     Custom menu for Python Loggers.
@@ -343,58 +299,67 @@ class LoggingLevelMenu(QMenu):
     displays the presently set level by highlighting the relevant menu action
     and via the menu's icon (which displays the logger's effective level,
     potentially inherited from its ancestor).
-
-    The display of the logger's current level remains accurate post-level
-    change by connecting to signals present in the overridden Logger-class
-    `LoggerWithSignals`.
-
-    Descendant loggers' menus are also added and nested below the level menu
-    actions, if present. If the level is updated in this or any ancestor menus,
-    the descendant menus will have their `refresh` method executed.
     """
 
-    def __init__(self, name="", logger=None, parent=None):
+    def __init__(self, name, logger, parent=None):
         """
-        Creates the default level menu actions for updating the logger's level
-        and, as long as the associated logger is of class type
-        `LoggerWithSignals`, the `refresh` method is connected to the
-        `level_changed` signal ensuring the present level is always correct.
+        Creates the default level menu actions for updating the logger's level.
 
         Args:
             name (str): Name of Logger this menu will represent.
-            logger (logging.Logger/LoggerWithSignals): Logger this menu will
-                represent and control via actions that modify the logger's
-                set level.
+            logger (logging.Logger): Logger this menu will represent and control
+                via actions that modify the logger's set level.
             parent (QToolButton/QMenu): `QMenu` or `QToolButton` this menu will
                 be parented to.
-        """
-        super(QMenu, self).__init__(title=name.split(".")[-1], parent=parent)
 
-        self.name = name or "root"
+        Note: If the logger is merely a placeholder it will be initialized so
+            it can be added to the menu hierarchy. This ensures all ancestors
+            exist for appropriate parenting when descendants are added.
+        """
+        super(LoggingLevelMenu, self).__init__(title=name.split(".")[-1], parent=parent)
+
+        if isinstance(logger, logging.PlaceHolder):
+            logger = logging.getLogger(name)
+
         self.logger = logger
+        self.name = name
+        self.update_ui()
 
-        self._initializeLevelActions()
+    def children(self):
+        """The direct sub-loggers of this logging object."""
+        parent = self.name
+        if parent == "root":
+            parent = ""
+        for name, logger in sorted(
+            logging.root.manager.loggerDict.items(), key=lambda x: x[0].lower()
+        ):
+            if name.startswith(parent):
+                remaining = name.lstrip(parent).lstrip(".")
+                if remaining and "." not in remaining:
+                    yield name, logger
 
-        # refresh root at init to represent current level in toolbar
-        if self.name == "root":
-            self.refresh()
+    def level(self):
+        """Returns the current effective LoggerLevel for self.logger."""
+        effective_level = self.logger.getEffectiveLevel()
+        effective_level_name = logging.getLevelName(effective_level)
+        return LoggerLevels.fromLabel(effective_level_name)
 
-    def _initializeLevelActions(self):
-        """
-        Creates actions that control the logging level of the menu's associated
-        logger.
+    def refresh(self):
+        self.clear()
 
-        An invisible separator is appended to the end of the action list for
-        future use in instances where descendant logger menus are added to the
-        action list.
-        """
+        self.addMenu(HandlerMenu(self.logger, self))
+        self.addSeparator()
+
         for logger_level in LoggerLevels:
+            is_current = logger_level.is_current(self.logger)
+
             action = QAction(logger_level.icon, logger_level.name, self)
             action.setCheckable(True)
+            action.setChecked(is_current)
 
             # tooltip example: "Set 'preditor.debug' to level Warning")
             action.setToolTip(
-                "Set '{}' to level {}".format(self.logger.name, logger_level.name)
+                "Set '{}' to level {}".format(self.name, logger_level.name)
             )
 
             # when clicked/activated set associated loggers level
@@ -403,179 +368,37 @@ class LoggingLevelMenu(QMenu):
             )
             self.addAction(action)
 
-        # append a separator to the end of the level action list to provide
-        # visual distinction between level actions and descendant logger menus
-        separator = QAction("Separator", self)
-        separator.setSeparator(True)
-        separator.setVisible(False)  # invisible until descendants added
-        self.addAction(separator)
+        self.addSeparator()
 
-    def addChildMenu(self, menu):
-        """
-        Inserts the `LoggingLevelMenu` provided into the bottom section of the
-        parent's action list, in alphabetical order.
-
-        The list of logging level menus at the end of the instance's action
-        list is preceded by a separator (as long as there are descendant menus
-        present).
-
-        Args:
-            menu (LoggingLevelMenu): Logger QMenu to insert into action list.
-        """
-        current_actions = self.actions()
-        current_names = list(map(lambda x: x.text(), current_actions))
-
-        # ensure separator is visible
-        separator_index = current_names.index("Separator")
-        separator_action = current_actions[separator_index]
-        separator_action.setVisible(True)
-
-        child_menus_index_start = separator_index + 1
-        child_menus = current_actions[child_menus_index_start:]
-
-        # no children yet, add to bottom of menu
-        if not child_menus:
-            self.addMenu(menu)
-            return
-
-        # add new menu name to current list & sort
-        child_menu_names = list(map(lambda x: x.text(), child_menus))
-        child_menu_names.append(menu.title())
-        sorted_child_names = sorted(child_menu_names, key=lambda x: x.lower())
-
-        # find insert index in updated name list
-        index = sorted_child_names.index(menu.title()) + child_menus_index_start
-
-        # ensure we append to end if index greater than action list
-        if index >= len(current_actions):
-            self.addMenu(menu)
-
-        # otherwise, add menu after preceding action/menu
-        else:
-            before_action = current_actions[index]
-            self.insertMenu(before_action, menu)
-
-    def childMenus(self):
-        """
-        Returns a list of descendant logger menus that may be present in the
-        logger menu's action list. May return an empty list denoting no
-        descendant menus exist.
-
-        Returns:
-            list: Descendant `LoggingLevelMenu`s.
-        """
-        child_menus = []
-        current_actions = self.actions()
-        current_names = list(map(lambda x: x.text(), current_actions))
-
-        # determine start of child menus
-        separator_index = current_names.index("Separator")
-        child_menus_index_start = separator_index + 1
-
-        child_menus = current_actions[child_menus_index_start:]
-
-        return child_menus
-
-    def refresh(self, **kwargs):
-        """
-        Triggers an update of the logger menu's various display elements so as
-        to represent the logger's present level.
-
-        The menu's icon is updated to reflected the effective logging level,
-        inherited from the closest ancestor with a set level if the logger is
-        set to `NOTSET`.
-
-        The menu's tooltip and checked action in the action menu are derivative
-        of the logger's native level.
-
-        Any descendant logger menus are also refreshed so as to represent the
-        most current logger state (such as level inheritance).
-
-        Args:
-            **kwargs: Unused. An implementation detail of `signalslot`, the
-                keyword unpacking operator must be present in the signature of
-                any slots connected to `signalslot` signals.
-        """
-        effective_level = self.logger.getEffectiveLevel()
-        effective_level_name = logging.getLevelName(effective_level)
-
-        level_num = self.logger.level
-        level_name = logging.getLevelName(level_num)
-
-        # icon represents the effective level
-        self.setIcon(effective_level_name)
-
-        # level actions & tooltip represent logger's level (or lack of)
-        self.setCheckedAction(level_name)
-        self.setToolTip(level_name)
-
-        # refresh children
-        for child_logger_menu in self.childMenus():
-            child_logger_menu.menu().refresh()
-
-    def setCheckedAction(self, level):
-        """
-        Updates the logger menu's actions to check the currently active logging
-        level.
-
-        Args:
-            level (str): Logging level to check in logger action menu.
-        """
-        level_enum = LoggerLevels.fromLabel(level)
-        for action in self.actions():
-            action.setChecked(action.text() == level_enum.name)
-
-    def setIcon(self, level):
-        """
-        Updates the logger menu's icon to display the current level the logger
-        has is set to.
-
-        If the updated logger is the root logger, the logging level toolbar
-        button's icon is updated instead.
-
-        Args:
-            level (str): Logging level to change icon to represent.
-        """
-        level_enum = LoggerLevels.fromLabel(level)
-        super(LoggingLevelMenu, self).setIcon(level_enum.icon)
-
-        if self.name == "root":
-            self.parent().setIcon(level_enum.icon)
+        for name, child in self.children():
+            self.addMenu(LoggingLevelMenu(name, child, self))
 
     def setLevel(self, level):
         """
         Sets the logger this menu object represents to the level supplied.
 
-        If the logger represented is not an instance of LoggerWithSignals,
-        the refresh method is manually executed as the logger does not have
-        signal necessary to automatically inform the menu to refresh.
-
         Args:
             level (str): Logging level to set logger to.
         """
         self.logger.setLevel(level)
+        self.update_ui()
 
-        # non-overridden logger classes require manual refresh
-        if not isinstance(self.logger, LoggerWithSignals):
-            self.refresh()
-
-    def setToolTip(self, level):
-        """
-        Updates the logger menu's tooltip to explain what the current level is
-        set to.
+    def update_ui(self):
+        """Set the menu icon to this LoggerLevel's icon.
 
         If the updated logger is the root logger, the logging level toolbar
-        button's tooltip is updated instead.
+        button's icon is updated instead.
 
         Args:
-            level (str): Logging level to reflect in tooltip.
+            level (LoggerLevel): Logging level to change icon to represent.
         """
-        level_enum = LoggerLevels.fromLabel(level)
 
-        tool_tip_text = "Logger '{}' current level: {}"
-        tool_tip = tool_tip_text.format(self.logger.name, level_enum.name)
+        level_enum = self.level()
+        act = self.menuAction()
+        act.setIcon(level_enum.icon)
+        act.setToolTip(
+            "Logger '{}' current level: {}".format(self.logger.name, level_enum.name)
+        )
 
         if self.name == "root":
-            self.parent().setToolTip(tool_tip)
-        else:
-            super(LoggingLevelMenu, self).setToolTip(tool_tip)
+            self.parent().refresh()
