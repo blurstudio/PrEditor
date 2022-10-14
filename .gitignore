@@ -12,6 +12,7 @@
 /dist/
 /venv/
 *.sublime-*
+pip-wheel-metadata
 
 # Ignore the majority of the docs folder
 /docs/*
