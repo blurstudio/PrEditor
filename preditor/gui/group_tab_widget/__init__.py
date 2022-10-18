@@ -9,6 +9,7 @@ from Qt.QtWidgets import QHBoxLayout, QToolButton, QWidget
 from ... import resourcePath
 from ...prefs import prefs_path
 from ..drag_tab_bar import DragTabBar
+from ..workbox_text_edit import WorkboxTextEdit
 from .grouped_tab_menu import GroupTabMenu
 from .grouped_tab_widget import GroupedTabWidget
 from .one_tab_widget import OneTabWidget
@@ -41,6 +42,7 @@ class GroupTabWidget(OneTabWidget):
         super(GroupTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'group_tab_widget')
         self.console = console
+        self.editor_cls = WorkboxTextEdit
         self.setStyleSheet(DEFAULT_STYLE_SHEET)
         corner = QWidget(self)
         lyt = QHBoxLayout(corner)
@@ -101,8 +103,15 @@ class GroupTabWidget(OneTabWidget):
 
         return parent, parent.add_new_editor(title)
 
+    def current_groups_widget(self):
+        """Returns the current widget of the currently selected group."""
+        editor_tab = self.currentWidget()
+        return editor_tab.currentWidget()
+
     def default_tab(self, title='Group 1'):
-        widget = GroupedTabWidget(parent=self, console=self.console)
+        widget = GroupedTabWidget(
+            parent=self, console=self.console, editor_cls=self.editor_cls
+        )
         return widget, title
 
     def restore_prefs(self, prefs):

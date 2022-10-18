@@ -27,7 +27,7 @@ from Qt.QtWidgets import (
     QVBoxLayout,
 )
 
-from .. import core, debug, osystem, resourcePath
+from .. import core, debug, osystem, plugins, resourcePath
 from ..gui import Dialog, Window, loadUi
 from ..logger import saveLoggerConfiguration
 from ..prefs import prefs_path
@@ -37,6 +37,14 @@ from .completer import CompleterMode
 from .level_buttons import DebugLevelButton, LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
 from .workboxwidget import WorkboxWidget
+
+
+class WorkboxPages:
+    """Nice names for the uiWorkboxSTACK indexes."""
+
+    Options = 0
+    Workboxes = 1
+    PDB = 2
 
 
 class LoggerWindow(Window):
@@ -91,6 +99,8 @@ class LoggerWindow(Window):
         )
         # create the default workbox
         self.uiWorkboxWGT = self.addWorkbox(self.uiWorkboxTAB)
+
+        self.uiWorkboxGrpTAB.console = self.uiConsoleTXT
 
         # Create additional buttons in toolbar.
         self.uiDebugLevelBTN = DebugLevelButton(self)
@@ -322,8 +332,31 @@ class LoggerWindow(Window):
                 0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(run_workbox))
             )
 
+    def apply_options(self):
+        """Apply editor options the user chose on the WorkboxPage.Options page."""
+        editor_cls_name, editor_cls = plugins.editor(
+            self.uiEditorChooserWGT.editor_name()
+        )
+        if editor_cls_name is None:
+            return
+        if editor_cls_name != self.editor_cls_name:
+            self.editor_cls_name = editor_cls_name
+            self.uiWorkboxGrpTAB.editor_cls = editor_cls
+            # We need to change the editor, save all prefs
+            self.recordPrefs()
+            # Clear the uiWorkboxGrpTAB
+            self.uiWorkboxGrpTAB.clear()
+            # Restore prefs to populate the tabs
+            self.restorePrefs()
+
+        self.update_workbox_stack()
+
     def comment_toggle(self):
-        self.uiWorkboxTAB.currentWidget().__comment_toggle__()
+        self.current_workbox().__comment_toggle__()
+
+    def current_workbox(self):
+        """Returns the current workbox for the current tab group."""
+        return self.uiWorkboxGrpTAB.current_groups_widget()
 
     @classmethod
     def runWorkbox(cls, indicator):
@@ -398,11 +431,11 @@ class LoggerWindow(Window):
 
     def focusToWorkbox(self):
         """Move focus to the current workbox"""
-        self.uiWorkboxTAB.currentWidget().setFocus()
+        self.current_workbox().setFocus()
 
     def copyToConsole(self):
         """Copy current selection or line from workbox to console"""
-        workbox = self.uiWorkboxTAB.currentWidget()
+        workbox = self.current_workbox()
         if not workbox.hasFocus():
             return
 
@@ -445,7 +478,7 @@ class LoggerWindow(Window):
         if not text:
             return
 
-        workbox = self.uiWorkboxTAB.currentWidget()
+        workbox = self.current_workbox()
         workbox.__remove_selected_text__()
         workbox.__insert_text__(text)
 
@@ -637,7 +670,7 @@ class LoggerWindow(Window):
         """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxTAB.currentWidget().__exec_all__()
+        self.current_workbox().__exec_all__()
 
         if self.uiAutoPromptACT.isChecked():
             console = self.console()
@@ -648,7 +681,7 @@ class LoggerWindow(Window):
         """Clears the console before executing selected workbox code"""
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.uiWorkboxTAB.currentWidget().__exec_selected__()
+        self.current_workbox().__exec_selected__()
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
@@ -742,6 +775,11 @@ class LoggerWindow(Window):
         if self._stylesheet == 'Custom':
             _prefs['styleSheet'] = self.styleSheet()
 
+        workbox_prefs = self.uiWorkboxGrpTAB.save_prefs()
+        _prefs['workbox_prefs'] = workbox_prefs
+
+        _prefs['editor_cls'] = self.editor_cls_name
+
         self.save_prefs(_prefs)
 
     def load_prefs(self):
@@ -763,6 +801,16 @@ class LoggerWindow(Window):
     def restorePrefs(self):
         prefs = self.load_prefs()
 
+        # Editor selection
+        self.editor_cls_name = prefs.get('editor_cls')
+        if self.editor_cls_name:
+            self.editor_cls_name, editor_cls = plugins.editor(self.editor_cls_name)
+            self.uiWorkboxGrpTAB.editor_cls = editor_cls
+        else:
+            self.uiWorkboxGrpTAB.editor_cls = None
+        self.uiEditorChooserWGT.set_editor_name(self.editor_cls_name)
+
+        # Geometry
         if 'loggergeom' in prefs:
             self.setGeometry(*prefs['loggergeom'])
         self.uiEditorVerticalACT.setChecked(prefs.get('SplitterVertical', False))
@@ -852,7 +900,7 @@ class LoggerWindow(Window):
             self.setStyleSheet(self._stylesheet)
         self.uiConsoleTXT.flash_time = prefs.get('flash_time', 1.0)
 
-        self.restoreToolbars(prefs=prefs)
+        self.uiWorkboxGrpTAB.restore_prefs(prefs.get('workbox_prefs', {}))
 
     def restoreToolbars(self, prefs=None):
         if prefs is None:
@@ -1077,6 +1125,9 @@ class LoggerWindow(Window):
         height = self.uiMenuBar.actionGeometry(self.uiFileMENU.menuAction()).height()
         self.uiStatusLBL.setMinimumHeight(height)
 
+    def show_workbox_options(self):
+        self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
+
     def updateCopyIndentsAsSpaces(self):
         for index in range(self.uiWorkboxTAB.count()):
             workbox = self.uiWorkboxTAB.widget(index)
@@ -1094,7 +1145,18 @@ class LoggerWindow(Window):
     def updatePdbVisibility(self, state):
         self.uiPdbMENU.menuAction().setVisible(state)
         self.uiPdbTOOLBAR.setVisible(state)
-        self.uiWorkboxSTACK.setCurrentIndex(1 if state else 0)
+        self.update_workbox_stack()
+
+    def update_workbox_stack(self):
+        if self.uiPdbMENU.menuAction().isVisible():
+            index = WorkboxPages.PDB
+        else:
+            if self.uiWorkboxGrpTAB.editor_cls:
+                index = WorkboxPages.Workboxes
+            else:
+                index = WorkboxPages.Options
+
+        self.uiWorkboxSTACK.setCurrentIndex(index)
 
     def shutdown(self):
         # close out of the ide system
@@ -1204,7 +1266,7 @@ class LoggerWindow(Window):
             self.unlinkTab(self._currentTab)
 
     def unlinkTab(self, tabIdx):
-        workbox = self.uiWorkboxTAB.currentWidget()
+        workbox = self.current_workbox()
         workbox.__set_file_monitoring_enabled__(False)
 
         tab = self.uiWorkboxTAB.tabBar()
@@ -1217,7 +1279,7 @@ class LoggerWindow(Window):
             workbox = self.uiWorkboxTAB.widget(tabIndex)
             if workbox.__filename__() == filename:
                 self._reloadRequested.add(tabIndex)
-                self.uiWorkboxTAB.currentWidget().__set_font__(font)
+                self.current_workbox().__set_font__(font)
 
         newIdx = self.uiWorkboxTAB.currentIndex()
         self.updateLink(newIdx)
@@ -1228,7 +1290,7 @@ class LoggerWindow(Window):
 
     def updateLink(self, tabIdx):
         if tabIdx in self._reloadRequested:
-            workbox = self.uiWorkboxTAB.currentWidget()
+            workbox = self.current_workbox()
             fn = workbox.__filename__()
             if not os.path.isfile(fn):
                 self.unlinkTab(tabIdx)

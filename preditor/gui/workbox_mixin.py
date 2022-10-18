@@ -8,6 +8,9 @@ from ..prefs import prefs_path
 
 
 class WorkboxMixin(object):
+    _warning_text = None
+    """When a user is picking this Workbox class, show a warning with this text."""
+
     def __init__(self, tempfile=None, filename=None):
         self._filename_pref = filename
         self._is_loaded = False

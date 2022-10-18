@@ -16,6 +16,8 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
     It's better than nothing, but not by much.
     """
 
+    _warning_text = "Use this workbox only if you have no other choices."
+
     def __init__(self, console, parent=None, delayable_engine='default'):
         super(WorkboxTextEdit, self).__init__(parent=parent)
         self._filename = None

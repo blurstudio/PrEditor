@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>710</width>
-    <height>466</height>
+    <width>796</width>
+    <height>406</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -38,8 +38,22 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="Workbox">
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+       <widget class="QWidget" name="Options">
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <item>
+          <widget class="EditorChooser" name="uiEditorChooserWGT" native="true"/>
+         </item>
+         <item>
+          <widget class="QDialogButtonBox" name="uiApplySettingsBTNS">
+           <property name="standardButtons">
+            <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="WorkboxGroups">
+        <layout class="QVBoxLayout" name="verticalLayout_4">
          <property name="leftMargin">
           <number>0</number>
          </property>
@@ -53,7 +67,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="NewTabWidget" name="uiWorkboxTAB">
+          <widget class="GroupTabWidget" name="uiWorkboxGrpTAB">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -87,6 +101,32 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="Workbox">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="NewTabWidget" name="uiWorkboxTAB">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>100</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -97,7 +137,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>710</width>
+     <width>796</width>
      <height>22</height>
     </rect>
    </property>
@@ -212,6 +252,7 @@
     <addaction name="separator"/>
     <addaction name="uiErrorHyperlinksACT"/>
     <addaction name="uiSetPreferredTextEditorPathACT"/>
+    <addaction name="uiSetWorkboxEditorACT"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -862,8 +903,19 @@ at the indicated line in the specified text editor.
     <string>Comment Toggle</string>
    </property>
   </action>
+  <action name="uiSetWorkboxEditorACT">
+   <property name="text">
+    <string>Set Workbox Editor</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>GroupTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>preditor.gui.group_tab_widget</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>NewTabWidget</class>
    <extends>QTabWidget</extends>
@@ -875,7 +927,67 @@ at the indicated line in the specified text editor.
    <extends>QTextEdit</extends>
    <header>preditor.gui.console</header>
   </customwidget>
+  <customwidget>
+   <class>EditorChooser</class>
+   <extends>QWidget</extends>
+   <header>preditor.gui.editor_chooser</header>
+  </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>uiApplySettingsBTNS</sender>
+   <signal>accepted()</signal>
+   <receiver>PrEditorWindow</receiver>
+   <slot>apply_options()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>558</x>
+     <y>367</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>586</x>
+     <y>387</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiSetWorkboxEditorACT</sender>
+   <signal>triggered()</signal>
+   <receiver>PrEditorWindow</receiver>
+   <slot>show_workbox_options()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>202</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiApplySettingsBTNS</sender>
+   <signal>rejected()</signal>
+   <receiver>PrEditorWindow</receiver>
+   <slot>update_workbox_stack()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>754</x>
+     <y>377</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>747</x>
+     <y>401</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>apply_options()</slot>
+  <slot>reset_options()</slot>
+  <slot>show_workbox_options()</slot>
+  <slot>update_workbox_stack()</slot>
+ </slots>
 </ui>
