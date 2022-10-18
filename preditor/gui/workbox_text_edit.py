@@ -42,9 +42,9 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
         sc.setPosition(cursor.selectionStart())
         return sc.blockNumber(), sc.positionInBlock()
 
-    def __exec_all__(self, idx=None):
+    def __exec_all__(self):
         txt = self.__text__().rstrip()
-        filename = '<Workbox>:{}'.format(idx)
+        filename = self.__workbox_filename__()
         self.__console__().executeString(txt, filename=filename)
 
     def __font__(self):
@@ -54,6 +54,10 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
         metrics = QFontMetrics(font)
         self.setTabStopDistance(metrics.width(" ") * 4)
         super(WorkboxTextEdit, self).setFont(font)
+
+    def __goto_line__(self, line):
+        cursor = QTextCursor(self.document().findBlockByLineNumber(line - 1))
+        self.setTextCursor(cursor)
 
     def __indentations_use_tabs__(self):
         return True

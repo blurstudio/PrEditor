@@ -93,15 +93,22 @@ class GroupTabWidget(OneTabWidget):
             parent = self.widget(group)
         elif isinstance(group, six.string_types):
             group_title = group
-            for i in range(self.count()):
-                if self.tabText(i) == group:
-                    parent = self.widget(i)
+            index = self.index_for_text(group)
+            if index != -1:
+                parent = self.widget(index)
 
         if not parent:
             parent, group_title = self.default_tab(group_title)
             self.addTab(parent, group_title)
 
         return parent, parent.add_new_editor(title)
+
+    def all_widgets(self):
+        """Returns every widget under every group."""
+        for i in range(self.count()):
+            tab_widget = self.widget(i)
+            for j in range(tab_widget.count()):
+                yield tab_widget.widget(j)
 
     def current_groups_widget(self):
         """Returns the current widget of the currently selected group."""
@@ -245,3 +252,20 @@ class GroupTabWidget(OneTabWidget):
             groups.append(group)
 
         return prefs
+
+    def set_current_groups_from_index(self, group, editor):
+        """Make the specified indexes the current widget and return it. If the
+        indexes are out of range the current widget is not changed.
+
+        Args:
+            group (int): The index of the group tab to make current.
+            editor (int): The index of the editor under the group tab to
+                make current.
+
+        Returns:
+            QWidget: The current widget after applying.
+        """
+        self.setCurrentIndex(group)
+        tab_widget = self.currentWidget()
+        tab_widget.setCurrentIndex(editor)
+        return tab_widget.currentWidget()

@@ -28,9 +28,6 @@ class GroupTabMenu(LazyMenu):
                 act.setProperty('info', (group, index))
 
     def focus_tab(self, action):
-        group, index = action.property('info')
-        self.manager.setCurrentIndex(group)
-        tab_widget = self.manager.widget(group)
-        tab_widget.setCurrentIndex(index)
-        widget = tab_widget.widget(index)
+        group, editor = action.property('info')
+        widget = self.manager.set_current_groups_from_index(group, editor)
         widget.setFocus()

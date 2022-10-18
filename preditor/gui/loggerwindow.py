@@ -98,7 +98,7 @@ class LoggerWindow(Window):
             self.workboxTabRightClick
         )
         # create the default workbox
-        self.uiWorkboxWGT = self.addWorkbox(self.uiWorkboxTAB)
+        self.addWorkbox(self.uiWorkboxTAB)
 
         self.uiWorkboxGrpTAB.console = self.uiConsoleTXT
 
@@ -320,7 +320,7 @@ class LoggerWindow(Window):
             )
         )
 
-        self.setupRunWorkbox()
+        self.setup_run_workbox()
 
         # Run the current workbox after the LoggerWindow is shown.
         if run_workbox:
@@ -329,7 +329,7 @@ class LoggerWindow(Window):
             # before it has finished running completely.
             # QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
             QTimer.singleShot(
-                0, lambda: QTimer.singleShot(0, lambda: self.runWorkbox(run_workbox))
+                0, lambda: QTimer.singleShot(0, lambda: self.run_workbox(run_workbox))
             )
 
     def apply_options(self):
@@ -359,67 +359,60 @@ class LoggerWindow(Window):
         return self.uiWorkboxGrpTAB.current_groups_widget()
 
     @classmethod
-    def runWorkbox(cls, indicator):
-        """This is a function which will be added to __main__, and therefore available
-        to PythonLogger users. It will accept a python-like index (positive or
-        negative), a string representing the name of the chosen Workbox, or a boolean
-        which support existing command line launching functionality which will auto-run
-        the last workbox up launch.
+    def run_workbox(cls, indicator):
+        """This is a function which will be added to __main__, and therefore
+        available to PythonLogger users. It will accept a string matching the
+        "{group}/{workbox}" format, or a boolean that will run the current tab
+        to support the command line launching functionality which auto-runs the
+        current workbox on launch.
 
         Args:
-            indicator(int, str, boolean): Used to define which workbox to run.
+            indicator(str, boolean): Used to define which workbox to run.
 
         Raises:
             Exception: "Cannot call current workbox."
 
         Example Usages:
-            runWorkbox(3)
-            runWorkbox(-2)
-            runWorkbox('test')
-            runWorkbox('stuff.py')
-
+            run_workbox('group_a/test')
+            run_workbox('some/stuff.py')
             (from command line): blurdev launch Python_Logger --run_workbox
-
         """
-        pyLogger = cls.instance()
-        workboxTab = pyLogger.uiWorkboxTAB
-        workboxCount = workboxTab.count()
+        logger = cls.instance()
 
-        # Determine workbox index
-        index = None
+        # Determine the workbox widget
+        workbox = None
 
         # If indicator is True, run the current workbox
         if isinstance(indicator, bool):
             if indicator:
-                index = workboxCount - 1
-        # If indicator is an int, use as normal python index
-        elif isinstance(indicator, int):
-            if indicator < 0:
-                num = workboxCount + indicator
-            else:
-                num = indicator
-            if num >= 0 and num < workboxCount:
-                index = num
+                workbox = logger.current_workbox()
+
         # If indicator is a string, find first tab with that name
         elif isinstance(indicator, six.string_types):
-            for i in range(workboxCount):
-                if workboxTab.tabText(i) == indicator:
-                    index = i
-                    break
-        if index is not None:
-            workbox = workboxTab.widget(index)
+            group, editor = indicator.split('/', 1)
+            index = logger.uiWorkboxGrpTAB.index_for_text(group)
+            if index != -1:
+                tab_widget = logger.uiWorkboxGrpTAB.widget(index)
+                index = tab_widget.index_for_text(editor)
+                if index != -1:
+                    workbox = tab_widget.widget(index)
+
+        if workbox is not None:
             # if indicator is True, its ok to run the workbox, this option
             # is passed by the cli to run the current tab
             if workbox.hasFocus() and indicator is not True:
                 raise Exception("Cannot call current workbox.")
             else:
+                # Make sure the workbox text is loaded as it likely has not
+                # been shown yet and each tab is now loaded only on demand.
+                workbox.__show__()
                 workbox.__exec_all__()
 
-    def setupRunWorkbox(self):
+    def setup_run_workbox(self):
         """We will bind the runWordbox function on __main__, which makes is available to
         code running within PythonLogger.
         """
-        __main__.runWorkbox = self.runWorkbox
+        __main__.run_workbox = self.run_workbox
 
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
@@ -526,9 +519,7 @@ class LoggerWindow(Window):
             font.setPointSize(newSize)
             self.console().setConsoleFont(font)
 
-            for index in range(self.uiWorkboxTAB.count()):
-                workbox = self.uiWorkboxTAB.widget(index)
-
+            for workbox in self.uiWorkboxGrpTAB.all_widgets():
                 marginsFont = workbox.__margins_font__()
                 marginsFont.setPointSize(newSize)
                 workbox.__set_margins_font__(marginsFont)
@@ -582,8 +573,7 @@ class LoggerWindow(Window):
         font.setFamily(family)
         self.console().setConsoleFont(font)
 
-        for index in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(index)
+        for workbox in self.uiWorkboxGrpTAB.all_widgets():
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
 
@@ -933,8 +923,7 @@ class LoggerWindow(Window):
 
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        for index in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(index)
+        for workbox in self.uiWorkboxGrpTAB.all_widgets():
             workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
@@ -1129,15 +1118,13 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
     def updateCopyIndentsAsSpaces(self):
-        for index in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(index)
+        for workbox in self.uiWorkboxGrpTAB.all_widgets():
             workbox.__set_copy_indents_as_spaces__(
                 self.uiCopyTabsToSpacesACT.isChecked()
             )
 
     def updateIndentationsUseTabs(self):
-        for index in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(index)
+        for workbox in self.uiWorkboxGrpTAB.all_widgets():
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsACT.isChecked()
             )

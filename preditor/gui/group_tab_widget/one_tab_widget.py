@@ -24,6 +24,13 @@ class OneTabWidget(QTabWidget):
         self.removeTab(index)
         self.update_closable_tabs()
 
+    def index_for_text(self, text):
+        """Return the index of the tab with this text. Returns -1 if not found"""
+        for i in range(self.count()):
+            if self.tabText(i) == text:
+                return i
+        return -1
+
     def insertTab(self, *args, **kwargs):  # noqa: N802
         ret = super(OneTabWidget, self).insertTab(*args, **kwargs)
         self.update_closable_tabs()

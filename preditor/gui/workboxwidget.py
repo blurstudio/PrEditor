@@ -62,10 +62,8 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
         self.setCursorPosition(line, index)
 
     def __exec_all__(self):
-        """re-implement the DocumentEditor.exec_ method to run this code without saving"""
         txt = self.__unix_end_lines__(self.text()).rstrip()
-        idx = self.parent().indexOf(self)
-        filename = '<WorkboxWidget>:{}'.format(idx)
+        filename = self.__workbox_filename__()
         self.__console__().executeString(txt, filename=filename)
 
     def __file_monitoring_enabled__(self):

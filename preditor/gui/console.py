@@ -233,11 +233,12 @@ class ConsoleEdit(QTextEdit):
                 msg = msg.format(cmdTempl)
                 print(msg)
         elif workboxIndex is not None:
-            workboxIndex = int(workboxIndex)
+            group, editor = workboxIndex.split(',')
             lineNum = int(lineNum)
-            window.uiWorkboxTAB.setCurrentIndex(workboxIndex)
-            workbox = window.uiWorkboxTAB.widget(workboxIndex)
-            workbox.SendScintilla(workbox.SCI_GOTOLINE, lineNum - 1)
+            workbox = window.uiWorkboxGrpTAB.set_current_groups_from_index(
+                int(group), int(editor)
+            )
+            workbox.__goto_line__(lineNum)
             workbox.setFocus()
 
     def getPrevCommand(self):
@@ -819,9 +820,7 @@ class ConsoleEdit(QTextEdit):
                 fileEnd = info.get("fileEnd")
                 lineNum = info.get("lineNum")
 
-                isWorkbox = (
-                    '<WorkboxSelection>' in filename or '<WorkboxWidget>' in filename
-                )
+                isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
                 if isWorkbox:
                     split = filename.split(':')
                     workboxIdx = split[-1]

@@ -4,6 +4,8 @@ import os
 import tempfile
 import textwrap
 
+from Qt.QtWidgets import QStackedWidget
+
 from ..prefs import prefs_path
 
 
@@ -71,8 +73,7 @@ class WorkboxMixin(object):
         txt = '\n' * line + txt
 
         # execute the code
-        idx = self.parent().indexOf(self)
-        filename = '<WorkboxSelection>:{}'.format(idx)
+        filename = self.__workbox_filename__(selection=True)
         ret, was_eval = self.__console__().executeString(txt, filename=filename)
         if was_eval:
             # If the selected code was a statement print the result of the statement.
@@ -97,6 +98,46 @@ class WorkboxMixin(object):
 
     def __set_font__(self, font):
         raise NotImplementedError("Mixin method not overridden.")
+
+    def __group_tab_index__(self):
+        """Returns the group and editor indexes if this editor is being used in
+        a GroupTabWidget.
+
+        Returns:
+            group, editor: The index of the group tab and the index of the
+                editor's tab under the group tab. -1 is returned for both if
+                this isn't parent to a GroupTabWidget.
+        """
+        group = editor = -1
+
+        # This widget's parent should be a stacked widget and we can get the
+        # editors index from that
+        stack = self.parent()
+        if stack and isinstance(stack, QStackedWidget):
+            editor = stack.indexOf(self)
+        else:
+            return -1, -1
+
+        # The parent of the stacked widget should be a tab widget, get its parent
+        editor_tab = stack.parent()
+        if not editor_tab:
+            return -1, -1
+
+        # This should be a stacked widget under a tab widget, we can get group
+        # from it without needing to get its parent.
+        stack = editor_tab.parent()
+        if stack and isinstance(stack, QStackedWidget):
+            group = stack.indexOf(editor_tab)
+
+        return group, editor
+
+    def __workbox_filename__(self, selection=False):
+        title = "WorkboxSelection" if selection else "Workbox"
+        group, editor = self.__group_tab_index__()
+        if group == -1 or editor == -1:
+            return '<{}>'.format(title)
+        else:
+            return '<{}>:{},{}'.format(title, group, editor)
 
     def __goto_line__(self, line):
         raise NotImplementedError("Mixin method not overridden.")
