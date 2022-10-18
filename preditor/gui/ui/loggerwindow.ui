@@ -254,18 +254,116 @@
     <addaction name="uiSetPreferredTextEditorPathACT"/>
     <addaction name="uiSetWorkboxEditorACT"/>
    </widget>
-   <widget class="QMenu" name="menuTools">
-    <property name="title">
-     <string>Tools</string>
-    </property>
-    <addaction name="uiGetPrevCmdACT"/>
-    <addaction name="uiGetNextCmdACT"/>
-   </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
      <string>Edit</string>
     </property>
+    <widget class="QMenu" name="menuFocus_to_Group">
+     <property name="title">
+      <string>Focus to Group</string>
+     </property>
+     <addaction name="uiGroup1ACT"/>
+     <addaction name="uiGroup2ACT"/>
+     <addaction name="uiGroup3ACT"/>
+     <addaction name="uiGroup4ACT"/>
+     <addaction name="uiGroup5ACT"/>
+     <addaction name="uiGroup6ACT"/>
+     <addaction name="uiGroup7ACT"/>
+     <addaction name="uiGroup8ACT"/>
+     <addaction name="separator"/>
+     <addaction name="uiGroupLastACT"/>
+    </widget>
+    <widget class="QMenu" name="menuFocus_to_Tab">
+     <property name="title">
+      <string>Focus to Tab</string>
+     </property>
+     <action name="uiTab1ACT">
+      <property name="text">
+       <string>Focus to Tab 1</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+1</string>
+      </property>
+     </action>
+     <action name="uiTab2ACT">
+      <property name="text">
+       <string>Focus to Tab 2</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+2</string>
+      </property>
+     </action>
+     <action name="uiTab3ACT">
+      <property name="text">
+       <string>Focus to Tab 3</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+3</string>
+      </property>
+     </action>
+     <action name="uiTab4ACT">
+      <property name="text">
+       <string>Focus to Tab 4</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+4</string>
+      </property>
+     </action>
+     <action name="uiTab5ACT">
+      <property name="text">
+       <string>Focus to Tab 5</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+5</string>
+      </property>
+     </action>
+     <action name="uiTab6ACT">
+      <property name="text">
+       <string>Focus to Tab 6</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+6</string>
+      </property>
+     </action>
+     <action name="uiTab7ACT">
+      <property name="text">
+       <string>Focus to Tab 7</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+7</string>
+      </property>
+     </action>
+     <action name="uiTab8ACT">
+      <property name="text">
+       <string>Focus to Tab 8</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+8</string>
+      </property>
+     </action>
+     <action name="uiTabLastACT">
+      <property name="text">
+       <string>Focus to Last Tab</string>
+      </property>
+      <property name="shortcut">
+       <string>Ctrl+9</string>
+      </property>
+     </action>
+     <addaction name="uiTab1ACT"/>
+     <addaction name="uiTab2ACT"/>
+     <addaction name="uiTab3ACT"/>
+     <addaction name="uiTab4ACT"/>
+     <addaction name="uiTab5ACT"/>
+     <addaction name="uiTab6ACT"/>
+     <addaction name="uiTab7ACT"/>
+     <addaction name="uiTab8ACT"/>
+     <addaction name="separator"/>
+     <addaction name="uiTabLastACT"/>
+    </widget>
     <addaction name="uiCommentToggleACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiGetPrevCmdACT"/>
+    <addaction name="uiGetNextCmdACT"/>
     <addaction name="separator"/>
     <addaction name="uiFocusToConsoleACT"/>
     <addaction name="uiCopyToConsoleACT"/>
@@ -275,22 +373,14 @@
     <addaction name="uiNextTabACT"/>
     <addaction name="uiPrevTabACT"/>
     <addaction name="separator"/>
-    <addaction name="uiTab1ACT"/>
-    <addaction name="uiTab2ACT"/>
-    <addaction name="uiTab3ACT"/>
-    <addaction name="uiTab4ACT"/>
-    <addaction name="uiTab5ACT"/>
-    <addaction name="uiTab6ACT"/>
-    <addaction name="uiTab7ACT"/>
-    <addaction name="uiTab8ACT"/>
-    <addaction name="uiTabLastACT"/>
+    <addaction name="menuFocus_to_Group"/>
+    <addaction name="menuFocus_to_Tab"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="menuEdit"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="menu_Run"/>
    <addaction name="uiPdbMENU"/>
-   <addaction name="menuTools"/>
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
@@ -746,6 +836,9 @@ Must manually save instead.</string>
    <property name="toolTip">
     <string>Get Previous Command (like in a  command prompt)</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+Up</string>
+   </property>
   </action>
   <action name="uiGetNextCmdACT">
    <property name="text">
@@ -753,6 +846,9 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Get Next Command (like in a  command prompt)</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Down</string>
    </property>
   </action>
   <action name="uiFocusToConsoleACT">
@@ -762,6 +858,9 @@ Must manually save instead.</string>
    <property name="toolTip">
     <string>Set focus to the console</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+PgUp</string>
+   </property>
   </action>
   <action name="uiCopyToConsoleACT">
    <property name="text">
@@ -769,6 +868,9 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Set focus to the console and copy/paste selection or line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+PgUp</string>
    </property>
   </action>
   <action name="uiFocusToWorkboxACT">
@@ -778,6 +880,9 @@ Must manually save instead.</string>
    <property name="toolTip">
     <string>Set focus to the current workbox</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+PgDown</string>
+   </property>
   </action>
   <action name="uiCopyToWorkboxACT">
    <property name="text">
@@ -785,6 +890,9 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Set focus to the current workbox and copy/paste selection or line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+PgDown</string>
    </property>
   </action>
   <action name="uiNextTabACT">
@@ -794,6 +902,9 @@ Must manually save instead.</string>
    <property name="toolTip">
     <string>Set focus to the next  workbox tab</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Tab</string>
+   </property>
   </action>
   <action name="uiPrevTabACT">
    <property name="text">
@@ -801,6 +912,9 @@ Must manually save instead.</string>
    </property>
    <property name="toolTip">
     <string>Set focus to the previous  workbox tab</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Tab</string>
    </property>
   </action>
   <action name="uiAutoPromptACT">
@@ -837,51 +951,6 @@ at the indicated line in the specified text editor.
 </string>
    </property>
   </action>
-  <action name="uiTab1ACT">
-   <property name="text">
-    <string>Focus to Tab 1</string>
-   </property>
-  </action>
-  <action name="uiTab2ACT">
-   <property name="text">
-    <string>Focus to Tab 2</string>
-   </property>
-  </action>
-  <action name="uiTab3ACT">
-   <property name="text">
-    <string>Focus to Tab 3</string>
-   </property>
-  </action>
-  <action name="uiTab4ACT">
-   <property name="text">
-    <string>Focus to Tab 4</string>
-   </property>
-  </action>
-  <action name="uiTab5ACT">
-   <property name="text">
-    <string>Focus to Tab 5</string>
-   </property>
-  </action>
-  <action name="uiTab6ACT">
-   <property name="text">
-    <string>Focus to Tab 6</string>
-   </property>
-  </action>
-  <action name="uiTab7ACT">
-   <property name="text">
-    <string>Focus to Tab 7</string>
-   </property>
-  </action>
-  <action name="uiTab8ACT">
-   <property name="text">
-    <string>Focus to Tab 8</string>
-   </property>
-  </action>
-  <action name="uiTabLastACT">
-   <property name="text">
-    <string>Focus to Last Tab</string>
-   </property>
-  </action>
   <action name="uiSelectCurrentLineACT">
    <property name="text">
     <string>Select Current Line</string>
@@ -902,10 +971,90 @@ at the indicated line in the specified text editor.
    <property name="text">
     <string>Comment Toggle</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+/</string>
+   </property>
   </action>
   <action name="uiSetWorkboxEditorACT">
    <property name="text">
     <string>Set Workbox Editor</string>
+   </property>
+  </action>
+  <action name="uiGroup1ACT">
+   <property name="text">
+    <string>Focus to Group 1</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+1</string>
+   </property>
+  </action>
+  <action name="actionFocus">
+   <property name="text">
+    <string>Focus</string>
+   </property>
+  </action>
+  <action name="uiGroup2ACT">
+   <property name="text">
+    <string>Focus to Group 2</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+2</string>
+   </property>
+  </action>
+  <action name="uiGroup3ACT">
+   <property name="text">
+    <string>Focus to Group 3</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+3</string>
+   </property>
+  </action>
+  <action name="uiGroup4ACT">
+   <property name="text">
+    <string>Focus to Group 4</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+4</string>
+   </property>
+  </action>
+  <action name="uiGroup5ACT">
+   <property name="text">
+    <string>Focus to Group 5</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+5</string>
+   </property>
+  </action>
+  <action name="uiGroup6ACT">
+   <property name="text">
+    <string>Focus to Group 6</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+6</string>
+   </property>
+  </action>
+  <action name="uiGroup7ACT">
+   <property name="text">
+    <string>Focus to Group 7</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+7</string>
+   </property>
+  </action>
+  <action name="uiGroup8ACT">
+   <property name="text">
+    <string>Focus to Group 8</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+8</string>
+   </property>
+  </action>
+  <action name="uiGroupLastACT">
+   <property name="text">
+    <string>Focus to Last Group</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+9</string>
    </property>
   </action>
  </widget>

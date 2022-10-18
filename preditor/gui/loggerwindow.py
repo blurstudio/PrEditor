@@ -180,27 +180,17 @@ class LoggerWindow(Window):
         )
 
         # Browse previous commands
-        self.uiGetPrevCmdACT.setShortcut(Qt.ALT | Qt.Key_Up)
         self.uiGetPrevCmdACT.triggered.connect(self.getPrevCommand)
-        self.uiGetNextCmdACT.setShortcut(Qt.ALT | Qt.Key_Down)
         self.uiGetNextCmdACT.triggered.connect(self.getNextCommand)
 
         # Focus to console or to workbox, optionally copy seleciton or line
-        self.uiFocusToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_PageUp)
         self.uiFocusToConsoleACT.triggered.connect(self.focusToConsole)
-        self.uiCopyToConsoleACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageUp)
         self.uiCopyToConsoleACT.triggered.connect(self.copyToConsole)
-        self.uiFocusToWorkboxACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_PageDown)
         self.uiFocusToWorkboxACT.triggered.connect(self.focusToWorkbox)
-        self.uiCopyToWorkboxACT.setShortcut(
-            Qt.CTRL | Qt.SHIFT | Qt.ALT | Qt.Key_PageDown
-        )
         self.uiCopyToWorkboxACT.triggered.connect(self.copyToWorkbox)
 
         # Navigate workbox tabs
-        self.uiNextTabACT.setShortcut(Qt.CTRL | Qt.Key_Tab)
         self.uiNextTabACT.triggered.connect(self.nextTab)
-        self.uiPrevTabACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Tab)
         self.uiPrevTabACT.triggered.connect(self.prevTab)
 
         self.uiTab1ACT.triggered.connect(partial(self.gotoTabByIndex, 1))
@@ -213,17 +203,16 @@ class LoggerWindow(Window):
         self.uiTab8ACT.triggered.connect(partial(self.gotoTabByIndex, 8))
         self.uiTabLastACT.triggered.connect(partial(self.gotoTabByIndex, -1))
 
-        self.uiTab1ACT.setShortcut(Qt.CTRL | Qt.Key_1)
-        self.uiTab2ACT.setShortcut(Qt.CTRL | Qt.Key_2)
-        self.uiTab3ACT.setShortcut(Qt.CTRL | Qt.Key_3)
-        self.uiTab4ACT.setShortcut(Qt.CTRL | Qt.Key_4)
-        self.uiTab5ACT.setShortcut(Qt.CTRL | Qt.Key_5)
-        self.uiTab6ACT.setShortcut(Qt.CTRL | Qt.Key_6)
-        self.uiTab7ACT.setShortcut(Qt.CTRL | Qt.Key_7)
-        self.uiTab8ACT.setShortcut(Qt.CTRL | Qt.Key_8)
-        self.uiTabLastACT.setShortcut(Qt.CTRL | Qt.Key_9)
+        self.uiGroup1ACT.triggered.connect(partial(self.gotoGroupByIndex, 1))
+        self.uiGroup2ACT.triggered.connect(partial(self.gotoGroupByIndex, 2))
+        self.uiGroup3ACT.triggered.connect(partial(self.gotoGroupByIndex, 3))
+        self.uiGroup4ACT.triggered.connect(partial(self.gotoGroupByIndex, 4))
+        self.uiGroup5ACT.triggered.connect(partial(self.gotoGroupByIndex, 5))
+        self.uiGroup6ACT.triggered.connect(partial(self.gotoGroupByIndex, 6))
+        self.uiGroup7ACT.triggered.connect(partial(self.gotoGroupByIndex, 7))
+        self.uiGroup8ACT.triggered.connect(partial(self.gotoGroupByIndex, 8))
+        self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
 
-        self.uiCommentToggleACT.setShortcut(Qt.CTRL | Qt.Key_Slash)
         self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
@@ -1172,7 +1161,7 @@ class LoggerWindow(Window):
 
     def nextTab(self):
         """Move focus to next workbox tab"""
-        tabWidget = self.uiWorkboxTAB
+        tabWidget = self.uiWorkboxGrpTAB.currentWidget()
         if not tabWidget.currentWidget().hasFocus():
             tabWidget.currentWidget().setFocus()
 
@@ -1184,7 +1173,7 @@ class LoggerWindow(Window):
 
     def prevTab(self):
         """Move focus to previous workbox tab"""
-        tabWidget = self.uiWorkboxTAB
+        tabWidget = self.uiWorkboxGrpTAB.currentWidget()
         if not tabWidget.currentWidget().hasFocus():
             tabWidget.currentWidget().setFocus()
 
@@ -1194,19 +1183,34 @@ class LoggerWindow(Window):
         else:
             tabWidget.setCurrentIndex(index - 1)
 
-    def gotoTabByIndex(self, index):
-        """Generally to be used in conjunction with the Ctrl+<num> keyboard shortcuts,
-        which allow user to jump directly to another tab, mimicing we browser
-        functionality.
+    def gotoGroupByIndex(self, index):
+        """Generally to be used in conjunction with the Ctrl+Alt+<num> keyboard
+        shortcuts, which allow user to jump directly to another tab, mimicking
+        web browser functionality.
         """
         if index == -1:
-            index = self.uiWorkboxTAB.count() - 1
+            index = self.uiWorkboxGrpTAB.count() - 1
         else:
-            count = self.uiWorkboxTAB.count()
+            count = self.uiWorkboxGrpTAB.count()
             index = min(index, count)
             index -= 1
 
-        self.uiWorkboxTAB.setCurrentIndex(index)
+        self.uiWorkboxGrpTAB.setCurrentIndex(index)
+
+    def gotoTabByIndex(self, index):
+        """Generally to be used in conjunction with the Ctrl+<num> keyboard
+        shortcuts, which allow user to jump directly to another tab, mimicking
+        web browser functionality.
+        """
+        group_tab = self.uiWorkboxGrpTAB.currentWidget()
+        if index == -1:
+            index = group_tab.count() - 1
+        else:
+            count = group_tab.count()
+            index = min(index, count)
+            index -= 1
+
+        group_tab.setCurrentIndex(index)
 
     def renameTab(self):
         if self._currentTab != -1:
