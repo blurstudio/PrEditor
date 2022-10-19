@@ -1,5 +1,3 @@
-import os
-
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QMessageBox, QToolButton
@@ -52,9 +50,7 @@ class GroupedTabWidget(OneTabWidget):
         if ret == QMessageBox.Yes:
             # If the tab was saved to a temp file, remove it from disk
             editor = self.widget(index)
-            tempfile = editor.__tempfile__()
-            if tempfile and os.path.exists(tempfile):
-                os.remove(tempfile)
+            editor.__remove_tempfile__()
 
             super(GroupedTabWidget, self).close_tab(index)
 

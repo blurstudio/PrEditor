@@ -272,6 +272,8 @@ class WorkboxMixin(object):
             return os.path.join(self.__tempdir__(create=create), self._tempfile)
 
     def __create_tempfile__(self):
+        """Creates a temporary file to be used by `__tempfile__` to store this
+        editors text contents stored in `__tempdir__`."""
         with tempfile.NamedTemporaryFile(
             prefix='workbox_',
             suffix='.py',
@@ -281,6 +283,12 @@ class WorkboxMixin(object):
             name = fle.name
 
         return os.path.basename(name)
+
+    def __remove_tempfile__(self):
+        """Removes `__tempfile__` if it is being used."""
+        tempfile = self.__tempfile__()
+        if tempfile and os.path.exists(tempfile):
+            os.remove(tempfile)
 
     @classmethod
     def __open_file__(cls, filename):

@@ -4,7 +4,7 @@ import re
 import six
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
-from Qt.QtWidgets import QHBoxLayout, QToolButton, QWidget
+from Qt.QtWidgets import QHBoxLayout, QMessageBox, QToolButton, QWidget
 
 from ... import resourcePath
 from ...prefs import prefs_path
@@ -104,7 +104,11 @@ class GroupTabWidget(OneTabWidget):
             parent, group_title = self.default_tab(group_title)
             self.addTab(parent, group_title)
 
-        return parent, parent.add_new_editor(title)
+        # Create the first editor tab and make it visible
+        editor = parent.add_new_editor(title)
+        self.setCurrentIndex(self.indexOf(parent))
+
+        return parent, editor
 
     def all_widgets(self):
         """Returns every widget under every group."""
@@ -118,6 +122,25 @@ class GroupTabWidget(OneTabWidget):
         the user to confirm closing."""
         editor_tab = self.currentWidget()
         editor_tab.close_tab(editor_tab.currentIndex())
+
+    def close_tab(self, index):
+        ret = QMessageBox.question(
+            self,
+            'Close all editors under this tab?',
+            'Are you sure you want to close all tabs under the "{}" tab?'.format(
+                self.tabText(self.currentIndex())
+            ),
+            QMessageBox.Yes | QMessageBox.Cancel,
+        )
+        if ret == QMessageBox.Yes:
+            # Clean up all temp files created by this group's editors if they
+            # are not using actual saved files.
+            tab_widget = self.widget(self.currentIndex())
+            for index in range(tab_widget.count()):
+                editor = tab_widget.widget(index)
+                editor.__remove_tempfile__()
+
+            super(GroupTabWidget, self).close_tab(self.currentIndex())
 
     def current_groups_widget(self):
         """Returns the current widget of the currently selected group."""
