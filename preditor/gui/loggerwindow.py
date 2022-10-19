@@ -12,14 +12,12 @@ from functools import partial
 import __main__
 import six
 from Qt import QtCompat, QtCore, QtWidgets
-from Qt.QtCore import QByteArray, QFileInfo, QFileSystemWatcher, Qt, QTimer, Signal
+from Qt.QtCore import QByteArray, Qt, QTimer, Signal
 from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
-    QFileIconProvider,
     QInputDialog,
     QLabel,
-    QMenu,
     QMessageBox,
     QSpinBox,
     QTextBrowser,
@@ -36,7 +34,6 @@ from ..utils import stylesheets
 from .completer import CompleterMode
 from .level_buttons import DebugLevelButton, LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
-from .workboxwidget import WorkboxWidget
 
 
 class WorkboxPages:
@@ -89,18 +86,8 @@ class LoggerWindow(Window):
         # Setup delayable system
         self.delayable_engine = DelayableEngine.instance('logger', self)
         self.delayable_engine.set_delayable_enabled('smart_highlight', True)
-        # Connect the tab widget signals
-        self.uiWorkboxTAB.addTabClicked.connect(self.addWorkbox)
-        self.uiWorkboxTAB.tabCloseRequested.connect(self.removeWorkbox)
-        self.uiWorkboxTAB.currentChanged.connect(self.currentChanged)
-        self.uiWorkboxTAB.tabBar().setContextMenuPolicy(Qt.CustomContextMenu)
-        self.uiWorkboxTAB.tabBar().customContextMenuRequested.connect(
-            self.workboxTabRightClick
-        )
-        # create the default workbox
-        self.addWorkbox(self.uiWorkboxTAB)
 
-        self.uiWorkboxGrpTAB.console = self.uiConsoleTXT
+        self.uiWorkboxTAB.console = self.uiConsoleTXT
 
         # Create additional buttons in toolbar.
         self.uiDebugLevelBTN = DebugLevelButton(self)
@@ -174,10 +161,10 @@ class LoggerWindow(Window):
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
         # Workbox add/remove
-        self.uiNewWorkboxACT.triggered.connect(lambda: self.addWorkbox())
-        self.uiCloseWorkboxACT.triggered.connect(
-            lambda: self.removeWorkbox(self.uiWorkboxTAB.currentIndex())
+        self.uiNewWorkboxACT.triggered.connect(
+            lambda: self.uiWorkboxTAB.add_new_tab(group=True)
         )
+        self.uiCloseWorkboxACT.triggered.connect(self.uiWorkboxTAB.close_current_tab)
 
         # Browse previous commands
         self.uiGetPrevCmdACT.triggered.connect(self.getPrevCommand)
@@ -261,10 +248,6 @@ class LoggerWindow(Window):
         self.uiPdbUpACT.setIcon(QIcon(resourcePath('img/chevron-up.png')))
         self.uiPdbDownACT.setIcon(QIcon(resourcePath('img/chevron-down.png')))
 
-        # Start the filesystem monitor
-        self._openFileMonitor = QFileSystemWatcher(self)
-        self._openFileMonitor.fileChanged.connect(self.linkedFileChanged)
-
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
 
@@ -330,11 +313,11 @@ class LoggerWindow(Window):
             return
         if editor_cls_name != self.editor_cls_name:
             self.editor_cls_name = editor_cls_name
-            self.uiWorkboxGrpTAB.editor_cls = editor_cls
+            self.uiWorkboxTAB.editor_cls = editor_cls
             # We need to change the editor, save all prefs
             self.recordPrefs()
-            # Clear the uiWorkboxGrpTAB
-            self.uiWorkboxGrpTAB.clear()
+            # Clear the uiWorkboxTAB
+            self.uiWorkboxTAB.clear()
             # Restore prefs to populate the tabs
             self.restorePrefs()
 
@@ -345,7 +328,7 @@ class LoggerWindow(Window):
 
     def current_workbox(self):
         """Returns the current workbox for the current tab group."""
-        return self.uiWorkboxGrpTAB.current_groups_widget()
+        return self.uiWorkboxTAB.current_groups_widget()
 
     @classmethod
     def run_workbox(cls, indicator):
@@ -379,9 +362,9 @@ class LoggerWindow(Window):
         # If indicator is a string, find first tab with that name
         elif isinstance(indicator, six.string_types):
             group, editor = indicator.split('/', 1)
-            index = logger.uiWorkboxGrpTAB.index_for_text(group)
+            index = logger.uiWorkboxTAB.index_for_text(group)
             if index != -1:
-                tab_widget = logger.uiWorkboxGrpTAB.widget(index)
+                tab_widget = logger.uiWorkboxTAB.widget(index)
                 index = tab_widget.index_for_text(editor)
                 if index != -1:
                     workbox = tab_widget.widget(index)
@@ -508,7 +491,7 @@ class LoggerWindow(Window):
             font.setPointSize(newSize)
             self.console().setConsoleFont(font)
 
-            for workbox in self.uiWorkboxGrpTAB.all_widgets():
+            for workbox in self.uiWorkboxTAB.all_widgets():
                 marginsFont = workbox.__margins_font__()
                 marginsFont.setPointSize(newSize)
                 workbox.__set_margins_font__(marginsFont)
@@ -562,7 +545,7 @@ class LoggerWindow(Window):
         font.setFamily(family)
         self.console().setConsoleFont(font)
 
-        for workbox in self.uiWorkboxGrpTAB.all_widgets():
+        for workbox in self.uiWorkboxTAB.all_widgets():
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
 
@@ -572,22 +555,19 @@ class LoggerWindow(Window):
             baseName = '{name}{index}'.format(name=baseName, index=index)
         return baseName
 
-    def addWorkbox(self, tabWidget=None, title='Workbox', closable=True, cls=None):
-        """Add a new workbox tab.
+    def add_pdb_workbox(self, tabWidget, title='Workbox', closable=True, cls=None):
+        """Add a new pdb editor tab.
 
         Args:
-            tabWidget (QTabWidget, optional): The tab widget to add the workbox
-                if not set, then `self.uiWorkboxTAB` is used.
+            tabWidget (QTabWidget): The tab widget to add the workbox.
             title (str, optional): The title of the new tab.
             closable (bool, optional): Enable showing/hiding the close button
                 if more than one tab is shown.
             cls (QWidget, optional): The widget class to init and add as the tab.
                 Uses the default workbox class if not specified.
         """
-        if tabWidget is None:
-            tabWidget = self.uiWorkboxTAB
         if cls is None:
-            cls = WorkboxWidget
+            cls = self.uiWorkboxTAB.currentWidget().editor_cls
 
         workbox = cls(tabWidget, delayable_engine=self.delayable_engine.name)
         workbox.__set_console__(self.uiConsoleTXT)
@@ -726,35 +706,10 @@ class LoggerWindow(Window):
         _prefs["caseSensitive"] = completer.caseSensitive()
         _prefs["completerMode"] = completer.completerMode().value
 
-        for index in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(index)
-            _prefs[self._genPrefName('WorkboxText', index)] = workbox.__text__()
-            font = workbox.__font__()
-            _prefs[self._genPrefName('workboxFont', index)] = font.toString()
-            _prefs[
-                self._genPrefName('workboxMarginFont', index)
-            ] = workbox.__margins_font__().toString()
-            _prefs[
-                self._genPrefName('workboxTabTitle', index)
-            ] = self.uiWorkboxTAB.tabBar().tabText(index)
-
-            linkPath = ''
-            if workbox.__file_monitoring_enabled__():
-                linkPath = workbox.__filename__()
-                if os.path.isfile(linkPath):
-                    workbox.__save__()
-                else:
-                    self.unlinkTab(index)
-
-            _prefs[self._genPrefName('workboxPath', index)] = linkPath
-
-        _prefs['WorkboxCount'] = self.uiWorkboxTAB.count()
-        _prefs['WorkboxCurrentIndex'] = self.uiWorkboxTAB.currentIndex()
-
         if self._stylesheet == 'Custom':
             _prefs['styleSheet'] = self.styleSheet()
 
-        workbox_prefs = self.uiWorkboxGrpTAB.save_prefs()
+        workbox_prefs = self.uiWorkboxTAB.save_prefs()
         _prefs['workbox_prefs'] = workbox_prefs
 
         _prefs['editor_cls'] = self.editor_cls_name
@@ -784,9 +739,9 @@ class LoggerWindow(Window):
         self.editor_cls_name = prefs.get('editor_cls')
         if self.editor_cls_name:
             self.editor_cls_name, editor_cls = plugins.editor(self.editor_cls_name)
-            self.uiWorkboxGrpTAB.editor_cls = editor_cls
+            self.uiWorkboxTAB.editor_cls = editor_cls
         else:
-            self.uiWorkboxGrpTAB.editor_cls = None
+            self.uiWorkboxTAB.editor_cls = None
         self.uiEditorChooserWGT.set_editor_name(self.editor_cls_name)
 
         # Geometry
@@ -838,40 +793,6 @@ class LoggerWindow(Window):
         )
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
 
-        _font = prefs.get('consoleFont', None)
-        if _font:
-            font = QFont()
-            if font.fromString(_font):
-                self.console().setConsoleFont(font)
-
-        # Restore the workboxes
-        count = prefs.get('WorkboxCount', 1)
-        for _ in range(count - self.uiWorkboxTAB.count()):
-            # create each of the workbox tabs
-            self.addWorkbox(self.uiWorkboxTAB)
-        for index in range(count):
-            workbox = self.uiWorkboxTAB.widget(index)
-            workbox.__set_text__(prefs.get(self._genPrefName('WorkboxText', index), ''))
-
-            workboxPath = prefs.get(self._genPrefName('workboxPath', index), '')
-            if os.path.isfile(workboxPath):
-                self.linkTab(index, workboxPath)
-
-            _font = prefs.get(self._genPrefName('workboxFont', index), None)
-            if _font:
-                font = QFont()
-                if font.fromString(_font):
-                    font = workbox.__font__()
-            _font = prefs.get(self._genPrefName('workboxMarginFont', index), None)
-            if _font:
-                font = QFont()
-                if font.fromString(_font):
-                    workbox.__set_margins_font__(font)
-            tabText = prefs.get(self._genPrefName('workboxTabTitle', index), 'Workbox')
-            self.uiWorkboxTAB.tabBar().setTabText(index, tabText)
-
-        self.uiWorkboxTAB.setCurrentIndex(prefs.get('WorkboxCurrentIndex', 0))
-
         self._stylesheet = prefs.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
             self.setStyleSheet(prefs.get('styleSheet', ''))
@@ -879,7 +800,13 @@ class LoggerWindow(Window):
             self.setStyleSheet(self._stylesheet)
         self.uiConsoleTXT.flash_time = prefs.get('flash_time', 1.0)
 
-        self.uiWorkboxGrpTAB.restore_prefs(prefs.get('workbox_prefs', {}))
+        self.uiWorkboxTAB.restore_prefs(prefs.get('workbox_prefs', {}))
+
+        _font = prefs.get('consoleFont', None)
+        if _font:
+            font = QFont()
+            if font.fromString(_font):
+                self.console().setConsoleFont(font)
 
     def restoreToolbars(self, prefs=None):
         if prefs is None:
@@ -892,27 +819,9 @@ class LoggerWindow(Window):
             # Ensure uiPdbTOOLBAR respects the current pdb mode
             self.uiConsoleTXT.setPdbMode(self.uiConsoleTXT.pdbMode())
 
-    def removeWorkbox(self, index):
-        if self.uiWorkboxTAB.count() == 1:
-            msg = "You have to leave at least one tab open."
-            QMessageBox.critical(self, 'Tab can not be closed.', msg, QMessageBox.Ok)
-            return
-        msg = (
-            "Would you like to donate this tabs contents to the "
-            "/dev/null fund for wayward code?"
-        )
-        if (
-            QMessageBox.question(
-                self, 'Donate to the cause?', msg, QMessageBox.Yes | QMessageBox.Cancel
-            )
-            == QMessageBox.Yes
-        ):
-            self.uiWorkboxTAB.removeTab(index)
-        self.uiWorkboxTAB.setTabsClosable(self.uiWorkboxTAB.count() != 1)
-
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox in self.uiWorkboxGrpTAB.all_widgets():
+        for workbox in self.uiWorkboxTAB.all_widgets():
             workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
@@ -1107,13 +1016,13 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
     def updateCopyIndentsAsSpaces(self):
-        for workbox in self.uiWorkboxGrpTAB.all_widgets():
+        for workbox in self.uiWorkboxTAB.all_widgets():
             workbox.__set_copy_indents_as_spaces__(
                 self.uiCopyTabsToSpacesACT.isChecked()
             )
 
     def updateIndentationsUseTabs(self):
-        for workbox in self.uiWorkboxGrpTAB.all_widgets():
+        for workbox in self.uiWorkboxTAB.all_widgets():
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsACT.isChecked()
             )
@@ -1127,7 +1036,7 @@ class LoggerWindow(Window):
         if self.uiPdbMENU.menuAction().isVisible():
             index = WorkboxPages.PDB
         else:
-            if self.uiWorkboxGrpTAB.editor_cls:
+            if self.uiWorkboxTAB.editor_cls:
                 index = WorkboxPages.Workboxes
             else:
                 index = WorkboxPages.Options
@@ -1145,23 +1054,9 @@ class LoggerWindow(Window):
         # clear out the system
         self.close()
 
-    def workboxTabRightClick(self, pos):
-        self._currentTab = self.uiWorkboxTAB.tabBar().tabAt(pos)
-        if self._currentTab == -1:
-            return
-        menu = QMenu(self.uiWorkboxTAB.tabBar())
-        act = menu.addAction('Rename')
-        act.triggered.connect(self.renameTab)
-        act = menu.addAction('Link')
-        act.triggered.connect(self.linkCurrentTab)
-        act = menu.addAction('Un-Link')
-        act.triggered.connect(self.unlinkCurrentTab)
-
-        menu.popup(QCursor.pos())
-
     def nextTab(self):
         """Move focus to next workbox tab"""
-        tabWidget = self.uiWorkboxGrpTAB.currentWidget()
+        tabWidget = self.uiWorkboxTAB.currentWidget()
         if not tabWidget.currentWidget().hasFocus():
             tabWidget.currentWidget().setFocus()
 
@@ -1173,7 +1068,7 @@ class LoggerWindow(Window):
 
     def prevTab(self):
         """Move focus to previous workbox tab"""
-        tabWidget = self.uiWorkboxGrpTAB.currentWidget()
+        tabWidget = self.uiWorkboxTAB.currentWidget()
         if not tabWidget.currentWidget().hasFocus():
             tabWidget.currentWidget().setFocus()
 
@@ -1189,20 +1084,20 @@ class LoggerWindow(Window):
         web browser functionality.
         """
         if index == -1:
-            index = self.uiWorkboxGrpTAB.count() - 1
+            index = self.uiWorkboxTAB.count() - 1
         else:
-            count = self.uiWorkboxGrpTAB.count()
+            count = self.uiWorkboxTAB.count()
             index = min(index, count)
             index -= 1
 
-        self.uiWorkboxGrpTAB.setCurrentIndex(index)
+        self.uiWorkboxTAB.setCurrentIndex(index)
 
     def gotoTabByIndex(self, index):
         """Generally to be used in conjunction with the Ctrl+<num> keyboard
         shortcuts, which allow user to jump directly to another tab, mimicking
         web browser functionality.
         """
-        group_tab = self.uiWorkboxGrpTAB.currentWidget()
+        group_tab = self.uiWorkboxTAB.currentWidget()
         if index == -1:
             index = group_tab.count() - 1
         else:
@@ -1211,87 +1106,6 @@ class LoggerWindow(Window):
             index -= 1
 
         group_tab.setCurrentIndex(index)
-
-    def renameTab(self):
-        if self._currentTab != -1:
-            current = self.uiWorkboxTAB.tabBar().tabText(self._currentTab)
-            msg = 'Rename the {} tab to:'.format(current)
-            name, success = QInputDialog.getText(None, 'Rename Tab', msg, text=current)
-            if success:
-                self.uiWorkboxTAB.tabBar().setTabText(self._currentTab, name)
-
-    def linkCurrentTab(self):
-        if self._currentTab != -1:
-            # get the previous path
-            pref = self.load_prefs()
-            prevPath = pref.get('linkFolder', os.path.join(os.path.expanduser('~')))
-
-            # Handle the file dialog
-            filters = "Python Files (*.py);;All Files (*.*)"
-            path, _ = QtCompat.QFileDialog.getOpenFileName(
-                self, "Link File", prevPath, filters
-            )
-            if not path:
-                return
-
-            pref['linkFolder'] = os.path.dirname(path)
-            self.save_prefs(pref)
-
-            self.linkTab(self._currentTab, path)
-
-    def linkTab(self, tabIdx, path):
-        workbox = self.uiWorkboxTAB.widget(tabIdx)
-        workbox.__load__(path)
-        workbox.__set_file_monitoring_enabled__(True)
-        font = self.console().font()
-        workbox.__set_font__(font)
-
-        tab = self.uiWorkboxTAB.tabBar()
-        tab.setTabText(tabIdx, os.path.basename(path))
-        tab.setTabToolTip(tabIdx, path)
-        iconprovider = QFileIconProvider()
-        tab.setTabIcon(tabIdx, iconprovider.icon(QFileInfo(path)))
-
-    def unlinkCurrentTab(self):
-        if self._currentTab != -1:
-            self.unlinkTab(self._currentTab)
-
-    def unlinkTab(self, tabIdx):
-        workbox = self.current_workbox()
-        workbox.__set_file_monitoring_enabled__(False)
-
-        tab = self.uiWorkboxTAB.tabBar()
-        tab.setTabToolTip(tabIdx, '')
-        tab.setTabIcon(tabIdx, QIcon())
-
-    def linkedFileChanged(self, filename):
-        font = self.console().font()
-        for tabIndex in range(self.uiWorkboxTAB.count()):
-            workbox = self.uiWorkboxTAB.widget(tabIndex)
-            if workbox.__filename__() == filename:
-                self._reloadRequested.add(tabIndex)
-                self.current_workbox().__set_font__(font)
-
-        newIdx = self.uiWorkboxTAB.currentIndex()
-        self.updateLink(newIdx)
-
-    def currentChanged(self):
-        newIdx = self.uiWorkboxTAB.currentIndex()
-        self.updateLink(newIdx)
-
-    def updateLink(self, tabIdx):
-        if tabIdx in self._reloadRequested:
-            workbox = self.current_workbox()
-            fn = workbox.__filename__()
-            if not os.path.isfile(fn):
-                self.unlinkTab(tabIdx)
-            else:
-                # Only reload the current widget if requested
-                workbox.__reload_file__()
-            self._reloadRequested.remove(tabIdx)
-
-    def openFileMonitor(self):
-        return self._openFileMonitor
 
     @staticmethod
     def instance(parent=None, run_workbox=False, create=True):
@@ -1392,9 +1206,11 @@ class LoggerWindow(Window):
                 filename = data.get('filename')
                 line = data.get('lineNo')
                 workbox = cls._instance.uiPdbTAB.currentWidget()
-                if not isinstance(workbox, WorkboxWidget):
-                    workbox = cls._instance.addWorkbox(
-                        cls._instance.uiPdbTAB, closable=False
+                # Get the current editor class so we can use it for the pdb workbox
+                editor_cls = cls._instance.uiWorkboxTAB.currentWidget().editor_cls
+                if not isinstance(workbox, editor_cls):
+                    workbox = cls._instance.add_pdb_workbox(
+                        cls._instance.uiPdbTAB, closable=False, cls=editor_cls
                     )
                 cls._instance.uiPdbTAB.setTabText(
                     cls._instance.uiPdbTAB.currentIndex(), filename

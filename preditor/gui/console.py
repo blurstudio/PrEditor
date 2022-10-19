@@ -122,7 +122,8 @@ class ConsoleEdit(QTextEdit):
         # Set the setTabStopWidth for the console's font
         tabWidth = 4
         if hasattr(self, "window") and "LoggerWindow" in str(type(self.window())):
-            tabWidth = self.window().uiWorkboxTAB.widget(0).tabWidth()
+            # If parented to a LoggerWindow, get the tabWidth from it's workboxes
+            tabWidth = self.window().current_workbox().tabWidth()
         fontPixelWidth = QFontMetrics(font).width(" ")
         self.setTabStopWidth(fontPixelWidth * tabWidth)
 
@@ -235,7 +236,7 @@ class ConsoleEdit(QTextEdit):
         elif workboxIndex is not None:
             group, editor = workboxIndex.split(',')
             lineNum = int(lineNum)
-            workbox = window.uiWorkboxGrpTAB.set_current_groups_from_index(
+            workbox = window.uiWorkboxTAB.set_current_groups_from_index(
                 int(group), int(editor)
             )
             workbox.__goto_line__(lineNum)

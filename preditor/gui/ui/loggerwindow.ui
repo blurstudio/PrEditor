@@ -36,7 +36,7 @@
       </widget>
       <widget class="QStackedWidget" name="uiWorkboxSTACK">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Options">
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -67,7 +67,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="GroupTabWidget" name="uiWorkboxGrpTAB">
+          <widget class="GroupTabWidget" name="uiWorkboxTAB">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -96,32 +96,6 @@
           <widget class="QTabWidget" name="uiPdbTAB">
            <property name="currentIndex">
             <number>-1</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="Workbox">
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="NewTabWidget" name="uiWorkboxTAB">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>100</height>
-            </size>
            </property>
           </widget>
          </item>
@@ -1063,12 +1037,6 @@ at the indicated line in the specified text editor.
    <class>GroupTabWidget</class>
    <extends>QTabWidget</extends>
    <header>preditor.gui.group_tab_widget</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>NewTabWidget</class>
-   <extends>QTabWidget</extends>
-   <header>preditor.gui.newtabwidget</header>
    <container>1</container>
   </customwidget>
   <customwidget>

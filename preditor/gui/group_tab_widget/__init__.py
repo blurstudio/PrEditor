@@ -75,19 +75,22 @@ class GroupTabWidget(OneTabWidget):
             group: The group to add a new tab to. This can be an int index of an
                 existing tab, or the name of the group and it will create the group
                 if needed. If None is passed it will add a new tab `Group {last+1}`.
+                If True is passed, then the current group tab is used.
 
         Returns:
             GroupedTabWidget: The tab group for this group.
             WorkboxMixin: The new text editor.
         """
         parent = None
-        if group is None:
+        if not group:
             last = 0
             for i in range(self.count()):
                 match = re.match(r'Group (\d+)', self.tabText(i))
                 if match:
                     last = max(last, int(match.group(1)))
             group = "Group {}".format(last + 1)
+        elif group is True:
+            group = self.currentIndex()
         if isinstance(group, int):
             group_title = self.tabText(group)
             parent = self.widget(group)
@@ -109,6 +112,12 @@ class GroupTabWidget(OneTabWidget):
             tab_widget = self.widget(i)
             for j in range(tab_widget.count()):
                 yield tab_widget.widget(j)
+
+    def close_current_tab(self):
+        """Convenient method to close the currently open editor tab prompting
+        the user to confirm closing."""
+        editor_tab = self.currentWidget()
+        editor_tab.close_tab(editor_tab.currentIndex())
 
     def current_groups_widget(self):
         """Returns the current widget of the currently selected group."""
