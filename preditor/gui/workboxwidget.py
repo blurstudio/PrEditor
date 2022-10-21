@@ -152,6 +152,12 @@ class WorkboxWidget(DocumentEditor, WorkboxMixin):
             txt = self.selectedText()
         return self.regex.split(txt)[0]
 
+    def __tab_width__(self):
+        return self.tabWidth()
+
+    def __set_tab_width__(self, width):
+        self.setTabWidth(width)
+
     def __text__(self, line=None, start=None, end=None):
         """Returns the text in this widget, possibly limited in scope.
 

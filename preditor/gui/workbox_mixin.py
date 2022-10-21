@@ -187,6 +187,12 @@ class WorkboxMixin(object):
         """
         raise NotImplementedError("Mixin method not overridden.")
 
+    def __tab_width__(self):
+        raise NotImplementedError("Mixin method not overridden.")
+
+    def __set_tab_width__(self, width):
+        raise NotImplementedError("Mixin method not overridden.")
+
     def __text__(self, line=None, start=None, end=None):
         """Returns the text in this widget, possibly limited in scope.
 

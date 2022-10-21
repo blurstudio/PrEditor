@@ -120,12 +120,12 @@ class ConsoleEdit(QTextEdit):
         self.setFont(font)
 
         # Set the setTabStopWidth for the console's font
-        tabWidth = 4
+        tab_width = 4
         if hasattr(self, "window") and "LoggerWindow" in str(type(self.window())):
-            # If parented to a LoggerWindow, get the tabWidth from it's workboxes
-            tabWidth = self.window().current_workbox().tabWidth()
+            # If parented to a LoggerWindow, get the tab_width from it's workboxes
+            tab_width = self.window().current_workbox().__tab_width__()
         fontPixelWidth = QFontMetrics(font).width(" ")
-        self.setTabStopWidth(fontPixelWidth * tabWidth)
+        self.setTabStopWidth(fontPixelWidth * tab_width)
 
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can

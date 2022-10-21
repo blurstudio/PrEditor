@@ -76,6 +76,10 @@ class WorkboxTextEdit(QTextEdit, WorkboxMixin):
     def __set_margins_font__(self, font):
         pass
 
+    def __tab_width__(self):
+        # TODO: Implement custom tab widths
+        return 4
+
     def __text__(self):
         return self.toPlainText()
 
