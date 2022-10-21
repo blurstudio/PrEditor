@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import warnings
+from builtins import bytes
 from datetime import datetime, timedelta
 from functools import partial
 
@@ -688,7 +689,7 @@ class LoggerWindow(Window):
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
-                'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
+                'toolbarStates': six.text_type(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),

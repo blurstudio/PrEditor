@@ -9,7 +9,7 @@ from .one_tab_widget import OneTabWidget
 
 
 class GroupedTabWidget(OneTabWidget):
-    def __init__(self, console, *args, editor_cls=None, **kwargs):
+    def __init__(self, console, editor_cls=None, *args, **kwargs):
         super(GroupedTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'grouped_tab_widget')
         self.console = console

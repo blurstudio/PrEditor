@@ -38,7 +38,7 @@ class GroupTabWidget(OneTabWidget):
     allowing users to quickly focus on any tab in the entire group.
     """
 
-    def __init__(self, *args, console=None, **kwargs):
+    def __init__(self, console=None, *args, **kwargs):
         super(GroupTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'group_tab_widget')
         self.console = console

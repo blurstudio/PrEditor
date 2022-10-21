@@ -18,8 +18,8 @@ class DragTabBar(QTabBar):
     Based on code by ARussel: https://forum.qt.io/post/420469
     """
 
-    def __init__(self, *args, mime_type='DragTabBar', **kwargs):
-        super(DragTabBar, self).__init__(*args, **kwargs)
+    def __init__(self, parent=None, mime_type='DragTabBar'):
+        super(DragTabBar, self).__init__(parent=parent)
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
         self._mime_data = None
