@@ -42,20 +42,10 @@ class ConsoleEdit(QTextEdit):
         self._stringColor = QColor(255, 128, 0)
         self._resultColor = QColor(128, 128, 128)
 
-        # These variables are used to enable pdb mode. This is a special mode used by
-        # the logger if it is launched externally via getPdb, set_trace, or post_mortem
-        # in preditor.debug.
-        self._pdbPrompt = '(Pdb) '
         self._consolePrompt = '>>> '
         # Note: Changing _outputPrompt may require updating resource\lang\python.xml
         # If still using a #
         self._outputPrompt = '#Result: '
-        self._pdbMode = False
-        # if populated when setPdbMode is called, this action will be enabled and its
-        # check state will match the current pdbMode.
-        self.pdbModeAction = None
-        # Method used to update the gui when pdb mode changes
-        self.pdbUpdateVisibility = None
         # Method used to update the gui when code is executed
         self.reportExecutionTime = None
 
@@ -390,29 +380,19 @@ class ConsoleEdit(QTextEdit):
                 # limit length of prevCommand list to max number of prev commands
                 self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax :]
 
-                if self._pdbMode:
-                    if commandText:
-                        self.pdbSendCommand(commandText)
-                    else:
-                        # Sending a blank line to pdb will cause it to quit raising a
-                        # exception. Most likely the user just wants to add some white
-                        # space between their commands, so just add a new prompt line.
-                        self.startInputLine()
-                        self.insertPlainText(commandText)
-                else:
-                    # evaluate the command
-                    cmdresult, wasEval = self.executeString(commandText)
+                # evaluate the command
+                cmdresult, wasEval = self.executeString(commandText)
 
-                    # print the resulting commands
-                    if cmdresult is not None:
-                        # When writing to additional stdout's not including a new line
-                        # makes the output not match the formatting you get inside the
-                        # console.
-                        self.write(u'{}\n'.format(cmdresult))
-                        # NOTE: I am using u'' above so unicode strings in python 2
-                        # don't get converted to str objects.
+                # print the resulting commands
+                if cmdresult is not None:
+                    # When writing to additional stdout's not including a new line
+                    # makes the output not match the formatting you get inside the
+                    # console.
+                    self.write(u'{}\n'.format(cmdresult))
+                    # NOTE: I am using u'' above so unicode strings in python 2
+                    # don't get converted to str objects.
 
-                    self.startInputLine()
+                self.startInputLine()
 
             # otherwise, move the command to the end of the line
             else:
@@ -629,48 +609,7 @@ class ConsoleEdit(QTextEdit):
         """The prompt used to output a result."""
         return self._outputPrompt
 
-    def pdbContinue(self):
-        self.pdbSendCommand('continue')
-
-    def pdbDown(self):
-        self.pdbSendCommand('down')
-
-    def pdbNext(self):
-        self.pdbSendCommand('next')
-
-    def pdbStep(self):
-        self.pdbSendCommand('step')
-
-    def pdbUp(self):
-        self.pdbSendCommand('up')
-
-    def pdbMode(self):
-        return self._pdbMode
-
-    def setPdbMode(self, mode):
-        if self.pdbModeAction:
-            if not self.pdbModeAction.isEnabled():
-                # pdbModeAction is disabled by default, enable the action, so the user
-                # can switch between pdb and normal mode any time they want. pdbMode
-                # does nothing if this instance of python is not the child process of
-                # preditor.external.External, and the parent process is in pdb mode.
-                self.pdbModeAction.blockSignals(True)
-                self.pdbModeAction.setChecked(mode)
-                self.pdbModeAction.blockSignals(False)
-                self.pdbModeAction.setEnabled(True)
-        self._pdbMode = mode
-        if self.pdbUpdateVisibility:
-            self.pdbUpdateVisibility(mode)
-        self.startInputLine()
-
-    def pdbSendCommand(self, commandText):
-        from .. import external
-
-        external.External(['pdb', '', {'msg': commandText}])
-
     def prompt(self):
-        if self._pdbMode:
-            return self._pdbPrompt
         return self._consolePrompt
 
     def resultColor(self):

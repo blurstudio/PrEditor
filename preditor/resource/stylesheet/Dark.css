@@ -184,11 +184,6 @@ DocumentEditor {
 }
 
 
-QToolButton[toolTip="Next"], QToolButton[toolTip="Step"], QSpinBox#uiPdbExecuteCountDDL {
-  /* Give the pdb buttons that respect the uiPdbExecuteCountDDL a different color */
-  background-color: rgb(110,100,60);
-}
-
 ConsoleEdit {
   color: rgb(255, 255, 255);
   background-color: rgb(70, 70, 73);

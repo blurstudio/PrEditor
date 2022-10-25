@@ -36,7 +36,7 @@
       </widget>
       <widget class="QStackedWidget" name="uiWorkboxSTACK">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="Options">
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -73,29 +73,6 @@
              <width>0</width>
              <height>100</height>
             </size>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="PDB">
-        <layout class="QVBoxLayout" name="verticalLayout_3">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QTabWidget" name="uiPdbTAB">
-           <property name="currentIndex">
-            <number>-1</number>
            </property>
           </widget>
          </item>
@@ -150,21 +127,9 @@
     </property>
     <addaction name="uiRunSelectedACT"/>
     <addaction name="uiRunAllACT"/>
-    <addaction name="uiPdbModeACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
     <addaction name="uiClearToLastPromptACT"/>
-   </widget>
-   <widget class="QMenu" name="uiPdbMENU">
-    <property name="title">
-     <string>PDB</string>
-    </property>
-    <addaction name="uiPdbContinueACT"/>
-    <addaction name="uiPdbStepACT"/>
-    <addaction name="uiPdbNextACT"/>
-    <addaction name="separator"/>
-    <addaction name="uiPdbUpACT"/>
-    <addaction name="uiPdbDownACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -354,7 +319,6 @@
    <addaction name="menuEdit"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="menu_Run"/>
-   <addaction name="uiPdbMENU"/>
    <addaction name="uiFileMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
@@ -372,23 +336,6 @@
    <addaction name="uiRunAllACT"/>
    <addaction name="separator"/>
    <addaction name="uiClearLogACT"/>
-  </widget>
-  <widget class="QToolBar" name="uiPdbTOOLBAR">
-   <property name="windowTitle">
-    <string>PDB</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>true</bool>
-   </attribute>
-   <addaction name="uiPdbContinueACT"/>
-   <addaction name="uiPdbStepACT"/>
-   <addaction name="uiPdbNextACT"/>
-   <addaction name="separator"/>
-   <addaction name="uiPdbUpACT"/>
-   <addaction name="uiPdbDownACT"/>
   </widget>
   <action name="uiSaveLogACT">
    <property name="text">
@@ -555,23 +502,6 @@
     <string>Clear Log on Environment Refresh</string>
    </property>
   </action>
-  <action name="uiPdbModeACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Pdb Mode</string>
-   </property>
-   <property name="toolTip">
-    <string>If pdb is not running in the parent process pdb mode will not acomplish much.</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+`</string>
-   </property>
-  </action>
   <action name="uiClearToLastPromptACT">
    <property name="text">
     <string>Clear to Last Prompt</string>
@@ -581,49 +511,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Backspace</string>
-   </property>
-  </action>
-  <action name="uiPdbContinueACT">
-   <property name="text">
-    <string>Continue</string>
-   </property>
-   <property name="toolTip">
-    <string>Continue</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+C</string>
-   </property>
-  </action>
-  <action name="uiPdbStepACT">
-   <property name="text">
-    <string>Step</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+S</string>
-   </property>
-  </action>
-  <action name="uiPdbNextACT">
-   <property name="text">
-    <string>Next</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+N</string>
-   </property>
-  </action>
-  <action name="uiPdbUpACT">
-   <property name="text">
-    <string>Up</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+U</string>
-   </property>
-  </action>
-  <action name="uiPdbDownACT">
-   <property name="text">
-    <string>Down</string>
-   </property>
-   <property name="shortcut">
-    <string>Alt+D</string>
    </property>
   </action>
   <action name="uiCopyTabsToSpacesACT">

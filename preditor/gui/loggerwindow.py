@@ -20,7 +20,6 @@ from Qt.QtWidgets import (
     QInputDialog,
     QLabel,
     QMessageBox,
-    QSpinBox,
     QTextBrowser,
     QToolTip,
     QVBoxLayout,
@@ -42,7 +41,6 @@ class WorkboxPages:
 
     Options = 0
     Workboxes = 1
-    PDB = 2
 
 
 class LoggerWindow(Window):
@@ -66,9 +64,6 @@ class LoggerWindow(Window):
         loadUi(__file__, self)
 
         self.uiConsoleTXT.flash_window = self
-        self.uiConsoleTXT.pdbModeAction = self.uiPdbModeACT
-        self.uiConsoleTXT.pdbUpdateVisibility = self.updatePdbVisibility
-        self.updatePdbVisibility(False)
         self.uiConsoleTXT.reportExecutionTime = self.reportExecutionTime
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
@@ -103,21 +98,6 @@ class LoggerWindow(Window):
         )
         self.uiConsoleTOOLBAR.insertSeparator(self.uiRunSelectedACT)
 
-        # create the pdb count widget
-        self._pdbContinue = None
-        self.uiPdbExecuteCountLBL = QLabel('x', self.uiPdbTOOLBAR)
-        self.uiPdbExecuteCountLBL.setObjectName('uiPdbExecuteCountLBL')
-        self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountLBL)
-        self.uiPdbExecuteCountDDL = QSpinBox(self.uiPdbTOOLBAR)
-        self.uiPdbExecuteCountDDL.setObjectName('uiPdbExecuteCountDDL')
-        self.uiPdbExecuteCountDDL.setValue(1)
-        self.uiPdbExecuteCountDDL.setRange(1, 10000)
-        msg = (
-            'When the "next" and "step" buttons are pressed call them this many times.'
-        )
-        self.uiPdbExecuteCountDDL.setToolTip(msg)
-        self.uiPdbTOOLBAR.addWidget(self.uiPdbExecuteCountDDL)
-
         # Initial configuration of the logToFile feature
         self._logToFilePath = None
         self._stds = None
@@ -127,13 +107,6 @@ class LoggerWindow(Window):
 
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
-        self.uiPdbModeACT.triggered.connect(self.uiConsoleTXT.setPdbMode)
-
-        self.uiPdbContinueACT.triggered.connect(self.uiConsoleTXT.pdbContinue)
-        self.uiPdbStepACT.triggered.connect(partial(self.pdbRepeat, 'next'))
-        self.uiPdbNextACT.triggered.connect(partial(self.pdbRepeat, 'step'))
-        self.uiPdbUpACT.triggered.connect(self.uiConsoleTXT.pdbUp)
-        self.uiPdbDownACT.triggered.connect(self.uiConsoleTXT.pdbDown)
 
         self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
 
@@ -240,14 +213,6 @@ class LoggerWindow(Window):
         )
         self.uiAboutBlurdevACT.setIcon(QIcon(resourcePath('img/information.png')))
         self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
-
-        self.uiPdbContinueACT.setIcon(QIcon(resourcePath('img/play.png')))
-        self.uiPdbStepACT.setIcon(QIcon(resourcePath('img/arrow_forward.png')))
-        self.uiPdbNextACT.setIcon(
-            QIcon(resourcePath('img/subdirectory-arrow-right.png'))
-        )
-        self.uiPdbUpACT.setIcon(QIcon(resourcePath('img/chevron-up.png')))
-        self.uiPdbDownACT.setIcon(QIcon(resourcePath('img/chevron-down.png')))
 
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
@@ -556,44 +521,6 @@ class LoggerWindow(Window):
             baseName = '{name}{index}'.format(name=baseName, index=index)
         return baseName
 
-    def add_pdb_workbox(self, tabWidget, title='Workbox', closable=True, cls=None):
-        """Add a new pdb editor tab.
-
-        Args:
-            tabWidget (QTabWidget): The tab widget to add the workbox.
-            title (str, optional): The title of the new tab.
-            closable (bool, optional): Enable showing/hiding the close button
-                if more than one tab is shown.
-            cls (QWidget, optional): The widget class to init and add as the tab.
-                Uses the default workbox class if not specified.
-        """
-        if cls is None:
-            cls = self.uiWorkboxTAB.currentWidget().editor_cls
-
-        workbox = cls(tabWidget, delayable_engine=self.delayable_engine.name)
-        workbox.__set_console__(self.uiConsoleTXT)
-        index = tabWidget.addTab(workbox, title)
-
-        # update the font
-        fontAction = self.findCurrentFontAction()
-        if fontAction is not None:
-            self.selectFont(fontAction)
-        else:
-            workbox.__set_margins_font__(workbox.__font__())
-
-        if closable:
-            # If only one tab is visible, don't show the close tab button
-            tabWidget.setTabsClosable(tabWidget.count() != 1)
-        tabWidget.setCurrentIndex(index)
-        workbox.__set_indentations_use_tabs__(self.uiIndentationsTabsACT.isChecked())
-        workbox.__set_copy_indents_as_spaces__(self.uiCopyTabsToSpacesACT.isChecked())
-
-        workbox.setFocus()
-        if self.uiLinesInNewWorkboxACT.isChecked():
-            workbox.__set_text__("\n" * 19)
-
-        return workbox
-
     def adjustWorkboxOrientation(self, state):
         if state:
             self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
@@ -649,18 +576,6 @@ class LoggerWindow(Window):
             pass
         else:
             super(LoggerWindow, self).keyPressEvent(event)
-
-    def pdbRepeat(self, commandText):
-        # If we need to repeat the command store that info
-        value = self.uiPdbExecuteCountDDL.value()
-        if value > 1:
-            # The first request is triggered at the end of this function, so we need to
-            # store one less than requested
-            self._pdbContinue = (value - 1, commandText)
-        else:
-            self._pdbContinue = None
-        # Send the first command
-        self.uiConsoleTXT.pdbSendCommand(commandText)
 
     def pathsAboutToBeCleared(self):
         if self.uiClearLogOnRefreshACT.isChecked():
@@ -809,6 +724,9 @@ class LoggerWindow(Window):
             if font.fromString(_font):
                 self.console().setConsoleFont(font)
 
+        # Ensure the correct workbox stack page is shown
+        self.update_workbox_stack()
+
     def restoreToolbars(self, prefs=None):
         if prefs is None:
             prefs = self.load_prefs()
@@ -817,8 +735,6 @@ class LoggerWindow(Window):
         if state:
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
-            # Ensure uiPdbTOOLBAR respects the current pdb mode
-            self.uiConsoleTXT.setPdbMode(self.uiConsoleTXT.pdbMode())
 
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
@@ -1028,19 +944,11 @@ class LoggerWindow(Window):
                 self.uiIndentationsTabsACT.isChecked()
             )
 
-    def updatePdbVisibility(self, state):
-        self.uiPdbMENU.menuAction().setVisible(state)
-        self.uiPdbTOOLBAR.setVisible(state)
-        self.update_workbox_stack()
-
     def update_workbox_stack(self):
-        if self.uiPdbMENU.menuAction().isVisible():
-            index = WorkboxPages.PDB
+        if self.uiWorkboxTAB.editor_cls:
+            index = WorkboxPages.Workboxes
         else:
-            if self.uiWorkboxTAB.editor_cls:
-                index = WorkboxPages.Workboxes
-            else:
-                index = WorkboxPages.Options
+            index = WorkboxPages.Options
 
         self.uiWorkboxSTACK.setCurrentIndex(index)
 
@@ -1168,61 +1076,6 @@ class LoggerWindow(Window):
             self._logToFilePath = path
         else:
             print('Output logged to: "{}"'.format(self._logToFilePath))
-
-    @classmethod
-    def instanceSetPdbMode(cls, mode, msg=''):
-        """Sets the instance of LoggerWindow to pdb mode if the logger instance has
-        been created.
-
-        Args:
-            mode (bool): The mode to set it to
-        """
-        if cls._instance:
-            inst = cls._instance
-            if inst.uiConsoleTXT.pdbMode() != mode:
-                inst.uiConsoleTXT.setPdbMode(mode)
-                from .. import external
-
-                external.External(
-                    ['pdb', '', {'msg': 'preditor.debug.getPdb().currentLine()'}]
-                )
-            # Pdb returns its prompt automatically. If we detect the pdb prompt and
-            # _pdbContinue is set re-run the command until it's count reaches zero.
-            if inst._pdbContinue and msg == '(Pdb) ':
-                if inst._pdbContinue[0]:
-                    count = inst._pdbContinue[0] - 1
-                    if count > 0:
-                        # Decrease the count.
-                        inst._pdbContinue = (count, inst._pdbContinue[1])
-                        # Resend the requested message
-                        inst.uiConsoleTXT.pdbSendCommand(inst._pdbContinue[1])
-                    else:
-                        # We are done refreshing so nothing to do.
-                        inst._pdbContinue = None
-
-    @classmethod
-    def instancePdbResult(cls, data):
-        if cls._instance:
-            if data.get('msg') == 'pdb_currentLine':
-                filename = data.get('filename')
-                line = data.get('lineNo')
-                workbox = cls._instance.uiPdbTAB.currentWidget()
-                # Get the current editor class so we can use it for the pdb workbox
-                editor_cls = cls._instance.uiWorkboxTAB.currentWidget().editor_cls
-                if not isinstance(workbox, editor_cls):
-                    workbox = cls._instance.add_pdb_workbox(
-                        cls._instance.uiPdbTAB, closable=False, cls=editor_cls
-                    )
-                cls._instance.uiPdbTAB.setTabText(
-                    cls._instance.uiPdbTAB.currentIndex(), filename
-                )
-                workbox.__marker_clear_all__()
-                if os.path.exists(filename):
-                    workbox.__load__(filename)
-                    workbox.__goto_line__(line)
-                    workbox.__marker_add__(line)
-                else:
-                    workbox.__clear__()
 
     @classmethod
     def instance_shutdown(cls):
