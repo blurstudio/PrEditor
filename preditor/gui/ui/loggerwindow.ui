@@ -119,7 +119,7 @@
     <addaction name="uiBrowsePreferencesACT"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
-    <addaction name="uiAboutBlurdevACT"/>
+    <addaction name="uiAboutPreditorACT"/>
    </widget>
    <widget class="QMenu" name="menu_Run">
     <property name="title">
@@ -529,9 +529,9 @@
     <string>Clears all warning filters so you see all warnings.</string>
    </property>
   </action>
-  <action name="uiAboutBlurdevACT">
+  <action name="uiAboutPreditorACT">
    <property name="text">
-    <string>About blurdev</string>
+    <string>About PrEditor</string>
    </property>
   </action>
   <action name="uiEnvironmentVarsACT">

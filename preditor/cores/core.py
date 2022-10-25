@@ -1,8 +1,5 @@
 from __future__ import absolute_import, print_function
 
-import os
-import sys
-
 from Qt.QtCore import QObject, Signal
 from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
@@ -33,51 +30,6 @@ class Core(QObject):
         # Paths in this variable will be removed in
         # preditor.osystem.subprocessEnvironment
         self._removeFromPATHEnv = set()
-
-    def aboutBlurdev(self):
-        """Useful info about blurdev and its dependencies as a string."""
-        from Qt import __binding__, __binding_version__, __qt_version__
-        from Qt import __version__ as qtpy_version
-
-        from .. import __file__ as pfile
-        from .. import __version__
-
-        msg = [
-            'blurdev: {} ({})'.format(__version__, self.objectName()),
-            '    {}'.format(os.path.dirname(pfile)),
-        ]
-
-        msg.append('Qt: {}'.format(__qt_version__))
-        msg.append('    Qt.py: {}, binding: {}'.format(qtpy_version, __binding__))
-
-        try:
-            # QtSiteConfig is optional
-            import QtSiteConfig
-
-            msg.append('    QtSiteConfig: {}'.format(QtSiteConfig.__version__))
-        except (ImportError, AttributeError):
-            pass
-
-        # Legacy Qt 4 support
-        if __binding__ not in ('PyQt5', 'PySide2'):
-            msg.append(
-                '    {qt}: {qtver}'.format(qt=__binding__, qtver=__binding_version__)
-            )
-        # Add info for all Qt5 bindings that have been imported somewhere
-        if 'PyQt5.QtCore' in sys.modules:
-            msg.append(
-                '    PyQt5: {}'.format(sys.modules['PyQt5.QtCore'].PYQT_VERSION_STR)
-            )
-        if 'PySide2.QtCore' in sys.modules:
-            msg.append(
-                '    PySide2: {}'.format(sys.modules['PySide2.QtCore'].qVersion())
-            )
-
-        # Include the python version info
-        msg.append('Python:')
-        msg.append('    {}'.format(sys.version))
-
-        return '\n'.join(msg)
 
     def shouldReportException(self, exc_type, exc_value, exc_traceback, actions=None):
         """

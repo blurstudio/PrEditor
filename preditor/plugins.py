@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import logging
+
 import six
 
 if six.PY3:
@@ -7,8 +9,32 @@ if six.PY3:
 else:
     import pkg_resources
 
+logger = logging.getLogger(__name__)
+
 
 class Plugins(object):
+    def about_module(self):
+        plugs = {}
+        for ep in self.iterator("preditor.plug.about_module"):
+            name = ep.name
+            if name in plugs:
+                logger.warning(
+                    'Duplicate "preditor.plug.about_module" plugin found with '
+                    'name "{}"'.format(name)
+                )
+            else:
+                plugs[name] = ep
+
+        # Sort the plugins alphabetically
+        for name in sorted(plugs.keys(), key=lambda i: i.lower()):
+            ep = plugs[name]
+            try:
+                result = ep.load()
+            except Exception as error:
+                result = "Error processing: {}".format(error)
+
+            yield name, result
+
     def editor(self, name):
         for plug_name, ep in self.editors(name):
             return plug_name, ep.load()

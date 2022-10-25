@@ -74,3 +74,22 @@ PrEditor, you will also need to include the `shortcut` dependencies. Currently
 this is only useful for windows.
 
 `pip install preditor[cli,shortcut]`
+
+# Plugins
+
+PrEditor is can be extended using entry point plugins defined by other pip packages.
+
+* `preditor.plug.about_module`: Used to add information about various packages
+like version and install location to the output of `preditor.about_preditor()`.
+This is what generates the text shown by Help menu -> About PrEditor. See
+sub-classes of `AboutModule` in `preditor.about_module` and how those are
+added in [setup.cfg](setup.cfg).
+
+* `preditor.plug.editors`: Used to add new workbox editors to PrEditor. See
+[workbox_text_edit.py](preditor/gui/workbox_text_edit.py) for an example of
+implementing a workbox. See [workbox_mixin.py](preditor/gui/workbox_mixin.py)
+for the full interface to implement all features of an editor.
+
+* `preditor.plug.logging_handlers`: Used to add custom python logging handlers
+to the LoggingLevelButton's handlers sub-menus. This allows you to install a
+handler instance on a specific logging object.

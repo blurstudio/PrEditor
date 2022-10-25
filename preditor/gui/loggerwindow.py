@@ -25,7 +25,7 @@ from Qt.QtWidgets import (
     QVBoxLayout,
 )
 
-from .. import core, debug, osystem, plugins, resourcePath
+from .. import about_preditor, core, debug, osystem, plugins, resourcePath
 from ..gui import Dialog, Window, loadUi
 from ..logger import saveLoggerConfiguration
 from ..prefs import prefs_path
@@ -186,7 +186,7 @@ class LoggerWindow(Window):
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
         self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
-        self.uiAboutBlurdevACT.triggered.connect(self.showAbout)
+        self.uiAboutPreditorACT.triggered.connect(self.show_about)
         core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
@@ -206,7 +206,7 @@ class LoggerWindow(Window):
         self.uiSaveConsoleSettingsACT.setIcon(
             QIcon(resourcePath('img/content-save.png'))
         )
-        self.uiAboutBlurdevACT.setIcon(QIcon(resourcePath('img/information.png')))
+        self.uiAboutPreditorACT.setIcon(QIcon(resourcePath('img/information.png')))
         self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
 
         # Make action shortcuts available anywhere in the Logger
@@ -898,9 +898,10 @@ class LoggerWindow(Window):
         else:
             self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
 
-    def showAbout(self):
-        msg = core.aboutBlurdev()
-        QMessageBox.information(self, 'About blurdev', msg)
+    def show_about(self):
+        """Shows `preditor.about_preditor()`'s output in a message box."""
+        msg = about_preditor()
+        QMessageBox.information(self, 'About PrEditor', msg)
 
     def showEnvironmentVars(self):
         dlg = Dialog(self)
