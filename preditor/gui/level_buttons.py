@@ -3,11 +3,10 @@ from __future__ import absolute_import
 import logging
 from functools import partial
 
-from Qt.QtCore import QSignalMapper
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
-from .. import debug, plugins, resourcePath
+from .. import plugins, resourcePath
 from ..enum import Enum, EnumGroup
 
 
@@ -77,12 +76,6 @@ class LoggerLevel(Level):
         return logging.getLevelName(logger.level) == self.label
 
 
-class DebugLevel(Level):
-    """A Debug level `Enum` using the 'bug_report' icon."""
-
-    icon_name = "debug"
-
-
 class LoggerLevels(EnumGroup):
     """
     Logger levels with their implementation level name and number & custom
@@ -97,119 +90,6 @@ class LoggerLevels(EnumGroup):
     Warning = LoggerLevel(label="WARNING", number=30, level="warning")
     Info = LoggerLevel(label="INFO", number=20, level="info")
     Debug = LoggerLevel(label="DEBUG", number=10, level="debug")
-
-
-class DebugLevels(EnumGroup):
-    """
-    Debug levels with their implementation level name and number & custom
-    icon level.
-    """
-
-    Disabled = DebugLevel(label="", number=0, level="disabled")
-    Low = DebugLevel(label="Low", number=1, level="low")
-    Mid = DebugLevel(label="Mid", number=2, level="mid")
-    High = DebugLevel(label="High", number=4, level="high")
-
-
-class DebugLevelButton(QToolButton):
-
-    """
-    A drop down button to set preditors's debug level.
-    """
-
-    def __init__(self, parent=None):
-        """
-        Creates the default debug level menu actions for updating preditors's
-        debug level.
-
-        Args:
-            parent (QWidget, optional): The parent widget for this button.
-        """
-        super(QToolButton, self).__init__(parent=parent)
-        self.setPopupMode(QToolButton.InstantPopup)
-
-        # create & set menu
-        self.setMenu(QMenu(parent=self))
-
-        # `setLevel` signal mapper
-        self._signal_mapper = QSignalMapper(self)
-        self._signal_mapper.mapped[str].connect(self.setLevel)
-
-        self._initializeDebugActions()
-
-    def _initializeDebugActions(self):
-        """
-        Creates actions that control the preditors debug level.
-        """
-        for debug_level in DebugLevels:
-            action = QAction(debug_level.icon, debug_level.name, self)
-            action.setCheckable(True)
-
-            # explain action in tooltip (ex: "Set debug level to Mid")
-            action.setToolTip("Set debug level to {}".format(debug_level.name))
-
-            # when clicked/activated set debug level
-            self._signal_mapper.setMapping(action, debug_level.label)
-            action.triggered.connect(self._signal_mapper.map)
-
-            self.menu().addAction(action)
-
-        self.refresh()
-
-    def refresh(self):
-        """
-        Triggers an update of the debug tool bar button's various display
-        elements so as to represent the current debug level. This includes the
-        button's icon & tooltip, as well as the check-state of the debug level
-        menu actions.
-        """
-        level = DebugLevels.fromValue(debug.debugLevel())
-
-        self.setIcon(level)
-        self.setCheckedAction(level)
-        self.setToolTip(level)
-
-    def setCheckedAction(self, level):
-        """
-        Updates the debug button's menu actions to check the currently active
-        debug level.
-
-        Args:
-            level (DebugLevel): Debug level to check in debug menu.
-        """
-        for action in self.actions():
-            action.setChecked(action.text() == level.name)
-
-    def setIcon(self, level):
-        """
-        Updates the debug button's icon to display the current debug level
-        preditor is set to.
-
-        Args:
-            level (DebugLevel): Debug level to change icon to represent.
-        """
-        super(QToolButton, self).setIcon(level.icon)
-
-    def setLevel(self, level):
-        """
-        Sets preditor's debug level.
-
-        Args:
-            level (str): Name of debug level to set preditor to.
-        """
-        debug.setDebugLevel(level)
-        self.refresh()
-
-    def setToolTip(self, level):
-        """
-        Updates the debug menu's tooltip to explain what the current debug
-        level is set to.
-
-        Args:
-            level (DebugLevel): Debug level to reflect in tooltip.
-        """
-        tool_tip = "Current debug level: {}".format(level.name)
-        super(QToolButton, self).setToolTip(tool_tip)
 
 
 class LoggingLevelButton(QToolButton):

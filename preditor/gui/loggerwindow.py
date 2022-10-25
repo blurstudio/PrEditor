@@ -32,7 +32,7 @@ from ..prefs import prefs_path
 from ..scintilla.delayable_engine import DelayableEngine
 from ..utils import stylesheets
 from .completer import CompleterMode
-from .level_buttons import DebugLevelButton, LoggingLevelButton
+from .level_buttons import LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
 
 
@@ -86,11 +86,6 @@ class LoggerWindow(Window):
         self.uiWorkboxTAB.console = self.uiConsoleTXT
 
         # Create additional buttons in toolbar.
-        self.uiDebugLevelBTN = DebugLevelButton(self)
-        self.uiConsoleTOOLBAR.insertWidget(
-            self.uiRunSelectedACT,
-            self.uiDebugLevelBTN,
-        )
         self.uiLoggingLevelBTN = LoggingLevelButton(self)
         self.uiConsoleTOOLBAR.insertWidget(
             self.uiRunSelectedACT,

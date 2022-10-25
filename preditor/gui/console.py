@@ -69,27 +69,24 @@ class ConsoleEdit(QTextEdit):
         self.stdout = None
         self.stderr = None
         self._errorLog = None
-        # overload the sys logger (if we are not on a high debugging level)
-        if (
-            os.path.basename(sys.executable) != 'python.exe'
-            or debug.debugLevel() != debug.DebugLevel.High
-        ):
-            self.stream_manager = stream.install_to_std()
-            # Redirect future writes directly to the console, add any previous writes
-            # to the console and free up the memory consumed by previous writes as we
-            # assume this is likely to be the only callback added to the manager.
-            self.stream_manager.add_callback(
-                self.write, replay=True, disable_writes=True, clear=True
-            )
-            # Store the current outputs
-            self.stdout = sys.stdout
-            self.stderr = sys.stderr
-            self._errorLog = sys.stderr
-            debug.BlurExcepthook.install()
 
-            # Update any StreamHandler's that were setup using the old stdout/err
-            StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
-            StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
+        # overload the sys logger
+        self.stream_manager = stream.install_to_std()
+        # Redirect future writes directly to the console, add any previous writes
+        # to the console and free up the memory consumed by previous writes as we
+        # assume this is likely to be the only callback added to the manager.
+        self.stream_manager.add_callback(
+            self.write, replay=True, disable_writes=True, clear=True
+        )
+        # Store the current outputs
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        self._errorLog = sys.stderr
+        debug.BlurExcepthook.install()
+
+        # Update any StreamHandler's that were setup using the old stdout/err
+        StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
+        StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
 
         # create the highlighter
         highlight = CodeHighlighter(self)

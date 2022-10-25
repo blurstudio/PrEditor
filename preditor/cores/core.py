@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 import os
 import sys
 
-from Qt.QtCore import QDateTime, QObject, Signal
+from Qt.QtCore import QObject, Signal
 from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
 
@@ -79,13 +79,6 @@ class Core(QObject):
 
         return '\n'.join(msg)
 
-    def errorCoreText(self):
-        """Returns text that is included in the error email for the active core.
-        Override in subclasses to provide extra data. If a empty string is returned
-        this line will not be shown in the error email.
-        """
-        return ''
-
     def shouldReportException(self, exc_type, exc_value, exc_traceback, actions=None):
         """
         Allow core to control how exceptions are handled. Currently being used
@@ -159,99 +152,3 @@ class Core(QObject):
                     else:
                         self._rootWindow = parent
         return self._rootWindow
-
-    def sendEmail(
-        self, sender, targets, subject, message, attachments=None, refId=None
-    ):
-        """Sends an email.
-        Args:
-            sender (str): The source email address.
-
-            targets (str or list): A single email string, or a list of email address(s)
-                to send the email to.
-
-            subject (str): The subject of the email.
-            message (str): The body of the message. Treated as html
-            attachments (list or None): File paths for files to be attached.
-
-            refId (str or None): If not None "X-Entity-Ref-ID" is added to the header
-                with this value. For gmail passing a empty string appears to be the same
-                as passing real data.
-        """
-        try:
-            from email import Encoders
-            from email.MIMEBase import MIMEBase
-            from email.MIMEMultipart import MIMEMultipart
-            from email.MIMEText import MIMEText
-        except ImportError:
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart
-            from email.mime.base import MIMEBase
-
-        import smtplib
-
-        output = MIMEMultipart()
-        output['Subject'] = str(subject)
-        output['From'] = str(sender)
-        if refId is not None:
-            output['X-Entity-Ref-ID'] = refId
-
-        # convert to string
-        if isinstance(targets, (tuple, list)):
-            output['To'] = ', '.join(targets)
-        else:
-            output['To'] = str(targets)
-
-        output['Date'] = (
-            QDateTime.currentDateTime().toUTC().toString('ddd, d MMM yyyy hh:mm:ss')
-        )
-        output['Content-type'] = 'Multipart/mixed'
-        output.preamble = 'This is a multi-part message in MIME format.'
-        output.epilogue = ''
-
-        # Build Body
-        msgText = MIMEText(str(message), 'html')
-        msgText['Content-type'] = 'text/html'
-
-        output.attach(msgText)
-
-        # Include Attachments
-        if attachments:
-            for a in attachments:
-                fp = open(str(a), 'rb')
-                txt = MIMEBase('application', 'octet-stream')
-                txt.set_payload(fp.read())
-                fp.close()
-
-                Encoders.encode_base64(txt)
-                txt.add_header(
-                    'Content-Disposition',
-                    'attachment; filename="%s"' % os.path.basename(a),
-                )
-                output.attach(txt)
-
-        try:
-            smtp = smtplib.SMTP('mail.blur.com', timeout=1)
-            # smtp.starttls()
-            # smtp.connect(os.environ.get('BDEV_SEND_EMAIL_SERVER', 'mail.blur.com'))
-            smtp.sendmail(str(sender), output['To'].split(','), output.as_string())
-            smtp.close()
-        except Exception:
-            # TODO: Proper logging
-
-            import inspect
-
-            frame = inspect.stack()[1]
-            module = inspect.getmodule(frame[0])
-
-            import traceback
-
-            traceback.print_exc()
-
-            print(
-                'Module {0} @ {1} failed to send email\n{2}\n{3}\n{4}\n{5}'.format(
-                    module.__name__, module.__file__, sender, targets, subject, message
-                )
-            )
-
-            raise

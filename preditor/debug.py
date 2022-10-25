@@ -1,62 +1,17 @@
-"""
-.. warning::
-
-   The python standard library provides a very powerful and flexible logging
-   and debugging module --
-   `logging <http://docs.python.org/library/logging.html>`_.
-
-   Only use this module if you are updating an existing tool or library that
-   uses it or is part of a larger blur system that uses it.
-
-   If you are creating a new tool or library, use the
-   `logging <http://docs.python.org/library/logging.html>`_ module in the
-   standard library instead.
-
-.. deprecated:: 2.0
-
-
-The preditor debug module defines a handful of functions, as well as a single
-enumerated type, and a single class, to help with the creation and printing
-of logging messages.
-
-The preditor debug module defines a single enumerated type -- :data:`DebugLevel`
--- that is used to discriminate between the various types of logging messages.
-
-.. data:: DebugLevel
-
-   An :class:`enum` used to set different levels of debugging.  Current
-   values are Low, Medium, and High
-
-"""
 from __future__ import absolute_import, print_function
 
 import datetime
 import inspect
 import logging
-import os
 import sys
 import traceback
 
-import six
 from Qt import QtCompat
 
 from . import core
 from .contexts import ErrorReport
-from .enum import Enum, EnumGroup
 
-_currentLevel = int(os.environ.get('BDEV_DEBUG_LEVEL', '0'))
-_errorReport = []
 logger = logging.getLogger(__name__)
-
-
-class DebugLevelEnum(Enum):
-    pass
-
-
-class DebugLevel(EnumGroup):
-    Low = DebugLevelEnum()
-    Mid = DebugLevelEnum()
-    High = DebugLevelEnum()
 
 
 class FileLogger:
@@ -166,8 +121,7 @@ class BlurExcepthook(object):
         self.actions = core.shouldReportException(*exc_info, actions=self.actions)
 
         self.call_base_excepthook(exc_info)
-        if debugLevel() == 0:
-            self.send_exception_email(exc_info)
+        self.send_exception_email(exc_info)
         self.send_logger_error(exc_info)
 
         ErrorReport.clearReports()
@@ -267,40 +221,6 @@ class BlurExcepthook(object):
 # --------------------------------------------------------------------------------
 
 
-def clearErrorReport():
-    """Clears the current report"""
-    global _errorReport
-    _errorReport = []
-
-
-def debugLevel():
-    """Returns the current debugging level"""
-    return _currentLevel
-
-
-def errorsReported():
-    """Returns whether or not the error report is empty
-
-    Returns:
-        bool:
-    """
-    return len(_errorReport) > 0
-
-
-def isDebugLevel(level):
-    """Checks to see if the current debug level greater than or equal to the inputed level
-
-    Args:
-        level (preditor.debug.DebugLevel):
-
-    Returns
-        bool: the current debug level is greater than or equal to level
-    """
-    if isinstance(level, six.string_types):
-        level = DebugLevel[level]
-    return level <= debugLevel()
-
-
 def printCallingFunction(compact=False):
     """Prints and returns info about the calling function
 
@@ -372,68 +292,3 @@ def mroDump(obj, nice=True, joinString='\n'):
     else:
         ret = [repr(x) for x in (classes)]
     return joinString.join(ret)
-
-
-def reportError(msg, debugLevel=1):
-    """Adds the inputed message to the debug report
-
-    Args:
-        msg (str): the message to add to the debug report.
-
-        debugLevel (preditor.debug.DebugLevel, optional): Only adds msg to the debug
-            report if debugLevel is this level or higher. Defaults to DebugLevel.Low.
-    """
-    if isDebugLevel(debugLevel):
-        _errorReport.append(str(msg))
-
-
-def showErrorReport(
-    subject='Errors Occurred',
-    message='There were errors that occurred.  Click the Details button for more info.',
-):
-    if not errorsReported():
-        from Qt.QtWidgets import QMessageBox
-
-        QMessageBox.critical(None, subject, message)
-    else:
-        from .gui.dialogs.detailreportdialog import DetailReportDialog
-
-        DetailReportDialog.showReport(
-            None, subject, message, '<br>'.join([str(r) for r in _errorReport])
-        )
-        return True
-
-
-def setDebugLevel(level):
-    """Sets the debug level for the preditor system module
-
-    Args:
-        level (preditor.debug.DebugLevel): Value to set the debug level to.
-
-    Returns:
-        bool: The debug level was changed.
-    """
-    global _currentLevel
-
-    # check for the debug value if a string is passed in
-    if isinstance(level, six.string_types):
-        if not level:
-            level = "0"
-        try:
-            # Check if a int value was passed as a string
-            level = int(level)
-        except ValueError:
-            level = int(DebugLevel[level])
-
-    # clear the debug level
-    if not level:
-        _currentLevel = 0
-        return True
-
-    # assign the debug flag
-    if level in DebugLevel:
-        _currentLevel = level
-        return True
-    else:
-        logger.info('{} is not a valid <DebugLevel> value'.format(level))
-        return False
