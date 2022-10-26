@@ -3,6 +3,7 @@ import os
 import sys
 import textwrap
 
+import six
 from future.utils import with_metaclass
 
 import preditor
@@ -37,14 +38,24 @@ class AboutModule(with_metaclass(abc.ABCMeta, object)):
             else:
                 try:
                     instance = plugin()
+                    if not instance.enabled():
+                        continue
                     version = instance.version()
                     text = instance.text()
                 except Exception as error:
                     text = "Error processing: {}".format(error)
-            text = textwrap.indent(text, cls.indent)
+            if six.PY3:
+                text = textwrap.indent(text, cls.indent)
+            else:
+                text = ['{}{}'.format(cls.indent, line) for line in text.split('\n')]
+                text = "\n".join(text)
             ret.append("{}: {}\n{}".format(name, version, text))
 
         return '\n'.join(ret)
+
+    def enabled(self):
+        """The plugin can use this to disable reporting by generate."""
+        return True
 
     @abc.abstractmethod
     def text(self):
