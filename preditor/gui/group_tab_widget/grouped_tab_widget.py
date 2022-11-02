@@ -64,7 +64,7 @@ class GroupedTabWidget(OneTabWidget):
 
     def tab_shown(self, index):
         editor = self.widget(index)
-        if editor.isVisible():
+        if editor and editor.isVisible():
             editor.__show__()
 
     def update_closable_tabs(self):

@@ -713,14 +713,14 @@ class LoggerWindow(Window):
 
         self.uiWorkboxTAB.restore_prefs(prefs.get('workbox_prefs', {}))
 
+        # Ensure the correct workbox stack page is shown
+        self.update_workbox_stack()
+
         _font = prefs.get('consoleFont', None)
         if _font:
             font = QFont()
             if font.fromString(_font):
                 self.console().setConsoleFont(font)
-
-        # Ensure the correct workbox stack page is shown
-        self.update_workbox_stack()
 
     def restoreToolbars(self, prefs=None):
         if prefs is None:
