@@ -49,7 +49,12 @@ class AboutModule(with_metaclass(abc.ABCMeta, object)):
             else:
                 text = ['{}{}'.format(cls.indent, line) for line in text.split('\n')]
                 text = "\n".join(text)
-            ret.append("{}: {}\n{}".format(name, version, text))
+
+            # Build the output string including the version information if provided.
+            if version is not None:
+                ret.append("{}: {}\n{}".format(name, version, text))
+            else:
+                ret.append("{}:\n{}".format(name, text))
 
         return '\n'.join(ret)
 
@@ -124,3 +129,17 @@ class AboutPython(AboutModule):
 
     def version(self):
         return '{}.{}.{}'.format(*sys.version_info[:3])
+
+
+class AboutExe(AboutModule):
+    """The value of sys.executable, disabled if not set."""
+
+    def enabled(self):
+        return bool(sys.executable)
+
+    def text(self):
+        return sys.executable
+
+    def version(self):
+        """No version is returned for this class."""
+        return None
