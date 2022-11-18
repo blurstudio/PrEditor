@@ -29,7 +29,7 @@ class ConsoleEdit(QTextEdit):
     _errorMessageColor = QColor(Qt.red)
 
     def __init__(self, parent):
-        super(QTextEdit, self).__init__(parent)
+        super(ConsoleEdit, self).__init__(parent)
         # store the error buffer
         self._completer = None
 

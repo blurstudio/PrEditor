@@ -44,7 +44,7 @@ class CompleterMode(Enum):
 
 class PythonCompleter(QCompleter):
     def __init__(self, widget):
-        super(QCompleter, self).__init__(widget)
+        super(PythonCompleter, self).__init__(widget)
 
         # use the python model for information
 
