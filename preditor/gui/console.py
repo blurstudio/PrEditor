@@ -344,10 +344,14 @@ class ConsoleEdit(QTextEdit):
         delta = time.time() - startTime
         if self.flash_window and self.flash_time and delta >= self.flash_time:
             if settings.OS_TYPE == "Windows":
-                from casement import utils
-
-                hwnd = int(self.flash_window.winId())
-                utils.flash_window(hwnd)
+                try:
+                    from casement import utils
+                except ImportError:
+                    # If casement is not installed, flash window is disabled
+                    pass
+                else:
+                    hwnd = int(self.flash_window.winId())
+                    utils.flash_window(hwnd)
 
         # Report the total time it took to execute this code.
         if self.reportExecutionTime is not None:
