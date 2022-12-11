@@ -1,3 +1,4 @@
+from Qt.QtCore import Slot
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QWidget
 
@@ -26,6 +27,7 @@ class EditorChooser(QWidget):
             index = self.uiWorkboxEditorDDL.findText(name)
         self.uiWorkboxEditorDDL.setCurrentIndex(index)
 
+    @Slot()
     def refresh(self):
         warning = "Choose an editor to enable Workboxs."
         editor_name = self.editor_name()

@@ -13,7 +13,7 @@ from functools import partial
 import __main__
 import six
 from Qt import QtCompat, QtCore, QtWidgets
-from Qt.QtCore import QByteArray, Qt, QTimer, Signal
+from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
 from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
@@ -265,6 +265,7 @@ class LoggerWindow(Window):
                 0, lambda: QTimer.singleShot(0, lambda: self.run_workbox(run_workbox))
             )
 
+    @Slot()
     def apply_options(self):
         """Apply editor options the user chose on the WorkboxPage.Options page."""
         editor_cls_name, editor_cls = plugins.editor(
@@ -925,6 +926,7 @@ class LoggerWindow(Window):
         height = self.uiMenuBar.actionGeometry(self.uiFileMENU.menuAction()).height()
         self.uiStatusLBL.setMinimumHeight(height)
 
+    @Slot()
     def show_workbox_options(self):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
@@ -940,6 +942,7 @@ class LoggerWindow(Window):
                 self.uiIndentationsTabsACT.isChecked()
             )
 
+    @Slot()
     def update_workbox_stack(self):
         if self.uiWorkboxTAB.editor_cls:
             index = WorkboxPages.Workboxes

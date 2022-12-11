@@ -14,8 +14,8 @@ from ..scintilla.documenteditor import DocumentEditor, SearchOptions
 from ..scintilla.finddialog import FindDialog
 
 
-class WorkboxWidget(DocumentEditor, WorkboxMixin):
-    def __init__(self, parent, console=None, delayable_engine='default'):
+class WorkboxWidget(WorkboxMixin, DocumentEditor):
+    def __init__(self, parent=None, console=None, delayable_engine='default'):
         self.__set_console__(console)
         self._searchFlags = 0
         self._searchText = ''

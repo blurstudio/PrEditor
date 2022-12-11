@@ -923,18 +923,18 @@ at the indicated line in the specified text editor.
   <customwidget>
    <class>GroupTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>preditor.gui.group_tab_widget</header>
+   <header>preditor.gui.group_tab_widget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>ConsolePrEdit</class>
    <extends>QTextEdit</extends>
-   <header>preditor.gui.console</header>
+   <header>preditor.gui.console.h</header>
   </customwidget>
   <customwidget>
    <class>EditorChooser</class>
    <extends>QWidget</extends>
-   <header>preditor.gui.editor_chooser</header>
+   <header>preditor.gui.editor_chooser.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
