@@ -143,9 +143,10 @@ class GroupTabWidget(OneTabWidget):
             super(GroupTabWidget, self).close_tab(self.currentIndex())
 
     def current_groups_widget(self):
-        """Returns the current widget of the currently selected group."""
+        """Returns the current widget of the currently selected group or None."""
         editor_tab = self.currentWidget()
-        return editor_tab.currentWidget()
+        if editor_tab:
+            return editor_tab.currentWidget()
 
     def default_tab(self, title='Group 1'):
         widget = GroupedTabWidget(

@@ -108,9 +108,12 @@ class ConsolePrEdit(QTextEdit):
 
         # Set the setTabStopWidth for the console's font
         tab_width = 4
+        # TODO: Make tab_width a general user setting
         if hasattr(self, "window") and "LoggerWindow" in str(type(self.window())):
             # If parented to a LoggerWindow, get the tab_width from it's workboxes
-            tab_width = self.window().current_workbox().__tab_width__()
+            workbox = self.window().current_workbox()
+            if workbox:
+                tab_width = workbox.__tab_width__()
         fontPixelWidth = QFontMetrics(font).width(" ")
         self.setTabStopWidth(fontPixelWidth * tab_width)
 
