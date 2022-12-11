@@ -12,13 +12,19 @@ import preditor
 class AboutModule(with_metaclass(abc.ABCMeta, object)):
     """Base class for the `preditor.plug.about_module` entry point. Create a
     subclass of this method and expose the class object to the entry point.
+
+    Properties:
+        instance: If provided, the instance of PrEditor to generate text for.
     """
 
     indent = "  "
     """Use this to indent new lines for text"""
 
+    def __init__(self, instance=None):
+        self.instance = instance
+
     @classmethod
-    def generate(cls):
+    def generate(cls, instance=None):
         """Generates the output text for all plugins.
 
         Outputs this for each plugin:
@@ -37,11 +43,11 @@ class AboutModule(with_metaclass(abc.ABCMeta, object)):
                 text = plugin
             else:
                 try:
-                    instance = plugin()
-                    if not instance.enabled():
+                    plug = plugin(instance=instance)
+                    if not plug.enabled():
                         continue
-                    version = instance.version()
-                    text = instance.text()
+                    version = plug.version()
+                    text = plug.text()
                 except Exception as error:
                     text = "Error processing: {}".format(error)
             if six.PY3:
@@ -78,7 +84,13 @@ class AboutPreditor(AboutModule):
 
     def text(self):
         """Return the path PrEditor was loaded from for quick debugging."""
-        return os.path.dirname(preditor.__file__)
+        ret = []
+        # Include the core_name of the current PrEditor gui instance if possible
+        if self.instance:
+            ret.append("Core Name: {}".format(self.instance.name))
+        # THe path to the PrEditor package
+        ret.append("Path: {}".format(os.path.dirname(preditor.__file__)))
+        return "\n".join(ret)
 
     def version(self):
         return preditor.__version__

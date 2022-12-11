@@ -56,10 +56,10 @@ class ErrorDialog(Dialog):
         )
 
     def showLogger(self):
-        from .loggerwindow import LoggerWindow
+        """Create/show the main PrEditor instance with the full traceback."""
+        from .. import launch
 
-        inst = LoggerWindow.instance()
-        inst.show()
+        launch()
         self.close()
 
     def submitRequest(self):

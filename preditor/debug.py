@@ -173,8 +173,8 @@ class BlurExcepthook(object):
                 print(traceback)
                 return
 
-            # logger is visible
-            if instance.isVisible():
+            # logger is visible and check if it was minimized on windows
+            if instance.isVisible() and not instance.isMinimized():
                 if instance.uiAutoPromptACT.isChecked():
                     instance.console().startInputLine()
                 return

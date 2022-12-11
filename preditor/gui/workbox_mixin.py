@@ -13,12 +13,15 @@ class WorkboxMixin(object):
     _warning_text = None
     """When a user is picking this Workbox class, show a warning with this text."""
 
-    def __init__(self, parent=None, tempfile=None, filename=None, **kwargs):
+    def __init__(
+        self, parent=None, tempfile=None, filename=None, core_name=None, **kwargs
+    ):
         super(WorkboxMixin, self).__init__(parent=parent, **kwargs)
         self._filename_pref = filename
         self._is_loaded = False
         self._tempdir = None
         self._tempfile = tempfile
+        self.core_name = core_name
 
     def __auto_complete_enabled__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -267,7 +270,7 @@ class WorkboxMixin(object):
 
     def __tempdir__(self, create=False):
         if self._tempdir is None:
-            self._tempdir = prefs_path('workboxes')
+            self._tempdir = prefs_path('workboxes', core_name=self.core_name)
 
         if create and not os.path.exists(self._tempdir):
             os.makedirs(self._tempdir)

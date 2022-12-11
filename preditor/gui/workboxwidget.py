@@ -15,14 +15,18 @@ from ..scintilla.finddialog import FindDialog
 
 
 class WorkboxWidget(WorkboxMixin, DocumentEditor):
-    def __init__(self, parent=None, console=None, delayable_engine='default'):
+    def __init__(
+        self, parent=None, console=None, delayable_engine='default', core_name=None
+    ):
         self.__set_console__(console)
         self._searchFlags = 0
         self._searchText = ''
         self._searchDialog = None
 
         # initialize the super class
-        super(WorkboxWidget, self).__init__(parent, delayable_engine=delayable_engine)
+        super(WorkboxWidget, self).__init__(
+            parent, delayable_engine=delayable_engine, core_name=core_name
+        )
 
         # Store the software name so we can handle custom keyboard shortcuts based on
         # software

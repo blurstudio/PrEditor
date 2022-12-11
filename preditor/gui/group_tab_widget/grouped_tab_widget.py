@@ -9,13 +9,14 @@ from .one_tab_widget import OneTabWidget
 
 
 class GroupedTabWidget(OneTabWidget):
-    def __init__(self, editor_kwargs, editor_cls=None, *args, **kwargs):
+    def __init__(self, editor_kwargs, editor_cls=None, core_name=None, *args, **kwargs):
         super(GroupedTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'grouped_tab_widget')
         self.editor_kwargs = editor_kwargs
         if editor_cls is None:
             editor_cls = WorkboxTextEdit
         self.editor_cls = editor_cls
+        self.core_name = core_name
         self.currentChanged.connect(self.tab_shown)
 
         self.uiCornerBTN = QToolButton(self)
@@ -56,7 +57,7 @@ class GroupedTabWidget(OneTabWidget):
 
     def default_tab(self, title='Workbox'):
         kwargs = self.editor_kwargs if self.editor_kwargs else {}
-        editor = self.editor_cls(parent=self, **kwargs)
+        editor = self.editor_cls(parent=self, core_name=self.core_name, **kwargs)
         return editor, title
 
     def showEvent(self, event):  # noqa: N802

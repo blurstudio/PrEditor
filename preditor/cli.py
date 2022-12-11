@@ -5,6 +5,7 @@ import sys
 from distutils.spawn import find_executable
 
 import click
+from click.core import ParameterSource
 from click_default_group import DefaultGroup
 
 import preditor
@@ -14,6 +15,17 @@ from preditor.settings import OS_TYPE
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 
 logger = logging.getLogger(__name__)
+
+
+def get_app_id(name, is_default):
+    """Returns the name to use for the app_id of windows shortcuts.
+    This allows for taskbar/start menu pinning.
+    """
+    if is_default:
+        # If not using a custom name, just use it for the app_id
+        return name
+    # Otherwise use a prefix of the name provided by the user
+    return "PrEditor - {}".format(name)
 
 
 @click.group(
@@ -31,18 +43,32 @@ def cli():
     pass
 
 
+# launch
 @cli.command()
+@click.option(
+    "-n",
+    "--name",
+    default=preditor.DEFAULT_CORE_NAME,
+    envvar="PREDITOR_NAME",
+    help="Name to save preferences with. This allows you to open multiple "
+    "instances with their own code and settings.",
+)
 @click.option(
     '-r',
     '--run-workbox',
     is_flag=True,
     help='After the logger is shown, run the current workbox text.',
 )
-def launch(run_workbox):
+def launch(name, run_workbox):
     """Run the PrEditor console's gui."""
-    preditor.launch(run_workbox=run_workbox, app_id="PrEditor")
+    # Check if the user passed the name or it was the default
+    parameter_source = click.get_current_context().get_parameter_source('name')
+    app_id = get_app_id(name, parameter_source == ParameterSource.DEFAULT)
+
+    preditor.launch(run_workbox=run_workbox, app_id=app_id, name=name)
 
 
+# shortcut
 @cli.command()
 @click.argument("path")
 @click.option(
@@ -54,9 +80,12 @@ def launch(run_workbox):
     'administrative privileges.',
 )
 @click.option(
-    "--title",
-    default="PrEditor",
-    help="The shortcut filename.",
+    "-n",
+    "--name",
+    default=preditor.DEFAULT_CORE_NAME,
+    envvar="PREDITOR_NAME",
+    help="Name to save preferences with. This allows you to open multiple "
+    "instances with their own code and settings.",
 )
 @click.option(
     "--target",
@@ -74,12 +103,7 @@ def launch(run_workbox):
     default='Opens PrEditor',
     help="The description to give the shortcut.",
 )
-@click.option(
-    '--app-id',
-    default='PrEditor',
-    help="On windows set the app id of the shortcut.",
-)
-def shortcut(path, public, title, target, args, description, app_id):
+def shortcut(path, public, name, target, args, description):
     """Create a shortcut to launch PrEditor.
 
     Path is a the full path of the shortcut to create. On windows you can
@@ -106,8 +130,19 @@ def shortcut(path, public, title, target, args, description, app_id):
     if target in ("preditor", "preditorw"):
         target = find_executable(target)
 
+    parameter_source = click.get_current_context().get_parameter_source('name')
+    if parameter_source == ParameterSource.DEFAULT:
+        app_id = name
+    else:
+        # Strip off the leading "launch " command argument if it was passed
+        if args.startswith('launch '):
+            args = args[7:]
+        # Pass the name to the launched PrEditor instance
+        args = 'launch --name "{}" {}'.format(name, args)
+        app_id = name = get_app_id(name, parameter_source == ParameterSource.DEFAULT)
+
     Shortcut.create(
-        title,
+        name,
         args,
         target=target,
         # icon=None,

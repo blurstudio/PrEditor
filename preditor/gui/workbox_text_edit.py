@@ -21,8 +21,10 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         "a better option."
     )
 
-    def __init__(self, parent=None, console=None, delayable_engine='default'):
-        super(WorkboxTextEdit, self).__init__(parent=parent)
+    def __init__(
+        self, parent=None, console=None, delayable_engine='default', core_name=None
+    ):
+        super(WorkboxTextEdit, self).__init__(parent=parent, core_name=core_name)
         self._filename = None
         self.__set_console__(console)
         highlight = CodeHighlighter(self)

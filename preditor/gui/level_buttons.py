@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 
 import logging
+import types
 from functools import partial
 
+import six
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
@@ -142,9 +144,52 @@ class LoggingLevelButton(QToolButton):
 
         # TODO: Hook refresh up to a root logger signal
         # Monkey patch root.setLogger to emit signal we connect to
-        # logging.getLogger("").level_changed.connect(self.refresh)
+        root = self.patched_root_logger().level_changed.connect(self.refresh)
 
-    def refresh(self):
+    @staticmethod
+    def patched_root_logger():
+        """Returns `logging.getLogger("")`. This will have the level_changed
+        signal added if it wasn't already.
+
+        The level_changed signal is emitted any time something changes the
+        root logger level. PrEditor uses this to update the logging level button
+        icon any time the root logger's level is changed. The rest of the loggers
+        don't need this as the menu is built on demand with the correct icons indicated.
+        """
+        root = logging.getLogger("")
+        if hasattr(root, "level_changed"):
+            # Already patched, nothing to do
+            return root
+
+        # Need to patch the root logger
+        from signalslot import Signal
+
+        root.level_changed = Signal(args=["level"], name="level_changed")
+
+        # Store the current setLevel, so we can call it in our method
+        root._setLevel = root.setLevel
+
+        def setLevel(self, level):
+            """
+            Sets the threshold for this logger to `level`. Also emits the
+            instance's `level_changed`-signal with the level number as its payload.
+
+            Args:
+                level (int): Numeric level value.
+            """
+            # Call the original setLevel method
+            self._setLevel(level)
+            # Emit our signal
+            self.level_changed.emit(level=level)
+
+        if six.PY3:
+            root.setLevel = types.MethodType(setLevel, root)
+        else:
+            root.setLevel = types.MethodType(setLevel, root, type(root))
+
+        return root
+
+    def refresh(self, **kwargs):
         effective_level = logging.getLogger("").getEffectiveLevel()
         effective_level_name = logging.getLevelName(effective_level)
         level_enum = LoggerLevels.fromLabel(effective_level_name)

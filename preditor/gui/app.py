@@ -7,7 +7,7 @@ import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
-from .. import resourcePath, settings
+from .. import DEFAULT_CORE_NAME, resourcePath, settings
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,11 @@ class App(object):
     """
 
     def __init__(self, name=None, args=None, app=None):
-        self._app_has_exec = False
+        # Used to track if this instance had to create the QApplication or if it
+        # was already created
+        self.app_created = False
+        # If we made the QApplication, did we call exec_ already?
+        self.app_has_exec = False
 
         if app is None:
             app = QApplication.instance()
@@ -49,6 +53,7 @@ class App(object):
             if self.app is None:
                 args.extend(self.dpi_awareness_args())
                 self.app = QApplication(args)
+                self.app_created = True
                 # If we are creating the application, configure it
                 self.configure_standalone()
 
@@ -133,7 +138,7 @@ class App(object):
         return root_window
 
     @classmethod
-    def set_app_id(cls, app_id="PrEditor"):
+    def set_app_id(cls, app_id=DEFAULT_CORE_NAME):
         if settings.OS_TYPE == "Windows":
             # Set the app user model id here not in the window class so it doesn't
             # try to set the app id for applications that already set the app id.
@@ -149,6 +154,6 @@ class App(object):
 
     def start(self):
         """Exec's the QApplication if it hasn't already been started."""
-        if self.app and not self._app_has_exec:
-            self._app_has_exec = True
+        if self.app_created and self.app and not self.app_has_exec:
+            self.app_has_exec = True
             self.app.exec_()

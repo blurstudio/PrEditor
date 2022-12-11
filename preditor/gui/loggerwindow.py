@@ -25,10 +25,18 @@ from Qt.QtWidgets import (
     QVBoxLayout,
 )
 
-from .. import about_preditor, core, debug, osystem, plugins, resourcePath
+from .. import (
+    DEFAULT_CORE_NAME,
+    about_preditor,
+    core,
+    debug,
+    osystem,
+    plugins,
+    resourcePath,
+)
 from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
-from ..logger import saveLoggerConfiguration
+from ..logging_config import LoggingConfig
 from ..prefs import prefs_path
 from ..utils import stylesheets
 from .completer import CompleterMode
@@ -47,8 +55,9 @@ class LoggerWindow(Window):
     _instance = None
     styleSheetChanged = Signal(str)
 
-    def __init__(self, parent, run_workbox=False):
+    def __init__(self, parent, name=None, run_workbox=False):
         super(LoggerWindow, self).__init__(parent=parent)
+        self.name = name if name else DEFAULT_CORE_NAME
         self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
 
@@ -244,13 +253,14 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.setStyleSheet, style_name))
 
         self.uiConsoleTOOLBAR.show()
-        loggerName = QApplication.instance().translate('PrEditorWindow', 'PrEditor')
+        loggerName = QApplication.instance().translate(
+            'PrEditorWindow', DEFAULT_CORE_NAME
+        )
         self.setWindowTitle(
-            '%s - %s - %s %i-bit'
-            % (
+            '{} - {} - {} {}-bit'.format(
                 loggerName,
-                core.objectName().capitalize(),
-                '%i.%i.%i' % sys.version_info[:3],
+                self.name,
+                '{}.{}.{}'.format(*sys.version_info[:3]),
                 osystem.getPointerSize(),
             )
         )
@@ -531,6 +541,7 @@ class LoggerWindow(Window):
         import shutil
 
         archive_base = "preditor_backup_"
+        # Save all prefs not just the current core_name.
         prefs = prefs_path()
         parent_dir = os.path.dirname(prefs)
         # Get the next backup version number to use.
@@ -550,7 +561,7 @@ class LoggerWindow(Window):
         return zip_path
 
     def browsePreferences(self):
-        path = prefs_path()
+        path = prefs_path(core_name=self.name)
         osystem.explore(path)
 
     def console(self):
@@ -566,9 +577,12 @@ class LoggerWindow(Window):
 
     def closeEvent(self, event):
         self.recordPrefs()
-        saveLoggerConfiguration()
+        # Save the logger configuration
+        lcfg = LoggingConfig(core_name=self.name)
+        lcfg.build()
+        lcfg.save()
 
-        Window.closeEvent(self, event)
+        super(LoggerWindow, self).closeEvent(event)
         if self.uiConsoleTOOLBAR.isFloating():
             self.uiConsoleTOOLBAR.hide()
 
@@ -655,7 +669,7 @@ class LoggerWindow(Window):
         self.save_prefs(_prefs)
 
     def load_prefs(self):
-        filename = prefs_path('preditor_pref.json')
+        filename = prefs_path('preditor_pref.json', core_name=self.name)
         if os.path.exists(filename):
             with open(filename) as fp:
                 return json.load(fp)
@@ -663,7 +677,7 @@ class LoggerWindow(Window):
 
     def save_prefs(self, _prefs):
         # Save preferences to disk
-        filename = prefs_path('preditor_pref.json')
+        filename = prefs_path('preditor_pref.json', core_name=self.name)
         dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
@@ -680,6 +694,9 @@ class LoggerWindow(Window):
             self.uiWorkboxTAB.editor_cls = editor_cls
         else:
             self.uiWorkboxTAB.editor_cls = None
+        # Set the workbox core_name so it reads/writes its tabs content into the
+        # same core_name preference folder.
+        self.uiWorkboxTAB.core_name = self.name
         self.uiEditorChooserWGT.set_editor_name(self.editor_cls_name)
 
         # Geometry
@@ -929,7 +946,7 @@ class LoggerWindow(Window):
 
     def show_about(self):
         """Shows `preditor.about_preditor()`'s output in a message box."""
-        msg = about_preditor()
+        msg = about_preditor(instance=self)
         QMessageBox.information(self, 'About PrEditor', '<pre>{}</pre>'.format(msg))
 
     def showEnvironmentVars(self):
@@ -1044,7 +1061,7 @@ class LoggerWindow(Window):
         group_tab.setCurrentIndex(index)
 
     @staticmethod
-    def instance(parent=None, run_workbox=False, create=True):
+    def instance(parent=None, name=None, run_workbox=False, create=True):
         """Returns the existing instance of the PrEditor gui creating it on first call.
 
         Args:
@@ -1065,7 +1082,7 @@ class LoggerWindow(Window):
                 return None
 
             # create the logger instance
-            inst = LoggerWindow(parent, run_workbox=run_workbox)
+            inst = LoggerWindow(parent, name=name, run_workbox=run_workbox)
 
             # RV has a Unique window structure. It makes more sense to not parent a
             # singleton window than to parent it to a specific top level window.
