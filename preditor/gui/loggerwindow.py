@@ -901,7 +901,7 @@ class LoggerWindow(Window):
     def show_about(self):
         """Shows `preditor.about_preditor()`'s output in a message box."""
         msg = about_preditor()
-        QMessageBox.information(self, 'About PrEditor', msg)
+        QMessageBox.information(self, 'About PrEditor', '<pre>{}</pre>'.format(msg))
 
     def showEnvironmentVars(self):
         dlg = Dialog(self)

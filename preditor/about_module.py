@@ -89,7 +89,7 @@ class AboutQt(AboutModule):
 
     def text(self):
         """Return the path PrEditor was loaded from for quick debugging."""
-        from Qt import __binding__, __version__
+        from Qt import QtCore, __binding__, __version__
 
         ret = ['Qt.py: {}, binding: {}'.format(__version__, __binding__)]
 
@@ -106,6 +106,13 @@ class AboutQt(AboutModule):
             ret.append('PyQt5: {}'.format(sys.modules['PyQt5.QtCore'].PYQT_VERSION_STR))
         if 'PySide2.QtCore' in sys.modules:
             ret.append('PySide2: {}'.format(sys.modules['PySide2.QtCore'].qVersion()))
+
+        # Add qt library paths for plugin debugging
+        for i, path in enumerate(QtCore.QCoreApplication.libraryPaths()):
+            if i == 0:
+                ret.append('Library Paths: {}'.format(path))
+            else:
+                ret.append('               {}'.format(path))
 
         return "\n".join(ret)
 
