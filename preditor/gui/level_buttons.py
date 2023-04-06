@@ -91,6 +91,28 @@ class LoggerLevels(EnumGroup):
     Info = LoggerLevel(label="INFO", number=20, level="info")
     Debug = LoggerLevel(label="DEBUG", number=10, level="debug")
 
+    @classmethod
+    def fromLabel(cls, label, default=None, logger=None):
+        try:
+            return super(LoggerLevels, cls).fromLabel(label, default=default)
+        except ValueError:
+            # This is not be a standard level, generate a custom level to use
+            if logger is None:
+                logger = logging.getLogger()
+            effective_level = logger.getEffectiveLevel()
+            effective_level_name = logging.getLevelName(effective_level)
+
+            enum = LoggerLevel(
+                label=effective_level_name,
+                number=effective_level,
+                level=effective_level_name,
+            )
+            # Force the custom icon as this enum's name won't match
+            enum.cached_icon = enum.get_icon(enum.icon_name, "custom")
+            # Add it to the enum
+            LoggerLevels.append(enum)
+            return enum
+
 
 class LoggingLevelButton(QToolButton):
 
@@ -222,7 +244,7 @@ class LoggingLevelMenu(LazyMenu):
         """Returns the current effective LoggerLevel for self.logger."""
         effective_level = self.logger.getEffectiveLevel()
         effective_level_name = logging.getLevelName(effective_level)
-        return LoggerLevels.fromLabel(effective_level_name)
+        return LoggerLevels.fromLabel(effective_level_name, logger=self.logger)
 
     def refresh(self):
         self.clear()
@@ -243,9 +265,7 @@ class LoggingLevelMenu(LazyMenu):
             )
 
             # when clicked/activated set associated loggers level
-            action.triggered.connect(
-                partial(self.setLevel, getattr(logging, logger_level.label))
-            )
+            action.triggered.connect(partial(self.setLevel, logger_level.number))
             self.addAction(action)
 
         self.addSeparator()
