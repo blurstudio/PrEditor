@@ -16,6 +16,8 @@ import string
 import sys
 import time
 from collections import OrderedDict
+from contextlib import contextmanager
+from functools import partial
 
 import six
 from PyQt5.Qsci import QsciScintilla
@@ -51,6 +53,17 @@ class SearchOptions(EnumGroup):
     CaseSensitive = Enum()
     WholeWords = Enum()
     QRegExp = Enum()
+
+
+@contextmanager
+def undo_step(editor):
+    """Context manager that combines all changes performed inside it as a
+    single undo action for the document editor."""
+    editor.beginUndoAction()
+    try:
+        yield
+    finally:
+        editor.endUndoAction()
 
 
 class DocumentEditor(QsciScintilla):
@@ -278,82 +291,81 @@ class DocumentEditor(QsciScintilla):
             return False
         commentSpace = comment + " "
 
-        self.beginUndoAction()
-        # lookup the selected text positions
-        cursorLine, cursorIndex = self.expandCursorToLineSelection()
-        startLine, startCol, endLine, endCol = self.getSelection()
+        with undo_step(self):
+            # lookup the selected text positions
+            cursorLine, cursorIndex = self.expandCursorToLineSelection()
+            startLine, startCol, endLine, endCol = self.getSelection()
 
-        # Collect comments and indents, to determine indentation to use, and whether
-        # to comment or uncomment.
-        comments = []
-        indents = []
-        for line in range(startLine, endLine + 1):
-            lineText = self.getSelectionCurrentLineText(line)
+            # Collect comments and indents, to determine indentation to use, and whether
+            # to comment or uncomment.
+            comments = []
+            indents = []
+            for line in range(startLine, endLine + 1):
+                lineText = self.getSelectionCurrentLineText(line)
 
-            # Skip if line is empty, or line is last line without selection
-            if not lineText.strip() or (line == endLine and not endCol):
-                continue
+                # Skip if line is empty, or line is last line without selection
+                if not lineText.strip() or (line == endLine and not endCol):
+                    continue
 
-            comments.append(lineText.lstrip()[0] == comment)
+                comments.append(lineText.lstrip()[0] == comment)
 
-            curIndent = self.determineIndent(lineText, comment)
-            indents.append(curIndent)
+                curIndent = self.determineIndent(lineText, comment)
+                indents.append(curIndent)
 
-        if not indents:
-            return
-        indent = min(indents)
+            if not indents:
+                return
+            indent = min(indents)
 
-        # If all lines are comments, we uncomment. If any aren't comments, we comment.
-        if doWhich is None:
-            if all(comments):
-                doWhich = "Uncomment"
-            else:
-                doWhich = "Comment"
+            # If all lines are comments, we un-comment. If any aren't
+            # comments, we comment.
+            if doWhich is None:
+                if all(comments):
+                    doWhich = "Uncomment"
+                else:
+                    doWhich = "Comment"
 
-        for line in range(startLine, endLine + 1):
-            lineText = self.getSelectionCurrentLineText(line)
-            if not lineText.strip():
-                continue
+            for line in range(startLine, endLine + 1):
+                lineText = self.getSelectionCurrentLineText(line)
+                if not lineText.strip():
+                    continue
 
-            # Do not toggle comments on the last line if it contains no selection
-            if line != endLine or endCol:
+                # Do not toggle comments on the last line if it contains no selection
+                if line != endLine or endCol:
 
-                if doWhich == "Comment":
-                    self.setCursorPosition(line, indent)
-                    self.insert(commentSpace)
-                    if cursorIndex is not None and cursorIndex >= indent:
-                        cursorIndex += len(commentSpace)
-                    if line == startLine:
-                        startCol -= len(commentSpace)
-                    if line == endLine:
-                        endCol += len(commentSpace)
+                    if doWhich == "Comment":
+                        self.setCursorPosition(line, indent)
+                        self.insert(commentSpace)
+                        if cursorIndex is not None and cursorIndex >= indent:
+                            cursorIndex += len(commentSpace)
+                        if line == startLine:
+                            startCol -= len(commentSpace)
+                        if line == endLine:
+                            endCol += len(commentSpace)
 
-                elif doWhich == "Uncomment":
-                    for curComment in [commentSpace, comment]:
-                        foundText = self.getSelectedCommentText(
-                            line, indent, len(curComment)
-                        )
-                        startCol, endCol, cursorIndex, removed = self.removeComment(
-                            foundText,
-                            curComment,
-                            line,
-                            indent,
-                            startLine,
-                            startCol,
-                            endLine,
-                            endCol,
-                            cursorIndex,
-                        )
-                        if removed:
-                            break
+                    elif doWhich == "Uncomment":
+                        for curComment in [commentSpace, comment]:
+                            foundText = self.getSelectedCommentText(
+                                line, indent, len(curComment)
+                            )
+                            startCol, endCol, cursorIndex, removed = self.removeComment(
+                                foundText,
+                                curComment,
+                                line,
+                                indent,
+                                startLine,
+                                startCol,
+                                endLine,
+                                endCol,
+                                cursorIndex,
+                            )
+                            if removed:
+                                break
 
-        # restore the currently selected text, or cursor position
-        if cursorLine is not None:
-            startLine, endLine = cursorLine, cursorLine
-            startCol, endCol = cursorIndex, cursorIndex
-        self.setSelection(startLine, startCol, endLine, endCol)
-        self.endUndoAction()
-        # return True
+            # restore the currently selected text, or cursor position
+            if cursorLine is not None:
+                startLine, endLine = cursorLine, cursorLine
+                startCol, endCol = cursorIndex, cursorIndex
+            self.setSelection(startLine, startCol, endLine, endCol)
 
     def removeComment(
         self,
@@ -698,7 +710,8 @@ class DocumentEditor(QsciScintilla):
         """Python implementation of QsciScintilla.simpleFind.
 
         Args:
-            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
+            find_state (preditor.scintilla.FindState): A find state used to
+                manage the find.
 
         https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
         """
@@ -718,7 +731,8 @@ class DocumentEditor(QsciScintilla):
         """Finds text in the document without changing the selection.
 
         Args:
-            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
+            find_state (preditor.scintilla.FindState): A find state used to
+                manage the find.
 
         Based on QsciScintilla.doFind.
         https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
@@ -772,7 +786,8 @@ class DocumentEditor(QsciScintilla):
         matches to the provided find_state.
 
         Args:
-            find_state (blurdev.scintilla.FindState): A find state used to manage the find.
+            find_state (preditor.scintilla.FindState): A find state used to
+                manage the find.
         """
         # Start searching from the cursor, wrap past the end and stop where we started
         current_position = self.positionFromLineIndex(*self.getCursorPosition())
@@ -1016,27 +1031,26 @@ class DocumentEditor(QsciScintilla):
         if not searchtext:
             return 0
 
-        self.beginUndoAction()
-        sel = self.getSelection()
+        with undo_step(self):
+            sel = self.getSelection()
 
-        # replace all of the instances of the text
-        if all:
-            count = self.text().count(searchtext, Qt.CaseInsensitive)
-            found = 0
-            while self.findFirst(searchtext, False, False, False, True, True):
-                if found == count:
-                    # replaced all items, exit so we don't get a infinite loop
-                    break
-                found += 1
+            # replace all of the instances of the text
+            if all:
+                count = self.text().count(searchtext, Qt.CaseInsensitive)
+                found = 0
+                while self.findFirst(searchtext, False, False, False, True, True):
+                    if found == count:
+                        # replaced all items, exit so we don't get a infinite loop
+                        break
+                    found += 1
+                    super(DocumentEditor, self).replace(text)
+
+            # replace a single instance of the text
+            else:
+                count = 1
                 super(DocumentEditor, self).replace(text)
 
-        # replace a single instance of the text
-        else:
-            count = 1
-            super(DocumentEditor, self).replace(text)
-
-        self.setSelection(*sel)
-        self.endUndoAction()
+            self.setSelection(*sel)
 
         return count
 
@@ -1310,9 +1324,8 @@ class DocumentEditor(QsciScintilla):
     def correctSpelling(self, action):
         self.SendScintilla(self.SCI_GOTOPOS, self.pos)
         self.SendScintilla(self.SCI_SETANCHOR, self.anchor)
-        self.beginUndoAction()
-        self.SendScintilla(self.SCI_REPLACESEL, action.text())
-        self.endUndoAction()
+        with undo_step(self):
+            self.SendScintilla(self.SCI_REPLACESEL, action.text())
 
     def spellCheck(self, start_pos, end_pos):
         """Check spelling for some text in the document.
@@ -1409,7 +1422,7 @@ class DocumentEditor(QsciScintilla):
                             act = submenu.addAction(wordSuggestion)
                         submenu.triggered.connect(self.correctSpelling)
                         addmenu = menu.addAction('Add %s to dictionary' % word)
-                        addmenu.triggered.connect(lambda: self.addWordToDict(word))
+                        addmenu.triggered.connect(partial(self.addWordToDict, word))
                         addmenu.setObjectName('uiSpellCheckAddWordACT')
                         menu.addSeparator()
                         break
@@ -1548,25 +1561,23 @@ class DocumentEditor(QsciScintilla):
         return self._smartHighlightingRegEx
 
     def toLower(self):
-        self.beginUndoAction()
-        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        text = self.selectedText().lower()
-        self.removeSelectedText()
-        self.insert(text)
-        self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
-        self.endUndoAction()
+        with undo_step(self):
+            lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+            text = self.selectedText().lower()
+            self.removeSelectedText()
+            self.insert(text)
+            self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
 
     def toggleFolding(self):
         self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
 
     def toUpper(self):
-        self.beginUndoAction()
-        lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
-        text = self.selectedText().upper()
-        self.removeSelectedText()
-        self.insert(text)
-        self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
-        self.endUndoAction()
+        with undo_step(self):
+            lineFrom, indexFrom, lineTo, indexTo = self.getSelection()
+            text = self.selectedText().upper()
+            self.removeSelectedText()
+            self.insert(text)
+            self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
 
     def updateColorScheme(self):
         """Sets the DocumentEditor's lexer colors, see colorScheme for a compatible
@@ -1713,10 +1724,9 @@ class DocumentEditor(QsciScintilla):
             lineTo = self.lines()
         else:
             lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
-        self.beginUndoAction()
-        for line in range(lineFrom, lineTo + 1):
-            self.indent(line)
-        self.endUndoAction()
+        with undo_step(self):
+            for line in range(lineFrom, lineTo + 1):
+                self.indent(line)
 
     def unindentSelection(self, all=False):
         if all:
@@ -1724,10 +1734,9 @@ class DocumentEditor(QsciScintilla):
             lineTo = self.lines()
         else:
             lineFrom, indexFrom, lineTo, indextTo = self.getSelection()
-        self.beginUndoAction()
-        for line in range(lineFrom, lineTo + 1):
-            self.unindent(line)
-        self.endUndoAction()
+        with undo_step(self):
+            for line in range(lineFrom, lineTo + 1):
+                self.unindent(line)
 
     def windowTitle(self):
         if self._filename:
