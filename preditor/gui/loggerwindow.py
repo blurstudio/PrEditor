@@ -82,7 +82,9 @@ class LoggerWindow(Window):
         # Setup delayable system
         self.delayable_engine = DelayableEngine.instance('logger', self)
 
-        self.uiWorkboxTAB.console = self.uiConsoleTXT
+        self.uiWorkboxTAB.editor_kwargs = dict(
+            console=self.uiConsoleTXT, delayable_engine=self.delayable_engine.name
+        )
 
         # Create additional buttons in toolbar.
         self.uiLoggingLevelBTN = LoggingLevelButton(self)
@@ -677,6 +679,8 @@ class LoggerWindow(Window):
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(prefs.get('spellCheckEnabled', False))
+        self.uiSpellCheckEnabledACT.setDisabled(False)
+
         self.uiConsoleTXT.completer().setEnabled(
             self.uiAutoCompleteEnabledACT.isChecked()
         )

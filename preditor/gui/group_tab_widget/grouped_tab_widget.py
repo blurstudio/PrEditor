@@ -9,10 +9,10 @@ from .one_tab_widget import OneTabWidget
 
 
 class GroupedTabWidget(OneTabWidget):
-    def __init__(self, console, editor_cls=None, *args, **kwargs):
+    def __init__(self, editor_kwargs, editor_cls=None, *args, **kwargs):
         super(GroupedTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'grouped_tab_widget')
-        self.console = console
+        self.editor_kwargs = editor_kwargs
         if editor_cls is None:
             editor_cls = WorkboxTextEdit
         self.editor_cls = editor_cls
@@ -55,7 +55,8 @@ class GroupedTabWidget(OneTabWidget):
             super(GroupedTabWidget, self).close_tab(index)
 
     def default_tab(self, title='Workbox'):
-        editor = self.editor_cls(parent=self, console=self.console)
+        kwargs = self.editor_kwargs if self.editor_kwargs else {}
+        editor = self.editor_cls(parent=self, **kwargs)
         return editor, title
 
     def showEvent(self, event):  # noqa: N802

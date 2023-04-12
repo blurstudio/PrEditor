@@ -38,10 +38,10 @@ class GroupTabWidget(OneTabWidget):
     allowing users to quickly focus on any tab in the entire group.
     """
 
-    def __init__(self, console=None, *args, **kwargs):
+    def __init__(self, editor_kwargs=None, *args, **kwargs):
         super(GroupTabWidget, self).__init__(*args, **kwargs)
         DragTabBar.install_tab_widget(self, 'group_tab_widget')
-        self.console = console
+        self.editor_kwargs = editor_kwargs
         self.editor_cls = WorkboxTextEdit
         self.setStyleSheet(DEFAULT_STYLE_SHEET)
         corner = QWidget(self)
@@ -150,7 +150,7 @@ class GroupTabWidget(OneTabWidget):
 
     def default_tab(self, title='Group 1'):
         widget = GroupedTabWidget(
-            parent=self, console=self.console, editor_cls=self.editor_cls
+            parent=self, editor_kwargs=self.editor_kwargs, editor_cls=self.editor_cls
         )
         return widget, title
 
