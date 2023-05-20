@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from Qt.Qsci import QsciLexerPython
+from PyQt5.Qsci import QsciLexerPython
 from Qt.QtGui import QColor
 
 

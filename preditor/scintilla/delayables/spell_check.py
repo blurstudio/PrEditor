@@ -4,7 +4,7 @@ import logging
 import re
 import string
 
-from Qt.Qsci import QsciScintilla
+from PyQt5.Qsci import QsciScintilla
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 
@@ -131,7 +131,8 @@ else:
             self.clear_markings(document)
 
         def reset_session(self, document):
-            """Resets the speller dictionary and adds document language specific words"""
+            """Resets the speller dictionary and adds document language
+            specific words"""
             if document.__speller__ is None:
                 return
             elif not document.lexer() or not document._language:

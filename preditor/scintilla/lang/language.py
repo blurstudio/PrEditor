@@ -8,7 +8,7 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 
-from Qt import Qsci
+from PyQt5 import Qsci
 
 
 class MethodDescriptor(object):
@@ -97,8 +97,8 @@ class Language(object):
                     except Exception:
                         print(
                             (
-                                '[preditor.scintilla.lexers.Language.createLexer() Error] '
-                                'Could not import %s module'
+                                '[preditor.scintilla.lexers.Language.createLexer() '
+                                'Error] Could not import %s module'
                             )
                             % self._lexerModule
                         )

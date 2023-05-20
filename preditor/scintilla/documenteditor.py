@@ -18,8 +18,8 @@ import time
 from collections import OrderedDict
 
 import six
+from PyQt5.Qsci import QsciScintilla
 from Qt import QtCompat
-from Qt.Qsci import QsciScintilla
 from Qt.QtCore import Property, QFile, QPoint, Qt, QTextCodec, Signal
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
 from Qt.QtWidgets import (

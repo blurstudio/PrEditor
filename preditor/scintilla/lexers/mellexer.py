@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import re
 
-from Qt.Qsci import QsciLexerCPP
+from PyQt5.Qsci import QsciLexerCPP
 from Qt.QtGui import QColor
 
 MEL_SYNTAX = """and array as case catch continue do else exit float for from global if

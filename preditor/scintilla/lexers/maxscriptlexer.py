@@ -4,7 +4,7 @@ import re
 from builtins import str as text
 
 from future.utils import iteritems
-from Qt.Qsci import QsciLexerCustom
+from PyQt5.Qsci import QsciLexerCustom, QsciScintilla
 
 MS_KEYWORDS = """
 if then else not and or key collect
@@ -187,8 +187,6 @@ class MaxscriptLexer(QsciLexerCustom):
             end = editor.length()
 
         # define commonly used methods
-        from Qt.Qsci import QsciScintilla
-
         SCI = editor.SendScintilla
         SETFOLDLEVEL = QsciScintilla.SCI_SETFOLDLEVEL
         HEADERFLAG = QsciScintilla.SC_FOLDLEVELHEADERFLAG

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function
 
-from Qt.Qsci import QsciScintilla
+from PyQt5.Qsci import QsciScintilla
 from Qt.QtCore import QSignalMapper
 from Qt.QtWidgets import QWidget
 

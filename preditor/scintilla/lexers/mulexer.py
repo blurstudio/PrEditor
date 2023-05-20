@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-from Qt.Qsci import QsciLexerCPP
+from PyQt5.Qsci import QsciLexerCPP
 from Qt.QtGui import QColor
 
 MU_KEYWORDS = """
