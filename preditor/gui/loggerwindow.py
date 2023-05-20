@@ -186,6 +186,7 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningACT.triggered.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalACT.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
+        self.uiBackupPreferencesACT.triggered.connect(self.backupPreferences)
         self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
         self.uiAboutPreditorACT.triggered.connect(self.show_about)
         core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
@@ -523,6 +524,30 @@ class LoggerWindow(Window):
             self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
         else:
             self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
+
+    def backupPreferences(self):
+        """Saves a copy of the current preferences to a zip archive."""
+        import glob
+        import shutil
+
+        archive_base = "preditor_backup_"
+        prefs = prefs_path()
+        parent_dir = os.path.dirname(prefs)
+        # Get the next backup version number to use.
+        filenames = glob.glob(os.path.join(parent_dir, "{}*.zip".format(archive_base)))
+        version = 1
+        if filenames:
+            # Add one to the largest version that exists on disk.
+            version = int(os.path.splitext(max(filenames))[0].split(archive_base)[-1])
+            version += 1
+
+        # Build the file path to save the archive to.
+        archive_base = os.path.join(parent_dir, archive_base + "{:04}".format(version))
+
+        # Save the preferences to the given archive name.
+        zip_path = shutil.make_archive(archive_base, "zip", prefs)
+        print('PrEditor Preferences backed up to "{}"'.format(zip_path))
+        return zip_path
 
     def browsePreferences(self):
         path = prefs_path()

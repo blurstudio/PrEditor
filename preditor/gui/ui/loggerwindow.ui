@@ -89,7 +89,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -116,7 +116,14 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="uiBrowsePreferencesACT"/>
+    <widget class="QMenu" name="menuPreferences">
+     <property name="title">
+      <string>Preferences</string>
+     </property>
+     <addaction name="uiBrowsePreferencesACT"/>
+     <addaction name="uiBackupPreferencesACT"/>
+    </widget>
+    <addaction name="menuPreferences"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
     <addaction name="uiAboutPreditorACT"/>
@@ -590,7 +597,7 @@
   </action>
   <action name="uiBrowsePreferencesACT">
    <property name="text">
-    <string>Browse Preferences</string>
+    <string>Browse...</string>
    </property>
    <property name="toolTip">
     <string>Browse Preferences</string>
@@ -916,6 +923,11 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+9</string>
+   </property>
+  </action>
+  <action name="uiBackupPreferencesACT">
+   <property name="text">
+    <string>Backup</string>
    </property>
   </action>
  </widget>
