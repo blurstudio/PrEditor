@@ -16,7 +16,7 @@ from past.builtins import long
 class _MetaEnumGroup(type):
     """An EnumGroup metaclass."""
 
-    def __new__(cls, className, bases, classDict):
+    def __new__(cls, className, bases, classDict):  # noqa: B902
         newCls = type.__new__(cls, className, bases, classDict)
         newCls.__init_enums__()
         newCls._cls = cls

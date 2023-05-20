@@ -50,7 +50,7 @@ DocumentEditor {
 	qproperty-paperDecorator: "white";
 }
 
-ConsoleEdit{
+ConsolePrEdit{
 	color: rgb(0,0,0);
 	background-color: rgb(255,255,255);
 }

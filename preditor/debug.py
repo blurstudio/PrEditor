@@ -160,7 +160,7 @@ class BlurExcepthook(object):
         if not self.actions.get("prompt", False):
             return
 
-        from .gui.console import ConsoleEdit
+        from .gui.console import ConsolePrEdit
         from .gui.errordialog import ErrorDialog
         from .gui.loggerwindow import LoggerWindow
 
@@ -180,21 +180,21 @@ class BlurExcepthook(object):
                 return
 
         # error already prompted
-        if ConsoleEdit._errorPrompted:
+        if ConsolePrEdit._errorPrompted:
             return
 
         # Preemptively marking error as "prompted" (handled) to avoid errors
         # from being raised multiple times due to C++ and/or threading error
         # processing.
         try:
-            ConsoleEdit._errorPrompted = True
+            ConsolePrEdit._errorPrompted = True
             errorDialog = ErrorDialog(core.rootWindow())
             errorDialog.setText(exc_info)
             errorDialog.exec_()
 
         # interruptted until dialog closed
         finally:
-            ConsoleEdit._errorPrompted = False
+            ConsolePrEdit._errorPrompted = False
 
     @classmethod
     def install(cls, force=False):

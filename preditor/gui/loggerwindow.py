@@ -68,8 +68,8 @@ class LoggerWindow(Window):
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
         )
-        # If we don't disable this shortcut Qt won't respond to this classes or the
-        # ConsoleEdit's
+        # If we don't disable this shortcut Qt won't respond to this classes or
+        # the ConsolePrEdit's
         self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
 
         # create the status reporting label

@@ -26,7 +26,7 @@
       <property name="orientation">
        <enum>Qt::Vertical</enum>
       </property>
-      <widget class="ConsoleEdit" name="uiConsoleTXT">
+      <widget class="ConsolePrEdit" name="uiConsoleTXT">
        <property name="minimumSize">
         <size>
          <width>0</width>
@@ -927,7 +927,7 @@ at the indicated line in the specified text editor.
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConsoleEdit</class>
+   <class>ConsolePrEdit</class>
    <extends>QTextEdit</extends>
    <header>preditor.gui.console</header>
   </customwidget>

@@ -22,14 +22,14 @@ from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
 
 
-class ConsoleEdit(QTextEdit):
+class ConsolePrEdit(QTextEdit):
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
     # the color error messages are displayed in, can be set by stylesheets
     _errorMessageColor = QColor(Qt.red)
 
     def __init__(self, parent):
-        super(ConsoleEdit, self).__init__(parent)
+        super(ConsolePrEdit, self).__init__(parent)
         # store the error buffer
         self._completer = None
 
@@ -123,7 +123,7 @@ class ConsoleEdit(QTextEdit):
         self.anchor = self.anchorAt(event.pos())
         if self.anchor:
             QApplication.setOverrideCursor(Qt.PointingHandCursor)
-        return super(ConsoleEdit, self).mousePressEvent(event)
+        return super(ConsolePrEdit, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """Overload of mouseReleaseEvent to capture if user has left clicked... Check if
@@ -137,7 +137,7 @@ class ConsoleEdit(QTextEdit):
         self.clickPos = None
         self.anchor = None
         QApplication.restoreOverrideCursor()
-        return super(ConsoleEdit, self).mouseReleaseEvent(event)
+        return super(ConsolePrEdit, self).mouseReleaseEvent(event)
 
     def wheelEvent(self, event):
         """Override of wheelEvent to allow for font resizing by holding ctrl while"""
@@ -313,7 +313,7 @@ class ConsoleEdit(QTextEdit):
     def setForegroundColor(self, color):
         self._foregroundColor = color
 
-    def executeString(self, commandText, filename='<ConsoleEdit>', extraPrint=True):
+    def executeString(self, commandText, filename='<ConsolePrEdit>', extraPrint=True):
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         line = cursor.selectedText()
@@ -632,7 +632,7 @@ class ConsoleEdit(QTextEdit):
         if self._firstShow:
             self.startInputLine()
             self._firstShow = False
-        super(ConsoleEdit, self).showEvent(event)
+        super(ConsolePrEdit, self).showEvent(event)
 
     def startInputLine(self):
         """create a new command prompt line"""
@@ -751,12 +751,12 @@ class ConsoleEdit(QTextEdit):
                     msg = "{}\n".format(line)
 
             # If showing Error Hyperlinks, display underline output, otherwise
-            # display normal output. Exclude ConsoleEdits
+            # display normal output. Exclude ConsolePrEdits
             info = info if info else self.parseErrorHyperLinkInfo(msg)
             filename = info.get("filename", "") if info else ""
-            isConsoleEdit = '<ConsoleEdit>' in filename
+            isConsolePrEdit = '<ConsolePrEdit>' in filename
 
-            if info and doHyperlink and not isConsoleEdit:
+            if info and doHyperlink and not isConsolePrEdit:
                 fileStart = info.get("fileStart")
                 fileEnd = info.get("fileEnd")
                 lineNum = info.get("lineNum")

@@ -40,7 +40,7 @@ class ErrorDialog(Dialog):
         self.ignoreButton.clicked.connect(self.close)
 
     def setText(self, exc_info):
-        from .console import ConsoleEdit
+        from .console import ConsolePrEdit
 
         self.traceback_msg = "".join(traceback.format_exception(*exc_info))
         msg = (
@@ -51,7 +51,7 @@ class ErrorDialog(Dialog):
             msg
             % {
                 'text': self.traceback_msg.split('\n')[-2],
-                'color': ConsoleEdit._errorMessageColor.name(),
+                'color': ConsolePrEdit._errorMessageColor.name(),
             }
         )
 
