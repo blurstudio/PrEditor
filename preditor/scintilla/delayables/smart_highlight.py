@@ -4,8 +4,8 @@ from Qt.Qsci import QsciScintilla
 from Qt.QtCore import QSignalMapper
 from Qt.QtWidgets import QWidget
 
+from ...delayable_engine.delayables import SearchDelayable
 from .. import FindState
-from . import SearchDelayable
 
 
 class SmartHighlight(SearchDelayable):

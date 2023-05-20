@@ -177,14 +177,15 @@ class DelayableEngine(QObject):
 
     @classmethod
     def instance(cls, name, parent=None, interval=0):
-        """Returns a shared instance of DelayableEngine, creating the instance if needed.
+        """Returns a shared instance of DelayableEngine, creating the instance
+        if needed.
 
         Args:
             name (str): The name of the delayable engine to get the instance of.
-            parent (QWidget, optional): If a new instance is created, use this as its
-                parent. Ignored otherwise.
-            interval (int, optional): If a new instance is created, use this as its
-                interval value. Defaults to zero.
+            parent (QWidget, optional): If a new instance is created, use this
+                as its parent. Ignored otherwise.
+            interval (int, optional): If a new instance is created, use this as
+                its interval value. Defaults to zero.
         """
         if name not in cls._instance:
             cls._instance[name] = cls(name, parent=parent, interval=interval)

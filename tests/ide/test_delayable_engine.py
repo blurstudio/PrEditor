@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from preditor.scintilla.delayable_engine import DelayableEngine
+from preditor.delayable_engine import DelayableEngine
 from preditor.scintilla.delayables import Delayable, RangeDelayable
 from preditor.scintilla.documenteditor import DocumentEditor
 

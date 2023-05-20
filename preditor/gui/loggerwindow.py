@@ -26,10 +26,10 @@ from Qt.QtWidgets import (
 )
 
 from .. import about_preditor, core, debug, osystem, plugins, resourcePath
+from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
 from ..logger import saveLoggerConfiguration
 from ..prefs import prefs_path
-from ..scintilla.delayable_engine import DelayableEngine
 from ..utils import stylesheets
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
@@ -81,7 +81,6 @@ class LoggerWindow(Window):
         self._reloadRequested = set()
         # Setup delayable system
         self.delayable_engine = DelayableEngine.instance('logger', self)
-        self.delayable_engine.set_delayable_enabled('smart_highlight', True)
 
         self.uiWorkboxTAB.console = self.uiConsoleTXT
 

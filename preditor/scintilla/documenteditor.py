@@ -32,10 +32,10 @@ from Qt.QtWidgets import (
 )
 
 from .. import osystem, resourcePath
+from ..delayable_engine import DelayableEngine
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
 from . import lang
-from .delayable_engine import DelayableEngine
 
 logger = logging.getLogger(__name__)
 
