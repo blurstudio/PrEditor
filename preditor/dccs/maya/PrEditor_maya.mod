@@ -1,0 +1,2 @@
++ PrEditor DEVELOPMENT .
+PYTHONPATH +:= ../..
