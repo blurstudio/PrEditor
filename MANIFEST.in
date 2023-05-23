@@ -17,3 +17,5 @@ recursive-include blurdev/ide *.ini
 recursive-include blurdev/ide *.xml
 recursive-include blurdev/ide *.txt
 recursive-include blurdev/ide *.pytempl
+
+graft preditor/dccs

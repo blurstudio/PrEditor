@@ -129,6 +129,27 @@ yourself.)
 
 The aspell-python-py3 requirement is optional to enable spell check.
 
+
+# DCC Integration
+
+## Maya
+
+PrEditor is pre-setup to use as a Maya module. To use it, create a virtualenv
+with the same python as maya, or install it using mayapy.
+
+```
+virtualenv venv_preditor
+venv_preditor\Scripts\activate
+pip install PrEditor
+set MAYA_MODULE_PATH=c:\path\to\venv_preditor\Lib\site-packages\preditor\dccs
+```
+Note: Due to how maya .mod files works if you are using development installs you
+can't use pip editable installs. This is due to the relative path used
+`PYTHONPATH +:= ../..` in `PrEditor_maya.mod`. You can modify that to use a hard
+coded file path for testing, or add a second .mod file to add the virtualenv's
+`site-packages` file path as a hard coded file path.
+
+
 # Plugins
 
 PrEditor is can be extended using entry point plugins defined by other pip packages.
