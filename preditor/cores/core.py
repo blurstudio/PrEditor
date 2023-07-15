@@ -1,7 +1,6 @@
 from __future__ import absolute_import, print_function
 
 from Qt.QtCore import QObject, Signal
-from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
 
 class Core(QObject):
@@ -23,9 +22,7 @@ class Core(QObject):
         QObject.setObjectName(self, objectName)
 
         # create custom properties
-        self._logger = None
         self._headless = False
-        self._rootWindow = None
 
         # Paths in this variable will be removed in
         # preditor.osystem.subprocessEnvironment
@@ -66,41 +63,3 @@ class Core(QObject):
         QCoreApplication.
         """
         return self._headless
-
-    def rootWindow(self):
-        """
-        Returns the currently active window
-        """
-        if self._rootWindow is not None:
-            return self._rootWindow
-
-        if QApplication.instance():
-            self._rootWindow = QApplication.instance().activeWindow()
-            # Ignore QSplashScreen's, they should never be considered the root window.
-            if isinstance(self._rootWindow, QSplashScreen):
-                self._rootWindow = None
-            # If the application does not have focus try to find A top level widget
-            # that doesn't have a parent and is a QMainWindow or QDialog
-            if self._rootWindow is None:
-                windows = []
-                dialogs = []
-                for w in QApplication.instance().topLevelWidgets():
-                    if w.parent() is None:
-                        if isinstance(w, QMainWindow):
-                            windows.append(w)
-                        elif isinstance(w, QDialog):
-                            dialogs.append(w)
-                if windows:
-                    self._rootWindow = windows[0]
-                elif dialogs:
-                    self._rootWindow = dialogs[0]
-
-            # grab the root window
-            if self._rootWindow:
-                while self._rootWindow.parent():
-                    parent = self._rootWindow.parent()
-                    if isinstance(parent, QSplashScreen):
-                        return self._rootWindow
-                    else:
-                        self._rootWindow = parent
-        return self._rootWindow

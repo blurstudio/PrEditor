@@ -5,7 +5,7 @@ import os
 
 import Qt
 from Qt.QtGui import QIcon
-from Qt.QtWidgets import QApplication
+from Qt.QtWidgets import QApplication, QDialog, QMainWindow, QSplashScreen
 
 from .. import resourcePath, settings
 
@@ -93,6 +93,44 @@ class App(object):
             # currently located.
             return ["--platform", "windows:dpiawareness=0"]
         return []
+
+    @classmethod
+    def root_window(cls):
+        """Returns the currently active window. Attempts to find the top level
+        QMainWindow or QDialog for the current Qt application.
+        """
+        inst = QApplication.instance()
+        if inst:
+            root_window = inst.activeWindow()
+            # Ignore QSplashScreen's, they should never be considered the root window.
+            if isinstance(root_window, QSplashScreen):
+                root_window = None
+
+            # If the application does not have focus try to find A top level widget
+            # that doesn't have a parent and is a QMainWindow or QDialog
+            if root_window is None:
+                windows = []
+                dialogs = []
+                for w in inst.topLevelWidgets():
+                    if w.parent() is None:
+                        if isinstance(w, QMainWindow):
+                            windows.append(w)
+                        elif isinstance(w, QDialog):
+                            dialogs.append(w)
+                if windows:
+                    root_window = windows[0]
+                elif dialogs:
+                    root_window = dialogs[0]
+
+            # grab the root window
+            if root_window:
+                while root_window.parent():
+                    parent = root_window.parent()
+                    if isinstance(parent, QSplashScreen):
+                        return root_window
+                    else:
+                        root_window = parent
+        return root_window
 
     @classmethod
     def set_app_id(cls, app_id="PrEditor"):

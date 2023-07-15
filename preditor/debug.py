@@ -8,7 +8,7 @@ import traceback
 
 from Qt import QtCompat
 
-from . import core
+from . import core, root_window
 from .contexts import ErrorReport
 
 logger = logging.getLogger(__name__)
@@ -188,7 +188,7 @@ class BlurExcepthook(object):
         # processing.
         try:
             ConsolePrEdit._errorPrompted = True
-            errorDialog = ErrorDialog(core.rootWindow())
+            errorDialog = ErrorDialog(root_window())
             errorDialog.setText(exc_info)
             errorDialog.exec_()
 

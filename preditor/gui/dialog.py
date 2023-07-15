@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QDialog
 
-from .. import core, relativePath
+from .. import core, relativePath, root_window
 
 
 class Dialog(QDialog):
@@ -35,7 +35,7 @@ class Dialog(QDialog):
     ):
         # if there is no root, create
         if not parent:
-            parent = core.rootWindow()
+            parent = root_window()
 
         # create a QDialog
         if flags:

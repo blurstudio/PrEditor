@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QMainWindow
 
-from .. import core, relativePath
+from .. import core, relativePath, root_window
 
 
 class Window(QMainWindow):
@@ -34,7 +34,7 @@ class Window(QMainWindow):
     def __init__(self, parent=None, flags=0):
         # if there is no root, create
         if not parent:
-            parent = core.rootWindow()
+            parent = root_window()
 
         # create a QMainWindow
         if flags:

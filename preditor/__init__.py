@@ -146,6 +146,17 @@ def resourcePath(relpath=''):
     return os.path.join(relativePath(__file__), 'resource', relpath)
 
 
+def root_window():
+    # If a parent widget callback was configured, use it
+    if 'parent_callback' in _global_config:
+        return _global_config['parent_callback']()
+
+    # Otherwise, attempt to find the top level widget from Qt
+    from .gui.app import App
+
+    return App.root_window()
+
+
 def connect_preditor(
     parent, sequence='F2', text='Show PrEditor', obj_name='uiShowPreditorACT'
 ):
