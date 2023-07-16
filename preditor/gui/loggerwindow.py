@@ -32,12 +32,12 @@ from .. import (
     debug,
     osystem,
     plugins,
+    prefs,
     resourcePath,
 )
 from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
 from ..logging_config import LoggingConfig
-from ..prefs import prefs_path
 from ..utils import stylesheets
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
@@ -537,32 +537,12 @@ class LoggerWindow(Window):
 
     def backupPreferences(self):
         """Saves a copy of the current preferences to a zip archive."""
-        import glob
-        import shutil
-
-        archive_base = "preditor_backup_"
-        # Save all prefs not just the current core_name.
-        prefs = prefs_path()
-        parent_dir = os.path.dirname(prefs)
-        # Get the next backup version number to use.
-        filenames = glob.glob(os.path.join(parent_dir, "{}*.zip".format(archive_base)))
-        version = 1
-        if filenames:
-            # Add one to the largest version that exists on disk.
-            version = int(os.path.splitext(max(filenames))[0].split(archive_base)[-1])
-            version += 1
-
-        # Build the file path to save the archive to.
-        archive_base = os.path.join(parent_dir, archive_base + "{:04}".format(version))
-
-        # Save the preferences to the given archive name.
-        zip_path = shutil.make_archive(archive_base, "zip", prefs)
+        zip_path = prefs.backup()
         print('PrEditor Preferences backed up to "{}"'.format(zip_path))
         return zip_path
 
     def browsePreferences(self):
-        path = prefs_path(core_name=self.name)
-        osystem.explore(path)
+        prefs.browse(core_name=self.name)
 
     def console(self):
         return self.uiConsoleTXT
@@ -625,9 +605,9 @@ class LoggerWindow(Window):
         if not manual and not self.uiAutoSaveSettingssACT.isChecked():
             return
 
-        _prefs = self.load_prefs()
+        pref = self.load_prefs()
         geo = self.geometry()
-        _prefs.update(
+        pref.update(
             {
                 'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
                 'windowState': int(self.windowState()),
@@ -655,40 +635,40 @@ class LoggerWindow(Window):
 
         # completer settings
         completer = self.console().completer()
-        _prefs["caseSensitive"] = completer.caseSensitive()
-        _prefs["completerMode"] = completer.completerMode().value
+        pref["caseSensitive"] = completer.caseSensitive()
+        pref["completerMode"] = completer.completerMode().value
 
         if self._stylesheet == 'Custom':
-            _prefs['styleSheet'] = self.styleSheet()
+            pref['styleSheet'] = self.styleSheet()
 
         workbox_prefs = self.uiWorkboxTAB.save_prefs()
-        _prefs['workbox_prefs'] = workbox_prefs
+        pref['workbox_prefs'] = workbox_prefs
 
-        _prefs['editor_cls'] = self.editor_cls_name
+        pref['editor_cls'] = self.editor_cls_name
 
-        self.save_prefs(_prefs)
+        self.save_prefs(pref)
 
     def load_prefs(self):
-        filename = prefs_path('preditor_pref.json', core_name=self.name)
+        filename = prefs.prefs_path('preditor_pref.json', core_name=self.name)
         if os.path.exists(filename):
             with open(filename) as fp:
                 return json.load(fp)
         return {}
 
-    def save_prefs(self, _prefs):
+    def save_prefs(self, pref):
         # Save preferences to disk
-        filename = prefs_path('preditor_pref.json', core_name=self.name)
+        filename = prefs.prefs_path('preditor_pref.json', core_name=self.name)
         dirname = os.path.dirname(filename)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
         with open(filename, 'w') as fp:
-            json.dump(_prefs, fp, indent=4)
+            json.dump(pref, fp, indent=4)
 
     def restorePrefs(self):
-        prefs = self.load_prefs()
+        pref = self.load_prefs()
 
         # Editor selection
-        self.editor_cls_name = prefs.get('editor_cls')
+        self.editor_cls_name = pref.get('editor_cls')
         if self.editor_cls_name:
             self.editor_cls_name, editor_cls = plugins.editor(self.editor_cls_name)
             self.uiWorkboxTAB.editor_cls = editor_cls
@@ -700,79 +680,75 @@ class LoggerWindow(Window):
         self.uiEditorChooserWGT.set_editor_name(self.editor_cls_name)
 
         # Geometry
-        if 'loggergeom' in prefs:
-            self.setGeometry(*prefs['loggergeom'])
-        self.uiEditorVerticalACT.setChecked(prefs.get('SplitterVertical', False))
+        if 'loggergeom' in pref:
+            self.setGeometry(*pref['loggergeom'])
+        self.uiEditorVerticalACT.setChecked(pref.get('SplitterVertical', False))
         self.adjustWorkboxOrientation(self.uiEditorVerticalACT.isChecked())
 
-        sizes = prefs.get('SplitterSize')
+        sizes = pref.get('SplitterSize')
         if sizes:
             self.uiSplitterSPLIT.setSizes(sizes)
-        self.setWindowState(Qt.WindowStates(prefs.get('windowState', 0)))
-        self.uiIndentationsTabsACT.setChecked(prefs.get('tabIndent', True))
-        self.uiCopyTabsToSpacesACT.setChecked(prefs.get('copyIndentsAsSpaces', False))
-        self.uiAutoCompleteEnabledACT.setChecked(prefs.get('hintingEnabled', True))
+        self.setWindowState(Qt.WindowStates(pref.get('windowState', 0)))
+        self.uiIndentationsTabsACT.setChecked(pref.get('tabIndent', True))
+        self.uiCopyTabsToSpacesACT.setChecked(pref.get('copyIndentsAsSpaces', False))
+        self.uiAutoCompleteEnabledACT.setChecked(pref.get('hintingEnabled', True))
 
         # completer settings
-        self.setCaseSensitive(prefs.get('caseSensitive', True))
-        completerMode = CompleterMode(prefs.get('completerMode', 0))
+        self.setCaseSensitive(pref.get('caseSensitive', True))
+        completerMode = CompleterMode(pref.get('completerMode', 0))
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
-        self.uiSpellCheckEnabledACT.setChecked(prefs.get('spellCheckEnabled', False))
+        self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
         self.uiSpellCheckEnabledACT.setDisabled(False)
 
         self.uiConsoleTXT.completer().setEnabled(
             self.uiAutoCompleteEnabledACT.isChecked()
         )
-        self.uiAutoSaveSettingssACT.setChecked(
-            prefs.get('uiAutoSaveSettingssACT', True)
-        )
+        self.uiAutoSaveSettingssACT.setChecked(pref.get('uiAutoSaveSettingssACT', True))
 
-        self.uiAutoPromptACT.setChecked(prefs.get('uiAutoPromptACT', False))
+        self.uiAutoPromptACT.setChecked(pref.get('uiAutoPromptACT', False))
         self.uiLinesInNewWorkboxACT.setChecked(
-            prefs.get('uiLinesInNewWorkboxACT', False)
+            pref.get('uiLinesInNewWorkboxACT', False)
         )
-        self.uiErrorHyperlinksACT.setChecked(prefs.get('uiErrorHyperlinksACT', True))
+        self.uiErrorHyperlinksACT.setChecked(pref.get('uiErrorHyperlinksACT', True))
 
         # External text editor filepath and command template
         defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"
         defaultCmd = r"{exePath} {modulePath}:{lineNum}"
-        self.textEditorPath = prefs.get('textEditorPath', defaultExePath)
-        self.textEditorCmdTempl = prefs.get('textEditorCmdTempl', defaultCmd)
+        self.textEditorPath = pref.get('textEditorPath', defaultExePath)
+        self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
 
-        self.uiWordWrapACT.setChecked(prefs.get('wordWrap', True))
+        self.uiWordWrapACT.setChecked(pref.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
-        self.uiClearBeforeRunningACT.setChecked(prefs.get('clearBeforeRunning', False))
-        self.uiClearLogOnRefreshACT.setChecked(
-            prefs.get('clearBeforeEnvRefresh', False)
-        )
+        self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
+        self.uiClearLogOnRefreshACT.setChecked(pref.get('clearBeforeEnvRefresh', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
 
-        self._stylesheet = prefs.get('currentStyleSheet', 'Bright')
+        self._stylesheet = pref.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
-            self.setStyleSheet(prefs.get('styleSheet', ''))
+            self.setStyleSheet(pref.get('styleSheet', ''))
         else:
             self.setStyleSheet(self._stylesheet)
-        self.uiConsoleTXT.flash_time = prefs.get('flash_time', 1.0)
+        self.uiConsoleTXT.flash_time = pref.get('flash_time', 1.0)
 
-        self.uiWorkboxTAB.restore_prefs(prefs.get('workbox_prefs', {}))
+        self.uiWorkboxTAB.restore_prefs(pref.get('workbox_prefs', {}))
 
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
 
-        _font = prefs.get('consoleFont', None)
+        _font = pref.get('consoleFont', None)
         if _font:
             font = QFont()
             if font.fromString(_font):
                 self.console().setConsoleFont(font)
 
-    def restoreToolbars(self, prefs=None):
-        if prefs is None:
-            prefs = self.load_prefs()
+    def restoreToolbars(self, pref=None):
+        if pref is None:
+            pref = self.load_prefs()
 
-        state = prefs.get('toolbarStates', None)
+        state = pref.get('toolbarStates', None)
         if state:
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)

@@ -9,6 +9,7 @@ from click.core import ParameterSource
 from click_default_group import DefaultGroup
 
 import preditor
+import preditor.prefs
 from preditor.settings import OS_TYPE
 
 # No one wants to actually type `--help`
@@ -153,6 +154,38 @@ def shortcut(path, public, name, target, args, description):
         common=int(public),
         app_id=app_id,
     )
+
+
+# prefs
+@cli.group()
+def prefs():
+    """PrEditor preference management."""
+    pass
+
+
+@prefs.command()
+def backup():
+    """Backup all of preferences inside a zip file."""
+    zip_path = preditor.prefs.backup()
+    click.echo('PrEditor Preferences backed up to "{}"'.format(zip_path))
+
+
+@prefs.command()
+@click.argument("name", default="", required=False)
+def browse(name):
+    """Open a file explorer to the preference directory. Optionally pass the
+    name of a specific preference.
+    """
+    preditor.prefs.browse(name)
+
+
+@prefs.command()
+def list():
+    """List the core_names for existing preferences."""
+    click.echo("Existing pref names:")
+    click.echo("--------------------")
+    for pref in preditor.prefs.existing():
+        click.echo(pref)
 
 
 if __name__ == '__main__':
