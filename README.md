@@ -58,14 +58,25 @@ preditor.shutdown()
 
 `pip install preditor`
 
-## cli
+## Installing Qt
+
+PrEditor is built on Qt, but uses [Qt.py](https://github.com/mottosso/Qt.py) so
+you can choose to use PySide2 or PyQt5. We have elected to not directly depend
+on either of these packages as if you want to use PrEditor inside of a an existing
+application like Maya or Houdini, they already some with PySide2 installed. If
+you are using it externally, add them to your pip install command.
+
+- PySide2: `pip install preditor PySide2`
+- PyQt5: `pip install preditor PyQt5`
+
+## Cli
 
 PrEditor is intended to be installed inside existing applications like Maya,
 Houdini, Nuke etc, so it doesn't make sense to require installing packages like
 click for those installs. If you are setting up a system wide install and want
 to use the cli interface, you will need to install the cli optional dependencies.
 
-`pip install preditor[cli,shortcut]`
+- `pip install preditor[cli,shortcut]`
 
 ### Creating shortcuts
 
@@ -73,7 +84,20 @@ If you want to be able to create desktop shortcuts from the cli to launch
 PrEditor, you will also need to include the `shortcut` dependencies. Currently
 this is only useful for windows.
 
-`pip install preditor[cli,shortcut]`
+- `pip install preditor[cli,shortcut]`
+
+## QScintilla workbox
+
+The more mature QScintilla workbox requires a few extra dependencies that must
+be passed manually. It hasn't been added to `extras_require` because we plan to
+split it into its own pip module due to it requiring PyQt5 which is a little hard
+to get working inside of DCC's that ship with PySide2 by default. Here is the
+python 3 pip install command(For python 2 you will need to compile QScintilla
+yourself.)
+
+- `pip install preditor PyQt5, QScintilla>=2.11.4 aspell-python-py3`
+
+The aspell-python-py3 requirement is optional to enable spell check.
 
 # Plugins
 
