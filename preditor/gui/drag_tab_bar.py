@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from Qt.QtCore import QByteArray, QMimeData, QPoint, QRect, Qt
 from Qt.QtGui import QCursor, QDrag, QPixmap, QRegion
 from Qt.QtWidgets import QInputDialog, QMenu, QTabBar

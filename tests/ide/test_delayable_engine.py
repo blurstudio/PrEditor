@@ -3,12 +3,13 @@ from __future__ import absolute_import, print_function
 import sys
 
 import pytest
+from Qt.QtWidgets import QApplication
 
 from preditor.delayable_engine import DelayableEngine
-from preditor.scintilla.delayables import Delayable, RangeDelayable
+from preditor.delayable_engine.delayables import Delayable, RangeDelayable
 from preditor.scintilla.documenteditor import DocumentEditor
 
-# TODO: Re-enable these tests once they work on the gitlab runners
+# TODO: Re-enable these tests once they work on the github runners
 pytestmark = pytest.mark.skipif(
     sys.platform != "win32", reason="Test fails on gitrunner"
 )
@@ -48,11 +49,20 @@ class ADelayable(Delayable):
 @pytest.fixture()
 def engine():
     """Creates a test DelayableEngine and DocumentEditor.
-    The DocumentEditor can be accessd by using `engine.test_doc`.
+    The DocumentEditor can be accessed by using `engine.test_doc`.
     """
+    global app
+    if not QApplication.instance():
+        # These test require an initialized QApplication create one and ensure
+        # it doesn't get garbage collected. Creating the app here prevents
+        # segfaults when skipping this file on linux. We need to figure out
+        # how to run these tests in github actions.
+        app = QApplication([])
+
     engine = DelayableEngine('test_engine')
     engine.test_doc = DocumentEditor(None)
     engine.add_document(engine.test_doc)
+
     return engine
 
 

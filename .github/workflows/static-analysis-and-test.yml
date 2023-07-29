@@ -27,6 +27,9 @@ jobs:
       - name: Format with black
         run: tox -e black
 
+      - name: Py 2 and 3 compatibility
+        run: tox -e modernize
+
 
   test:
     strategy:

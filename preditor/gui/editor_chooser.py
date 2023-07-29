@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from Qt.QtCore import Slot
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QWidget

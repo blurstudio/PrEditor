@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from preditor.gui.level_buttons import LazyMenu
 
 
