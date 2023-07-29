@@ -1,0 +1,60 @@
+name: Static Analysis & Test
+
+on: [push, pull_request]
+
+jobs:
+
+  static-analysis:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox
+
+      - name: Lint with flake8
+        run: tox -e flake8
+
+      - name: Format with black
+        run: tox -e black
+
+
+  test:
+    strategy:
+      matrix:
+        os: ['ubuntu-latest']
+        python: [3.7, 3.8, 3.9]
+        # Works around the depreciation of python 3.6 for ubuntu
+        # https://github.com/actions/setup-python/issues/544
+        include:
+          - os: 'ubuntu-20.04'
+            python: 3.6
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install tox
+
+      - name: Run Tox
+        run: |
+          tox -e py
