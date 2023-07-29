@@ -416,7 +416,7 @@
     <string>Run All...</string>
    </property>
    <property name="toolTip">
-    <string>Run all workbox code</string>
+    <string>Run all code from the current workbox</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Return</string>
@@ -432,7 +432,7 @@
     <string>Run Selected...</string>
    </property>
    <property name="toolTip">
-    <string>Run selected workbox code</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run some code from the current workbox. If you have text selected, only the selected text is run. With no text selected, the current line is run. You can also use the Number Pad Enter key to activate this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
    <property name="shortcut">
     <string>Shift+Return</string>
@@ -705,7 +705,7 @@ Must manually save instead.</string>
     <string>Get Previous Command (like in a  command prompt)</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Up</string>
+    <string>Ctrl+Up</string>
    </property>
   </action>
   <action name="uiGetNextCmdACT">
@@ -716,7 +716,7 @@ Must manually save instead.</string>
     <string>Get Next Command (like in a  command prompt)</string>
    </property>
    <property name="shortcut">
-    <string>Alt+Down</string>
+    <string>Ctrl+Down</string>
    </property>
   </action>
   <action name="uiFocusToConsoleACT">
