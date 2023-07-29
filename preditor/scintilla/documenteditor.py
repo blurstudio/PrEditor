@@ -385,7 +385,9 @@ class DocumentEditor(QsciScintilla):
             self.setSelection(line, indent, line, indent + commentLen)
             self.removeSelectedText()
 
-            if cursorIndex > indent:
+            # py3 will throw an error if comparing None, so only compare if cursorIndex
+            # is not None
+            if cursorIndex is not None and cursorIndex > indent:
                 adjustment = None
                 for checkIndex in range(commentLen - 1):
                     newIndex = indent + checkIndex + 1
