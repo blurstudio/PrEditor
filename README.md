@@ -1,8 +1,43 @@
 # PrEditor
 
-A python REPL and Editor and console based on Qt. It allows you to interact
+A python REPL, editor and console based on Qt. It allows you to interact
 directly with the current python session and write/run complex code in workbox's.
 It also has an interface for configuring python logging.
+
+# Use and Features
+
+![preview](https://github.com/blurstudio/PrEditor/assets/2424292/5425aa5f-0f9b-4b04-8e98-5a58546eb93c)
+
+* **Console:** The top section is a python REPL allowing you to run code like you
+are in the python interactive shell. However, you can't use code
+blocks([...](https://docs.python.org/3/glossary.html#term-...)), use the workbox instead.
+    * Python's stdout and stderr are written here including exceptions.
+    * If the cursor is at the very end of the last line, and that line starts with
+    a prompt (`>>> ` this includes 1 space) the code is executed when you press return.
+    Pressing return on any other prompt line copies that line to the end ready to
+    execute.
+    * Pressing `Ctrl + Up/Down` will cycle through previous command history.
+    * The console is a text edit and you can edit any of the text so you can fix
+    your mistakes as you make them
+* **Workbox:** The workbox is a place to write complex multi-line code. The contents
+    of all workboxes are saved when PrEditor is closed or pressing `Ctrl + S`.
+    * Workboxes are grouped into tabs of workboxes. You can drag and drop
+    individual workboxes between groups and re-order them.
+    * `Ctrl + Return` runs all code inside of the current workbox.
+    * `Shift + Return` or the `Number-pad Return` executes the selected text or
+    the line the cursor is on.
+    * `run_workbox("group/tab")` This command is added allowing you to run the
+    contents of a workbox. Pass the name of the group and workbox tabs separated
+    by a forward slash.
+* **Logging Level button:** Tools for managing python loggers.
+    * This button shows all known python loggers and lets you view/change their
+    logging levels.
+    * You can install logging handlers that have had PrEditor plugins written for them.
+    * Known python logger levels are saved and restored.
+* All code is run in `__main__`. In code you can add objects to it for inspection in PrEditor.
+* `Ctrl + Shift + PgUp/PgDown` changes focus between the console and workbox.
+* `Ctrl + Alt + Shift + PgUp/PgDown` changes focus and copies the current prompt
+line of the console, or the current line of the workbox to the other.
 
 
 # Examples
@@ -58,7 +93,7 @@ preditor.shutdown()
 PrEditor is built on Qt, but uses [Qt.py](https://github.com/mottosso/Qt.py) so
 you can choose to use PySide2 or PyQt5. We have elected to not directly depend
 on either of these packages as if you want to use PrEditor inside of a an existing
-application like Maya or Houdini, they already some with PySide2 installed. If
+application like Maya or Houdini, they already come with PySide2 installed. If
 you are using it externally, add them to your pip install command.
 
 - PySide2: `pip install preditor PySide2`
