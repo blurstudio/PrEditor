@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QMessageBox, QToolButton
