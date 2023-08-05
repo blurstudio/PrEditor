@@ -305,7 +305,41 @@ class LoggerWindow(Window):
         return self.uiWorkboxTAB.current_groups_widget()
 
     @classmethod
-    def run_workbox(cls, indicator):
+    def workbox_for_name(cls, name, show=False):
+        """Used to find a workbox for a given name. It accepts a string matching
+        the "{group}/{workbox}" format, or if True, the current workbox.
+
+        Args:
+            name(str, boolean): Used to define which workbox to run.
+            show (bool, optional): If a workbox is found, call `__show__` on it
+                to ensure that it is initialized and its text is loaded.
+        """
+        logger = cls.instance()
+
+        workbox = None
+
+        # If name is True, run the current workbox
+        if isinstance(name, bool):
+            if name:
+                workbox = logger.current_workbox()
+
+        # If name is a string, find first tab with that name
+        elif isinstance(name, six.string_types):
+            group, editor = name.split('/', 1)
+            index = logger.uiWorkboxTAB.index_for_text(group)
+            if index != -1:
+                tab_widget = logger.uiWorkboxTAB.widget(index)
+                index = tab_widget.index_for_text(editor)
+                if index != -1:
+                    workbox = tab_widget.widget(index)
+
+        if show and workbox:
+            workbox.__show__()
+
+        return workbox
+
+    @classmethod
+    def run_workbox(cls, name):
         """This is a function which will be added to __main__, and therefore
         available to PythonLogger users. It will accept a string matching the
         "{group}/{workbox}" format, or a boolean that will run the current tab
@@ -313,7 +347,7 @@ class LoggerWindow(Window):
         current workbox on launch.
 
         Args:
-            indicator(str, boolean): Used to define which workbox to run.
+            name(str, boolean): Used to define which workbox to run.
 
         Raises:
             Exception: "Cannot call current workbox."
@@ -323,30 +357,12 @@ class LoggerWindow(Window):
             run_workbox('some/stuff.py')
             (from command line): blurdev launch Python_Logger --run_workbox
         """
-        logger = cls.instance()
-
-        # Determine the workbox widget
-        workbox = None
-
-        # If indicator is True, run the current workbox
-        if isinstance(indicator, bool):
-            if indicator:
-                workbox = logger.current_workbox()
-
-        # If indicator is a string, find first tab with that name
-        elif isinstance(indicator, six.string_types):
-            group, editor = indicator.split('/', 1)
-            index = logger.uiWorkboxTAB.index_for_text(group)
-            if index != -1:
-                tab_widget = logger.uiWorkboxTAB.widget(index)
-                index = tab_widget.index_for_text(editor)
-                if index != -1:
-                    workbox = tab_widget.widget(index)
+        workbox = cls.workbox_for_name(name)
 
         if workbox is not None:
-            # if indicator is True, its ok to run the workbox, this option
+            # if name is True, its ok to run the workbox, this option
             # is passed by the cli to run the current tab
-            if workbox.hasFocus() and indicator is not True:
+            if workbox.hasFocus() and name is not True:
                 raise Exception("Cannot call current workbox.")
             else:
                 # Make sure the workbox text is loaded as it likely has not
