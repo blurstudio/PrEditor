@@ -582,6 +582,10 @@ class LoggerWindow(Window):
         if self.uiConsoleTOOLBAR.isFloating():
             self.uiConsoleTOOLBAR.hide()
 
+        # Handle any cleanup each workbox tab may need to do before closing
+        for editor in self.uiWorkboxTAB.all_widgets():
+            editor.__close__()
+
     def closeLogger(self):
         self.close()
 
