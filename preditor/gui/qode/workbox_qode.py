@@ -27,14 +27,9 @@ class WorkboxQode(WorkboxMixin, api.CodeEdit):
         self._filename = None
         self.__set_console__(console)
 
-        # Start the qode backend
-        # TODO: Figure out how to close the backends when LoggerWindow is closed
-        # TODO: Figure out if we can reuse(share) backends
-        self.backend.start(server.__file__)
-
         # append some modes and panels
         # self.modes.append(modes.CaretLineHighlighterMode())
-        self.modes.append(modes.CommentsMode())
+        comments = self.modes.append(modes.CommentsMode())
         self.modes.append(modes.PygmentsSyntaxHighlighter(self.document()))
         self.modes.append(modes.SymbolMatcherMode())
         self.modes.append(modes.OccurrencesHighlighterMode())
@@ -51,6 +46,9 @@ class WorkboxQode(WorkboxMixin, api.CodeEdit):
         # Create a rule on the right side at 80 characters
         margin = self.modes.append(modes.RightMarginMode())
         margin.position = 80
+
+        # Disable the Ctrl+/ shortcut on CommentsMode, it interferes with PrEditor's
+        comments.action.setShortcut('')
 
     def _mode(self, name, default=None, create=False):
         """Get mode from pyQode, if mode is not installed, returns default.
@@ -87,6 +85,10 @@ class WorkboxQode(WorkboxMixin, api.CodeEdit):
 
     def __clear__(self):
         self.clear()
+
+    def __close__(self):
+        # Stop the backend process for this editor
+        self.backend.stop()
 
     def __comment_toggle__(self):
         mode = self._mode(modes.CommentsMode)
@@ -213,3 +215,16 @@ class WorkboxQode(WorkboxMixin, api.CodeEdit):
     def __set_text__(self, txt):
         super(WorkboxQode, self).__set_text__(txt)
         self.setPlainText(txt, "text/x-python", "cp1252")
+
+    def __show__(self):
+        super(WorkboxQode, self).__show__()
+        # Start the qode backend. Only need to start a backend when the first
+        # tab is shown. By enabling reuse and setting a share_id we only use a
+        # single backend process not one per tab the user opens.
+        self.backend.start(server.__file__, reuse=True, share_id="python")
+
+    def keyPressEvent(self, event):
+        if self.process_shortcut(event):
+            return
+        else:
+            super(WorkboxQode, self).keyPressEvent(event)
