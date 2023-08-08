@@ -86,7 +86,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         # TODO: Implement custom tab widths
         return 4
 
-    def __text__(self):
+    def __text__(self, line=None, start=None, end=None):
         return self.toPlainText()
 
     def __set_text__(self, text):
