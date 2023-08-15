@@ -4,6 +4,7 @@ import os
 import tempfile
 import textwrap
 
+from Qt.QtCore import Qt
 from Qt.QtWidgets import QStackedWidget
 
 from ..prefs import prefs_path
@@ -324,3 +325,33 @@ class WorkboxMixin(object):
         elif self._tempfile:
             txt = self.__open_file__(self.__tempfile__())
             self.__set_text__(txt)
+
+    def process_shortcut(self, event, run=True):
+        """Check for workbox shortcuts and optionally call them.
+
+        Args:
+            event (QEvent): The keyPressEvent to process.
+            run (bool, optional): Run the expected action if possible.
+
+        Returns:
+            str or False: Returns False if the key press was not handled, indicating
+                that the subclass needs to handle it(or call super). If a known
+                shortcut was detected, a string indicating the action is returned
+                after running the action if enabled and supported.
+
+        Known actions:
+            __exec_selected__: If the user pressed Shift + Return or pressed the
+                number pad enter key calling `__exec_selected__`.
+        """
+        if event.key() == Qt.Key_Enter or (
+            event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
+        ):
+            # Number pad enter, or Shift + Return pressed, execute selected
+            if run:
+                self.__exec_selected__()
+
+                if self.window().uiAutoPromptACT.isChecked():
+                    self.__console__().startInputLine()
+            return '__exec_selected__'
+
+        return False
