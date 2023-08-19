@@ -643,6 +643,7 @@ class ConsolePrEdit(QTextEdit):
     def startInputLine(self):
         """create a new command prompt line"""
         self.startPrompt(self.prompt())
+        self._prevCommandIndex = 0
 
     def startPrompt(self, prompt):
         """create a new command prompt line with the given prompt
