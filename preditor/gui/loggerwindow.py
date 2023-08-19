@@ -75,6 +75,7 @@ class LoggerWindow(Window):
         loadUi(__file__, self)
 
         self.uiConsoleTXT.flash_window = self
+        self.uiConsoleTXT.clearExecutionTime = self.clearExecutionTime
         self.uiConsoleTXT.reportExecutionTime = self.reportExecutionTime
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
@@ -651,6 +652,11 @@ class LoggerWindow(Window):
     def pathsAboutToBeCleared(self):
         if self.uiClearLogOnRefreshACT.isChecked():
             self.clearLog()
+
+    def clearExecutionTime(self):
+        """Update status text with hyphens to indicate execution has begun."""
+        self.setStatusText('Exec: -.- Seconds')
+        QApplication.instance().processEvents()
 
     def reportExecutionTime(self, seconds):
         """Update status text with seconds passed in."""
