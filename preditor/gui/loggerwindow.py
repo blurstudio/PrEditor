@@ -121,7 +121,18 @@ class LoggerWindow(Window):
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
-        self.uiRunSelectedACT.triggered.connect(self.execSelected)
+        # Even though the RunSelected actions (with shortcuts) are connected
+        # here, this only affects if the action is chosen from the menu. The
+        # shortcuts are always intercepted by the workbox document editor. To
+        # handle this, the workbox.keyPressEvent method will perceive the
+        # shortcut press, and call .execSelected, which will then ultimately call
+        # workbox.__exec_selected__
+        self.uiRunSelectedACT.triggered.connect(
+            partial(self.execSelected, truncate=True)
+        )
+        self.uiRunSelectedDontTruncateACT.triggered.connect(
+            partial(self.execSelected, truncate=False)
+        )
 
         self.uiConsoleAutoCompleteEnabledACT.toggled.connect(
             partial(self.setAutoCompleteEnabled, console=True)
@@ -663,11 +674,21 @@ class LoggerWindow(Window):
             prompt = console.prompt()
             console.startPrompt(prompt)
 
-    def execSelected(self):
-        """Clears the console before executing selected workbox code"""
+    def execSelected(self, truncate=True):
+        """Clears the console before executing selected workbox code.
+
+        NOTE! This method is not called when the uiRunSelectedACT is triggered,
+        because the workbox will always intercept it. So instead, the workbox's
+        keyPressEvent will notice the  shortcut and call this method.
+        """
+
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.current_workbox().__exec_selected__()
+
+        self.current_workbox().__exec_selected__(truncate=truncate)
+
+        if self.uiAutoPromptACT.isChecked():
+            self.console().startInputLine()
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430

@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>26</height>
+     <height>29</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -137,6 +137,7 @@
      <string>Run</string>
     </property>
     <addaction name="uiRunSelectedACT"/>
+    <addaction name="uiRunSelectedDontTruncateACT"/>
     <addaction name="uiRunAllACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
@@ -417,7 +418,7 @@
   </action>
   <action name="uiRunAllACT">
    <property name="text">
-    <string>Run All...</string>
+    <string>Run All</string>
    </property>
    <property name="toolTip">
     <string>Run all code from the current workbox</string>
@@ -433,7 +434,7 @@
   </action>
   <action name="uiRunSelectedACT">
    <property name="text">
-    <string>Run Selected...</string>
+    <string>Run Selected  - truncate return value</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run some code from the current workbox. If you have text selected, only the selected text is run. With no text selected, the current line is run. You can also use the Number Pad Enter key to activate this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -992,6 +993,14 @@ at the indicated line in the specified text editor.
    </property>
    <property name="toolTip">
     <string>Choose from all fonts</string>
+   </property>
+  </action>
+  <action name="uiRunSelectedDontTruncateACT">
+   <property name="text">
+    <string>Run Selected - don't truncate return value</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Return</string>
    </property>
   </action>
  </widget>
