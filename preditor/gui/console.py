@@ -47,6 +47,7 @@ class ConsolePrEdit(QTextEdit):
         # If still using a #
         self._outputPrompt = '#Result: '
         # Method used to update the gui when code is executed
+        self.clearExecutionTime = None
         self.reportExecutionTime = None
 
         self._firstShow = True
@@ -317,6 +318,8 @@ class ConsolePrEdit(QTextEdit):
         self._foregroundColor = color
 
     def executeString(self, commandText, filename='<ConsolePrEdit>', extraPrint=True):
+        if self.clearExecutionTime is not None:
+            self.clearExecutionTime()
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         line = cursor.selectedText()
