@@ -203,12 +203,25 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             fle.write(cls.__unix_end_lines__(txt))
 
     def keyPressEvent(self, event):
+        """Check for certain keyboard shortcuts, and handle them as needed,
+        otherwise pass the keyPress to the superclass.
+
+        NOTE! We handle the "shift+return" shortcut here, rather than the
+        QAction's shortcut, because the workbox will always intercept that
+        shortcut. So, we handle it here, and call the main window's
+        execSelected, which ultimately calls this workbox's __exec_selected__.
+
+        Also note, it would make sense to have ctrl+Enter also execute without
+        truncation, but no modifers are registered when Enter is pressed (unlike
+        when Return is pressed), so this combination is not detecable.
+        """
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
         else:
             if self.process_shortcut(event):
                 return
             else:
+                # Send regular keystroke
                 DocumentEditor.keyPressEvent(self, event)
 
     def initShortcuts(self):
