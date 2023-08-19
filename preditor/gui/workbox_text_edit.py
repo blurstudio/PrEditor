@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import logging
 
-from Qt.QtCore import Qt
 from Qt.QtGui import QFont, QFontMetrics, QTextCursor
 from Qt.QtWidgets import QTextEdit
 
@@ -87,7 +86,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         # TODO: Implement custom tab widths
         return 4
 
-    def __text__(self):
+    def __text__(self, line=None, start=None, end=None):
         return self.toPlainText()
 
     def __set_text__(self, text):
@@ -112,11 +111,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         return self.textCursor().selection().toPlainText()
 
     def keyPressEvent(self, event):
-        # If number pad enter key or Shift and keyboard return key
-        # are used run selected text.
-        if event.key() == Qt.Key_Enter or (
-            event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
-        ):
-            self.__exec_selected__()
+        if self.process_shortcut(event):
+            return
         else:
             super(WorkboxTextEdit, self).keyPressEvent(event)
