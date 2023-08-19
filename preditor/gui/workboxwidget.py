@@ -197,13 +197,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
         else:
-            if event.key() == Qt.Key_Enter or (
-                event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
-            ):
-                self.__exec_selected__()
-
-                if self.window().uiAutoPromptACT.isChecked():
-                    self.__console__().startInputLine()
+            if self.process_shortcut(event):
+                return
             else:
                 DocumentEditor.keyPressEvent(self, event)
 
