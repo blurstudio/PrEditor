@@ -63,7 +63,7 @@ class WorkboxMixin(object):
     def __exec_all__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
-    def __exec_selected__(self):
+    def __exec_selected__(self, truncate=True):
         txt = self.__selected_text__()
 
         # Remove any leading white space shared across all lines
@@ -83,7 +83,10 @@ class WorkboxMixin(object):
             # If the selected code was a statement print the result of the statement.
             ret = repr(ret)
             self.__console__().startOutputLine()
-            print(self.truncate_middle(ret, 100))
+            if truncate:
+                print(self.truncate_middle(ret, 100))
+            else:
+                print(ret)
 
     def __file_monitoring_enabled__(self):
         """Returns True if this workbox supports file monitoring.

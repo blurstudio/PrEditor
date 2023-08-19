@@ -194,17 +194,44 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             fle.write(cls.__unix_end_lines__(txt))
 
     def keyPressEvent(self, event):
+        """Check for certain keyboard shortcuts, and handle them as needed,
+        otherwise pass the keyPress to the superclass.
+
+        NOTE! We handle the "shift+return" shortcut here, rather than the
+        QAction's shortcut, because the workbox will always intercept that
+        shortcut. So, we handle it here, and call the main window's
+        execSelected, which ultimately calls this workbox's __exec_selected__.
+
+        Also note, it would make sense to have ctrl+Enter also execute without
+        truncation, but no modifers are registered when Enter is pressed (unlike
+        when Return is pressed), so this combination is not detecable.
+        """
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
         else:
-            if event.key() == Qt.Key_Enter or (
-                event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
-            ):
-                self.__exec_selected__()
+            # Collect what was pressed
+            key = event.key()
+            modifiers = event.modifiers()
 
-                if self.window().uiAutoPromptACT.isChecked():
-                    self.__console__().startInputLine()
+            # Determine which relevent combos are pressed
+            ret = key == Qt.Key_Return
+            enter = key == Qt.Key_Enter
+            ctrl = modifiers == Qt.ControlModifier
+            shift = modifiers == Qt.ShiftModifier
+            ctrlShift = modifiers == Qt.ControlModifier | Qt.ShiftModifier
+
+            # Determine which actions to take
+            evalTrunc = enter or (ret and shift)
+            evalNoTrunc = ret and ctrlShift
+
+            if evalTrunc:
+                # Execute with truncation
+                self.window().execSelected()
+            elif evalNoTrunc:
+                # Execute without truncation
+                self.window().execSelected(truncate=False)
             else:
+                # Send regular keystroke
                 DocumentEditor.keyPressEvent(self, event)
 
     def initShortcuts(self):
