@@ -67,7 +67,7 @@ class WorkboxMixin(object):
     def __exec_all__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
-    def __exec_selected__(self):
+    def __exec_selected__(self, truncate=True):
         txt, line = self.__selected_text__()
 
         # Remove any leading white space shared across all lines
@@ -88,7 +88,10 @@ class WorkboxMixin(object):
             # If the selected code was a statement print the result of the statement.
             ret = repr(ret)
             self.__console__().startOutputLine()
-            print(self.truncate_middle(ret, 100))
+            if truncate:
+                print(self.truncate_middle(ret, 100))
+            else:
+                print(ret)
 
     def __file_monitoring_enabled__(self):
         """Returns True if this workbox supports file monitoring.
@@ -352,15 +355,35 @@ class WorkboxMixin(object):
             __exec_selected__: If the user pressed Shift + Return or pressed the
                 number pad enter key calling `__exec_selected__`.
         """
-        if event.key() == Qt.Key_Enter or (
-            event.key() == Qt.Key_Return and event.modifiers() == Qt.ShiftModifier
-        ):
-            # Number pad enter, or Shift + Return pressed, execute selected
-            if run:
-                self.__exec_selected__()
 
-                if self.window().uiAutoPromptACT.isChecked():
-                    self.__console__().startInputLine()
+        # Number pad enter, or Shift + Return pressed, execute selected
+        # Ctrl+ Shift+Return pressed, execute selected without truncating output
+        if run:
+            # self.__exec_selected__()
+            # Collect what was pressed
+            key = event.key()
+            modifiers = event.modifiers()
+
+            # Determine which relevant combos are pressed
+            ret = key == Qt.Key_Return
+            enter = key == Qt.Key_Enter
+            shift = modifiers == Qt.ShiftModifier
+            ctrlShift = modifiers == Qt.ControlModifier | Qt.ShiftModifier
+
+            # Determine which actions to take
+            evalTrunc = enter or (ret and shift)
+            evalNoTrunc = ret and ctrlShift
+
+            if evalTrunc:
+                # Execute with truncation
+                self.window().execSelected()
+            elif evalNoTrunc:
+                # Execute without truncation
+                self.window().execSelected(truncate=False)
+
+        if evalTrunc or evalNoTrunc:
+            if self.window().uiAutoPromptACT.isChecked():
+                self.__console__().startInputLine()
             return '__exec_selected__'
-
-        return False
+        else:
+            return False
