@@ -148,6 +148,10 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             # Nothing is selected, return the current line of text
             line, index = self.getCursorPosition()
             txt = self.text(line)
+
+            lineLength = len(self.text(line).rstrip())
+            self.setSelection(line, 0, line, lineLength)  # Need to generalize?
+
         elif start_of_line:
             ss = self.positionFromLineIndex(line, 0)
             ee = self.positionFromLineIndex(end, e)
