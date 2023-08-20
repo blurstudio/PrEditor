@@ -294,6 +294,8 @@ class LoggerWindow(Window):
             )
         )
 
+        self.setWorkboxFontBasedOnConsole()
+
         self.setup_run_workbox()
 
         # Run the current workbox after the LoggerWindow is shown.
