@@ -14,9 +14,10 @@ import __main__
 import six
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
-from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
+from Qt.QtGui import QCursor, QFont, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
+    QFontDialog,
     QInputDialog,
     QMessageBox,
     QTextBrowser,
@@ -131,6 +132,16 @@ class LoggerWindow(Window):
 
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
 
+        self.uiSelectMonospaceFontACT.triggered.connect(
+            partial(self.selectFont, monospace=True)
+        )
+        self.uiSelectProportionalFontACT.triggered.connect(
+            partial(self.selectFont, proportional=True)
+        )
+        self.uiSelectAllFontACT.triggered.connect(
+            partial(self.selectFont, monospace=True, proportional=True)
+        )
+
         # Setup ability to cycle completer mode, and create action for each mode
         self.completerModeCycle = itertools.cycle(CompleterMode)
         # create CompleterMode submenu
@@ -241,25 +252,6 @@ class LoggerWindow(Window):
         self.addAction(self.uiClearLogACT)
 
         self.restorePrefs()
-
-        # add font menu list
-        curFamily = self.console().font().family()
-        fontDB = QFontDatabase()
-        fontFamilies = fontDB.families(QFontDatabase.Latin)
-        monospaceFonts = [fam for fam in fontFamilies if fontDB.isFixedPitch(fam)]
-
-        self.uiMonospaceFontMENU.clear()
-        self.uiProportionalFontMENU.clear()
-
-        for family in fontFamilies:
-            if family in monospaceFonts:
-                action = self.uiMonospaceFontMENU.addAction(family)
-            else:
-                action = self.uiProportionalFontMENU.addAction(family)
-            action.setObjectName(u'ui{}FontACT'.format(family))
-            action.setCheckable(True)
-            action.setChecked(family == curFamily)
-            action.triggered.connect(partial(self.selectFont, action))
 
         # add stylesheet menu options.
         for style_name in stylesheets.stylesheets():
@@ -519,15 +511,7 @@ class LoggerWindow(Window):
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
-            font.setPointSize(newSize)
-            self.console().setConsoleFont(font)
-
-            for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
-                marginsFont = workbox.__margins_font__()
-                marginsFont.setPointSize(newSize)
-                workbox.__set_margins_font__(marginsFont)
-
-                workbox.__set_font__(font)
+            self.setFontSize(newSize)
         else:
             Window.wheelEvent(self, event)
 
@@ -545,38 +529,62 @@ class LoggerWindow(Window):
         menu = action.parentWidget()
         QToolTip.showText(QCursor.pos(), text, menu)
 
-    def findCurrentFontAction(self):
-        """Find and return current font's action"""
-        actions = self.uiMonospaceFontMENU.actions()
-        actions.extend(self.uiProportionalFontMENU.actions())
-
-        action = None
-        for act in actions:
-            if act.isChecked():
-                action = act
-                break
-
-        return action
-
-    def selectFont(self, action):
-        """Set console and workbox font to current font
+    def selectFont(self, monospace=False, proportional=False):
+        """Present a QFontChooser dialog, offering, monospace, proportional, or all
+        fonts, based on user choice. If a font is chosen, set it on the console and
+        workboxes.
 
         Args:
             action (QAction): menu action associated with chosen font
         """
+        origFont = self.console().font()
+        curFontFamily = origFont.family()
 
-        actions = self.uiMonospaceFontMENU.actions()
-        actions.extend(self.uiProportionalFontMENU.actions())
+        if monospace and proportional:
+            options = QFontDialog.MonospacedFonts | QFontDialog.ProportionalFonts
+            kind = "monospace or proportional "
+        elif monospace:
+            options = QFontDialog.MonospacedFonts
+            kind = "monospace "
+        elif proportional:
+            options = QFontDialog.ProportionalFonts
+            kind = "proportional "
 
-        for act in actions:
-            act.setChecked(act == action)
+        # Present a QFontDialog for user to choose a font
+        title = "Pick a {} font. Current font is: {}".format(kind, curFontFamily)
+        newFont, okClicked = QFontDialog.getFont(origFont, self, title, options=options)
 
-        family = action.text()
+        if okClicked:
+            self.console().setConsoleFont(newFont)
+            self.setWorkboxFontBasedOnConsole()
+
+    def setFontSize(self, newSize):
+        """Update the font size in the console and current workbox.
+
+        Args:
+            newSize (int): The new size to set the font
+        """
         font = self.console().font()
-        font.setFamily(family)
+        font.setPointSize(newSize)
         self.console().setConsoleFont(font)
 
-        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
+        self.setWorkboxFontBasedOnConsole()
+
+    def setWorkboxFontBasedOnConsole(self):
+        """If the current workbox's font is different to the console's font, set it to
+        match.
+        """
+        font = self.console().font()
+
+        workboxGroup = self.uiWorkboxTAB.currentWidget()
+        if workboxGroup is None:
+            return
+
+        workbox = workboxGroup.currentWidget()
+        if workbox is None:
+            return
+
+        if workbox.__font__() != font:
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
 
@@ -683,7 +691,9 @@ class LoggerWindow(Window):
                 'tabIndent': self.uiIndentationsTabsACT.isChecked(),
                 'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
                 'hintingEnabled': self.uiConsoleAutoCompleteEnabledACT.isChecked(),
-                'workboxHintingEnabled': self.uiWorkboxAutoCompleteEnabledACT.isChecked(),
+                'workboxHintingEnabled': (
+                    self.uiWorkboxAutoCompleteEnabledACT.isChecked()
+                ),
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),

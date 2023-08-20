@@ -110,7 +110,7 @@ class GroupTabWidget(OneTabWidget):
         # Create the first editor tab and make it visible
         editor = parent.add_new_editor(title)
         self.setCurrentIndex(self.indexOf(parent))
-
+        self.window().focusToWorkbox()
         return parent, editor
 
     def all_widgets(self):
