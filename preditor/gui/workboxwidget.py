@@ -37,6 +37,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.setLanguage('Python')
         # Default to unix newlines
         self.setEolMode(self.EolUnix)
+        if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
+            self.window().setWorkboxFontBasedOnConsole()
 
     def __auto_complete_enabled__(self):
         return self.autoCompletionSource() == self.AcsAll
