@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -161,24 +161,13 @@
      </property>
      <addaction name="separator"/>
     </widget>
-    <widget class="QMenu" name="uiFont_MENU">
+    <widget class="QMenu" name="uiSelectFontsMENU">
      <property name="title">
-      <string>Font</string>
+      <string>Select Font</string>
      </property>
-     <widget class="QMenu" name="uiMonospaceFontMENU">
-      <property name="title">
-       <string>Monospace</string>
-      </property>
-      <addaction name="uiFontMENU"/>
-     </widget>
-     <widget class="QMenu" name="uiProportionalFontMENU">
-      <property name="title">
-       <string>Proportional</string>
-      </property>
-      <addaction name="actionPlaceHolderProportionalFont"/>
-     </widget>
-     <addaction name="uiMonospaceFontMENU"/>
-     <addaction name="uiProportionalFontMENU"/>
+     <addaction name="uiSelectMonospaceFontACT"/>
+     <addaction name="uiSelectProportionalFontACT"/>
+     <addaction name="uiSelectAllFontACT"/>
     </widget>
     <addaction name="uiConsoleAutoCompleteEnabledACT"/>
     <addaction name="uiWorkboxAutoCompleteEnabledACT"/>
@@ -189,7 +178,7 @@
     <addaction name="uiClearLogACT"/>
     <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
-    <addaction name="uiFont_MENU"/>
+    <addaction name="uiSelectFontsMENU"/>
     <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
@@ -656,16 +645,6 @@
     <string>FullFuzzy</string>
    </property>
   </action>
-  <action name="uiFontMENU">
-   <property name="text">
-    <string>PlaceHolderMonospaceFont</string>
-   </property>
-  </action>
-  <action name="actionPlaceHolderProportionalFont">
-   <property name="text">
-    <string>PlaceHolderProportionalFont</string>
-   </property>
-  </action>
   <action name="uiCycleCompleterModeACT">
    <property name="text">
     <string>Cycle Completer Modes</string>
@@ -989,6 +968,30 @@ at the indicated line in the specified text editor.
    </property>
    <property name="text">
     <string>Use Auto-Complete in workbox</string>
+   </property>
+  </action>
+  <action name="uiSelectMonospaceFontACT">
+   <property name="text">
+    <string>Choose from monospace fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from monospace fonts</string>
+   </property>
+  </action>
+  <action name="uiSelectProportionalFontACT">
+   <property name="text">
+    <string>Choose from proportional fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from proportional fonts</string>
+   </property>
+  </action>
+  <action name="uiSelectAllFontACT">
+   <property name="text">
+    <string>Choose from all fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from all fonts</string>
    </property>
   </action>
  </widget>
