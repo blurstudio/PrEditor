@@ -274,6 +274,8 @@ class LoggerWindow(Window):
             )
         )
 
+        self.setWorkboxFontBasedOnConsole()
+
         self.setup_run_workbox()
 
         if not standalone:
