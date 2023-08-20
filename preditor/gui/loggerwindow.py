@@ -261,6 +261,18 @@ class LoggerWindow(Window):
             action.setChecked(family == curFamily)
             action.triggered.connect(partial(self.selectFont, action))
 
+        # add font size list
+        curFontSize = self.console().font().pointSize()
+        self.uiFontSizeMENU.clear()
+        sizes = list(range(5, 15))
+        sizes.extend(range(16, 36, 2))
+        for size in sizes:
+            action = self.uiFontSizeMENU.addAction(six.text_type(size))
+            action.setObjectName(u'uiFontSize{}ACT'.format(size))
+            action.setCheckable(True)
+            action.setChecked(size == curFontSize)
+            action.triggered.connect(partial(self.setFontSizeActionTriggered, action))
+
         # add stylesheet menu options.
         for style_name in stylesheets.stylesheets():
             action = self.uiStyleMENU.addAction(style_name)
@@ -495,15 +507,7 @@ class LoggerWindow(Window):
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
-            font.setPointSize(newSize)
-            self.console().setConsoleFont(font)
-
-            for workbox in self.uiWorkboxTAB.all_widgets():
-                marginsFont = workbox.__margins_font__()
-                marginsFont.setPointSize(newSize)
-                workbox.__set_margins_font__(marginsFont)
-
-                workbox.__set_font__(font)
+            self.setFontSize(newSize)
         else:
             Window.wheelEvent(self, event)
 
@@ -540,7 +544,6 @@ class LoggerWindow(Window):
         Args:
             action (QAction): menu action associated with chosen font
         """
-
         actions = self.uiMonospaceFontMENU.actions()
         actions.extend(self.uiProportionalFontMENU.actions())
 
@@ -553,7 +556,38 @@ class LoggerWindow(Window):
         self.console().setConsoleFont(font)
 
         for workbox in self.uiWorkboxTAB.all_widgets():
+            print("workbox: {}".format(workbox))
             workbox.__set_margins_font__(font)
+            workbox.__set_font__(font)
+
+    def setFontSizeActionTriggered(self, action):
+        size = int(action.text())
+        self.setFontSize(size)
+
+    def currentFontSize(self):
+        size = self.console().font().pointSize()
+        return size
+
+    def setFontSize(self, newSize):
+        actions = self.uiFontSizeMENU.actions()
+        for action in actions:
+            actionSize = int(action.text())
+            action.setChecked(actionSize == newSize)
+
+        font = self.console().font()
+        font.setPointSize(newSize)
+        self.console().setConsoleFont(font)
+
+        self.setWorkboxFontBasedOnConsole()
+
+    def setWorkboxFontBasedOnConsole(self):
+        font = self.console().font()
+        fontSize = font.pointSize()
+
+        for workbox in self.uiWorkboxTAB.all_widgets():
+            marginsFont = workbox.__margins_font__()
+            marginsFont.setPointSize(fontSize)
+            workbox.__set_margins_font__(marginsFont)
             workbox.__set_font__(font)
 
     @classmethod

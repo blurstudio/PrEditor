@@ -177,6 +177,12 @@
      <addaction name="uiMonospaceFontMENU"/>
      <addaction name="uiProportionalFontMENU"/>
     </widget>
+    <widget class="QMenu" name="uiFontSizeMENU">
+     <property name="title">
+      <string>Font Size</string>
+     </property>
+     <addaction name="actionPlaceholder_Font_Size"/>
+    </widget>
     <addaction name="uiConsoleAutoCompleteEnabledACT"/>
     <addaction name="uiWorkboxAutoCompleteEnabledACT"/>
     <addaction name="uiSpellCheckEnabledACT"/>
@@ -187,6 +193,7 @@
     <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
     <addaction name="uiFont_MENU"/>
+    <addaction name="uiFontSizeMENU"/>
     <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
@@ -945,6 +952,11 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Return</string>
+   </property>
+  </action>
+  <action name="actionPlaceholder_Font_Size">
+   <property name="text">
+    <string>Placeholder Font Size</string>
    </property>
   </action>
   <action name="uiSelectTextACT">
