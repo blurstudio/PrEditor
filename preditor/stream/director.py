@@ -32,9 +32,11 @@ class Director(io.TextIOBase):
             old_stream = None
         elif old_stream is None:
             if state == STDOUT:
-                old_stream = sys.stdout
+                if getattr(sys.stdout, 'name', '') != 'nul':
+                    old_stream = sys.stdout
             elif state == STDERR:
-                old_stream = sys.stderr
+                if getattr(sys.stderr, 'name', '') != 'nul':
+                    old_stream = sys.stderr
         self.old_stream = old_stream
 
     def close(self):
