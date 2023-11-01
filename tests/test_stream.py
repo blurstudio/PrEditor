@@ -1,11 +1,12 @@
 from __future__ import absolute_import
 
+import io
 import sys
 
 import pytest
 import six
 
-from preditor.stream import Director, Manager, install_to_std
+from preditor.stream import STDOUT, Director, Manager, install_to_std
 
 
 @pytest.fixture
@@ -44,6 +45,36 @@ def test_get_value(manager, stdout, stderr):
 def test_no_old_stream(manager):
     director = Director(manager, "test_out", old_stream=False)
     assert director.old_stream is None
+
+
+def test_nul_stream(manager):
+    # I can't set the `name` of a regular TextIOWrapper
+    class NamedTextIOWrapper(io.TextIOWrapper):
+        def __init__(self, buffer, name=None, **kwargs):
+            vars(self)['name'] = name
+            super().__init__(buffer, **kwargs)
+
+        def __getattribute__(self, name):
+            if name == 'name':
+                return vars(self)['name']
+            return super().__getattribute__(name)
+
+    orig_director = Director(manager, STDOUT)
+    wrap_director = Director(manager, 'test_wrap', old_stream=orig_director)
+
+    orig_stdout = sys.stdout
+    sys.stdout = NamedTextIOWrapper(six.BytesIO(), name='nul', encoding='cp1252')
+    try:
+        null_director = Director(manager, STDOUT)
+    finally:
+        sys.stdout = orig_stdout
+
+    assert null_director.old_stream is None
+    assert orig_director.old_stream is sys.stdout
+
+    assert not null_director.std_stream_wrapped
+    assert orig_director.std_stream_wrapped
+    assert not wrap_director.std_stream_wrapped
 
 
 def test_callback(manager, stdout, stderr):
