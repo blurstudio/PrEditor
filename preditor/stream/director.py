@@ -28,17 +28,33 @@ class Director(io.TextIOBase):
         self.manager = manager
         self.state = state
 
+        # Keep track of whether we wrapped a std stream
+        # that way we don't .close() any streams that we don't control
+        self.std_stream_wrapped = False
+
         if old_stream is False:
             old_stream = None
         elif old_stream is None:
             if state == STDOUT:
-                old_stream = sys.stdout
+                # On Windows if we're in pythonw.exe, then sys.stdout is named "nul"
+                # And it uses cp1252 encoding (which breaks with unicode)
+                # So if we find this nul TextIOWrapper, it's safe to just skip it
+                if getattr(sys.stdout, 'name', '') != 'nul':
+                    self.std_stream_wrapped = True
+                    old_stream = sys.stdout
             elif state == STDERR:
-                old_stream = sys.stderr
+                if getattr(sys.stderr, 'name', '') != 'nul':
+                    self.std_stream_wrapped = True
+                    old_stream = sys.stderr
+
         self.old_stream = old_stream
 
     def close(self):
-        if self.old_stream:
+        if (
+            self.old_stream
+            and not self.std_stream_wrapped
+            and self.old_stream is not sys.__stdout__
+        ):
             self.old_stream.close()
 
         super(Director, self).close()
