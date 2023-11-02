@@ -32,6 +32,9 @@ class Director(io.TextIOBase):
             old_stream = None
         elif old_stream is None:
             if state == STDOUT:
+                # On Windows if we're in pythonw.exe, then sys.stdout is named "nul"
+                # And it uses cp1252 encoding (which breaks with unicode)
+                # So if we find this nul TextIOWrapper, it's safe to just skip it
                 if getattr(sys.stdout, 'name', '') != 'nul':
                     old_stream = sys.stdout
             elif state == STDERR:
