@@ -142,7 +142,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __save__(self):
         self.save()
 
-    def __selected_text__(self, start_of_line=False):
+    def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
         if line == -1:
             # Nothing is selected, return the current line of text
@@ -150,7 +150,10 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             txt = self.text(line)
 
             lineLength = len(self.text(line).rstrip())
-            self.setSelection(line, 0, line, lineLength)  # Need to generalize?
+            selectText = self.window().uiSelectTextACT.isChecked() or selectText
+
+            if selectText:
+                self.setSelection(line, 0, line, lineLength)
 
         elif start_of_line:
             ss = self.positionFromLineIndex(line, 0)

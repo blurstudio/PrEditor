@@ -141,6 +141,7 @@
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
     <addaction name="uiClearToLastPromptACT"/>
+    <addaction name="uiSelectTextACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -962,6 +963,17 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
+  <action name="uiSelectTextACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Select text when Run Selected w/o selection</string>
    </property>
   </action>
  </widget>

@@ -93,12 +93,19 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         super(WorkboxTextEdit, self).__set_text__(text)
         self.setPlainText(text)
 
-    def __selected_text__(self, start_of_line=False):
+    def __selected_text__(self, start_of_line=False, selectText=False):
         cursor = self.textCursor()
 
         # If no selection, return the current line
         if cursor.selection().isEmpty():
-            return cursor.block().text()
+            text = cursor.block().text()
+
+            selectText = self.window().uiSelectTextACT.isChecked() or selectText
+            if selectText:
+                cursor.select(QTextCursor.LineUnderCursor)
+                self.setTextCursor(cursor)
+
+            return text
 
         # Otherwise return the selected text
         if start_of_line:
