@@ -295,6 +295,7 @@ class LoggerWindow(Window):
         )
 
         self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
         self.setup_run_workbox()
 
@@ -557,10 +558,8 @@ class LoggerWindow(Window):
         font.setFamily(family)
         self.console().setConsoleFont(font)
 
-        for workbox in self.uiWorkboxTAB.all_widgets():
-            print("workbox: {}".format(workbox))
-            workbox.__set_margins_font__(font)
-            workbox.__set_font__(font)
+        self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
     def setFontSizeActionTriggered(self, action):
         size = int(action.text())
@@ -581,6 +580,7 @@ class LoggerWindow(Window):
         self.console().setConsoleFont(font)
 
         self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
     def setWorkboxFontBasedOnConsole(self):
         font = self.console().font()
@@ -591,6 +591,12 @@ class LoggerWindow(Window):
             marginsFont.setPointSize(fontSize)
             workbox.__set_margins_font__(marginsFont)
             workbox.__set_font__(font)
+
+    def setEditorChooserFontBasedOnConsole(self):
+        font = self.console().font()
+        for child in self.uiEditorChooserWGT.children():
+            if hasattr(child, "font"):
+                child.setFont(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
