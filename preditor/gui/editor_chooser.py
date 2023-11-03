@@ -44,7 +44,7 @@ class EditorChooser(QWidget):
         current = self.editor_name()
         self.uiWorkboxEditorDDL.blockSignals(True)
         self.uiWorkboxEditorDDL.clear()
-        for name, _ in sorted(plugins.editors()):
+        for name, _ in sorted(set(plugins.editors())):
             self.uiWorkboxEditorDDL.addItem(name)
 
         self.uiWorkboxEditorDDL.setCurrentIndex(
