@@ -275,6 +275,7 @@ class LoggerWindow(Window):
         )
 
         self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
         self.setup_run_workbox()
 
@@ -559,6 +560,7 @@ class LoggerWindow(Window):
         if okClicked:
             self.console().setConsoleFont(newFont)
             self.setWorkboxFontBasedOnConsole()
+            self.setEditorChooserFontBasedOnConsole()
 
     def setFontSize(self, newSize):
         """Update the font size in the console and current workbox.
@@ -571,6 +573,7 @@ class LoggerWindow(Window):
         self.console().setConsoleFont(font)
 
         self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
     def setWorkboxFontBasedOnConsole(self):
         """If the current workbox's font is different to the console's font, set it to
@@ -589,6 +592,15 @@ class LoggerWindow(Window):
         if workbox.__font__() != font:
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
+
+    def setEditorChooserFontBasedOnConsole(self):
+        """Set the EditorChooser font to match console. This helps with legibility when
+        using EditorChooser.
+        """
+        font = self.console().font()
+        for child in self.uiEditorChooserWGT.children():
+            if hasattr(child, "font"):
+                child.setFont(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
