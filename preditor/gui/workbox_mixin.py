@@ -183,7 +183,7 @@ class WorkboxMixin(object):
     def __save__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
-    def __selected_text__(self, start_of_line=False):
+    def __selected_text__(self, start_of_line=False, selectText=False):
         """Returns selected text or the current line of text.
 
         If text is selected, it is returned. If nothing is selected, returns the
@@ -192,6 +192,8 @@ class WorkboxMixin(object):
         Args:
             start_of_line (bool, optional): If text is selected, include any
                 leading text from the first line of the selection.
+            selectText (bool): If expanding to the entire line from the cursor,
+                indicates  whether to select that line of text
         """
         raise NotImplementedError("Mixin method not overridden.")
 

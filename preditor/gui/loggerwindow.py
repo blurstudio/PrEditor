@@ -430,7 +430,7 @@ class LoggerWindow(Window):
         if not workbox.hasFocus():
             return
 
-        text = workbox.__selected_text__()
+        text = workbox.__selected_text__(selectText=True)
         if not text:
             line, index = workbox.__cursor_position__()
             text = workbox.__text__(line)
@@ -682,6 +682,7 @@ class LoggerWindow(Window):
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
+                'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
                 'toolbarStates': six.text_type(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
@@ -829,6 +830,7 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
         self.uiClearLogOnRefreshACT.setChecked(pref.get('clearBeforeEnvRefresh', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
+        self.uiSelectTextACT.setChecked(pref.get('uiSelectTextACT', True))
 
         self._stylesheet = pref.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
