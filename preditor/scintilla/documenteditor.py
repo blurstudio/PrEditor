@@ -332,7 +332,6 @@ class DocumentEditor(QsciScintilla):
 
                 # Do not toggle comments on the last line if it contains no selection
                 if line != endLine or endCol:
-
                     if doWhich == "Comment":
                         self.setCursorPosition(line, indent)
                         self.insert(commentSpace)
@@ -432,7 +431,7 @@ class DocumentEditor(QsciScintilla):
         line, index = None, None
         if not self.hasSelectedText():
             line, index = self.getCursorPosition()
-            self.setSelection(line, 0, line, self.lineLength(line) - 2)
+            self.setSelection(line, 0, line, self.lineLength(line))
         return line, index
 
     def copy(self):
