@@ -106,6 +106,7 @@ class ConsolePrEdit(QTextEdit):
     def setConsoleFont(self, font):
         """Set the console's font and adjust the tabStopWidth"""
         self.setFont(font)
+        self.completer().popup().setFont(font)
 
         # Set the setTabStopWidth for the console's font
         tab_width = 4
