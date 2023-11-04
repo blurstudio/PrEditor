@@ -582,11 +582,12 @@ class LoggerWindow(Window):
         self.setWorkboxFontBasedOnConsole()
         self.setEditorChooserFontBasedOnConsole()
 
-    def setWorkboxFontBasedOnConsole(self):
+    def setWorkboxFontBasedOnConsole(self, workbox=None):
         font = self.console().font()
         fontSize = font.pointSize()
 
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        workboxes = [workbox] if workbox else self.uiWorkboxTAB.all_widgets()
+        for workbox in workboxes:
             marginsFont = workbox.__margins_font__()
             marginsFont.setPointSize(fontSize)
             workbox.__set_margins_font__(marginsFont)
