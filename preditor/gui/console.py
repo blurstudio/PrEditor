@@ -9,10 +9,11 @@ import sys
 import time
 import traceback
 from builtins import str as text
+from functools import partial
 
 import __main__
 from Qt import QtCompat
-from Qt.QtCore import QPoint, Qt
+from Qt.QtCore import QPoint, Qt, QTimer
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAction, QApplication, QTextEdit
 
@@ -103,8 +104,35 @@ class ConsolePrEdit(QTextEdit):
         self.clickPos = None
         self.anchor = None
 
+    def doubleSingleShotSetValue(self, origPercent):
+        """This double QTimer.singleShot monkeybusiness seems to be the only way
+        to get scroll.maximum() to update properly so that we calc newValue
+        correctly. It's quite silly. Apparently, the important part is that
+        calling scroll.maximum() has had a pause since the font had been set.
+        """
+
+        def singleShotSetValu(self, origPercent):
+            scroll = self.verticalScrollBar()
+            maximum = scroll.maximum()
+            if maximum is not None:
+                newValue = round(origPercent * maximum)
+                QTimer.singleShot(1, partial(scroll.setValue, newValue))
+
+        # The 100 ms timer amount is somewhat arbitrary. It must be more than
+        # some value to work, but what that value is is unknown, and may change
+        # under various circumstances.
+        QTimer.singleShot(100, partial(singleShotSetValu, self, origPercent))
+
     def setConsoleFont(self, font):
         """Set the console's font and adjust the tabStopWidth"""
+
+        # Capture the scroll bar's current position (by percentage of max)
+        origPercent = None
+        scroll = self.verticalScrollBar()
+        if scroll.maximum():
+            origPercent = scroll.value() / scroll.maximum()
+
+        # Set console and completer popup fonts
         self.setFont(font)
         self.completer().popup().setFont(font)
 
@@ -118,6 +146,11 @@ class ConsolePrEdit(QTextEdit):
                 tab_width = workbox.__tab_width__()
         fontPixelWidth = QFontMetrics(font).width(" ")
         self.setTabStopWidth(fontPixelWidth * tab_width)
+
+        # Scroll to same relative postion where we started
+        newValue = None
+        if origPercent is not None:
+            self.doubleSingleShotSetValue(origPercent)
 
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can

@@ -491,7 +491,7 @@ class LoggerWindow(Window):
             # font-resize wheel event was within a certain threshhold.
             now = datetime.now()
             elapsed = now - self.previousFontResizeTime
-            tolerance = timedelta(microseconds=100000)
+            tolerance = timedelta(microseconds=250000)
             if elapsed < tolerance:
                 return
             self.previousFontResizeTime = now
