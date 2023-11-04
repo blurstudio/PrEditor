@@ -9,10 +9,12 @@ import sys
 import time
 import traceback
 from builtins import str as text
+from fractions import Fraction
+from functools import partial
 
 import __main__
 from Qt import QtCompat
-from Qt.QtCore import QPoint, Qt
+from Qt.QtCore import QPoint, Qt, QTimer
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
 
@@ -103,8 +105,39 @@ class ConsolePrEdit(QTextEdit):
         self.clickPos = None
         self.anchor = None
 
+    def doubleSingleShotSetScrollValue(self, origPercent):
+        """This double QTimer.singleShot monkey business seems to be the only way
+        to get scroll.maximum() to update properly so that we calc newValue
+        correctly. It's quite silly. Apparently, the important part is that
+        calling scroll.maximum() has had a pause since the font had been set.
+        """
+
+        def singleShotSetScrollValue(self, origPercent):
+            scroll = self.verticalScrollBar()
+            maximum = scroll.maximum()
+            if maximum is not None:
+                newValue = round(origPercent * maximum)
+                QTimer.singleShot(1, partial(scroll.setValue, newValue))
+
+        # The 100 ms timer amount is somewhat arbitrary. It must be more than
+        # some value to work, but what that value is is unknown, and may change
+        # under various circumstances. Briefly disable updates for smoother transition.
+        self.setUpdatesEnabled(False)
+        try:
+            QTimer.singleShot(100, partial(singleShotSetScrollValue, self, origPercent))
+        finally:
+            self.setUpdatesEnabled(True)
+
     def setConsoleFont(self, font):
         """Set the console's font and adjust the tabStopWidth"""
+
+        # Capture the scroll bar's current position (by percentage of max)
+        origPercent = None
+        scroll = self.verticalScrollBar()
+        if scroll.maximum():
+            origPercent = Fraction(scroll.value(), scroll.maximum())
+
+        # Set console and completer popup fonts
         self.setFont(font)
         self.completer().popup().setFont(font)
 
@@ -118,6 +151,10 @@ class ConsolePrEdit(QTextEdit):
                 tab_width = workbox.__tab_width__()
         fontPixelWidth = QFontMetrics(font).width(" ")
         self.setTabStopWidth(fontPixelWidth * tab_width)
+
+        # Scroll to same relative position where we started
+        if origPercent is not None:
+            self.doubleSingleShotSetScrollValue(origPercent)
 
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can
