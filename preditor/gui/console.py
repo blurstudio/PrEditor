@@ -214,6 +214,11 @@ class ConsolePrEdit(QTextEdit):
             return
 
         if modulePath:
+            # Wrap filepaths in quotes in case they contain spaces
+            pattern = r"(?<!\")({\w+Path})(?!\")"
+            repl = r'"\g<1>"'
+            cmdTempl = re.sub(pattern, repl, cmdTempl)
+
             # Attempt to create command from template and run the command
             try:
                 command = cmdTempl.format(
