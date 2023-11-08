@@ -64,7 +64,7 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __exec_selected__(self, truncate=True):
-        txt = self.__selected_text__()
+        txt, line = self.__selected_text__()
 
         # Remove any leading white space shared across all lines
         txt = textwrap.dedent(txt)
@@ -72,8 +72,9 @@ class WorkboxMixin(object):
         # Get rid of pesky \r's
         txt = self.__unix_end_lines__(txt)
 
-        # Make workbox line numbers match the workbox line numbers.
-        line, _ = self.__cursor_position__()
+        # Make workbox line numbers match the workbox line numbers, by adding
+        # the appropriate number of newlines to mimic it's original postion in
+        # the workbox.
         txt = '\n' * line + txt
 
         # execute the code
@@ -183,7 +184,8 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __selected_text__(self, start_of_line=False):
-        """Returns selected text or the current line of text.
+        """Returns selected text or the current line of text, plus the line
+        number of the begining of selection / cursor position.
 
         If text is selected, it is returned. If nothing is selected, returns the
         entire line of text the cursor is currently on.
