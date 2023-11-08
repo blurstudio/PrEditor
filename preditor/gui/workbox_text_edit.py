@@ -96,6 +96,12 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     def __selected_text__(self, start_of_line=False, selectText=False):
         cursor = self.textCursor()
 
+        # Get starting line number. Must set the cursor's position to the start of the
+        # selection, otherwise we may instead get the ending line number.
+        tempCursor = self.textCursor()
+        tempCursor.setPosition(tempCursor.selectionStart())
+        line = tempCursor.block().firstLineNumber()
+
         # If no selection, return the current line
         if cursor.selection().isEmpty():
             text = cursor.block().text()
@@ -105,7 +111,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
                 cursor.select(QTextCursor.LineUnderCursor)
                 self.setTextCursor(cursor)
 
-            return text
+            return text, line
 
         # Otherwise return the selected text
         if start_of_line:
@@ -113,9 +119,10 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
             sc.setPosition(cursor.selectionStart())
             sc.movePosition(cursor.StartOfLine, sc.MoveAnchor)
             sc.setPosition(cursor.selectionEnd(), sc.KeepAnchor)
-            return sc.selection().toPlainText()
 
-        return self.textCursor().selection().toPlainText()
+            return sc.selection().toPlainText(), line
+
+        return self.textCursor().selection().toPlainText(), line
 
     def keyPressEvent(self, event):
         if self.process_shortcut(event):
