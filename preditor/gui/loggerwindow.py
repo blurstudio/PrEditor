@@ -430,7 +430,7 @@ class LoggerWindow(Window):
         if not workbox.hasFocus():
             return
 
-        text = workbox.__selected_text__(selectText=True)
+        text, _line = workbox.__selected_text__(selectText=True)
         if not text:
             line, index = workbox.__cursor_position__()
             text = workbox.__text__(line)

@@ -161,7 +161,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             txt = self.text(ss, ee)
         else:
             txt = self.selectedText()
-        return self.regex.split(txt)[0]
+        return self.regex.split(txt)[0], line
 
     def __tab_width__(self):
         return self.tabWidth()
