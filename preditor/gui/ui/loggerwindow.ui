@@ -180,7 +180,8 @@
      <addaction name="uiMonospaceFontMENU"/>
      <addaction name="uiProportionalFontMENU"/>
     </widget>
-    <addaction name="uiAutoCompleteEnabledACT"/>
+    <addaction name="uiConsoleAutoCompleteEnabledACT"/>
+    <addaction name="uiWorkboxAutoCompleteEnabledACT"/>
     <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="uiAutoCompleteCaseSensitiveACT"/>
     <addaction name="uiCompleterModeMENU"/>
@@ -400,15 +401,21 @@
     <string>Ctrl+Alt+Shift+D</string>
    </property>
   </action>
-  <action name="uiAutoCompleteEnabledACT">
+  <action name="uiConsoleAutoCompleteEnabledACT">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Use &amp;Auto-Complete</string>
+    <string>Use Auto-Complete in console</string>
+   </property>
+   <property name="iconText">
+    <string>Use Auto-Complete in console</string>
+   </property>
+   <property name="toolTip">
+    <string>Use Auto-Complete in console</string>
    </property>
   </action>
   <action name="uiRunLineACT">
@@ -974,6 +981,14 @@ at the indicated line in the specified text editor.
    </property>
    <property name="text">
     <string>Select text when Run Selected w/o selection</string>
+   </property>
+  </action>
+  <action name="uiWorkboxAutoCompleteEnabledACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use Auto-Complete in workbox</string>
    </property>
   </action>
  </widget>
