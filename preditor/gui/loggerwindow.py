@@ -122,7 +122,12 @@ class LoggerWindow(Window):
         self.uiRunAllACT.triggered.connect(self.execAll)
         self.uiRunSelectedACT.triggered.connect(self.execSelected)
 
-        self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
+        self.uiConsoleAutoCompleteEnabledACT.toggled.connect(
+            partial(self.setAutoCompleteEnabled, console=True)
+        )
+        self.uiWorkboxAutoCompleteEnabledACT.toggled.connect(
+            partial(self.setAutoCompleteEnabled, console=False)
+        )
 
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
 
@@ -677,7 +682,8 @@ class LoggerWindow(Window):
                 'SplitterSize': self.uiSplitterSPLIT.sizes(),
                 'tabIndent': self.uiIndentationsTabsACT.isChecked(),
                 'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
-                'hintingEnabled': self.uiAutoCompleteEnabledACT.isChecked(),
+                'hintingEnabled': self.uiConsoleAutoCompleteEnabledACT.isChecked(),
+                'workboxHintingEnabled': self.uiWorkboxAutoCompleteEnabledACT.isChecked(),
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
@@ -783,7 +789,6 @@ class LoggerWindow(Window):
         self.setWindowState(Qt.WindowStates(pref.get('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.get('tabIndent', True))
         self.uiCopyTabsToSpacesACT.setChecked(pref.get('copyIndentsAsSpaces', False))
-        self.uiAutoCompleteEnabledACT.setChecked(pref.get('hintingEnabled', True))
 
         # completer settings
         self.setCaseSensitive(pref.get('caseSensitive', True))
@@ -795,9 +800,6 @@ class LoggerWindow(Window):
         self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
         self.uiSpellCheckEnabledACT.setDisabled(False)
 
-        self.uiConsoleTXT.completer().setEnabled(
-            self.uiAutoCompleteEnabledACT.isChecked()
-        )
         self.uiAutoSaveSettingssACT.setChecked(pref.get('uiAutoSaveSettingssACT', True))
 
         self.uiAutoPromptACT.setChecked(pref.get('uiAutoPromptACT', False))
@@ -841,6 +843,13 @@ class LoggerWindow(Window):
 
         self.uiWorkboxTAB.restore_prefs(pref.get('workbox_prefs', {}))
 
+        hintingEnabled = pref.get('hintingEnabled', True)
+        self.uiConsoleAutoCompleteEnabledACT.setChecked(hintingEnabled)
+        self.setAutoCompleteEnabled(hintingEnabled, console=True)
+        workboxHintingEnabled = pref.get('workboxHintingEnabled', True)
+        self.uiWorkboxAutoCompleteEnabledACT.setChecked(workboxHintingEnabled)
+        self.setAutoCompleteEnabled(workboxHintingEnabled, console=False)
+
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
 
@@ -859,10 +868,12 @@ class LoggerWindow(Window):
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
 
-    def setAutoCompleteEnabled(self, state):
-        self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
-            workbox.__set_auto_complete_enabled__(state)
+    def setAutoCompleteEnabled(self, state, console=True):
+        if console:
+            self.uiConsoleTXT.completer().setEnabled(state)
+        else:
+            for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
+                workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
         try:
