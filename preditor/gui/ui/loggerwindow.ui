@@ -175,6 +175,7 @@
     <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="uiAutoCompleteCaseSensitiveACT"/>
     <addaction name="uiCompleterModeMENU"/>
+    <addaction name="uiHighlightExactCompletionACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearLogACT"/>
     <addaction name="uiClearLogOnRefreshACT"/>
@@ -1001,6 +1002,14 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Return</string>
+   </property>
+  </action>
+  <action name="uiHighlightExactCompletionACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Highlight Exact Completion</string>
    </property>
   </action>
  </widget>
