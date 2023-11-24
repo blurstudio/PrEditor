@@ -520,6 +520,17 @@ class ConsolePrEdit(QTextEdit):
 
         completer = self.completer()
 
+        # Define prefix so we can determine if the exact prefix is in
+        # completions and highlight it. We must manually add the currently typed
+        # character, or remove it if backspace or delete has just been pressed.
+        key = event.text()
+        _, prefix = completer.currentObject(scope=__main__.__dict__)
+        isBackspaceOrDel = key in ("", "")
+        if key.isalnum() or key in ("-", "_"):
+            prefix += str(key)
+        elif isBackspaceOrDel and prefix:
+            prefix = prefix[:-1]
+
         if completer and event.key() in (
             Qt.Key_Backspace,
             Qt.Key_Delete,
@@ -602,9 +613,26 @@ class ConsolePrEdit(QTextEdit):
                     or completer.wasCompletingCounter
                 ):
                     completer.refreshList(scope=__main__.__dict__)
-                    completer.popup().setCurrentIndex(
-                        completer.completionModel().index(0, 0)
-                    )
+
+                    model = completer.completionModel()
+                    index = model.index(0, 0)
+
+                    # If option chosen, if the exact prefix exists in the
+                    # possible completions, highlight it, even if it's not the
+                    # topmost completion.
+                    if self.window().uiHighlightExactCompletionACT.isChecked():
+                        for i in range(completer.completionCount()):
+                            completer.setCurrentRow(i)
+                            curCompletion = completer.currentCompletion()
+                            if prefix == curCompletion:
+                                index = model.index(i, 0)
+                                break
+                            elif prefix == curCompletion.lower():
+                                index = model.index(i, 0)
+                                break
+
+                    completer.setCurrentRow(0)
+                    completer.popup().setCurrentIndex(index)
 
                     # show the completer for the rect
                     rect = self.cursorRect()

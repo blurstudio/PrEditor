@@ -721,6 +721,7 @@ class LoggerWindow(Window):
                 'textEditorCmdTempl': self.textEditorCmdTempl,
                 'currentStyleSheet': self._stylesheet,
                 'flash_time': self.uiConsoleTXT.flash_time,
+                'uiHighlightExactCompletionACT': self.uiHighlightExactCompletionACT.isChecked(),
             }
         )
 
@@ -788,6 +789,9 @@ class LoggerWindow(Window):
         completerMode = CompleterMode(pref.get('completerMode', 0))
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
+        self.uiHighlightExactCompletionACT.setChecked(
+            pref.get('uiHighlightExactCompletionACT', False)
+        )
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
