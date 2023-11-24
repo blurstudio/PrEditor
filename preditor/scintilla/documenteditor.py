@@ -331,7 +331,6 @@ class DocumentEditor(QsciScintilla):
 
                 # Do not toggle comments on the last line if it contains no selection
                 if line != endLine or endCol:
-
                     if doWhich == "Comment":
                         self.setCursorPosition(line, indent)
                         self.insert(commentSpace)
