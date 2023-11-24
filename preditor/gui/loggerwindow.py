@@ -745,6 +745,9 @@ class LoggerWindow(Window):
                 ),
                 'find_files_context': self.uiFindInWorkboxesWGT.uiContextSPN.value(),
                 'find_files_text': self.uiFindInWorkboxesWGT.uiFindTXT.text(),
+                'uiHighlightExactCompletionACT': (
+                    self.uiHighlightExactCompletionACT.isChecked()
+                ),
             }
         )
 
@@ -834,6 +837,9 @@ class LoggerWindow(Window):
         completerMode = CompleterMode(pref.get('completerMode', 0))
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
+        self.uiHighlightExactCompletionACT.setChecked(
+            pref.get('uiHighlightExactCompletionACT', False)
+        )
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
