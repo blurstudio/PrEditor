@@ -64,6 +64,7 @@ class LoggerWindow(Window):
         # Create timer to autohide status messages
         self.statusTimer = QTimer()
         self.statusTimer.setSingleShot(True)
+        self.statusTimer.timeout.connect(self.clearStatusText)
 
         # Store the previous time a font-resize wheel event was triggered to prevent
         # rapid-fire WheelEvents. Initialize to the current time.
@@ -483,18 +484,12 @@ class LoggerWindow(Window):
             font = self.console().font()
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
+            newSize = int(newSize)
 
             font.setPointSize(newSize)
-            self.console().setConsoleFont(font)
-
-            for workbox in self.uiWorkboxTAB.all_widgets():
-                marginsFont = workbox.__margins_font__()
-                marginsFont.setPointSize(newSize)
-                workbox.__set_margins_font__(marginsFont)
-
-                workbox.__set_font__(font)
+            self.setFont(font, report=True)
         else:
-            Window.wheelEvent(self, event)
+            super(LoggerWindow, self).wheelEvent(event)
 
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
@@ -539,11 +534,7 @@ class LoggerWindow(Window):
         family = action.text()
         font = self.console().font()
         font.setFamily(family)
-        self.console().setConsoleFont(font)
-
-        for workbox in self.uiWorkboxTAB.all_widgets():
-            workbox.__set_margins_font__(font)
-            workbox.__set_font__(font)
+        self.setFont(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -784,7 +775,7 @@ class LoggerWindow(Window):
         if _font:
             font = QFont()
             if font.fromString(_font):
-                self.console().setConsoleFont(font)
+                self.setFont(font)
 
     def restoreToolbars(self, pref=None):
         if pref is None:
@@ -830,8 +821,7 @@ class LoggerWindow(Window):
         """Set timer to automatically clear status text"""
         if self.statusTimer.isActive():
             self.statusTimer.stop()
-        self.statusTimer.singleShot(2000, self.clearStatusText)
-        self.statusTimer.start()
+        self.statusTimer.start(2000)
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """Accepts the name of a stylesheet included with blurdev, or a full
@@ -955,6 +945,24 @@ class LoggerWindow(Window):
         value, success = QInputDialog.getDouble(self, 'Set flash window', msg, value)
         if success:
             self.uiConsoleTXT.flash_time = value
+
+    def setFont(self, font, report=False):
+        """Set the same font for the console and all workbox's margins and text.
+
+        Args:
+            font (QFont): The font to set.
+            report (bool, optional): Update status text with the font family and size.
+        """
+        super(LoggerWindow, self).setFont(font)
+        self.console().setConsoleFont(font)
+
+        for workbox in self.uiWorkboxTAB.all_widgets():
+            workbox.__set_margins_font__(font)
+            workbox.__set_font__(font)
+
+        if report:
+            self.setStatusText('Font: {}: {}'.format(font.family(), font.pointSize()))
+            self.autoHideStatusText()
 
     def setWordWrap(self, state):
         if state:
