@@ -110,6 +110,7 @@
     <addaction name="uiCloseWorkboxACT"/>
     <addaction name="separator"/>
     <addaction name="uiSaveConsoleSettingsACT"/>
+    <addaction name="uiRestartACT"/>
     <addaction name="uiCloseLoggerACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
@@ -928,6 +929,17 @@ at the indicated line in the specified text editor.
   <action name="uiBackupPreferencesACT">
    <property name="text">
     <string>Backup</string>
+   </property>
+  </action>
+  <action name="uiRestartACT">
+   <property name="text">
+    <string>Restart PrEditor</string>
+   </property>
+   <property name="toolTip">
+    <string>Closes PrEditor and launches a new process with the same cli arguments.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+R</string>
    </property>
   </action>
  </widget>
