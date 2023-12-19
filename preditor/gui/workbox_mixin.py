@@ -24,6 +24,12 @@ class WorkboxMixin(object):
         self._tempfile = tempfile
         self.core_name = core_name
 
+        # Ensure the new instance's font settings match the rest of the app.
+        if "LoggerWindow" in str(type(self.window())):
+            font = self.window().font()
+            self.__set_margins_font__(font)
+            self.__set_font__(font)
+
     def __auto_complete_enabled__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
