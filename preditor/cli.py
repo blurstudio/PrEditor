@@ -66,7 +66,7 @@ def launch(name, run_workbox):
     parameter_source = click.get_current_context().get_parameter_source('name')
     app_id = get_app_id(name, parameter_source == ParameterSource.DEFAULT)
 
-    preditor.launch(run_workbox=run_workbox, app_id=app_id, name=name)
+    preditor.launch(run_workbox=run_workbox, app_id=app_id, name=name, standalone=True)
 
 
 # shortcut
