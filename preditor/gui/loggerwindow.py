@@ -55,7 +55,7 @@ class LoggerWindow(Window):
     _instance = None
     styleSheetChanged = Signal(str)
 
-    def __init__(self, parent, name=None, run_workbox=False):
+    def __init__(self, parent, name=None, run_workbox=False, standalone=False):
         super(LoggerWindow, self).__init__(parent=parent)
         self.name = name if name else DEFAULT_CORE_NAME
         self.aboutToClearPathsEnabled = False
@@ -108,6 +108,7 @@ class LoggerWindow(Window):
         self._stds = None
         self.uiLogToFileClearACT.setVisible(False)
 
+        self.uiRestartACT.triggered.connect(self.restartLogger)
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
@@ -218,6 +219,7 @@ class LoggerWindow(Window):
             QIcon(resourcePath('img/content-save.png'))
         )
         self.uiAboutPreditorACT.setIcon(QIcon(resourcePath('img/information.png')))
+        self.uiRestartACT.setIcon(QIcon(resourcePath('img/restart.svg')))
         self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
 
         # Make action shortcuts available anywhere in the Logger
@@ -266,6 +268,10 @@ class LoggerWindow(Window):
         )
 
         self.setup_run_workbox()
+
+        if not standalone:
+            # This action only is valid when running in standalone mode
+            self.uiRestartACT.setVisible(False)
 
         # Run the current workbox after the LoggerWindow is shown.
         if run_workbox:
@@ -684,6 +690,22 @@ class LoggerWindow(Window):
         with open(filename, 'w') as fp:
             json.dump(pref, fp, indent=4)
 
+    def restartLogger(self):
+        """Closes this PrEditor instance and starts a new process with the same
+        cli arguments.
+
+        Note: This only works if PrEditor is running in standalone mode. It doesn't
+        quit the QApplication or other host process. It simply closes this instance
+        of PrEditor, saving its preferences, which should allow Qt to exit if no
+        other windows are open.
+        """
+        self.close()
+
+        # Get the current command and launch it as a new process.
+        cmd = sys.argv[0]
+        args = sys.argv[1:]
+        QtCore.QProcess.startDetached(cmd, args)
+
     def restorePrefs(self):
         pref = self.load_prefs()
 
@@ -1057,7 +1079,9 @@ class LoggerWindow(Window):
         group_tab.setCurrentIndex(index)
 
     @staticmethod
-    def instance(parent=None, name=None, run_workbox=False, create=True):
+    def instance(
+        parent=None, name=None, run_workbox=False, create=True, standalone=False
+    ):
         """Returns the existing instance of the PrEditor gui creating it on first call.
 
         Args:
@@ -1066,6 +1090,9 @@ class LoggerWindow(Window):
             run_workbox (bool, optional): If the instance hasn't been created yet, this
                 will execute the active workbox's code once fully initialized.
             create (bool, optional): Returns None if the instance has not been created.
+            standalone (bool, optional): Launch PrEditor in standalone mode. This
+                enables extra options that only make sense when it is running as
+                its own app, not inside of another app.
 
         Returns:
             Returns a fully initialized instance of the PrEditor gui. If called more
@@ -1078,7 +1105,9 @@ class LoggerWindow(Window):
                 return None
 
             # create the logger instance
-            inst = LoggerWindow(parent, name=name, run_workbox=run_workbox)
+            inst = LoggerWindow(
+                parent, name=name, run_workbox=run_workbox, standalone=standalone
+            )
 
             # RV has a Unique window structure. It makes more sense to not parent a
             # singleton window than to parent it to a specific top level window.
