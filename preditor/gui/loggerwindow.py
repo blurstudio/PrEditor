@@ -37,6 +37,8 @@ from .. import (
 )
 from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
+from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
+from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
 from ..utils import stylesheets
 from .completer import CompleterMode
@@ -179,6 +181,8 @@ class LoggerWindow(Window):
         self.uiGroup7ACT.triggered.connect(partial(self.gotoGroupByIndex, 7))
         self.uiGroup8ACT.triggered.connect(partial(self.gotoGroupByIndex, 8))
         self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
+
+        self.uiFocusNameACT.triggered.connect(self.show_focus_name)
 
         self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
@@ -1018,6 +1022,22 @@ class LoggerWindow(Window):
     @Slot()
     def show_workbox_options(self):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
+
+    @Slot()
+    def show_focus_name(self):
+        model = GroupTabListItemModel(manager=self.uiWorkboxTAB)
+        model.process()
+
+        def update_tab(index):
+            group, tab = model.workbox_indexes_from_model_index(index)
+            if group is not None:
+                self.uiWorkboxTAB.set_current_groups_from_index(group, tab)
+
+        w = FuzzySearch(model, parent=self)
+        w.selected.connect(update_tab)
+        w.canceled.connect(update_tab)
+        w.highlighted.connect(update_tab)
+        w.popup()
 
     def updateCopyIndentsAsSpaces(self):
         for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
