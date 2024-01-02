@@ -81,6 +81,9 @@
       </widget>
      </widget>
     </item>
+    <item>
+     <widget class="FindFiles" name="uiFindInWorkboxesWGT" native="true"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="uiMenuBar">
@@ -323,6 +326,8 @@
     <addaction name="menuFocus_to_Group"/>
     <addaction name="menuFocus_to_Tab"/>
     <addaction name="uiFocusNameACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiFindInWorkboxesACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="menuEdit"/>
@@ -951,6 +956,14 @@ at the indicated line in the specified text editor.
     <string>Ctrl+Alt+Shift+R</string>
    </property>
   </action>
+  <action name="uiFindInWorkboxesACT">
+   <property name="text">
+    <string>Find in Workboxes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -968,6 +981,12 @@ at the indicated line in the specified text editor.
    <class>EditorChooser</class>
    <extends>QWidget</extends>
    <header>preditor.gui.editor_chooser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FindFiles</class>
+   <extends>QWidget</extends>
+   <header>preditor.gui.find_files.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>
@@ -1011,12 +1030,28 @@ at the indicated line in the specified text editor.
    <slot>update_workbox_stack()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>754</x>
-     <y>377</y>
+     <x>763</x>
+     <y>371</y>
     </hint>
     <hint type="destinationlabel">
      <x>747</x>
      <y>401</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiFindInWorkboxesACT</sender>
+   <signal>triggered()</signal>
+   <receiver>PrEditorWindow</receiver>
+   <slot>show_find_in_workboxes()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>397</x>
+     <y>202</y>
     </hint>
    </hints>
   </connection>
@@ -1026,5 +1061,6 @@ at the indicated line in the specified text editor.
   <slot>reset_options()</slot>
   <slot>show_workbox_options()</slot>
   <slot>update_workbox_stack()</slot>
+  <slot>show_find_in_workboxes()</slot>
  </slots>
 </ui>
