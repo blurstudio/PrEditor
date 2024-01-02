@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>636</width>
+    <height>41</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,13 +18,6 @@
     <widget class="QLabel" name="uiFindLBL">
      <property name="text">
       <string>Find:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="uiFindBTN">
-     <property name="text">
-      <string>Find</string>
      </property>
     </widget>
    </item>
@@ -68,13 +61,18 @@
    <item row="0" column="2">
     <widget class="QLineEdit" name="uiFindTXT"/>
    </item>
-   <item row="1" column="0" colspan="4">
-    <widget class="QTreeWidget" name="uiResultsTREE">
-     <column>
-      <property name="text">
-       <string notr="true">1</string>
-      </property>
-     </column>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="uiFindBTN">
+     <property name="text">
+      <string>Find</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QToolButton" name="uiCloseBTN">
+     <property name="text">
+      <string>x</string>
+     </property>
     </widget>
    </item>
   </layout>
@@ -88,12 +86,44 @@
    <slot>find()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>382</x>
-     <y>25</y>
+     <x>601</x>
+     <y>31</y>
     </hint>
     <hint type="destinationlabel">
      <x>421</x>
      <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiFindTXT</sender>
+   <signal>returnPressed()</signal>
+   <receiver>uiFindFilesWGT</receiver>
+   <slot>find()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>488</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>501</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiCloseBTN</sender>
+   <signal>released()</signal>
+   <receiver>uiFindFilesWGT</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>620</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>676</x>
+     <y>24</y>
     </hint>
    </hints>
   </connection>

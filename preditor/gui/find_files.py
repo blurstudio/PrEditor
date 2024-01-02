@@ -1,20 +1,32 @@
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from collections import deque
 
-from Qt.QtWidgets import QWidget
+from Qt.QtCore import Qt
+from Qt.QtWidgets import QApplication, QShortcut, QWidget
 
 from ..gui import loadUi
 
 
 class FindFiles(QWidget):
-    def __init__(self, managers=None, parent=None):
+    def __init__(self, parent=None, managers=None, console=None):
         super(FindFiles, self).__init__(parent=parent)
         if managers is None:
             managers = []
         self.managers = managers
+        self.console = console
 
         loadUi(__file__, self)
+
+        self.uiCloseSCT = QShortcut(
+            Qt.Key_Escape, self, context=Qt.WidgetWithChildrenShortcut
+        )
+        self.uiCloseSCT.activated.connect(self.hide)
+
+    def activate(self):
+        """Called to make this widget ready for the user to interact with."""
+        self.show()
+        self.uiFindTXT.setFocus()
 
     def insert_found_text(self, found_text, href, tool_tip):
         cursor = self.console.textCursor()
@@ -25,6 +37,8 @@ class FindFiles(QWidget):
         fmt.setFontUnderline(True)
         fmt.setToolTip(tool_tip)
         cursor.insertText(found_text, fmt)
+        # Show the updated text output
+        QApplication.instance().processEvents()
 
     def insert_text(self, text):
         cursor = self.console.textCursor()
@@ -34,6 +48,8 @@ class FindFiles(QWidget):
         fmt.setFontUnderline(False)
         fmt.setToolTip('')
         cursor.insertText(text, fmt)
+        # Show the updated text output
+        QApplication.instance().processEvents()
 
     def indicate_results(
         self,
@@ -44,7 +60,7 @@ class FindFiles(QWidget):
         workbox_id="undefined",
         fmt="",
     ):
-        href = '{}, {}, {}'.format(path, workbox_id, line_num)
+        href = ', {}, {}'.format(workbox_id, line_num)
         tool_tip = "Open {} at line number {}".format(path, line_num)
         find_len = len(find_text)
 

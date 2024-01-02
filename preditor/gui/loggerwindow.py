@@ -106,6 +106,11 @@ class LoggerWindow(Window):
         )
         self.uiConsoleTOOLBAR.insertSeparator(self.uiRunSelectedACT)
 
+        # Configure Find in Workboxes
+        self.uiFindInWorkboxesWGT.hide()
+        self.uiFindInWorkboxesWGT.managers.append(self.uiWorkboxTAB)
+        self.uiFindInWorkboxesWGT.console = self.console()
+
         # Initial configuration of the logToFile feature
         self._logToFilePath = None
         self._stds = None
@@ -1021,6 +1026,11 @@ class LoggerWindow(Window):
     @Slot()
     def show_workbox_options(self):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
+
+    @Slot()
+    def show_find_in_workboxes(self):
+        """Ensure the find workboxes widget is visible and has focus."""
+        self.uiFindInWorkboxesWGT.activate()
 
     @Slot()
     def show_focus_name(self):
