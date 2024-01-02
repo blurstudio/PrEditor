@@ -114,11 +114,20 @@ class GroupTabWidget(OneTabWidget):
         return parent, editor
 
     def all_widgets(self):
-        """Returns every widget under every group."""
-        for i in range(self.count()):
-            tab_widget = self.widget(i)
-            for j in range(tab_widget.count()):
-                yield tab_widget.widget(j)
+        """A generator yielding information about every widget under every group.
+
+        Yields:
+            group tab name, widget tab name, group tab index, widget tab index, widget
+        """
+        for group_index in range(self.count()):
+            group_name = self.tabText(group_index)
+
+            tab_widget = self.widget(group_index)
+            for tab_index in range(tab_widget.count()):
+                tab_name = tab_widget.tabText(tab_index)
+                yield tab_widget.widget(
+                    tab_index
+                ), group_name, tab_name, group_index, tab_index
 
     def close_current_tab(self):
         """Convenient method to close the currently open editor tab prompting
