@@ -37,6 +37,8 @@ from .. import (
 )
 from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
+from ..gui.command_palette.command_palette import CommandPalette
+from ..gui.command_palette.workbox_item_model import WorkboxListItemModel
 from ..logging_config import LoggingConfig
 from ..utils import stylesheets
 from .completer import CompleterMode
@@ -55,7 +57,7 @@ class LoggerWindow(Window):
     _instance = None
     styleSheetChanged = Signal(str)
 
-    def __init__(self, parent, name=None, run_workbox=False):
+    def __init__(self, parent, name=None, run_workbox=False, standalone=False):
         super(LoggerWindow, self).__init__(parent=parent)
         self.name = name if name else DEFAULT_CORE_NAME
         self.aboutToClearPathsEnabled = False
@@ -64,6 +66,7 @@ class LoggerWindow(Window):
         # Create timer to autohide status messages
         self.statusTimer = QTimer()
         self.statusTimer.setSingleShot(True)
+        self.statusTimer.timeout.connect(self.clearStatusText)
 
         # Store the previous time a font-resize wheel event was triggered to prevent
         # rapid-fire WheelEvents. Initialize to the current time.
@@ -103,11 +106,17 @@ class LoggerWindow(Window):
         )
         self.uiConsoleTOOLBAR.insertSeparator(self.uiRunSelectedACT)
 
+        # Configure Find in Workboxes
+        self.uiFindInWorkboxesWGT.hide()
+        self.uiFindInWorkboxesWGT.managers.append(self.uiWorkboxTAB)
+        self.uiFindInWorkboxesWGT.console = self.console()
+
         # Initial configuration of the logToFile feature
         self._logToFilePath = None
         self._stds = None
         self.uiLogToFileClearACT.setVisible(False)
 
+        self.uiRestartACT.triggered.connect(self.restartLogger)
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
@@ -179,6 +188,8 @@ class LoggerWindow(Window):
         self.uiGroup8ACT.triggered.connect(partial(self.gotoGroupByIndex, 8))
         self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
 
+        self.uiFocusNameACT.triggered.connect(self.show_focus_name)
+
         self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
@@ -218,6 +229,7 @@ class LoggerWindow(Window):
             QIcon(resourcePath('img/content-save.png'))
         )
         self.uiAboutPreditorACT.setIcon(QIcon(resourcePath('img/information.png')))
+        self.uiRestartACT.setIcon(QIcon(resourcePath('img/restart.svg')))
         self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
 
         # Make action shortcuts available anywhere in the Logger
@@ -267,6 +279,10 @@ class LoggerWindow(Window):
 
         self.setup_run_workbox()
 
+        if not standalone:
+            # This action only is valid when running in standalone mode
+            self.uiRestartACT.setVisible(False)
+
         # Run the current workbox after the LoggerWindow is shown.
         if run_workbox:
             # By using two singleShot timers, we can show and draw the LoggerWindow,
@@ -305,7 +321,18 @@ class LoggerWindow(Window):
         return self.uiWorkboxTAB.current_groups_widget()
 
     @classmethod
-    def workbox_for_name(cls, name, show=False):
+    def name_for_workbox(cls, workbox):
+        ret = []
+        logger = cls.instance()
+        index = logger.uiWorkboxTAB.currentIndex()
+        ret.append(logger.uiWorkboxTAB.tabText(index))
+        group_widget = logger.uiWorkboxTAB.currentWidget()
+        index = group_widget.currentIndex()
+        ret.append(group_widget.tabText(index))
+        return "/".join(ret)
+
+    @classmethod
+    def workbox_for_name(cls, name, show=False, visible=False):
         """Used to find a workbox for a given name. It accepts a string matching
         the "{group}/{workbox}" format, or if True, the current workbox.
 
@@ -325,13 +352,19 @@ class LoggerWindow(Window):
 
         # If name is a string, find first tab with that name
         elif isinstance(name, six.string_types):
-            group, editor = name.split('/', 1)
-            index = logger.uiWorkboxTAB.index_for_text(group)
-            if index != -1:
-                tab_widget = logger.uiWorkboxTAB.widget(index)
+            split = name.split('/', 1)
+            if len(split) < 2:
+                return None
+            group, editor = split
+            group_index = logger.uiWorkboxTAB.index_for_text(group)
+            if group_index != -1:
+                tab_widget = logger.uiWorkboxTAB.widget(group_index)
                 index = tab_widget.index_for_text(editor)
                 if index != -1:
                     workbox = tab_widget.widget(index)
+                    if visible:
+                        tab_widget.setCurrentIndex(index)
+                        logger.uiWorkboxTAB.setCurrentIndex(group_index)
 
         if show and workbox:
             workbox.__show__()
@@ -477,18 +510,12 @@ class LoggerWindow(Window):
             font = self.console().font()
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
+            newSize = int(newSize)
 
             font.setPointSize(newSize)
-            self.console().setConsoleFont(font)
-
-            for workbox in self.uiWorkboxTAB.all_widgets():
-                marginsFont = workbox.__margins_font__()
-                marginsFont.setPointSize(newSize)
-                workbox.__set_margins_font__(marginsFont)
-
-                workbox.__set_font__(font)
+            self.setFont(font, report=True)
         else:
-            Window.wheelEvent(self, event)
+            super(LoggerWindow, self).wheelEvent(event)
 
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
@@ -533,11 +560,7 @@ class LoggerWindow(Window):
         family = action.text()
         font = self.console().font()
         font.setFamily(family)
-        self.console().setConsoleFont(font)
-
-        for workbox in self.uiWorkboxTAB.all_widgets():
-            workbox.__set_margins_font__(font)
-            workbox.__set_font__(font)
+        self.setFont(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -583,7 +606,7 @@ class LoggerWindow(Window):
             self.uiConsoleTOOLBAR.hide()
 
         # Handle any cleanup each workbox tab may need to do before closing
-        for editor in self.uiWorkboxTAB.all_widgets():
+        for editor, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             editor.__close__()
 
     def closeLogger(self):
@@ -684,6 +707,22 @@ class LoggerWindow(Window):
         with open(filename, 'w') as fp:
             json.dump(pref, fp, indent=4)
 
+    def restartLogger(self):
+        """Closes this PrEditor instance and starts a new process with the same
+        cli arguments.
+
+        Note: This only works if PrEditor is running in standalone mode. It doesn't
+        quit the QApplication or other host process. It simply closes this instance
+        of PrEditor, saving its preferences, which should allow Qt to exit if no
+        other windows are open.
+        """
+        self.close()
+
+        # Get the current command and launch it as a new process.
+        cmd = sys.argv[0]
+        args = sys.argv[1:]
+        QtCore.QProcess.startDetached(cmd, args)
+
     def restorePrefs(self):
         pref = self.load_prefs()
 
@@ -762,7 +801,7 @@ class LoggerWindow(Window):
         if _font:
             font = QFont()
             if font.fromString(_font):
-                self.console().setConsoleFont(font)
+                self.setFont(font)
 
     def restoreToolbars(self, pref=None):
         if pref is None:
@@ -775,7 +814,7 @@ class LoggerWindow(Window):
 
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
@@ -808,8 +847,7 @@ class LoggerWindow(Window):
         """Set timer to automatically clear status text"""
         if self.statusTimer.isActive():
             self.statusTimer.stop()
-        self.statusTimer.singleShot(2000, self.clearStatusText)
-        self.statusTimer.start()
+        self.statusTimer.start(2000)
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):
         """Accepts the name of a stylesheet included with blurdev, or a full
@@ -934,6 +972,24 @@ class LoggerWindow(Window):
         if success:
             self.uiConsoleTXT.flash_time = value
 
+    def setFont(self, font, report=False):
+        """Set the same font for the console and all workbox's margins and text.
+
+        Args:
+            font (QFont): The font to set.
+            report (bool, optional): Update status text with the font family and size.
+        """
+        super(LoggerWindow, self).setFont(font)
+        self.console().setConsoleFont(font)
+
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
+            workbox.__set_margins_font__(font)
+            workbox.__set_font__(font)
+
+        if report:
+            self.setStatusText('Font: {}: {}'.format(font.family(), font.pointSize()))
+            self.autoHideStatusText()
+
     def setWordWrap(self, state):
         if state:
             self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.WidgetWidth)
@@ -971,14 +1027,26 @@ class LoggerWindow(Window):
     def show_workbox_options(self):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
+    @Slot()
+    def show_find_in_workboxes(self):
+        """Ensure the find workboxes widget is visible and has focus."""
+        self.uiFindInWorkboxesWGT.activate()
+
+    @Slot()
+    def show_focus_name(self):
+        model = WorkboxListItemModel(manager=self.uiWorkboxTAB)
+        model.process()
+        w = CommandPalette(model, parent=self)
+        w.popup()
+
     def updateCopyIndentsAsSpaces(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_copy_indents_as_spaces__(
                 self.uiCopyTabsToSpacesACT.isChecked()
             )
 
     def updateIndentationsUseTabs(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsACT.isChecked()
             )
@@ -1057,7 +1125,9 @@ class LoggerWindow(Window):
         group_tab.setCurrentIndex(index)
 
     @staticmethod
-    def instance(parent=None, name=None, run_workbox=False, create=True):
+    def instance(
+        parent=None, name=None, run_workbox=False, create=True, standalone=False
+    ):
         """Returns the existing instance of the PrEditor gui creating it on first call.
 
         Args:
@@ -1066,6 +1136,9 @@ class LoggerWindow(Window):
             run_workbox (bool, optional): If the instance hasn't been created yet, this
                 will execute the active workbox's code once fully initialized.
             create (bool, optional): Returns None if the instance has not been created.
+            standalone (bool, optional): Launch PrEditor in standalone mode. This
+                enables extra options that only make sense when it is running as
+                its own app, not inside of another app.
 
         Returns:
             Returns a fully initialized instance of the PrEditor gui. If called more
@@ -1078,7 +1151,9 @@ class LoggerWindow(Window):
                 return None
 
             # create the logger instance
-            inst = LoggerWindow(parent, name=name, run_workbox=run_workbox)
+            inst = LoggerWindow(
+                parent, name=name, run_workbox=run_workbox, standalone=standalone
+            )
 
             # RV has a Unique window structure. It makes more sense to not parent a
             # singleton window than to parent it to a specific top level window.

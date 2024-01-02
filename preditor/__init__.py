@@ -113,7 +113,7 @@ def configure(name, parent_callback=None, excepthook=True, logging=True, streams
         preditor.debug.BlurExcepthook.install()
 
 
-def launch(run_workbox=False, app_id=None, name=None):
+def launch(run_workbox=False, app_id=None, name=None, standalone=False):
     """Launches the preditor gui creating the QApplication instance if not
     already created.
 
@@ -125,6 +125,9 @@ def launch(run_workbox=False, app_id=None, name=None):
         app_id (str, optional): Set the QApplication's applicationName to this
             value. This is normally only used when launching a standalone
             instance of the PrEditor gui.
+        standalone (bool, optional): Launch PrEditor in standalone mode. This
+            enables extra options that only make sense when it is running as
+            its own app, not inside of another app.
 
     Returns:
         preditor.gui.loggerwindow.LoggerWindow: The instance of the PrEditor
@@ -147,7 +150,9 @@ def launch(run_workbox=False, app_id=None, name=None):
 
     # Check if we can actually run the PrEditor gui and setup Qt if required
     app = App(name=app_id)
-    widget = LoggerWindow.instance(run_workbox=run_workbox, name=name)
+    widget = LoggerWindow.instance(
+        run_workbox=run_workbox, name=name, standalone=standalone
+    )
 
     # Show the PrEditor instance and make sure it regains focus and visibility
     widget.show()
