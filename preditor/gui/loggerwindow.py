@@ -37,6 +37,8 @@ from .. import (
 )
 from ..delayable_engine import DelayableEngine
 from ..gui import Dialog, Window, loadUi
+from ..gui.command_palette.command_palette import CommandPalette
+from ..gui.command_palette.workbox_item_model import WorkboxListItemModel
 from ..logging_config import LoggingConfig
 from ..utils import stylesheets
 from .completer import CompleterMode
@@ -181,6 +183,8 @@ class LoggerWindow(Window):
         self.uiGroup8ACT.triggered.connect(partial(self.gotoGroupByIndex, 8))
         self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
 
+        self.uiFocusNameACT.triggered.connect(self.show_focus_name)
+
         self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
         self.uiSpellCheckEnabledACT.toggled.connect(self.setSpellCheckEnabled)
@@ -312,7 +316,18 @@ class LoggerWindow(Window):
         return self.uiWorkboxTAB.current_groups_widget()
 
     @classmethod
-    def workbox_for_name(cls, name, show=False):
+    def name_for_workbox(cls, workbox):
+        ret = []
+        logger = cls.instance()
+        index = logger.uiWorkboxTAB.currentIndex()
+        ret.append(logger.uiWorkboxTAB.tabText(index))
+        group_widget = logger.uiWorkboxTAB.currentWidget()
+        index = group_widget.currentIndex()
+        ret.append(group_widget.tabText(index))
+        return "/".join(ret)
+
+    @classmethod
+    def workbox_for_name(cls, name, show=False, visible=False):
         """Used to find a workbox for a given name. It accepts a string matching
         the "{group}/{workbox}" format, or if True, the current workbox.
 
@@ -332,13 +347,19 @@ class LoggerWindow(Window):
 
         # If name is a string, find first tab with that name
         elif isinstance(name, six.string_types):
-            group, editor = name.split('/', 1)
-            index = logger.uiWorkboxTAB.index_for_text(group)
-            if index != -1:
-                tab_widget = logger.uiWorkboxTAB.widget(index)
+            split = name.split('/', 1)
+            if len(split) < 2:
+                return None
+            group, editor = split
+            group_index = logger.uiWorkboxTAB.index_for_text(group)
+            if group_index != -1:
+                tab_widget = logger.uiWorkboxTAB.widget(group_index)
                 index = tab_widget.index_for_text(editor)
                 if index != -1:
                     workbox = tab_widget.widget(index)
+                    if visible:
+                        tab_widget.setCurrentIndex(index)
+                        logger.uiWorkboxTAB.setCurrentIndex(group_index)
 
         if show and workbox:
             workbox.__show__()
@@ -580,7 +601,7 @@ class LoggerWindow(Window):
             self.uiConsoleTOOLBAR.hide()
 
         # Handle any cleanup each workbox tab may need to do before closing
-        for editor in self.uiWorkboxTAB.all_widgets():
+        for editor, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             editor.__close__()
 
     def closeLogger(self):
@@ -788,7 +809,7 @@ class LoggerWindow(Window):
 
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
@@ -956,7 +977,7 @@ class LoggerWindow(Window):
         super(LoggerWindow, self).setFont(font)
         self.console().setConsoleFont(font)
 
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
 
@@ -1001,14 +1022,21 @@ class LoggerWindow(Window):
     def show_workbox_options(self):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
+    @Slot()
+    def show_focus_name(self):
+        model = WorkboxListItemModel(manager=self.uiWorkboxTAB)
+        model.process()
+        w = CommandPalette(model, parent=self)
+        w.popup()
+
     def updateCopyIndentsAsSpaces(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_copy_indents_as_spaces__(
                 self.uiCopyTabsToSpacesACT.isChecked()
             )
 
     def updateIndentationsUseTabs(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsACT.isChecked()
             )

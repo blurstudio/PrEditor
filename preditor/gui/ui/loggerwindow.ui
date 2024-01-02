@@ -322,6 +322,7 @@
     <addaction name="separator"/>
     <addaction name="menuFocus_to_Group"/>
     <addaction name="menuFocus_to_Tab"/>
+    <addaction name="uiFocusNameACT"/>
    </widget>
    <addaction name="uiScriptingMENU"/>
    <addaction name="menuEdit"/>
@@ -929,6 +930,14 @@ at the indicated line in the specified text editor.
   <action name="uiBackupPreferencesACT">
    <property name="text">
     <string>Backup</string>
+   </property>
+  </action>
+  <action name="uiFocusNameACT">
+   <property name="text">
+    <string>Focus To Name</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
   <action name="uiRestartACT">
