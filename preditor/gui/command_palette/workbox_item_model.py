@@ -1,6 +1,8 @@
 from __future__ import absolute_import
 
-from Qt.QtCore import Qt
+import re
+
+from Qt.QtCore import QSortFilterProxyModel, Qt
 from Qt.QtGui import QStandardItem, QStandardItemModel
 
 
@@ -39,3 +41,38 @@ class WorkboxListItemModel(WorkboxItemModel):
         for _, group_name, tab_name, _, _ in self.manager.all_widgets():
             group_item = QStandardItem('/'.join((group_name, tab_name)))
             root.appendRow(group_item)
+
+
+class WorkboxFuzzyFilterProxyModel(QSortFilterProxyModel):
+    """Implements a fuzzy search filter proxy model."""
+
+    def __init__(self, parent=None):
+        super(WorkboxFuzzyFilterProxyModel, self).__init__(parent=parent)
+        self._fuzzy_regex = None
+
+    def setFuzzySearch(self, search):
+        search = '.*'.join(search)
+        # search = '.*{}.*'.format(search)
+        self._fuzzy_regex = re.compile(search, re.I)
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        if self.filterKeyColumn() == 0 and self._fuzzy_regex:
+
+            index = self.sourceModel().index(sourceRow, 0, sourceParent)
+            data = self.sourceModel().data(index)
+            ret = bool(self._fuzzy_regex.search(data))
+            return ret
+
+        return super(WorkboxFuzzyFilterProxyModel, self).filterAcceptsRow(
+            sourceRow, sourceParent
+        )
+
+    def pathFromIndex(self, index):
+        parts = [""]
+        while index.isValid():
+            parts.append(self.data(index, Qt.DisplayRole))
+            index = index.parent()
+        if len(parts) == 1:
+            return ""
+        return "/".join([x for x in parts[::-1] if x])

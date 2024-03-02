@@ -27,7 +27,11 @@ class CommandPalette(QFrame):
         self.uiLineCOMPL.activated.connect(self.completed)
         self.uiLineCOMPL.highlighted.connect(self.completer_selected)
         # self.uiLineCOMPL.popup().clicked.connect(self.completed)
+        self.uiLineEDIT.textChanged.connect(self.update_completer)
         self.current_name = parent.name_for_workbox(parent.current_workbox())
+
+    def update_completer(self, wildcard):
+        self.uiLineCOMPL.updatePattern(wildcard)
 
     def completed(self, name):
         if isinstance(name, six.string_types):
