@@ -7,9 +7,19 @@ from Qt.QtGui import QStandardItem, QStandardItemModel
 
 
 class WorkboxItemModel(QStandardItemModel):
+    GroupIndexRole = Qt.UserRole + 1
+    TabIndexRole = GroupIndexRole + 1
+
     def __init__(self, manager, *args, **kwargs):
         super(WorkboxItemModel, self).__init__(*args, **kwargs)
         self.manager = manager
+
+    def workbox_indexes_from_model_index(self, index):
+        """Returns the group_index and tab_index for the provided QModelIndex"""
+        return (
+            index.data(WorkboxListItemModel.GroupIndexRole),
+            index.data(WorkboxListItemModel.TabIndexRole),
+        )
 
     def pathFromIndex(self, index):
         parts = [""]
@@ -24,23 +34,43 @@ class WorkboxItemModel(QStandardItemModel):
 class WorkboxTreeItemModel(WorkboxItemModel):
     def process(self):
         root = self.invisibleRootItem()
+        current_group = self.manager.currentIndex()
+        current_tab = self.manager.currentWidget().currentIndex()
+
         prev_group = -1
-        for _, group_name, tab_name, group_index, _ in self.manager.all_widgets():
+        all_widgets = self.manager.all_widgets()
+        for _, group_name, tab_name, group_index, tab_index in all_widgets:
             if prev_group != group_index:
                 group_item = QStandardItem(group_name)
+                group_item.setData(group_index, self.GroupIndexRole)
                 root.appendRow(group_item)
                 prev_group = group_index
 
             tab_item = QStandardItem(tab_name)
+            tab_item.setData(group_index, self.GroupIndexRole)
+            tab_item.setData(tab_index, self.TabIndexRole)
             group_item.appendRow(tab_item)
+            if group_index == current_group and tab_index == current_tab:
+                self.original_model_index = self.indexFromItem(tab_item)
 
 
 class WorkboxListItemModel(WorkboxItemModel):
+    def flags(self, index):
+        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
     def process(self):
         root = self.invisibleRootItem()
-        for _, group_name, tab_name, _, _ in self.manager.all_widgets():
-            group_item = QStandardItem('/'.join((group_name, tab_name)))
-            root.appendRow(group_item)
+        current_group = self.manager.currentIndex()
+        current_tab = self.manager.currentWidget().currentIndex()
+
+        all_widgets = self.manager.all_widgets()
+        for _, group_name, tab_name, group_index, tab_index in all_widgets:
+            tab_item = QStandardItem('/'.join((group_name, tab_name)))
+            tab_item.setData(group_index, self.GroupIndexRole)
+            tab_item.setData(tab_index, self.TabIndexRole)
+            root.appendRow(tab_item)
+            if group_index == current_group and tab_index == current_tab:
+                self.original_model_index = self.indexFromItem(tab_item)
 
 
 class WorkboxFuzzyFilterProxyModel(QSortFilterProxyModel):

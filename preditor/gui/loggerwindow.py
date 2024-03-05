@@ -1036,7 +1036,16 @@ class LoggerWindow(Window):
     def show_focus_name(self):
         model = WorkboxListItemModel(manager=self.uiWorkboxTAB)
         model.process()
+
+        def update_tab(index):
+            group, tab = model.workbox_indexes_from_model_index(index)
+            if group is not None:
+                self.uiWorkboxTAB.set_current_groups_from_index(group, tab)
+
         w = CommandPalette(model, parent=self)
+        w.selected.connect(update_tab)
+        w.canceled.connect(update_tab)
+        w.highlighted.connect(update_tab)
         w.popup()
 
     def updateCopyIndentsAsSpaces(self):

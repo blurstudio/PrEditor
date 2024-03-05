@@ -117,7 +117,7 @@ class GroupTabWidget(OneTabWidget):
         """A generator yielding information about every widget under every group.
 
         Yields:
-            group tab name, widget tab name, group tab index, widget tab index, widget
+            widget, group tab name, widget tab name, group tab index, widget tab index
         """
         for group_index in range(self.count()):
             group_name = self.tabText(group_index)
