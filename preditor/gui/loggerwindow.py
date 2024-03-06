@@ -311,7 +311,20 @@ class LoggerWindow(Window):
         return self.uiWorkboxTAB.current_groups_widget()
 
     @classmethod
-    def workbox_for_name(cls, name, show=False):
+    def name_for_workbox(cls, workbox):
+        """Returns the name for a given workbox.
+        The name is the group tab text and the workbox tab text joined by a `/`"""
+        ret = []
+        logger = cls.instance()
+        index = logger.uiWorkboxTAB.currentIndex()
+        ret.append(logger.uiWorkboxTAB.tabText(index))
+        group_widget = logger.uiWorkboxTAB.currentWidget()
+        index = group_widget.currentIndex()
+        ret.append(group_widget.tabText(index))
+        return "/".join(ret)
+
+    @classmethod
+    def workbox_for_name(cls, name, show=False, visible=False):
         """Used to find a workbox for a given name. It accepts a string matching
         the "{group}/{workbox}" format, or if True, the current workbox.
 
@@ -319,6 +332,7 @@ class LoggerWindow(Window):
             name(str, boolean): Used to define which workbox to run.
             show (bool, optional): If a workbox is found, call `__show__` on it
                 to ensure that it is initialized and its text is loaded.
+            visible (bool, optional): Make the this workbox visible if found.
         """
         logger = cls.instance()
 
@@ -331,13 +345,19 @@ class LoggerWindow(Window):
 
         # If name is a string, find first tab with that name
         elif isinstance(name, six.string_types):
-            group, editor = name.split('/', 1)
-            index = logger.uiWorkboxTAB.index_for_text(group)
-            if index != -1:
-                tab_widget = logger.uiWorkboxTAB.widget(index)
+            split = name.split('/', 1)
+            if len(split) < 2:
+                return None
+            group, editor = split
+            group_index = logger.uiWorkboxTAB.index_for_text(group)
+            if group_index != -1:
+                tab_widget = logger.uiWorkboxTAB.widget(group_index)
                 index = tab_widget.index_for_text(editor)
                 if index != -1:
                     workbox = tab_widget.widget(index)
+                    if visible:
+                        tab_widget.setCurrentIndex(index)
+                        logger.uiWorkboxTAB.setCurrentIndex(group_index)
 
         if show and workbox:
             workbox.__show__()
