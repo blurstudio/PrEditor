@@ -589,7 +589,7 @@ class LoggerWindow(Window):
             self.uiConsoleTOOLBAR.hide()
 
         # Handle any cleanup each workbox tab may need to do before closing
-        for editor in self.uiWorkboxTAB.all_widgets():
+        for editor, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             editor.__close__()
 
     def closeLogger(self):
@@ -797,7 +797,7 @@ class LoggerWindow(Window):
 
     def setAutoCompleteEnabled(self, state):
         self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
@@ -994,13 +994,13 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
     def updateCopyIndentsAsSpaces(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_copy_indents_as_spaces__(
                 self.uiCopyTabsToSpacesACT.isChecked()
             )
 
     def updateIndentationsUseTabs(self):
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsACT.isChecked()
             )
