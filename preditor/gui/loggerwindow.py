@@ -721,9 +721,15 @@ class LoggerWindow(Window):
         """
         self.close()
 
-        # Get the current command and launch it as a new process.
+        # Get the current command and launch it as a new process. This handles
+        # use of the preditor/preditor executable launchers.
         cmd = sys.argv[0]
         args = sys.argv[1:]
+
+        if os.path.basename(cmd) == "__main__.py":
+            # Handles using `python -m preditor` style launch.
+            cmd = sys.executable
+            args = ["-m", "preditor"] + args
         QtCore.QProcess.startDetached(cmd, args)
 
     def restorePrefs(self):
