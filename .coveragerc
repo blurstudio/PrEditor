@@ -1,3 +1,12 @@
 [report]
+show_missing = false
+skip_covered = true
+skip_empty = true
+
+[run]
+# Ensure all python modules in preditor have their coverage reported,
+# not just files that pytest touches.
+source = preditor
 omit =
     */site-packages/*
+relative_files=True
