@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>uiFindFilesWGT</class>
+ <widget class="QWidget" name="uiFindFilesWGT">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>636</width>
+    <height>41</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="1">
+    <widget class="QLabel" name="uiFindLBL">
+     <property name="text">
+      <string>Find:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="uiFindOptionsLYT">
+     <item>
+      <widget class="QToolButton" name="uiRegexBTN">
+       <property name="toolTip">
+        <string>Regex (Alt + R)</string>
+       </property>
+       <property name="text">
+        <string>Regex</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="uiCaseSensitiveBTN">
+       <property name="toolTip">
+        <string>Case Sensitive (Alt + C)</string>
+       </property>
+       <property name="text">
+        <string>Case Sensitive</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="uiContextSPN">
+       <property name="toolTip">
+        <string># of lines of context to show</string>
+       </property>
+       <property name="buttonSymbols">
+        <enum>QAbstractSpinBox::PlusMinus</enum>
+       </property>
+       <property name="value">
+        <number>2</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="0" column="2">
+    <widget class="QLineEdit" name="uiFindTXT"/>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="uiFindBTN">
+     <property name="text">
+      <string>Find</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QToolButton" name="uiCloseBTN">
+     <property name="text">
+      <string>x</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>uiFindBTN</sender>
+   <signal>released()</signal>
+   <receiver>uiFindFilesWGT</receiver>
+   <slot>find()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>601</x>
+     <y>31</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>421</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiFindTXT</sender>
+   <signal>returnPressed()</signal>
+   <receiver>uiFindFilesWGT</receiver>
+   <slot>find()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>488</x>
+     <y>23</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>501</x>
+     <y>65</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>uiCloseBTN</sender>
+   <signal>released()</signal>
+   <receiver>uiFindFilesWGT</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>620</x>
+     <y>19</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>676</x>
+     <y>24</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>find()</slot>
+ </slots>
+</ui>

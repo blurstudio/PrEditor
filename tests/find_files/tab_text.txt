@@ -1,0 +1,20 @@
+Search term
+line 2
+search term
+
+line 5
+search term at the start of the line
+line 7
+line 8
+line 9
+line 10
+search is in this line but the actual search term is in the middle
+
+
+line 14
+line 15
+
+This line has underscores around _search term_ and "search term" has double quotes
+This line has the search term in multiple times... search term
+Search term the search term with the search term
+The "newline at end of file" is not printed due to str.splitlines.
