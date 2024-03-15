@@ -54,6 +54,7 @@ class Director(io.TextIOBase):
             self.old_stream
             and not self.std_stream_wrapped
             and self.old_stream is not sys.__stdout__
+            and self.old_stream is not sys.__stderr__
         ):
             self.old_stream.close()
 
