@@ -6,7 +6,7 @@ import sys
 import pytest
 import six
 
-from preditor.stream import STDOUT, Director, Manager, install_to_std
+from preditor.stream import STDOUT, STDERR, Director, Manager, install_to_std
 
 
 @pytest.fixture
@@ -48,7 +48,9 @@ def test_no_old_stream(manager):
 
 
 def test_nul_stream(manager):
-    # I can't set the `name` of a regular TextIOWrapper
+    # I can't set the `name` prop of a regular TextIOWrapper
+    # So I need this subclass so I can mock the pythonw
+    # standard out/err streams
     class NamedTextIOWrapper(io.TextIOWrapper):
         def __init__(self, buffer, name=None, **kwargs):
             vars(self)['name'] = name
@@ -59,22 +61,43 @@ def test_nul_stream(manager):
                 return vars(self)['name']
             return super().__getattribute__(name)
 
-    orig_director = Director(manager, STDOUT)
-    wrap_director = Director(manager, 'test_wrap', old_stream=orig_director)
+    # Make directors that wrap sys.stdout and sys.stderr
+    # This way we can check that the default behavior works
+    stdout_director = Director(manager, STDOUT)
+    stderr_director = Director(manager, STDERR)
 
+    # Wrap the stdout/stderr directors so we can check that
+    # director.std_stream_wrapped is not set for these cases
+    wrapout_director = Director(manager, 'test_wrapout', old_stream=stdout_director)
+    wraperr_director = Director(manager, 'test_wraperr', old_stream=stdout_director)
+
+    # Back up sys.stdout/stderr and replace them with my own streams that replicate
+    # the name/encoding of the windows pythonw.exe default streams
     orig_stdout = sys.stdout
+    orig_stderr = sys.stderr
     sys.stdout = NamedTextIOWrapper(six.BytesIO(), name='nul', encoding='cp1252')
+    sys.stderr = NamedTextIOWrapper(six.BytesIO(), name='nul', encoding='cp1252')
     try:
-        null_director = Director(manager, STDOUT)
+        # Build a director here that will grab the nul streams
+        # so we can check that they don't store them in .old_stream
+        nullout_director = Director(manager, STDOUT)
+        nullerr_director = Director(manager, STDERR)
     finally:
+        # And make sure to restore the backed up stdout
         sys.stdout = orig_stdout
+        sys.stderr = orig_stderr
 
-    assert null_director.old_stream is None
-    assert orig_director.old_stream is sys.stdout
+    assert nullout_director.old_stream is None
+    assert nullerr_director.old_stream is None
+    assert stdout_director.old_stream is sys.stdout
+    assert stderr_director.old_stream is sys.stderr
 
-    assert not null_director.std_stream_wrapped
-    assert orig_director.std_stream_wrapped
-    assert not wrap_director.std_stream_wrapped
+    assert stdout_director.std_stream_wrapped
+    assert stderr_director.std_stream_wrapped
+    assert not nullout_director.std_stream_wrapped
+    assert not nullerr_director.std_stream_wrapped
+    assert not wrapout_director.std_stream_wrapped
+    assert not wraperr_director.std_stream_wrapped
 
 
 def test_callback(manager, stdout, stderr):
