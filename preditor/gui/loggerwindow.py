@@ -516,7 +516,7 @@ class LoggerWindow(Window):
             font.setPointSize(newSize)
             self.console().setConsoleFont(font)
 
-            for workbox in self.uiWorkboxTAB.all_widgets():
+            for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
                 marginsFont = workbox.__margins_font__()
                 marginsFont.setPointSize(newSize)
                 workbox.__set_margins_font__(marginsFont)
@@ -570,7 +570,7 @@ class LoggerWindow(Window):
         font.setFamily(family)
         self.console().setConsoleFont(font)
 
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
 
