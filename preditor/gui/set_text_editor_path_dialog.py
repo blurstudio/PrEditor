@@ -17,7 +17,7 @@ class SetTextEditorPathDialog(QDialog):
         super(SetTextEditorPathDialog, self).__init__(parent)
         loadUi(__file__, self)
 
-        # Rerieve existing data from LoggerWindow
+        # Retrieve existing data from LoggerWindow
         path = self.parent().textEditorPath
         cmdTempl = self.parent().textEditorCmdTempl
 
@@ -29,9 +29,9 @@ class SetTextEditorPathDialog(QDialog):
 
         toolTip = (
             "Examples:\n"
-            "SublimeText: {exePath} {modulePath}:{lineNum}\n"
-            "notepad++: {exePath} {modulePath} -n{lineNum}\n"
-            "vim: {exePath} +{lineNum} {modulePath}"
+            'SublimeText: "{exePath}" "{modulePath}":{lineNum}\n'
+            'notepad++: "{exePath}" "{modulePath}" -n{lineNum}\n'
+            'vim: "{exePath}" + {lineNum} "{modulePath}'
         )
         self.uiTextEditorCommandPatternLE.setToolTip(toolTip)
 
