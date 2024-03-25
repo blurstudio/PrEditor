@@ -22,6 +22,7 @@ from .. import debug, settings, stream
 from ..streamhandler_helper import StreamHandlerHelper
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
+from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 
 
 class ConsolePrEdit(QTextEdit):
@@ -252,6 +253,23 @@ class ConsolePrEdit(QTextEdit):
             return
 
         if modulePath:
+            # Check if cmdTempl filepaths aren't wrapped in double=quotes to handle
+            # spaces. If not, suggest to user to update the template, offering the
+            # suggested change.
+            pattern = r"(?<!\")({\w+Path})(?!\")"
+            repl = r'"\g<1>"'
+            quotedCmdTempl = re.sub(pattern, repl, cmdTempl)
+            if quotedCmdTempl != cmdTempl:
+                # Instantiate dialog to maybe show (unless user previously chose "Don't
+                # ask again")
+                dialog = SuggestPathQuotesDialog(
+                    self.window(), cmdTempl, quotedCmdTempl
+                )
+                self.window().maybeDisplayDialog(dialog)
+
+            # Refresh cmdTempl in case user just had it changed.
+            cmdTempl = window.textEditorCmdTempl
+
             # Attempt to create command from template and run the command
             try:
                 command = cmdTempl.format(

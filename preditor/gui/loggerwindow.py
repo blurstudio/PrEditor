@@ -885,7 +885,7 @@ class LoggerWindow(Window):
 
         # External text editor filepath and command template
         defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"
-        defaultCmd = r"{exePath} {modulePath}:{lineNum}"
+        defaultCmd = r'"{exePath}" "{modulePath}":{lineNum}'
         self.textEditorPath = pref.get('textEditorPath', defaultExePath)
         self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
 
