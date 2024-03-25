@@ -262,6 +262,7 @@ class LoggerWindow(Window):
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
 
+        self.dont_ask_again = []
         self.restorePrefs()
 
         # add stylesheet menu options.
@@ -754,6 +755,7 @@ class LoggerWindow(Window):
                 'uiHighlightExactCompletionACT': (
                     self.uiHighlightExactCompletionACT.isChecked()
                 ),
+                'dont_ask_again': self.dont_ask_again,
             }
         )
 
@@ -787,6 +789,15 @@ class LoggerWindow(Window):
             os.makedirs(dirname)
         with open(filename, 'w') as fp:
             json.dump(pref, fp, indent=4)
+
+    def maybeDisplayDialog(self, dialog):
+        """If user hasn't previously opted to not show this particular dialog again,
+        show it.
+        """
+        if dialog.objectName() in self.dont_ask_again:
+            return
+
+        dialog.exec_()
 
     def restartLogger(self):
         """Closes this PrEditor instance and starts a new process with the same
@@ -909,6 +920,8 @@ class LoggerWindow(Window):
             font = QFont()
             if font.fromString(_font):
                 self.console().setConsoleFont(font)
+
+        self.dont_ask_again = pref.get('dont_ask_again', [])
 
     def restoreToolbars(self, pref=None):
         if pref is None:
