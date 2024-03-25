@@ -212,8 +212,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         execSelected, which ultimately calls this workbox's __exec_selected__.
 
         Also note, it would make sense to have ctrl+Enter also execute without
-        truncation, but no modifers are registered when Enter is pressed (unlike
-        when Return is pressed), so this combination is not detecable.
+        truncation, but no modifiers are registered when Enter is pressed (unlike
+        when Return is pressed), so this combination is not detectable.
         """
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
