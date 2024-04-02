@@ -1,7 +1,7 @@
 from __future__ import absolute_import, print_function
 
 from Qt.QtCore import Qt
-from Qt.QtGui import QIcon
+from Qt.QtGui import QIcon, QKeySequence
 from Qt.QtWidgets import QApplication, QShortcut, QWidget
 
 from .. import resourcePath
@@ -30,17 +30,22 @@ class FindFiles(QWidget):
 
         # Create shortcuts
         self.uiCloseSCT = QShortcut(
-            Qt.Key_Escape, self, context=Qt.WidgetWithChildrenShortcut
+            QKeySequence(Qt.Key_Escape), self, context=Qt.WidgetWithChildrenShortcut
         )
+
         self.uiCloseSCT.activated.connect(self.hide)
 
         self.uiCaseSensitiveSCT = QShortcut(
-            Qt.AltModifier | Qt.Key_C, self, context=Qt.WidgetWithChildrenShortcut
+            QKeySequence(Qt.AltModifier | Qt.Key_C),
+            self,
+            context=Qt.WidgetWithChildrenShortcut,
         )
         self.uiCaseSensitiveSCT.activated.connect(self.uiCaseSensitiveBTN.toggle)
 
         self.uiRegexSCT = QShortcut(
-            Qt.AltModifier | Qt.Key_R, self, context=Qt.WidgetWithChildrenShortcut
+            QKeySequence(Qt.AltModifier | Qt.Key_R),
+            self,
+            context=Qt.WidgetWithChildrenShortcut,
         )
         self.uiRegexSCT.activated.connect(self.uiRegexBTN.toggle)
 
