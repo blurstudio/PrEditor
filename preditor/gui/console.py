@@ -106,6 +106,11 @@ class ConsolePrEdit(QTextEdit):
         self.clickPos = None
         self.anchor = None
 
+        # Make sure console cursor is visible. It can get it's width set to 0 with
+        # unusual(ie not 100%) os display scaling.
+        if not self.cursorWidth():
+            self.setCursorWidth(1)
+
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
         to get scroll.maximum() to update properly so that we calc newValue
