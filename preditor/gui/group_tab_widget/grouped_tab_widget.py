@@ -71,5 +71,8 @@ class GroupedTabWidget(OneTabWidget):
         if editor and editor.isVisible():
             editor.__show__()
 
+        if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
+            self.window().setWorkboxFontBasedOnConsole()
+
     def update_closable_tabs(self):
         self.setTabsClosable(self.count() != 1)

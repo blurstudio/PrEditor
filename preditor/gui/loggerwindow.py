@@ -14,10 +14,11 @@ import __main__
 import six
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
-from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
+from Qt.QtGui import QCursor, QFont, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QInputDialog,
+    QFontDialog,
     QLabel,
     QMessageBox,
     QTextBrowser,
@@ -75,6 +76,7 @@ class LoggerWindow(Window):
         loadUi(__file__, self)
 
         self.uiConsoleTXT.flash_window = self
+        self.uiConsoleTXT.clearExecutionTime = self.clearExecutionTime
         self.uiConsoleTXT.reportExecutionTime = self.reportExecutionTime
         self.uiClearToLastPromptACT.triggered.connect(
             self.uiConsoleTXT.clearToLastPrompt
@@ -119,11 +121,37 @@ class LoggerWindow(Window):
         self.uiCloseLoggerACT.triggered.connect(self.closeLogger)
 
         self.uiRunAllACT.triggered.connect(self.execAll)
-        self.uiRunSelectedACT.triggered.connect(self.execSelected)
+        # Even though the RunSelected actions (with shortcuts) are connected
+        # here, this only affects if the action is chosen from the menu. The
+        # shortcuts are always intercepted by the workbox document editor. To
+        # handle this, the workbox.keyPressEvent method will perceive the
+        # shortcut press, and call .execSelected, which will then ultimately call
+        # workbox.__exec_selected__
+        self.uiRunSelectedACT.triggered.connect(
+            partial(self.execSelected, truncate=True)
+        )
+        self.uiRunSelectedDontTruncateACT.triggered.connect(
+            partial(self.execSelected, truncate=False)
+        )
 
-        self.uiAutoCompleteEnabledACT.toggled.connect(self.setAutoCompleteEnabled)
+        self.uiConsoleAutoCompleteEnabledACT.toggled.connect(
+            partial(self.setAutoCompleteEnabled, console=True)
+        )
+        self.uiWorkboxAutoCompleteEnabledACT.toggled.connect(
+            partial(self.setAutoCompleteEnabled, console=False)
+        )
 
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
+
+        self.uiSelectMonospaceFontACT.triggered.connect(partial(
+            self.selectFont, monospace=True)
+        )
+        self.uiSelectProportionalFontACT.triggered.connect(partial(
+            self.selectFont, proportional=True)
+        )
+        self.uiSelectAllFontACT.triggered.connect(partial(
+            self.selectFont, monospace=True, proportional=True)
+        )
 
         # Setup ability to cycle completer mode, and create action for each mode
         self.completerModeCycle = itertools.cycle(CompleterMode)
@@ -234,26 +262,8 @@ class LoggerWindow(Window):
         # Make action shortcuts available anywhere in the Logger
         self.addAction(self.uiClearLogACT)
 
+        self.dont_ask_again = []
         self.restorePrefs()
-
-        # add font menu list
-        curFamily = self.console().font().family()
-        fontDB = QFontDatabase()
-        fontFamilies = fontDB.families(QFontDatabase.Latin)
-        monospaceFonts = [fam for fam in fontFamilies if fontDB.isFixedPitch(fam)]
-
-        self.uiMonospaceFontMENU.clear()
-        self.uiProportionalFontMENU.clear()
-
-        for family in fontFamilies:
-            if family in monospaceFonts:
-                action = self.uiMonospaceFontMENU.addAction(family)
-            else:
-                action = self.uiProportionalFontMENU.addAction(family)
-            action.setObjectName(u'ui{}FontACT'.format(family))
-            action.setCheckable(True)
-            action.setChecked(family == curFamily)
-            action.triggered.connect(partial(self.selectFont, action))
 
         # add stylesheet menu options.
         for style_name in stylesheets.stylesheets():
@@ -275,6 +285,9 @@ class LoggerWindow(Window):
                 osystem.getPointerSize(),
             )
         )
+
+        self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
 
         self.setup_run_workbox()
 
@@ -429,7 +442,7 @@ class LoggerWindow(Window):
         if not workbox.hasFocus():
             return
 
-        text = workbox.__selected_text__()
+        text, _line = workbox.__selected_text__(selectText=True)
         if not text:
             line, index = workbox.__cursor_position__()
             text = workbox.__text__(line)
@@ -494,7 +507,7 @@ class LoggerWindow(Window):
             # font-resize wheel event was within a certain threshhold.
             now = datetime.now()
             elapsed = now - self.previousFontResizeTime
-            tolerance = timedelta(microseconds=100000)
+            tolerance = timedelta(microseconds=250000)
             if elapsed < tolerance:
                 return
             self.previousFontResizeTime = now
@@ -513,15 +526,7 @@ class LoggerWindow(Window):
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
-            font.setPointSize(newSize)
-            self.console().setConsoleFont(font)
-
-            for workbox in self.uiWorkboxTAB.all_widgets():
-                marginsFont = workbox.__margins_font__()
-                marginsFont.setPointSize(newSize)
-                workbox.__set_margins_font__(marginsFont)
-
-                workbox.__set_font__(font)
+            self.setFontSize(newSize)
         else:
             Window.wheelEvent(self, event)
 
@@ -539,40 +544,71 @@ class LoggerWindow(Window):
         menu = action.parentWidget()
         QToolTip.showText(QCursor.pos(), text, menu)
 
-    def findCurrentFontAction(self):
-        """Find and return current font's action"""
-        actions = self.uiMonospaceFontMENU.actions()
-        actions.extend(self.uiProportionalFontMENU.actions())
-
-        action = None
-        for act in actions:
-            if act.isChecked():
-                action = act
-                break
-
-        return action
-
-    def selectFont(self, action):
-        """Set console and workbox font to current font
+    def selectFont(self, monospace=False, proportional=False):
+        """Present a QFontChooser dialog, offering, monospace, proportional, or all
+        fonts, based on user choice. If a font is chosen, set it on the console and
+        workboxes.
 
         Args:
-            action (QAction): menu action associated with chosen font
+            action (QAction): menu action associated with chosenO font
         """
+        origFont = self.console().font()
+        curFontFamily = origFont.family()
 
-        actions = self.uiMonospaceFontMENU.actions()
-        actions.extend(self.uiProportionalFontMENU.actions())
+        if monospace and proportional:
+            options = QFontDialog.MonospacedFonts | QFontDialog.ProportionalFonts
+            kind = "monospace or proportional "
+        elif monospace:
+            options = QFontDialog.MonospacedFonts
+            kind = "monospace "
+        elif proportional:
+            options = QFontDialog.ProportionalFonts
+            kind = "proportional "
 
-        for act in actions:
-            act.setChecked(act == action)
+        # Present a QFontDialog for user to choose a font
+        title = "Pick a {} font. Current font is: {}".format(kind, curFontFamily)
+        newFont, okClicked = QFontDialog.getFont(
+            origFont, self, title, options=options
+        )
 
-        family = action.text()
+        if okClicked:
+            self.console().setConsoleFont(newFont)
+            self.setWorkboxFontBasedOnConsole()
+            self.setEditorChooserFontBasedOnConsole()
+
+    def setFontSize(self, newSize):
+        """Update the font size in the console and current workbox.
+
+        Args:
+            newSize (int): The new size to set the font
+        """
         font = self.console().font()
-        font.setFamily(family)
+        font.setPointSize(newSize)
         self.console().setConsoleFont(font)
 
-        for workbox in self.uiWorkboxTAB.all_widgets():
+        self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
+
+    def setWorkboxFontBasedOnConsole(self):
+        """If the current workbox's font is different to the console's font, set it to
+        match.
+        """
+        font = self.console().font()
+        workbox = self.uiWorkboxTAB.currentWidget().currentWidget()
+        if workbox is None:
+            return
+        if workbox.font != font:
             workbox.__set_margins_font__(font)
             workbox.__set_font__(font)
+
+    def setEditorChooserFontBasedOnConsole(self):
+        """Set the EditorChooser font to match console. This helps with legibility when
+        using EditorChooser.
+        """
+        font = self.console().font()
+        for child in self.uiEditorChooserWGT.children():
+            if hasattr(child, "font"):
+                child.setFont(font)
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -635,11 +671,21 @@ class LoggerWindow(Window):
             prompt = console.prompt()
             console.startPrompt(prompt)
 
-    def execSelected(self):
-        """Clears the console before executing selected workbox code"""
+    def execSelected(self, truncate=True):
+        """Clears the console before executing selected workbox code.
+
+        NOTE! This method is not called when the uiRunSelectedACT is triggered,
+        because the workbox will always intercept it. So instead, the workbox's
+        keyPressEvent will notice the  shortcut and call this method.
+        """
+
         if self.uiClearBeforeRunningACT.isChecked():
             self.clearLog()
-        self.current_workbox().__exec_selected__()
+
+        self.current_workbox().__exec_selected__(truncate=truncate)
+
+        if self.uiAutoPromptACT.isChecked():
+            self.console().startInputLine()
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
@@ -651,6 +697,11 @@ class LoggerWindow(Window):
     def pathsAboutToBeCleared(self):
         if self.uiClearLogOnRefreshACT.isChecked():
             self.clearLog()
+
+    def clearExecutionTime(self):
+        """Update status text with hyphens to indicate execution has begun."""
+        self.setStatusText('Exec: -.- Seconds')
+        QApplication.instance().processEvents()
 
     def reportExecutionTime(self, seconds):
         """Update status text with seconds passed in."""
@@ -670,11 +721,15 @@ class LoggerWindow(Window):
                 'SplitterSize': self.uiSplitterSPLIT.sizes(),
                 'tabIndent': self.uiIndentationsTabsACT.isChecked(),
                 'copyIndentsAsSpaces': self.uiCopyTabsToSpacesACT.isChecked(),
-                'hintingEnabled': self.uiAutoCompleteEnabledACT.isChecked(),
+                'hintingEnabled': self.uiConsoleAutoCompleteEnabledACT.isChecked(),
+                'workboxHintingEnabled': (
+                    self.uiWorkboxAutoCompleteEnabledACT.isChecked()
+                ),
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
+                'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
                 'toolbarStates': six.text_type(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
@@ -691,6 +746,10 @@ class LoggerWindow(Window):
                 ),
                 'find_files_context': self.uiFindInWorkboxesWGT.uiContextSPN.value(),
                 'find_files_text': self.uiFindInWorkboxesWGT.uiFindTXT.text(),
+                'uiHighlightExactCompletionACT': (
+                    self.uiHighlightExactCompletionACT.isChecked()
+                ),
+                'dont_ask_again': self.dont_ask_again,
             }
         )
 
@@ -724,6 +783,15 @@ class LoggerWindow(Window):
             os.makedirs(dirname)
         with open(filename, 'w') as fp:
             json.dump(pref, fp, indent=4)
+
+    def maybeDisplayDialog(self, dialog):
+        """If user hasn't previously opted to not show this particular dialog again,
+        show it.
+        """
+        if dialog.objectName() in self.dont_ask_again:
+            return
+
+        dialog.exec_()
 
     def restartLogger(self):
         """Closes this PrEditor instance and starts a new process with the same
@@ -774,21 +842,20 @@ class LoggerWindow(Window):
         self.setWindowState(Qt.WindowStates(pref.get('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.get('tabIndent', True))
         self.uiCopyTabsToSpacesACT.setChecked(pref.get('copyIndentsAsSpaces', False))
-        self.uiAutoCompleteEnabledACT.setChecked(pref.get('hintingEnabled', True))
 
         # completer settings
         self.setCaseSensitive(pref.get('caseSensitive', True))
         completerMode = CompleterMode(pref.get('completerMode', 0))
         self.cycleToCompleterMode(completerMode)
         self.setCompleterMode(completerMode)
+        self.uiHighlightExactCompletionACT.setChecked(
+            pref.get('uiHighlightExactCompletionACT', False)
+        )
 
         self.setSpellCheckEnabled(self.uiSpellCheckEnabledACT.isChecked())
         self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
         self.uiSpellCheckEnabledACT.setDisabled(False)
 
-        self.uiConsoleTXT.completer().setEnabled(
-            self.uiAutoCompleteEnabledACT.isChecked()
-        )
         self.uiAutoSaveSettingssACT.setChecked(pref.get('uiAutoSaveSettingssACT', True))
 
         self.uiAutoPromptACT.setChecked(pref.get('uiAutoPromptACT', False))
@@ -820,6 +887,7 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
         self.uiClearLogOnRefreshACT.setChecked(pref.get('clearBeforeEnvRefresh', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
+        self.uiSelectTextACT.setChecked(pref.get('uiSelectTextACT', True))
 
         self._stylesheet = pref.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
@@ -830,6 +898,13 @@ class LoggerWindow(Window):
 
         self.uiWorkboxTAB.restore_prefs(pref.get('workbox_prefs', {}))
 
+        hintingEnabled = pref.get('hintingEnabled', True)
+        self.uiConsoleAutoCompleteEnabledACT.setChecked(hintingEnabled)
+        self.setAutoCompleteEnabled(hintingEnabled, console=True)
+        workboxHintingEnabled = pref.get('workboxHintingEnabled', True)
+        self.uiWorkboxAutoCompleteEnabledACT.setChecked(workboxHintingEnabled)
+        self.setAutoCompleteEnabled(workboxHintingEnabled, console=False)
+
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
 
@@ -838,6 +913,8 @@ class LoggerWindow(Window):
             font = QFont()
             if font.fromString(_font):
                 self.console().setConsoleFont(font)
+
+        self.dont_ask_again = pref.get('dont_ask_again', [])
 
     def restoreToolbars(self, pref=None):
         if pref is None:
@@ -848,10 +925,12 @@ class LoggerWindow(Window):
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
 
-    def setAutoCompleteEnabled(self, state):
-        self.uiConsoleTXT.completer().setEnabled(state)
-        for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
-            workbox.__set_auto_complete_enabled__(state)
+    def setAutoCompleteEnabled(self, state, console=True):
+        if console:
+            self.uiConsoleTXT.completer().setEnabled(state)
+        else:
+            for workbox, _, _, _, _ in self.uiWorkboxTAB.all_widgets():
+                workbox.__set_auto_complete_enabled__(state)
 
     def setSpellCheckEnabled(self, state):
         try:

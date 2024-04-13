@@ -32,6 +32,12 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         highlight.setLanguage('Python')
         self.uiCodeHighlighter = highlight
 
+    def __auto_complete_enabled__(self):
+        pass
+
+    def __set_auto_complete_enabled__(self, state):
+        pass
+
     def __copy_indents_as_spaces__(self):
         """When copying code, should it convert leading tabs to spaces?"""
         return False
@@ -93,12 +99,25 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         super(WorkboxTextEdit, self).__set_text__(text)
         self.setPlainText(text)
 
-    def __selected_text__(self, start_of_line=False):
+    def __selected_text__(self, start_of_line=False, selectText=False):
         cursor = self.textCursor()
+
+        # Get starting line number. Must set the cursor's position to the start of the
+        # selection, otherwise we may instead get the ending line number.
+        tempCursor = self.textCursor()
+        tempCursor.setPosition(tempCursor.selectionStart())
+        line = tempCursor.block().firstLineNumber()
 
         # If no selection, return the current line
         if cursor.selection().isEmpty():
-            return cursor.block().text()
+            text = cursor.block().text()
+
+            selectText = self.window().uiSelectTextACT.isChecked() or selectText
+            if selectText:
+                cursor.select(QTextCursor.LineUnderCursor)
+                self.setTextCursor(cursor)
+
+            return text, line
 
         # Otherwise return the selected text
         if start_of_line:
@@ -106,9 +125,10 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
             sc.setPosition(cursor.selectionStart())
             sc.movePosition(cursor.StartOfLine, sc.MoveAnchor)
             sc.setPosition(cursor.selectionEnd(), sc.KeepAnchor)
-            return sc.selection().toPlainText()
 
-        return self.textCursor().selection().toPlainText()
+            return sc.selection().toPlainText(), line
+
+        return self.textCursor().selection().toPlainText(), line
 
     def keyPressEvent(self, event):
         if self.process_shortcut(event):

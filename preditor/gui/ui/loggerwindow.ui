@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -137,10 +137,12 @@
      <string>Run</string>
     </property>
     <addaction name="uiRunSelectedACT"/>
+    <addaction name="uiRunSelectedDontTruncateACT"/>
     <addaction name="uiRunAllACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearBeforeRunningACT"/>
     <addaction name="uiClearToLastPromptACT"/>
+    <addaction name="uiSelectTextACT"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -160,34 +162,25 @@
      </property>
      <addaction name="separator"/>
     </widget>
-    <widget class="QMenu" name="uiFont_MENU">
+    <widget class="QMenu" name="uiSelectFontsMENU">
      <property name="title">
-      <string>Font</string>
+      <string>Select Font</string>
      </property>
-     <widget class="QMenu" name="uiMonospaceFontMENU">
-      <property name="title">
-       <string>Monospace</string>
-      </property>
-      <addaction name="uiFontMENU"/>
-     </widget>
-     <widget class="QMenu" name="uiProportionalFontMENU">
-      <property name="title">
-       <string>Proportional</string>
-      </property>
-      <addaction name="actionPlaceHolderProportionalFont"/>
-     </widget>
-     <addaction name="uiMonospaceFontMENU"/>
-     <addaction name="uiProportionalFontMENU"/>
+     <addaction name="uiSelectMonospaceFontACT"/>
+     <addaction name="uiSelectProportionalFontACT"/>
+     <addaction name="uiSelectAllFontACT"/>
     </widget>
-    <addaction name="uiAutoCompleteEnabledACT"/>
+    <addaction name="uiConsoleAutoCompleteEnabledACT"/>
+    <addaction name="uiWorkboxAutoCompleteEnabledACT"/>
     <addaction name="uiSpellCheckEnabledACT"/>
     <addaction name="uiAutoCompleteCaseSensitiveACT"/>
     <addaction name="uiCompleterModeMENU"/>
+    <addaction name="uiHighlightExactCompletionACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearLogACT"/>
     <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
-    <addaction name="uiFont_MENU"/>
+    <addaction name="uiSelectFontsMENU"/>
     <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
@@ -399,15 +392,21 @@
     <string>Ctrl+Alt+Shift+D</string>
    </property>
   </action>
-  <action name="uiAutoCompleteEnabledACT">
+  <action name="uiConsoleAutoCompleteEnabledACT">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Use &amp;Auto-Complete</string>
+    <string>Use Auto-Complete in console</string>
+   </property>
+   <property name="iconText">
+    <string>Use Auto-Complete in console</string>
+   </property>
+   <property name="toolTip">
+    <string>Use Auto-Complete in console</string>
    </property>
   </action>
   <action name="uiRunLineACT">
@@ -420,7 +419,7 @@
   </action>
   <action name="uiRunAllACT">
    <property name="text">
-    <string>Run All...</string>
+    <string>Run All</string>
    </property>
    <property name="toolTip">
     <string>Run all code from the current workbox</string>
@@ -436,7 +435,7 @@
   </action>
   <action name="uiRunSelectedACT">
    <property name="text">
-    <string>Run Selected...</string>
+    <string>Run Selected  - truncate return value</string>
    </property>
    <property name="toolTip">
     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Run some code from the current workbox. If you have text selected, only the selected text is run. With no text selected, the current line is run. You can also use the Number Pad Enter key to activate this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -646,16 +645,6 @@
    </property>
    <property name="text">
     <string>FullFuzzy</string>
-   </property>
-  </action>
-  <action name="uiFontMENU">
-   <property name="text">
-    <string>PlaceHolderMonospaceFont</string>
-   </property>
-  </action>
-  <action name="actionPlaceHolderProportionalFont">
-   <property name="text">
-    <string>PlaceHolderProportionalFont</string>
    </property>
   </action>
   <action name="uiCycleCompleterModeACT">
@@ -962,6 +951,62 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+F</string>
+   </property>
+  </action>
+  <action name="uiSelectTextACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Select text when Run Selected w/o selection</string>
+   </property>
+  </action>
+  <action name="uiWorkboxAutoCompleteEnabledACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use Auto-Complete in workbox</string>
+   </property>
+  </action>
+  <action name="uiSelectMonospaceFontACT">
+   <property name="text">
+    <string>Choose from monospace fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from monospace fonts</string>
+   </property>
+  </action>
+  <action name="uiSelectProportionalFontACT">
+   <property name="text">
+    <string>Choose from proportional fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from proportional fonts</string>
+   </property>
+  </action>
+  <action name="uiSelectAllFontACT">
+   <property name="text">
+    <string>Choose from all fonts</string>
+   </property>
+   <property name="toolTip">
+    <string>Choose from all fonts</string>
+   </property>
+  </action>
+  <action name="uiRunSelectedDontTruncateACT">
+   <property name="text">
+    <string>Run Selected - don't truncate return value</string>
+   </property>
+  </action>
+  <action name="uiHighlightExactCompletionACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Highlight Exact Completion</string>
    </property>
   </action>
  </widget>

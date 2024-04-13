@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>uiSuggestPathQuotesDLG</class>
+ <widget class="QDialog" name="uiSuggestPathQuotesDLG">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1064</width>
-    <height>325</height>
+    <width>716</width>
+    <height>342</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,19 +49,28 @@
          </font>
         </property>
         <property name="text">
-         <string>Path to the executable of your preferred text editor</string>
+         <string>It is recommended to wrap filepaths in double-quotes in case of spaces in the paths. Would you like to update the command template from:</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="uiTextEditorExecutablePathLE">
+       <widget class="QLineEdit" name="uiTextEditorOldCommandPatternLE">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="font">
          <font>
           <pointsize>10</pointsize>
          </font>
         </property>
+        <property name="toolTip">
+         <string/>
+        </property>
         <property name="text">
-         <string>C:\Program Files\Sublime Text 3\sublime_text.exe</string>
+         <string>uiTextEditorOldCommandPatternLE</string>
         </property>
        </widget>
       </item>
@@ -69,8 +78,8 @@
     </widget>
    </item>
    <item>
-    <widget class="QWidget" name="widget_2" native="true">
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+    <widget class="QWidget" name="widget_3" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <property name="spacing">
        <number>3</number>
       </property>
@@ -100,8 +109,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Command Prompt template (template of the Command Prompt command to launch your text editor, including how it may implement specifying line numbers).
-Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {lineNum}. Include quotes around exePath and modulePath to handle filepaths which contain spaces.</string>
+         <string>to:</string>
         </property>
         <property name="wordWrap">
          <bool>true</bool>
@@ -109,7 +117,7 @@ Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {li
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="uiTextEditorCommandPatternLE">
+       <widget class="QLineEdit" name="uiTextEditorNewCommandPatternLE">
         <property name="font">
          <font>
           <pointsize>10</pointsize>
@@ -119,10 +127,31 @@ Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {li
          <string/>
         </property>
         <property name="text">
-         <string>&quot;{exePath}&quot; &quot;{modulePath}&quot;:{lineNum}</string>
+         <string/>
         </property>
        </widget>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_4" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
      </layout>
     </widget>
    </item>
@@ -140,12 +169,19 @@ Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {li
     </spacer>
    </item>
    <item>
+    <widget class="QCheckBox" name="uiDontAskAgainCHK">
+     <property name="text">
+      <string>Don't Ask Again</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="uiDialogButtonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::No|QDialogButtonBox::Yes</set>
      </property>
     </widget>
    </item>
@@ -156,7 +192,7 @@ Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {li
   <connection>
    <sender>uiDialogButtonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>uiSuggestPathQuotesDLG</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -172,7 +208,7 @@ Use these template strings: &quot;{exePath}&quot;, &quot;{modulePath}&quot;, {li
   <connection>
    <sender>uiDialogButtonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>uiSuggestPathQuotesDLG</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

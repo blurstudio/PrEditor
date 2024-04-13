@@ -9,17 +9,19 @@ import sys
 import time
 import traceback
 from builtins import str as text
+from functools import partial
 
 import __main__
 from Qt import QtCompat
-from Qt.QtCore import QPoint, Qt
+from Qt.QtCore import QPoint, Qt, QTimer
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
-from Qt.QtWidgets import QAction, QApplication, QTextEdit
+from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
 
 from .. import debug, settings, stream
 from ..streamhandler_helper import StreamHandlerHelper
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
+from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 
 
 class ConsolePrEdit(QTextEdit):
@@ -47,6 +49,7 @@ class ConsolePrEdit(QTextEdit):
         # If still using a #
         self._outputPrompt = '#Result: '
         # Method used to update the gui when code is executed
+        self.clearExecutionTime = None
         self.reportExecutionTime = None
 
         self._firstShow = True
@@ -102,9 +105,48 @@ class ConsolePrEdit(QTextEdit):
         self.clickPos = None
         self.anchor = None
 
+        # Make sure console cursor is visible. It can get it's width set to 0 with
+        # unusual(ie not 100%) os display scaling.
+        if not self.cursorWidth():
+            self.setCursorWidth(1)
+
+    def doubleSingleShotSetScrollValue(self, origPercent):
+        """This double QTimer.singleShot monkey business seems to be the only way
+        to get scroll.maximum() to update properly so that we calc newValue
+        correctly. It's quite silly. Apparently, the important part is that
+        calling scroll.maximum() has had a pause since the font had been set.
+        """
+
+        def singleShotSetScrollValue(self, origPercent):
+            scroll = self.verticalScrollBar()
+            maximum = scroll.maximum()
+            if maximum is not None:
+                newValue = round(origPercent * maximum)
+                QTimer.singleShot(1, partial(scroll.setValue, newValue))
+
+        # The 100 ms timer amount is somewhat arbitrary. It must be more than
+        # some value to work, but what that value is is unknown, and may change
+        # under various circumstances. Briefly disable updates for smoother transition.
+        self.setUpdatesEnabled(False)
+        try:
+            QTimer.singleShot(100, partial(singleShotSetScrollValue, self, origPercent))
+        except Exception:
+            pass
+        finally:
+            self.setUpdatesEnabled(True)
+
     def setConsoleFont(self, font):
         """Set the console's font and adjust the tabStopWidth"""
+
+        # Capture the scroll bar's current position (by percentage of max)
+        origPercent = None
+        scroll = self.verticalScrollBar()
+        if scroll.maximum():
+            origPercent = scroll.value() / scroll.maximum()
+
+        # Set console and completer popup fonts
         self.setFont(font)
+        self.completer().popup().setFont(font)
 
         # Set the setTabStopWidth for the console's font
         tab_width = 4
@@ -116,6 +158,10 @@ class ConsolePrEdit(QTextEdit):
                 tab_width = workbox.__tab_width__()
         fontPixelWidth = QFontMetrics(font).width(" ")
         self.setTabStopWidth(fontPixelWidth * tab_width)
+
+        # Scroll to same relative position where we started
+        if origPercent is not None:
+            self.doubleSingleShotSetScrollValue(origPercent)
 
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can
@@ -213,6 +259,23 @@ class ConsolePrEdit(QTextEdit):
             return
 
         if modulePath:
+            # Check if cmdTempl filepaths aren't wrapped in double=quotes to handle
+            # spaces. If not, suggest to user to update the template, offering the
+            # suggested change.
+            pattern = r"(?<!\")({\w+Path})(?!\")"
+            repl = r'"\g<1>"'
+            quotedCmdTempl = re.sub(pattern, repl, cmdTempl)
+            if quotedCmdTempl != cmdTempl:
+                # Instantiate dialog to maybe show (unless user previously chose "Don't
+                # ask again")
+                dialog = SuggestPathQuotesDialog(
+                    self.window(), cmdTempl, quotedCmdTempl
+                )
+                self.window().maybeDisplayDialog(dialog)
+
+            # Refresh cmdTempl in case user just had it changed.
+            cmdTempl = window.textEditorCmdTempl
+
             # Attempt to create command from template and run the command
             try:
                 command = cmdTempl.format(
@@ -317,6 +380,8 @@ class ConsolePrEdit(QTextEdit):
         self._foregroundColor = color
 
     def executeString(self, commandText, filename='<ConsolePrEdit>', extraPrint=True):
+        if self.clearExecutionTime is not None:
+            self.clearExecutionTime()
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         line = cursor.selectedText()
@@ -478,6 +543,17 @@ class ConsolePrEdit(QTextEdit):
 
         completer = self.completer()
 
+        # Define prefix so we can determine if the exact prefix is in
+        # completions and highlight it. We must manually add the currently typed
+        # character, or remove it if backspace or delete has just been pressed.
+        key = event.text()
+        _, prefix = completer.currentObject(scope=__main__.__dict__)
+        isBackspaceOrDel = key in ("", "")
+        if key.isalnum() or key in ("-", "_"):
+            prefix += str(key)
+        elif isBackspaceOrDel and prefix:
+            prefix = prefix[:-1]
+
         if completer and event.key() in (
             Qt.Key_Backspace,
             Qt.Key_Delete,
@@ -560,9 +636,30 @@ class ConsolePrEdit(QTextEdit):
                     or completer.wasCompletingCounter
                 ):
                     completer.refreshList(scope=__main__.__dict__)
-                    completer.popup().setCurrentIndex(
-                        completer.completionModel().index(0, 0)
-                    )
+
+                    model = completer.completionModel()
+                    index = model.index(0, 0)
+
+                    # If option chosen, if the exact prefix exists in the
+                    # possible completions, highlight it, even if it's not the
+                    # topmost completion.
+                    if self.window().uiHighlightExactCompletionACT.isChecked():
+                        for i in range(completer.completionCount()):
+                            completer.setCurrentRow(i)
+                            curCompletion = completer.currentCompletion()
+                            if prefix == curCompletion:
+                                index = model.index(i, 0)
+                                break
+                            elif prefix == curCompletion.lower():
+                                index = model.index(i, 0)
+                                break
+
+                    # Set completer current Row, so finishing the completer will use
+                    # correct text
+                    completer.setCurrentRow(index.row())
+
+                    # Make sure that current selection is visible, ie scroll to it
+                    completer.popup().scrollTo(index, QAbstractItemView.EnsureVisible)
 
                     # show the completer for the rect
                     rect = self.cursorRect()
@@ -640,6 +737,7 @@ class ConsolePrEdit(QTextEdit):
     def startInputLine(self):
         """create a new command prompt line"""
         self.startPrompt(self.prompt())
+        self._prevCommandIndex = 0
 
     def startPrompt(self, prompt):
         """create a new command prompt line with the given prompt

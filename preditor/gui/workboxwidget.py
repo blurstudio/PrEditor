@@ -37,6 +37,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.setLanguage('Python')
         # Default to unix newlines
         self.setEolMode(self.EolUnix)
+        if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
+            self.window().setWorkboxFontBasedOnConsole()
 
     def __auto_complete_enabled__(self):
         return self.autoCompletionSource() == self.AcsAll
@@ -142,19 +144,26 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __save__(self):
         self.save()
 
-    def __selected_text__(self, start_of_line=False):
+    def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
         if line == -1:
             # Nothing is selected, return the current line of text
             line, index = self.getCursorPosition()
             txt = self.text(line)
+
+            lineLength = len(self.text(line).rstrip())
+            selectText = self.window().uiSelectTextACT.isChecked() or selectText
+
+            if selectText:
+                self.setSelection(line, 0, line, lineLength)
+
         elif start_of_line:
             ss = self.positionFromLineIndex(line, 0)
             ee = self.positionFromLineIndex(end, e)
             txt = self.text(ss, ee)
         else:
             txt = self.selectedText()
-        return self.regex.split(txt)[0]
+        return self.regex.split(txt)[0], line
 
     def __tab_width__(self):
         return self.tabWidth()
@@ -194,12 +203,25 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             fle.write(cls.__unix_end_lines__(txt))
 
     def keyPressEvent(self, event):
+        """Check for certain keyboard shortcuts, and handle them as needed,
+        otherwise pass the keyPress to the superclass.
+
+        NOTE! We handle the "shift+return" shortcut here, rather than the
+        QAction's shortcut, because the workbox will always intercept that
+        shortcut. So, we handle it here, and call the main window's
+        execSelected, which ultimately calls this workbox's __exec_selected__.
+
+        Also note, it would make sense to have ctrl+Enter also execute without
+        truncation, but no modifiers are registered when Enter is pressed (unlike
+        when Return is pressed), so this combination is not detectable.
+        """
         if self._software == 'softimage':
             DocumentEditor.keyPressEvent(self, event)
         else:
             if self.process_shortcut(event):
                 return
             else:
+                # Send regular keystroke
                 DocumentEditor.keyPressEvent(self, event)
 
     def initShortcuts(self):
