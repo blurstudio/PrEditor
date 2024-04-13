@@ -32,6 +32,12 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         highlight.setLanguage('Python')
         self.uiCodeHighlighter = highlight
 
+    def __auto_complete_enabled__(self):
+        pass
+
+    def __set_auto_complete_enabled__(self, state):
+        pass
+
     def __copy_indents_as_spaces__(self):
         """When copying code, should it convert leading tabs to spaces?"""
         return False
