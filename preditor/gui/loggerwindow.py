@@ -18,7 +18,6 @@ from Qt.QtGui import QCursor, QFont, QFontDatabase, QIcon, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QInputDialog,
-    QLabel,
     QMessageBox,
     QTextBrowser,
     QToolTip,
@@ -44,6 +43,7 @@ from ..utils import stylesheets
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
+from .status_label import StatusLabel
 
 
 class WorkboxPages:
@@ -84,7 +84,7 @@ class LoggerWindow(Window):
         self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
 
         # create the status reporting label
-        self.uiStatusLBL = QLabel(self)
+        self.uiStatusLBL = StatusLabel(self)
         self.uiMenuBar.setCornerWidget(self.uiStatusLBL)
 
         # create the workbox tabs
@@ -654,7 +654,8 @@ class LoggerWindow(Window):
 
     def reportExecutionTime(self, seconds):
         """Update status text with seconds passed in."""
-        self.setStatusText('Exec: {:0.04f} Seconds'.format(seconds))
+        self.uiStatusLBL.showSeconds(seconds)
+        self.uiMenuBar.adjustSize()
 
     def recordPrefs(self, manual=False):
         if not manual and not self.uiAutoSaveSettingssACT.isChecked():
@@ -681,6 +682,7 @@ class LoggerWindow(Window):
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
                 'uiLinesInNewWorkboxACT': self.uiLinesInNewWorkboxACT.isChecked(),
                 'uiErrorHyperlinksACT': self.uiErrorHyperlinksACT.isChecked(),
+                'uiStatusLbl_limit': self.uiStatusLBL.limit(),
                 'textEditorPath': self.textEditorPath,
                 'textEditorCmdTempl': self.textEditorCmdTempl,
                 'currentStyleSheet': self._stylesheet,
@@ -796,6 +798,7 @@ class LoggerWindow(Window):
             pref.get('uiLinesInNewWorkboxACT', False)
         )
         self.uiErrorHyperlinksACT.setChecked(pref.get('uiErrorHyperlinksACT', True))
+        self.uiStatusLBL.setLimit(pref.get('uiStatusLbl_limit', 5))
 
         # Find Files settings
         self.uiFindInWorkboxesWGT.uiRegexBTN.setChecked(
@@ -876,7 +879,7 @@ class LoggerWindow(Window):
 
     def clearStatusText(self):
         """Clear any displayed status text"""
-        self.uiStatusLBL.setText('')
+        self.uiStatusLBL.clear()
         self.uiMenuBar.adjustSize()
 
     def autoHideStatusText(self):
