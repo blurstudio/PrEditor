@@ -358,7 +358,7 @@ class ConsolePrEdit(QTextEdit):
 
         # Report the total time it took to execute this code.
         if self.reportExecutionTime is not None:
-            self.reportExecutionTime(delta)
+            self.reportExecutionTime((delta, commandText))
         return cmdresult, wasEval
 
     def executeCommand(self):

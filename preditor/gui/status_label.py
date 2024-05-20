@@ -54,17 +54,28 @@ class StatusLabel(QLabel):
 
     def showSeconds(self, seconds):
         self.times.append(seconds)
-        self.setText(self.secondsText(seconds))
+        self.setText(self.secondsText(seconds[0]))
 
     def showMenu(self):
         menu = QMenu(self)
         if self.times:
             # Show the time it took to run the last X code calls
+            times = []
             for seconds in self.times:
-                menu.addAction(self.secondsText(seconds))
+                secs, cmd = seconds
+                times.append(secs)
+
+                # Add a simplified copy of the command that was run
+                cmd = cmd.strip()
+                cmds = cmd.split("\n")
+                if len(cmds) > 1 or len(cmds[0]) > 50:
+                    cmd = "{} ...".format(cmds[0][:50])
+                # Escape &'s so they dont' get turned into a shortcut'
+                cmd = cmd.replace("&", "&&")
+                menu.addAction("{}:  {}".format(self.secondsText(secs), cmd))
 
             menu.addSeparator()
-            avg = sum(self.times) / len(self.times)
+            avg = sum(times) / len(times)
             menu.addAction("Average: {:0.04f}s".format(avg))
             act = menu.addAction("Clear")
             act.triggered.connect(self.clearTimes)
