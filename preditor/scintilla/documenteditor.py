@@ -21,8 +21,9 @@ from functools import partial
 
 import six
 from PyQt5.Qsci import QsciScintilla
+from PyQt5.QtCore import QTextCodec
 from Qt import QtCompat
-from Qt.QtCore import Property, QFile, QPoint, Qt, QTextCodec, Signal
+from Qt.QtCore import Property, QFile, QPoint, Qt, Signal
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
 from Qt.QtWidgets import (
     QAction,
