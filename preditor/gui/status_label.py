@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 
 from collections import deque
+from functools import partial
 
 from Qt.QtCore import QPoint, QTimer
-from Qt.QtWidgets import QInputDialog, QLabel, QMenu
+from Qt.QtWidgets import QApplication, QInputDialog, QLabel, QMenu
 
 
 class StatusLabel(QLabel):
@@ -32,6 +33,10 @@ class StatusLabel(QLabel):
         )
         if limit:
             self.setLimit(limit)
+
+    def copy_action_text(self, action):
+        """Copy the text of the provided action into the clipboard."""
+        QApplication.clipboard().setText(action.text())
 
     def mouseReleaseEvent(self, event):
         QTimer.singleShot(0, self.showMenu)
@@ -72,11 +77,15 @@ class StatusLabel(QLabel):
                     cmd = "{} ...".format(cmds[0][:50])
                 # Escape &'s so they dont' get turned into a shortcut'
                 cmd = cmd.replace("&", "&&")
-                menu.addAction("{}:  {}".format(self.secondsText(secs), cmd))
+                act = menu.addAction("{}:  {}".format(self.secondsText(secs), cmd))
+                # Selecting this action should copy the time it took to run
+                act.triggered.connect(partial(self.copy_action_text, act))
 
             menu.addSeparator()
             avg = sum(times) / len(times)
-            menu.addAction("Average: {:0.04f}s".format(avg))
+            act = menu.addAction("Average: {:0.04f}s".format(avg))
+            act.triggered.connect(partial(self.copy_action_text, act))
+
             act = menu.addAction("Clear")
             act.triggered.connect(self.clearTimes)
 
