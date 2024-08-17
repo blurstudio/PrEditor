@@ -397,18 +397,27 @@ class ConsolePrEdit(QTextEdit):
         # exec which has no Return.
         wasEval = False
         startTime = time.time()
+
         try:
             compiled = compile(commandText, filename, 'eval')
             wasEval = True
         except Exception:
             compiled = compile(commandText, filename, 'exec')
-        if wasEval:
-            cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
-        else:
-            exec(compiled, __main__.__dict__, __main__.__dict__)
+
+        # We wrap in try / finally so that elapsed time gets updated, even when an
+        # exception is raised.
+        try:
+            if wasEval:
+                cmdresult = eval(compiled, __main__.__dict__, __main__.__dict__)
+            else:
+                exec(compiled, __main__.__dict__, __main__.__dict__)
+        finally:
+            # Report the total time it took to execute this code.
+            if self.reportExecutionTime is not None:
+                delta = time.time() - startTime
+                self.reportExecutionTime((delta, commandText))
 
         # Provide user feedback when running long code execution.
-        delta = time.time() - startTime
         if self.flash_window and self.flash_time and delta >= self.flash_time:
             if settings.OS_TYPE == "Windows":
                 try:
@@ -420,9 +429,6 @@ class ConsolePrEdit(QTextEdit):
                     hwnd = int(self.flash_window.winId())
                     utils.flash_window(hwnd)
 
-        # Report the total time it took to execute this code.
-        if self.reportExecutionTime is not None:
-            self.reportExecutionTime((delta, commandText))
         return cmdresult, wasEval
 
     def executeCommand(self):
