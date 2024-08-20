@@ -758,6 +758,11 @@ class ConsolePrEdit(QTextEdit):
 
             self.insertPlainText(inputstr)
 
+        scroll = self.verticalScrollBar()
+        maximum = scroll.maximum()
+        if maximum is not None:
+            scroll.setValue(maximum)
+
     def startOutputLine(self):
         """Create a new line to show output text."""
         self.startPrompt(self._outputPrompt)
