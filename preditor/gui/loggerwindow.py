@@ -519,7 +519,7 @@ class LoggerWindow(Window):
                 delta = event.angleDelta().y()
 
             # convert delta to +1 or -1, depending
-            delta = delta / abs(delta)
+            delta = delta // abs(delta)
             minSize = 5
             maxSize = 50
             font = self.console().font()
