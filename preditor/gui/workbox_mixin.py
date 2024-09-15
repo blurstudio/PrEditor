@@ -84,8 +84,8 @@ class WorkboxMixin(object):
         txt = '\n' * line + txt
 
         # execute the code
-        filename = self.__workbox_filename__(selection=True)
-        ret, was_eval = self.__console__().executeString(txt, filename=filename)
+        title = self.__workbox_trace_title__(selection=True)
+        ret, was_eval = self.__console__().executeString(txt, filename=title)
         if was_eval:
             # If the selected code was a statement print the result of the statement.
             ret = repr(ret)
@@ -145,7 +145,7 @@ class WorkboxMixin(object):
 
         return group, editor
 
-    def __workbox_filename__(self, selection=False):
+    def __workbox_trace_title__(self, selection=False):
         title = "WorkboxSelection" if selection else "Workbox"
         group, editor = self.__group_tab_index__()
         if group == -1 or editor == -1:

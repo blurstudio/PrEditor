@@ -57,8 +57,8 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
     def __exec_all__(self):
         txt = self.__text__().rstrip()
-        filename = self.__workbox_filename__()
-        self.__console__().executeString(txt, filename=filename)
+        title = self.__workbox_trace_title__()
+        self.__console__().executeString(txt, filename=title)
 
     def __font__(self):
         return self.font()
