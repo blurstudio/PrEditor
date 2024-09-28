@@ -151,7 +151,8 @@ class WorkboxMixin(object):
         if group == -1 or editor == -1:
             return '<{}>'.format(title)
         else:
-            return '<{}>:{},{}'.format(title, group, editor)
+            name = self.window().name_for_workbox(self)
+            return '<{}>:{}'.format(title, name)
 
     def __goto_line__(self, line):
         raise NotImplementedError("Mixin method not overridden.")
