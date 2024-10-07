@@ -17,7 +17,7 @@ from pathlib import Path
 import __main__
 import Qt as Qt_py
 from Qt import QtCompat, QtCore, QtWidgets
-from Qt.QtCore import QByteArray, QFileSystemWatcher, Qt, QTimer, Signal, Slot
+from Qt.QtCore import QByteArray, QFileSystemWatcher, QObject, Qt, QTimer, Signal, Slot
 from Qt.QtGui import QCursor, QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
@@ -624,6 +624,7 @@ class LoggerWindow(Window):
 
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
+        self.setDialogFont(dlg)
         dlg.exec()
 
     def focusToConsole(self):
@@ -891,10 +892,17 @@ class LoggerWindow(Window):
         """Set the EditorChooser font to match console. This helps with legibility when
         using EditorChooser.
         """
-        font = self.console().font()
-        for child in self.uiEditorChooserWGT.children():
-            if hasattr(child, "font"):
-                child.setFont(font)
+        self.setDialogFont(self.uiEditorChooserWGT)
+
+    def setDialogFont(self, dialog):
+        """Helper for when creating a dialog to have the font match the PrEditor font
+
+        Args:
+            dialog (QDialog):  The dialog for which to set the font
+        """
+        for thing in dialog.findChildren(QObject):
+            if hasattr(thing, "setFont"):
+                thing.setFont(self.font())
 
     @classmethod
     def _genPrefName(cls, baseName, index):
