@@ -234,10 +234,11 @@ class ConsolePrEdit(QTextEdit):
         if not doHyperlink:
             return
 
-        # info is a comma separated string, in the form: "filename, workboxIdx, lineNum"
+        # info is a comma separated string, in the form: "filename, workboxName,
+        # lineNum"
         info = self.anchor.split(', ')
         modulePath = info[0]
-        workboxIndex = info[1]
+        workboxName = info[1]
         lineNum = info[2]
 
         # fetch info from LoggerWindow
@@ -294,14 +295,12 @@ class ConsolePrEdit(QTextEdit):
                 msg = "The provided text editor command template is not valid:\n    {}"
                 msg = msg.format(cmdTempl)
                 print(msg)
-        elif workboxIndex is not None:
-            group, editor = workboxIndex.split(',')
+        elif workboxName is not None:
+            workbox = window.workbox_for_name(workboxName, visible=True)
             lineNum = int(lineNum)
-            workbox = window.uiWorkboxTAB.set_current_groups_from_index(
-                int(group), int(editor)
-            )
             workbox.__goto_line__(lineNum)
             workbox.setFocus()
+            workbox.expandCursorToLineSelection()
 
     def getPrevCommand(self):
         """Find and display the previous command in stack"""
@@ -862,13 +861,13 @@ class ConsolePrEdit(QTextEdit):
 
                 isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
                 if isWorkbox:
-                    split = filename.split(':')
-                    workboxIdx = split[-1]
+                    split = filename.split('/')
+                    workboxName = split[-1]
                     filename = ''
                 else:
                     filename = filename
-                    workboxIdx = ''
-                href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
+                    workboxName = ''
+                href = '{}, {}, {}'.format(filename, workboxName, lineNum)
 
                 # Insert initial, non-underlined text
                 cursor.insertText(msg[:fileStart])
