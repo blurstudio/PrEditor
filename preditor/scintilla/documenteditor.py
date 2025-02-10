@@ -326,7 +326,8 @@ class DocumentEditor(QsciScintilla):
 
         with undo_step(self):
             # lookup the selected text positions
-            cursorLine, cursorIndex = self.expandCursorToLineSelection()
+            origSelection = self.expandCursorToLineSelection()
+            origStartLine, origStartCol, origEndLine, origEndCol = origSelection
             startLine, startCol, endLine, endCol = self.getSelection()
 
             # Collect comments and indents, to determine indentation to use, and whether
@@ -351,11 +352,14 @@ class DocumentEditor(QsciScintilla):
 
             # If all lines are comments, we un-comment. If any aren't
             # comments, we comment.
+            sel_adjust = 0
             if doWhich is None:
                 if all(comments):
                     doWhich = "Uncomment"
+                    sel_adjust = -1 * len(commentSpace)
                 else:
                     doWhich = "Comment"
+                    sel_adjust = len(commentSpace)
 
             for line in range(startLine, endLine + 1):
                 lineText = self.getSelectionCurrentLineText(line)
@@ -367,19 +371,12 @@ class DocumentEditor(QsciScintilla):
                     if doWhich == "Comment":
                         self.setCursorPosition(line, indent)
                         self.insert(commentSpace)
-                        if cursorIndex is not None and cursorIndex >= indent:
-                            cursorIndex += len(commentSpace)
-                        if line == startLine:
-                            startCol -= len(commentSpace)
-                        if line == endLine:
-                            endCol += len(commentSpace)
-
                     elif doWhich == "Uncomment":
                         for curComment in [commentSpace, comment]:
                             foundText = self.getSelectedCommentText(
                                 line, indent, len(curComment)
                             )
-                            startCol, endCol, cursorIndex, removed = self.removeComment(
+                            startCol, endCol, _, removed = self.removeComment(
                                 foundText,
                                 curComment,
                                 line,
@@ -388,16 +385,20 @@ class DocumentEditor(QsciScintilla):
                                 startCol,
                                 endLine,
                                 endCol,
-                                cursorIndex,
+                                origEndCol,
                             )
                             if removed:
                                 break
 
+            # Adjust columns so selection moves in or out with comment. If startCol
+            # began at 0 keep it there.
+            adjustedStartCol = origStartCol + sel_adjust if origStartCol else 0
+            adjustedendCol = origEndCol + sel_adjust
+
             # restore the currently selected text, or cursor position
-            if cursorLine is not None:
-                startLine, endLine = cursorLine, cursorLine
-                startCol, endCol = cursorIndex, cursorIndex
-            self.setSelection(startLine, startCol, endLine, endCol)
+            self.setSelection(
+                origStartLine, adjustedStartCol, origEndLine, adjustedendCol
+            )
 
     def removeComment(
         self,
@@ -460,11 +461,26 @@ class DocumentEditor(QsciScintilla):
         return lineText
 
     def expandCursorToLineSelection(self):
-        line, index = None, None
-        if not self.hasSelectedText():
-            line, index = self.getCursorPosition()
-            self.setSelection(line, 0, line, self.lineLength(line))
-        return line, index
+        start_line = None
+        start_idx = None
+        end_line = None
+        end_idx = None
+        lineLength = None
+
+        if self.hasSelectedText():
+            start_line, start_idx, end_line, end_idx = self.getSelection()
+        else:
+            start_line, start_idx = self.getCursorPosition()
+            end_line = start_line
+            end_idx = start_idx
+
+        if start_line is not None:
+            # Get lineLength this way instead of self.lineLength (QScintilla) because
+            # that gets confused by \r\n  vs \n , so linked files will behave
+            # incorrectly.
+            lineLength = len(self.text(end_line).rstrip())
+            self.setSelection(start_line, 0, end_line, lineLength)
+        return start_line, start_idx, end_line, end_idx
 
     def copy(self):
         """Copies the selected text.
