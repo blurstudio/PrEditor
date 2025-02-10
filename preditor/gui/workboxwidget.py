@@ -188,7 +188,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         Returns:
             str: The requested text.
         """
-        if line:
+        if line is not None:
             return self.text(line)
         elif (start is None) != (end is None):
             raise ValueError('You must pass start and end if you pass either.')
