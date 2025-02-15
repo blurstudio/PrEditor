@@ -150,7 +150,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
     def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
-        if line == -1:
+
+        # Sometime self.getSelection returns values that equate to a non-existent
+        # selection, ie start and end are the same, so let's process it as if there is
+        # no selection
+        selectionIsEmpty = line == end and s == e
+        if line == -1 or selectionIsEmpty:
             # Nothing is selected, return the current line of text
             line, index = self.getCursorPosition()
             txt = self.text(line)
