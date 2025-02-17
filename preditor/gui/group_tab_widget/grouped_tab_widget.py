@@ -50,11 +50,18 @@ class GroupedTabWidget(OneTabWidget):
                 self, 'Tab can not be closed.', msg, QMessageBox.StandardButton.Ok
             )
             return
+
+        workbox = self.widget(index)
+        name = workbox.__workbox_name__()
+        msg = (
+            f"Would you like to donate the contents of tab\n{name}\nto the "
+            "/dev/null fund for wayward code?"
+        )
+
         ret = QMessageBox.question(
             self,
             'Donate to the cause?',
-            "Would you like to donate this tabs contents to the /dev/null fund "
-            "for wayward code?",
+            msg,
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
         if ret == QMessageBox.StandardButton.Yes:
