@@ -11,16 +11,18 @@ from datetime import datetime, timedelta
 from functools import partial
 
 import __main__
+import Qt as Qt_py
 import six
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
-from Qt.QtGui import QCursor, QFont, QIcon, QTextCursor
+from Qt.QtGui import QCursor, QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFontDialog,
     QInputDialog,
     QMessageBox,
     QTextBrowser,
+    QTextEdit,
     QToolTip,
     QVBoxLayout,
 )
@@ -172,7 +174,7 @@ class LoggerWindow(Window):
         self.uiCompleterModeMENU.addSeparator()
         action = self.uiCompleterModeMENU.addAction('Cycle mode')
         action.setObjectName('uiCycleModeACT')
-        action.setShortcut(Qt.CTRL | Qt.Key_M)
+        action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
         action.triggered.connect(self.cycleCompleterMode)
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
@@ -542,7 +544,10 @@ class LoggerWindow(Window):
         else:
             text = action.toolTip()
 
-        menu = action.parentWidget()
+        if Qt_py.IsPyQt4:
+            menu = action.parentWidget()
+        else:
+            menu = action.parent()
         QToolTip.showText(QCursor.pos(), text, menu)
 
     def selectFont(self, monospace=False, proportional=False):
@@ -722,7 +727,7 @@ class LoggerWindow(Window):
         pref.update(
             {
                 'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
-                'windowState': int(self.windowState()),
+                'windowState': QtCompat.enumValue(self.windowState()),
                 'SplitterVertical': self.uiEditorVerticalACT.isChecked(),
                 'SplitterSize': self.uiSplitterSPLIT.sizes(),
                 'tabIndent': self.uiIndentationsTabsACT.isChecked(),
@@ -846,7 +851,7 @@ class LoggerWindow(Window):
         sizes = pref.get('SplitterSize')
         if sizes:
             self.uiSplitterSPLIT.setSizes(sizes)
-        self.setWindowState(Qt.WindowStates(pref.get('windowState', 0)))
+        self.setWindowState(Qt.WindowState(pref.get('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.get('tabIndent', True))
         self.uiCopyTabsToSpacesACT.setChecked(pref.get('copyIndentsAsSpaces', False))
 
@@ -919,7 +924,7 @@ class LoggerWindow(Window):
         _font = pref.get('consoleFont', None)
         if _font:
             font = QFont()
-            if font.fromString(_font):
+            if QtCompat.QFont.fromString(font, _font):
                 self.console().setConsoleFont(font)
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
@@ -1098,9 +1103,9 @@ class LoggerWindow(Window):
 
     def setWordWrap(self, state):
         if state:
-            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.WidgetWidth)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.WidgetWidth)
         else:
-            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.NoWrap)
 
     def show_about(self):
         """Shows `preditor.about_preditor()`'s output in a message box."""
