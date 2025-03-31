@@ -216,13 +216,13 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         when Return is pressed), so this combination is not detectable.
         """
         if self._software == 'softimage':
-            DocumentEditor.keyPressEvent(self, event)
+            super(WorkboxWidget, self).keyPressEvent(event)
         else:
             if self.process_shortcut(event):
                 return
             else:
                 # Send regular keystroke
-                DocumentEditor.keyPressEvent(self, event)
+                super(WorkboxWidget, self).keyPressEvent(event)
 
     def initShortcuts(self):
         """Use this to set up shortcuts when the DocumentEditor"""

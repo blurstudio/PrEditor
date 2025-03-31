@@ -15,7 +15,14 @@ from functools import partial
 import __main__
 from Qt import QtCompat
 from Qt.QtCore import QPoint, Qt, QTimer
-from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
+from Qt.QtGui import (
+    QColor,
+    QFontMetrics,
+    QKeySequence,
+    QTextCharFormat,
+    QTextCursor,
+    QTextDocument,
+)
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
 
 from .. import settings, stream
@@ -99,7 +106,9 @@ class ConsolePrEdit(QTextEdit):
 
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
-        self.uiClearToLastPromptACT.setShortcut(Qt.CTRL | Qt.SHIFT | Qt.Key_Backspace)
+        self.uiClearToLastPromptACT.setShortcut(
+            QKeySequence(Qt.Modifier.CTRL | Qt.Modifier.SHIFT | Qt.Key.Key_Backspace)
+        )
         self.addAction(self.uiClearToLastPromptACT)
 
         self.x = 0
@@ -155,8 +164,8 @@ class ConsolePrEdit(QTextEdit):
             workbox = self.window().current_workbox()
             if workbox:
                 tab_width = workbox.__tab_width__()
-        fontPixelWidth = QFontMetrics(font).width(" ")
-        self.setTabStopWidth(fontPixelWidth * tab_width)
+        fontPixelWidth = QFontMetrics(font).horizontalAdvance(" ")
+        self.setTabStopDistance(fontPixelWidth * tab_width)
 
         # Scroll to same relative position where we started
         if origPercent is not None:

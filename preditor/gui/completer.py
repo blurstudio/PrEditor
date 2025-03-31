@@ -5,6 +5,7 @@ import re
 import sys
 from enum import Enum
 
+import Qt as Qt_py
 from Qt.QtCore import QRegExp, QSortFilterProxyModel, QStringListModel, Qt
 from Qt.QtGui import QCursor, QTextCursor
 from Qt.QtWidgets import QCompleter, QToolTip
@@ -155,8 +156,14 @@ class PythonCompleter(QCompleter):
         if self._completerMode == CompleterMode.FULL_FUZZY:
             regExStr = ".*".join(prefix)
 
-        regexp = QRegExp(regExStr, self._sensitivity)
-        self.filterModel.setFilterRegExp(regexp)
+        if Qt_py.IsPyQt6 or Qt_py.IsPySide6:
+            regexp = QRegExp(regExStr)
+            if self._sensitivity:
+                regexp.setPatternOptions(QRegExp.PatternOption.CaseInsensitiveOption)
+            self.filterModel.setFilterRegularExpression(regexp)
+        else:
+            regexp = QRegExp(regExStr, self._sensitivity)
+            self.filterModel.setFilterRegExp(regexp)
 
     def clear(self):
         self.popup().hide()
