@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
-from PyQt5.Qsci import QsciLexerPython
 from Qt.QtGui import QColor
 
+from .. import Qsci
 
-class PythonLexer(QsciLexerPython):
+
+class PythonLexer(Qsci.QsciLexerPython):
     # Items in this list will be highlighted using the color for
     # self.HighlightedIdentifier
     highlightedKeywords = ''
