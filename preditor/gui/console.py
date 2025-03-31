@@ -39,7 +39,7 @@ class ConsolePrEdit(QTextEdit):
 
     # These Qt Properties can be customized using style sheets.
     commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))
-    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.red))
+    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.GlobalColor.red))
     keywordColor = QtPropertyInit('_keywordColor', QColor(17, 154, 255))
     resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
     stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
@@ -179,7 +179,7 @@ class ConsolePrEdit(QTextEdit):
         self.clickPos = event.pos()
         self.anchor = self.anchorAt(event.pos())
         if self.anchor:
-            QApplication.setOverrideCursor(Qt.PointingHandCursor)
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
         return super(ConsolePrEdit, self).mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
@@ -187,7 +187,7 @@ class ConsolePrEdit(QTextEdit):
         click position is the same as release position, if so, call errorHyperlink.
         """
         samePos = event.pos() == self.clickPos
-        left = event.button() == Qt.LeftButton
+        left = event.button() == Qt.MouseButton.LeftButton
         if samePos and left and self.anchor:
             self.errorHyperlink()
 
@@ -201,7 +201,7 @@ class ConsolePrEdit(QTextEdit):
         # scrolling. If used in LoggerWindow, use that wheel event
         # May not want to import LoggerWindow, so perhaps
         # check by str(type())
-        ctrlPressed = event.modifiers() == Qt.ControlModifier
+        ctrlPressed = event.modifiers() == Qt.KeyboardModifier.ControlModifier
         if ctrlPressed and "LoggerWindow" in str(type(self.window())):
             self.window().wheelEvent(event)
         else:
@@ -211,7 +211,7 @@ class ConsolePrEdit(QTextEdit):
         """Override of keyReleaseEvent to determine when to end navigation of
         previous commands
         """
-        if event.key() == Qt.Key_Alt:
+        if event.key() == Qt.Key.Key_Alt:
             self._prevCommandIndex = 0
         else:
             event.ignore()
@@ -328,7 +328,7 @@ class ConsolePrEdit(QTextEdit):
             prevCommand = self._prevCommands[self._prevCommandIndex]
 
         cursor = self.textCursor()
-        cursor.select(QTextCursor.LineUnderCursor)
+        cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         if cursor.selectedText().startswith(self._consolePrompt):
             prevCommand = "{}{}".format(self._consolePrompt, prevCommand)
         cursor.insertText(prevCommand)
@@ -344,7 +344,7 @@ class ConsolePrEdit(QTextEdit):
         currentCursor = self.textCursor()
         # move to the end of the document so we can search backwards
         cursor = self.textCursor()
-        cursor.movePosition(cursor.End)
+        cursor.movePosition(QTextCursor.MoveOperation.End)
         self.setTextCursor(cursor)
         # Check if the last line is a empty prompt. If so, then preform two finds so we
         # find the prompt we are looking for instead of this empty prompt
@@ -352,12 +352,14 @@ class ConsolePrEdit(QTextEdit):
             2 if self.toPlainText()[-len(self.prompt()) :] == self.prompt() else 1
         )
         for _ in range(findCount):
-            self.find(self.prompt(), QTextDocument.FindBackward)
+            self.find(self.prompt(), QTextDocument.FindFlag.FindBackward)
         # move to the end of the found line, select the rest of the text and remove it
         # preserving history if there is anything to remove.
         cursor = self.textCursor()
-        cursor.movePosition(cursor.EndOfLine)
-        cursor.movePosition(cursor.End, cursor.KeepAnchor)
+        cursor.movePosition(QTextCursor.MoveOperation.EndOfLine)
+        cursor.movePosition(
+            QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor
+        )
         txt = cursor.selectedText()
         if txt:
             self.setTextCursor(cursor)
@@ -373,7 +375,7 @@ class ConsolePrEdit(QTextEdit):
         if self.clearExecutionTime is not None:
             self.clearExecutionTime()
         cursor = self.textCursor()
-        cursor.select(QTextCursor.BlockUnderCursor)
+        cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
         line = cursor.selectedText()
         if line and line[0] not in string.printable:
             line = line[1:]
@@ -481,7 +483,7 @@ class ConsolePrEdit(QTextEdit):
         """inserts the completion text into the editor"""
         if self.completer().widget() == self:
             cursor = self.textCursor()
-            cursor.select(QTextCursor.WordUnderCursor)
+            cursor.select(QTextCursor.SelectionType.WordUnderCursor)
             cursor.insertText(completion)
             self.setTextCursor(cursor)
 
@@ -544,21 +546,21 @@ class ConsolePrEdit(QTextEdit):
         # character, or remove it if backspace or delete has just been pressed.
         key = event.text()
         _, prefix = completer.currentObject(scope=__main__.__dict__)
-        isBackspaceOrDel = event.key() in (Qt.Key_Backspace, Qt.Key_Delete)
+        isBackspaceOrDel = event.key() in (Qt.Key.Key_Backspace, Qt.Key.Key_Delete)
         if key.isalnum() or key in ("-", "_"):
             prefix += str(key)
         elif isBackspaceOrDel and prefix:
             prefix = prefix[:-1]
 
         if completer and event.key() in (
-            Qt.Key_Backspace,
-            Qt.Key_Delete,
-            Qt.Key_Escape,
+            Qt.Key.Key_Backspace,
+            Qt.Key.Key_Delete,
+            Qt.Key.Key_Escape,
         ):
             completer.hideDocumentation()
 
         # enter || return keys will execute the command
-        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+        if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
             if completer.popup().isVisible():
                 completer.clear()
                 event.ignore()
@@ -566,11 +568,11 @@ class ConsolePrEdit(QTextEdit):
                 self.executeCommand()
 
         # home key will move the cursor to home
-        elif event.key() == Qt.Key_Home:
+        elif event.key() == Qt.Key.Key_Home:
             self.moveToHome()
 
         # otherwise, ignore the event for completion events
-        elif event.key() in (Qt.Key_Tab, Qt.Key_Backtab):
+        elif event.key() in (Qt.Key.Key_Tab, Qt.Key.Key_Backtab):
             if not completer.popup().isVisible():
                 # The completer does not get updated if its not visible while typing.
                 # We are about to complete the text using it so ensure its updated.
@@ -580,19 +582,28 @@ class ConsolePrEdit(QTextEdit):
                 )
             # Insert the correct text and clear the completion model
             index = completer.popup().currentIndex()
-            self.insertCompletion(index.data(Qt.DisplayRole))
+            self.insertCompletion(index.data(Qt.ItemDataRole.DisplayRole))
             completer.clear()
 
-        elif event.key() == Qt.Key_Escape and completer.popup().isVisible():
+        elif event.key() == Qt.Key.Key_Escape and completer.popup().isVisible():
             completer.clear()
 
         # other wise handle the keypress
         else:
             # define special key sequences
             modifiers = QApplication.instance().keyboardModifiers()
-            ctrlSpace = event.key() == Qt.Key_Space and modifiers == Qt.ControlModifier
-            ctrlM = event.key() == Qt.Key_M and modifiers == Qt.ControlModifier
-            ctrlI = event.key() == Qt.Key_I and modifiers == Qt.ControlModifier
+            ctrlSpace = (
+                event.key() == Qt.Key.Key_Space
+                and modifiers == Qt.KeyboardModifier.ControlModifier
+            )
+            ctrlM = (
+                event.key() == Qt.Key.Key_M
+                and modifiers == Qt.KeyboardModifier.ControlModifier
+            )
+            ctrlI = (
+                event.key() == Qt.Key.Key_I
+                and modifiers == Qt.KeyboardModifier.ControlModifier
+            )
 
             # Process all events we do not want to override
             if not (ctrlSpace or ctrlM or ctrlI):
@@ -611,20 +622,20 @@ class ConsolePrEdit(QTextEdit):
             # check for particular events for the completion
             if completer:
                 # look for documentation popups
-                if event.key() == Qt.Key_ParenLeft:
+                if event.key() == Qt.Key.Key_ParenLeft:
                     rect = self.cursorRect()
                     point = self.mapToGlobal(QPoint(rect.x(), rect.y()))
                     completer.showDocumentation(pos=point, scope=__main__.__dict__)
 
                 # hide documentation popups
-                elif event.key() == Qt.Key_ParenRight:
+                elif event.key() == Qt.Key.Key_ParenRight:
                     completer.hideDocumentation()
 
                 # determine if we need to show the popup or if it already is visible, we
                 # need to update it
                 elif (
-                    event.key() == Qt.Key_Period
-                    or event.key() == Qt.Key_Escape
+                    event.key() == Qt.Key.Key_Period
+                    or event.key() == Qt.Key.Key_Escape
                     or completer.popup().isVisible()
                     or ctrlSpace
                     or ctrlI
@@ -655,7 +666,9 @@ class ConsolePrEdit(QTextEdit):
                     completer.setCurrentRow(index.row())
 
                     # Make sure that current selection is visible, ie scroll to it
-                    completer.popup().scrollTo(index, QAbstractItemView.EnsureVisible)
+                    completer.popup().scrollTo(
+                        index, QAbstractItemView.ScrollHint.EnsureVisible
+                    )
 
                     # show the completer for the rect
                     rect = self.cursorRect()
@@ -672,7 +685,7 @@ class ConsolePrEdit(QTextEdit):
                 if completer.wasCompleting and not completer.popup().isVisible():
                     wasCompletingCounterMax = completer.wasCompletingCounterMax
                     if completer.wasCompletingCounter <= wasCompletingCounterMax:
-                        if event.key() not in (Qt.Key_Backspace, Qt.Key_Left):
+                        if event.key() not in (Qt.Key.Key_Backspace, Qt.Key.Key_Left):
                             completer.wasCompletingCounter += 1
                     else:
                         completer.wasCompletingCounter = 0
@@ -680,20 +693,26 @@ class ConsolePrEdit(QTextEdit):
 
     def moveToHome(self):
         """moves the cursor to the home location"""
-        mode = QTextCursor.MoveAnchor
+        mode = QTextCursor.MoveMode.MoveAnchor
         # select the home
-        if QApplication.instance().keyboardModifiers() == Qt.ShiftModifier:
-            mode = QTextCursor.KeepAnchor
+        if (
+            QApplication.instance().keyboardModifiers()
+            == Qt.KeyboardModifier.ShiftModifier
+        ):
+            mode = QTextCursor.MoveMode.KeepAnchor
         # grab the cursor
         cursor = self.textCursor()
-        if QApplication.instance().keyboardModifiers() == Qt.ControlModifier:
+        if (
+            QApplication.instance().keyboardModifiers()
+            == Qt.KeyboardModifier.ControlModifier
+        ):
             # move to the top of the document if control is pressed
-            cursor.movePosition(QTextCursor.Start)
+            cursor.movePosition(QTextCursor.MoveOperation.Start)
         else:
             # Otherwise just move it to the start of the line
-            cursor.movePosition(QTextCursor.StartOfBlock, mode)
+            cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, mode)
         # move the cursor to the end of the prompt.
-        cursor.movePosition(QTextCursor.Right, mode, len(self.prompt()))
+        cursor.movePosition(QTextCursor.MoveOperation.Right, mode, len(self.prompt()))
         self.setTextCursor(cursor)
 
     def outputPrompt(self):
@@ -730,7 +749,7 @@ class ConsolePrEdit(QTextEdit):
             prompt(str): The prompt to start the line with. If this prompt
                 is already the only text on the last line this function does nothing.
         """
-        self.moveCursor(QTextCursor.End)
+        self.moveCursor(QTextCursor.MoveOperation.End)
 
         # if this is not already a new line
         if self.textCursor().block().text() != prompt:
@@ -753,9 +772,11 @@ class ConsolePrEdit(QTextEdit):
         self.startPrompt(self._outputPrompt)
 
     def removeCurrentLine(self):
-        self.moveCursor(QTextCursor.End, QTextCursor.MoveAnchor)
-        self.moveCursor(QTextCursor.StartOfLine, QTextCursor.MoveAnchor)
-        self.moveCursor(QTextCursor.End, QTextCursor.KeepAnchor)
+        self.moveCursor(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
+        self.moveCursor(
+            QTextCursor.MoveOperation.StartOfLine, QTextCursor.MoveMode.MoveAnchor
+        )
+        self.moveCursor(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.KeepAnchor)
         self.textCursor().removeSelectedText()
         self.textCursor().deletePreviousChar()
         self.insertPlainText("\n")
@@ -796,7 +817,7 @@ class ConsolePrEdit(QTextEdit):
                 hasattr(window, 'uiErrorHyperlinksACT')
                 and window.uiErrorHyperlinksACT.isChecked()
             )
-            self.moveCursor(QTextCursor.End)
+            self.moveCursor(QTextCursor.MoveOperation.End)
 
             charFormat = QTextCharFormat()
             if not error:
@@ -815,7 +836,7 @@ class ConsolePrEdit(QTextEdit):
             info = None
 
             if doHyperlink and msg == '\n':
-                cursor.select(QTextCursor.BlockUnderCursor)
+                cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
                 line = cursor.selectedText()
 
                 # Remove possible leading unicode paragraph separator, which really

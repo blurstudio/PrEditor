@@ -52,12 +52,12 @@ class DragTabBar(QTabBar):
         drag.setMimeData(self._mime_data)
         drag.setPixmap(self._mime_data.imageData())
         drag.setHotSpot(event_pos - pos_in_tab)
-        cursor = QCursor(Qt.OpenHandCursor)
-        drag.setDragCursor(cursor.pixmap(), Qt.MoveAction)
-        action = drag.exec_(Qt.MoveAction)
+        cursor = QCursor(Qt.CursorShape.OpenHandCursor)
+        drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
+        action = drag.exec_(Qt.DropAction.MoveAction)
         # If the user didn't successfully add this to a new tab widget, restore
         # the tab to the original location.
-        if action == Qt.IgnoreAction:
+        if action == Qt.DropAction.IgnoreAction:
             original_tab_index = self._mime_data.property('original_tab_index')
             self.parentWidget().insertTab(
                 original_tab_index, widget, self._mime_data.text()
@@ -66,7 +66,7 @@ class DragTabBar(QTabBar):
         self._mime_data = None
 
     def mousePressEvent(self, event):  # noqa: N802
-        if event.button() == Qt.LeftButton and not self._mime_data:
+        if event.button() == Qt.MouseButton.LeftButton and not self._mime_data:
             tab_index = self.tabAt(event.pos())
 
             # While we don't remove the tab on mouse press, capture its tab image
@@ -123,7 +123,7 @@ class DragTabBar(QTabBar):
         if event.source().parentWidget() == self:
             return
 
-        event.setDropAction(Qt.MoveAction)
+        event.setDropAction(Qt.DropAction.MoveAction)
         event.accept()
         counter = self.count()
 
@@ -184,7 +184,7 @@ class DragTabBar(QTabBar):
         tab_widget.setDocumentMode(True)
 
         if menu:
-            bar.setContextMenuPolicy(Qt.CustomContextMenu)
+            bar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             bar.customContextMenuRequested.connect(bar.tab_menu)
 
         return bar
