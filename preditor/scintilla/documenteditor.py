@@ -19,9 +19,9 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
 
-from Qt import QtCompat
+import Qt as Qt_py
 from Qt.QtCore import Property, QEvent, QPoint, Qt, Signal
-from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
+from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon, QKeySequence
 from Qt.QtWidgets import (
     QAction,
     QApplication,
@@ -172,8 +172,18 @@ class DocumentEditor(QsciScintilla):
         commands = self.standardCommands()
         # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to
         # comment
+        if Qt_py.IsPyQt6:
+            # In Qt6 enums are not longer simple ints. boundTo still requires ints
+            def to_int(shortcut):
+                return shortcut.toCombined()
+
+        else:
+
+            def to_int(shortcut):
+                return shortcut
+
         command = commands.boundTo(
-            Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Slash
+            to_int(Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Slash)
         )
         if command is not None:
             command.setKey(0)
@@ -181,28 +191,34 @@ class DocumentEditor(QsciScintilla):
         for command in commands.commands():
             if command.description() == 'Move selected lines up one line':
                 command.setKey(
-                    Qt.KeyboardModifier.ControlModifier
-                    | Qt.KeyboardModifier.ShiftModifier
-                    | Qt.Key.Key_Up
+                    to_int(
+                        Qt.KeyboardModifier.ControlModifier
+                        | Qt.KeyboardModifier.ShiftModifier
+                        | Qt.Key.Key_Up
+                    )
                 )
             if command.description() == 'Move selected lines down one line':
                 command.setKey(
-                    Qt.KeyboardModifier.ControlModifier
-                    | Qt.KeyboardModifier.ShiftModifier
-                    | Qt.Key.Key_Down
+                    to_int(
+                        Qt.KeyboardModifier.ControlModifier
+                        | Qt.KeyboardModifier.ShiftModifier
+                        | Qt.Key.Key_Down
+                    )
                 )
             if command.description() == 'Duplicate selection':
                 command.setKey(
-                    Qt.KeyboardModifier.ControlModifier
-                    | Qt.KeyboardModifier.ShiftModifier
-                    | Qt.Key.Key_D
+                    to_int(
+                        Qt.KeyboardModifier.ControlModifier
+                        | Qt.KeyboardModifier.ShiftModifier
+                        | Qt.Key.Key_D
+                    )
                 )
             if command.description() == 'Cut current line':
                 command.setKey(0)
 
         # Add QShortcuts
         self.uiShowAutoCompleteSCT = QShortcut(
-            Qt.Modifier.CTRL | Qt.Key.Key_Space,
+            QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_Space),
             self,
             context=Qt.ShortcutContext.WidgetShortcut,
         )
@@ -884,13 +900,18 @@ class DocumentEditor(QsciScintilla):
 
         self.setEdgeMode(QsciScintilla.EdgeMode.EdgeNone)
 
-        # set autocompletion settings
+        # set auto-completion settings
         self.setAutoCompletionSource(QsciScintilla.AutoCompletionSource.AcsAll)
         self.setAutoCompletionThreshold(3)
 
         self.setFont(self.documentFont)
         self.setMarginsFont(self.marginsFont())
-        self.setMarginWidth(0, QFontMetrics(self.marginsFont()).width('0000000') + 5)
+        metric = QFontMetrics(self.marginsFont())
+        if Qt_py.IsPyQt4:
+            width = metric.width('0000000')
+        else:
+            width = metric.horizontalAdvance('0000000')
+        self.setMarginWidth(0, width + 5)
 
     def markerNext(self):
         line, index = self.getCursorPosition()
@@ -1104,7 +1125,7 @@ class DocumentEditor(QsciScintilla):
         if not filename:
             newFile = True
             filename = self.filename()
-            filename, extFilter = QtCompat.QFileDialog.getSaveFileName(
+            filename, extFilter = Qt_py.QtCompat.QFileDialog.getSaveFileName(
                 self.window(), 'Save File as...', filename
             )
 
