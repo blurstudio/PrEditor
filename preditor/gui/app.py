@@ -93,7 +93,7 @@ class App(object):
         Returns:
             args: Extend the arguments used to intialize the QApplication.
         """
-        if settings.OS_TYPE == "Windows" and Qt.IsPyQt5:
+        if settings.OS_TYPE == "Windows" and (Qt.IsPyQt6 or Qt.IsPyQt5):
             # Make Qt automatically scale based on the monitor the window is
             # currently located.
             return ["--platform", "windows:dpiawareness=0"]
@@ -157,4 +157,4 @@ class App(object):
         """Exec's the QApplication if it hasn't already been started."""
         if self.app_created and self.app and not self.app_has_exec:
             self.app_has_exec = True
-            self.app.exec_()
+            Qt.QtCompat.QApplication.exec_()

@@ -1100,7 +1100,7 @@ class DocumentEditor(QsciScintilla):
                     self.window(),
                     'Error saving file...',
                     'There was a error saving the file. Error Code: %i' % f.error(),
-                    QMessageBox.Ok,
+                    QMessageBox.StandardButton.Ok,
                 )
                 f.close()
                 return False
