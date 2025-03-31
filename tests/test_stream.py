@@ -6,7 +6,7 @@ import sys
 import pytest
 import six
 
-from preditor.stream import STDOUT, STDERR, Director, Manager, install_to_std
+from preditor.stream import STDERR, STDOUT, Director, Manager, install_to_std
 
 
 @pytest.fixture
