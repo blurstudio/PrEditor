@@ -35,10 +35,10 @@ class FindDialog(Dialog):
     def eventFilter(self, object, event):
         from Qt.QtCore import QEvent, Qt
 
-        if event.type() == QEvent.KeyPress:
+        if event.type() == QEvent.Type.KeyPress:
             if (
-                event.key() in (Qt.Key_Enter, Qt.Key_Return)
-                and not event.modifiers() == Qt.ShiftModifier
+                event.key() in (Qt.Key.Key_Enter, Qt.Key.Key_Return)
+                and not event.modifiers() == Qt.KeyboardModifier.ShiftModifier
             ):
                 self.parent().uiFindNextACT.triggered.emit(True)
                 self.accept()
