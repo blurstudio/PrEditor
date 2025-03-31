@@ -64,7 +64,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
     def __set_font__(self, font):
         metrics = QFontMetrics(font)
-        self.setTabStopDistance(metrics.width(" ") * 4)
+        self.setTabStopDistance(metrics.horizontalAdvance(" ") * 4)
         super(WorkboxTextEdit, self).setFont(font)
 
     def __goto_line__(self, line):
