@@ -4,7 +4,6 @@ import json
 import os
 import re
 
-from Qt.QtCore import QRegExp
 from Qt.QtGui import QColor, QSyntaxHighlighter, QTextCharFormat
 
 from .. import resourcePath
@@ -68,59 +67,46 @@ class CodeHighlighter(QSyntaxHighlighter):
             if parent and hasattr(parent, 'outputPrompt'):
                 self.highlightText(
                     text,
-                    QRegExp('%s[^\\n]*' % re.escape(parent.outputPrompt())),
+                    re.compile('%s[^\\n]*' % re.escape(parent.outputPrompt())),
                     format,
                 )
 
             # format the keywords
             format = self.keywordFormat()
             for kwd in self._keywords:
-                self.highlightText(text, QRegExp(r'\b%s\b' % kwd), format)
+                self.highlightText(text, re.compile(r'\b%s\b' % kwd), format)
 
             # format the strings
             format = self.stringFormat()
+
             for string in self._strings:
                 self.highlightText(
                     text,
-                    QRegExp('%s[^%s]*' % (string, string)),
+                    re.compile('{s}[^{s}]*{s}'.format(s=string)),
                     format,
-                    includeLast=True,
                 )
 
             # format the comments
             format = self.commentFormat()
             for comment in self._comments:
-                self.highlightText(text, QRegExp(comment), format)
+                self.highlightText(text, re.compile(comment), format)
 
     def highlightText(self, text, expr, format, offset=0, includeLast=False):
         """Highlights a text group with an expression and format
 
         Args:
             text (str): text to highlight
-            expr (QRegExp): search parameter
+            expr (QRegularExpression): search parameter
             format (QTextCharFormat): formatting rule
-            offset (int): number of characters to offset by when highlighting
             includeLast (bool): whether or not the last character should be highlighted
         """
-        pos = expr.indexIn(text, 0)
-
         # highlight all the given matches to the expression in the text
-        while pos != -1:
-            pos = expr.pos(offset)
-            length = len(expr.cap(offset))
-
-            # use the last character if desired
+        for match in expr.finditer(text):
+            start, end = match.span()
+            length = end - start
             if includeLast:
                 length += 1
-
-            # set the formatting
-            self.setFormat(pos, length, format)
-
-            matched = expr.matchedLength()
-            if includeLast:
-                matched += 1
-
-            pos = expr.indexIn(text, pos + matched)
+            self.setFormat(start, length, format)
 
     def keywordColor(self):
         # pull the color from the parent if possible because this doesn't support
