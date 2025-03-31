@@ -6,18 +6,18 @@ from .. import Qsci
 
 
 class PythonLexer(Qsci.QsciLexerPython):
-    # Items in this list will be highlighted using the color for
-    # self.HighlightedIdentifier
+    # Items in this list will be highlighted using the color
+    # for Qsci.QsciLexerPython.HighlightedIdentifier.
     highlightedKeywords = ''
 
     def __init__(self, *args):
         super(PythonLexer, self).__init__(*args)
 
         # set the indentation warning
-        self.setIndentationWarning(self.Inconsistent)
+        self.setIndentationWarning(Qsci.QsciLexerPython.IndentationWarning.Inconsistent)
 
     def defaultPaper(self, style):
-        if style == self.HighlightedIdentifier:
+        if style == Qsci.QsciLexerPython.HighlightedIdentifier:
             # Set the highlight color for this lexer
             return QColor(155, 255, 155)
         return super(PythonLexer, self).defaultPaper(style)

@@ -9,6 +9,7 @@ from Qt.QtWidgets import QAction
 
 from .. import core, resourcePath
 from ..gui.workbox_mixin import WorkboxMixin
+from ..scintilla import QsciScintilla
 from ..scintilla.documenteditor import DocumentEditor, SearchOptions
 from ..scintilla.finddialog import FindDialog
 
@@ -35,15 +36,19 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.initShortcuts()
         self.setLanguage('Python')
         # Default to unix newlines
-        self.setEolMode(self.EolUnix)
+        self.setEolMode(QsciScintilla.EolMode.EolUnix)
         if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
             self.window().setWorkboxFontBasedOnConsole()
 
     def __auto_complete_enabled__(self):
-        return self.autoCompletionSource() == self.AcsAll
+        return self.autoCompletionSource() == QsciScintilla.AutoCompletionSource.AcsAll
 
     def __set_auto_complete_enabled__(self, state):
-        state = self.AcsAll if state else self.AcsNone
+        state = (
+            QsciScintilla.AutoCompletionSource.AcsAll
+            if state
+            else QsciScintilla.AutoCompletionSource.AcsNone
+        )
         self.setAutoCompletionSource(state)
 
     def __clear__(self):
@@ -119,7 +124,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         try:
             marker = self._marker
         except AttributeError:
-            self._marker = self.markerDefine(self.Circle)
+            self._marker = self.markerDefine(QsciScintilla.MarkerSymbol.Circle)
             marker = self._marker
         self.markerAdd(line, marker)
 
@@ -247,7 +252,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
         # create the search dialog and connect actions
         self._searchDialog = FindDialog(self)
-        self._searchDialog.setAttribute(Qt.WA_DeleteOnClose, False)
+        self._searchDialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
         self.uiFindACT.triggered.connect(
             lambda: self._searchDialog.search(self.searchText())
         )
