@@ -25,7 +25,7 @@ class Window(QMainWindow):
         if not cls._instance:
             cls._instance = cls(parent=parent)
             # protect the memory
-            cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+            cls._instance.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
             # but make sure that if we reload the environment, everything gets deleted
             # properly
             core.aboutToClearPaths.connect(cls._instance.shutdown)
@@ -70,7 +70,7 @@ class Window(QMainWindow):
         # dead dialogs
 
         # set the delete attribute to clean up the window once it is closed
-        self.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         # If this value is set to False calling setGeometry on this window will not
         # adjust the geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
@@ -109,7 +109,7 @@ class Window(QMainWindow):
     def closeEvent(self, event):
         # ensure this object gets deleted
         wwidget = None
-        if self.testAttribute(Qt.WA_DeleteOnClose):
+        if self.testAttribute(Qt.WidgetAttribute.WA_DeleteOnClose):
             # collect the win widget to uncache it
             if self.parent() and self.parent().inherits('QWinWidget'):
                 wwidget = self.parent()
@@ -123,7 +123,9 @@ class Window(QMainWindow):
             WinWidget.uncache(wwidget)
 
         # only disconnect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
+        if self.aboutToClearPathsEnabled and self.testAttribute(
+            Qt.WidgetAttribute.WA_DeleteOnClose
+        ):
             try:
                 core.aboutToClearPaths.disconnect(self.shutdown)
             except TypeError:
@@ -144,7 +146,9 @@ class Window(QMainWindow):
     def showEvent(self, event):
         # listen for aboutToClearPaths signal if requested
         # but only connect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
+        if self.aboutToClearPathsEnabled and self.testAttribute(
+            Qt.WidgetAttribute.WA_DeleteOnClose
+        ):
             core.aboutToClearPaths.connect(self.shutdown)
         super(Window, self).showEvent(event)
 
@@ -163,7 +167,7 @@ class Window(QMainWindow):
             cls._instance = None
             if this.aboutToClearPathsEnabled:
                 core.aboutToClearPaths.disconnect(this.shutdown)
-            this.setAttribute(Qt.WA_DeleteOnClose, True)
+            this.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         try:
             this.close()
         except RuntimeError:

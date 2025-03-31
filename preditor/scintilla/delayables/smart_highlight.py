@@ -11,7 +11,7 @@ from .. import FindState, QsciScintilla
 class SmartHighlight(SearchDelayable):
     key = 'smart_highlight'
     indicator_number = 30
-    indicator_style = QsciScintilla.StraightBoxIndicator
+    indicator_style = QsciScintilla.IndicatorStyle.StraightBoxIndicator
     border_alpha = 255
 
     def __init__(self, engine):

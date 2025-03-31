@@ -64,12 +64,16 @@ class PythonCompleter(QCompleter):
 
     def setCaseSensitive(self, caseSensitive=True):
         """Set case sensitivity for completions"""
-        self._sensitivity = Qt.CaseSensitive if caseSensitive else Qt.CaseInsensitive
+        self._sensitivity = (
+            Qt.CaseSensitivity.CaseSensitive
+            if caseSensitive
+            else Qt.CaseSensitivity.CaseInsensitive
+        )
         self.buildCompleter()
 
     def caseSensitive(self):
         """Return current case sensitivity state for completions"""
-        caseSensitive = self._sensitivity == Qt.CaseSensitive
+        caseSensitive = self._sensitivity == Qt.CaseSensitivity.CaseSensitive
         return caseSensitive
 
     def setCompleterMode(self, completerMode=CompleterMode.STARTS_WITH):
@@ -90,7 +94,7 @@ class PythonCompleter(QCompleter):
         self.filterModel.setSourceModel(model)
         self.filterModel.setFilterCaseSensitivity(self._sensitivity)
         self.setModel(self.filterModel)
-        self.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.setCompletionMode(QCompleter.CompletionMode.UnfilteredPopupCompletion)
 
     def currentObject(self, scope=None, docMode=False):
         if self._enabled:
@@ -200,7 +204,7 @@ class PythonCompleter(QCompleter):
         """pulls out the text underneath the cursor of this items widget"""
 
         cursor = self.widget().textCursor()
-        cursor.select(QTextCursor.WordUnderCursor)
+        cursor.select(QTextCursor.SelectionType.WordUnderCursor)
 
         # grab the selected word
         word = cursor.selectedText()

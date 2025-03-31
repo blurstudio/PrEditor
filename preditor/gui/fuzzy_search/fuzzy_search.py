@@ -22,14 +22,18 @@ class FuzzySearch(QFrame):
         self.y_offset = 100
         self.setMinimumSize(400, 200)
         self.uiCloseSCT = QShortcut(
-            Qt.Key_Escape, self, context=Qt.WidgetWithChildrenShortcut
+            Qt.Key.Key_Escape,
+            self,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
         self.uiCloseSCT.activated.connect(self._canceled)
 
-        self.uiUpSCT = QShortcut(Qt.Key_Up, self, context=Qt.WidgetWithChildrenShortcut)
+        self.uiUpSCT = QShortcut(
+            Qt.Key.Key_Up, self, context=Qt.ShortcutContext.WidgetWithChildrenShortcut
+        )
         self.uiUpSCT.activated.connect(partial(self.increment_selection, -1))
         self.uiDownSCT = QShortcut(
-            Qt.Key_Down, self, context=Qt.WidgetWithChildrenShortcut
+            Qt.Key.Key_Down, self, context=Qt.ShortcutContext.WidgetWithChildrenShortcut
         )
         self.uiDownSCT.activated.connect(partial(self.increment_selection, 1))
 
@@ -90,4 +94,4 @@ class FuzzySearch(QFrame):
     def popup(self):
         self.show()
         self.reposition()
-        self.uiLineEDIT.setFocus(Qt.PopupFocusReason)
+        self.uiLineEDIT.setFocus(Qt.FocusReason.PopupFocusReason)
