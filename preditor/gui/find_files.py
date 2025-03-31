@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function
 
-from Qt.QtCore import Qt
+from Qt.QtCore import Qt, Slot
 from Qt.QtGui import QIcon, QKeySequence
 from Qt.QtWidgets import QApplication, QShortcut, QWidget
 
@@ -54,6 +54,7 @@ class FindFiles(QWidget):
         self.show()
         self.uiFindTXT.setFocus()
 
+    @Slot()
     def find(self):
         find_text = self.uiFindTXT.text()
         context = self.uiContextSPN.value()
