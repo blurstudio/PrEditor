@@ -23,7 +23,7 @@ class ErrorDialog(Dialog):
         self.parent_ = parent
         self.requestPimpPID = None
         self.setWindowTitle('Error Occurred')
-        self.errorLabel.setTextFormat(Qt.RichText)
+        self.errorLabel.setTextFormat(Qt.TextFormat.RichText)
         self.iconLabel.setPixmap(
             QPixmap(
                 os.path.join(
@@ -32,7 +32,7 @@ class ErrorDialog(Dialog):
                     'img',
                     'warning-big.png',
                 )
-            ).scaledToHeight(64, Qt.SmoothTransformation)
+            ).scaledToHeight(64, Qt.TransformationMode.SmoothTransformation)
         )
 
         self.loggerButton.clicked.connect(self.showLogger)
@@ -84,7 +84,7 @@ class ErrorDialog(Dialog):
         except ImpersonateError:
             dialog = RedmineLoginDialog(parent=self)
             result = dialog.exec_()
-            if result == QDialog.Accepted:
+            if result == QDialog.DialogCode.Accepted:
                 kwargs.update(
                     {
                         'username': dialog.username(),
@@ -95,6 +95,6 @@ class ErrorDialog(Dialog):
 
                 # The dialog can only return a successful connection.
                 CreateRedmineIssue(**kwargs)()
-            elif result == QDialog.Rejected:
+            elif result == QDialog.DialogCode.Rejected:
                 return
         self.close()

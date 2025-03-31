@@ -116,7 +116,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
             selectText = self.window().uiSelectTextACT.isChecked() or selectText
             if selectText:
-                cursor.select(QTextCursor.LineUnderCursor)
+                cursor.select(QTextCursor.SelectionType.LineUnderCursor)
                 self.setTextCursor(cursor)
 
             return text, line
