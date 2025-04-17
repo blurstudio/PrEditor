@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MaxMenuTransformations>
+    <CreateMenuSeparator MenuId="658724ec-de09-47dd-b723-918c59a28ad1" Id="9cdc28de-9e70-471c-ae5c-d86e3b7fefba" BeforeId="4e206a37-f502-4fa8-ba0e-70dd427d507f"/>
+    <MoveItem DestinationId="658724ec-de09-47dd-b723-918c59a28ad1" ItemId="4e206a37-f502-4fa8-ba0e-70dd427d507f"/>
+    <CreateMenuAction MenuId="658724ec-de09-47dd-b723-918c59a28ad1" Id="f243229b-f0f6-42b4-a94d-bebe9ef9777f" ActionId="647394-PrEditor_Show`PrEditor"/>
+    <MoveItem DestinationId="658724ec-de09-47dd-b723-918c59a28ad1" ItemId="9cdc28de-9e70-471c-ae5c-d86e3b7fefba" BeforeId="f243229b-f0f6-42b4-a94d-bebe9ef9777f"/>
+</MaxMenuTransformations>
