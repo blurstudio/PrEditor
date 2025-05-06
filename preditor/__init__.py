@@ -113,6 +113,11 @@ def configure(name, parent_callback=None, excepthook=True, logging=True, streams
         preditor.debug.BlurExcepthook.install()
 
 
+def get_core_name():
+    """Returns the configured core_name or DEFAULT_CORE_NAME."""
+    return _global_config.get('core_name', DEFAULT_CORE_NAME)
+
+
 def launch(run_workbox=False, app_id=None, name=None, standalone=False):
     """Launches the preditor gui creating the QApplication instance if not
     already created.

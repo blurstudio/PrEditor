@@ -30,6 +30,7 @@ from .. import (
     about_preditor,
     core,
     debug,
+    get_core_name,
     osystem,
     plugins,
     prefs,
@@ -60,7 +61,7 @@ class LoggerWindow(Window):
 
     def __init__(self, parent, name=None, run_workbox=False, standalone=False):
         super(LoggerWindow, self).__init__(parent=parent)
-        self.name = name if name else DEFAULT_CORE_NAME
+        self.name = name if name else get_core_name()
         self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
 
