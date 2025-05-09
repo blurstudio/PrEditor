@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function
 
-from Qt.QtCore import Qt
+from Qt.QtCore import Qt, Slot
 from Qt.QtGui import QIcon, QKeySequence
 from Qt.QtWidgets import QApplication, QShortcut, QWidget
 
@@ -30,22 +30,24 @@ class FindFiles(QWidget):
 
         # Create shortcuts
         self.uiCloseSCT = QShortcut(
-            QKeySequence(Qt.Key_Escape), self, context=Qt.WidgetWithChildrenShortcut
+            QKeySequence(Qt.Key.Key_Escape),
+            self,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
 
         self.uiCloseSCT.activated.connect(self.hide)
 
         self.uiCaseSensitiveSCT = QShortcut(
-            QKeySequence(Qt.AltModifier | Qt.Key_C),
+            QKeySequence(Qt.KeyboardModifier.AltModifier | Qt.Key.Key_C),
             self,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
         self.uiCaseSensitiveSCT.activated.connect(self.uiCaseSensitiveBTN.toggle)
 
         self.uiRegexSCT = QShortcut(
-            QKeySequence(Qt.AltModifier | Qt.Key_R),
+            QKeySequence(Qt.KeyboardModifier.AltModifier | Qt.Key.Key_R),
             self,
-            context=Qt.WidgetWithChildrenShortcut,
+            context=Qt.ShortcutContext.WidgetWithChildrenShortcut,
         )
         self.uiRegexSCT.activated.connect(self.uiRegexBTN.toggle)
 
@@ -54,6 +56,7 @@ class FindFiles(QWidget):
         self.show()
         self.uiFindTXT.setFocus()
 
+    @Slot()
     def find(self):
         find_text = self.uiFindTXT.text()
         context = self.uiContextSPN.value()

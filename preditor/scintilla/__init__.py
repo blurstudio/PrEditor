@@ -1,5 +1,23 @@
 from __future__ import absolute_import
 
+__all__ = ["delayables", "FindState", "Qsci", "QsciScintilla"]
+
+import Qt
+
+if Qt.IsPyQt6:
+    from PyQt6 import Qsci
+    from PyQt6.Qsci import QsciScintilla
+elif Qt.IsPyQt5:
+    from PyQt5 import Qsci
+    from PyQt5.Qsci import QsciScintilla
+elif Qt.IsPyQt4:
+    from PyQt4 import Qsci
+    from PyQt4.Qsci import QsciScintilla
+else:
+    raise ImportError(
+        "QScintilla library is not supported by {}".format(Qt.__binding__)
+    )
+
 
 class FindState(object):
     """
@@ -19,4 +37,4 @@ class FindState(object):
         self.end_pos = None
 
 
-from . import delayables  # noqa: F401, E402
+from . import delayables  # noqa: E402
