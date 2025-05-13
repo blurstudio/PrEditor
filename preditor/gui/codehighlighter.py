@@ -35,15 +35,15 @@ class CodeHighlighter(QSyntaxHighlighter):
         # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'commentColor'):
-            return parent.commentColor()
+            return parent.commentColor
         return self._commentColor
 
     def setCommentColor(self, color):
         # set the color for the parent if possible because this doesn't support
         # stylesheets
         parent = self.parent()
-        if parent and hasattr(parent, 'setCommentColor'):
-            parent.setCommentColor(color)
+        if parent and hasattr(parent, 'commentColor'):
+            parent.commentColor = color
         self._commentColor = color
 
     def commentFormat(self):
@@ -127,15 +127,15 @@ class CodeHighlighter(QSyntaxHighlighter):
         # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'keywordColor'):
-            return parent.keywordColor()
+            return parent.keywordColor
         return self._keywordColor
 
     def setKeywordColor(self, color):
         # set the color for the parent if possible because this doesn't support
         # stylesheets
         parent = self.parent()
-        if parent and hasattr(parent, 'setKeywordColor'):
-            parent.setKeywordColor(color)
+        if parent and hasattr(parent, 'keywordColor'):
+            parent.keywordColor = color
         self._keywordColor = color
 
     def keywordFormat(self):
@@ -150,15 +150,15 @@ class CodeHighlighter(QSyntaxHighlighter):
         # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'resultColor'):
-            return parent.resultColor()
+            return parent.resultColor
         return self._resultColor
 
     def setResultColor(self, color):
         # set the color for the parent if possible because this doesn't support
         # stylesheets
         parent = self.parent()
-        if parent and hasattr(parent, 'setResultColor'):
-            parent.setResultColor(color)
+        if parent and hasattr(parent, 'resultColor'):
+            parent.resultColor = color
         self._resultColor = color
 
     def resultFormat(self):
@@ -191,15 +191,15 @@ class CodeHighlighter(QSyntaxHighlighter):
         # stylesheets
         parent = self.parent()
         if parent and hasattr(parent, 'stringColor'):
-            return parent.stringColor()
+            return parent.stringColor
         return self._stringColor
 
     def setStringColor(self, color):
         # set the color for the parent if possible because this doesn't support
         # stylesheets
         parent = self.parent()
-        if parent and hasattr(parent, 'setStringColor'):
-            parent.setStringColor(color)
+        if parent and hasattr(parent, 'stringColor'):
+            parent.stringColor = color
         self._stringColor = color
 
     def stringFormat(self):

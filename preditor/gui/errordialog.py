@@ -51,7 +51,7 @@ class ErrorDialog(Dialog):
             msg
             % {
                 'text': self.traceback_msg.split('\n')[-2],
-                'color': ConsolePrEdit._errorMessageColor.name(),
+                'color': ConsolePrEdit.errorMessageColor.name(),
             }
         )
 
