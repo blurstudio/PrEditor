@@ -20,6 +20,7 @@ from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
 
 from .. import debug, settings, stream
 from ..streamhandler_helper import StreamHandlerHelper
+from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
 from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
@@ -28,8 +29,14 @@ from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 class ConsolePrEdit(QTextEdit):
     # Ensure the error prompt only shows up once.
     _errorPrompted = False
-    # the color error messages are displayed in, can be set by stylesheets
-    _errorMessageColor = QColor(Qt.red)
+
+    # These Qt Properties can be customized using style sheets.
+    commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))
+    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.red))
+    keywordColor = QtPropertyInit('_keywordColor', QColor(17, 154, 255))
+    resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
+    stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
+    stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
 
     def __init__(self, parent):
         super(ConsolePrEdit, self).__init__(parent)
@@ -38,12 +45,6 @@ class ConsolePrEdit(QTextEdit):
 
         # If populated, also write to this interface
         self.outputPipe = None
-
-        self._stdoutColor = QColor(17, 154, 255)
-        self._commentColor = QColor(0, 206, 52)
-        self._keywordColor = QColor(17, 154, 255)
-        self._stringColor = QColor(255, 128, 0)
-        self._resultColor = QColor(128, 128, 128)
 
         self._consolePrompt = '>>> '
         # Note: Changing _outputPrompt may require updating resource\lang\python.xml
@@ -356,27 +357,9 @@ class ConsolePrEdit(QTextEdit):
         # Restore the cursor position to its original location
         self.setTextCursor(currentCursor)
 
-    def commentColor(self):
-        return self._commentColor
-
-    def setCommentColor(self, color):
-        self._commentColor = color
-
     def completer(self):
         """returns the completer instance that is associated with this editor"""
         return self._completer
-
-    def errorMessageColor(self):
-        return self.__class__._errorMessageColor
-
-    def setErrorMessageColor(self, color):
-        self.__class__._errorMessageColor = color
-
-    def foregroundColor(self):
-        return self._foregroundColor
-
-    def setForegroundColor(self, color):
-        self._foregroundColor = color
 
     def executeString(self, commandText, filename='<ConsolePrEdit>', extraPrint=True):
         if self.clearExecutionTime is not None:
@@ -687,12 +670,6 @@ class ConsolePrEdit(QTextEdit):
                         completer.wasCompletingCounter = 0
                         completer.wasCompleting = False
 
-    def keywordColor(self):
-        return self._keywordColor
-
-    def setKeywordColor(self, color):
-        self._keywordColor = color
-
     def moveToHome(self):
         """moves the cursor to the home location"""
         mode = QTextCursor.MoveAnchor
@@ -717,12 +694,6 @@ class ConsolePrEdit(QTextEdit):
 
     def prompt(self):
         return self._consolePrompt
-
-    def resultColor(self):
-        return self._resultColor
-
-    def setResultColor(self, color):
-        self._resultColor = color
 
     def setCompleter(self, completer):
         """sets the completer instance for this widget"""
@@ -773,18 +744,6 @@ class ConsolePrEdit(QTextEdit):
         """Create a new line to show output text."""
         self.startPrompt(self._outputPrompt)
 
-    def stdoutColor(self):
-        return self._stdoutColor
-
-    def setStdoutColor(self, color):
-        self._stdoutColor = color
-
-    def stringColor(self):
-        return self._stringColor
-
-    def setStringColor(self, color):
-        self._stringColor = color
-
     def removeCurrentLine(self):
         self.moveCursor(QTextCursor.End, QTextCursor.MoveAnchor)
         self.moveCursor(QTextCursor.StartOfLine, QTextCursor.MoveAnchor)
@@ -833,9 +792,9 @@ class ConsolePrEdit(QTextEdit):
 
             charFormat = QTextCharFormat()
             if not error:
-                charFormat.setForeground(self.stdoutColor())
+                charFormat.setForeground(self.stdoutColor)
             else:
-                charFormat.setForeground(self.errorMessageColor())
+                charFormat.setForeground(self.errorMessageColor)
             self.setCurrentCharFormat(charFormat)
 
             # If showing Error Hyperlinks... Sometimes (when a syntax error, at least),

@@ -53,4 +53,10 @@ DocumentEditor {
 ConsolePrEdit{
 	color: rgb(0,0,0);
 	background-color: rgb(255,255,255);
+	qproperty-commentColor: rgb(0, 206, 52);
+	qproperty-errorMessageColor: rgb(255, 0, 0);
+	qproperty-keywordColor: rgb(17, 154, 255);
+	qproperty-resultColor: rgb(128, 128, 128);
+	qproperty-stdoutColor: rgb(17, 154, 255);
+	qproperty-stringColor: rgb(255, 128, 0);
 }
