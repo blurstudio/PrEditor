@@ -492,7 +492,7 @@ class LoggerWindow(Window):
 
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
-        dlg.exec_()
+        dlg.exec()
 
     def focusToConsole(self):
         """Move focus to the console"""
@@ -875,7 +875,7 @@ class LoggerWindow(Window):
         if dialog.objectName() in self.dont_ask_again:
             return
 
-        dialog.exec_()
+        dialog.exec()
 
     def restartLogger(self):
         """Closes this PrEditor instance and starts a new process with the same
