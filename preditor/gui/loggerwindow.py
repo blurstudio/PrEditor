@@ -11,16 +11,18 @@ from datetime import datetime, timedelta
 from functools import partial
 
 import __main__
+import Qt as Qt_py
 import six
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
-from Qt.QtGui import QCursor, QFont, QIcon, QTextCursor
+from Qt.QtGui import QCursor, QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFontDialog,
     QInputDialog,
     QMessageBox,
     QTextBrowser,
+    QTextEdit,
     QToolTip,
     QVBoxLayout,
 )
@@ -172,7 +174,7 @@ class LoggerWindow(Window):
         self.uiCompleterModeMENU.addSeparator()
         action = self.uiCompleterModeMENU.addAction('Cycle mode')
         action.setObjectName('uiCycleModeACT')
-        action.setShortcut(Qt.CTRL | Qt.Key_M)
+        action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
         action.triggered.connect(self.cycleCompleterMode)
         self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
 
@@ -427,7 +429,7 @@ class LoggerWindow(Window):
 
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
-        dlg.exec_()
+        dlg.exec()
 
     def focusToConsole(self):
         """Move focus to the console"""
@@ -466,7 +468,7 @@ class LoggerWindow(Window):
 
         cursor = console.textCursor()
         if not cursor.hasSelection():
-            cursor.select(QTextCursor.LineUnderCursor)
+            cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         text = cursor.selectedText()
         prompt = console.prompt()
         if text.startswith(prompt):
@@ -502,7 +504,7 @@ class LoggerWindow(Window):
 
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
-        if event.modifiers() == Qt.ControlModifier:
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             # WheelEvents can be emitted in a cluster, but we only want one at a time
             # (ie to change font size by 1, rather than 2 or 3). Let's bail if previous
             # font-resize wheel event was within a certain threshhold.
@@ -542,7 +544,10 @@ class LoggerWindow(Window):
         else:
             text = action.toolTip()
 
-        menu = action.parentWidget()
+        if Qt_py.IsPyQt4:
+            menu = action.parentWidget()
+        else:
+            menu = action.parent()
         QToolTip.showText(QCursor.pos(), text, menu)
 
     def selectFont(self, monospace=False, proportional=False):
@@ -557,13 +562,16 @@ class LoggerWindow(Window):
         curFontFamily = origFont.family()
 
         if monospace and proportional:
-            options = QFontDialog.MonospacedFonts | QFontDialog.ProportionalFonts
+            options = (
+                QFontDialog.FontDialogOption.MonospacedFonts
+                | QFontDialog.FontDialogOption.ProportionalFonts
+            )
             kind = "monospace or proportional "
         elif monospace:
-            options = QFontDialog.MonospacedFonts
+            options = QFontDialog.FontDialogOption.MonospacedFonts
             kind = "monospace "
         elif proportional:
-            options = QFontDialog.ProportionalFonts
+            options = QFontDialog.FontDialogOption.ProportionalFonts
             kind = "proportional "
 
         # Present a QFontDialog for user to choose a font
@@ -623,9 +631,9 @@ class LoggerWindow(Window):
 
     def adjustWorkboxOrientation(self, state):
         if state:
-            self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
+            self.uiSplitterSPLIT.setOrientation(Qt.Orientation.Horizontal)
         else:
-            self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
+            self.uiSplitterSPLIT.setOrientation(Qt.Orientation.Vertical)
 
     def backupPreferences(self):
         """Saves a copy of the current preferences to a zip archive."""
@@ -694,7 +702,11 @@ class LoggerWindow(Window):
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
-        if event.modifiers() & (Qt.AltModifier | Qt.ControlModifier | Qt.ShiftModifier):
+        if event.modifiers() & (
+            Qt.KeyboardModifier.AltModifier
+            | Qt.KeyboardModifier.ControlModifier
+            | Qt.KeyboardModifier.ShiftModifier
+        ):
             pass
         else:
             super(LoggerWindow, self).keyPressEvent(event)
@@ -722,7 +734,7 @@ class LoggerWindow(Window):
         pref.update(
             {
                 'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
-                'windowState': int(self.windowState()),
+                'windowState': QtCompat.enumValue(self.windowState()),
                 'SplitterVertical': self.uiEditorVerticalACT.isChecked(),
                 'SplitterSize': self.uiSplitterSPLIT.sizes(),
                 'tabIndent': self.uiIndentationsTabsACT.isChecked(),
@@ -798,7 +810,7 @@ class LoggerWindow(Window):
         if dialog.objectName() in self.dont_ask_again:
             return
 
-        dialog.exec_()
+        dialog.exec()
 
     def restartLogger(self):
         """Closes this PrEditor instance and starts a new process with the same
@@ -846,7 +858,7 @@ class LoggerWindow(Window):
         sizes = pref.get('SplitterSize')
         if sizes:
             self.uiSplitterSPLIT.setSizes(sizes)
-        self.setWindowState(Qt.WindowStates(pref.get('windowState', 0)))
+        self.setWindowState(Qt.WindowState(pref.get('windowState', 0)))
         self.uiIndentationsTabsACT.setChecked(pref.get('tabIndent', True))
         self.uiCopyTabsToSpacesACT.setChecked(pref.get('copyIndentsAsSpaces', False))
 
@@ -919,7 +931,7 @@ class LoggerWindow(Window):
         _font = pref.get('consoleFont', None)
         if _font:
             font = QFont()
-            if font.fromString(_font):
+            if QtCompat.QFont.fromString(font, _font):
                 self.console().setConsoleFont(font)
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
@@ -1098,9 +1110,9 @@ class LoggerWindow(Window):
 
     def setWordWrap(self, state):
         if state:
-            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.WidgetWidth)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         else:
-            self.uiConsoleTXT.setLineWrapMode(self.uiConsoleTXT.NoWrap)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
 
     def show_about(self):
         """Shows `preditor.about_preditor()`'s output in a message box."""
@@ -1180,7 +1192,7 @@ class LoggerWindow(Window):
 
         # if this is the global instance, then allow it to be deleted on close
         if self == LoggerWindow._instance:
-            self.setAttribute(Qt.WA_DeleteOnClose, True)
+            self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
             LoggerWindow._instance = None
 
         # clear out the system
@@ -1274,10 +1286,10 @@ class LoggerWindow(Window):
             # singleton window than to parent it to a specific top level window.
             if core.objectName() == 'rv':
                 inst.setParent(None)
-                inst.setAttribute(Qt.WA_QuitOnClose, False)
+                inst.setAttribute(Qt.WidgetAttribute.WA_QuitOnClose, False)
 
             # protect the memory
-            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+            inst.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
             # cache the instance
             LoggerWindow._instance = inst
