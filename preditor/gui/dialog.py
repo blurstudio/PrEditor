@@ -140,7 +140,7 @@ class Dialog(QDialog):
             except TypeError:
                 pass
 
-    def exec_(self):
+    def exec(self):
         # do not use the DeleteOnClose attribute when executing a dialog as often times
         # a user will be accessing information from the dialog instance after it closes.
         # This function properly transfers ownership of the dialog instance back to
@@ -149,7 +149,7 @@ class Dialog(QDialog):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
         # execute the dialog
-        return QDialog.exec_(self)
+        return super().exec()
 
     def setGeometry(self, *args):
         """
