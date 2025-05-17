@@ -190,7 +190,7 @@ class BlurExcepthook(object):
             ConsolePrEdit._errorPrompted = True
             errorDialog = ErrorDialog(root_window())
             errorDialog.setText(exc_info)
-            errorDialog.exec_()
+            errorDialog.exec()
 
         # interruptted until dialog closed
         finally:

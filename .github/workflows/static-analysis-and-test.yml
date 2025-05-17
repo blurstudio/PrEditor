@@ -35,10 +35,6 @@ jobs:
       - name: Format with black
         run: tox -e black
 
-      - name: Py 2 and 3 compatibility
-        run: tox -e modernize
-
-
   test:
     # We want to run on external PRs, but not on our own internal PRs as they'll
     # be run by the push to the branch. Without this if check, checks are

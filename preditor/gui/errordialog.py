@@ -84,7 +84,7 @@ class ErrorDialog(Dialog):
         # If that failed, we will use a dialog to prompt for credentials.
         except ImpersonateError:
             dialog = RedmineLoginDialog(parent=self)
-            result = dialog.exec_()
+            result = dialog.exec()
             if result == QDialog.DialogCode.Accepted:
                 kwargs.update(
                     {
