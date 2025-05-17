@@ -54,7 +54,7 @@ class DragTabBar(QTabBar):
         drag.setHotSpot(event_pos - pos_in_tab)
         cursor = QCursor(Qt.CursorShape.OpenHandCursor)
         drag.setDragCursor(cursor.pixmap(), Qt.DropAction.MoveAction)
-        action = drag.exec_(Qt.DropAction.MoveAction)
+        action = drag.exec(Qt.DropAction.MoveAction)
         # If the user didn't successfully add this to a new tab widget, restore
         # the tab to the original location.
         if action == Qt.DropAction.IgnoreAction:
