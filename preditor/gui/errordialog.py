@@ -5,16 +5,19 @@ import os
 import traceback
 
 from Qt.QtCore import Qt
-from Qt.QtGui import QPixmap
+from Qt.QtGui import QColor, QPixmap
 from Qt.QtWidgets import QDialog
 from redminelib.exceptions import ImpersonateError
 
 from .. import __file__ as pfile
-from . import Dialog, loadUi
+from . import Dialog, QtPropertyInit, loadUi
 from .redmine_login_dialog import RedmineLoginDialog
 
 
 class ErrorDialog(Dialog):
+    # These Qt Properties can be customized using style sheets.
+    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.GlobalColor.red))
+
     def __init__(self, parent):
         super(ErrorDialog, self).__init__(parent)
 
@@ -40,8 +43,6 @@ class ErrorDialog(Dialog):
         self.ignoreButton.clicked.connect(self.close)
 
     def setText(self, exc_info):
-        from .console import ConsolePrEdit
-
         self.traceback_msg = "".join(traceback.format_exception(*exc_info))
         msg = (
             'The following error has occurred:<br>'
@@ -51,7 +52,7 @@ class ErrorDialog(Dialog):
             msg
             % {
                 'text': self.traceback_msg.split('\n')[-2],
-                'color': ConsolePrEdit.errorMessageColor.name(),
+                'color': self.errorMessageColor.name(),
             }
         )
 
