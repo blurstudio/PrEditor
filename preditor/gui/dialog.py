@@ -134,7 +134,7 @@ class Dialog(QDialog):
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
         # execute the dialog
-        return QDialog.exec_(self)
+        return super().exec()
 
     def setGeometry(self, *args):
         """
