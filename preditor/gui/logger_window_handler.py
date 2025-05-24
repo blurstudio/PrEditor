@@ -1,13 +1,12 @@
 from __future__ import absolute_import
 
 import logging
-import weakref
 
 from .. import instance
 
 
 class LoggerWindowHandler(logging.Handler):
-    """A logging handler that writes directly to the Python Logger.
+    """A logging handler that writes directly to the PrEditor instance.
 
     Args:
         error (bool, optional): Write the output as if it were written
@@ -22,7 +21,6 @@ class LoggerWindowHandler(logging.Handler):
 
     def __init__(self, error=True, formatter=default_format):
         super(LoggerWindowHandler, self).__init__()
-        self.console = weakref.ref(instance().console())
         self.error = error
         if formatter is not None:
             if not isinstance(formatter, logging.Formatter):
@@ -30,10 +28,14 @@ class LoggerWindowHandler(logging.Handler):
             self.setFormatter(formatter)
 
     def emit(self, record):
+        _instance = instance(create=False)
+        if _instance is None:
+            # No gui has been created yet, so nothing to do
+            return
         try:
             # If the python logger was closed and garbage collected,
             # there is nothing to do, simply exit the call
-            console = self.console()
+            console = _instance.console()
             if not console:
                 return
 
