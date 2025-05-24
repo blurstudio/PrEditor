@@ -9,7 +9,7 @@ if six.PY3:
 else:
     import pkg_resources
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 class Plugins(object):
@@ -18,7 +18,7 @@ class Plugins(object):
         for ep in self.iterator("preditor.plug.about_module"):
             name = ep.name
             if name in plugs:
-                logger.warning(
+                _logger.warning(
                     'Duplicate "preditor.plug.about_module" plugin found with '
                     'name "{}"'.format(name)
                 )
@@ -34,6 +34,44 @@ class Plugins(object):
                 result = "Error processing: {}".format(error)
 
             yield name, result
+
+    def add_logging_handler(self, logger, handler_cls, *args, **kwargs):
+        """Add a logging handler to a logger if not already installed.
+
+        Checks for an existing handler on logger for the specific class(does not
+        use isinstance). If not then it will create an instance of the handler
+        and add it to the logger.
+
+        Args:
+            logger (logging.RootLogger): The logger instance to add the handler.
+            handler_cls (logging.Handler or str): If a string is passed it will
+                use `self.logging_handlers` to get the class. If not found then
+                exits with success marked as False. Other values are treated as
+                the handler class to add to the logger.
+            *args: Passed to the handler_cls if a new instance is created.
+            **kargs: Passed to the handler_cls if a new instance is created.
+
+        Returns:
+            logging.Handler or None: The handler instance that was added, already
+                has been added, or None if the handler name isn't a valid plugin.
+            bool: True only if the handler_cls was not already added to this logger.
+        """
+        if isinstance(handler_cls, str):
+            handlers = dict(self.logging_handlers(handler_cls))
+            if not handlers:
+                # No handler to add for this name
+                return None, False
+            handler_cls = handlers[handler_cls]
+
+        # Attempt to find an existing handler instance and return it
+        for h in logger.handlers:
+            if type(h) is handler_cls:
+                return h, False
+
+        # No handler installed create and install it
+        handler = handler_cls(*args, **kwargs)
+        logger.addHandler(handler)
+        return handler, True
 
     def editor(self, name):
         for plug_name, ep in self.editors(name):

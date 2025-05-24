@@ -212,9 +212,7 @@ class HandlerMenu(LazyMenu):
         self.logger = logger
 
     def install_handler(self, name):
-        for _, cls in plugins.logging_handlers(name):
-            handler = cls()
-            self.logger.addHandler(handler)
+        plugins.add_logging_handler(self.logger, name)
 
     def refresh(self):
         self.clear()
@@ -224,7 +222,7 @@ class HandlerMenu(LazyMenu):
             act = handler_install.addAction(name)
             act.triggered.connect(partial(self.install_handler, name))
             for h in self.logger.handlers:
-                if isinstance(h, cls):
+                if type(h) is cls:
                     act.setEnabled(False)
                     act.setToolTip('Already installed for this logger.')
                     break
