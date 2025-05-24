@@ -93,7 +93,7 @@ def configure(name, parent_callback=None, excepthook=True, logging=True, streams
     # Store the core_name,.
     _global_config['core_name'] = name
     if parent_callback:
-        _global_config['parent_callback'] = parent_callback
+        set_parent_callback(parent_callback)
 
     if streams:
         # Install the stream manager to capture output
@@ -227,6 +227,39 @@ def root_window():
     from .gui.app import App
 
     return App.root_window()
+
+
+def parent_callback():
+    """Returns the parent_callback or None.
+
+    This is a callback that returns a QWidget to use as the parent of the
+    LoggerWindow when its first created. This can be used by DCC's to set the
+    parent to their main window.
+    """
+    return _global_config.get("parent_callback")
+
+
+def set_parent_callback(parent_callback, if_unset=True):
+    """Update the parent_callback even if it was already set.
+
+    This is useful for cases where `configure` is called before it's possible to
+    provide the parent_callback.
+
+    Note: Changing this does not re-parent an existing instance of LoggerWindows.
+    If you change this after the LoggerWindow instance has been created you will
+    need to manually re-parent it.
+
+    Args:
+        if_unset(bool): If True then only set this value if the parent_callback
+            hasn't already been set.
+
+    Returns:
+        bool: Returns False if if_unset is True and it was already set.
+    """
+    if "parent_callback" in _global_config and not if_unset:
+        return False
+    _global_config["parent_callback"] = parent_callback
+    return True
 
 
 def connect_preditor(
