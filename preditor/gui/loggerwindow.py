@@ -287,6 +287,12 @@ class LoggerWindow(Window):
         self.addAction(self.uiClearLogACT)
 
         self.dont_ask_again = []
+
+        # Load any plugins that modify the LoggerWindow
+        self.plugins = {}
+        for name, plugin in plugins.loggerwindow():
+            self.plugins[name] = plugin(self)
+
         self.restorePrefs()
 
         # add stylesheet menu options.
@@ -823,6 +829,13 @@ class LoggerWindow(Window):
 
         pref['editor_cls'] = self.editor_cls_name
 
+        # Allow any plugins to add their own preferences dictionary
+        pref["plugins"] = {}
+        for name, plugin in self.plugins.items():
+            plugin_pref = plugin.record_prefs(name)
+            if plugin_pref:
+                pref["plugins"][name] = plugin_pref
+
         self.save_prefs(pref)
 
     def load_prefs(self):
@@ -972,6 +985,10 @@ class LoggerWindow(Window):
                 self.console().setConsoleFont(font)
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
+
+        # Allow any plugins to restore their own preferences
+        for name, plugin in self.plugins.items():
+            plugin.restore_prefs(name, pref.get("plugins", {}).get(name))
 
     def restoreToolbars(self, pref=None):
         if pref is None:
