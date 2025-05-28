@@ -1,6 +1,6 @@
 from __future__ import absolute_import, print_function
 
-from Qt.QtCore import QObject, Signal
+from Qt.QtCore import QObject
 
 
 class Core(QObject):
@@ -9,17 +9,11 @@ class Core(QObject):
     be distributed between different pacakges.
     """
 
-    # ----------------------------------------------------------------
-    # blurdev signals
-    aboutToClearPaths = Signal()  # Emitted before environment is changed or reloaded
-
-    # ----------------------------------------------------------------
-
     def __init__(self, objectName=None):
-        QObject.__init__(self)
+        super(Core, self).__init__()
         if objectName is None:
-            objectName = 'blurdev'
-        QObject.setObjectName(self, objectName)
+            objectName = 'PrEditor'
+        self.setObjectName(objectName)
 
         # create custom properties
         self._headless = False

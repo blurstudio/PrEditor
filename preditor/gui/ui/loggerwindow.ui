@@ -178,7 +178,6 @@
     <addaction name="uiHighlightExactCompletionACT"/>
     <addaction name="separator"/>
     <addaction name="uiClearLogACT"/>
-    <addaction name="uiClearLogOnRefreshACT"/>
     <addaction name="separator"/>
     <addaction name="uiSelectFontsMENU"/>
     <addaction name="uiStyleMENU"/>
@@ -505,14 +504,6 @@
    </property>
    <property name="toolTip">
     <string>Editor Vertical</string>
-   </property>
-  </action>
-  <action name="uiClearLogOnRefreshACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Clear Log on Environment Refresh</string>
    </property>
   </action>
   <action name="uiClearToLastPromptACT">

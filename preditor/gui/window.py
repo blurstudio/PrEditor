@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QMainWindow
 
-from .. import core, relativePath, root_window
+from .. import relativePath, root_window
 
 
 class Window(QMainWindow):
@@ -26,9 +26,6 @@ class Window(QMainWindow):
             cls._instance = cls(parent=parent)
             # protect the memory
             cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
-            # but make sure that if we reload the environment, everything gets deleted
-            # properly
-            core.aboutToClearPaths.connect(cls._instance.shutdown)
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
@@ -74,9 +71,6 @@ class Window(QMainWindow):
         # If this value is set to False calling setGeometry on this window will not
         # adjust the geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
-        # If this value is set to True the window will listen for
-        # preditor.core.aboutToClearPaths and call shutdown on the window.
-        self.aboutToClearPathsEnabled = True
         # attempt to set the dialog icon
         import os
         import sys
@@ -122,13 +116,6 @@ class Window(QMainWindow):
 
             WinWidget.uncache(wwidget)
 
-        # only disconnect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            try:
-                core.aboutToClearPaths.disconnect(self.shutdown)
-            except TypeError:
-                pass
-
     def setGeometry(self, *args):
         """
         Sets the window's geometry, It will also check if the geometry is visible on any
@@ -140,13 +127,6 @@ class Window(QMainWindow):
             from ..utils.cute import ensureWindowIsVisible
 
             ensureWindowIsVisible(self)
-
-    def showEvent(self, event):
-        # listen for aboutToClearPaths signal if requested
-        # but only connect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            core.aboutToClearPaths.connect(self.shutdown)
-        super(Window, self).showEvent(event)
 
     def shutdown(self):
         # use a @classmethod to make inheritance magically work
@@ -161,8 +141,6 @@ class Window(QMainWindow):
         # allow the global instance to be cleared
         if this == cls._instance:
             cls._instance = None
-            if this.aboutToClearPathsEnabled:
-                core.aboutToClearPaths.disconnect(this.shutdown)
             this.setAttribute(Qt.WA_DeleteOnClose, True)
         try:
             this.close()

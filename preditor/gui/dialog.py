@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QDialog
 
-from .. import core, relativePath, root_window
+from .. import relativePath, root_window
 
 
 class Dialog(QDialog):
@@ -25,9 +25,6 @@ class Dialog(QDialog):
             cls._instance = cls(parent=parent)
             # protect the memory
             cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
-            # but make sure that if we reload the environment, everything gets deleted
-            # properly
-            core.aboutToClearPaths.connect(cls._instance.shutdown)
         return cls._instance
 
     def __init__(
@@ -80,9 +77,6 @@ class Dialog(QDialog):
         # If this value is set to False calling setGeometry on this dialog will not
         # adjust the geometry to ensure the dialog is on a valid screen.
         self.checkScreenGeo = True
-        # If this value is set to True the dialog will listen for
-        # core.aboutToClearPaths and call shutdown on the dialog.
-        self.aboutToClearPathsEnabled = True
         # attempt to set the dialog icon
         import os
         import sys
@@ -128,13 +122,6 @@ class Dialog(QDialog):
 
             WinWidget.uncache(wwidget)
 
-        # only disconnect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            try:
-                core.aboutToClearPaths.disconnect(self.shutdown)
-            except TypeError:
-                pass
-
     def exec_(self):
         # do not use the DeleteOnClose attribute when executing a dialog as often times
         # a user will be accessing information from the dialog instance after it closes.
@@ -158,13 +145,6 @@ class Dialog(QDialog):
 
             ensureWindowIsVisible(self)
 
-    def showEvent(self, event):
-        # listen for aboutToClearPaths signal if requested
-        # but only connect here if deleting on close
-        if self.aboutToClearPathsEnabled and self.testAttribute(Qt.WA_DeleteOnClose):
-            core.aboutToClearPaths.connect(self.shutdown)
-        super(Dialog, self).showEvent(event)
-
     def shutdown(self):
         # use a @classmethod to make inheritance magically work
         self._shutdown(self)
@@ -178,8 +158,6 @@ class Dialog(QDialog):
         # allow the global instance to be cleared
         if this == cls._instance:
             cls._instance = None
-            if this.aboutToClearPathsEnabled:
-                core.aboutToClearPaths.disconnect(this.shutdown)
             this.setAttribute(Qt.WA_DeleteOnClose, True)
         try:
             this.close()
