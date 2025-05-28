@@ -92,7 +92,7 @@
      <x>0</x>
      <y>0</y>
      <width>796</width>
-     <height>29</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -105,7 +105,7 @@
     <addaction name="uiLogToFileACT"/>
     <addaction name="uiLogToFileClearACT"/>
    </widget>
-   <widget class="QMenu" name="uiScriptingMENU">
+   <widget class="QMenu" name="uiFileMENU">
     <property name="title">
      <string comment="File Menu">&amp;File</string>
     </property>
@@ -120,19 +120,19 @@
     <property name="title">
      <string>Help</string>
     </property>
-    <widget class="QMenu" name="menuPreferences">
+    <widget class="QMenu" name="uiPreferencesMENU">
      <property name="title">
       <string>Preferences</string>
      </property>
      <addaction name="uiBrowsePreferencesACT"/>
      <addaction name="uiBackupPreferencesACT"/>
     </widget>
-    <addaction name="menuPreferences"/>
+    <addaction name="uiPreferencesMENU"/>
     <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
     <addaction name="uiAboutPreditorACT"/>
    </widget>
-   <widget class="QMenu" name="menu_Run">
+   <widget class="QMenu" name="uiRunMENU">
     <property name="title">
      <string>Run</string>
     </property>
@@ -144,7 +144,7 @@
     <addaction name="uiClearToLastPromptACT"/>
     <addaction name="uiSelectTextACT"/>
    </widget>
-   <widget class="QMenu" name="uiFileMENU">
+   <widget class="QMenu" name="uiOptionsMENU">
     <property name="title">
      <string>&amp;Options</string>
     </property>
@@ -196,11 +196,11 @@
     <addaction name="uiSetPreferredTextEditorPathACT"/>
     <addaction name="uiSetWorkboxEditorACT"/>
    </widget>
-   <widget class="QMenu" name="menuEdit">
+   <widget class="QMenu" name="uiEditMENU">
     <property name="title">
      <string>Edit</string>
     </property>
-    <widget class="QMenu" name="menuFocus_to_Group">
+    <widget class="QMenu" name="uiFocus_to_GroupMENU">
      <property name="title">
       <string>Focus to Group</string>
      </property>
@@ -215,7 +215,7 @@
      <addaction name="separator"/>
      <addaction name="uiGroupLastACT"/>
     </widget>
-    <widget class="QMenu" name="menuFocus_to_Tab">
+    <widget class="QMenu" name="uiFocus_to_TabMENU">
      <property name="title">
       <string>Focus to Tab</string>
      </property>
@@ -315,17 +315,17 @@
     <addaction name="uiNextTabACT"/>
     <addaction name="uiPrevTabACT"/>
     <addaction name="separator"/>
-    <addaction name="menuFocus_to_Group"/>
-    <addaction name="menuFocus_to_Tab"/>
+    <addaction name="uiFocus_to_GroupMENU"/>
+    <addaction name="uiFocus_to_TabMENU"/>
     <addaction name="separator"/>
     <addaction name="uiFindInWorkboxesACT"/>
     <addaction name="uiFocusNameACT"/>
    </widget>
-   <addaction name="uiScriptingMENU"/>
-   <addaction name="menuEdit"/>
-   <addaction name="uiDebugMENU"/>
-   <addaction name="menu_Run"/>
    <addaction name="uiFileMENU"/>
+   <addaction name="uiEditMENU"/>
+   <addaction name="uiDebugMENU"/>
+   <addaction name="uiRunMENU"/>
+   <addaction name="uiOptionsMENU"/>
    <addaction name="uiHelpMENU"/>
   </widget>
   <widget class="QToolBar" name="uiConsoleTOOLBAR">

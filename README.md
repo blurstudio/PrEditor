@@ -165,6 +165,11 @@ added in [setup.cfg](setup.cfg).
 implementing a workbox. See [workbox_mixin.py](preditor/gui/workbox_mixin.py)
 for the full interface to implement all features of an editor.
 
+* `preditor.plug.loggerwindow`: Used to customize the LoggerWindow instance when
+the LoggerWindow is created. For example, this can be used to create extra Toolbars
+or add menu items. When using this plugin, make sure to use the
+`preditor.gui.logger_window_plugin.LoggerWindowPlugin` class for your base class.
+
 * `preditor.plug.logging_handlers`: Used to add custom python logging handlers
 to the LoggingLevelButton's handlers sub-menus. This allows you to install a
 handler instance on a specific logging object.

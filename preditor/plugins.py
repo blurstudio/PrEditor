@@ -88,6 +88,20 @@ class Plugins(object):
         for ep in self.iterator(group="preditor.plug.initialize"):
             yield ep.load()
 
+    def loggerwindow(self, name=None):
+        """Returns instances of "preditor.plug.loggerwindow" plugins.
+
+        These plugins are used by the LoggerWindow to extend its interface. For
+        example it can be used to add a toolbar or update the menus.
+
+        When using this plugin, make sure the returned class is a subclass of
+        `preditor.gui.logger_window_plugin.LoggerWindowPlugin`.
+        """
+        for ep in self.iterator(group="preditor.plug.loggerwindow"):
+            if name and ep.name != name:
+                continue
+            yield ep.name, ep.load()
+
     def logging_handlers(self, name=None):
         for ep in self.iterator(group="preditor.plug.logging_handlers"):
             yield ep.name, ep.load()
