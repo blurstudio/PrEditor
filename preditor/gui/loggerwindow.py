@@ -87,7 +87,6 @@ class LoggerWindow(Window):
     def __init__(self, parent, name=None, run_workbox=False, standalone=False):
         super(LoggerWindow, self).__init__(parent=parent)
         self.name = name if name else get_core_name()
-        self.aboutToClearPathsEnabled = False
         self._stylesheet = 'Bright'
 
         # Create timer to autohide status messages
@@ -262,7 +261,6 @@ class LoggerWindow(Window):
         self.uiBackupPreferencesACT.triggered.connect(self.backupPreferences)
         self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
         self.uiAboutPreditorACT.triggered.connect(self.show_about)
-        core.aboutToClearPaths.connect(self.pathsAboutToBeCleared)
         self.uiSetFlashWindowIntervalACT.triggered.connect(self.setFlashWindowInterval)
 
         self.uiSetPreferredTextEditorPathACT.triggered.connect(
@@ -756,10 +754,6 @@ class LoggerWindow(Window):
         else:
             super(LoggerWindow, self).keyPressEvent(event)
 
-    def pathsAboutToBeCleared(self):
-        if self.uiClearLogOnRefreshACT.isChecked():
-            self.clearLog()
-
     def clearExecutionTime(self):
         """Update status text with hyphens to indicate execution has begun."""
         self.setStatusText('Exec: -.- Seconds')
@@ -791,7 +785,6 @@ class LoggerWindow(Window):
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
-                'clearBeforeEnvRefresh': self.uiClearLogOnRefreshACT.isChecked(),
                 'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
                 'toolbarStates': six.text_type(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
@@ -950,7 +943,6 @@ class LoggerWindow(Window):
         self.uiWordWrapACT.setChecked(pref.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
-        self.uiClearLogOnRefreshACT.setChecked(pref.get('clearBeforeEnvRefresh', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
         self.uiSelectTextACT.setChecked(pref.get('uiSelectTextACT', True))
 
