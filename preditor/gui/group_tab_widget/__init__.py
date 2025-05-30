@@ -70,7 +70,7 @@ class GroupTabWidget(OneTabWidget):
         self.uiCornerBTN = corner
         self.setCornerWidget(self.uiCornerBTN, Qt.TopRightCorner)
 
-    def add_new_tab(self, group, title="Workbox"):
+    def add_new_tab(self, group, title="Workbox", group_fmt=None):
         """Adds a new tab to the requested group, creating the group if the group
         doesn't exist.
 
@@ -79,6 +79,11 @@ class GroupTabWidget(OneTabWidget):
                 existing tab, or the name of the group and it will create the group
                 if needed. If None is passed it will add a new tab `Group {last+1}`.
                 If True is passed, then the current group tab is used.
+            title (str, optional): The name to give the newly created tab inside
+                the group.
+            group_fmt(str, optional): If None is passed to group, this string is
+                used to search for existing tabs to calculate the last number
+                and generate the new group tab name.
 
         Returns:
             GroupedTabWidget: The tab group for this group.
@@ -86,12 +91,14 @@ class GroupTabWidget(OneTabWidget):
         """
         parent = None
         if not group:
+            if group_fmt is None:
+                group_fmt = r'Group {}'
             last = 0
             for i in range(self.count()):
-                match = re.match(r'Group (\d+)', self.tabText(i))
+                match = re.match(group_fmt.format(r'(\d+)'), self.tabText(i))
                 if match:
                     last = max(last, int(match.group(1)))
-            group = "Group {}".format(last + 1)
+            group = group_fmt.format(last + 1)
         elif group is True:
             group = self.currentIndex()
         if isinstance(group, int):

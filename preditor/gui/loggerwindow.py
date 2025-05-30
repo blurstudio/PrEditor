@@ -37,7 +37,7 @@ from .. import (
     resourcePath,
 )
 from ..delayable_engine import DelayableEngine
-from ..gui import Dialog, Window, loadUi
+from ..gui import Dialog, Window, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
@@ -53,6 +53,31 @@ class WorkboxPages:
 
     Options = 0
     Workboxes = 1
+
+
+class WorkboxName(str):
+    """The joined name of a workbox `group/workbox` with access to its parts.
+
+    This subclass provides properties for the group and workbox values separately.
+    """
+
+    def __new__(cls, group, workbox):
+        txt = "/".join((group, workbox))
+        ret = super().__new__(cls, txt)
+        # Preserve the imitable nature of str's by using properties without setters.
+        ret._group = group
+        ret._workbox = workbox
+        return ret
+
+    @property
+    def group(self):
+        """The tab name of the group tab that contains the workbox."""
+        return self._group
+
+    @property
+    def workbox(self):
+        """The workbox of the tab for this workbox inside of the group."""
+        return self._workbox
 
 
 class LoggerWindow(Window):
@@ -335,16 +360,48 @@ class LoggerWindow(Window):
 
     @classmethod
     def name_for_workbox(cls, workbox):
-        """Returns the name for a given workbox.
-        The name is the group tab text and the workbox tab text joined by a `/`"""
-        ret = []
-        logger = cls.instance()
-        index = logger.uiWorkboxTAB.currentIndex()
-        ret.append(logger.uiWorkboxTAB.tabText(index))
-        group_widget = logger.uiWorkboxTAB.currentWidget()
-        index = group_widget.currentIndex()
-        ret.append(group_widget.tabText(index))
-        return "/".join(ret)
+        """Returns the name for a given workbox or None if not valid.
+
+        The name is a `WorkboxName` object showing the group and name joined by
+        a `/`.
+
+        Args:
+            workbox: The workbox to get the name of. If None is passed then it
+                will return the name of the current workbox.
+
+        Returns:
+            The name of the widget as a `WorkboxName` object showing the group
+            and name joined by a `/`. If workbox is not valid for the LoggerWindow
+            instance then None is returned.
+        """
+
+        if workbox is None:
+            # if the workbox was not provided use the current workbox
+            logger = cls.instance()
+            index = logger.uiWorkboxTAB.currentIndex()
+            group = logger.uiWorkboxTAB.tabText(index)
+            group_widget = logger.uiWorkboxTAB.currentWidget()
+            index = group_widget.currentIndex()
+            name = group_widget.tabText(index)
+            return WorkboxName(group, name)
+
+        # Otherwise resolve from the parent widgets.
+        # Get the parent QTabWidget of the workbox
+        workbox_tab_widget = tab_widget_for_tab(workbox)
+        if not workbox_tab_widget:
+            return None
+        # Get the group QTabWidget of the parent QTabWidget of the workbox
+        group_widget = tab_widget_for_tab(workbox_tab_widget)
+        if not group_widget:
+            return None
+
+        # Get the group name
+        index = group_widget.indexOf(workbox_tab_widget)
+        group = group_widget.tabText(index)
+
+        index = workbox_tab_widget.indexOf(workbox)
+        name = workbox_tab_widget.tabText(index)
+        return WorkboxName(group, name)
 
     @classmethod
     def workbox_for_name(cls, name, show=False, visible=False):

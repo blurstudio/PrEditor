@@ -3,6 +3,7 @@ from __future__ import absolute_import
 from functools import partial
 
 from Qt.QtCore import Property
+from Qt.QtWidgets import QStackedWidget
 
 from .dialog import Dialog  # noqa: F401
 from .window import Window  # noqa: F401
@@ -82,3 +83,11 @@ def loadUi(filename, widget, uiname=''):
         uiname = os.path.basename(filename).split('.')[0]
 
     QtCompat.loadUi(os.path.split(filename)[0] + '/ui/%s.ui' % uiname, widget)
+
+
+def tab_widget_for_tab(tab_widget):
+    """Returns the `QTabWidget` `tab_widget` is parented to or `None`."""
+    tab_parent = tab_widget.parent()
+    if not isinstance(tab_parent, QStackedWidget):
+        return None
+    return tab_parent.parent()
