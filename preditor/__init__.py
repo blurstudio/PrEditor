@@ -66,51 +66,74 @@ def init():
 
 
 def configure(name, parent_callback=None, excepthook=True, logging=True, streams=True):
-    """Global configuration of PrEditor. Nothing is done if called more than once.
+    """Global configuration of PrEditor. Safe to re-call until the instance is created.
+
+    Configures the instance of PrEditor without creating the GUI. It should be run
+    as early as possible in the applications initialization to allow PrEditor to
+    show as much stdout/err text as possible even the text printed before the
+    application's GUI is created.
+
+    Once `preditor.instance(create=True)` is called this will return without
+    making any changes. Otherwise unless noted with "First call only." each time
+    this function is called it will update any previously set values. This allows
+    you to minimally configure PrEditor and as more of the application comes
+    online enable more advanced features.
 
     Args:
         name (str): The core_name to use for the global instance of PrEditor.
             Once this has been set, you can call `launch` without passing name
-            to access the main instance.
+            to access the main instance. The core_name controls what preferences
+            are loaded and used by PrEditor including the workbox tabs.
         parent_callback (callable, optional): Callback that returns a QWidget
             to use as the parent of the LoggerWindow when its first created.
             This can be used by DCC's to set the parent to their main window.
-        excepthook (bool, optional): Replaces `sys.excepthook` with a interactive
-            exception handler that prompts the user to show PrEditor when an
-            python exception is raised.
-        logging (bool, optional): Restore the python logging configuration that
-            was recorded the last time PrEditor prefs were saved.
-        streams (bool, optional): Install the stream manager to capture any
-            stdout/stderr text written. Later when calling launch, the
+        excepthook (bool, optional): First call only. Replaces `sys.excepthook`
+            with a interactive exception handler that prompts the user to show
+            PrEditor when an python exception is raised. It is recommended that
+            you only add the excepthook once the Qt UI is initialized.
+        logging (bool, optional): Restore the python logging configuration settings
+            that were recorded the last time PrEditor prefs were saved. If called
+            multiple times with different core_name's before the instance is
+            created, this will reset the logging configuration from the previous
+            core_name if logging prefs exist.
+        streams (bool, optional): First call only. Install the stream manager to
+            capture any stdout/stderr text written. Later when calling launch, the
             LoggerWindow will show all of the captured text. This lets you only
-            create the LoggerWindow IF you need to, but when you do it will have
-            all of the std stream text written after this call.
+            create the LoggerWindow IF you need to show it, but when you do it
+            will have all of the std stream text written after this call.
     """
-    # Once this has been set, configure should not do anything
-    if 'core_name' in _global_config:
+    # Once the UI instance has been created, configure should not do anything.
+    if instance(create=False):
         return
 
-    # Store the core_name,.
+    # Store the core_name.
+    changed = _global_config.get('core_name') != name
     _global_config['core_name'] = name
     if parent_callback:
-        set_parent_callback(parent_callback)
+        _global_config['parent_callback'] = parent_callback
 
-    if streams:
+    if streams and not _global_config.get('streams_installed'):
         # Install the stream manager to capture output
         from preditor.stream import install_to_std
 
         install_to_std()
+        _global_config['streams_installed'] = True
 
-    if logging:
+    if logging and changed:
+        # Only update the logging config if the core name has changed.
+        # Note: When called repeatedly, this won't remove old logger's added by
+        # the previous calls so you may see some loggers added that were never
+        # actually added by code other than the LoggingConfig.
         from .logging_config import LoggingConfig
 
         cfg = LoggingConfig(core_name=name)
         cfg.load()
 
-    if excepthook:
+    if excepthook and not _global_config.get('excepthook_installed'):
         import preditor.debug
 
         preditor.debug.BlurExcepthook.install()
+        _global_config['excepthook_installed'] = True
 
 
 def get_core_name():
@@ -237,29 +260,6 @@ def parent_callback():
     parent to their main window.
     """
     return _global_config.get("parent_callback")
-
-
-def set_parent_callback(parent_callback, if_unset=True):
-    """Update the parent_callback even if it was already set.
-
-    This is useful for cases where `configure` is called before it's possible to
-    provide the parent_callback.
-
-    Note: Changing this does not re-parent an existing instance of LoggerWindows.
-    If you change this after the LoggerWindow instance has been created you will
-    need to manually re-parent it.
-
-    Args:
-        if_unset(bool): If True then only set this value if the parent_callback
-            hasn't already been set.
-
-    Returns:
-        bool: Returns False if if_unset is True and it was already set.
-    """
-    if "parent_callback" in _global_config and not if_unset:
-        return False
-    _global_config["parent_callback"] = parent_callback
-    return True
 
 
 def connect_preditor(
