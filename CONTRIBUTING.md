@@ -56,7 +56,7 @@ A set of GitHub Action workflows are in place to perform the following style and
 
 **Styling**
 
-Styling or linting is performed via [flake8] along with the plugins [flake8-bugbear] & [pep8-naming]. A minor amount of configuration has been added to _[setup.cfg]_ in order to provide better compatibility with our formatter black (see next section).
+Styling or linting is performed via [flake8] along with the plugins [flake8-bugbear], [Flake8-pyproject] & [pep8-naming]. A minor amount of configuration has been added to _[pyproject.toml]_ in order to provide better compatibility with our formatter black (see next section).
 
 **Formatting**
 
@@ -69,8 +69,9 @@ Releases are made manually by project managers and will automatically be uploade
 
 [flake8]: https://github.com/PyCQA/flake8
 [flake8-bugbear]: https://github.com/PyCQA/flake8-bugbear
+[Flake8-pyproject]: https://github.com/john-hen/Flake8-pyproject
 [pep8-naming]: https://github.com/PyCQA/pep8-naming
-[setup.cfg]: https://github.com/blurstudio/preditor/blob/master/setup.cfg
+[pyproject.toml]: https://github.com/blurstudio/hab/blob/master/pyproject.toml
 [black]: https://github.com/psf/black
 [Issues]: https://github.com/blurstudio/preditor/issues
 [create a new issue]: https://github.com/blurstudio/preditor/issues/new

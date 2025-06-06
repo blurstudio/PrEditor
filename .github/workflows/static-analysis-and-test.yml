@@ -27,16 +27,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install tox
+          python -m pip install tox coverage[toml]
 
       - name: Lint with flake8
         run: tox -e flake8
 
       - name: Format with black
         run: tox -e black
-
-      - name: Py 2 and 3 compatibility
-        run: tox -e modernize
 
 
   test:
@@ -49,9 +46,9 @@ jobs:
 
     strategy:
       matrix:
-        os: ['ubuntu-latest']
+        os: ['ubuntu-latest', 'windows-latest']
         python: ['3.8', '3.9', '3.10', '3.11']
-        # Works around the depreciation of python 3.6, 3.7 for ubuntu
+        # Works around the depreciation of python 3.7 for ubuntu
         # https://github.com/actions/setup-python/issues/544
         include:
           - os: 'ubuntu-22.04'
@@ -84,7 +81,6 @@ jobs:
           path: .coverage/*
           include-hidden-files: true
           retention-days: 1
-
 
   coverage:
     # We want to run on external PRs, but not on our own internal PRs as they'll
