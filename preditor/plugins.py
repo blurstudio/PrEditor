@@ -5,7 +5,7 @@ import logging
 import six
 
 if six.PY3:
-    from importlib_metadata import entry_points
+    from importlib_metadata import EntryPoint, entry_points
 else:
     import pkg_resources
 
@@ -115,3 +115,16 @@ class Plugins(object):
         else:
             for ep in pkg_resources.iter_entry_points(group, name=name):
                 yield ep
+
+    @classmethod
+    def from_string(cls, value, name="", group=""):
+        """Resolve an EntryPoint string into its object.
+
+        Example:
+            cls = from_string("preditor.gui.errordialog:ErrorDialog")
+        """
+        if six.PY3:
+            ep = EntryPoint(name=name, value=value, group=group)
+        else:
+            ep = pkg_resources.EntryPoint(name, value)
+        return ep.load()

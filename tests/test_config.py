@@ -1,7 +1,7 @@
 import pytest
 
 import preditor.config
-import preditor.debug
+import preditor.excepthooks
 import preditor.stream
 from preditor.config import PreditorConfig
 
@@ -151,7 +151,9 @@ def test_excepthook(monkeypatch, patch_data, patch_inst):
             cls.called = False
             cls.installed = False
 
-    monkeypatch.setattr(preditor.debug, "BlurExcepthook", PatchExcepthookClass)
+    monkeypatch.setattr(
+        preditor.excepthooks, "PreditorExceptHook", PatchExcepthookClass
+    )
 
     # Test enabling after init
     cfg = PreditorConfig()

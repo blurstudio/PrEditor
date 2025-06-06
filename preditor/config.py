@@ -49,6 +49,8 @@ class PreditorConfig:
         self._logging = False
         self._headless_callback = None
         self._parent_callback = None
+        self._error_dialog_class = True
+        self._excepthooks = []
 
     def dump(self, indent=0):
         """A convenient way to inspect the current configuration."""
@@ -56,6 +58,8 @@ class PreditorConfig:
             f"{' ' * indent}name: {self.name}",
             f"{' ' * indent}streams: {self.streams}",
             f"{' ' * indent}excepthook: {self.excepthook!r}",
+            f"{' ' * indent}excepthooks: {self.excepthooks!r}",
+            f"{' ' * indent}error_dialog_class: {self.error_dialog_class!r}",
             f"{' ' * indent}logging: {self.logging}",
             f"{' ' * indent}headless_callback: {self.headless_callback!r}",
             f"{' ' * indent}parent_callback: {self.parent_callback!r}",
@@ -84,13 +88,36 @@ class PreditorConfig:
         return False
 
     @property
+    def error_dialog_class(self):
+        """Dialog class shown if PrEditor isn't visible and a error happens.
+
+        This dialog is used to prompt the user to show PrEditor and can be
+        sub-classed to add extra functionality. This is called by
+        `PreditorExceptHook.ask_to_show_logger` method when added to
+        `preditor.config.excepthooks`.
+
+        If set to `True` then `blurdev.gui.errordialog.ErrorDialog` is used. When
+        replacing this, it should be a sub-class of that class or re-implement
+        its api.
+
+        You can use an EntryPoint string like `preditor.gui.errordialog:ErrorDialog`
+        instead of passing the actual class object. This lets you delay the import
+        until actually needed.
+        """
+        return self._error_dialog_class
+
+    @error_dialog_class.setter
+    def error_dialog_class(self, cls):
+        self._error_dialog_class = cls
+
+    @property
     def excepthook(self):
         """Installs a `sys.excepthook` handler when first set to True.
 
         Replaces `sys.excepthook` with a interactive exception handler that
         prompts the user to show PrEditor when an python exception is raised.
         It is recommended that you only add the excepthook once the Qt UI is
-        initialized. See: :py:class:`preditor.debug.BlurExcepthook`.
+        initialized. See: :py:class:`preditor.excepthooks.PreditorExceptHook`.
         """
         return self._locks.get("excepthook", False)
 
@@ -100,18 +127,29 @@ class PreditorConfig:
         if not value:
             return
 
-        # Install the excepthook
-        import preditor.debug
+        # Install the excepthook:
+        import preditor.excepthooks
 
         # Note: install checks if the current excepthook is a instance of this
         # class and prevents installing a second time.
-        preditor.debug.BlurExcepthook.install()
+        preditor.excepthooks.PreditorExceptHook.install()
 
-        # Disable future setting via `set_if_unlocked`, the BlurExcepthook is a
-        # chaining except hook that calls the previous excepthook when called. We
-        # don't want to install multiple automatically, the user can define that
+        # Disable future setting via `set_if_unlocked`, the `PreditorExceptHook`
+        # is a chaining except hook that calls the previous excepthook when called.
+        # We don't want to install multiple automatically, the user can define that
         # logic if required.
         self._locks["excepthook"] = True
+
+    @property
+    def excepthooks(self):
+        """A list of callables that are called when an exception is handled.
+
+        If `excepthook` is enabled installing `PreditorExceptHook` then it will
+        call each item in this list. The signature of the function should be
+        `callable(*args)`. If not configured it will automatically install default
+        callables. You can add `None` to disable this.
+        """
+        return self._excepthooks
 
     @property
     def headless_callback(self):

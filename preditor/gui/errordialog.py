@@ -1,17 +1,13 @@
 from __future__ import absolute_import
 
-import getpass
 import os
 import traceback
 
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor, QPixmap
-from Qt.QtWidgets import QDialog
-from redminelib.exceptions import ImpersonateError
 
 from .. import __file__ as pfile
 from . import Dialog, QtPropertyInit, loadUi
-from .redmine_login_dialog import RedmineLoginDialog
 
 
 class ErrorDialog(Dialog):
@@ -24,10 +20,9 @@ class ErrorDialog(Dialog):
         loadUi(__file__, self)
 
         self.parent_ = parent
-        self.requestPimpPID = None
         self.setWindowTitle('Error Occurred')
-        self.errorLabel.setTextFormat(Qt.RichText)
-        self.iconLabel.setPixmap(
+        self.uiErrorLBL.setTextFormat(Qt.RichText)
+        self.uiIconLBL.setPixmap(
             QPixmap(
                 os.path.join(
                     os.path.dirname(pfile),
@@ -38,9 +33,8 @@ class ErrorDialog(Dialog):
             ).scaledToHeight(64, Qt.SmoothTransformation)
         )
 
-        self.loggerButton.clicked.connect(self.showLogger)
-        self.requestButton.clicked.connect(self.submitRequest)
-        self.ignoreButton.clicked.connect(self.close)
+        self.uiLoggerBTN.clicked.connect(self.show_logger)
+        self.uiIgnoreBTN.clicked.connect(self.close)
 
     def setText(self, exc_info):
         self.traceback_msg = "".join(traceback.format_exception(*exc_info))
@@ -48,7 +42,7 @@ class ErrorDialog(Dialog):
             'The following error has occurred:<br>'
             '<br><font color=%(color)s>%(text)s</font>'
         )
-        self.errorLabel.setText(
+        self.uiErrorLBL.setText(
             msg
             % {
                 'text': self.traceback_msg.split('\n')[-2],
@@ -56,46 +50,19 @@ class ErrorDialog(Dialog):
             }
         )
 
-    def showLogger(self):
+    def show_logger(self):
         """Create/show the main PrEditor instance with the full traceback."""
         from .. import launch
 
         launch()
         self.close()
 
-    def submitRequest(self):
-        from ..utils.errorEmail import buildErrorMessage
+    @classmethod
+    def show_prompt(cls, *exc_info):
+        """Return False to this dialog should not be shown on an exception.
 
-        subject, description = buildErrorMessage(self.traceback_msg, fmt='markdown')
-        subject = self.traceback_msg.split('\n')[-2]
-        from ..actions.create_redmine_issue import CreateRedmineIssue
-
-        kwargs = {
-            'subject': subject,
-            'description': description,
-            'screenshot': True,
-            'username': getpass.getuser(),
-        }
-
-        # Tryin a first connection impersonating the current user.
-        try:
-            CreateRedmineIssue(**kwargs)()
-
-        # If that failed, we will use a dialog to prompt for credentials.
-        except ImpersonateError:
-            dialog = RedmineLoginDialog(parent=self)
-            result = dialog.exec_()
-            if result == QDialog.Accepted:
-                kwargs.update(
-                    {
-                        'username': dialog.username(),
-                        'password': dialog.password(),
-                        'redmine': dialog.redmine(),
-                    }
-                )
-
-                # The dialog can only return a successful connection.
-                CreateRedmineIssue(**kwargs)()
-            elif result == QDialog.Rejected:
-                return
-        self.close()
+        This is useful for applications like Nuke which uses exceptions to signal
+        traditionally non-exception worthy events, such as when a user cancels
+        an Open File dialog window.
+        """
+        return True
