@@ -2,12 +2,7 @@ from __future__ import absolute_import
 
 import logging
 
-import six
-
-if six.PY3:
-    from importlib_metadata import EntryPoint, entry_points
-else:
-    import pkg_resources
+from importlib_metadata import EntryPoint, entry_points
 
 _logger = logging.getLogger(__name__)
 
@@ -109,12 +104,8 @@ class Plugins(object):
     @classmethod
     def iterator(cls, group=None, name=None):
         """Iterates over the requested entry point yielding results."""
-        if six.PY3:
-            for ep in entry_points().select(group=group):
-                yield ep
-        else:
-            for ep in pkg_resources.iter_entry_points(group, name=name):
-                yield ep
+        for ep in entry_points().select(group=group):
+            yield ep
 
     @classmethod
     def from_string(cls, value, name="", group=""):
@@ -123,8 +114,5 @@ class Plugins(object):
         Example:
             cls = from_string("preditor.gui.errordialog:ErrorDialog")
         """
-        if six.PY3:
-            ep = EntryPoint(name=name, value=value, group=group)
-        else:
-            ep = pkg_resources.EntryPoint(name, value)
+        ep = EntryPoint(name=name, value=value, group=group)
         return ep.load()

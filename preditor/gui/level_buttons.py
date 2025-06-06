@@ -4,7 +4,6 @@ import logging
 import types
 from functools import partial
 
-import six
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QAction, QMenu, QToolButton
 
@@ -182,10 +181,7 @@ class LoggingLevelButton(QToolButton):
             # Emit our signal
             self.level_changed.emit(level=level)
 
-        if six.PY3:
-            root.setLevel = types.MethodType(setLevel, root)
-        else:
-            root.setLevel = types.MethodType(setLevel, root, type(root))
+        root.setLevel = types.MethodType(setLevel, root)
 
         return root
 

@@ -19,7 +19,6 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
 
-import six
 from PyQt5.Qsci import QsciScintilla
 from PyQt5.QtCore import QTextCodec
 from Qt import QtCompat
@@ -284,7 +283,7 @@ class DocumentEditor(QsciScintilla):
         """
 
         # If called by 'triggered' signal, clear out passed argument.
-        if not isinstance(doWhich, six.string_types):
+        if not isinstance(doWhich, str):
             doWhich = None
 
         comment, result = self.commentCheck()

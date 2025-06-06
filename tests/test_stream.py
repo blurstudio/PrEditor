@@ -4,7 +4,6 @@ import io
 import sys
 
 import pytest
-import six
 
 from preditor.stream import STDERR, STDOUT, Director, Manager, install_to_std
 
@@ -16,13 +15,13 @@ def manager():
 
 @pytest.fixture
 def stdout(manager):
-    old_stream = six.StringIO()
+    old_stream = io.StringIO()
     return Director(manager, "test_out", old_stream=old_stream)
 
 
 @pytest.fixture
 def stderr(manager):
-    old_stream = six.StringIO()
+    old_stream = io.StringIO()
     return Director(manager, "test_err", old_stream=old_stream)
 
 
@@ -75,8 +74,8 @@ def test_nul_stream(manager):
     # the name/encoding of the windows pythonw.exe default streams
     orig_stdout = sys.stdout
     orig_stderr = sys.stderr
-    sys.stdout = NamedTextIOWrapper(six.BytesIO(), name='nul', encoding='cp1252')
-    sys.stderr = NamedTextIOWrapper(six.BytesIO(), name='nul', encoding='cp1252')
+    sys.stdout = NamedTextIOWrapper(io.BytesIO(), name='nul', encoding='cp1252')
+    sys.stderr = NamedTextIOWrapper(io.BytesIO(), name='nul', encoding='cp1252')
     try:
         # Build a director here that will grab the nul streams
         # so we can check that they don't store them in .old_stream
@@ -196,8 +195,8 @@ def test_install_to_std():
     # restore the original FLO's so we don't break other tests.
     stdout = sys.stdout
     stderr = sys.stderr
-    temp_out = six.StringIO()
-    temp_err = six.StringIO()
+    temp_out = io.StringIO()
+    temp_err = io.StringIO()
     sys.stdout = temp_out
     sys.stderr = temp_err
     try:
