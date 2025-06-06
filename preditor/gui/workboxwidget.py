@@ -1,6 +1,5 @@
 from __future__ import absolute_import, print_function
 
-import io
 import re
 import time
 
@@ -197,10 +196,10 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.setText(txt)
 
     @classmethod
-    def __write_file__(cls, filename, txt):
-        with io.open(filename, 'w', newline='\n') as fle:
-            # Save unix newlines for simplicity
-            fle.write(cls.__unix_end_lines__(txt))
+    def __write_file__(cls, filename, txt, encoding=None):
+        # Save unix newlines for simplicity
+        txt = cls.__unix_end_lines__(txt)
+        super(WorkboxWidget, cls).__write_file__(filename, txt, encoding=encoding)
 
     def keyPressEvent(self, event):
         """Check for certain keyboard shortcuts, and handle them as needed,

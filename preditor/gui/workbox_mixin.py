@@ -1,9 +1,11 @@
 from __future__ import absolute_import, print_function
 
+import io
 import os
 import tempfile
 import textwrap
 
+import chardet
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QStackedWidget
 
@@ -317,14 +319,37 @@ class WorkboxMixin(object):
             os.remove(tempfile)
 
     @classmethod
-    def __open_file__(cls, filename):
-        with open(filename) as fle:
-            return fle.read()
-        return ""
+    def __open_file__(cls, filename, strict=True):
+        """Open a file and try to detect the text encoding it was saved as.
+
+        Returns:
+            encoding(str): The detected encoding, Defaults to "utf-8" if unable
+                to detect encoding.
+            text(str): The contents of the file decoded to a str.
+        """
+        with open(filename, "rb") as f:
+            text_bytes = f.read()
+
+        # Open file, detect source encoding and convert to utf-8
+        encoding = chardet.detect(text_bytes)['encoding'] or 'utf-8'
+        try:
+            text = text_bytes.decode(encoding)
+        except UnicodeDecodeError as e:
+            if strict:
+                raise UnicodeDecodeError(  # noqa: B904
+                    e.encoding,
+                    e.object,
+                    e.start,
+                    e.end,
+                    f"{e.reason}, Filename: {filename}",
+                )
+            encoding = 'utf-8'
+            text = text_bytes.decode(encoding, errors="ignore")
+        return encoding, text
 
     @classmethod
-    def __write_file__(cls, filename, txt):
-        with open(filename, 'w') as fle:
+    def __write_file__(cls, filename, txt, encoding=None):
+        with io.open(filename, 'w', newline='\n', encoding=encoding) as fle:
             fle.write(txt)
 
     def __show__(self):
@@ -335,7 +360,7 @@ class WorkboxMixin(object):
         if self._filename_pref:
             self.__load__(self._filename_pref)
         elif self._tempfile:
-            txt = self.__open_file__(self.__tempfile__())
+            _, txt = self.__open_file__(self.__tempfile__(), strict=False)
             self.__set_text__(txt)
 
     def process_shortcut(self, event, run=True):
