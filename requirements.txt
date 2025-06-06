@@ -1,6 +1,5 @@
 configparser>=4.0.2
 future>=0.18.2
 importlib-metadata>=4.8.3;python_version>="3.6"
-python-redmine>=2.1.1
 Qt.py
 signalslot>=0.1.2

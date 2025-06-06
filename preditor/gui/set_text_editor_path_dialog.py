@@ -13,7 +13,7 @@ class SetTextEditorPathDialog(QDialog):
     opening a file at a given line number via Command Prompt.
     """
 
-    def __init__(self, parent=None, redmineUrl=None):
+    def __init__(self, parent=None):
         super(SetTextEditorPathDialog, self).__init__(parent)
         loadUi(__file__, self)
 
