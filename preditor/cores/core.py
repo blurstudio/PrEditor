@@ -2,6 +2,8 @@ from __future__ import absolute_import, print_function
 
 from Qt.QtCore import QObject
 
+from .. import config
+
 
 class Core(QObject):
     """
@@ -14,9 +16,6 @@ class Core(QObject):
         if objectName is None:
             objectName = 'PrEditor'
         self.setObjectName(objectName)
-
-        # create custom properties
-        self._headless = False
 
         # Paths in this variable will be removed in
         # preditor.osystem.subprocessEnvironment
@@ -48,12 +47,5 @@ class Core(QObject):
         # provide the expected default values
         actions.setdefault('email', True)
         # If blurdev is running headless, there is no way to show a gui prompt
-        actions.setdefault('prompt', not self.headless)
+        actions.setdefault('prompt', not config.is_headless())
         return actions
-
-    @property
-    def headless(self):
-        """If true, no Qt gui elements should be used because python is running a
-        QCoreApplication.
-        """
-        return self._headless

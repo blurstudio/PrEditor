@@ -8,7 +8,7 @@ import traceback
 
 from Qt import QtCompat
 
-from . import core, root_window
+from . import config, core
 from .contexts import ErrorReport
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ class BlurExcepthook(object):
     def __init__(self, base_excepthook=None):
         self.base_excepthook = base_excepthook or sys.__excepthook__
         # We can't show the prompt if running headless.
-        self.actions = dict(email=True, prompt=not core.headless)
+        self.actions = dict(email=True, prompt=not config.is_headless())
 
     def __call__(self, *exc_info):
         """
@@ -188,7 +188,7 @@ class BlurExcepthook(object):
         # processing.
         try:
             ConsolePrEdit._errorPrompted = True
-            errorDialog = ErrorDialog(root_window())
+            errorDialog = ErrorDialog(config.root_window())
             errorDialog.setText(exc_info)
             errorDialog.exec_()
 

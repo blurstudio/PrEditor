@@ -84,6 +84,12 @@ preditor.launch()
 preditor.shutdown()
 ```
 
+Up to the point where the PrEditor instance is created you can update the config
+data set by `preditor.configure`. For example you can change the name(used to load
+a set of user prefs) by calling `preditor.config.name = 'NewName'`. This is useful
+for configuring PrEditor before you import your specific setup code that implements
+a better `parent_callback`.
+
 # Installing
 
 `pip install preditor`
