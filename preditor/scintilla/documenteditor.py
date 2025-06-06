@@ -19,9 +19,8 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
 
-from PyQt5.QtCore import QTextCodec
 from Qt import QtCompat
-from Qt.QtCore import Property, QFile, QPoint, Qt, Signal
+from Qt.QtCore import Property, QPoint, Qt, Signal
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
 from Qt.QtWidgets import (
     QAction,
@@ -36,6 +35,7 @@ from .. import osystem, resourcePath
 from ..delayable_engine import DelayableEngine
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
+from ..gui.workbox_mixin import WorkboxMixin
 from . import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)
@@ -89,7 +89,7 @@ class DocumentEditor(QsciScintilla):
         self.additionalFilenames = []
         self._language = ''
         self._lastSearch = ''
-        self._textCodec = None
+        self._encoding = 'utf-8'
         self._fileMonitoringActive = False
         self._marginsFont = self._defaultFont
         self._lastSearchDirection = SearchDirection.First
@@ -656,14 +656,8 @@ class DocumentEditor(QsciScintilla):
     def load(self, filename):
         filename = str(filename)
         if filename and os.path.exists(filename):
-            f = QFile(filename)
-            f.open(QFile.ReadOnly)
-            text = f.readAll()
-            self._textCodec = QTextCodec.codecForUtfText(
-                text, QTextCodec.codecForName('UTF-8')
-            )
-            self.setText(self._textCodec.toUnicode(text))
-            f.close()
+            self._encoding, text = WorkboxMixin.__open_file__(filename)
+            self.setText(text)
             self.updateFilename(filename)
             self.enableFileWatching(True)
             self.setEolMode(self.detectEndLine(self.text()))
@@ -1090,25 +1084,21 @@ class DocumentEditor(QsciScintilla):
         if filename:
             self._saveTimer = time.time()
             # save the file to disk
-            f = QFile(filename)
-            f.open(QFile.WriteOnly)
-            # make sure the file is writeable
-            if f.error() != QFile.NoError:
-                logger.debug('An error occured while saving')
+            try:
+                txt = self.text()
+                WorkboxMixin.__write_file__(filename, txt, encoding=self._encoding)
+                with open(filename, "w", encoding=self._encoding) as f:
+                    f.write(self.text())
+            except PermissionError as error:
+                logger.debug('An error occurred while saving')
                 QMessageBox.question(
                     self.window(),
                     'Error saving file...',
-                    'There was a error saving the file. Error Code: %i' % f.error(),
+                    'There was a error saving the file. Error: {}'.format(error),
                     QMessageBox.StandardButton.Ok,
                 )
-                f.close()
                 return False
-            # Attempt to save the file using the same codec that it used to display it
-            if self._textCodec:
-                f.write(self._textCodec.fromUnicode(self.text()))
-            else:
-                self.write(f)
-            f.close()
+
             # notify that the document was saved
             self.documentSaved.emit(self, filename)
 
@@ -1709,10 +1699,8 @@ class DocumentEditor(QsciScintilla):
                     epos=epos,
                     lineCount=eline - sline + 1,
                 )
-            if self._textCodec and self._textCodec.name() != 'System':
-                text = 'Encoding: {enc} {text}'.format(
-                    enc=self._textCodec.name(), text=text
-                )
+            if self._encoding:
+                text = 'Encoding: {enc} {text}'.format(enc=self._encoding, text=text)
             window.uiCursorInfoLBL.setText(text)
 
     def setAutoReloadOnChange(self, state):
