@@ -1,14 +1,15 @@
 from __future__ import absolute_import
 
-from PyQt5.Qsci import QsciLexerCPP
 from Qt.QtGui import QColor
+
+from .. import Qsci
 
 MU_KEYWORDS = """
 method string Color use require module for_each let global function nil void
 """
 
 
-class MuLexer(QsciLexerCPP):
+class MuLexer(Qsci.QsciLexerCPP):
     # Items in this list will be highlighted using the color for self.KeywordSet2
     highlightedKeywords = ''
 

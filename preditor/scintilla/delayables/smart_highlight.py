@@ -1,12 +1,11 @@
 from __future__ import absolute_import, print_function
 
 import Qt
-from PyQt5.Qsci import QsciScintilla
 from Qt.QtCore import QSignalMapper
 from Qt.QtWidgets import QWidget
 
 from ...delayable_engine.delayables import SearchDelayable
-from .. import FindState
+from .. import FindState, QsciScintilla
 
 
 class SmartHighlight(SearchDelayable):

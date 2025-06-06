@@ -1,10 +1,11 @@
 from __future__ import absolute_import
 
-from PyQt5.Qsci import QsciLexerJavaScript
 from Qt.QtGui import QColor
 
+from .. import Qsci
 
-class JavaScriptLexer(QsciLexerJavaScript):
+
+class JavaScriptLexer(Qsci.QsciLexerJavaScript):
     # Items in this list will be highlighted using the color for self.KeywordSet2
     highlightedKeywords = ''
 

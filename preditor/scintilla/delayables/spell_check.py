@@ -4,12 +4,11 @@ import logging
 import re
 import string
 
-from PyQt5.Qsci import QsciScintilla
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 
 from ...delayable_engine.delayables import RangeDelayable
-from .. import lang
+from .. import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)
 
