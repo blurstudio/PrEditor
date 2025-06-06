@@ -27,6 +27,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     ):
         super(WorkboxTextEdit, self).__init__(parent=parent, core_name=core_name)
         self._filename = None
+        self._encoding = None
         self.__set_console__(console)
         highlight = CodeHighlighter(self)
         highlight.setLanguage('Python')
@@ -79,7 +80,8 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
     def __load__(self, filename):
         self._filename = filename
-        txt = self.__open_file__(self._filename)
+        enc, txt = self.__open_file__(self._filename)
+        self._encoding = enc
         self.__set_text__(txt)
 
     def __margins_font__(self):
