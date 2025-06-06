@@ -2,8 +2,9 @@ from __future__ import absolute_import
 
 import re
 
-from PyQt5.Qsci import QsciLexerCPP
 from Qt.QtGui import QColor
+
+from .. import Qsci
 
 MEL_SYNTAX = """and array as case catch continue do else exit float for from global if
 in int local not of off on or proc random return select string then throw to try vector
@@ -310,7 +311,7 @@ xgmWrapXGen xgmr xpmPicker
 """
 
 
-class MelLexer(QsciLexerCPP):
+class MelLexer(Qsci.QsciLexerCPP):
     # Items in this list will be highlighted using the color for self.GlobalClass
     _highlightedKeywords = ''
     # Mel uses $varName for variables, so we have to allow them in words
