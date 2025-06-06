@@ -23,7 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.7"
 dependencies = [
-    "Qt.py",
+    "Qt.py>=1.4.4",
     "configparser>=4.0.2",
     "future>=0.18.2",
     "signalslot>=0.1.2",
