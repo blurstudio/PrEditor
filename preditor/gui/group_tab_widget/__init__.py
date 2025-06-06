@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import os
 import re
 
-import six
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
 from Qt.QtWidgets import QHBoxLayout, QMessageBox, QToolButton, QWidget
@@ -104,7 +103,7 @@ class GroupTabWidget(OneTabWidget):
         if isinstance(group, int):
             group_title = self.tabText(group)
             parent = self.widget(group)
-        elif isinstance(group, six.string_types):
+        elif isinstance(group, str):
             group_title = group
             index = self.index_for_text(group)
             if index != -1:

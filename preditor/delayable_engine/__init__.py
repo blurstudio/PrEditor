@@ -4,20 +4,12 @@ import time
 import warnings
 import weakref
 from collections import OrderedDict
+from collections.abc import MutableSet
 
-import six
 from Qt import QtCompat
 from Qt.QtCore import QObject, QTimer, Signal
 
 from .delayables import Delayable
-
-try:
-    from collections.abc import MutableSet
-except ImportError:
-    # Due to the older versions of six installed by default with DCC's like
-    # Maya 2020, we can't rely on six.moves.collections_abc, so handle
-    # the py 2.7 import
-    from collections import MutableSet
 
 
 # https://stackoverflow.com/a/7829569
@@ -108,7 +100,7 @@ class DelayableEngine(QObject):
         Raises:
             KeyError: A invalid key identifier string was passed.
         """
-        if isinstance(delayable, six.string_types):
+        if isinstance(delayable, str):
             if delayable in self.delayables:
                 # Don't replace the instance if a string is passed
                 return
@@ -276,7 +268,7 @@ class DelayableEngine(QObject):
             delayable (Delayable or str): A Delayable instance or the key identifier.
                 Remove this delayable from the current documents if it was added.
         """
-        if isinstance(delayable, six.string_types):
+        if isinstance(delayable, str):
             if delayable not in self.delayables:
                 return
             delayable = self.delayables[delayable]

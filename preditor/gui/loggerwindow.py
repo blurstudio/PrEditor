@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 from functools import partial
 
 import __main__
-import six
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
 from Qt.QtGui import QCursor, QFont, QIcon, QTextCursor
@@ -428,7 +427,7 @@ class LoggerWindow(Window):
                 workbox = logger.current_workbox()
 
         # If name is a string, find first tab with that name
-        elif isinstance(name, six.string_types):
+        elif isinstance(name, str):
             split = name.split('/', 1)
             if len(split) < 2:
                 return None
@@ -792,7 +791,7 @@ class LoggerWindow(Window):
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
-                'toolbarStates': six.text_type(self.saveState().toHex(), 'utf-8'),
+                'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
