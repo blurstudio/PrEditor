@@ -8,7 +8,7 @@ try:
 except ImportError:
     from ConfigParser import ConfigParser
 
-from PyQt5 import Qsci
+from .. import Qsci
 
 
 class MethodDescriptor(object):
