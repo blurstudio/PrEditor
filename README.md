@@ -128,8 +128,7 @@ The more mature QScintilla workbox requires a few extra dependencies that must
 be passed manually. It hasn't been added to `extras_require` because we plan to
 split it into its own pip module due to it requiring PyQt5 which is a little hard
 to get working inside of DCC's that ship with PySide2 by default. Here is the
-python 3 pip install command(For python 2 you will need to compile QScintilla
-yourself.)
+python 3 pip install command.
 
 - `pip install preditor PyQt5, QScintilla>=2.11.4 aspell-python-py3`
 
