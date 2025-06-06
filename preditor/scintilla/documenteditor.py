@@ -19,7 +19,6 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
 
-from PyQt5.Qsci import QsciScintilla
 from PyQt5.QtCore import QTextCodec
 from Qt import QtCompat
 from Qt.QtCore import Property, QFile, QPoint, Qt, Signal
@@ -37,7 +36,7 @@ from .. import osystem, resourcePath
 from ..delayable_engine import DelayableEngine
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
-from . import lang
+from . import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)
 
