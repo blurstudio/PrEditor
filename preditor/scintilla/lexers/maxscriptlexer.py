@@ -4,7 +4,8 @@ import re
 from builtins import str as text
 
 from future.utils import iteritems
-from PyQt5.Qsci import QsciLexerCustom, QsciScintilla
+
+from .. import Qsci, QsciScintilla
 
 MS_KEYWORDS = """
 if then else not and or key collect
@@ -17,12 +18,12 @@ filein open close flush include print
 """
 
 
-class MaxscriptLexer(QsciLexerCustom):
+class MaxscriptLexer(Qsci.QsciLexerCustom):
     # Items in this list will be highligheded using the color for self.SmartHighlight
     highlightedKeywords = ''
 
     def __init__(self, parent=None):
-        QsciLexerCustom.__init__(self, parent)
+        super(MaxscriptLexer, self).__init__(parent)
         self._styles = {
             0: 'Default',
             1: 'Comment',
@@ -48,15 +49,15 @@ class MaxscriptLexer(QsciLexerCustom):
             return QColor(40, 160, 40)
 
         elif style in (self.Keyword, self.Operator):
-            return QColor(Qt.blue)
+            return QColor(Qt.GlobalColor.blue)
 
         elif style == self.Number:
-            return QColor(Qt.red)
+            return QColor(Qt.GlobalColor.red)
 
         elif style == self.String:
             return QColor(180, 140, 30)
 
-        return QsciLexerCustom.defaultColor(self, style)
+        return super(MaxscriptLexer, self).defaultColor(style)
 
     def defaultPaper(self, style):
         if style == self.SmartHighlight:
@@ -77,7 +78,7 @@ class MaxscriptLexer(QsciLexerCustom):
             return MS_KEYWORDS
         if style == self.SmartHighlight:
             return self.highlightedKeywords
-        return QsciLexerCustom.keywords(self, style)
+        return super(MaxscriptLexer, self).keywords(style)
 
     def processChunk(self, chunk, lastState, keywords):
         # process the length of the chunk

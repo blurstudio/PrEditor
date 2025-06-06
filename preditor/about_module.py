@@ -111,10 +111,14 @@ class AboutQt(AboutModule):
             pass
 
         # Add info for all Qt5 bindings that have been imported
-        if 'PyQt5.QtCore' in sys.modules:
-            ret.append('PyQt5: {}'.format(sys.modules['PyQt5.QtCore'].PYQT_VERSION_STR))
+        if 'PySide6.QtCore' in sys.modules:
+            ret.append('PySide6: {}'.format(sys.modules['PySide6.QtCore'].qVersion()))
+        if 'PyQt6.QtCore' in sys.modules:
+            ret.append('PyQt6: {}'.format(sys.modules['PyQt6.QtCore'].PYQT_VERSION_STR))
         if 'PySide2.QtCore' in sys.modules:
             ret.append('PySide2: {}'.format(sys.modules['PySide2.QtCore'].qVersion()))
+        if 'PyQt5.QtCore' in sys.modules:
+            ret.append('PyQt5: {}'.format(sys.modules['PyQt5.QtCore'].PYQT_VERSION_STR))
 
         # Add qt library paths for plugin debugging
         for i, path in enumerate(QtCore.QCoreApplication.libraryPaths()):
