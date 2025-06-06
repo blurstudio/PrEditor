@@ -1,19 +1,18 @@
 from __future__ import absolute_import, print_function
 
-import logging  # noqa: E402
-import os  # noqa: E402
-import sys  # noqa: E402
+import logging
+import os
+import sys
 
-from Qt.QtCore import Qt  # noqa: E402
+from Qt.QtCore import Qt
 
-from . import osystem  # noqa: E402
-from .plugins import Plugins  # noqa: E402
-from .version import version as __version__  # noqa: E402,F401
+from . import osystem
+from .config import PreditorConfig
+from .plugins import Plugins
+from .version import version as __version__
 
 DEFAULT_CORE_NAME = "PrEditor"
 """The default name to use for the core name."""
-
-_global_config = {}
 
 core = None  # create a managed Core instance
 """
@@ -30,6 +29,11 @@ _logger = logging.getLogger(__name__)
 _logger.addHandler(logging.NullHandler())
 
 plugins = Plugins()
+
+config = PreditorConfig()
+"""This config is used to setup the instance of PrEditor. It can be edited up
+to the point the instance is created. After that changes will be ignored.
+"""
 
 
 def about_preditor(instance=None):
@@ -65,13 +69,24 @@ def init():
         plugin()
 
 
-def configure(name, parent_callback=None, excepthook=True, logging=True, streams=True):
+def configure(
+    name,
+    parent_callback=None,
+    excepthook=True,
+    logging=True,
+    streams=True,
+    headless_callback=None,
+):
     """Global configuration of PrEditor. Safe to re-call until the instance is created.
 
     Configures the instance of PrEditor without creating the GUI. It should be run
     as early as possible in the applications initialization to allow PrEditor to
     show as much stdout/err text as possible even the text printed before the
     application's GUI is created.
+
+    This is a convenience method that sets useful defaults on `preditor.config`.
+    You can directly set the values on there instead of calling this function.
+    If you use that make sure to enable each feature as it doesn't by default.
 
     Once `preditor.instance(create=True)` is called this will return without
     making any changes. Otherwise unless noted with "First call only." each time
@@ -101,44 +116,25 @@ def configure(name, parent_callback=None, excepthook=True, logging=True, streams
             LoggerWindow will show all of the captured text. This lets you only
             create the LoggerWindow IF you need to show it, but when you do it
             will have all of the std stream text written after this call.
+        headless_callback (callable, optional): Callback that returns a bool
+            indicating if PrEditor should attempt to create GUI elements.
     """
-    # Once the UI instance has been created, configure should not do anything.
-    if instance(create=False):
-        return
-
-    # Store the core_name.
-    changed = _global_config.get('core_name') != name
-    _global_config['core_name'] = name
-    if parent_callback:
-        _global_config['parent_callback'] = parent_callback
-
-    if streams and not _global_config.get('streams_installed'):
-        # Install the stream manager to capture output
-        from preditor.stream import install_to_std
-
-        install_to_std()
-        _global_config['streams_installed'] = True
-
-    if logging and changed:
-        # Only update the logging config if the core name has changed.
-        # Note: When called repeatedly, this won't remove old logger's added by
-        # the previous calls so you may see some loggers added that were never
-        # actually added by code other than the LoggingConfig.
-        from .logging_config import LoggingConfig
-
-        cfg = LoggingConfig(core_name=name)
-        cfg.load()
-
-    if excepthook and not _global_config.get('excepthook_installed'):
-        import preditor.debug
-
-        preditor.debug.BlurExcepthook.install()
-        _global_config['excepthook_installed'] = True
+    # The name should always be set first. The logging setting depends on it,
+    # and the others may depend on it in the future.
+    config.name = name
+    config.logging = logging
+    # Capture stdout/err streams and install the excepthook so we start capturing
+    # output as early as possible if enabled.
+    config.streams = streams
+    config.excepthook = excepthook
+    # These will be used to create the GUI instance if PrEditor needs shown.
+    config.parent_callback = parent_callback
+    config.headless_callback = headless_callback
 
 
 def get_core_name():
     """Returns the configured core_name or DEFAULT_CORE_NAME."""
-    return _global_config.get('core_name', DEFAULT_CORE_NAME)
+    return config.name
 
 
 def launch(run_workbox=False, app_id=None, name=None, standalone=False):
@@ -164,11 +160,11 @@ def launch(run_workbox=False, app_id=None, name=None, standalone=False):
     if name is None:
         # If the name wasn't passed we will get it from the name stored when
         # configure was called.
-        if 'core_name' not in _global_config:
+        if config.name is None:
             raise RuntimeError(
                 "You call configure before calling launch if not passing name"
             )
-        name = _global_config['core_name']
+        name = config.name
     else:
         # A name was provided, call configure to ensure it has been called
         configure(name=name)
@@ -241,17 +237,6 @@ def resourcePath(relpath=''):
     return os.path.join(relativePath(__file__), 'resource', relpath)
 
 
-def root_window():
-    # If a parent widget callback was configured, use it
-    if 'parent_callback' in _global_config:
-        return _global_config['parent_callback']()
-
-    # Otherwise, attempt to find the top level widget from Qt
-    from .gui.app import App
-
-    return App.root_window()
-
-
 def parent_callback():
     """Returns the parent_callback or None.
 
@@ -259,7 +244,7 @@ def parent_callback():
     LoggerWindow when its first created. This can be used by DCC's to set the
     parent to their main window.
     """
-    return _global_config.get("parent_callback")
+    return config.parent_callback
 
 
 def connect_preditor(
@@ -311,9 +296,7 @@ def instance(parent=None, run_workbox=False, create=True):
         than once, the same instance will be returned. If create is False, it may
         return None.
     """
-    from .gui.loggerwindow import LoggerWindow
-
-    return LoggerWindow.instance(parent=parent, run_workbox=run_workbox, create=create)
+    return config.instance(parent=parent, run_workbox=run_workbox, create=create)
 
 
 def shutdown():

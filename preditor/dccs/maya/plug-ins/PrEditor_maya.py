@@ -55,6 +55,8 @@ def initializePlugin(mobject):  # noqa: N802
             "Maya-{}".format(maya_ver),
             # Tell PrEditor how to find the maya root window for parenting
             parent_callback=root_window,
+            # Tell it how to check if running in batch mode
+            headless_callback=headless,
         )
 
         # Detect Maya shutting down and ensure PrEditor's prefs are saved

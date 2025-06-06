@@ -105,6 +105,7 @@ class App(object):
         QMainWindow or QDialog for the current Qt application.
         """
         inst = QApplication.instance()
+        root_window = None
         if inst:
             root_window = inst.activeWindow()
             # Ignore QSplashScreen's, they should never be considered the root window.
