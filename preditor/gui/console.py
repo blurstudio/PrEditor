@@ -18,7 +18,7 @@ from Qt.QtCore import QPoint, Qt, QTimer
 from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
 
-from .. import debug, settings, stream
+from .. import settings, stream
 from ..streamhandler_helper import StreamHandlerHelper
 from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
@@ -87,7 +87,6 @@ class ConsolePrEdit(QTextEdit):
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         self._errorLog = sys.stderr
-        debug.BlurExcepthook.install()
 
         # Update any StreamHandler's that were setup using the old stdout/err
         StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)

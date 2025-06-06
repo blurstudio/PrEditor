@@ -41,9 +41,9 @@ if __name__ == '__main__':
         # specific to this application.
         'add_to_app',
     )
-    import preditor.debug
+    import preditor.excepthooks
 
-    preditor.debug.BlurExcepthook.install()
+    preditor.excepthooks.PreditorExceptHook.install()
 
     # Create a Gui Application allowing the user to show PrEditor
     app = QApplication(sys.argv)
