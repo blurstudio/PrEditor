@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import itertools
 import json
+import logging
 import os
 import re
 import sys
@@ -45,6 +46,8 @@ from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
 from .status_label import StatusLabel
+
+logger = logging.getLogger(__name__)
 
 
 class WorkboxPages:
@@ -1380,6 +1383,16 @@ class LoggerWindow(Window):
             bool: If a shutdown was required
         """
         if cls._instance:
-            cls._instance.shutdown()
+            try:
+                cls._instance.shutdown()
+            except RuntimeError as error:
+                # If called after the host Qt application has been closed then
+                # the instance has been deleted and we can't save preferences
+                # without getting a RuntimeError about C/C++ being deleted.
+                logger.warning(
+                    f"instance_shutdown failed PrEditor prefs likely not saved: {error}"
+                )
+                return False
+
             return True
         return False
