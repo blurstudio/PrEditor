@@ -28,7 +28,7 @@ from Qt.QtWidgets import (
 from .. import (
     DEFAULT_CORE_NAME,
     about_preditor,
-    core,
+    config,
     debug,
     get_core_name,
     osystem,
@@ -1338,17 +1338,15 @@ class LoggerWindow(Window):
                 parent, name=name, run_workbox=run_workbox, standalone=standalone
             )
 
-            # RV has a Unique window structure. It makes more sense to not parent a
-            # singleton window than to parent it to a specific top level window.
-            if core.objectName() == 'rv':
-                inst.setParent(None)
-                inst.setAttribute(Qt.WA_QuitOnClose, False)
-
             # protect the memory
             inst.setAttribute(Qt.WA_DeleteOnClose, False)
 
             # cache the instance
             LoggerWindow._instance = inst
+
+            # Allow customization when the instance is first created.
+            if config.on_create_callback:
+                config.on_create_callback(inst)
 
         return LoggerWindow._instance
 
