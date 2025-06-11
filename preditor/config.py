@@ -48,6 +48,7 @@ class PreditorConfig:
         self._name = None
         self._logging = False
         self._headless_callback = None
+        self._on_create_callback = None
         self._parent_callback = None
         self._error_dialog_class = True
         self._excepthooks = []
@@ -63,6 +64,7 @@ class PreditorConfig:
             f"{' ' * indent}logging: {self.logging}",
             f"{' ' * indent}headless_callback: {self.headless_callback!r}",
             f"{' ' * indent}parent_callback: {self.parent_callback!r}",
+            f"{' ' * indent}on_create_callback: {self.on_create_callback!r}",
         ]
         return '\n'.join(ret)
 
@@ -232,6 +234,20 @@ class PreditorConfig:
         if changed:
             # If the core name was changed attempt to update the logging config.
             self.update_logging()
+
+    @property
+    def on_create_callback(self):
+        """A pointer to a method that is called on LoggerWindow instance create.
+
+        This callback accepts the instance and can be used to customize the
+        LoggerWindow instance when it is first created.
+        """
+        return self._on_create_callback
+
+    @on_create_callback.setter
+    @set_if_unlocked()
+    def on_create_callback(self, cb):
+        self._on_create_callback = cb
 
     @property
     def parent_callback(self):
