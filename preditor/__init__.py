@@ -184,7 +184,10 @@ def launch(run_workbox=False, app_id=None, name=None, standalone=False):
     # it regain focus.
     widget.activateWindow()
     widget.raise_()
-    widget.setWindowState(widget.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+    widget.setWindowState(
+        widget.windowState() & ~Qt.WindowState.WindowMinimized
+        | Qt.WindowState.WindowActive
+    )
     widget.console().setFocus()
     app.start()
 

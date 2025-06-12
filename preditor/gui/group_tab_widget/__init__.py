@@ -61,13 +61,13 @@ class GroupTabWidget(OneTabWidget):
         corner.uiMenuBTN = QToolButton(corner)
         corner.uiMenuBTN.setIcon(QIcon(resourcePath('img/chevron-down.png')))
         corner.uiMenuBTN.setObjectName('group_tab_widget_menu_btn')
-        corner.uiMenuBTN.setPopupMode(QToolButton.InstantPopup)
+        corner.uiMenuBTN.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         corner.uiCornerMENU = GroupTabMenu(self, parent=corner.uiMenuBTN)
         corner.uiMenuBTN.setMenu(corner.uiCornerMENU)
         lyt.addWidget(corner.uiMenuBTN)
 
         self.uiCornerBTN = corner
-        self.setCornerWidget(self.uiCornerBTN, Qt.TopRightCorner)
+        self.setCornerWidget(self.uiCornerBTN, Qt.Corner.TopRightCorner)
 
     def add_new_tab(self, group, title="Workbox", group_fmt=None):
         """Adds a new tab to the requested group, creating the group if the group
@@ -148,9 +148,9 @@ class GroupTabWidget(OneTabWidget):
             'Are you sure you want to close all tabs under the "{}" tab?'.format(
                 self.tabText(self.currentIndex())
             ),
-            QMessageBox.Yes | QMessageBox.Cancel,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
-        if ret == QMessageBox.Yes:
+        if ret == QMessageBox.StandardButton.Yes:
             # Clean up all temp files created by this group's editors if they
             # are not using actual saved files.
             tab_widget = self.widget(self.currentIndex())

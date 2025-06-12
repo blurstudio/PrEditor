@@ -4,12 +4,11 @@ import logging
 import re
 import string
 
-from PyQt5.Qsci import QsciScintilla
 from Qt.QtCore import Qt
 from Qt.QtGui import QColor
 
 from ...delayable_engine.delayables import RangeDelayable
-from .. import lang
+from .. import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)
 
@@ -49,12 +48,14 @@ else:
             # https://www.scintilla.org/ScintillaDox.html#SCI_INDICSETSTYLE
             # https://qscintilla.com/#clickable_text/indicators
             document.indicatorDefine(
-                QsciScintilla.SquiggleLowIndicator, self.indicator_number
+                QsciScintilla.IndicatorStyle.SquiggleLowIndicator, self.indicator_number
             )
             document.SendScintilla(
                 QsciScintilla.SCI_SETINDICATORCURRENT, self.indicator_number
             )
-            document.setIndicatorForegroundColor(QColor(Qt.red), self.indicator_number)
+            document.setIndicatorForegroundColor(
+                QColor(Qt.GlobalColor.red), self.indicator_number
+            )
 
             document.SCN_MODIFIED.connect(document.onTextModified)
 
