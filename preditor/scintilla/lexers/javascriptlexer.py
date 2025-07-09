@@ -6,7 +6,8 @@ from .. import Qsci
 
 
 class JavaScriptLexer(Qsci.QsciLexerJavaScript):
-    # Items in this list will be highlighted using the color for self.KeywordSet2
+    # Items in this list will be highlighted using the color for
+    # `Qsci.QsciLexerJavaScript.KeywordSet2`
     highlightedKeywords = ''
 
     def defaultFont(self, index):
@@ -14,7 +15,7 @@ class JavaScriptLexer(Qsci.QsciLexerJavaScript):
         return self.font(0)
 
     def defaultPaper(self, style):
-        if style == self.KeywordSet2:
+        if style == Qsci.QsciLexerJavaScript.KeywordSet2:
             # Set the highlight color for this lexer
             return QColor(155, 255, 155)
         return super(JavaScriptLexer, self).defaultPaper(style)

@@ -7,7 +7,7 @@ from Qt.QtGui import QStandardItem, QStandardItemModel
 
 
 class GroupTabItemModel(QStandardItemModel):
-    GroupIndexRole = Qt.UserRole + 1
+    GroupIndexRole = Qt.ItemDataRole.UserRole + 1
     TabIndexRole = GroupIndexRole + 1
 
     def __init__(self, manager, *args, **kwargs):
@@ -24,7 +24,7 @@ class GroupTabItemModel(QStandardItemModel):
     def pathFromIndex(self, index):
         parts = [""]
         while index.isValid():
-            parts.append(self.data(index, Qt.DisplayRole))
+            parts.append(self.data(index, Qt.ItemDataRole.DisplayRole))
             index = index.parent()
         if len(parts) == 1:
             return ""
@@ -56,7 +56,7 @@ class GroupTabTreeItemModel(GroupTabItemModel):
 
 class GroupTabListItemModel(GroupTabItemModel):
     def flags(self, index):
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def process(self):
         root = self.invisibleRootItem()
@@ -101,7 +101,7 @@ class GroupTabFuzzyFilterProxyModel(QSortFilterProxyModel):
     def pathFromIndex(self, index):
         parts = [""]
         while index.isValid():
-            parts.append(self.data(index, Qt.DisplayRole))
+            parts.append(self.data(index, Qt.ItemDataRole.DisplayRole))
             index = index.parent()
         if len(parts) == 1:
             return ""

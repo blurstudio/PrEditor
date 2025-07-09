@@ -21,7 +21,7 @@ class ErrorDialog(Dialog):
 
         self.parent_ = parent
         self.setWindowTitle('Error Occurred')
-        self.uiErrorLBL.setTextFormat(Qt.RichText)
+        self.uiErrorLBL.setTextFormat(Qt.TextFormat.RichText)
         self.uiIconLBL.setPixmap(
             QPixmap(
                 os.path.join(
@@ -30,7 +30,7 @@ class ErrorDialog(Dialog):
                     'img',
                     'warning-big.png',
                 )
-            ).scaledToHeight(64, Qt.SmoothTransformation)
+            ).scaledToHeight(64, Qt.TransformationMode.SmoothTransformation)
         )
 
         self.uiLoggerBTN.clicked.connect(self.show_logger)

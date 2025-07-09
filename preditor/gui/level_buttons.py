@@ -134,7 +134,7 @@ class LoggingLevelButton(QToolButton):
             parent (QWidget, optional): The parent widget for this button.
         """
         super(LoggingLevelButton, self).__init__(parent=parent)
-        self.setPopupMode(QToolButton.InstantPopup)
+        self.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
 
         # create root logger menu
         root = logging.getLogger("")

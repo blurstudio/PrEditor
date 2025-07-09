@@ -15,7 +15,7 @@ class PreditorExceptHook(object):
     This calls each callable in the `preditor.config.excepthooks` list any time
     `sys.excepthook` is called due to an raised exception.
 
-    If `config.excepthook` is empty when installing this class, it will
+    If `config.excepthooks` is empty when installing this class, it will
     automatically add `default_excepthooks`. You can disable this by adding `None`
     to the list before this class is initialized.
     """
