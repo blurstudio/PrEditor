@@ -20,7 +20,7 @@ from contextlib import contextmanager
 from functools import partial
 
 from Qt import QtCompat
-from Qt.QtCore import Property, QPoint, Qt, Signal
+from Qt.QtCore import Property, QEvent, QPoint, Qt, Signal
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon
 from Qt.QtWidgets import (
     QAction,
@@ -98,21 +98,21 @@ class DocumentEditor(QsciScintilla):
         self._enableFontResizing = True
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
-        self._foldMarginForegroundColor = QColor(Qt.white)
+        self._foldMarginForegroundColor = QColor(Qt.GlobalColor.white)
         self._marginsBackgroundColor = QColor(224, 224, 224)
         self._marginsForegroundColor = QColor()
         self._matchedBraceBackgroundColor = QColor(224, 224, 224)
         self._matchedBraceForegroundColor = QColor()
-        self._unmatchedBraceBackgroundColor = QColor(Qt.white)
-        self._unmatchedBraceForegroundColor = QColor(Qt.blue)
+        self._unmatchedBraceBackgroundColor = QColor(Qt.GlobalColor.white)
+        self._unmatchedBraceForegroundColor = QColor(Qt.GlobalColor.blue)
         self._caretForegroundColor = QColor()
         self._caretBackgroundColor = QColor(255, 255, 255, 255)
         self._selectionBackgroundColor = QColor(192, 192, 192)
-        self._selectionForegroundColor = QColor(Qt.black)
-        self._indentationGuidesBackgroundColor = QColor(Qt.white)
-        self._indentationGuidesForegroundColor = QColor(Qt.black)
-        self._markerBackgroundColor = QColor(Qt.white)
-        self._markerForegroundColor = QColor(Qt.black)
+        self._selectionForegroundColor = QColor(Qt.GlobalColor.black)
+        self._indentationGuidesBackgroundColor = QColor(Qt.GlobalColor.white)
+        self._indentationGuidesForegroundColor = QColor(Qt.GlobalColor.black)
+        self._markerBackgroundColor = QColor(Qt.GlobalColor.white)
+        self._markerForegroundColor = QColor(Qt.GlobalColor.black)
 
         # Setup the DelayableEngine and add the document to it
         self.delayable_info = OrderedDict()
@@ -133,13 +133,13 @@ class DocumentEditor(QsciScintilla):
         self.initSettings(first_time=True)
 
         # set one time properties
-        self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
-        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setFolding(QsciScintilla.FoldStyle.BoxedTreeFoldStyle)
+        self.setBraceMatching(QsciScintilla.BraceMatch.SloppyBraceMatch)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.setAcceptDrops(False)
         # Not supported by older builds of QsciScintilla
         if hasattr(self, 'setTabDrawMode'):
-            self.setTabDrawMode(QsciScintilla.TabStrikeOut)
+            self.setTabDrawMode(QsciScintilla.TabDrawMode.TabStrikeOut)
 
         # create connections
         self.customContextMenuRequested.connect(self.showMenu)
@@ -172,23 +172,39 @@ class DocumentEditor(QsciScintilla):
         commands = self.standardCommands()
         # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to
         # comment
-        command = commands.boundTo(Qt.ControlModifier | Qt.Key_Slash)
+        command = commands.boundTo(
+            Qt.KeyboardModifier.ControlModifier | Qt.Key.Key_Slash
+        )
         if command is not None:
             command.setKey(0)
 
         for command in commands.commands():
             if command.description() == 'Move selected lines up one line':
-                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Up)
+                command.setKey(
+                    Qt.KeyboardModifier.ControlModifier
+                    | Qt.KeyboardModifier.ShiftModifier
+                    | Qt.Key.Key_Up
+                )
             if command.description() == 'Move selected lines down one line':
-                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_Down)
+                command.setKey(
+                    Qt.KeyboardModifier.ControlModifier
+                    | Qt.KeyboardModifier.ShiftModifier
+                    | Qt.Key.Key_Down
+                )
             if command.description() == 'Duplicate selection':
-                command.setKey(Qt.ControlModifier | Qt.ShiftModifier | Qt.Key_D)
+                command.setKey(
+                    Qt.KeyboardModifier.ControlModifier
+                    | Qt.KeyboardModifier.ShiftModifier
+                    | Qt.Key.Key_D
+                )
             if command.description() == 'Cut current line':
                 command.setKey(0)
 
         # Add QShortcuts
         self.uiShowAutoCompleteSCT = QShortcut(
-            Qt.CTRL | Qt.Key_Space, self, context=Qt.WidgetShortcut
+            Qt.Modifier.CTRL | Qt.Key.Key_Space,
+            self,
+            context=Qt.ShortcutContext.WidgetShortcut,
         )
         self.uiShowAutoCompleteSCT.activated.connect(lambda: self.showAutoComplete())
 
@@ -226,11 +242,13 @@ class DocumentEditor(QsciScintilla):
                 self.window(),
                 'Save changes to...',
                 'Do you want to save your changes?',
-                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No
+                | QMessageBox.StandardButton.Cancel,
             )
-            if result == QMessageBox.Yes:
+            if result == QMessageBox.StandardButton.Yes:
                 return self.save()
-            elif result == QMessageBox.Cancel:
+            elif result == QMessageBox.StandardButton.Cancel:
                 return False
         return True
 
@@ -507,22 +525,22 @@ class DocumentEditor(QsciScintilla):
         if newlineN != -1 and newlineR != -1:
             if newlineN == newlineR + 1:
                 # CR LF Windows
-                return self.EolWindows
+                return QsciScintilla.EolMode.EolWindows
             elif newlineR == newlineN + 1:
-                # LF CR ACorn and RISC unsuported
+                # LF CR ACorn and RISC unsupported
                 return self.eolMode()
         if newlineN != -1 and newlineR != -1:
             if newlineN < newlineR:
                 # First return is a LF
-                return self.EolUnix
+                return QsciScintilla.EolMode.EolUnix
             else:
                 # first return is a CR
-                return self.EolMac
+                return QsciScintilla.EolMode.EolMac
         if newlineN != -1:
-            return self.EolUnix
+            return QsciScintilla.EolMode.EolUnix
         if sys.platform == 'win32':
-            return self.EolWindows
-        return self.EolUnix
+            return QsciScintilla.EolMode.EolWindows
+        return QsciScintilla.EolMode.EolUnix
 
     def editPermaHighlight(self):
         text, success = QInputDialog.getText(
@@ -563,7 +581,7 @@ class DocumentEditor(QsciScintilla):
         self.modificationChanged.connect(self.refreshTitle)
 
     def eventFilter(self, object, event):
-        if event.type() == event.Close and not self.checkForSave():
+        if event.type() == QEvent.Type.Close and not self.checkForSave():
             event.ignore()
             return True
         return False
@@ -712,14 +730,14 @@ class DocumentEditor(QsciScintilla):
         if find_state.start_pos == find_state.end_pos:
             return -1
 
-        self.SendScintilla(self.SCI_SETTARGETSTART, find_state.start_pos)
-        self.SendScintilla(self.SCI_SETTARGETEND, find_state.end_pos)
+        self.SendScintilla(QsciScintilla.SCI_SETTARGETSTART, find_state.start_pos)
+        self.SendScintilla(QsciScintilla.SCI_SETTARGETEND, find_state.end_pos)
 
         # scintilla can't match unicode strings, even in python 3
         # In python 3 you have to cast it to a bytes object
         expr = bytes(str(find_state.expr).encode("utf-8"))
 
-        return self.SendScintilla(self.SCI_SEARCHINTARGET, len(expr), expr)
+        return self.SendScintilla(QsciScintilla.SCI_SEARCHINTARGET, len(expr), expr)
 
     def find_text(self, find_state):
         """Finds text in the document without changing the selection.
@@ -732,10 +750,10 @@ class DocumentEditor(QsciScintilla):
         https://github.com/josephwilk/qscintilla/blob/master/Qt4Qt5/qsciscintilla.cpp
         """
         # Set the search flags
-        self.SendScintilla(self.SCI_SETSEARCHFLAGS, find_state.flags)
+        self.SendScintilla(QsciScintilla.SCI_SETSEARCHFLAGS, find_state.flags)
         # If no end was specified, use the end of the document
         if find_state.end_pos is None:
-            find_state.end_pos = self.SendScintilla(self.SCI_GETLENGTH)
+            find_state.end_pos = self.SendScintilla(QsciScintilla.SCI_GETLENGTH)
 
         pos = self.find_simple(find_state)
 
@@ -744,12 +762,14 @@ class DocumentEditor(QsciScintilla):
             if find_state.forward:
                 find_state.start_pos = 0
                 if find_state.start_pos_original is None:
-                    find_state.end_pos = self.SendScintilla(self.SCI_GETLENGTH)
+                    find_state.end_pos = self.SendScintilla(QsciScintilla.SCI_GETLENGTH)
                 else:
                     find_state.end_pos = find_state.start_pos_original
             else:
                 if find_state.start_pos_original is None:
-                    find_state.start_pos = self.SendScintilla(self.SCI_GETLENGTH)
+                    find_state.start_pos = self.SendScintilla(
+                        QsciScintilla.SCI_GETLENGTH
+                    )
                 else:
                     find_state.start_pos = find_state.start_pos_original
                 find_state.end_pos = 0
@@ -762,8 +782,8 @@ class DocumentEditor(QsciScintilla):
             return -1, 0
 
         # It was found.
-        target_start = self.SendScintilla(self.SCI_GETTARGETSTART)
-        target_end = self.SendScintilla(self.SCI_GETTARGETEND)
+        target_start = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+        target_end = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
 
         # Finally adjust the start position so that we don't find the same one again.
         if find_state.forward:
@@ -811,10 +831,12 @@ class DocumentEditor(QsciScintilla):
                 self,
                 'No Text Found',
                 msg % (text, line),
-                buttons=(QMessageBox.Yes | QMessageBox.No),
-                defaultButton=QMessageBox.Yes,
+                buttons=(
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                ),
+                defaultButton=QMessageBox.StandardButton.Yes,
             )
-            if result == QMessageBox.Yes:
+            if result == QMessageBox.StandardButton.Yes:
                 self.goToLine(line)
         except ValueError:
             QMessageBox.critical(
@@ -823,20 +845,20 @@ class DocumentEditor(QsciScintilla):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == Qt.Key_Backtab:
+        if key == Qt.Key.Key_Backtab:
             self.unindentSelection()
-        elif key == Qt.Key_Escape:
+        elif key == Qt.Key.Key_Escape:
             # Using QShortcut for Escape did not seem to work.
             self.showAutoComplete(True)
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
     def keyReleaseEvent(self, event):
-        if event.key() == Qt.Key_Menu:
+        if event.key() == Qt.Key.Key_Menu:
             # Calculate the screen coordinates of the text cursor.
             position = self.positionFromLineIndex(*self.getCursorPosition())
-            x = self.SendScintilla(self.SCI_POINTXFROMPOSITION, 0, position)
-            y = self.SendScintilla(self.SCI_POINTYFROMPOSITION, 0, position)
+            x = self.SendScintilla(QsciScintilla.SCI_POINTXFROMPOSITION, 0, position)
+            y = self.SendScintilla(QsciScintilla.SCI_POINTYFROMPOSITION, 0, position)
             # When using the menu key, show the right click menu at the text
             # cursor, not the mouse cursor, it is not in the correct place.
             self.showMenu(QPoint(x, y))
@@ -860,10 +882,10 @@ class DocumentEditor(QsciScintilla):
         self.setShowSmartHighlighting(True)
         self.setBackspaceUnindents(True)
 
-        self.setEdgeMode(self.EdgeNone)
+        self.setEdgeMode(QsciScintilla.EdgeMode.EdgeNone)
 
         # set autocompletion settings
-        self.setAutoCompletionSource(QsciScintilla.AcsAll)
+        self.setAutoCompletionSource(QsciScintilla.AutoCompletionSource.AcsAll)
         self.setAutoCompletionThreshold(3)
 
         self.setFont(self.documentFont)
@@ -903,15 +925,15 @@ class DocumentEditor(QsciScintilla):
 
     def multipleSelection(self):
         """Returns if multiple selection is enabled."""
-        return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
+        return self.SendScintilla(QsciScintilla.SCI_GETMULTIPLESELECTION)
 
     def multipleSelectionAdditionalSelectionTyping(self):
         """Returns if multiple selection allows additional typing."""
-        return self.SendScintilla(self.SCI_GETMULTIPLESELECTION)
+        return self.SendScintilla(QsciScintilla.SCI_GETMULTIPLESELECTION)
 
     def multipleSelectionMultiPaste(self):
         """Paste into all multiple selections."""
-        return self.SendScintilla(self.SCI_GETMULTIPASTE)
+        return self.SendScintilla(QsciScintilla.SCI_GETMULTIPASTE)
 
     def paste(self):
         text = QApplication.clipboard().text()
@@ -919,9 +941,9 @@ class DocumentEditor(QsciScintilla):
             return super(DocumentEditor, self).paste()
 
         def repForMode(mode):
-            if mode == self.EolWindows:
+            if mode == QsciScintilla.EolMode.EolWindows:
                 return '\r\n'
-            elif mode == self.EolUnix:
+            elif mode == QsciScintilla.EolMode.EolUnix:
                 return '\n'
             else:
                 return '\r'
@@ -980,11 +1002,11 @@ class DocumentEditor(QsciScintilla):
                 self.window(),
                 'File Removed...',
                 'File: %s has been deleted.\nKeep file in editor?' % self.filename(),
-                QMessageBox.Yes,
-                QMessageBox.No,
+                QMessageBox.StandardButton.Yes,
+                QMessageBox.StandardButton.No,
             )
             self._dialogShown = False
-            if result == QMessageBox.No:
+            if result == QMessageBox.StandardButton.No:
                 logger.debug(
                     'The file was deleted, removing document from editor',
                 )
@@ -1006,13 +1028,16 @@ class DocumentEditor(QsciScintilla):
         if not self._dialogShown:
             self._dialogShown = True
             if self._autoReloadOnChange or not self.isModified():
-                result = QMessageBox.Yes
+                result = QMessageBox.StandardButton.Yes
             else:
                 result = QMessageBox.question(
-                    self.window(), title, message, QMessageBox.Yes | QMessageBox.No
+                    self.window(),
+                    title,
+                    message,
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 )
             self._dialogShown = False
-            if result == QMessageBox.Yes:
+            if result == QMessageBox.StandardButton.Yes:
                 return self.load(self.filename())
         return False
 
@@ -1030,7 +1055,9 @@ class DocumentEditor(QsciScintilla):
 
             # replace all of the instances of the text
             if all:
-                count = self.text().count(searchtext, Qt.CaseInsensitive)
+                count = self.text().count(
+                    searchtext, Qt.CaseSensitivity.CaseInsensitive
+                )
                 found = 0
                 while self.findFirst(searchtext, False, False, False, True, True):
                     if found == count:
@@ -1154,8 +1181,8 @@ class DocumentEditor(QsciScintilla):
             return False
         # Get the word at the start of selection, if the selection doesn't match
         # its not a word.
-        start_pos = self.SendScintilla(self.SCI_WORDSTARTPOSITION, start, True)
-        end_pos = self.SendScintilla(self.SCI_WORDENDPOSITION, start, True)
+        start_pos = self.SendScintilla(QsciScintilla.SCI_WORDSTARTPOSITION, start, True)
+        end_pos = self.SendScintilla(QsciScintilla.SCI_WORDENDPOSITION, start, True)
 
         return start == start_pos and end == end_pos
 
@@ -1216,7 +1243,9 @@ class DocumentEditor(QsciScintilla):
             # from a wordCharactersOverride lexer to a lexer that doesn't define custom
             # wordCharacters.
             wordCharacters = self.wordCharacters()
-        self.SendScintilla(self.SCI_SETWORDCHARS, wordCharacters.encode('utf8'))
+        self.SendScintilla(
+            QsciScintilla.SCI_SETWORDCHARS, wordCharacters.encode('utf8')
+        )
 
         if lexer:
             lexer.setFont(font)
@@ -1239,7 +1268,7 @@ class DocumentEditor(QsciScintilla):
                 ranges by holding down the Ctrl key while dragging with the
                 mouse.
         """
-        self.SendScintilla(self.SCI_SETMULTIPLESELECTION, state)
+        self.SendScintilla(QsciScintilla.SCI_SETMULTIPLESELECTION, state)
 
     def setMultipleSelectionAdditionalSelectionTyping(self, state):
         """Enables or disables multiple selection allows additional typing.
@@ -1250,7 +1279,7 @@ class DocumentEditor(QsciScintilla):
                 simultaneously. Also allows selection and word and line
                 deletion commands.
         """
-        self.SendScintilla(self.SCI_SETADDITIONALSELECTIONTYPING, state)
+        self.SendScintilla(QsciScintilla.SCI_SETADDITIONALSELECTIONTYPING, state)
 
     def setMultipleSelectionMultiPaste(self, state):
         """Enables or disables multiple selection allows additional typing.
@@ -1261,7 +1290,7 @@ class DocumentEditor(QsciScintilla):
             into each selection with self.SC_MULTIPASTE_EACH.
             self.SC_MULTIPASTE_ONCE is the default.
         """
-        self.SendScintilla(self.SCI_SETMULTIPASTE, state)
+        self.SendScintilla(QsciScintilla.SCI_SETMULTIPASTE, state)
 
     def setSmartHighlightingRegEx(
         self, exp=r'[ \t\n\r\.,?;:!()\[\]+\-\*\/#@^%$"\\~&{}|=<>\']'
@@ -1289,9 +1318,9 @@ class DocumentEditor(QsciScintilla):
 
     def setShowWhitespaces(self, state):
         if state:
-            self.setWhitespaceVisibility(QsciScintilla.WsVisible)
+            self.setWhitespaceVisibility(QsciScintilla.WhitespaceVisibility.WsVisible)
         else:
-            self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
+            self.setWhitespaceVisibility(QsciScintilla.WhitespaceVisibility.WsInvisible)
 
     def spellCheckEnabled(self):
         """Is spellcheck is enabled for this document."""
@@ -1309,13 +1338,13 @@ class DocumentEditor(QsciScintilla):
         self.__speller__.saveAllwords()
         self.spellCheck(0, None)
         self.pos += len(word)
-        self.SendScintilla(self.SCI_GOTOPOS, self.pos)
+        self.SendScintilla(QsciScintilla.SCI_GOTOPOS, self.pos)
 
     def correctSpelling(self, action):
-        self.SendScintilla(self.SCI_GOTOPOS, self.pos)
-        self.SendScintilla(self.SCI_SETANCHOR, self.anchor)
+        self.SendScintilla(QsciScintilla.SCI_GOTOPOS, self.pos)
+        self.SendScintilla(QsciScintilla.SCI_SETANCHOR, self.anchor)
         with undo_step(self):
-            self.SendScintilla(self.SCI_REPLACESEL, action.text())
+            self.SendScintilla(QsciScintilla.SCI_REPLACESEL, action.text())
 
     def spellCheck(self, start_pos, end_pos):
         """Check spelling for some text in the document.
@@ -1349,18 +1378,20 @@ class DocumentEditor(QsciScintilla):
             or (mtype & self.SC_MOD_DELETETEXT) == self.SC_MOD_DELETETEXT
         ):
             # Only spell-check if text was inserted/deleted
-            line = self.SendScintilla(self.SCI_LINEFROMPOSITION, pos)
+            line = self.SendScintilla(QsciScintilla.SCI_LINEFROMPOSITION, pos)
             # More than one line could have been inserted.
             # If this number is negative it will cause Qt to crash.
             lines_to_check = line + max(0, linesAdded)
             self.spellCheck(
-                self.SendScintilla(self.SCI_POSITIONFROMLINE, line),
-                self.SendScintilla(self.SCI_GETLINEENDPOSITION, lines_to_check),
+                self.SendScintilla(QsciScintilla.SCI_POSITIONFROMLINE, line),
+                self.SendScintilla(
+                    QsciScintilla.SCI_GETLINEENDPOSITION, lines_to_check
+                ),
             )
 
     def showAutoComplete(self, toggle=False):
         # if using autoComplete toggle the autoComplete list
-        if self.autoCompletionSource() == QsciScintilla.AcsAll:
+        if self.autoCompletionSource() == QsciScintilla.AutoCompletionSource.AcsAll:
             if self.isListActive():  # is the autoComplete list visible
                 if toggle:
                     self.cancelList()  # Close the autoComplete list
@@ -1378,9 +1409,11 @@ class DocumentEditor(QsciScintilla):
             x = point.x()
             y = point.y()
             wordUnderMouse = self.wordAtPoint(point)
-            positionMouse = self.SendScintilla(self.SCI_POSITIONFROMPOINT, x, y)
+            positionMouse = self.SendScintilla(
+                QsciScintilla.SCI_POSITIONFROMPOINT, x, y
+            )
             wordStartPosition = self.SendScintilla(
-                self.SCI_WORDSTARTPOSITION, positionMouse, True
+                QsciScintilla.SCI_WORDSTARTPOSITION, positionMouse, True
             )
             spell_check = self.delayable_engine.delayables['spell_check']
             results = spell_check.chunk_re.findall(
@@ -1545,7 +1578,9 @@ class DocumentEditor(QsciScintilla):
         return self.delayable_engine.delayable_enabled('smart_highlight')
 
     def showWhitespaces(self):
-        return self.whitespaceVisibility() == QsciScintilla.WsVisible
+        return (
+            self.whitespaceVisibility() == QsciScintilla.WhitespaceVisibility.WsVisible
+        )
 
     def smartHighlightingRegEx(self):
         return self._smartHighlightingRegEx
@@ -1559,7 +1594,10 @@ class DocumentEditor(QsciScintilla):
             self.setSelection(lineFrom, indexFrom, lineTo, indexTo)
 
     def toggleFolding(self):
-        self.foldAll(QApplication.instance().keyboardModifiers() == Qt.ShiftModifier)
+        self.foldAll(
+            QApplication.instance().keyboardModifiers()
+            == Qt.KeyboardModifier.ShiftModifier
+        )
 
     def toUpper(self):
         with undo_step(self):
@@ -1741,7 +1779,10 @@ class DocumentEditor(QsciScintilla):
         return title
 
     def wheelEvent(self, event):
-        if self._enableFontResizing and event.modifiers() == Qt.ControlModifier:
+        if (
+            self._enableFontResizing
+            and event.modifiers() == Qt.KeyboardModifier.ControlModifier
+        ):
             # If used in LoggerWindow, use that wheel event
             # May not want to import LoggerWindow, so perhaps
             # check by str(type())
