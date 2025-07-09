@@ -10,23 +10,23 @@
     UpgradeCode="{2d245bb4-19cf-4f90-ae19-3ff006ed0f48}">
     <CompanyDetails Name="Blur Studio" Email="opensource@blur.com"/>
     <Components Description="pre-start-up scripts parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2025" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
         <ComponentEntry ModuleName="./preditor.ms" />
     </Components>
     <Components Description="macroscripts parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2025" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
         <ComponentEntry ModuleName="./PrEditor-PrEditor_Show.mcr" />
     </Components>
     <Components Description="menu parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2025" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
         <ComponentEntry ModuleName="./preditor_menu.mnx" />
     </Components>
     <Components Description="light icon paths parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2025" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
         <ComponentEntry AppName="lighticons" Version="1.0.0" ModuleName="../../resource/img" />
     </Components>
     <Components Description="dark icon paths parts">
-        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2025" />
+        <RuntimeRequirements OS="Win64" Platform="3ds Max" SeriesMin="2025" SeriesMax="2026" />
         <ComponentEntry AppName="darkicons" Version="1.0.0" ModuleName="../../resource/img" />
     </Components>
 </ApplicationPackage>
