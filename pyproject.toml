@@ -41,11 +41,11 @@ Source = "https://github.com/blurstudio/PrEditor"
 Tracker = "https://github.com/blurstudio/PrEditor/issues"
 
 [project.optional-dependencies]
-cli =[
+cli = [
     "click>=7.1.2",
     "click-default-group",
 ]
-dev =[
+dev = [
     "black",
     "build",
     "covdefaults",
@@ -57,8 +57,14 @@ dev =[
     "pytest",
     "tox",
 ]
-shortcut =[
+shortcut = [
     "casement>=0.1.0;platform_system=='Windows'",
+]
+qsci5 = [
+    "QScintilla",
+]
+qsci6 = [
+    "PyQt6-QScintilla",
 ]
 
 [project.scripts]

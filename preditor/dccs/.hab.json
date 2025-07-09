@@ -1,0 +1,10 @@
+{
+    "name": "preditor",
+    "version": "0.0.dev0",
+    "environment": {
+        "append": {
+            "MAYA_MODULE_PATH": "{relative_root}/maya",
+            "ADSK_APPLICATION_PLUGINS": "{relative_root}/studiomax"
+        }
+    }
+}
