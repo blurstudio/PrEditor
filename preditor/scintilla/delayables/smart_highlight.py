@@ -1,17 +1,17 @@
 from __future__ import absolute_import, print_function
 
-from PyQt5.Qsci import QsciScintilla
+import Qt
 from Qt.QtCore import QSignalMapper
 from Qt.QtWidgets import QWidget
 
 from ...delayable_engine.delayables import SearchDelayable
-from .. import FindState
+from .. import FindState, QsciScintilla
 
 
 class SmartHighlight(SearchDelayable):
     key = 'smart_highlight'
     indicator_number = 30
-    indicator_style = QsciScintilla.StraightBoxIndicator
+    indicator_style = QsciScintilla.IndicatorStyle.StraightBoxIndicator
     border_alpha = 255
 
     def __init__(self, engine):
@@ -36,7 +36,10 @@ class SmartHighlight(SearchDelayable):
         )
 
         self.signal_mapper.setMapping(document, document)
-        self.signal_mapper.mapped[QWidget].connect(self.update_highlighter)
+        if Qt.IsPyQt4:
+            self.signal_mapper.mapped[QWidget].connect(self.update_highlighter)
+        else:
+            self.signal_mapper.mappedObject.connect(self.update_highlighter)
         document.selectionChanged.connect(self.signal_mapper.map)
 
     def clear_markings(self, document):
