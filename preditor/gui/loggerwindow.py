@@ -531,7 +531,7 @@ class LoggerWindow(Window):
 
         cursor = console.textCursor()
         if not cursor.hasSelection():
-            cursor.select(QTextCursor.LineUnderCursor)
+            cursor.select(QTextCursor.SelectionType.LineUnderCursor)
         text = cursor.selectedText()
         prompt = console.prompt()
         if text.startswith(prompt):
@@ -567,7 +567,7 @@ class LoggerWindow(Window):
 
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
-        if event.modifiers() == Qt.ControlModifier:
+        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
             # WheelEvents can be emitted in a cluster, but we only want one at a time
             # (ie to change font size by 1, rather than 2 or 3). Let's bail if previous
             # font-resize wheel event was within a certain threshhold.
@@ -625,13 +625,16 @@ class LoggerWindow(Window):
         curFontFamily = origFont.family()
 
         if monospace and proportional:
-            options = QFontDialog.MonospacedFonts | QFontDialog.ProportionalFonts
+            options = (
+                QFontDialog.FontDialogOption.MonospacedFonts
+                | QFontDialog.FontDialogOption.ProportionalFonts
+            )
             kind = "monospace or proportional "
         elif monospace:
-            options = QFontDialog.MonospacedFonts
+            options = QFontDialog.FontDialogOption.MonospacedFonts
             kind = "monospace "
         elif proportional:
-            options = QFontDialog.ProportionalFonts
+            options = QFontDialog.FontDialogOption.ProportionalFonts
             kind = "proportional "
 
         # Present a QFontDialog for user to choose a font
@@ -691,9 +694,9 @@ class LoggerWindow(Window):
 
     def adjustWorkboxOrientation(self, state):
         if state:
-            self.uiSplitterSPLIT.setOrientation(Qt.Horizontal)
+            self.uiSplitterSPLIT.setOrientation(Qt.Orientation.Horizontal)
         else:
-            self.uiSplitterSPLIT.setOrientation(Qt.Vertical)
+            self.uiSplitterSPLIT.setOrientation(Qt.Orientation.Vertical)
 
     def backupPreferences(self):
         """Saves a copy of the current preferences to a zip archive."""
@@ -762,7 +765,11 @@ class LoggerWindow(Window):
 
     def keyPressEvent(self, event):
         # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
-        if event.modifiers() & (Qt.AltModifier | Qt.ControlModifier | Qt.ShiftModifier):
+        if event.modifiers() & (
+            Qt.KeyboardModifier.AltModifier
+            | Qt.KeyboardModifier.ControlModifier
+            | Qt.KeyboardModifier.ShiftModifier
+        ):
             pass
         else:
             super(LoggerWindow, self).keyPressEvent(event)
@@ -1171,9 +1178,9 @@ class LoggerWindow(Window):
 
     def setWordWrap(self, state):
         if state:
-            self.uiConsoleTXT.setLineWrapMode(QTextEdit.WidgetWidth)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         else:
-            self.uiConsoleTXT.setLineWrapMode(QTextEdit.NoWrap)
+            self.uiConsoleTXT.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
 
     def show_about(self):
         """Shows `preditor.about_preditor()`'s output in a message box."""
@@ -1253,7 +1260,7 @@ class LoggerWindow(Window):
 
         # if this is the global instance, then allow it to be deleted on close
         if self == LoggerWindow._instance:
-            self.setAttribute(Qt.WA_DeleteOnClose, True)
+            self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
             LoggerWindow._instance = None
 
         # clear out the system
@@ -1344,7 +1351,7 @@ class LoggerWindow(Window):
             )
 
             # protect the memory
-            inst.setAttribute(Qt.WA_DeleteOnClose, False)
+            inst.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
 
             # cache the instance
             LoggerWindow._instance = inst

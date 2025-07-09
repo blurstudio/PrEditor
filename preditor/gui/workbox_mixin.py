@@ -390,10 +390,14 @@ class WorkboxMixin(object):
             modifiers = event.modifiers()
 
             # Determine which relevant combos are pressed
-            ret = key == Qt.Key_Return
-            enter = key == Qt.Key_Enter
-            shift = modifiers == Qt.ShiftModifier
-            ctrlShift = modifiers == Qt.ControlModifier | Qt.ShiftModifier
+            ret = key == Qt.Key.Key_Return
+            enter = key == Qt.Key.Key_Enter
+            shift = modifiers == Qt.KeyboardModifier.ShiftModifier
+            ctrlShift = (
+                modifiers
+                == Qt.KeyboardModifier.ControlModifier
+                | Qt.KeyboardModifier.ShiftModifier
+            )
 
             # Determine which actions to take
             evalTrunc = enter or (ret and shift)

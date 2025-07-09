@@ -49,10 +49,10 @@ class MaxscriptLexer(Qsci.QsciLexerCustom):
             return QColor(40, 160, 40)
 
         elif style in (self.Keyword, self.Operator):
-            return QColor(Qt.blue)
+            return QColor(Qt.GlobalColor.blue)
 
         elif style == self.Number:
-            return QColor(Qt.red)
+            return QColor(Qt.GlobalColor.red)
 
         elif style == self.String:
             return QColor(180, 140, 30)

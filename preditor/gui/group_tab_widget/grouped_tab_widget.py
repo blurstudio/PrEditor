@@ -25,7 +25,7 @@ class GroupedTabWidget(OneTabWidget):
         self.uiCornerBTN.setText('+')
         self.uiCornerBTN.setIcon(QIcon(resourcePath('img/file-plus.png')))
         self.uiCornerBTN.released.connect(lambda: self.add_new_editor())
-        self.setCornerWidget(self.uiCornerBTN, Qt.TopRightCorner)
+        self.setCornerWidget(self.uiCornerBTN, Qt.Corner.TopRightCorner)
 
     def add_new_editor(self, title="Workbox"):
         editor, title = self.default_tab(title)
@@ -41,16 +41,18 @@ class GroupedTabWidget(OneTabWidget):
     def close_tab(self, index):
         if self.count() == 1:
             msg = "You have to leave at least one tab open."
-            QMessageBox.critical(self, 'Tab can not be closed.', msg, QMessageBox.Ok)
+            QMessageBox.critical(
+                self, 'Tab can not be closed.', msg, QMessageBox.StandardButton.Ok
+            )
             return
         ret = QMessageBox.question(
             self,
             'Donate to the cause?',
             "Would you like to donate this tabs contents to the /dev/null fund "
             "for wayward code?",
-            QMessageBox.Yes | QMessageBox.Cancel,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
-        if ret == QMessageBox.Yes:
+        if ret == QMessageBox.StandardButton.Yes:
             # If the tab was saved to a temp file, remove it from disk
             editor = self.widget(index)
             editor.__remove_tempfile__()

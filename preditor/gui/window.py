@@ -25,7 +25,7 @@ class Window(QMainWindow):
         if not cls._instance:
             cls._instance = cls(parent=parent)
             # protect the memory
-            cls._instance.setAttribute(Qt.WA_DeleteOnClose, False)
+            cls._instance.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, False)
         return cls._instance
 
     def __init__(self, parent=None, flags=0):
@@ -67,7 +67,7 @@ class Window(QMainWindow):
         # dead dialogs
 
         # set the delete attribute to clean up the window once it is closed
-        self.setAttribute(Qt.WA_DeleteOnClose, True)
+        self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         # If this value is set to False calling setGeometry on this window will not
         # adjust the geometry to ensure the window is on a valid screen.
         self.checkScreenGeo = True
@@ -103,7 +103,7 @@ class Window(QMainWindow):
     def closeEvent(self, event):
         # ensure this object gets deleted
         wwidget = None
-        if self.testAttribute(Qt.WA_DeleteOnClose):
+        if self.testAttribute(Qt.WidgetAttribute.WA_DeleteOnClose):
             # collect the win widget to uncache it
             if self.parent() and self.parent().inherits('QWinWidget'):
                 wwidget = self.parent()
@@ -141,7 +141,7 @@ class Window(QMainWindow):
         # allow the global instance to be cleared
         if this == cls._instance:
             cls._instance = None
-            this.setAttribute(Qt.WA_DeleteOnClose, True)
+            this.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         try:
             this.close()
         except RuntimeError:

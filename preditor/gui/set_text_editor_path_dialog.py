@@ -56,4 +56,6 @@ class SetTextEditorPathDialog(QDialog):
         else:
             msg = "That path doesn't exists or isn't an executable file."
             label = 'Incorrect Path'
-            QMessageBox.warning(self.window(), label, msg, QMessageBox.Ok)
+            QMessageBox.warning(
+                self.window(), label, msg, QMessageBox.StandardButton.Ok
+            )
