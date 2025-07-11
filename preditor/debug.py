@@ -21,11 +21,15 @@ class FileLogger:
         """Removes the contents of the log file."""
         open(self._logfile, 'w').close()
         if stamp:
-            msg = '--------- Date: {today} Version: {version} ---------'
-            print(msg.format(today=datetime.datetime.today(), version=sys.version))
+            print(self.stamp())
 
     def flush(self):
-        self._stdhandle.flush()
+        if self._stdhandle:
+            self._stdhandle.flush()
+
+    def stamp(self):
+        msg = '--------- Date: {today} Version: {version} ---------'
+        return msg.format(today=datetime.datetime.today(), version=sys.version)
 
     def write(self, msg):
         f = open(self._logfile, 'a')
