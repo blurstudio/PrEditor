@@ -1,5 +1,9 @@
 from __future__ import absolute_import
 
+import os
+import site
+from pathlib import Path
+
 import maya.mel
 from maya import OpenMayaUI, cmds
 
@@ -35,12 +39,39 @@ def launch(ignored):
     return widget
 
 
+def update_site():
+    """Adds a site dir to python. This makes its contents importable to python.
+
+    This includes making any editable installs located in that site-packages folder
+    accessible to this python instance. This does not activate the virtualenv.
+
+    If the env var `PREDITOR_SITE` is set, this path is used. Otherwise the
+    parent directory of preditor is used.
+
+    - `PREDITOR_SITE` is useful if you want to use an editable install of preditor
+    for development. This should point to a virtualenv's site-packages folder.
+    - Otherwise if the virtualenv has a regular pip install of preditor you can
+    skip setting the env var.
+    """
+    venv_path = os.getenv("PREDITOR_SITE")
+    # If the env var is not defined then use the parent dir of this preditor package.
+    if venv_path is None:
+        venv_path = cmds.moduleInfo(moduleName="PrEditor", path=True)
+        venv_path = Path(venv_path).parent.parent.parent
+        venv_path = str(venv_path)
+
+    print(f"Preditor is adding python site: {venv_path}")
+    site.addsitedir(venv_path)
+
+
 def initializePlugin(mobject):  # noqa: N802
     """Initialize the script plug-in"""
     global preditor_menu
 
     # If running headless, there is no need to build a gui and create the python logger
     if not headless():
+        update_site()
+
         from Qt.QtWidgets import QApplication
 
         import preditor
@@ -67,7 +98,7 @@ def initializePlugin(mobject):  # noqa: N802
         gmainwindow = maya.mel.eval("$temp1=$gMainWindow")
         preditor_menu = cmds.menu(label="PrEditor", parent=gmainwindow, tearOff=True)
         cmds.menuItem(
-            label="Show",
+            label="PrEditor",
             command=launch,
             sourceType="python",
             image=preditor.resourcePath('img/preditor.png'),
