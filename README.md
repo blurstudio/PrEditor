@@ -97,13 +97,13 @@ a better `parent_callback`.
 ## Installing Qt
 
 PrEditor is built on Qt, but uses [Qt.py](https://github.com/mottosso/Qt.py) so
-you can choose to use PySide2 or PyQt5. We have elected to not directly depend
-on either of these packages as if you want to use PrEditor inside of a an existing
-application like Maya or Houdini, they already come with PySide2 installed. If
-you are using it externally, add them to your pip install command.
+you can choose to use PySide6, PySide2, PyQt6 or PyQt5. We have elected to not
+directly depend on either of these packages so that you can use PrEditor inside
+of existing applications like Maya or Houdini that already come with PySide
+installed. If you are using it externally add them to your pip install command.
 
-- PySide2: `pip install preditor PySide2`
-- PyQt5: `pip install preditor PyQt5`
+- PySide6: `pip install preditor PySide6`
+- PyQt6: `pip install preditor PyQt6`
 
 ## Cli
 
@@ -125,35 +125,68 @@ this is only useful for windows.
 ## QScintilla workbox
 
 The more mature QScintilla workbox requires a few extra dependencies that must
-be passed manually. It hasn't been added to `extras_require` because we plan to
-split it into its own pip module due to it requiring PyQt5 which is a little hard
-to get working inside of DCC's that ship with PySide2 by default. Here is the
-python 3 pip install command.
+be passed manually. We have added it as pip `optional-dependencies`. QScintilla
+only works with PyQt5/6 and it is a little hard to get PyQt working inside of
+DCC's that ship with PySide2/6 by default. Here is the python 3 pip install command.
 
-- `pip install preditor PyQt5, QScintilla>=2.11.4 aspell-python-py3`
+- PyQt6: `pip install preditor[qsci6] PyQt6, aspell-python-py3`
+- PyQt5: `pip install preditor[qsci5] PyQt5, aspell-python-py3`
 
 The aspell-python-py3 requirement is optional to enable spell check.
 
+You may need to set the `QT_PREFERRED_BINDING` or `QT_PREFERRED_BINDING_JSON`
+[environment variable](https://github.com/mottosso/Qt.py?tab=readme-ov-file#override-preferred-choice) to ensure that PrEditor can use PyQt5/PyQt6.
 
 # DCC Integration
 
-## Maya
+Here are several example integrations for DCC's included in PrEditor. These
+require some setup to manage installing all pip requirements. These will require
+you to follow the [Setup](#setup) instructions below.
 
-PrEditor is pre-setup to use as a Maya module. To use it, create a virtualenv
-with the same python as maya, or install it using mayapy.
+- [Maya](/preditor/dccs/maya/README.md)
+- [3ds Max](/preditor/dccs/studiomax/README.md)
 
-```
-virtualenv venv_preditor
-venv_preditor\Scripts\activate
-pip install PrEditor
-set MAYA_MODULE_PATH=c:\path\to\venv_preditor\Lib\site-packages\preditor\dccs
-```
-Note: Due to how maya .mod files works if you are using development installs you
-can't use pip editable installs. This is due to the relative path used
-`PYTHONPATH +:= ../..` in `PrEditor_maya.mod`. You can modify that to use a hard
-coded file path for testing, or add a second .mod file to add the virtualenv's
-`site-packages` file path as a hard coded file path.
+If you are using hab, you can simply add the path to the [preditor](/preditor) folder to your site's `distro_paths`. [See .hab.json](/preditor/dccs/.hab.json)
 
+## Setup
+
+PrEditor has many python pip requirements. The easiest way to get access to all
+of them inside an DCC is to create a virtualenv and pip install the requirements.
+You can possibly use the python included with DCC(mayapy), but this guide covers
+using a system install of python.
+
+1. Identify the minor version of python that the dcc is using. Running `sys.version_info[:2]` in the DCC returns the major and minor version of python.
+2. Download and install the required version of python. Note, you likely only need to match the major and minor version of python(3.11 not 3.11.12). It's recommended that you don't use the windows store to install python as it has had issues when used to create virtualenvs.
+3. Create a virtualenv using that version of python. On windows you can use `py.exe -3.11` or call the correct python.exe file. Change `-3.11` to match the major and minor version returned by step 1. Note that you should create separate venvs for a given python minor version and potentially for minor versions of Qt if you are using PyQt.
+    ```batch
+    cd c:\path\to\venv\parent
+    py -3.11 -m virtualenv preditor_311
+    ```
+4. Use the newly created pip exe to install PrEditor and its dependencies.
+    * This example shows using PySide and the simple TextEdit workbox in a minimal configuration.
+        ```batch
+        c:\path\to\venv\parent\preditor_311\Scripts\pip install PrEditor
+        ```
+    * This example shows using QScintilla in PyQt6 for a better editing experience. Note that you need to match the PyQt version used by the DCC, This may require matching the exact version of PyQt.
+        ```batch
+        c:\path\to\venv\parent\preditor_311\Scripts\pip install PrEditor[qsci6] PyQt6==6.5.3
+        ```
+
+### Editable install
+
+You should skip this section unless you want to develop PrEditor's code from an git repo using python's editable pip install.
+
+Due to how editable installs work you will need to set an environment variable
+specifying the site-packages directory of the virtualenv you created in the
+previous step. On windows this should be the `lib\site-packages` folder inside
+of the venv you just created. Store this in the `PREDITOR_SITE`, this can be done
+permanently or temporarily(via `set "PREDITOR_SITE=c:\path\to\venv\parent\preditor_311\lib\site-packages"`).
+
+This is required because you are going to use the path to your git repo's preditor
+folder in the module/plugin loading methods for the the DCC you are using, but
+there is no way to automatically find the virtualenv that your random git repo
+is installed in. In fact, you may have have your git repo installed into multiple
+virtualenvs at once.
 
 # Plugins
 
