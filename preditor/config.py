@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+import json
 import logging
 from functools import wraps
 
@@ -47,6 +48,7 @@ class PreditorConfig:
         self._locks = {}
         self._name = None
         self._logging = False
+        self._logging_cfg = None
         self._headless_callback = None
         self._on_create_callback = None
         self._parent_callback = None
@@ -62,6 +64,7 @@ class PreditorConfig:
             f"{' ' * indent}excepthooks: {self.excepthooks!r}",
             f"{' ' * indent}error_dialog_class: {self.error_dialog_class!r}",
             f"{' ' * indent}logging: {self.logging}",
+            f"{' ' * indent}logging_cfg: {self.logging_cfg}",
             f"{' ' * indent}headless_callback: {self.headless_callback!r}",
             f"{' ' * indent}parent_callback: {self.parent_callback!r}",
             f"{' ' * indent}on_create_callback: {self.on_create_callback!r}",
@@ -214,6 +217,27 @@ class PreditorConfig:
     @logging.setter
     def logging(self, state):
         self._logging = state
+        self.update_logging()
+
+    @property
+    def logging_cfg(self):
+        """If set use this json file to configure logging instead of preditor prefs.
+
+        This can be used to load handlers and other customization's. Using this
+        disables saving of the logging configuration to user prefs.
+        """
+        return self._logging_cfg
+
+    @logging_cfg.setter
+    def logging_cfg(self, logging_cfg):
+        # TODO: if this is not None then it should disable saving of the logging prefs
+        # TODO: Should this use @set_if_unlocked() to disable updating?
+        # TODO: Should we add some shortcuts to files stored in the logging_cfgs dir?
+        # For example: "preditor\resource\logging_cfgs\default_cfg.json"
+        self._logging_cfg = logging_cfg
+        with open(logging_cfg) as fle:
+            cfg = json.load(fle)
+            logging.config.dictConfig(cfg)
         self.update_logging()
 
     @property

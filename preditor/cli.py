@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import logging
+import logging.config
 import sys
 from distutils.spawn import find_executable
 
@@ -35,13 +36,25 @@ def get_app_id(name, is_default):
     default_if_no_args=True,
     context_settings=CONTEXT_SETTINGS,
 )
-def cli():
+@click.option(
+    "--logging-cfg",
+    # Note: Using eager makes it so logging is configured as early as possible
+    # based on this argument.
+    is_eager=True,
+    type=click.Path(file_okay=True, resolve_path=True),
+    envvar='PREDITOR_LOGGING_CFG',
+    help="Path to json file defining a logging configuration based on "
+    "logging.config.dictConfig. If not specified the preditor prefs are used."
+    "If the env var PREDITOR_LOGGING_CFG is set it will use that value.",
+)
+def cli(logging_config):
     """PrEditor is a Qt based python console and code editor. It runs in many
     DCC's like Maya, Houdini, Nuke, and 3ds Max.
 
     To see help for launching the PrEditor gui, use `preditor launch -h`.
     """
-    pass
+    if logging_config is not None:
+        preditor.config.logging_cfg = logging_config
 
 
 # launch
