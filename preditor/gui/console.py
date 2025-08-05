@@ -63,6 +63,8 @@ class ConsolePrEdit(QTextEdit):
 
         self._firstShow = True
 
+        self.addSepNewline = False
+
         # When executing code, that takes longer than this seconds, flash the window
         self.flash_time = 1.0
         self.flash_window = None
@@ -817,6 +819,10 @@ class ConsolePrEdit(QTextEdit):
                 hasattr(window, 'uiErrorHyperlinksACT')
                 and window.uiErrorHyperlinksACT.isChecked()
             )
+            sepPreditorTrace = (
+                hasattr(window, 'uiSeparateTracebackACT')
+                and window.uiSeparateTracebackACT.isChecked()
+            )
             self.moveCursor(QTextCursor.MoveOperation.End)
 
             charFormat = QTextCharFormat()
@@ -854,6 +860,17 @@ class ConsolePrEdit(QTextEdit):
             info = info if info else self.parseErrorHyperLinkInfo(msg)
             filename = info.get("filename", "") if info else ""
             isConsolePrEdit = '<ConsolePrEdit>' in filename
+
+            # To make it easier to see relevant lines of a traceback, optionally insert
+            # a newline separating internal PrEditor code from the code run by user.
+            if self.addSepNewline:
+                if sepPreditorTrace:
+                    msg += "\n"
+                self.addSepNewline = False
+
+            preditorCalls = ("cmdresult = e", "exec(compiled,")
+            if msg.strip().startswith(preditorCalls):
+                self.addSepNewline = True
 
             if info and doHyperlink and not isConsolePrEdit:
                 fileStart = info.get("fileStart")
