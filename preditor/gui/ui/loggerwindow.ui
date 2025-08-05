@@ -91,8 +91,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>796</width>
-     <height>21</height>
+     <width>794</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -195,6 +195,7 @@
     <addaction name="uiErrorHyperlinksACT"/>
     <addaction name="uiSetPreferredTextEditorPathACT"/>
     <addaction name="uiSetWorkboxEditorACT"/>
+    <addaction name="uiSeparateTracebackACT"/>
    </widget>
    <widget class="QMenu" name="uiEditMENU">
     <property name="title">
@@ -1001,6 +1002,14 @@ at the indicated line in the specified text editor.
    </property>
    <property name="text">
     <string>Highlight Exact Completion</string>
+   </property>
+  </action>
+  <action name="uiSeparateTracebackACT">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Visually Separate PrEditor Traceback</string>
    </property>
   </action>
  </widget>
