@@ -813,6 +813,7 @@ class LoggerWindow(Window):
                 'uiStatusLbl_limit': self.uiStatusLBL.limit(),
                 'textEditorPath': self.textEditorPath,
                 'textEditorCmdTempl': self.textEditorCmdTempl,
+                'uiSeparateTracebackACT': self.uiSeparateTracebackACT.isChecked(),
                 'currentStyleSheet': self._stylesheet,
                 'flash_time': self.uiConsoleTXT.flash_time,
                 'find_files_regex': self.uiFindInWorkboxesWGT.uiRegexBTN.isChecked(),
@@ -964,6 +965,8 @@ class LoggerWindow(Window):
         defaultCmd = r'"{exePath}" "{modulePath}":{lineNum}'
         self.textEditorPath = pref.get('textEditorPath', defaultExePath)
         self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
+
+        self.uiSeparateTracebackACT.setChecked(pref.get('uiSeparateTracebackACT', True))
 
         self.uiWordWrapACT.setChecked(pref.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
