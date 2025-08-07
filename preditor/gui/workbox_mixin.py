@@ -12,6 +12,31 @@ from Qt.QtWidgets import QStackedWidget
 from ..prefs import prefs_path
 
 
+class WorkboxName(str):
+    """The joined name of a workbox `group/workbox` with access to its parts.
+
+    This subclass provides properties for the group and workbox values separately.
+    """
+
+    def __new__(cls, group, workbox):
+        txt = "/".join((group, workbox))
+        ret = super().__new__(cls, txt)
+        # Preserve the imitable nature of str's by using properties without setters.
+        ret._group = group
+        ret._workbox = workbox
+        return ret
+
+    @property
+    def group(self):
+        """The tab name of the group tab that contains the workbox."""
+        return self._group
+
+    @property
+    def workbox(self):
+        """The workbox of the tab for this workbox inside of the group."""
+        return self._workbox
+
+
 class WorkboxMixin(object):
     _warning_text = None
     """When a user is picking this Workbox class, show a warning with this text."""
