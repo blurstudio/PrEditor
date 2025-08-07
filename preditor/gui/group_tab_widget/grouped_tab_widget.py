@@ -82,5 +82,14 @@ class GroupedTabWidget(OneTabWidget):
         if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
             self.window().setWorkboxFontBasedOnConsole()
 
+    def tab_widget(self):
+        """Return the tab widget which contains this group tab
+
+        Returns:
+            self._tab_widget (GroupTabWidget): The tab widget which contains
+                this workbox
+        """
+        return self.parent().parent()
+
     def update_closable_tabs(self):
         self.setTabsClosable(self.count() != 1)

@@ -64,6 +64,16 @@ class WorkboxMixin(object):
         self._tempfile = tempfile
         self.core_name = core_name
 
+        self._tab_widget = parent
+
+    def __tab_widget__(self):
+        """Return the tab widget which contains this workbox
+
+        Returns:
+            GroupedTabWidget: The tab widget which contains this workbox
+        """
+        return self._tab_widget
+
     def __auto_complete_enabled__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
@@ -189,7 +199,57 @@ class WorkboxMixin(object):
         if group == -1 or editor == -1:
             return '<{}>'.format(title)
         else:
-            return '<{}>:{},{}'.format(title, group, editor)
+            name = self.__workbox_name__()
+            return '<{}>:{}'.format(title, name)
+
+    def __workbox_name__(self, workbox=None):
+        """Returns the name for this workbox or a given workbox.
+        The name is the group tab text and the workbox tab text joined by a `/`"""
+        workboxTAB = self.window().uiWorkboxTAB
+        group_name = None
+        workbox_name = None
+
+        if workbox:
+            grouped_tab_widget = workbox.__tab_widget__()
+            for group_idx in range(workboxTAB.count()):
+                # If a previous iteration determine workbox_name, bust out
+                if workbox_name:
+                    break
+                # Check if current group is the workboxes parent group
+                cur_group_widget = workboxTAB.widget(group_idx)
+                if cur_group_widget == grouped_tab_widget:
+                    group_name = workboxTAB.tabText(group_idx)
+
+                    # Found the group, now find workbox
+                    for workbox_idx in range(cur_group_widget.count()):
+                        cur_workbox_widget = cur_group_widget.widget(workbox_idx)
+                        if cur_workbox_widget == workbox:
+                            workbox_name = cur_group_widget.tabText(workbox_idx)
+                            break
+        else:
+            grouped = self.__tab_widget__()
+            groupedTabBar = grouped.tabBar()
+
+            idx = -1
+            for idx in range(grouped.count()):
+                if grouped.widget(idx) == self:
+                    break
+            workbox_name = groupedTabBar.tabText(idx)
+
+            group = grouped.tab_widget()
+            groupTabBar = group.tabBar()
+            idx = -1
+            for idx in range(group.count()):
+                if group.widget(idx) == grouped:
+                    break
+            group_name = groupTabBar.tabText(idx)
+
+        # If both found, construct workbox name
+        if group_name and workbox_name:
+            name = WorkboxName(group_name, workbox_name)
+        else:
+            name = WorkboxName("", "")
+        return name
 
     def __goto_line__(self, line):
         raise NotImplementedError("Mixin method not overridden.")
