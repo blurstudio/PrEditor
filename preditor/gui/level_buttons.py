@@ -291,6 +291,21 @@ class LoggingLevelMenu(LazyMenu):
         self.addMenu(HandlerMenu(self.logger, self))
         self.addSeparator()
 
+        if self.logger.disabled:
+            # Warn the user that this logger has been disabled. The documentation
+            # says to consider this property as read only so this is just info
+            # and does not implement a way to re-enable this logger. It's not
+            # disabled because that would prevent the tooltip from showing.
+            action = self.addAction("Logger is disabled")
+            action.setToolTip(
+                'This <b>logger has been disabled</b> and does not handle events '
+                "so you likely won't see events from it or its children. "
+                'This normally happens when using logging.config with '
+                '"disable_existing_loggers" defaulted to True.'
+            )
+            action.setIcon(QIcon(resourcePath('img/warning-big.png')))
+            self.addSeparator()
+
         for logger_level in LoggerLevels:
             is_current = logger_level.is_current(self.logger)
 

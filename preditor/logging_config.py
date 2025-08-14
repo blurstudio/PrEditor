@@ -9,9 +9,12 @@ from .prefs import prefs_path
 
 
 class LoggingConfig(object):
-    def __init__(self, core_name, version=1):
+    def __init__(self, core_name, version=1, disable_existing_loggers=False):
         self._filename = None
-        self.cfg = {'version': version}
+        self.cfg = {
+            'version': version,
+            'disable_existing_loggers': disable_existing_loggers,
+        }
         self.core_name = core_name
 
     def add_logger(self, name, logger):
