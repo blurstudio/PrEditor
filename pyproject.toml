@@ -14,7 +14,6 @@ license = {text = "LGPL-3.0"}
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -22,15 +21,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 requires-python = ">=3.7"
-dependencies = [
-    "Qt.py>=1.4.4",
-    "chardet",
-    "configparser>=4.0.2",
-    "future>=0.18.2",
-    "signalslot>=0.1.2",
-    "importlib-metadata>=4.8.3",
-]
-dynamic = ["version"]
+dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [project.readme]
 file = "README.md"
@@ -40,33 +31,6 @@ content-type = "text/markdown"
 Homepage = "https://github.com/blurstudio/PrEditor"
 Source = "https://github.com/blurstudio/PrEditor"
 Tracker = "https://github.com/blurstudio/PrEditor/issues"
-
-[project.optional-dependencies]
-cli = [
-    "click>=7.1.2",
-    "click-default-group",
-]
-dev = [
-    "black",
-    "build",
-    "covdefaults",
-    "coverage",
-    "flake8",
-    "flake8-bugbear",
-    "Flake8-pyproject",
-    "pep8-naming",
-    "pytest",
-    "tox",
-]
-shortcut = [
-    "casement>=0.1.0;platform_system=='Windows'",
-]
-qsci5 = [
-    "QScintilla",
-]
-qsci6 = [
-    "PyQt6-QScintilla",
-]
 
 [project.scripts]
 preditor = "preditor.cli:cli"
@@ -87,15 +51,25 @@ QScintilla = "preditor.gui.workboxwidget:WorkboxWidget"
 [project.entry-points."preditor.plug.logging_handlers"]
 PrEditor = "preditor.gui.logger_window_handler:LoggerWindowHandler"
 
-
 [tool.setuptools]
-include-package-data = true
 platforms = ["any"]
 license-files = ["LICENSE"]
 
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+cli = {file = ["requirements-cli.txt"]}
+dev = {file = ["requirements-dev.txt"]}
+qsci5 = {file = ["requirements-qsci5.txt"]}
+qsci6 = {file = ["requirements-qsci6.txt"]}
+shortcut = {file = ["requirements-shortcut.txt"]}
+
 [tool.setuptools.packages.find]
-exclude = ["tests"]
-namespaces = false
+exclude = [
+    "examples",
+    "tests",
+]
 
 [tool.setuptools_scm]
 write_to = "preditor/version.py"
