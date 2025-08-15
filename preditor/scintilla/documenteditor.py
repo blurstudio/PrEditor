@@ -21,7 +21,7 @@ from functools import partial
 
 import Qt as Qt_py
 from Qt.QtCore import Property, QEvent, QPoint, Qt, Signal
-from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon, QKeySequence
+from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon, QKeyEvent, QKeySequence
 from Qt.QtWidgets import (
     QAction,
     QApplication,
@@ -877,11 +877,39 @@ class DocumentEditor(QsciScintilla):
 
     def keyPressEvent(self, event):
         key = event.key()
+        modifiers = event.modifiers()
+
+        retPressed = key == Qt.Key.Key_Return
+        altPressed = modifiers == Qt.KeyboardModifier.AltModifier
+        altReturnPressed = altPressed and retPressed
+
         if key == Qt.Key.Key_Backtab:
             self.unindentSelection()
         elif key == Qt.Key.Key_Escape:
             # Using QShortcut for Escape did not seem to work.
             self.showAutoComplete(True)
+        elif altReturnPressed:
+            # If Alt Return pressed, create new unindented line
+
+            # Capture initial autoIndent state, then ensure it's disabled
+            autoIndent = self.autoIndent()
+            self.setAutoIndent(False)
+
+            # Create and send a new KeyEvent, just Return (Cannot just send original
+            # event, it doesn't register.
+            new_event = QKeyEvent(
+                event.type(),
+                Qt.Key.Key_Return,
+                Qt.KeyboardModifier(0),
+                "",
+                event.isAutoRepeat(),
+                event.count(),
+            )
+            QsciScintilla.keyPressEvent(self, new_event)
+
+            # Reset autoIndent property
+            self.setAutoIndent(autoIndent)
+
         else:
             return QsciScintilla.keyPressEvent(self, event)
 
