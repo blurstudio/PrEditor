@@ -1,3 +1,4 @@
 graft preditor/resource
 graft preditor/dccs
 recursive-include preditor *.ui
+recursive-exclude tests *
