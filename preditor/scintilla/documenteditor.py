@@ -142,7 +142,7 @@ class DocumentEditor(QsciScintilla):
         self.customContextMenuRequested.connect(self.showMenu)
         self.selectionChanged.connect(self.updateSelectionInfo)
         window = self.window()
-        if hasattr(window, 'openFileMonitor'):
+        if hasattr(window, 'styleSheetChanged'):
             window.styleSheetChanged.connect(self.updateColorScheme)
 
         # Create shortcuts
