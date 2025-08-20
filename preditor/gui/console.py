@@ -47,11 +47,6 @@ class ConsolePrEdit(QTextEdit):
 
     def __init__(self, parent):
         super(ConsolePrEdit, self).__init__(parent)
-        # store the error buffer
-        self._completer = None
-
-        # If populated, also write to this interface
-        self.outputPipe = None
 
         # For workboxes, use this regex pattern, so we can extract workboxName
         # and lineNum
@@ -71,6 +66,16 @@ class ConsolePrEdit(QTextEdit):
         # Method used to update the gui when code is executed
         self.clearExecutionTime = None
         self.reportExecutionTime = None
+
+        # Create the highlighter
+        highlight = CodeHighlighter(self, 'Python')
+        self.setCodeHighlighter(highlight)
+
+        # store the error buffer
+        self._completer = None
+
+        # If populated, also write to this interface
+        self.outputPipe = None
 
         self._firstShow = True
 
@@ -112,11 +117,6 @@ class ConsolePrEdit(QTextEdit):
         StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
         StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
 
-        # create the highlighter
-        highlight = CodeHighlighter(self)
-        highlight.setLanguage('Python')
-        self.uiCodeHighlighter = highlight
-
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
         self.uiClearToLastPromptACT.setShortcut(
@@ -137,6 +137,22 @@ class ConsolePrEdit(QTextEdit):
         # second of time to the process of outputting text, so, just always have
         # it on.
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+
+    def setCodeHighlighter(self, highlight):
+        """Set the code highlighter for the console
+
+        Args:
+            highlight (CodeHighlighter): The instantiated CodeHighlighter
+        """
+        self._uiCodeHighlighter = highlight
+
+    def codeHighlighter(self):
+        """Get the code highlighter for the console
+
+        Returns:
+            _uiCodeHighlighter (CodeHighlighter): The instantiated CodeHighlighter
+        """
+        return self._uiCodeHighlighter
 
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
@@ -787,6 +803,10 @@ class ConsolePrEdit(QTextEdit):
         if self._firstShow:
             self.startInputLine()
             self._firstShow = False
+
+            # Redfine highlight variables now that stylesheet may have been updated
+            self.codeHighlighter().defineHighlightVariables()
+
         super(ConsolePrEdit, self).showEvent(event)
 
     def startInputLine(self):
