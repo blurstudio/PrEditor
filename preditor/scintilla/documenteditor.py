@@ -1176,8 +1176,6 @@ class DocumentEditor(QsciScintilla):
             try:
                 txt = self.text()
                 WorkboxMixin.__write_file__(filename, txt, encoding=self._encoding)
-                with open(filename, "w", encoding=self._encoding) as f:
-                    f.write(self.text())
             except PermissionError as error:
                 logger.debug('An error occurred while saving')
                 QMessageBox.question(

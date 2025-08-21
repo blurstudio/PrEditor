@@ -207,7 +207,10 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
     @classmethod
     def __write_file__(cls, filename, txt, encoding=None):
-        # Save unix newlines for simplicity
+        # Save unix newlines for simplicity. This should only be called for
+        # files which are not linked, so we don't inadvertently change a file's
+        # line-endings. For linked files, call saveAs, which bypasses this
+        # method writes without converting to unix line endings.
         txt = cls.__unix_end_lines__(txt)
         super(WorkboxWidget, cls).__write_file__(filename, txt, encoding=encoding)
 
