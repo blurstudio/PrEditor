@@ -32,9 +32,9 @@ class FileLogger:
         return msg.format(today=datetime.datetime.today(), version=sys.version)
 
     def write(self, msg):
-        f = open(self._logfile, 'a')
-        f.write(msg)
-        f.close()
+        with open(self._logfile, 'a', encoding="utf-8") as f:
+            f.write(msg)
+
         if self._print:
             self._stdhandle.write(msg)
 
