@@ -93,9 +93,7 @@ class LoggerWindow(Window):
         self.name = name if name else get_core_name()
         self._stylesheet = 'Bright'
 
-        # Create timer to autohide status messages
-        self.statusTimer = QTimer()
-        self.statusTimer.setSingleShot(True)
+        self.setupStatusTimer()
 
         # Store the previous time a font-resize wheel event was triggered to prevent
         # rapid-fire WheelEvents. Initialize to the current time.
@@ -815,6 +813,7 @@ class LoggerWindow(Window):
                 'uiStatusLbl_limit': self.uiStatusLBL.limit(),
                 'textEditorPath': self.textEditorPath,
                 'textEditorCmdTempl': self.textEditorCmdTempl,
+                'uiSeparateTracebackACT': self.uiSeparateTracebackACT.isChecked(),
                 'currentStyleSheet': self._stylesheet,
                 'flash_time': self.uiConsoleTXT.flash_time,
                 'find_files_regex': self.uiFindInWorkboxesWGT.uiRegexBTN.isChecked(),
@@ -967,6 +966,8 @@ class LoggerWindow(Window):
         self.textEditorPath = pref.get('textEditorPath', defaultExePath)
         self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
 
+        self.uiSeparateTracebackACT.setChecked(pref.get('uiSeparateTracebackACT', True))
+
         self.uiWordWrapACT.setChecked(pref.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
@@ -1041,16 +1042,24 @@ class LoggerWindow(Window):
         self.uiStatusLBL.setText(txt)
         self.uiMenuBar.adjustSize()
 
+    def setupStatusTimer(self):
+        # Create timer to autohide status messages
+        self.statusTimer = QTimer()
+        self.statusTimer.setSingleShot(True)
+        self.statusTimer.setInterval(2000)
+        self.statusTimer.timeout.connect(self.clearStatusText)
+
     def clearStatusText(self):
         """Clear any displayed status text"""
         self.uiStatusLBL.clear()
         self.uiMenuBar.adjustSize()
 
     def autoHideStatusText(self):
-        """Set timer to automatically clear status text"""
-        if self.statusTimer.isActive():
-            self.statusTimer.stop()
-        self.statusTimer.singleShot(2000, self.clearStatusText)
+        """Set timer to automatically clear status text.
+
+        If timer is already running, it will be automatically stopped first (We can't
+        use static method QTimer.singleShot for this)
+        """
         self.statusTimer.start()
 
     def setStyleSheet(self, stylesheet, recordPrefs=True):

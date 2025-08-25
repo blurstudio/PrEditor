@@ -73,8 +73,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
     def __exec_all__(self):
         txt = self.__unix_end_lines__(self.text()).rstrip()
-        filename = self.__workbox_filename__()
-        self.__console__().executeString(txt, filename=filename)
+        title = self.__workbox_trace_title__()
+        self.__console__().executeString(txt, filename=title)
 
     def __file_monitoring_enabled__(self):
         return self._fileMonitoringActive
@@ -150,7 +150,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
     def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
-        if line == -1:
+
+        # Sometime self.getSelection returns values that equate to a non-existent
+        # selection, ie start and end are the same, so let's process it as if there is
+        # no selection
+        selectionIsEmpty = line == end and s == e
+        if line == -1 or selectionIsEmpty:
             # Nothing is selected, return the current line of text
             line, index = self.getCursorPosition()
             txt = self.text(line)
@@ -188,7 +193,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         Returns:
             str: The requested text.
         """
-        if line:
+        if line is not None:
             return self.text(line)
         elif (start is None) != (end is None):
             raise ValueError('You must pass start and end if you pass either.')
