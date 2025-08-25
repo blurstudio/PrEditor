@@ -323,3 +323,31 @@ class GroupTabWidget(OneTabWidget):
         tab_widget = self.currentWidget()
         tab_widget.setCurrentIndex(editor)
         return tab_widget.currentWidget()
+
+    def set_current_groups_from_workbox(self, workbox):
+        """Make the specified workbox the current widget. If the workbox is not
+        found, the current widget is not changed.
+
+        Args:
+            workbox (WorkboxMixin): The workbox to make current.
+
+        Returns:
+            success (bool): Whether the workbox was found and made the current
+                widget
+        """
+        workbox_infos = self.all_widgets()
+        found_info = None
+        for workbox_info in workbox_infos:
+            if workbox_info[0] == workbox:
+                found_info = workbox_info
+                break
+        if found_info:
+            workbox = workbox_info[0]
+            group_idx = workbox_info[-2]
+            editor_idx = workbox_info[-1]
+
+            self.setCurrentIndex(group_idx)
+            tab_widget = self.currentWidget()
+            tab_widget.setCurrentIndex(editor_idx)
+
+        return bool(found_info)
