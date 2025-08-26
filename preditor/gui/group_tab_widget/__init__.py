@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import os
-import re
 
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
@@ -46,6 +45,9 @@ class GroupTabWidget(OneTabWidget):
         self.editor_cls = WorkboxTextEdit
         self.core_name = core_name
         self.setStyleSheet(DEFAULT_STYLE_SHEET)
+
+        self.default_title = 'Group01'
+
         corner = QWidget(self)
         lyt = QHBoxLayout(corner)
         lyt.setSpacing(0)
@@ -69,7 +71,7 @@ class GroupTabWidget(OneTabWidget):
         self.uiCornerBTN = corner
         self.setCornerWidget(self.uiCornerBTN, Qt.Corner.TopRightCorner)
 
-    def add_new_tab(self, group, title="Workbox", group_fmt=None):
+    def add_new_tab(self, group, title=None, prefs=None):
         """Adds a new tab to the requested group, creating the group if the group
         doesn't exist.
 
@@ -80,9 +82,6 @@ class GroupTabWidget(OneTabWidget):
                 If True is passed, then the current group tab is used.
             title (str, optional): The name to give the newly created tab inside
                 the group.
-            group_fmt(str, optional): If None is passed to group, this string is
-                used to search for existing tabs to calculate the last number
-                and generate the new group tab name.
 
         Returns:
             GroupedTabWidget: The tab group for this group.
@@ -90,21 +89,14 @@ class GroupTabWidget(OneTabWidget):
         """
         parent = None
         if not group:
-            if group_fmt is None:
-                group_fmt = r'Group {}'
-            last = 0
-            for i in range(self.count()):
-                match = re.match(group_fmt.format(r'(\d+)'), self.tabText(i))
-                if match:
-                    last = max(last, int(match.group(1)))
-            group = group_fmt.format(last + 1)
+            group = self.get_next_available_tab_name(self.default_title)
         elif group is True:
             group = self.currentIndex()
         if isinstance(group, int):
             group_title = self.tabText(group)
             parent = self.widget(group)
         elif isinstance(group, str):
-            group_title = group
+            group_title = group.replace(" ", "_")
             index = self.index_for_text(group)
             if index != -1:
                 parent = self.widget(index)
@@ -166,7 +158,8 @@ class GroupTabWidget(OneTabWidget):
         if editor_tab:
             return editor_tab.currentWidget()
 
-    def default_tab(self, title='Group 1'):
+    def default_tab(self, title=None, prefs=None):
+        title = title or self.default_title
         widget = GroupedTabWidget(
             parent=self,
             editor_kwargs=self.editor_kwargs,
@@ -222,6 +215,8 @@ class GroupTabWidget(OneTabWidget):
             current_tab = None
             group_name = group['name']
             tab_widget = None
+
+            group_name = self.get_next_available_tab_name(group_name)
 
             for tab in group.get('tabs', []):
                 # Only add this tab if, there is data on disk to load. The user can

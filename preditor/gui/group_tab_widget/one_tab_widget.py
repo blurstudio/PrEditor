@@ -1,6 +1,10 @@
 from __future__ import absolute_import
 
+import re
+
 from Qt.QtWidgets import QTabWidget
+
+TAB_ITERATION_PATTERN = re.compile(r"(\d+)(?!.*\d)")
 
 
 class OneTabWidget(QTabWidget):
@@ -16,6 +20,44 @@ class OneTabWidget(QTabWidget):
     def __init__(self, *args, **kwargs):
         super(OneTabWidget, self).__init__(*args, **kwargs)
         self.tabCloseRequested.connect(self.close_tab)
+
+    def get_next_available_tab_name(self, name):
+        """Get the next available tab name, incrementing an iteration if needed.
+
+        Args:
+            name (str): The desired name
+
+        Returns:
+            name (str): The name, or updated name if needed
+        """
+        name = name.replace(" ", "_")
+
+        existing_names = [self.tabText(i) for i in range(self.count())]
+
+        # Use regex to find the last set of digits. If found, the base name is
+        # a slice of name minus the digits string. Otherwise, the base name is
+        # the full name and iteration is zero.
+        match = TAB_ITERATION_PATTERN.search(name)
+        if match:
+            # We found trailing digits, so slice to get base name, and convert
+            # iteration to int
+            iter_str = match.group()
+            base = name[: -len(iter_str)]
+            iteration = int(iter_str)
+        else:
+            # No trailing digits found, so base name is full name and iteration
+            # is zero.
+            base = name
+            iteration = 0
+
+        if name in existing_names:
+            for _ in range(99):
+                iteration += 1
+                new_iter_str = str(iteration).zfill(2)
+                name = base + new_iter_str
+                if name not in existing_names:
+                    break
+        return name
 
     def addTab(self, *args, **kwargs):  # noqa: N802
         ret = super(OneTabWidget, self).addTab(*args, **kwargs)
