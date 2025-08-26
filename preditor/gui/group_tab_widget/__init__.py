@@ -138,7 +138,7 @@ class GroupTabWidget(OneTabWidget):
             self,
             'Close all editors under this tab?',
             'Are you sure you want to close all tabs under the "{}" tab?'.format(
-                self.tabText(self.currentIndex())
+                self.tabText(index)
             ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
@@ -146,11 +146,11 @@ class GroupTabWidget(OneTabWidget):
             # Clean up all temp files created by this group's editors if they
             # are not using actual saved files.
             tab_widget = self.widget(self.currentIndex())
-            for index in range(tab_widget.count()):
-                editor = tab_widget.widget(index)
+            for editor_index in range(tab_widget.count()):
+                editor = tab_widget.widget(editor_index)
                 editor.__remove_tempfile__()
 
-            super(GroupTabWidget, self).close_tab(self.currentIndex())
+            super(GroupTabWidget, self).close_tab(index)
 
     def current_groups_widget(self):
         """Returns the current widget of the currently selected group or None."""
