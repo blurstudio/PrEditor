@@ -139,8 +139,11 @@ class DragTabBar(QTabBar):
         """Used by the tab_menu to rename the tab at index `_context_menu_tab`."""
         if self._context_menu_tab != -1:
             current = self.tabText(self._context_menu_tab)
-            msg = 'Rename the {} tab to:'.format(current)
+            msg = 'Rename the {} tab to (new name must be unique):'.format(current)
+
             name, success = QInputDialog.getText(self, 'Rename Tab', msg, text=current)
+            name = self.parent().get_next_available_tab_name(name)
+
             if success:
                 self.setTabText(self._context_menu_tab, name)
 
