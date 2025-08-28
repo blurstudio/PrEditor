@@ -1033,7 +1033,7 @@ class LoggerWindow(Window):
         # Create timer to autohide status messages
         self.statusTimer = QTimer()
         self.statusTimer.setSingleShot(True)
-        self.statusTimer.setInterval(2000)
+        self.statusTimer.setInterval(5000)
         self.statusTimer.timeout.connect(self.clearStatusText)
 
     def clearStatusText(self):
