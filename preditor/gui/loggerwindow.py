@@ -266,10 +266,9 @@ class LoggerWindow(Window):
 
         self.dont_ask_again = []
 
-        # Load any plugins that modify the LoggerWindow
-        self.plugins = {}
-        for name, plugin in plugins.loggerwindow():
-            self.plugins[name] = plugin(self)
+        # Load any plugins, and set window title
+        self.loadPlugins()
+        self.setWindowTitle(self.defineWindowTitle())
 
         self.restorePrefs()
 
@@ -282,17 +281,6 @@ class LoggerWindow(Window):
             action.triggered.connect(partial(self.setStyleSheet, style_name))
 
         self.uiConsoleTOOLBAR.show()
-        loggerName = QApplication.instance().translate(
-            'PrEditorWindow', DEFAULT_CORE_NAME
-        )
-        self.setWindowTitle(
-            '{} - {} - {} {}-bit'.format(
-                loggerName,
-                self.name,
-                '{}.{}.{}'.format(*sys.version_info[:3]),
-                osystem.getPointerSize(),
-            )
-        )
 
         self.setWorkboxFontBasedOnConsole()
         self.setEditorChooserFontBasedOnConsole()
@@ -332,6 +320,29 @@ class LoggerWindow(Window):
             self.restorePrefs()
 
         self.update_workbox_stack()
+
+    def loadPlugins(self):
+        """Load any plugins that modify the LoggerWindow."""
+        self.plugins = {}
+        for name, plugin in plugins.loggerwindow():
+            if name not in self.plugins:
+                self.plugins[name] = plugin(self)
+
+    def defineWindowTitle(self):
+        """Define the window title, including and info plugins may add."""
+
+        # Define the title
+        loggerName = QApplication.instance().translate(
+            'PrEditorWindow', DEFAULT_CORE_NAME
+        )
+        pyVersion = '{}.{}.{}'.format(*sys.version_info[:3])
+        size = osystem.getPointerSize()
+        title = f"{loggerName} - {self.name} - {pyVersion} {size}-bit"
+
+        # Add any info plugins may add to title
+        for _name, plugin in self.plugins.items():
+            title = plugin.updateWindowTitle(title)
+        return title
 
     def comment_toggle(self):
         self.current_workbox().__comment_toggle__()

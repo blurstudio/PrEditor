@@ -13,6 +13,9 @@ class LoggerWindowPlugin:
     def __init__(self, parent):
         self.parent = parent
 
+    def updateWindowTitle(self, title):
+        return title
+
     def record_prefs(self, name):
         """Returns any prefs to save with the PrEditor's preferences.
 
