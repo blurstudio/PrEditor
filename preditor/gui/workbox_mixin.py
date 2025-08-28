@@ -15,15 +15,28 @@ from ..prefs import prefs_path
 class WorkboxName(str):
     """The joined name of a workbox `group/workbox` with access to its parts.
 
+    You may pass the group, workbox, or the fully formed workbox name:
+        examples:
+            workboxName = WorkboxName("Group01", "Workbox05")
+            workboxName = WorkboxName("Group01/Workbox05")
     This subclass provides properties for the group and workbox values separately.
     """
 
-    def __new__(cls, group, workbox):
-        txt = "/".join((group, workbox))
+    def __new__(cls, name, sub_name=None):
+        if sub_name is not None:
+            txt = "/".join((name, sub_name))
+        else:
+            txt = name
+            try:
+                name, sub_name = txt.split("/")
+            except ValueError:
+                msg = "A fully formed name, or a group and name, must be passed in."
+                raise ValueError(msg) from None
+
         ret = super().__new__(cls, txt)
         # Preserve the imitable nature of str's by using properties without setters.
-        ret._group = group
-        ret._workbox = workbox
+        ret._group = name
+        ret._workbox = sub_name
         return ret
 
     @property
