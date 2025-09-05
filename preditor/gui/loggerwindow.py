@@ -1312,11 +1312,13 @@ class LoggerWindow(Window):
         """Update status text with hyphens to indicate execution has begun."""
         self.setStatusText('Exec: -.- Seconds')
         QApplication.instance().processEvents()
+        self.statusTimer.stop()
 
     def reportExecutionTime(self, seconds):
         """Update status text with seconds passed in."""
         self.uiStatusLBL.showSeconds(seconds)
         self.uiMenuBar.adjustSize()
+        self.statusTimer.stop()
 
     def recordPrefs(self, manual=False, disableFileMonitoring=False):
         if not manual and not self.autoSaveEnabled():
