@@ -53,6 +53,10 @@ class ConsolePrEdit(QTextEdit):
         # If populated, also write to this interface
         self.outputPipe = None
 
+        # Define a pattern to capture info from tracebacks
+        pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10}), in'
+        self.traceback_pattern = re.compile(pattern)
+
         self._consolePrompt = '>>> '
         # Note: Changing _outputPrompt may require updating resource\lang\python.xml
         # If still using a #
@@ -90,7 +94,7 @@ class ConsolePrEdit(QTextEdit):
         # to the console and free up the memory consumed by previous writes as we
         # assume this is likely to be the only callback added to the manager.
         self.stream_manager.add_callback(
-            self.write, replay=True, disable_writes=True, clear=True
+            self.pre_write, replay=True, disable_writes=True, clear=True
         )
         # Store the current outputs
         self.stdout = sys.stdout
@@ -239,7 +243,7 @@ class ConsolePrEdit(QTextEdit):
         # info is a comma separated string, in the form: "filename, workboxIdx, lineNum"
         info = self.anchor.split(', ')
         modulePath = info[0]
-        workboxIndex = info[1]
+        workboxName = info[1]
         lineNum = info[2]
 
         # fetch info from LoggerWindow
@@ -250,23 +254,27 @@ class ConsolePrEdit(QTextEdit):
             cmdTempl = window.textEditorCmdTempl
 
         # Bail if not setup properly
-        msg = "Cannot use traceback hyperlink. "
-        if not exePath:
-            msg += "No text editor path defined."
-            print(msg)
-            return
-        if not os.path.exists(exePath):
-            msg += "Text editor executable does not exist: {}".format(exePath)
-            print(msg)
-            return
-        if not cmdTempl:
-            msg += "No text editor Command Prompt command template defined."
-            print(msg)
-            return
-        if modulePath and not os.path.exists(modulePath):
-            msg += "Specified module path does not exist: {}".format(modulePath)
-            print(msg)
-            return
+        if workboxName is None:
+            msg = (
+                "Cannot use traceback hyperlink (Correct the path with Options "
+                "> Set Preferred Text Editor Path).\n"
+            )
+            if not exePath:
+                msg += "No text editor path defined."
+                print(msg)
+                return
+            if not os.path.exists(exePath):
+                msg += "Text editor executable does not exist: {}".format(exePath)
+                print(msg)
+                return
+            if not cmdTempl:
+                msg += "No text editor Command Prompt command template defined."
+                print(msg)
+                return
+            if modulePath and not os.path.exists(modulePath):
+                msg += "Specified module path does not exist: {}".format(modulePath)
+                print(msg)
+                return
 
         if modulePath:
             # Check if cmdTempl filepaths aren't wrapped in double=quotes to handle
@@ -296,12 +304,9 @@ class ConsolePrEdit(QTextEdit):
                 msg = "The provided text editor command template is not valid:\n    {}"
                 msg = msg.format(cmdTempl)
                 print(msg)
-        elif workboxIndex is not None:
-            group, editor = workboxIndex.split(',')
+        elif workboxName is not None:
+            workbox = window.workbox_for_name(workboxName, visible=True)
             lineNum = int(lineNum)
-            workbox = window.uiWorkboxTAB.set_current_groups_from_index(
-                int(group), int(editor)
-            )
             workbox.__goto_line__(lineNum)
             workbox.setFocus()
 
@@ -787,25 +792,56 @@ class ConsolePrEdit(QTextEdit):
         """Determine if txt is a File-info line from a traceback, and if so, return info
         dict.
         """
-        lineMarker = '", line '
-        ret = None
 
-        filenameEnd = txt.find(lineMarker)
-        if txt[:8] == '  File "' and filenameEnd >= 0:
-            filename = txt[8:filenameEnd]
-            lineNumStart = filenameEnd + len(lineMarker)
-            lineNumEnd = txt.find(',', lineNumStart)
-            if lineNumEnd == -1:
-                lineNumEnd = len(txt)
-            lineNum = txt[lineNumStart:lineNumEnd]
+        ret = None
+        match = re.search(self.traceback_pattern, txt)
+        if match:
+            filename = match.groupdict().get('filename')
+            lineNum = match.groupdict().get('lineNum')
+            fileStart = txt.find(filename)
+            fileEnd = fileStart + len(filename)
+
             ret = {
                 'filename': filename,
-                'fileStart': 8,
-                'fileEnd': filenameEnd,
+                'fileStart': fileStart,
+                'fileEnd': fileEnd,
                 'lineNum': lineNum,
             }
-
         return ret
+
+    @staticmethod
+    def getIndentForCodeTracebackLine(msg):
+        """Determine the indentation to recreate traceback lines
+
+        Args:
+            msg (str): The traceback line
+
+        Returns:
+            indent (str): A string of zero or more spaces used for indentation
+        """
+        indent = ""
+        match = re.match(r"^ *", msg)
+        if match:
+            indent = match.group() * 2
+        return indent
+
+    def pre_write(self, msg, error=False):
+        """In order to make a stack-trace provide clickable hyperlinks, it must be sent
+        to self.write line-by-line, like a actual exception traceback is. So, we check
+        if msg has the stack marker str, if so, send it line by line, otherwise, just
+        pass msg on to self.write.
+        """
+        stack_marker = "Stack (most recent call last)"
+        index = msg.find(stack_marker)
+        has_stack_marker = index > -1
+
+        if has_stack_marker:
+            lines = msg.split("\n")
+            for line in lines:
+                line = "{}\n".format(line)
+                self.write(line, error=error)
+        else:
+            self.write(msg, error=error)
 
     def write(self, msg, error=False):
         """write the message to the logger"""
@@ -865,12 +901,16 @@ class ConsolePrEdit(QTextEdit):
             # a newline separating internal PrEditor code from the code run by user.
             if self.addSepNewline:
                 if sepPreditorTrace:
-                    msg += "\n"
+                    msg = "\n" + msg
                 self.addSepNewline = False
 
             preditorCalls = ("cmdresult = e", "exec(compiled,")
             if msg.strip().startswith(preditorCalls):
                 self.addSepNewline = True
+
+                # Error tracebacks and logging.stack_info supply msg's differently,
+                # so modify it here, so we get consistent results.
+                msg = msg.replace("\n\n", "\n")
 
             if info and doHyperlink and not isConsolePrEdit:
                 fileStart = info.get("fileStart")
