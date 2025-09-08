@@ -132,6 +132,11 @@ class ConsolePrEdit(QTextEdit):
         if not self.cursorWidth():
             self.setCursorWidth(1)
 
+        # The act of changing from no scroll bar to a scroll bar can add up to 1
+        # second of time to the process of outputting text, so, just always have
+        # it on.
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
         to get scroll.maximum() to update properly so that we calc newValue
