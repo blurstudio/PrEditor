@@ -245,11 +245,11 @@ class WorkboxMixin(object):
     def __exec_selected__(self, truncate=True):
         txt, lineNum = self.__selected_text__()
 
-        # Remove any leading white space shared across all lines
-        txt = textwrap.dedent(txt)
-
         # Get rid of pesky \r's
         txt = self.__unix_end_lines__(txt)
+
+        # Remove any leading white space shared across all lines
+        txt = textwrap.dedent(txt)
 
         # Make workbox line numbers match the workbox line numbers, by adding
         # the appropriate number of newlines to mimic it's original position in
