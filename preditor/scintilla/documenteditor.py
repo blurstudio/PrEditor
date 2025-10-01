@@ -689,7 +689,6 @@ class DocumentEditor(QsciScintilla):
 
     def languageChosen(self, action):
         self.setLanguage(action.text())
-        self.updateColorScheme()
         self._fileMonitoringActive = False
         window = self.window()
         if hasattr(window, 'uiLanguageDDL'):
@@ -1262,6 +1261,7 @@ class DocumentEditor(QsciScintilla):
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
+        self.updateColorScheme()
 
         # Add language keywords to aspell session dictionary
         if self.spellCheckEnabled():
@@ -1622,8 +1622,6 @@ class DocumentEditor(QsciScintilla):
 
     def showEvent(self, event):
         super(DocumentEditor, self).showEvent(event)
-        # Update the colorScheme after the stylesheet has been fully loaded.
-        self.updateColorScheme()
 
     def showFolding(self):
         return self.folding() != self.NoFoldStyle
