@@ -53,6 +53,12 @@ class ConsolePrEdit(QTextEdit):
         # If populated, also write to this interface
         self.outputPipe = None
 
+        # For workboxes, use this regex pattern, so we can extract workboxName
+        # and lineNum
+        pattern = r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
+        pattern += r'line (?P<lineNum>\d{1,6}), in'
+        self.workbox_pattern = re.compile(pattern)
+
         # Define a pattern to capture info from tracebacks
         pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10}), in'
         self.traceback_pattern = re.compile(pattern)
@@ -378,7 +384,34 @@ class ConsolePrEdit(QTextEdit):
         """returns the completer instance that is associated with this editor"""
         return self._completer
 
-    def executeString(self, commandText, filename='<ConsolePrEdit>', extraPrint=True):
+    def getWorkboxLine(self, name, lineNum):
+        """Python 3 does not include in tracebacks the code line if it comes from
+        stdin, which is the case for PrEditor workboxes, so we fake it. This method
+        will return the line of code at lineNum, from the workbox with the provided
+        name.
+
+        Args:
+            name (str): The name of the workbox from which to get a line of code
+            lineNum (int): The number of the line to return
+
+        Returns:
+            txt (str): The line of text found
+        """
+        workbox = self.window().workbox_for_name(name)
+        if not workbox:
+            return None
+        if lineNum > workbox.lines():
+            return None
+        txt = workbox.text(lineNum).strip() + "\n"
+        return txt
+
+    def executeString(
+        self, commandText, consoleLine=None, filename='<ConsolePrEdit>', extraPrint=True
+    ):
+        # These vars helps with faking code lines in tracebacks for stdin input, which
+        # workboxes are, and py3 doesn't include in the traceback
+        self.consoleLine = consoleLine or ""
+
         if self.clearExecutionTime is not None:
             self.clearExecutionTime()
         cursor = self.textCursor()
@@ -433,6 +466,10 @@ class ConsolePrEdit(QTextEdit):
 
     def executeCommand(self):
         """executes the current line of code"""
+
+        # Not using workbox, so clear this
+        self.consoleLine = ""
+
         # grab the command from the line
         block = self.textCursor().block().text()
         p = '{prompt}(.*)'.format(prompt=re.escape(self.prompt()))
@@ -455,7 +492,9 @@ class ConsolePrEdit(QTextEdit):
                 self._prevCommands = self._prevCommands[-1 * self._prevCommandsMax :]
 
                 # evaluate the command
-                cmdresult, wasEval = self.executeString(commandText)
+                cmdresult, wasEval = self.executeString(
+                    commandText, consoleLine=commandText
+                )
 
                 # print the resulting commands
                 if cmdresult is not None:
@@ -794,7 +833,10 @@ class ConsolePrEdit(QTextEdit):
         """
 
         ret = None
-        match = re.search(self.traceback_pattern, txt)
+        if not txt.lstrip().startswith("File "):
+            return ret
+
+        match = self.traceback_pattern.search(txt)
         if match:
             filename = match.groupdict().get('filename')
             lineNum = match.groupdict().get('lineNum')
@@ -845,6 +887,9 @@ class ConsolePrEdit(QTextEdit):
 
     def write(self, msg, error=False):
         """write the message to the logger"""
+        if not msg:
+            return
+
         # Convert the stream_manager's stream to the boolean value this function expects
         error = error == stream.STDERR
         # Check that we haven't been garbage collected before trying to write.
@@ -895,7 +940,29 @@ class ConsolePrEdit(QTextEdit):
             # display normal output. Exclude ConsolePrEdits
             info = info if info else self.parseErrorHyperLinkInfo(msg)
             filename = info.get("filename", "") if info else ""
+
+            # Determine if this is a workbox line of code, or code run directly
+            # in the console
+            isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
             isConsolePrEdit = '<ConsolePrEdit>' in filename
+
+            # Starting in Python 3, tracebacks don't include the code executed
+            # for stdin, so workbox code won't appear. This attempts to include
+            # it.
+            if isWorkbox:
+                match = self.workbox_pattern.search(msg)
+                workboxName = match.groupdict().get("workboxName")
+                lineNum = int(match.groupdict().get("lineNum")) - 1
+
+                workboxLine = self.getWorkboxLine(workboxName, lineNum)
+                if workboxLine:
+                    indent = self.getIndentForCodeTracebackLine(msg)
+                    msg = "{}{}{}".format(msg, indent, workboxLine)
+
+            elif isConsolePrEdit:
+                consoleLine = self.consoleLine
+                indent = self.getIndentForCodeTracebackLine(msg)
+                msg = "{}{}{}\n".format(msg, indent, consoleLine)
 
             # To make it easier to see relevant lines of a traceback, optionally insert
             # a newline separating internal PrEditor code from the code run by user.
@@ -917,7 +984,6 @@ class ConsolePrEdit(QTextEdit):
                 fileEnd = info.get("fileEnd")
                 lineNum = info.get("lineNum")
 
-                isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
                 if isWorkbox:
                     split = filename.split(':')
                     workboxIdx = split[-1]

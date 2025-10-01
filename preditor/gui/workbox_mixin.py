@@ -118,7 +118,7 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __exec_selected__(self, truncate=True):
-        txt, line = self.__selected_text__()
+        txt, lineNum = self.__selected_text__()
 
         # Remove any leading white space shared across all lines
         txt = textwrap.dedent(txt)
@@ -129,7 +129,7 @@ class WorkboxMixin(object):
         # Make workbox line numbers match the workbox line numbers, by adding
         # the appropriate number of newlines to mimic it's original position in
         # the workbox.
-        txt = '\n' * line + txt
+        txt = '\n' * lineNum + txt
 
         # execute the code
         title = self.__workbox_trace_title__(selection=True)
