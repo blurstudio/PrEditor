@@ -1262,6 +1262,7 @@ class DocumentEditor(QsciScintilla):
         # set the lexer & init the settings
         self.setLexer(lexer)
         self.initSettings()
+        self.updateColorScheme()
 
         # Add language keywords to aspell session dictionary
         if self.spellCheckEnabled():
