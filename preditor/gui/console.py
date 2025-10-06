@@ -59,8 +59,9 @@ class ConsolePrEdit(QTextEdit):
         pattern += r'line (?P<lineNum>\d{1,6}), in'
         self.workbox_pattern = re.compile(pattern)
 
-        # Define a pattern to capture info from tracebacks
-        pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10}), in'
+        # Define a pattern to capture info from tracebacks. The newline/$ section
+        # handle SyntaxError output that does not include the `, in ...` portion.
+        pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10})(, in|\r\n|\n|$)'
         self.traceback_pattern = re.compile(pattern)
 
         self._consolePrompt = '>>> '
@@ -989,6 +990,7 @@ class ConsolePrEdit(QTextEdit):
                 fileEnd = info.get("fileEnd")
                 lineNum = info.get("lineNum")
 
+                toolTip = 'Open "{}" at line number {}'.format(filename, lineNum)
                 if isWorkbox:
                     split = filename.split(':')
                     workboxIdx = split[-1]
@@ -1006,7 +1008,6 @@ class ConsolePrEdit(QTextEdit):
                 fmt.setAnchor(True)
                 fmt.setAnchorHref(href)
                 fmt.setFontUnderline(True)
-                toolTip = "Open {} at line number {}".format(filename, lineNum)
                 fmt.setToolTip(toolTip)
                 cursor.insertText(msg[fileStart:fileEnd], fmt)
 
