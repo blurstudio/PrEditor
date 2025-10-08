@@ -48,10 +48,21 @@ class ConsolePrEdit(QTextEdit):
     def __init__(self, parent):
         super(ConsolePrEdit, self).__init__(parent)
 
-        # For workboxes, use this regex pattern, so we can extract workboxName
-        # and lineNum
+        # For Traceback workbox lines, use this regex pattern, so we can extract
+        # workboxName and lineNum. Note that Syntax errors present slightly
+        # differently than other Exceptions.
+        #     SyntaxErrors:
+        #         - Do NOT include the text ", in" followed by a module
+        #         - DO include the offending line of code
+        #     Other Exceptions
+        #         - DO include the text ", in" followed by a module
+        #         - Do NOT include the offending line of code if from stdIn (ie
+        #               a workbox)
+        # So we will use the presence of the text ", in" to tell use whether to
+        # fake the offending code line or not.
         pattern = r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
-        pattern += r'line (?P<lineNum>\d{1,6}), in'
+        pattern += r'line (?P<lineNum>\d{1,6})'
+        pattern += r'(?P<inStr>, in)?'
         self.workbox_pattern = re.compile(pattern)
 
         # Define a pattern to capture info from tracebacks. The newline/$ section
@@ -974,14 +985,17 @@ class ConsolePrEdit(QTextEdit):
 
             # Starting in Python 3, tracebacks don't include the code executed
             # for stdin, so workbox code won't appear. This attempts to include
-            # it.
+            # it. There is an exception for SyntaxErrors, which DO include the
+            # offending line of code, so in those cases (indicated by lack of
+            # inStr from the regex search) we skip faking the code line.
             if isWorkbox:
                 match = self.workbox_pattern.search(msg)
                 workboxName = match.groupdict().get("workboxName")
                 lineNum = int(match.groupdict().get("lineNum")) - 1
+                inStr = match.groupdict().get("inStr", "")
 
                 workboxLine = self.getWorkboxLine(workboxName, lineNum)
-                if workboxLine:
+                if workboxLine and inStr:
                     indent = self.getIndentForCodeTracebackLine(msg)
                     msg = "{}{}{}".format(msg, indent, workboxLine)
 
