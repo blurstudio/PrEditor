@@ -29,8 +29,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         self._filename = None
         self._encoding = None
         self.__set_console__(console)
-        highlight = CodeHighlighter(self)
-        highlight.setLanguage('Python')
+        highlight = CodeHighlighter(self, 'Python')
         self.uiCodeHighlighter = highlight
 
     def __auto_complete_enabled__(self):
