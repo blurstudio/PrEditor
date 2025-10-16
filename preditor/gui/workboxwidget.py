@@ -160,10 +160,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             line, index = self.getCursorPosition()
             txt = self.text(line)
 
-            lineLength = len(self.text(line).rstrip())
-            selectText = self.window().uiSelectTextACT.isChecked() or selectText
-
             if selectText:
+                lineLength = len(self.text(line).rstrip())
                 self.setSelection(line, 0, line, lineLength)
 
         elif start_of_line:
