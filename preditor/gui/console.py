@@ -47,16 +47,22 @@ class ConsolePrEdit(QTextEdit):
 
     def __init__(self, parent):
         super(ConsolePrEdit, self).__init__(parent)
-        # store the error buffer
-        self._completer = None
 
-        # If populated, also write to this interface
-        self.outputPipe = None
-
-        # For workboxes, use this regex pattern, so we can extract workboxName
-        # and lineNum
+        # For Traceback workbox lines, use this regex pattern, so we can extract
+        # workboxName and lineNum. Note that Syntax errors present slightly
+        # differently than other Exceptions.
+        #     SyntaxErrors:
+        #         - Do NOT include the text ", in" followed by a module
+        #         - DO include the offending line of code
+        #     Other Exceptions
+        #         - DO include the text ", in" followed by a module
+        #         - Do NOT include the offending line of code if from stdIn (ie
+        #               a workbox)
+        # So we will use the presence of the text ", in" to tell use whether to
+        # fake the offending code line or not.
         pattern = r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
-        pattern += r'line (?P<lineNum>\d{1,6}), in'
+        pattern += r'line (?P<lineNum>\d{1,6})'
+        pattern += r'(?P<inStr>, in)?'
         self.workbox_pattern = re.compile(pattern)
 
         # Define a pattern to capture info from tracebacks. The newline/$ section
@@ -71,6 +77,16 @@ class ConsolePrEdit(QTextEdit):
         # Method used to update the gui when code is executed
         self.clearExecutionTime = None
         self.reportExecutionTime = None
+
+        # Create the highlighter
+        highlight = CodeHighlighter(self, 'Python')
+        self.setCodeHighlighter(highlight)
+
+        # store the error buffer
+        self._completer = None
+
+        # If populated, also write to this interface
+        self.outputPipe = None
 
         self._firstShow = True
 
@@ -112,11 +128,6 @@ class ConsolePrEdit(QTextEdit):
         StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
         StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
 
-        # create the highlighter
-        highlight = CodeHighlighter(self)
-        highlight.setLanguage('Python')
-        self.uiCodeHighlighter = highlight
-
         self.uiClearToLastPromptACT = QAction('Clear to Last', self)
         self.uiClearToLastPromptACT.triggered.connect(self.clearToLastPrompt)
         self.uiClearToLastPromptACT.setShortcut(
@@ -137,6 +148,22 @@ class ConsolePrEdit(QTextEdit):
         # second of time to the process of outputting text, so, just always have
         # it on.
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+
+    def setCodeHighlighter(self, highlight):
+        """Set the code highlighter for the console
+
+        Args:
+            highlight (CodeHighlighter): The instantiated CodeHighlighter
+        """
+        self._uiCodeHighlighter = highlight
+
+    def codeHighlighter(self):
+        """Get the code highlighter for the console
+
+        Returns:
+            _uiCodeHighlighter (CodeHighlighter): The instantiated CodeHighlighter
+        """
+        return self._uiCodeHighlighter
 
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
@@ -787,6 +814,10 @@ class ConsolePrEdit(QTextEdit):
         if self._firstShow:
             self.startInputLine()
             self._firstShow = False
+
+            # Redfine highlight variables now that stylesheet may have been updated
+            self.codeHighlighter().defineHighlightVariables()
+
         super(ConsolePrEdit, self).showEvent(event)
 
     def startInputLine(self):
@@ -954,14 +985,17 @@ class ConsolePrEdit(QTextEdit):
 
             # Starting in Python 3, tracebacks don't include the code executed
             # for stdin, so workbox code won't appear. This attempts to include
-            # it.
+            # it. There is an exception for SyntaxErrors, which DO include the
+            # offending line of code, so in those cases (indicated by lack of
+            # inStr from the regex search) we skip faking the code line.
             if isWorkbox:
                 match = self.workbox_pattern.search(msg)
                 workboxName = match.groupdict().get("workboxName")
                 lineNum = int(match.groupdict().get("lineNum")) - 1
+                inStr = match.groupdict().get("inStr", "")
 
                 workboxLine = self.getWorkboxLine(workboxName, lineNum)
-                if workboxLine:
+                if workboxLine and inStr:
                     indent = self.getIndentForCodeTracebackLine(msg)
                     msg = "{}{}{}".format(msg, indent, workboxLine)
 

@@ -218,6 +218,8 @@ class LoggerWindow(Window):
         self.uiGroup8ACT.triggered.connect(partial(self.gotoGroupByIndex, 8))
         self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
 
+        self.uiRunFirstWorkboxACT.triggered.connect(self.run_first_workbox)
+
         self.uiFocusNameACT.triggered.connect(self.show_focus_name)
 
         self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
@@ -437,8 +439,13 @@ class LoggerWindow(Window):
 
         return workbox
 
+    def run_first_workbox(self):
+        print("# Run first Workbox")
+        workbox = self.uiWorkboxTAB.widget(0).widget(0)
+        self.run_workbox("", workbox=workbox)
+
     @classmethod
-    def run_workbox(cls, name):
+    def run_workbox(cls, name, workbox=None):
         """This is a function which will be added to __main__, and therefore
         available to PythonLogger users. It will accept a string matching the
         "{group}/{workbox}" format, or a boolean that will run the current tab
@@ -456,7 +463,8 @@ class LoggerWindow(Window):
             run_workbox('some/stuff.py')
             (from command line): blurdev launch Python_Logger --run_workbox
         """
-        workbox = cls.workbox_for_name(name)
+        if workbox is None:
+            workbox = cls.workbox_for_name(name)
 
         if workbox is not None:
             # if name is True, its ok to run the workbox, this option
@@ -790,7 +798,6 @@ class LoggerWindow(Window):
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
-                'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
                 'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
@@ -959,7 +966,6 @@ class LoggerWindow(Window):
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
-        self.uiSelectTextACT.setChecked(pref.get('uiSelectTextACT', True))
 
         self._stylesheet = pref.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':

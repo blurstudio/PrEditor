@@ -153,16 +153,16 @@ DocumentEditor {
   qproperty-braceBadForeground: rgb(255, 255, 255);
   qproperty-braceBadBackground: rgb(100, 60, 60);
 
-  qproperty-colorDefault: rgb(102, 153, 204);
-  qproperty-colorComment: rgb(153, 153, 153);
-  qproperty-colorNumber: rgb(249, 145, 87);
-  qproperty-colorString: rgb(153, 204, 153);
-  qproperty-colorKeyword: rgb(204, 153, 204);
-  qproperty-colorTripleQuotedString: rgb(220, 204, 153);
+  qproperty-colorDefault: rgb(22, 160, 250);
+  qproperty-colorComment: rgb(0, 160, 0);
+  qproperty-colorNumber: rgb(0, 200, 200);
+  qproperty-colorString:  rgb(240, 135, 0);
+  qproperty-colorKeyword: rgb(250, 24, 110);
+  qproperty-colorTripleQuotedString:  rgb(240, 135, 0);
   qproperty-colorMethod: rgb(255, 204, 102);
-  qproperty-colorFunction: rgb(132, 203, 255);
+  qproperty-colorFunction: rgb(22, 160, 250);
   qproperty-colorOperator: rgb(204, 204, 204);
-  qproperty-colorIdentifier: rgb(102, 153, 204);
+  qproperty-colorIdentifier: rgb(22, 160, 250);
   qproperty-colorCommentBlock: rgb(117, 113, 94);
   qproperty-colorUnclosedString: rgb(255, 255, 255);
   qproperty-colorSmartHighlight: rgb(255, 255, 255);
@@ -191,9 +191,9 @@ ConsolePrEdit, ErrorDialog {
 ConsolePrEdit {
   color: rgb(255, 255, 255);
   background-color: rgb(70, 70, 73);
-  qproperty-commentColor: rgb(0, 206, 52);
-  qproperty-keywordColor: rgb(17, 154, 255);
+  qproperty-commentColor: rgb(0, 160, 0);
+  qproperty-keywordColor: rgb(250, 24, 110);
   qproperty-resultColor: rgb(128, 128, 128);
-  qproperty-stdoutColor: rgb(17, 154, 255);
-  qproperty-stringColor: rgb(255, 128, 0);
+  qproperty-stdoutColor: rgb(22, 160, 250);
+  qproperty-stringColor: rgb(240, 135, 0);
 }
