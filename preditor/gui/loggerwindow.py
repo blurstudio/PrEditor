@@ -798,7 +798,6 @@ class LoggerWindow(Window):
                 'spellCheckEnabled': self.uiSpellCheckEnabledACT.isChecked(),
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
-                'uiSelectTextACT': self.uiSelectTextACT.isChecked(),
                 'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
@@ -967,7 +966,6 @@ class LoggerWindow(Window):
         self.setWordWrap(self.uiWordWrapACT.isChecked())
         self.uiClearBeforeRunningACT.setChecked(pref.get('clearBeforeRunning', False))
         self.setClearBeforeRunning(self.uiClearBeforeRunningACT.isChecked())
-        self.uiSelectTextACT.setChecked(pref.get('uiSelectTextACT', True))
 
         self._stylesheet = pref.get('currentStyleSheet', 'Bright')
         if self._stylesheet == 'Custom':
