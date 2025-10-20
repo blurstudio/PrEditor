@@ -143,6 +143,7 @@
     <addaction name="uiClearBeforeRunningACT"/>
     <addaction name="uiClearToLastPromptACT"/>
     <addaction name="uiSelectTextACT"/>
+    <addaction name="uiRunFirstWorkboxACT"/>
    </widget>
    <widget class="QMenu" name="uiOptionsMENU">
     <property name="title">
@@ -1011,6 +1012,17 @@ at the indicated line in the specified text editor.
    </property>
    <property name="text">
     <string>Visually Separate PrEditor Traceback</string>
+   </property>
+  </action>
+  <action name="uiRunFirstWorkboxACT">
+   <property name="text">
+    <string>Run First Workbox</string>
+   </property>
+   <property name="toolTip">
+    <string>Run First Workbox (of the first group), which may have things like common imports, helper functions, etc.</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+1</string>
    </property>
   </action>
  </widget>
