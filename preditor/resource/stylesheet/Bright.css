@@ -21,11 +21,11 @@ DocumentEditor {
 	qproperty-braceBadBackground: rgb(250, 100, 100);
 
 	qproperty-colorDefault: "black";
-	qproperty-colorComment: rgb(0, 127, 0);
+	qproperty-colorComment: rgb(0, 206, 52);
 	qproperty-colorNumber: rgb(0, 127, 127);
-	qproperty-colorString: rgb(127, 0, 127);
-	qproperty-colorKeyword: rgb(0, 0, 127);
-	qproperty-colorTripleQuotedString: rgb(127, 0, 0);
+	qproperty-colorString: rgb(255, 128, 0);
+	qproperty-colorKeyword: rgb(250, 24, 110);
+	qproperty-colorTripleQuotedString: rgb(255, 128, 0);
 	qproperty-colorMethod: rgb(0, 0, 255);
 	qproperty-colorFunction: rgb(0, 127, 127);
 	qproperty-colorOperator: "black";
@@ -58,7 +58,7 @@ ConsolePrEdit {
 	color: rgb(0,0,0);
 	background-color: rgb(255,255,255);
 	qproperty-commentColor: rgb(0, 206, 52);
-	qproperty-keywordColor: rgb(17, 154, 255);
+	qproperty-keywordColor: rgb(250, 24, 110);
 	qproperty-resultColor: rgb(128, 128, 128);
 	qproperty-stdoutColor: rgb(17, 154, 255);
 	qproperty-stringColor: rgb(255, 128, 0);
