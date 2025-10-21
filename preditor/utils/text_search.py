@@ -70,7 +70,7 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
         """
 
     def indicate_results(
-        self, line, line_num, path="undefined", workbox_id="undefined"
+        self, line, line_num, path="undefined", workbox_name="undefined"
     ):
         """Writes a single line adding markup for any matches on the line."""
         tool_tip = "Open {} at line number {}".format(path, line_num)
@@ -82,7 +82,7 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
 
             # Otherwise print the next section of the line text
             if indicate:
-                self.callback_matching(text, workbox_id, line_num, tool_tip)
+                self.callback_matching(text, workbox_name, line_num, tool_tip)
             else:
                 self.callback_non_matching(text)
 
@@ -121,7 +121,7 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
     def matches(self, line):
         """Returns bool for if find_text is contained in this line."""
 
-    def print_matching(self, text, workbox_id, line_num, tool_tip):
+    def print_matching(self, text, workbox_name, line_num, tool_tip):
         """Simple callback for `callback_matching` that prints text.
 
         The print does not insert an newline character.
@@ -129,13 +129,11 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
         Args:
             text (str): The matching text to display. This will be inserted
                 into a markdown link as the link text.
-            workbox_id (str): From `GroupTabWidget.all_widgets`, the group_tab_index
-                and widget_tab_index joined by a comma without a space. Used as
-                the url of the link. Example: `3,1`.
+            workbox_name (str): From editor.__workbox_name__()
             line_number (int): The line number the url should navigate to.
             tool_tip (str): Added as a title to the link to show up as a tool tip.
         """
-        href = ', {}, {}'.format(workbox_id, line_num)
+        href = ', {}, {}'.format(workbox_name, line_num)
         print('[{}]({} "{}")'.format(text, href, tool_tip), end="")
 
     def print_non_matching(self, text):
@@ -145,7 +143,7 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
         """
         print(text, end="")
 
-    def search_text(self, text, path, workbox_id):
+    def search_text(self, text, path, workbox_name):
         """Search each line of text for matching text and write the the matches
         including context lines.
 
@@ -153,9 +151,7 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
             text (str): The text to search.
             path (str): The workbox name this text represents. Should be the
                 Group_name and tab_name separated by a `/`.
-            workbox_id (str): From `GroupTabWidget.all_widgets`, the group_tab_index
-                and widget_tab_index joined by a comma without a space. Used as
-                the url of the link. Example: `3,1`.
+            workbox_name (str): From editor.__workbox_name__()
         """
         # NOTE: splitlines discards the "newline at end of file" so it doesn't
         # show up in the final search results.
@@ -177,14 +173,14 @@ class TextSearch(with_metaclass(abc.ABCMeta, object)):
         found = False
 
         for i, line in enumerate(lines):
-            info = dict(path=path, workbox_id=workbox_id)
+            info = dict(path=path, workbox_name=workbox_name)
             if self.matches(line):
                 len_pre_history = len(pre_history)
                 if not found:
                     # Print the path on the first find
                     self.callback_non_matching("# File: ")
                     tool_tip = "Open {}".format(path)
-                    self.callback_matching(path, workbox_id, 0, tool_tip)
+                    self.callback_matching(path, workbox_name, 0, tool_tip)
                     self.callback_non_matching("\n")
                     found = True
                 elif i - last_insert - 1 - len_pre_history > 0:
