@@ -1071,6 +1071,7 @@ Must be at least 1</string>
     <addaction name="uiRestartACT"/>
     <addaction name="separator"/>
     <addaction name="uiClosedWorkboxesMENU"/>
+    <addaction name="uiOpenMostRecentWorkboxACT"/>
     <addaction name="uiEmptyWorkboxRecycleBinACT"/>
     <addaction name="separator"/>
     <addaction name="uiCloseLoggerACT"/>
@@ -2040,6 +2041,20 @@ at the indicated line in the specified text editor.
   <action name="uiEmptyWorkboxRecycleBinACT">
    <property name="text">
     <string>Empty Workbox Recycle Bin</string>
+   </property>
+   <property name="toolTip">
+    <string>Once a workbox is pruned off the Recently Closed Workboxes list
+(as determiend by Max Recently Closed Workboxes preference), it
+goes to the Workbox Recycle Bin.
+This button removes those (very old) workboxes.</string>
+   </property>
+  </action>
+  <action name="uiOpenMostRecentWorkboxACT">
+   <property name="text">
+    <string>Open most recently closed Workbox</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+T</string>
    </property>
   </action>
  </widget>

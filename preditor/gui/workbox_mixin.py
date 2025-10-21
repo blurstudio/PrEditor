@@ -1130,12 +1130,18 @@ class WorkboxMixin(object):
             evalTrunc = enter or (ret and shift)
             evalNoTrunc = ret and ctrlShift
 
+            # See if shortcut for Open Most Recent Workbox is pressed
+            openRecentWorkbox = ctrlShift and key == Qt.Key.Key_T
+
             if evalTrunc:
                 # Execute with truncation
                 self.window().execSelected()
             elif evalNoTrunc:
                 # Execute without truncation
                 self.window().execSelected(truncate=False)
+
+            elif openRecentWorkbox:
+                self.window().openMostRecentlyClosedWorkbox()
 
         if evalTrunc or evalNoTrunc:
             if self.window().uiAutoPromptCHK.isChecked():
