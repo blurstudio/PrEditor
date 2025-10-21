@@ -79,12 +79,11 @@ class FindFiles(QWidget):
                 editor,
                 group_name,
                 tab_name,
-                group_index,
-                tab_index,
+                _group_index,
+                _tab_index,
             ) in manager.all_widgets():
                 path = "/".join((group_name, tab_name))
-                workbox_id = '{},{}'.format(group_index, tab_index)
-                self.find_in_editor(editor, path, workbox_id)
+                self.find_in_editor(editor, path)
 
         self.insert_text(
             '\n{} matches in {} workboxes\n'.format(
@@ -92,13 +91,14 @@ class FindFiles(QWidget):
             )
         )
 
-    def find_in_editor(self, editor, path, workbox_id):
+    def find_in_editor(self, editor, path):
         # Ensure the editor text is loaded and get its raw text
         editor.__show__()
         text = editor.__text__()
+        workbox_name = editor.__workbox_name__()
 
         # Use the finder to check for matches
-        found = self.finder.search_text(text, path, workbox_id)
+        found = self.finder.search_text(text, path, workbox_name)
         if found:
             self.match_files_count += 1
 
