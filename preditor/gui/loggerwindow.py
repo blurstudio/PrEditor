@@ -48,7 +48,7 @@ from ..gui import Dialog, Window, handleMenuHovered, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
-from ..utils import stylesheets
+from ..utils import Json, stylesheets
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
@@ -1450,9 +1450,35 @@ class LoggerWindow(Window):
 
         prefs_dict = {}
         self.auto_backup_prefs(filename, onlyFirst=True)
-        if os.path.exists(filename):
-            with open(filename) as fp:
-                prefs_dict = json.load(fp)
+        filename = Path(filename)
+        if filename.exists():
+            try:
+                prefs_dict = Json(filename).load()
+            except ValueError as error:
+                # If there is a problem with the preferences ask the user if they
+                # want to reset them. Depending on the problem the loaded workbox's
+                # have likely already losing the tab information, but this does
+                # allow the user to try to debug the file instead of just resetting
+                # preferences. The .py files likely still exist but won't have names.
+                msg = (  # noqa: E702, E231
+                    "The following error happened while restoring PrEditor prefs:",
+                    f'<p style="color: red;">{error}</p>',
+                    "This can be resolved by resetting the prefs. Do you want "
+                    "to do it?",
+                )
+                box = QMessageBox()
+                box.setIcon(QMessageBox.Icon.Question)
+                box.setWindowTitle("Reset Corrupted Preferences?")
+                box.setTextFormat(Qt.TextFormat.RichText)
+                box.setText("<br>".join(msg))
+                box.addButton(QMessageBox.StandardButton.Yes)
+                box.addButton(QMessageBox.StandardButton.No)
+                if box.exec() == QMessageBox.StandardButton.Yes:
+                    prefs_dict = {}
+                    with filename.open("w") as fp:
+                        json.dump(prefs_dict, fp, indent=4, sort_keys=True)
+                else:
+                    raise
 
         return prefs_dict
 

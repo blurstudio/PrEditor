@@ -14,7 +14,7 @@ from pathlib import Path
 
 import six
 
-from . import resourcePath
+from . import resourcePath, utils
 
 # cache of all the preferences
 _cache = {}
@@ -297,11 +297,8 @@ def get_prefs_updates():
     """
     updates = {}
     path = resourcePath(r"pref_updates\pref_updates.json")
-    with open(path, 'r') as f:
-        updates = json.load(f)
     try:
-        with open(path, 'r') as f:
-            updates = json.load(f)
+        updates = utils.Json(path).load()
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         pass
     return updates
