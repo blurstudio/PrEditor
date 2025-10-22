@@ -5,6 +5,7 @@ import logging
 import logging.config
 import os
 
+from . import utils
 from .prefs import prefs_path
 
 
@@ -45,9 +46,8 @@ class LoggingConfig(object):
         if not os.path.exists(self.filename):
             return False
 
-        with open(self.filename) as fle:
-            self.cfg = json.load(fle)
-            logging.config.dictConfig(self.cfg)
+        self.cfg = utils.Json(self.filename).load()
+        logging.config.dictConfig(self.cfg)
         return True
 
     def save(self):
