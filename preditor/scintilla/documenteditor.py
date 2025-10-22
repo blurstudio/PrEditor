@@ -1428,6 +1428,8 @@ class DocumentEditor(QsciScintilla):
 
     def showMenu(self, pos, popup=True):
         menu = QMenu(self)
+        menu.setFont(self.window().font())
+
         pos = self.mapToGlobal(pos)
         self._clickPos = pos
 

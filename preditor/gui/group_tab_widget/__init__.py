@@ -3,10 +3,8 @@ from __future__ import absolute_import
 from pathlib import Path
 
 from Qt.QtCore import Qt
-from Qt.QtGui import QIcon
-from Qt.QtWidgets import QHBoxLayout, QMessageBox, QToolButton, QWidget
+from Qt.QtWidgets import QHBoxLayout, QMessageBox, QSizePolicy, QToolButton, QWidget
 
-from ... import resourcePath
 from ...prefs import VersionTypes, get_backup_version_info
 from ..drag_tab_bar import DragTabBar
 from ..workbox_text_edit import WorkboxTextEdit
@@ -16,10 +14,10 @@ from .one_tab_widget import OneTabWidget
 
 DEFAULT_STYLE_SHEET = """
 /* Make the two buttons in the GroupTabWidget take up the
-   same horizontal space as the GroupedTabWidget's buttons. */
+   same horizontal space as the GroupedTabWidget's buttons.
 GroupTabWidget>QTabBar::tab{
     max-height: 1.5em;
-}
+}*/
 /* We have an icon, no need to show the menu indicator */
 #group_tab_widget_menu_btn::menu-indicator{
     width: 0px;
@@ -51,25 +49,36 @@ class GroupTabWidget(OneTabWidget):
         corner = QWidget(self)
         lyt = QHBoxLayout(corner)
         lyt.setSpacing(0)
-        lyt.setContentsMargins(0, 0, 0, 0)
+        lyt.setContentsMargins(0, 5, 0, 0)
 
         corner.uiNewTabBTN = QToolButton(corner)
         corner.uiNewTabBTN.setObjectName('group_tab_widget_new_btn')
         corner.uiNewTabBTN.setText('+')
-        corner.uiNewTabBTN.setIcon(QIcon(resourcePath('img/file-plus.png')))
         corner.uiNewTabBTN.released.connect(lambda: self.add_new_tab(None))
+
         lyt.addWidget(corner.uiNewTabBTN)
 
         corner.uiMenuBTN = QToolButton(corner)
-        corner.uiMenuBTN.setIcon(QIcon(resourcePath('img/chevron-down.png')))
+        corner.uiMenuBTN.setText('\u2630')
         corner.uiMenuBTN.setObjectName('group_tab_widget_menu_btn')
         corner.uiMenuBTN.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         corner.uiCornerMENU = GroupTabMenu(self, parent=corner.uiMenuBTN)
         corner.uiMenuBTN.setMenu(corner.uiCornerMENU)
+
+        self.adjustSizePolicy(corner)
+        self.adjustSizePolicy(corner.uiNewTabBTN)
+        self.adjustSizePolicy(corner.uiMenuBTN)
+        self.adjustSizePolicy(corner.uiCornerMENU)
+
         lyt.addWidget(corner.uiMenuBTN)
 
         self.uiCornerBTN = corner
         self.setCornerWidget(self.uiCornerBTN, Qt.Corner.TopRightCorner)
+
+    def adjustSizePolicy(self, button):
+        sp = button.sizePolicy()
+        sp.setVerticalPolicy(QSizePolicy.Policy.Preferred)
+        button.setSizePolicy(sp)
 
     def add_new_tab(self, group, title=None, prefs=None):
         """Adds a new tab to the requested group, creating the group if the group
@@ -110,6 +119,7 @@ class GroupTabWidget(OneTabWidget):
         editor = parent.add_new_editor(title, prefs)
         self.setCurrentIndex(self.indexOf(parent))
         self.window().focusToWorkbox()
+        self.tabBar().setFont(self.window().font())
         return parent, editor
 
     def all_widgets(self):
