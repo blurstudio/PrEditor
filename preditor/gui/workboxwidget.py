@@ -2,6 +2,7 @@ from __future__ import absolute_import, print_function
 
 import re
 import time
+from pathlib import Path
 
 from Qt.QtCore import Qt
 from Qt.QtGui import QIcon
@@ -16,7 +17,15 @@ from ..scintilla.finddialog import FindDialog
 
 class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __init__(
-        self, parent=None, console=None, delayable_engine='default', core_name=None
+        self,
+        parent=None,
+        console=None,
+        workbox_id=None,
+        filename=None,
+        backup_file=None,
+        tempfile=None,
+        delayable_engine='default',
+        core_name=None,
     ):
         self.__set_console__(console)
         self._searchFlags = 0
@@ -28,13 +37,24 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             parent, delayable_engine=delayable_engine, core_name=core_name
         )
 
+        if workbox_id:
+            self._workbox_id = workbox_id
+        else:
+            self._workbox_id = WorkboxMixin.__create_workbox_id__(self.core_name)
+
+        self._filename_pref = filename
+        self._backup_file = backup_file
+        self._tempfile = tempfile
+
         # Store the software name so we can handle custom keyboard shortcuts based on
         # software
         self._software = core.objectName()
         # Used to remove any trailing whitespace when running selected text
         self.regex = re.compile(r'\s+$')
         self.initShortcuts()
-        self.setLanguage('Python')
+
+        self._defaultLanguage = "Python"
+        self.setLanguage(self._defaultLanguage)
         # Default to unix newlines
         self.setEolMode(QsciScintilla.EolMode.EolUnix)
         if hasattr(self.window(), "setWorkboxFontBasedOnConsole"):
@@ -53,6 +73,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
     def __clear__(self):
         self.clear()
+        self.__set_last_saved_text__(self.__text__())
 
     def __comment_toggle__(self):
         self.commentToggle()
@@ -77,11 +98,10 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.__console__().executeString(txt, filename=title)
 
     def __file_monitoring_enabled__(self):
-        return self._fileMonitoringActive
+        return self.window().fileMonitoringEnabled(self.__filename__())
 
     def __set_file_monitoring_enabled__(self, state):
-        self.setAutoReloadOnChange(state)
-        self.enableFileWatching(state)
+        self.window().setFileMonitoringEnabled(self.__filename__(), state)
 
     def __filename__(self):
         return self.filename()
@@ -111,8 +131,27 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __insert_text__(self, txt):
         self.insert(txt)
 
-    def __load__(self, filename):
+    def __load__(self, filename, update_last_save=True):
         self.load(filename)
+        self.__set_last_saved_text__(self.__text__())
+
+        # Determine workbox name so we can store it
+        workbox_name = self.__workbox_name__()
+        group_name = workbox_name.group
+
+        new_name = Path(filename).name
+
+        new_workbox_name = "{}/{}".format(group_name, new_name)
+        self.__set_last_workbox_name__(new_workbox_name)
+
+    def __reload_file__(self):
+        # loading the file too quickly misses any changes
+        time.sleep(0.1)
+        font = self.__font__()
+        self.reloadChange()
+        self.__set_last_saved_text__(self.__text__())
+        self.__set_last_workbox_name__(self.__workbox_name__())
+        self.__set_font__(font)
 
     def __margins_font__(self):
         return self.marginsFont()
@@ -135,18 +174,13 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             # self._marker has not been created yet
             pass
 
-    def __reload_file__(self):
-        # loading the file too quickly misses any changes
-        time.sleep(0.1)
-        font = self.__font__()
-        self.reloadChange()
-        self.__set_font__(font)
-
     def __remove_selected_text__(self):
         self.removeSelectedText()
 
     def __save__(self):
         self.save()
+        self.__set_last_saved_text__(self.__text__())
+        self.__set_last_workbox_name__(self.__workbox_name__())
 
     def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
@@ -199,9 +233,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             self.text(start, end)
         return self.text()
 
-    def __set_text__(self, txt):
+    def __set_text__(self, txt, update_last_saved_text=True):
         """Replace all of the current text with txt."""
         self.setText(txt)
+        self._is_loaded = True
+        if update_last_saved_text:
+            self.__set_last_saved_text__(self.__text__())
 
     @classmethod
     def __write_file__(cls, filename, txt, encoding=None):
@@ -225,14 +262,13 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         truncation, but no modifiers are registered when Enter is pressed (unlike
         when Return is pressed), so this combination is not detectable.
         """
-        if self._software == 'softimage':
-            super(WorkboxWidget, self).keyPressEvent(event)
+        self.__tab_widget__().tabBar().update()
+
+        if self.process_shortcut(event):
+            return
         else:
-            if self.process_shortcut(event):
-                return
-            else:
-                # Send regular keystroke
-                super(WorkboxWidget, self).keyPressEvent(event)
+            # Send regular keystroke
+            super(WorkboxWidget, self).keyPressEvent(event)
 
     def initShortcuts(self):
         """Use this to set up shortcuts when the DocumentEditor"""

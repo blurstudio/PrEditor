@@ -1,0 +1,10 @@
+{
+    "SplitterSize": {"new_name": "splitterSize"},
+    "SplitterVertical": {"new_name": "splitterVertical"},
+    "workbox_prefs": {
+        "tempfile": {
+            "new_name": "workbox_id",
+            "replace": [[".py", ""]]
+        }
+    }
+}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>406</height>
+    <width>794</width>
+    <height>404</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -36,7 +36,7 @@
       </widget>
       <widget class="QStackedWidget" name="uiWorkboxSTACK">
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="Options">
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -73,6 +73,12 @@
              <width>0</width>
              <height>100</height>
             </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Courier</family>
+             <pointsize>16</pointsize>
+            </font>
            </property>
           </widget>
          </item>
@@ -322,6 +328,11 @@
     <addaction name="separator"/>
     <addaction name="uiFindInWorkboxesACT"/>
     <addaction name="uiFocusNameACT"/>
+    <addaction name="separator"/>
+    <addaction name="uiShowFirstWorkboxVersionACT"/>
+    <addaction name="uiShowPreviousWorkboxVersionACT"/>
+    <addaction name="uiShowNextWorkboxVersionACT"/>
+    <addaction name="uiShowLastWorkboxVersionACT"/>
    </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="uiEditMENU"/>
@@ -992,6 +1003,38 @@ at the indicated line in the specified text editor.
    </property>
    <property name="text">
     <string>Highlight Exact Completion</string>
+   </property>
+  </action>
+  <action name="uiShowFirstWorkboxVersionACT">
+   <property name="text">
+    <string>Show First Workbox Version</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+[</string>
+   </property>
+  </action>
+  <action name="uiShowPreviousWorkboxVersionACT">
+   <property name="text">
+    <string>Show Previous Workbox Version</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+[</string>
+   </property>
+  </action>
+  <action name="uiShowNextWorkboxVersionACT">
+   <property name="text">
+    <string>Show Next Workbox Version</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+]</string>
+   </property>
+  </action>
+  <action name="uiShowLastWorkboxVersionACT">
+   <property name="text">
+    <string>Show Last Workbox Version</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+Shift+]</string>
    </property>
   </action>
   <action name="uiSeparateTracebackACT">
