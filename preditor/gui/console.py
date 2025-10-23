@@ -165,6 +165,11 @@ class ConsolePrEdit(QTextEdit):
         """
         return self._uiCodeHighlighter
 
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+        menu.setFont(self.window().font())
+        menu.exec(self.mapToGlobal(event.pos()))
+
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
         to get scroll.maximum() to update properly so that we calc newValue

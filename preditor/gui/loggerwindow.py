@@ -1,28 +1,33 @@
 from __future__ import absolute_import, print_function
 
+import copy
 import itertools
 import json
 import logging
 import os
 import re
+import shutil
 import sys
 import warnings
 from builtins import bytes
 from datetime import datetime, timedelta
 from functools import partial
+from pathlib import Path
 
 import __main__
 import Qt as Qt_py
 from Qt import QtCompat, QtCore, QtWidgets
-from Qt.QtCore import QByteArray, Qt, QTimer, Signal, Slot
+from Qt.QtCore import QByteArray, QFileSystemWatcher, QObject, Qt, QTimer, Signal, Slot
 from Qt.QtGui import QCursor, QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFontDialog,
     QInputDialog,
+    QMenu,
     QMessageBox,
     QTextBrowser,
     QTextEdit,
+    QToolButton,
     QToolTip,
     QVBoxLayout,
 )
@@ -52,6 +57,9 @@ from .workbox_mixin import WorkboxName
 
 logger = logging.getLogger(__name__)
 
+PRUNE_PATTERN = r"(?P<name>\w*)-{}\.".format(prefs.DATETIME_PATTERN.pattern)
+PRUNE_PATTERN = re.compile(PRUNE_PATTERN)
+
 
 class WorkboxPages:
     """Nice names for the uiWorkboxSTACK indexes."""
@@ -67,6 +75,9 @@ class LoggerWindow(Window):
     def __init__(self, parent, name=None, run_workbox=False, standalone=False):
         super(LoggerWindow, self).__init__(parent=parent)
         self.name = name if name else get_core_name()
+
+        self._logToFilePath = None
+
         self._stylesheet = 'Bright'
 
         self.setupStatusTimer()
@@ -94,7 +105,7 @@ class LoggerWindow(Window):
 
         # create the workbox tabs
         self._currentTab = -1
-        self._reloadRequested = set()
+
         # Setup delayable system
         self.delayable_engine = DelayableEngine.instance('logger', self)
 
@@ -147,13 +158,29 @@ class LoggerWindow(Window):
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
 
         self.uiSelectMonospaceFontACT.triggered.connect(
-            partial(self.selectFont, monospace=True)
+            partial(self.selectFont, origFont=None, monospace=True)
         )
         self.uiSelectProportionalFontACT.triggered.connect(
-            partial(self.selectFont, proportional=True)
+            partial(self.selectFont, origFont=None, proportional=True)
         )
         self.uiSelectAllFontACT.triggered.connect(
-            partial(self.selectFont, monospace=True, proportional=True)
+            partial(self.selectFont, origFont=None, monospace=True, proportional=True)
+        )
+        self.uiSelectGuiFontsMENU.triggered.connect(
+            partial(self.selectGuiFont, monospace=True, proportional=True)
+        )
+
+        self.uiDecreaseCodeFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Code", -1)
+        )
+        self.uiIncreaseCodeFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Code", 1)
+        )
+        self.uiDecreaseGuiFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Gui", -1)
+        )
+        self.uiIncreaseGuiFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Gui", 1)
         )
 
         # Setup ability to cycle completer mode, and create action for each mode
@@ -198,6 +225,7 @@ class LoggerWindow(Window):
         self.uiNextTabACT.triggered.connect(self.nextTab)
         self.uiPrevTabACT.triggered.connect(self.prevTab)
 
+        # Navigate workbox versions
         self.uiTab1ACT.triggered.connect(partial(self.gotoTabByIndex, 1))
         self.uiTab2ACT.triggered.connect(partial(self.gotoTabByIndex, 2))
         self.uiTab3ACT.triggered.connect(partial(self.gotoTabByIndex, 3))
@@ -219,6 +247,9 @@ class LoggerWindow(Window):
         self.uiGroupLastACT.triggered.connect(partial(self.gotoGroupByIndex, -1))
 
         self.uiRunFirstWorkboxACT.triggered.connect(self.run_first_workbox)
+
+        self.latestTimeStrsForBoxesChangedViaInstance = {}
+        self.boxesOrphanedViaInstance = {}
 
         self.uiFocusNameACT.triggered.connect(self.show_focus_name)
 
@@ -253,6 +284,7 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(self.handleMenuHovered)
 
+        """Set various icons"""
         self.uiClearLogACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
         self.uiNewWorkboxACT.setIcon(QIcon(resourcePath('img/file-plus.png')))
         self.uiCloseWorkboxACT.setIcon(QIcon(resourcePath('img/file-remove.png')))
@@ -272,6 +304,11 @@ class LoggerWindow(Window):
         self.loadPlugins()
         self.setWindowTitle(self.defineWindowTitle())
 
+        # Start the filesystem monitor
+        self.openFileMonitor = QFileSystemWatcher(self)
+        self.openFileMonitor.fileChanged.connect(self.linkedFileChanged)
+        self.setFileMonitoringEnabled(self.prefsPath(), True)
+
         self.restorePrefs()
 
         # add stylesheet menu options.
@@ -286,6 +323,20 @@ class LoggerWindow(Window):
 
         self.setWorkboxFontBasedOnConsole()
         self.setEditorChooserFontBasedOnConsole()
+
+        # Scroll thru workbox versions
+        self.uiShowFirstWorkboxVersionACT.triggered.connect(
+            partial(self.change_to_workbox_version_text, prefs.VersionTypes.First)
+        )
+        self.uiShowPreviousWorkboxVersionACT.triggered.connect(
+            partial(self.change_to_workbox_version_text, prefs.VersionTypes.Previous)
+        )
+        self.uiShowNextWorkboxVersionACT.triggered.connect(
+            partial(self.change_to_workbox_version_text, prefs.VersionTypes.Next)
+        )
+        self.uiShowLastWorkboxVersionACT.triggered.connect(
+            partial(self.change_to_workbox_version_text, prefs.VersionTypes.Last)
+        )
 
         self.setup_run_workbox()
 
@@ -439,6 +490,35 @@ class LoggerWindow(Window):
 
         return workbox
 
+    def workbox_for_id(self, workbox_id, show=False, visible=False):
+        """Used to find a workbox for a given id.
+
+        Args:
+            workbox_id(str): The workbox id for which to match when searching
+                for the workbox
+            show (bool, optional): If a workbox is found, call `__show__` on it
+                to ensure that it is initialized and its text is loaded.
+            visible (bool, optional): Make the this workbox visible if found.
+        """
+        # pred = self.instance()
+        workbox = None
+        for box_info in self.uiWorkboxTAB.all_widgets():
+            temp_box = box_info[0]
+            if temp_box.__workbox_id__() == workbox_id:
+                workbox = temp_box
+                break
+
+        if workbox:
+            if show:
+                workbox.__show__()
+            if visible:
+                grp_idx, tab_idx = workbox.__group_tab_index__()
+                self.uiWorkboxTAB.setCurrentIndex(grp_idx)
+                group = self.uiWorkboxTAB.widget(grp_idx)
+                group.setCurrentIndex(tab_idx)
+
+        return workbox
+
     def run_first_workbox(self):
         workbox = self.uiWorkboxTAB.widget(0).widget(0)
         self.run_workbox("", workbox=workbox)
@@ -482,8 +562,63 @@ class LoggerWindow(Window):
         """
         __main__.run_workbox = self.run_workbox
 
+    def change_to_workbox_version_text(self, versionType):
+        """Change the current workbox's text to a previously saved version, based
+        on versionType, which can be First, Previous, Next, SecondToLast, or Last.
+
+        If we are already at the start or end of the stack of files, and trying
+        to go further, do nothing.
+
+        Args:
+            versionType (prefs.VersionTypes): Enum describing which version to
+                fetch
+
+        """
+        tab_group = self.uiWorkboxTAB.currentWidget()
+
+        workbox_widget = tab_group.currentWidget()
+
+        idx, count = prefs.get_backup_file_index_and_count(
+            self.name,
+            workbox_widget.__workbox_id__(),
+            backup_file=workbox_widget.__backup_file__(),
+        )
+
+        # For ease of reading, set these variables.
+        forFirst = versionType == prefs.VersionTypes.First
+        forPrevious = versionType == prefs.VersionTypes.Previous
+        forNext = versionType == prefs.VersionTypes.Next
+        forLast = versionType == prefs.VersionTypes.Last
+        isFirstWorkbox = idx is None or idx == 0
+        isLastWorkbox = idx is None or idx + 1 == count
+        isDirty = workbox_widget.__is_dirty__()
+
+        # If we are on last workbox and it's dirty, do the user a solid, and
+        # save any thing they've typed.
+        if isLastWorkbox and isDirty:
+            workbox_widget.__save_prefs__()
+            isFirstWorkbox = False
+
+        # If we are at either end of stack, and trying to go further, do nothing
+        if isFirstWorkbox and (forFirst or forPrevious):
+            return
+        if isLastWorkbox and (forNext or forLast):
+            return
+
+        filename, idx, count = workbox_widget.__load_workbox_version_text__(versionType)
+
+        # Get rid of the hash part of the filename
+        match = prefs.DATETIME_PATTERN.search(filename)
+        if match:
+            filename = match.group()
+
+        txt = "{} [{}/{}]".format(filename, idx, count)
+        self.setStatusText(txt)
+        self.autoHideStatusText()
+
     def openSetPreferredTextEditorDialog(self):
         dlg = SetTextEditorPathDialog(parent=self)
+        self.setDialogFont(dlg)
         dlg.exec()
 
     def focusToConsole(self):
@@ -559,7 +694,17 @@ class LoggerWindow(Window):
 
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
-        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+        mods = event.modifiers()
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        shift = Qt.KeyboardModifier.ShiftModifier
+        alt = Qt.KeyboardModifier.AltModifier
+
+        # Assign mods by functionality. Using shift | alt for gui, because just shift or
+        # just alt has existing functionality which also processes.
+        code_font_mod = ctrl
+        gui_font_mod = shift | alt
+
+        if mods == code_font_mod or mods == gui_font_mod:
             # WheelEvents can be emitted in a cluster, but we only want one at a time
             # (ie to change font size by 1, rather than 2 or 3). Let's bail if previous
             # font-resize wheel event was within a certain threshhold.
@@ -574,19 +719,42 @@ class LoggerWindow(Window):
             if hasattr(event, 'delta'):  # Qt4
                 delta = event.delta()
             else:  # QT5
-                delta = event.angleDelta().y()
+                # Also holding alt reverses the data in angleDelta (!?), so transpose to
+                # get correct value
+                angleDelta = event.angleDelta()
+                if mods == gui_font_mod:
+                    angleDelta = angleDelta.transposed()
+                delta = angleDelta.y()
 
             # convert delta to +1 or -1, depending
             delta = delta // abs(delta)
             minSize = 5
             maxSize = 50
-            font = self.console().font()
+            if mods == code_font_mod:
+                font = self.console().font()
+            elif mods == gui_font_mod:
+                font = self.font()
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
-            self.setFontSize(newSize)
+            # If only ctrl was pressed, adjust code font size, otherwise adjust gui font
+            # size
+            if mods == code_font_mod:
+                self.setFontSize(newSize)
+            elif mods == gui_font_mod:
+                self.setGuiFont(newSize=newSize)
         else:
             Window.wheelEvent(self, event)
+
+    def adjustFontSize(self, kind, delta):
+        if kind == "Code":
+            size = self.console().font().pointSize()
+            size += delta
+            self.setFontSize(size)
+        else:
+            size = self.font().pointSize()
+            size += delta
+            self.setGuiFont(newSize=size)
 
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
@@ -605,7 +773,9 @@ class LoggerWindow(Window):
             menu = action.parent()
         QToolTip.showText(QCursor.pos(), text, menu)
 
-    def selectFont(self, monospace=False, proportional=False):
+    def selectFont(
+        self, origFont=None, monospace=False, proportional=False, doGui=False
+    ):
         """Present a QFontChooser dialog, offering, monospace, proportional, or all
         fonts, based on user choice. If a font is chosen, set it on the console and
         workboxes.
@@ -613,7 +783,8 @@ class LoggerWindow(Window):
         Args:
             action (QAction): menu action associated with chosen font
         """
-        origFont = self.console().font()
+        if origFont is None:
+            origFont = self.console().font()
         curFontFamily = origFont.family()
 
         if monospace and proportional:
@@ -634,9 +805,45 @@ class LoggerWindow(Window):
         newFont, okClicked = QFontDialog.getFont(origFont, self, title, options=options)
 
         if okClicked:
-            self.console().setConsoleFont(newFont)
-            self.setWorkboxFontBasedOnConsole()
-            self.setEditorChooserFontBasedOnConsole()
+            if doGui:
+                self.setGuiFont(newFont=newFont)
+            else:
+                self.console().setConsoleFont(newFont)
+                self.setWorkboxFontBasedOnConsole()
+                self.setEditorChooserFontBasedOnConsole()
+
+    def selectGuiFont(self, monospace=True, proportional=True):
+        font = self.font()
+        self.selectFont(
+            origFont=font, monospace=monospace, proportional=proportional, doGui=True
+        )
+
+    def setGuiFont(self, newSize=None, newFont=None):
+        current = self.uiWorkboxTAB.currentWidget()
+        if not current:
+            return
+
+        tabbar_class = current.tabBar().__class__
+        menubar_class = self.menuBar().__class__
+        label_class = self.uiStatusLBL.__class__
+        children = self.findChildren(tabbar_class, QtCore.QRegExp(".*"))
+        children.extend(self.findChildren(menubar_class, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(label_class, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QToolButton, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QMenu, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QToolTip, QtCore.QRegExp(".*")))
+
+        for child in children:
+            if newFont is None:
+                newFont = child.font()
+            if newSize is None:
+                newSize = newFont.pointSize()
+            newFont.setPointSize(newSize)
+            child.setFont(newFont)
+            # child.resize()
+        self.setFont(newFont)
+        QToolTip.setFont(newFont)
+        # self.resize()
 
     def setFontSize(self, newSize):
         """Update the font size in the console and current workbox.
@@ -651,17 +858,17 @@ class LoggerWindow(Window):
         self.setWorkboxFontBasedOnConsole()
         self.setEditorChooserFontBasedOnConsole()
 
-    def setWorkboxFontBasedOnConsole(self):
+    def setWorkboxFontBasedOnConsole(self, workbox=None):
         """If the current workbox's font is different to the console's font, set it to
         match.
         """
         font = self.console().font()
 
-        workboxGroup = self.uiWorkboxTAB.currentWidget()
-        if workboxGroup is None:
-            return
-
-        workbox = workboxGroup.currentWidget()
+        if workbox is None:
+            workboxGroup = self.uiWorkboxTAB.currentWidget()
+            if workboxGroup is None:
+                return
+            workbox = workboxGroup.currentWidget()
         if workbox is None:
             return
 
@@ -673,10 +880,17 @@ class LoggerWindow(Window):
         """Set the EditorChooser font to match console. This helps with legibility when
         using EditorChooser.
         """
-        font = self.console().font()
-        for child in self.uiEditorChooserWGT.children():
-            if hasattr(child, "font"):
-                child.setFont(font)
+        self.setDialogFont(self.uiEditorChooserWGT)
+
+    def setDialogFont(self, dialog):
+        """Helper for when creating a dialog to have the font match the PrEditor font
+
+        Args:
+            dialog (QDialog):  The dialog for which to set the font
+        """
+        for thing in dialog.findChildren(QObject):
+            if hasattr(thing, "setFont"):
+                thing.setFont(self.font())
 
     @classmethod
     def _genPrefName(cls, baseName, index):
@@ -709,6 +923,165 @@ class LoggerWindow(Window):
         """If installLogToFile has been called, clear the stdout."""
         if self._stds:
             self._stds[0].clear(stamp=True)
+
+    def prune_backup_files(self, sub_dir=None):
+        """Prune the backup files to uiMaxNumBackupsSPIN value, per workbox
+
+        Args:
+            sub_dir (str, optional): The subdir to operate on.
+        """
+        if sub_dir is None:
+            sub_dir = 'workboxes'
+
+        directory = Path(prefs.prefs_path(sub_dir, core_name=self.name))
+        files = list(directory.rglob("*.*"))
+
+        files_by_name = {}
+        for file in files:
+            match = PRUNE_PATTERN.search(str(file))
+            if not match:
+                continue
+            name = match.groupdict().get("name")
+
+            parent = file.parent.name
+            name = parent + "/" + name
+            files_by_name.setdefault(name, []).append(file)
+
+        for _name, files in files_by_name.items():
+            files.sort(key=lambda f: str(f).lower())
+            files.reverse()
+            for file in files[self.max_num_backups :]:
+                file.unlink()
+
+        # Remove any empty directories
+        for file in directory.iterdir():
+            if not file.is_dir():
+                continue
+
+            # rmdir only operates on empty dirs. Try / except is faster than
+            # getting number of files, ie len(list(file.iterdir()))
+            try:
+                file.rmdir()
+            except OSError:
+                pass
+
+    def getBoxesChangedByInstance(self, timeOffset=0.05):
+        """If a separate PrEditor instance has saved it's prefs, and we are now
+        updating this instances, determine which workboxes have been changed.
+        If we find some that are, save it, but fake the timestamp to be juuust
+        before the new one. This way, the user retains unsaved work, and can
+        still browse to the version the workbox contents.
+
+        Args:
+            timeOffset (float, optional): Description
+        """
+        self.latestTimeStrsForBoxesChangedViaInstance = {}
+
+        for editor_info in self.uiWorkboxTAB.all_widgets():
+            editor, group_name, tab_name, group_idx, tab_idx = editor_info
+            if not editor.__is_dirty__():
+                continue
+
+            core_name = self.name
+            workbox_id = editor.__workbox_id__()
+            versionType = prefs.VersionTypes.Last
+            latest_filepath, idx, count = prefs.get_backup_version_info(
+                core_name, workbox_id, versionType
+            )
+            latest_filepath = prefs.get_relative_path(self.name, latest_filepath)
+
+            if latest_filepath != editor.__backup_file__():
+                stem = Path(latest_filepath).stem
+                match = prefs.DATETIME_PATTERN.search(stem)
+                if not match:
+                    continue
+
+                datetimeStr = match.group()
+                origStamp = datetime.strptime(datetimeStr, prefs.DATETIME_FORMAT)
+
+                newStamp = origStamp - timedelta(seconds=timeOffset)
+                newStamp = newStamp.strftime(prefs.DATETIME_FORMAT)
+
+                self.latestTimeStrsForBoxesChangedViaInstance[workbox_id] = newStamp
+                editor.__set_changed_by_instance__(True)
+
+    def setFileMonitoringEnabled(self, filename, state):
+        """Enables/Disables open file change monitoring. If enabled, A dialog will pop
+        up when ever the open file is changed externally. If file monitoring is
+        disabled in the IDE settings it will be ignored.
+
+        Returns:
+            bool:
+        """
+        # if file monitoring is enabled and we have a file name then set up the file
+        # monitoring
+        if not filename:
+            return
+
+        filename = Path(filename).as_posix()
+
+        if state:
+            self.openFileMonitor.addPath(filename)
+        else:
+            self.openFileMonitor.removePath(filename)
+
+    def fileMonitoringEnabled(self, filename):
+        """Returns whether the provide filename is currently being watched, ie
+        is listed in self.openFileMonitor.files()
+
+        Args:
+            filename (str): The filename to determine if being watched
+
+        Returns:
+            bool: Whether filename is being watched.
+        """
+        if not filename:
+            return False
+
+        filename = Path(filename).as_posix()
+        watched_files = self.openFileMonitor.files()
+        return filename in watched_files
+
+    def prefsPath(self, name='preditor_pref.json'):
+        """Get the path to this core's prefs, for the given name
+
+        Args:
+            name (str, optional): This name is appended to the found prefs path,
+                defaults to 'preditor_pref.json'
+
+        Returns:
+            path (str): The determined filepath
+        """
+        path = prefs.prefs_path(name, core_name=self.name)
+        return path
+
+    def linkedFileChanged(self, filename):
+        """Slot for responding to the file watcher's signal. Handle updating this
+        PrEditor instance accordingly.
+
+        Args:
+            filename (str): The file which triggered the file changed signal
+        """
+        prefs_path = Path(self.prefsPath()).as_posix()
+
+        # Either handle prefs or workbox
+        if filename == prefs_path:
+            # First, save workbox prefs. Don't save preditor.prefs because that
+            # would just overwrite whatever changes we are responding to.
+            self.getBoxesChangedByInstance()
+            self.recordWorkboxPrefs()
+            # Now restore prefs, which will use the updated preditor prefs (from
+            # another preditor instance)
+            self.restorePrefs(skip_geom=True)
+        else:
+            for info in self.uiWorkboxTAB.all_widgets():
+                editor, _, _, group_idx, editor_idx = info
+                if not editor.filename():
+                    continue
+                if Path(editor.filename()).as_posix() == Path(filename).as_posix():
+                    editor.__save_prefs__(saveLinkedFile=False)
+                    editor.__reload_file__()
+                    editor.__save_prefs__(saveLinkedFile=False, force=True)
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -762,7 +1135,22 @@ class LoggerWindow(Window):
             | Qt.KeyboardModifier.ControlModifier
             | Qt.KeyboardModifier.ShiftModifier
         ):
-            pass
+
+            kind = None
+            if event.modifiers() & Qt.Key.Key_Control:
+                kind = "Code"
+            elif event.modifiers() & Qt.Key.Key_Alt:
+                kind = "Gui"
+
+            delta = None
+            if event.key() & Qt.Key.Key_Plus:
+                delta = 1
+            elif event.key() & Qt.Key.Key_Minus:
+                delta = -1
+
+            if kind and delta:
+                self.adjustFontSize(kind, delta)
+
         else:
             super(LoggerWindow, self).keyPressEvent(event)
 
@@ -780,7 +1168,8 @@ class LoggerWindow(Window):
         if not manual and not self.uiAutoSaveSettingssACT.isChecked():
             return
 
-        pref = self.load_prefs()
+        origPref = self.load_prefs()
+        pref = copy.deepcopy(origPref)
         geo = self.geometry()
         pref.update(
             {
@@ -798,6 +1187,7 @@ class LoggerWindow(Window):
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
+                'guiFont': self.font().toString(),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
@@ -819,6 +1209,7 @@ class LoggerWindow(Window):
                     self.uiHighlightExactCompletionACT.isChecked()
                 ),
                 'dont_ask_again': self.dont_ask_again,
+                'max_num_backups': self.max_num_backups,
             }
         )
 
@@ -842,23 +1233,101 @@ class LoggerWindow(Window):
             if plugin_pref:
                 pref["plugins"][name] = plugin_pref
 
-        self.save_prefs(pref)
+        # Only save if different from previous pref.
+        if pref != origPref:
+            self.save_prefs(pref)
+            self.setStatusText("Prefs saved")
+        else:
+            self.setStatusText("No changed prefs to save")
+        self.autoHideStatusText()
+
+    def auto_backup_prefs(self, filename, onlyFirst=False):
+        """Auto backup prefs for logger window itself.
+
+        TODO: Implement method to easily scroll thru backups. Maybe difficult, due the
+        myriad combinations of workboxes and workboxes version. Maybe ignore workboxes,
+        and just to the dialog prefs and/or existing workbox names
+
+        Args:
+            filename (str): The filename to backup
+            onlyFirst (bool, optional): Flag to create initial backup, and not
+                subsequent ones. Used when dialog launched for the first time.
+
+        Returns:
+            TYPE: Description
+        """
+        path = Path(filename)
+        name = path.name
+        stem = path.stem
+        bak_path = prefs.create_stamped_path(self.name, name, sub_dir='prefs_bak')
+
+        existing = list(Path(bak_path).parent.glob("{}*.json".format(stem)))
+        if onlyFirst and len(existing):
+            return
+
+        if path.is_file():
+            shutil.copy(path, bak_path)
+
+        self.setStatusText("Prefs saved")
+        self.autoHideStatusText()
 
     def load_prefs(self):
-        filename = prefs.prefs_path('preditor_pref.json', core_name=self.name)
+        filename = self.prefsPath()
+        self.setStatusText('Loaded Prefs: {} '.format(filename))
+        self.autoHideStatusText()
+
+        prefs_dict = {}
+        self.auto_backup_prefs(filename, onlyFirst=True)
         if os.path.exists(filename):
             with open(filename) as fp:
-                return json.load(fp)
-        return {}
+                prefs_dict = json.load(fp)
 
-    def save_prefs(self, pref):
+        prefs_dict = self.transition_to_new_prefs(prefs_dict)
+
+        return prefs_dict
+
+    def transition_to_new_prefs(self, prefs_dict):
+        self.prefs_updates = prefs.get_prefs_updates()
+
+        orig_prefs_dict = copy.deepcopy(prefs_dict)
+
+        new_prefs_dict = prefs.update_prefs_args(
+            self.name, prefs_dict, self.prefs_updates
+        )
+
+        if new_prefs_dict != orig_prefs_dict:
+            self.save_prefs(new_prefs_dict, at_prefs_update=True)
+
+        return new_prefs_dict
+
+    def save_prefs(self, pref, at_prefs_update=False):
         # Save preferences to disk
-        filename = prefs.prefs_path('preditor_pref.json', core_name=self.name)
-        dirname = os.path.dirname(filename)
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
-        with open(filename, 'w') as fp:
-            json.dump(pref, fp, indent=4)
+        filename = self.prefsPath()
+        path = Path(filename)
+        path.parent.mkdir(exist_ok=True, parents=True)
+
+        # Write to temp file first, then copy over, because we may have a
+        # QFileSystemWatcher for the prefs file, and the 2 lines "with open"
+        # and "json.dump" triggers 2 file changed signals.
+        temp_stem = path.stem + "_TEMP"
+        temp_name = temp_stem + path.suffix
+        temp_path = path.with_name(temp_name)
+        with open(temp_path, 'w') as fp:
+            json.dump(pref, fp, indent=4, sort_keys=True)
+
+        self.setFileMonitoringEnabled(self.prefsPath(), False)
+        shutil.copy(temp_path, path)
+        self.setFileMonitoringEnabled(self.prefsPath(), True)
+        temp_path.unlink()
+
+        self.auto_backup_prefs(filename)
+
+        # We may have just updated prefs, and are saving that update. In this
+        # case, do not prune or remove old folder, because we don't have the correct
+        # max number values set yet spinner values.
+        if not at_prefs_update:
+            self.prune_backup_files(sub_dir='workboxes')
+            self.prune_backup_files(sub_dir='prefs_bak')
 
     def maybeDisplayDialog(self, dialog):
         """If user hasn't previously opted to not show this particular dialog again,
@@ -891,8 +1360,21 @@ class LoggerWindow(Window):
             args = ["-m", "preditor"] + args
         QtCore.QProcess.startDetached(cmd, args)
 
-    def restorePrefs(self):
+    def recordWorkboxPrefs(self):
+        self.uiWorkboxTAB.save_prefs()
+
+    def restoreWorkboxPrefs(self, pref):
+        try:
+            self.uiWorkboxTAB.hide()
+            self.uiWorkboxTAB.restore_prefs(pref.get('workbox_prefs', {}))
+        finally:
+            self.uiWorkboxTAB.show()
+
+    def restorePrefs(self, skip_geom=False):
         pref = self.load_prefs()
+
+        workbox_path = self.prefsPath("workboxes")
+        Path(workbox_path).mkdir(exist_ok=True)
 
         # Editor selection
         self.editor_cls_name = pref.get('editor_cls')
@@ -906,8 +1388,11 @@ class LoggerWindow(Window):
         self.uiWorkboxTAB.core_name = self.name
         self.uiEditorChooserWGT.set_editor_name(self.editor_cls_name)
 
+        # Workboxes
+        self.restoreWorkboxPrefs(pref)
+
         # Geometry
-        if 'loggergeom' in pref:
+        if 'loggergeom' in pref and not skip_geom:
             self.setGeometry(*pref['loggergeom'])
         self.uiEditorVerticalACT.setChecked(pref.get('SplitterVertical', False))
         self.adjustWorkboxOrientation(self.uiEditorVerticalACT.isChecked())
@@ -973,7 +1458,7 @@ class LoggerWindow(Window):
             self.setStyleSheet(self._stylesheet)
         self.uiConsoleTXT.flash_time = pref.get('flash_time', 1.0)
 
-        self.uiWorkboxTAB.restore_prefs(pref.get('workbox_prefs', {}))
+        self.max_num_backups = pref.get('max_num_backups', 99)
 
         hintingEnabled = pref.get('hintingEnabled', True)
         self.uiConsoleAutoCompleteEnabledACT.setChecked(hintingEnabled)
@@ -985,11 +1470,17 @@ class LoggerWindow(Window):
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
 
-        _font = pref.get('consoleFont', None)
-        if _font:
+        fontStr = pref.get('consoleFont', None)
+        if fontStr:
             font = QFont()
-            if QtCompat.QFont.fromString(font, _font):
+            if QtCompat.QFont.fromString(font, fontStr):
                 self.console().setConsoleFont(font)
+
+        guiFontStr = pref.get('guiFont', None)
+        if guiFontStr:
+            guiFont = QFont()
+            if guiFont.fromString(guiFontStr):
+                self.setGuiFont(newFont=guiFont)
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
 
@@ -1255,6 +1746,10 @@ class LoggerWindow(Window):
             index = WorkboxPages.Options
 
         self.uiWorkboxSTACK.setCurrentIndex(index)
+
+    @Slot()
+    def update_window_settings(self):
+        self.buildClosedWorkBoxMenu()
 
     def shutdown(self):
         # close out of the ide system

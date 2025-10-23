@@ -96,7 +96,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     def __text__(self, line=None, start=None, end=None):
         return self.toPlainText()
 
-    def __set_text__(self, text):
+    def __set_text__(self, text, update_last_saved_text=True):
         super(WorkboxTextEdit, self).__set_text__(text)
         self.setPlainText(text)
 

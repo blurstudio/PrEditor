@@ -30,8 +30,6 @@ class OneTabWidget(QTabWidget):
         Returns:
             name (str): The name, or updated name if needed
         """
-        name = name.replace(" ", "_")
-
         existing_names = [self.tabText(i) for i in range(self.count())]
 
         # Use regex to find the last set of digits. If found, the base name is
@@ -62,6 +60,7 @@ class OneTabWidget(QTabWidget):
     def addTab(self, *args, **kwargs):  # noqa: N802
         ret = super(OneTabWidget, self).addTab(*args, **kwargs)
         self.update_closable_tabs()
+        self.tabBar().setFont(self.window().font())
         return ret
 
     def close_tab(self, index):

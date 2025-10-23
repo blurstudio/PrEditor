@@ -197,3 +197,14 @@ ConsolePrEdit {
   qproperty-stdoutColor: rgb(22, 160, 250);
   qproperty-stringColor: rgb(240, 135, 0);
 }
+
+DragTabBar {
+    qproperty-changedColor: "orchid";
+    qproperty-changedLinkedColor: "violet";
+    qproperty-dirtyColor: "orange";
+    qproperty-dirtyLinkedColor: "sandybrown";
+    qproperty-linkedColor: rgb(0, 160, 0);
+    qproperty-missingLinkedColor: rgb(255, 50, 140);
+    qproperty-orphanedColor: "pink";
+    qproperty-orphanedLinkedColor: "plum";
+}

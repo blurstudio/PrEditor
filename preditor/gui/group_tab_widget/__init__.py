@@ -1,13 +1,11 @@
 from __future__ import absolute_import
 
-import os
+from pathlib import Path
 
 from Qt.QtCore import Qt
-from Qt.QtGui import QIcon
-from Qt.QtWidgets import QHBoxLayout, QMessageBox, QToolButton, QWidget
+from Qt.QtWidgets import QHBoxLayout, QMessageBox, QSizePolicy, QToolButton, QWidget
 
-from ... import resourcePath
-from ...prefs import prefs_path
+from ...prefs import VersionTypes, get_backup_version_info
 from ..drag_tab_bar import DragTabBar
 from ..workbox_text_edit import WorkboxTextEdit
 from .grouped_tab_menu import GroupTabMenu
@@ -16,10 +14,10 @@ from .one_tab_widget import OneTabWidget
 
 DEFAULT_STYLE_SHEET = """
 /* Make the two buttons in the GroupTabWidget take up the
-   same horizontal space as the GroupedTabWidget's buttons. */
+   same horizontal space as the GroupedTabWidget's buttons.
 GroupTabWidget>QTabBar::tab{
     max-height: 1.5em;
-}
+}*/
 /* We have an icon, no need to show the menu indicator */
 #group_tab_widget_menu_btn::menu-indicator{
     width: 0px;
@@ -51,25 +49,36 @@ class GroupTabWidget(OneTabWidget):
         corner = QWidget(self)
         lyt = QHBoxLayout(corner)
         lyt.setSpacing(0)
-        lyt.setContentsMargins(0, 0, 0, 0)
+        lyt.setContentsMargins(0, 5, 0, 0)
 
         corner.uiNewTabBTN = QToolButton(corner)
         corner.uiNewTabBTN.setObjectName('group_tab_widget_new_btn')
         corner.uiNewTabBTN.setText('+')
-        corner.uiNewTabBTN.setIcon(QIcon(resourcePath('img/file-plus.png')))
         corner.uiNewTabBTN.released.connect(lambda: self.add_new_tab(None))
+
         lyt.addWidget(corner.uiNewTabBTN)
 
         corner.uiMenuBTN = QToolButton(corner)
-        corner.uiMenuBTN.setIcon(QIcon(resourcePath('img/chevron-down.png')))
+        corner.uiMenuBTN.setText('\u2630')
         corner.uiMenuBTN.setObjectName('group_tab_widget_menu_btn')
         corner.uiMenuBTN.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         corner.uiCornerMENU = GroupTabMenu(self, parent=corner.uiMenuBTN)
         corner.uiMenuBTN.setMenu(corner.uiCornerMENU)
+
+        self.adjustSizePolicy(corner)
+        self.adjustSizePolicy(corner.uiNewTabBTN)
+        self.adjustSizePolicy(corner.uiMenuBTN)
+        self.adjustSizePolicy(corner.uiCornerMENU)
+
         lyt.addWidget(corner.uiMenuBTN)
 
         self.uiCornerBTN = corner
         self.setCornerWidget(self.uiCornerBTN, Qt.Corner.TopRightCorner)
+
+    def adjustSizePolicy(self, button):
+        sp = button.sizePolicy()
+        sp.setVerticalPolicy(QSizePolicy.Policy.Preferred)
+        button.setSizePolicy(sp)
 
     def add_new_tab(self, group, title=None, prefs=None):
         """Adds a new tab to the requested group, creating the group if the group
@@ -87,28 +96,30 @@ class GroupTabWidget(OneTabWidget):
             GroupedTabWidget: The tab group for this group.
             WorkboxMixin: The new text editor.
         """
-        parent = None
         if not group:
             group = self.get_next_available_tab_name(self.default_title)
         elif group is True:
             group = self.currentIndex()
+
+        parent = None
         if isinstance(group, int):
             group_title = self.tabText(group)
             parent = self.widget(group)
         elif isinstance(group, str):
-            group_title = group.replace(" ", "_")
+            group_title = group
             index = self.index_for_text(group)
             if index != -1:
                 parent = self.widget(index)
 
         if not parent:
-            parent, group_title = self.default_tab(group_title)
+            parent, group_title = self.default_tab(group_title, prefs)
             self.addTab(parent, group_title)
 
         # Create the first editor tab and make it visible
-        editor = parent.add_new_editor(title)
+        editor = parent.add_new_editor(title, prefs)
         self.setCurrentIndex(self.indexOf(parent))
         self.window().focusToWorkbox()
+        self.tabBar().setFont(self.window().font())
         return parent, editor
 
     def all_widgets(self):
@@ -143,13 +154,6 @@ class GroupTabWidget(OneTabWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
         if ret == QMessageBox.StandardButton.Yes:
-            # Clean up all temp files created by this group's editors if they
-            # are not using actual saved files.
-            tab_widget = self.widget(self.currentIndex())
-            for editor_index in range(tab_widget.count()):
-                editor = tab_widget.widget(editor_index)
-                editor.__remove_tempfile__()
-
             super(GroupTabWidget, self).close_tab(index)
 
     def current_groups_widget(self):
@@ -167,6 +171,64 @@ class GroupTabWidget(OneTabWidget):
             core_name=self.core_name,
         )
         return widget, title
+
+    def append_orphan_workboxes_to_prefs(self, prefs, existing_by_group):
+        """If prefs are saved in a different PrEditor instance (in this same core)
+        there may be a workbox which is either:
+            - new in this instance
+            - removed in the saved other instance
+        Any of these workboxes are 'orphaned'. Rather than just deleting it, we
+        alert the user, so that work can be saved.
+
+        We also add any orphan workboxes to the window's boxesOrphanedViaInstance
+        dict, in the form `workbox_id: workbox`.
+
+        Args:
+            prefs (dict): The 'workboxes' section of the PrEditor prefs
+            existing_by_group (dict): The existing workbox's info (as returned
+                by self.all_widgets(), by group.
+
+        Returns:
+            prefs (dict): The 'workboxes' section of the PrEditor prefs, updated
+        """
+        groups = prefs.get("groups")
+        for group_name, workbox_infos in existing_by_group.items():
+            prefs_group = None
+            for temp_group in groups:
+                temp_name = temp_group.get("name")
+                if temp_name == group_name:
+                    prefs_group = temp_group
+                    break
+
+            # If the orphan's group doesn't yet exist, we prepare to make it
+            new_group = None
+            if not prefs_group:
+                new_group = dict(name=group_name, tabs=[])
+
+            cur_group = prefs_group or new_group
+            cur_tabs = cur_group.get("tabs")
+
+            for workbox_info in workbox_infos:
+                # Create workbox_dict
+                workbox = workbox_info[0]
+                name = workbox_info[2]
+
+                workbox_id = workbox.__workbox_id__()
+
+                workbox_dict = dict(
+                    name=name,
+                    workbox_id=workbox_id,
+                    filename=workbox.__filename__(),
+                    backup_file=workbox.__backup_file__(),
+                    orphaned_by_instance=True,
+                )
+
+                self.window().boxesOrphanedViaInstance[workbox_id] = workbox
+
+                cur_tabs.append(workbox_dict)
+            if new_group:
+                groups.append(cur_group)
+        return prefs
 
     def restore_prefs(self, prefs):
         """Adds tab groups and tabs, restoring the selected tabs. If a tab is
@@ -189,16 +251,16 @@ class GroupTabWidget(OneTabWidget):
                             "filename": "C:\\temp\\invalid_asdfdfd.py",
                             // Name of the editor's tab [Optional]
                             "name": "invalid_asdfdfd.py",
-                            "tempfile": null
+                            "workbox_id": null
                         },
                         {
                             // This tab should be active for the group.
                             "current": true,
                             "filename": null,
                             "name": "Workbox",
-                            // If tempfile is not null, this file is loaded.
+                            // If workbox_id is not null, this file is loaded.
                             // Ignored if filename is not null.
-                            "tempfile": "workbox_2yrwctco_a.py"
+                            "workbox_id": "workbox_2yrwctco_a.py"
                         }
                     ]
                 }
@@ -206,16 +268,45 @@ class GroupTabWidget(OneTabWidget):
         }
         ```
         """
+        selected_workbox_id = None
+        current_workbox = self.window().current_workbox()
+        if current_workbox:
+            selected_workbox_id = current_workbox.__workbox_id__()
+
+        # When re-running restore_prefs (ie after another instance saved
+        # workboxes, and we are reloading them here, get the workbox_ids of all
+        # workboxes defined in prefs
+        pref_workbox_ids = []
+        for group in prefs.get('groups', []):
+            for tab in group.get('tabs', []):
+                pref_workbox_ids.append(tab.get("workbox_id", None))
+
+        # Collect data about workboxes which already exist (if we are re-running
+        # this method after workboxes exist, ie another PrEditor instance has
+        # changed contents and we are now matching those changes.
+        existing_by_id = {}
+        existing_by_group = {}
+        for workbox_info in list(self.all_widgets()):
+            workbox = workbox_info[0]
+            workbox_id = workbox.__workbox_id__()
+            group_name = workbox_info[1]
+            existing_by_id[workbox.__workbox_id__()] = workbox_info
+
+            # If we had a workbox, but what we are about to load doesn't include
+            # it, add it back in so it will be shown.
+            if workbox_id not in pref_workbox_ids:
+                existing_by_group.setdefault(group_name, []).append(workbox_info)
+
+        prefs = self.append_orphan_workboxes_to_prefs(prefs, existing_by_group)
 
         self.clear()
 
-        workbox_dir = prefs_path('workboxes', core_name=self.core_name)
         current_group = None
         for group in prefs.get('groups', []):
             current_tab = None
-            group_name = group['name']
             tab_widget = None
 
+            group_name = group['name']
             group_name = self.get_next_available_tab_name(group_name)
 
             for tab in group.get('tabs', []):
@@ -227,22 +318,46 @@ class GroupTabWidget(OneTabWidget):
                 # preferences save.
                 # By not restoring tabs for deleted files we prevent accidentally
                 # restoring a tab with empty text.
-                filename = tab.get('filename')
-                temp_name = tab.get('tempfile')
-                if filename:
-                    if not os.path.exists(filename):
-                        continue
-                if not temp_name:
-                    continue
-                temp_name = os.path.join(workbox_dir, temp_name)
-                if not os.path.exists(temp_name):
+
+                loadable = False
+
+                name = tab['name']
+                workbox_id = tab['workbox_id']
+                orphaned_by_instance = tab.get('orphaned_by_instance', False)
+
+                # Support legacy arg for emergency backwards compatibility
+                tempfile = tab.get('tempfile', None)
+                # Get various possible saved filepaths.
+                filename_pref = tab.get('filename', "")
+                if filename_pref:
+                    if Path(filename_pref).is_file():
+                        loadable = True
+
+                # See if there are any  workbox backups available
+                backup_file, _, count = get_backup_version_info(
+                    self.window().name, workbox_id, VersionTypes.Last, ""
+                )
+                if count:
+                    loadable = True
+                if not loadable:
                     continue
 
                 # There is a file on disk, add the tab, creating the group
                 # tab if it hasn't already been created.
-                name = tab['name']
-                tab_widget, editor = self.add_new_tab(group_name, name)
-                editor.__restore_prefs__(tab)
+                prefs = dict(
+                    workbox_id=workbox_id,
+                    filename=filename_pref,
+                    backup_file=backup_file,
+                    existing_editor_info=existing_by_id.pop(workbox_id, None),
+                    orphaned_by_instance=orphaned_by_instance,
+                    tempfile=tempfile,
+                )
+                tab_widget, editor = self.add_new_tab(
+                    group_name, title=name, prefs=prefs
+                )
+
+                editor.__set_last_workbox_name__(editor.__workbox_name__())
+                editor.__determine_been_changed_by_instance__()
 
                 # If more than one tab in this group is listed as current, only
                 # respect the first
@@ -264,6 +379,15 @@ class GroupTabWidget(OneTabWidget):
             # group is listed as current, only respect the first.
             if current_group is None and group.get('current'):
                 current_group = self.indexOf(tab_widget)
+
+        if selected_workbox_id:
+            for widget_info in self.all_widgets():
+                widget, _, _, group_idx, tab_idx = widget_info
+                if widget.__workbox_id__() == selected_workbox_id:
+                    self.setCurrentIndex(group_idx)
+                    grouped = self.widget(group_idx)
+                    grouped.setCurrentIndex(tab_idx)
+                    break
 
         # Restore the current group for this widget
         if current_group is None:
@@ -292,11 +416,8 @@ class GroupTabWidget(OneTabWidget):
             current_editor = tab_widget.currentIndex()
             for j in range(tab_widget.count()):
                 current = True if j == current_editor else None
-                tabs.append(
-                    tab_widget.widget(j).__save_prefs__(
-                        name=tab_widget.tabText(j), current=current
-                    )
-                )
+                workbox = tab_widget.widget(j)
+                tabs.append(workbox.__save_prefs__(current=current))
 
             groups.append(group)
 
