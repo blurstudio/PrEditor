@@ -98,9 +98,6 @@ class LoggerWindow(Window):
         self.uiConsoleTXT.flash_window = self
         self.uiConsoleTXT.clearExecutionTime = self.clearExecutionTime
         self.uiConsoleTXT.reportExecutionTime = self.reportExecutionTime
-        self.uiClearToLastPromptACT.triggered.connect(
-            self.uiConsoleTXT.clearToLastPrompt
-        )
         # If we don't disable this shortcut Qt won't respond to this classes or
         # the ConsolePrEdit's
         self.uiConsoleTXT.uiClearToLastPromptACT.setShortcut('')
@@ -126,6 +123,7 @@ class LoggerWindow(Window):
             self.uiLoggingLevelBTN,
         )
         self.uiConsoleTOOLBAR.insertSeparator(self.uiRunSelectedACT)
+        self.uiConsoleTOOLBAR.show()
 
         # Configure Find in Workboxes
         self.uiFindInWorkboxesWGT.hide()
@@ -136,6 +134,47 @@ class LoggerWindow(Window):
         self._logToFilePath = None
         self._stds = None
         self.uiLogToFileClearACT.setVisible(False)
+
+        # Call other setup methods
+        self.connectSignals()
+        self.createActions()
+        self.setIcons()
+        self.startFileSystemMonitor()
+
+        self.maxRecentClosedWorkboxes = 20
+        self.max_num_backups = 50
+        self.dont_ask_again = []
+
+        # Load any plugins, and set window title
+        self.loadPlugins()
+        self.setWindowTitle(self.defineWindowTitle())
+
+        self.restorePrefs()
+
+        self.setWorkboxFontBasedOnConsole()
+        self.setEditorChooserFontBasedOnConsole()
+
+        self.setup_run_workbox()
+
+        if not standalone:
+            # This action only is valid when running in standalone mode
+            self.uiRestartACT.setVisible(False)
+
+        # Run the current workbox after the LoggerWindow is shown.
+        if run_workbox:
+            # By using two singleShot timers, we can show and draw the LoggerWindow,
+            # then call execAll. This makes it easier to see what code you are running
+            # before it has finished running completely.
+            # QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
+            QTimer.singleShot(
+                0, lambda: QTimer.singleShot(0, lambda: self.run_workbox(run_workbox))
+            )
+
+    def connectSignals(self):
+        """Connect various signals"""
+        self.uiClearToLastPromptACT.triggered.connect(
+            self.uiConsoleTXT.clearToLastPrompt
+        )
 
         self.uiRestartACT.triggered.connect(self.restartLogger)
         self.uiCloseLoggerACT.triggered.connect(self.closeLoggerByAction)
@@ -188,28 +227,6 @@ class LoggerWindow(Window):
         self.uiIncreaseGuiFontSizeACT.triggered.connect(
             partial(self.adjustFontSize, "Gui", 1)
         )
-
-        # Setup ability to cycle completer mode, and create action for each mode
-        self.completerModeCycle = itertools.cycle(CompleterMode)
-        # create CompleterMode submenu
-        defaultMode = next(self.completerModeCycle)
-        for mode in CompleterMode:
-            modeName = mode.displayName()
-            action = self.uiCompleterModeMENU.addAction(modeName)
-            action.setObjectName('ui{}ModeACT'.format(modeName))
-            action.setData(mode)
-            action.setCheckable(True)
-            action.setChecked(mode == defaultMode)
-            completerMode = CompleterMode(mode)
-            action.setToolTip(completerMode.toolTip())
-            action.triggered.connect(partial(self.selectCompleterMode, action))
-
-        self.uiCompleterModeMENU.addSeparator()
-        action = self.uiCompleterModeMENU.addAction('Cycle mode')
-        action.setObjectName('uiCycleModeACT')
-        action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
-        action.triggered.connect(self.cycleCompleterMode)
-        self.uiCompleterModeMENU.hovered.connect(handleMenuHovered)
 
         # Workbox add/remove
         self.uiNewWorkboxACT.triggered.connect(
@@ -294,53 +311,6 @@ class LoggerWindow(Window):
         for menu in menus:
             menu.hovered.connect(handleMenuHovered)
 
-        # Preferences window
-        self.uiClosePreferencesBTN.clicked.connect(self.update_workbox_stack)
-        self.uiClosePreferencesBTN.clicked.connect(self.update_window_settings)
-
-        # Preferences
-        self.uiExtraTooltipInfoCHK.toggled.connect(self.updateTabColorsAndToolTips)
-
-        """Set various icons"""
-        self.uiClearLogACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
-        self.uiNewWorkboxACT.setIcon(QIcon(resourcePath('img/file-plus.png')))
-        self.uiCloseWorkboxACT.setIcon(QIcon(resourcePath('img/file-remove.png')))
-        self.uiSaveConsoleSettingsACT.setIcon(
-            QIcon(resourcePath('img/content-save.png'))
-        )
-        self.uiAboutPreditorACT.setIcon(QIcon(resourcePath('img/information.png')))
-        self.uiRestartACT.setIcon(QIcon(resourcePath('img/restart.svg')))
-        self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
-
-        # Make action shortcuts available anywhere in the Logger
-        self.addAction(self.uiClearLogACT)
-
-        self.dont_ask_again = []
-
-        # Load any plugins, and set window title
-        self.loadPlugins()
-        self.setWindowTitle(self.defineWindowTitle())
-
-        # Start the filesystem monitor
-        self.openFileMonitor = QFileSystemWatcher(self)
-        self.openFileMonitor.fileChanged.connect(self.linkedFileChanged)
-        self.setFileMonitoringEnabled(self.prefsPath(), True)
-
-        self.restorePrefs()
-
-        # add stylesheet menu options.
-        for style_name in stylesheets.stylesheets():
-            action = self.uiStyleMENU.addAction(style_name)
-            action.setObjectName('ui{}ACT'.format(style_name))
-            action.setCheckable(True)
-            action.setChecked(self._stylesheet == style_name)
-            action.triggered.connect(partial(self.setStyleSheet, style_name))
-
-        self.uiConsoleTOOLBAR.show()
-
-        self.setWorkboxFontBasedOnConsole()
-        self.setEditorChooserFontBasedOnConsole()
-
         # Scroll thru workbox versions
         self.uiShowFirstWorkboxVersionACT.triggered.connect(
             partial(self.change_to_workbox_version_text, prefs.VersionTypes.First)
@@ -355,21 +325,65 @@ class LoggerWindow(Window):
             partial(self.change_to_workbox_version_text, prefs.VersionTypes.Last)
         )
 
-        self.setup_run_workbox()
+        # Preferences window
+        self.uiClosePreferencesBTN.clicked.connect(self.update_workbox_stack)
+        self.uiClosePreferencesBTN.clicked.connect(self.update_window_settings)
 
-        if not standalone:
-            # This action only is valid when running in standalone mode
-            self.uiRestartACT.setVisible(False)
+        # Preferences
+        self.uiExtraTooltipInfoCHK.toggled.connect(self.updateTabColorsAndToolTips)
 
-        # Run the current workbox after the LoggerWindow is shown.
-        if run_workbox:
-            # By using two singleShot timers, we can show and draw the LoggerWindow,
-            # then call execAll. This makes it easier to see what code you are running
-            # before it has finished running completely.
-            # QTimer.singleShot(0, lambda: QTimer.singleShot(0, self.execAll))
-            QTimer.singleShot(
-                0, lambda: QTimer.singleShot(0, lambda: self.run_workbox(run_workbox))
-            )
+    def setIcons(self):
+        """Set various icons"""
+        self.uiClearLogACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
+        self.uiNewWorkboxACT.setIcon(QIcon(resourcePath('img/file-plus.png')))
+        self.uiCloseWorkboxACT.setIcon(QIcon(resourcePath('img/file-remove.png')))
+        self.uiSaveConsoleSettingsACT.setIcon(
+            QIcon(resourcePath('img/content-save.png'))
+        )
+        self.uiAboutPreditorACT.setIcon(QIcon(resourcePath('img/information.png')))
+        self.uiRestartACT.setIcon(QIcon(resourcePath('img/restart.svg')))
+        self.uiCloseLoggerACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
+
+    def createActions(self):
+        """Create the necessary actions"""
+        self.addAction(self.uiClearLogACT)
+
+        # Setup ability to cycle completer mode, and create action for each mode
+        self.completerModeCycle = itertools.cycle(CompleterMode)
+        # create CompleterMode submenu
+        defaultMode = next(self.completerModeCycle)
+        for mode in CompleterMode:
+            modeName = mode.displayName()
+            action = self.uiCompleterModeMENU.addAction(modeName)
+            action.setObjectName('ui{}ModeACT'.format(modeName))
+            action.setData(mode)
+            action.setCheckable(True)
+            action.setChecked(mode == defaultMode)
+            completerMode = CompleterMode(mode)
+            action.setToolTip(completerMode.toolTip())
+            action.triggered.connect(partial(self.selectCompleterMode, action))
+
+        # Completer mode actions
+        self.uiCompleterModeMENU.addSeparator()
+        action = self.uiCompleterModeMENU.addAction('Cycle mode')
+        action.setObjectName('uiCycleModeACT')
+        action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
+        action.triggered.connect(self.cycleCompleterMode)
+        self.uiCompleterModeMENU.hovered.connect(handleMenuHovered)
+
+        # add stylesheet menu options.
+        for style_name in stylesheets.stylesheets():
+            action = self.uiStyleMENU.addAction(style_name)
+            action.setObjectName('ui{}ACT'.format(style_name))
+            action.setCheckable(True)
+            action.setChecked(self._stylesheet == style_name)
+            action.triggered.connect(partial(self.setStyleSheet, style_name))
+
+    def startFileSystemMonitor(self):
+        """Start the file system monitor, and add this PrEditor's prefs path"""
+        self.openFileMonitor = QFileSystemWatcher(self)
+        self.openFileMonitor.fileChanged.connect(self.linkedFileChanged)
+        self.setFileMonitoringEnabled(self.prefsPath(), True)
 
     @Slot()
     def apply_options(self):
