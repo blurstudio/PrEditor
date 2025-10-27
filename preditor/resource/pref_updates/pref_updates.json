@@ -1,6 +1,12 @@
 {
     "SplitterSize": {"new_name": "splitterSize"},
     "SplitterVertical": {"new_name": "splitterVertical"},
+    "uiAutoSaveSettingssACT": {"new_name": "autoSaveSettings"},
+    "uiAutoPromptACT": {"new_name": "autoPrompt"},
+    "uiErrorHyperlinksACT": {"new_name": "errorHyperlinks"},
+    "uiHighlightExactCompletionACT": {"new_name": "highlightExactCompletion"},
+    "uiSelectTextACT": {"new_name": "selectText"},
+    "uiSeparateTracebackACT": {"new_name": "separateTraceback"},
     "workbox_prefs": {
         "tempfile": {
             "new_name": "workbox_id",

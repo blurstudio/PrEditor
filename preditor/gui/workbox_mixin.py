@@ -1130,7 +1130,7 @@ class WorkboxMixin(object):
                 self.window().execSelected(truncate=False)
 
         if evalTrunc or evalNoTrunc:
-            if self.window().uiAutoPromptACT.isChecked():
+            if self.window().uiAutoPromptCHK.isChecked():
                 self.__console__().startInputLine()
             return '__exec_selected__'
         else:

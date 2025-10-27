@@ -93,7 +93,6 @@ class ConsolePrEdit(QTextEdit):
         self.addSepNewline = False
 
         # When executing code, that takes longer than this seconds, flash the window
-        self.flash_time = 1.0
         self.flash_window = None
 
         # Store previous commands to retrieve easily
@@ -266,8 +265,8 @@ class ConsolePrEdit(QTextEdit):
 
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
         doHyperlink = (
-            hasattr(window, 'uiErrorHyperlinksACT')
-            and window.uiErrorHyperlinksACT.isChecked()
+            hasattr(window, 'uiErrorHyperlinksCHK')
+            and window.uiErrorHyperlinksCHK.isChecked()
             and self.anchor
         )
         if not doHyperlink:
@@ -480,7 +479,8 @@ class ConsolePrEdit(QTextEdit):
                 self.reportExecutionTime((delta, commandText))
 
         # Provide user feedback when running long code execution.
-        if self.flash_window and self.flash_time and delta >= self.flash_time:
+        flash_time = self.window().uiFlashTimeSPIN.value()
+        if self.flash_window and flash_time and delta >= flash_time:
             if settings.OS_TYPE == "Windows":
                 try:
                     from casement import utils
@@ -725,7 +725,7 @@ class ConsolePrEdit(QTextEdit):
                     # If option chosen, if the exact prefix exists in the
                     # possible completions, highlight it, even if it's not the
                     # topmost completion.
-                    if self.window().uiHighlightExactCompletionACT.isChecked():
+                    if self.window().uiHighlightExactCompletionCHK.isChecked():
                         for i in range(completer.completionCount()):
                             completer.setCurrentRow(i)
                             curCompletion = completer.currentCompletion()
@@ -930,12 +930,12 @@ class ConsolePrEdit(QTextEdit):
         if QtCompat.isValid(self):
             window = self.window()
             doHyperlink = (
-                hasattr(window, 'uiErrorHyperlinksACT')
-                and window.uiErrorHyperlinksACT.isChecked()
+                hasattr(window, 'uiErrorHyperlinksCHK')
+                and window.uiErrorHyperlinksCHK.isChecked()
             )
             sepPreditorTrace = (
-                hasattr(window, 'uiSeparateTracebackACT')
-                and window.uiSeparateTracebackACT.isChecked()
+                hasattr(window, 'uiSeparateTracebackCHK')
+                and window.uiSeparateTracebackCHK.isChecked()
             )
             self.moveCursor(QTextCursor.MoveOperation.End)
 

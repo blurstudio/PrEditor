@@ -97,7 +97,7 @@ class PreditorExceptHook(object):
 
             # logger is visible and check if it was minimized on windows
             if instance.isVisible() and not instance.isMinimized():
-                if instance.uiAutoPromptACT.isChecked():
+                if instance.uiAutoPromptCHK.isChecked():
                     instance.console().startInputLine()
                 return
 
