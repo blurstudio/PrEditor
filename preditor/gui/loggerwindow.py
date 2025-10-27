@@ -218,6 +218,11 @@ class LoggerWindow(Window):
         )
         self.uiCloseWorkboxACT.triggered.connect(self.uiWorkboxTAB.close_current_tab)
 
+        # Old workbox housekeeping
+        self.uiEmptyWorkboxRecycleBinACT.triggered.connect(
+            self.empty_workbox_recycle_bin
+        )
+
         # Browse previous commands
         self.uiGetPrevCmdACT.triggered.connect(self.getPrevCommand)
         self.uiGetNextCmdACT.triggered.connect(self.getNextCommand)
@@ -1004,7 +1009,7 @@ class LoggerWindow(Window):
         """Remove from disk any old workbox backup folders. We find all current
         open workbox's workbox_ids, and add any workbox_ids from the recently
         closed workbox menu. Any workbox folders which are not in that list will
-        be deleted.
+        be moved to the workbox_recycle_bin.
         """
 
         # Collect the workbox_ids for all currently open workboxes, and all
@@ -1021,13 +1026,13 @@ class LoggerWindow(Window):
         # Look at all workbox folders on disk. If it's in the list collected
         # above, it's a keeper, otherwise it's to be deleted.
         keepers = []
-        to_delete = []
+        to_remove = []
         workbox_dir = self.prefsPath("workboxes")
         for file in Path(workbox_dir).iterdir():
             if file.is_file():
                 continue
             if file.name not in keeper_workbox_ids:
-                to_delete.append(file)
+                to_remove.append(file)
             else:
                 keepers.append(file)
 
@@ -1037,11 +1042,47 @@ class LoggerWindow(Window):
         if not keepers:
             return
 
-        # Go thru each to_delete folder, empty it out, and remove it.
-        for deleter in to_delete:
-            for file in deleter.iterdir():
+        # Go thru each to_remove folder, move it to the recycle bin.
+        bin_path = Path(self.prefsPath("workbox_recycle_bin"))
+        for directory in to_remove:
+            new_path = bin_path / directory.name
+            # If somehow new_path already exists, remove it first
+            if new_path.exists():
+                try:
+                    new_path.unlink()
+                except PermissionError:
+                    msg = (
+                        "Unable to remove very old workbox directory:\n"
+                        f"{new_path}\ndue to a permission error."
+                    )
+                    logger.warning(msg)
+
+            shutil.move(directory, new_path)
+
+    def empty_workbox_recycle_bin(self):
+        """Remove any old workbox folders from the workbox_recycle_bin"""
+
+        msg = "Are you sure you want to empty the workbox recycle bin?"
+        ret = QMessageBox.question(
+            self,
+            'Confirm empty workbox recycle bin',
+            msg,
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+        )
+        if ret != QMessageBox.StandardButton.Yes:
+            return
+
+        bin_path = Path(self.prefsPath("workbox_recycle_bin"))
+        if not bin_path.exists():
+            return
+
+        for file in bin_path.iterdir():
+            if file.is_dir():
+                for sub_file in file.iterdir():
+                    sub_file.unlink()
+                file.rmdir()
+            else:
                 file.unlink()
-            deleter.rmdir()
 
     def getBoxesChangedByInstance(self, timeOffset=0.05):
         self.latestTimeStrsForBoxesChangedViaInstance = {}
