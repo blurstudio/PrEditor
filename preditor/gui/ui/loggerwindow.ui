@@ -860,6 +860,7 @@ Must be at least 1</string>
     <addaction name="uiCloseLoggerACT"/>
     <addaction name="separator"/>
     <addaction name="uiClosedWorkboxesMENU"/>
+    <addaction name="uiEmptyWorkboxRecycleBinACT"/>
    </widget>
    <widget class="QMenu" name="uiHelpMENU">
     <property name="title">
@@ -1836,6 +1837,11 @@ at the indicated line in the specified text editor.
   <action name="uiPreferencesACT">
    <property name="text">
     <string>Preferences</string>
+   </property>
+  </action>
+  <action name="uiEmptyWorkboxRecycleBinACT">
+   <property name="text">
+    <string>Empty Workbox Recycle Bin</string>
    </property>
   </action>
  </widget>
