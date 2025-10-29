@@ -23,7 +23,16 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     )
 
     def __init__(
-        self, parent=None, console=None, delayable_engine='default', core_name=None
+        self,
+        parent=None,
+        console=None,
+        workbox_id=None,
+        filename=None,
+        backup_file=None,
+        tempfile=None,
+        delayable_engine='default',
+        core_name=None,
+        **kwargs,
     ):
         super(WorkboxTextEdit, self).__init__(parent=parent, core_name=core_name)
         self._filename = None
@@ -96,7 +105,7 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     def __text__(self, line=None, start=None, end=None):
         return self.toPlainText()
 
-    def __set_text__(self, text):
+    def __set_text__(self, text, update_last_saved_text=True):
         super(WorkboxTextEdit, self).__set_text__(text)
         self.setPlainText(text)
 
