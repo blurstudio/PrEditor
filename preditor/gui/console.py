@@ -165,6 +165,11 @@ class ConsolePrEdit(QTextEdit):
         """
         return self._uiCodeHighlighter
 
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu()
+        menu.setFont(self.window().font())
+        menu.exec(self.mapToGlobal(event.pos()))
+
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
         to get scroll.maximum() to update properly so that we calc newValue
@@ -240,17 +245,6 @@ class ConsolePrEdit(QTextEdit):
         self.anchor = None
         QApplication.restoreOverrideCursor()
         return super(ConsolePrEdit, self).mouseReleaseEvent(event)
-
-    def wheelEvent(self, event):
-        """Override of wheelEvent to allow for font resizing by holding ctrl while"""
-        # scrolling. If used in LoggerWindow, use that wheel event
-        # May not want to import LoggerWindow, so perhaps
-        # check by str(type())
-        ctrlPressed = event.modifiers() == Qt.KeyboardModifier.ControlModifier
-        if ctrlPressed and "LoggerWindow" in str(type(self.window())):
-            self.window().wheelEvent(event)
-        else:
-            QTextEdit.wheelEvent(self, event)
 
     def keyReleaseEvent(self, event):
         """Override of keyReleaseEvent to determine when to end navigation of

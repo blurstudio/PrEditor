@@ -60,6 +60,7 @@ class OneTabWidget(QTabWidget):
     def addTab(self, *args, **kwargs):  # noqa: N802
         ret = super(OneTabWidget, self).addTab(*args, **kwargs)
         self.update_closable_tabs()
+        self.tabBar().setFont(self.window().font())
         return ret
 
     def close_tab(self, index):

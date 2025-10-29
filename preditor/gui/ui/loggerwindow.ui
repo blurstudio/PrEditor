@@ -186,6 +186,11 @@
     <addaction name="uiClearLogACT"/>
     <addaction name="separator"/>
     <addaction name="uiSelectFontsMENU"/>
+    <addaction name="uiSelectGuiFontsMENU"/>
+    <addaction name="uiDecreaseCodeFontSizeACT"/>
+    <addaction name="uiIncreaseCodeFontSizeACT"/>
+    <addaction name="uiDecreaseGuiFontSizeACT"/>
+    <addaction name="uiIncreaseGuiFontSizeACT"/>
     <addaction name="uiStyleMENU"/>
     <addaction name="separator"/>
     <addaction name="uiIndentationsTabsACT"/>
@@ -1035,6 +1040,55 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+Shift+]</string>
+   </property>
+  </action>
+  <action name="uiSelectGuiFontsMENU">
+   <property name="text">
+    <string>Select Gui Font</string>
+   </property>
+  </action>
+  <action name="uiIncreaseCodeFontSizeACT">
+   <property name="text">
+    <string>Increase Code Font Size</string>
+   </property>
+   <property name="toolTip">
+    <string>..or Ctrl+Scroll Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="uiIncreaseGuiFontSizeACT">
+   <property name="text">
+    <string>Increase Gui Font Size</string>
+   </property>
+   <property name="toolTip">
+    <string>..or Alt+Scroll Up</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt++</string>
+   </property>
+  </action>
+  <action name="uiDecreaseCodeFontSizeACT">
+   <property name="text">
+    <string>Decrease Code Font Size</string>
+   </property>
+   <property name="toolTip">
+    <string>..or Ctrl+Scroll Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="uiDecreaseGuiFontSizeACT">
+   <property name="text">
+    <string>Decrease Gui Font Size</string>
+   </property>
+   <property name="toolTip">
+    <string>..or Alt+Scroll Down</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+-</string>
    </property>
   </action>
   <action name="uiSeparateTracebackACT">
