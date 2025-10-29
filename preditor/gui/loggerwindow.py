@@ -23,9 +23,11 @@ from Qt.QtWidgets import (
     QApplication,
     QFontDialog,
     QInputDialog,
+    QMenu,
     QMessageBox,
     QTextBrowser,
     QTextEdit,
+    QToolButton,
     QToolTip,
     QVBoxLayout,
 )
@@ -79,6 +81,11 @@ class LoggerWindow(Window):
         self._stylesheet = 'Bright'
 
         self.setupStatusTimer()
+
+        # Define gui-resizing mods, which may need to be accessed by other modules.
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        alt = Qt.KeyboardModifier.AltModifier
+        self.gui_font_mod = ctrl | alt
 
         # Store the previous time a font-resize wheel event was triggered to prevent
         # rapid-fire WheelEvents. Initialize to the current time.
@@ -156,13 +163,29 @@ class LoggerWindow(Window):
         self.uiAutoCompleteCaseSensitiveACT.toggled.connect(self.setCaseSensitive)
 
         self.uiSelectMonospaceFontACT.triggered.connect(
-            partial(self.selectFont, monospace=True)
+            partial(self.selectFont, origFont=None, monospace=True)
         )
         self.uiSelectProportionalFontACT.triggered.connect(
-            partial(self.selectFont, proportional=True)
+            partial(self.selectFont, origFont=None, proportional=True)
         )
         self.uiSelectAllFontACT.triggered.connect(
-            partial(self.selectFont, monospace=True, proportional=True)
+            partial(self.selectFont, origFont=None, monospace=True, proportional=True)
+        )
+        self.uiSelectGuiFontsMENU.triggered.connect(
+            partial(self.selectGuiFont, monospace=True, proportional=True)
+        )
+
+        self.uiDecreaseCodeFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Code", -1)
+        )
+        self.uiIncreaseCodeFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Code", 1)
+        )
+        self.uiDecreaseGuiFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Gui", -1)
+        )
+        self.uiIncreaseGuiFontSizeACT.triggered.connect(
+            partial(self.adjustFontSize, "Gui", 1)
         )
 
         # Setup ability to cycle completer mode, and create action for each mode
@@ -676,7 +699,19 @@ class LoggerWindow(Window):
 
     def wheelEvent(self, event):
         """adjust font size on ctrl+scrollWheel"""
-        if event.modifiers() == Qt.KeyboardModifier.ControlModifier:
+        mods = event.modifiers()
+        ctrl = Qt.KeyboardModifier.ControlModifier
+        shift = Qt.KeyboardModifier.ShiftModifier
+        alt = Qt.KeyboardModifier.AltModifier
+
+        ctrlAlt = ctrl | alt
+        shiftAlt = shift | alt
+
+        # Assign mods by functionality. Using shift | alt for gui, because just shift or
+        # just alt has existing functionality which also processes.
+        code_font_mod = ctrl
+
+        if mods == code_font_mod or mods == self.gui_font_mod:
             # WheelEvents can be emitted in a cluster, but we only want one at a time
             # (ie to change font size by 1, rather than 2 or 3). Let's bail if previous
             # font-resize wheel event was within a certain threshhold.
@@ -691,19 +726,42 @@ class LoggerWindow(Window):
             if hasattr(event, 'delta'):  # Qt4
                 delta = event.delta()
             else:  # QT5
-                delta = event.angleDelta().y()
+                # Also holding alt reverses the data in angleDelta (!?), so transpose to
+                # get correct value
+                angleDelta = event.angleDelta()
+                if mods == alt or mods == ctrlAlt or mods == shiftAlt:
+                    angleDelta = angleDelta.transposed()
+                delta = angleDelta.y()
 
             # convert delta to +1 or -1, depending
             delta = delta // abs(delta)
             minSize = 5
             maxSize = 50
-            font = self.console().font()
+            if mods == code_font_mod:
+                font = self.console().font()
+            elif mods == self.gui_font_mod:
+                font = self.font()
             newSize = font.pointSize() + delta
             newSize = max(min(newSize, maxSize), minSize)
 
-            self.setFontSize(newSize)
+            # If only ctrl was pressed, adjust code font size, otherwise adjust gui font
+            # size
+            if mods == self.gui_font_mod:
+                self.setGuiFont(newSize=newSize)
+            elif mods == code_font_mod:
+                self.setFontSize(newSize)
         else:
             Window.wheelEvent(self, event)
+
+    def adjustFontSize(self, kind, delta):
+        if kind == "Code":
+            size = self.console().font().pointSize()
+            size += delta
+            self.setFontSize(size)
+        else:
+            size = self.font().pointSize()
+            size += delta
+            self.setGuiFont(newSize=size)
 
     def handleMenuHovered(self, action):
         """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
@@ -722,7 +780,9 @@ class LoggerWindow(Window):
             menu = action.parent()
         QToolTip.showText(QCursor.pos(), text, menu)
 
-    def selectFont(self, monospace=False, proportional=False):
+    def selectFont(
+        self, origFont=None, monospace=False, proportional=False, doGui=False
+    ):
         """Present a QFontChooser dialog, offering, monospace, proportional, or all
         fonts, based on user choice. If a font is chosen, set it on the console and
         workboxes.
@@ -730,7 +790,8 @@ class LoggerWindow(Window):
         Args:
             action (QAction): menu action associated with chosen font
         """
-        origFont = self.console().font()
+        if origFont is None:
+            origFont = self.console().font()
         curFontFamily = origFont.family()
 
         if monospace and proportional:
@@ -751,9 +812,45 @@ class LoggerWindow(Window):
         newFont, okClicked = QFontDialog.getFont(origFont, self, title, options=options)
 
         if okClicked:
-            self.console().setConsoleFont(newFont)
-            self.setWorkboxFontBasedOnConsole()
-            self.setEditorChooserFontBasedOnConsole()
+            if doGui:
+                self.setGuiFont(newFont=newFont)
+            else:
+                self.console().setConsoleFont(newFont)
+                self.setWorkboxFontBasedOnConsole()
+                self.setEditorChooserFontBasedOnConsole()
+
+    def selectGuiFont(self, monospace=True, proportional=True):
+        font = self.font()
+        self.selectFont(
+            origFont=font, monospace=monospace, proportional=proportional, doGui=True
+        )
+
+    def setGuiFont(self, newSize=None, newFont=None):
+        current = self.uiWorkboxTAB.currentWidget()
+        if not current:
+            return
+
+        tabbar_class = current.tabBar().__class__
+        menubar_class = self.menuBar().__class__
+        label_class = self.uiStatusLBL.__class__
+        children = self.findChildren(tabbar_class, QtCore.QRegExp(".*"))
+        children.extend(self.findChildren(menubar_class, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(label_class, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QToolButton, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QMenu, QtCore.QRegExp(".*")))
+        children.extend(self.findChildren(QToolTip, QtCore.QRegExp(".*")))
+
+        for child in children:
+            if newFont is None:
+                newFont = child.font()
+            if newSize is None:
+                newSize = newFont.pointSize()
+            newFont.setPointSize(newSize)
+            child.setFont(newFont)
+            # child.resize()
+        self.setFont(newFont)
+        QToolTip.setFont(newFont)
+        # self.resize()
 
     def setFontSize(self, newSize):
         """Update the font size in the console and current workbox.
@@ -763,6 +860,10 @@ class LoggerWindow(Window):
         """
         font = self.console().font()
         font.setPointSize(newSize)
+        # Also setPointSizeF, which is what gets written to prefs, to prevent
+        # needlessly writing prefs with only a change in pointSizeF precision.
+        font.setPointSizeF(font.pointSize())
+
         self.console().setConsoleFont(font)
 
         self.setWorkboxFontBasedOnConsole()
@@ -1031,17 +1132,6 @@ class LoggerWindow(Window):
         if self.uiAutoPromptACT.isChecked():
             self.console().startInputLine()
 
-    def keyPressEvent(self, event):
-        # Fix 'Maya : Qt tools lose focus' https://redmine.blur.com/issues/34430
-        if event.modifiers() & (
-            Qt.KeyboardModifier.AltModifier
-            | Qt.KeyboardModifier.ControlModifier
-            | Qt.KeyboardModifier.ShiftModifier
-        ):
-            pass
-        else:
-            super(LoggerWindow, self).keyPressEvent(event)
-
     def clearExecutionTime(self):
         """Update status text with hyphens to indicate execution has begun."""
         self.setStatusText('Exec: -.- Seconds')
@@ -1075,6 +1165,7 @@ class LoggerWindow(Window):
                 'wordWrap': self.uiWordWrapACT.isChecked(),
                 'clearBeforeRunning': self.uiClearBeforeRunningACT.isChecked(),
                 'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
+                'guiFont': self.font().toString(),
                 'consoleFont': self.console().font().toString(),
                 'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
@@ -1382,11 +1473,17 @@ class LoggerWindow(Window):
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
 
-        _font = pref.get('consoleFont', None)
-        if _font:
+        fontStr = pref.get('consoleFont', None)
+        if fontStr:
             font = QFont()
-            if QtCompat.QFont.fromString(font, _font):
+            if QtCompat.QFont.fromString(font, fontStr):
                 self.console().setConsoleFont(font)
+
+        guiFontStr = pref.get('guiFont', None)
+        if guiFontStr:
+            guiFont = QFont()
+            if QtCompat.QFont.fromString(guiFont, guiFontStr):
+                self.setGuiFont(newFont=guiFont)
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
 

@@ -11,6 +11,7 @@ from Qt.QtWidgets import (
     QFileDialog,
     QInputDialog,
     QMenu,
+    QSizePolicy,
     QStyle,
     QStyleOptionTab,
     QTabBar,
@@ -339,6 +340,7 @@ class DragTabBar(QTabBar):
         if self._context_menu_tab == -1:
             return
         menu = QMenu(self)
+        menu.setFont(self.window().font())
 
         grouped_tab = self.parentWidget()
         workbox = grouped_tab.widget(self._context_menu_tab)
@@ -505,6 +507,10 @@ class DragTabBar(QTabBar):
         tab_widget.setTabBar(bar)
         tab_widget.setMovable(True)
         tab_widget.setDocumentMode(True)
+
+        sizePolicy = tab_widget.sizePolicy()
+        sizePolicy.setVerticalPolicy(QSizePolicy.Policy.Preferred)
+        tab_widget.setSizePolicy(sizePolicy)
 
         if menu:
             bar.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
