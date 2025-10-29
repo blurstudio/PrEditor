@@ -85,7 +85,6 @@ class DocumentEditor(QsciScintilla):
 
         # create custom properties
         self._filename = ''
-        self.additionalFilenames = []
         self._language = ''
         self._defaultLanguage = ""
         self._lastSearch = ''
@@ -1029,16 +1028,6 @@ class DocumentEditor(QsciScintilla):
         if not isinstance(value, list):
             raise TypeError('PermaHighlight must be a list')
 
-    def refreshToolTip(self):
-        # TODO: This will proably be removed once I add a user interface to
-        # additionalFilenames.
-        toolTip = []
-        if self.additionalFilenames:
-            toolTip.append('<u><b>Additional Filenames:</b></u>')
-            for filename in self.additionalFilenames:
-                toolTip.append(filename)
-        self.setToolTip('\n<br>'.join(toolTip))
-
     def reloadFile(self):
         return self.reloadDialog(
             'Are you sure you want to reload %s? You will lose all changes'
@@ -1160,10 +1149,6 @@ class DocumentEditor(QsciScintilla):
     def save(self):
         logger.debug(' Saved Called'.center(60, '-'))
         ret = self.saveAs(self.filename())
-        # If the user has provided additionalFilenames to save, process each of them
-        # without switching the current filename.
-        for filename in self.additionalFilenames:
-            self.saveAs(filename, setFilename=False)
         return ret
 
     def saveAs(self, filename='', setFilename=True, directory=''):
@@ -1826,9 +1811,6 @@ class DocumentEditor(QsciScintilla):
 
         if self.isModified():
             title += '*'
-
-        if self.additionalFilenames:
-            title = '[{}]'.format(title)
 
         return title
 
