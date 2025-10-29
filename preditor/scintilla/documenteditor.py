@@ -81,6 +81,8 @@ class DocumentEditor(QsciScintilla):
         self.pos = None
         self.anchor = None
 
+        self.ctrlIsPressed = False
+
         # create custom properties
         self._filename = ''
         self.additionalFilenames = []
@@ -92,7 +94,6 @@ class DocumentEditor(QsciScintilla):
         self._lastSearchDirection = SearchDirection.First
         self._saveTimer = 0.0
         self._autoReloadOnChange = False
-        self._enableFontResizing = True
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
         self._foldMarginForegroundColor = QColor(Qt.GlobalColor.white)
@@ -857,6 +858,25 @@ class DocumentEditor(QsciScintilla):
         altPressed = modifiers == Qt.KeyboardModifier.AltModifier
         altReturnPressed = altPressed and retPressed
 
+        ctrlPressed = modifiers == Qt.KeyboardModifier.ControlModifier
+        plusPressed = key == Qt.Key.Key_Plus
+        minusPressed = key == Qt.Key.Key_Minus
+
+        # We will have logger window handle the ctrl++ or ctrl+- shortcuts for
+        # font resizing, so we bypass the normal SCintilla functionality. If we
+        # don't the SCintilla font will get out-of sync with the console, and also
+        # not be accessible by workbox.font() or workbox.__font__().
+
+        # For some reason, documentEditor doesn't receive a single combination
+        # (ie ctrl++) instead receiving two separate keyPressEvents, one for
+        # ctrl, and one for plus (+). So, we must store that ctrl is pressed,
+        # and unset that when the key is released.
+        if ctrlPressed:
+            self.ctrlIsPressed = True
+        # To determine ctrl combo, check our stored value for the ctrl key.
+        ctrlPlusPressed = self.ctrlIsPressed and plusPressed
+        ctrlMinusPressed = self.ctrlIsPressed and minusPressed
+
         if key == Qt.Key.Key_Backtab:
             self.unindentSelection()
         elif key == Qt.Key.Key_Escape:
@@ -883,6 +903,12 @@ class DocumentEditor(QsciScintilla):
 
             # Reset autoIndent property
             self.setAutoIndent(autoIndent)
+        elif ctrlMinusPressed:
+            # LoggerWindow will handle this
+            self.window().uiDecreaseCodeFontSizeACT.trigger()
+        elif ctrlPlusPressed:
+            # LoggerWindow will handle this
+            self.window().uiIncreaseCodeFontSizeACT.trigger()
 
         else:
             return QsciScintilla.keyPressEvent(self, event)
@@ -896,6 +922,9 @@ class DocumentEditor(QsciScintilla):
             # When using the menu key, show the right click menu at the text
             # cursor, not the mouse cursor, it is not in the correct place.
             self.showMenu(QPoint(x, y))
+
+        elif event.key() == Qt.Key.Key_Control:
+            self.ctrlIsPressed = False
         else:
             return super(DocumentEditor, self).keyReleaseEvent(event)
 
@@ -1428,6 +1457,8 @@ class DocumentEditor(QsciScintilla):
 
     def showMenu(self, pos, popup=True):
         menu = QMenu(self)
+        menu.setFont(self.window().font())
+
         pos = self.mapToGlobal(pos)
         self._clickPos = pos
 
@@ -1802,47 +1833,14 @@ class DocumentEditor(QsciScintilla):
         return title
 
     def wheelEvent(self, event):
-        if (
-            self._enableFontResizing
-            and event.modifiers() == Qt.KeyboardModifier.ControlModifier
+        """Scroll-wheel based font resizing is handled by LoggerWindow, so prevent
+        the built-in QScintilla functionality. Only proceed if ctrl is not part
+        of the event modifiers.
+        """
+        if not (
+            event.modifiers() == self.window().gui_font_mod
+            or event.modifiers() == Qt.KeyboardModifier.ControlModifier
         ):
-            # If used in LoggerWindow, use that wheel event
-            # May not want to import LoggerWindow, so perhaps
-            # check by str(type())
-            # if isinstance(self.window(), "LoggerWindow"):
-            if "LoggerWindow" in str(type(self.window())):
-                self.window().wheelEvent(event)
-                return
-
-            font = self.documentFont
-            marginsFont = self.marginsFont()
-            lexer = self.lexer()
-            if lexer:
-                font = lexer.font(0)
-            try:
-                # Qt5 support
-                delta = event.angleDelta().y()
-            except Exception:
-                # Qt4 support
-                delta = event.delta()
-            if delta > 0:
-                font.setPointSize(font.pointSize() + 1)
-                marginsFont.setPointSize(marginsFont.pointSize() + 1)
-            else:
-                if font.pointSize() - 1 > 0:
-                    font.setPointSize(font.pointSize() - 1)
-                if marginsFont.pointSize() - 1 > 0:
-                    marginsFont.setPointSize(marginsFont.pointSize() - 1)
-
-            self.setMarginsFont(marginsFont)
-            if lexer:
-                lexer.setFont(font)
-            else:
-                self.setFont(font)
-
-            self.fontsChanged.emit(font, marginsFont)
-            event.accept()
-        else:
             super(DocumentEditor, self).wheelEvent(event)
 
     # expose properties for the designer
