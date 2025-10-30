@@ -11,6 +11,7 @@ import traceback
 from builtins import str as text
 from fractions import Fraction
 from functools import partial
+from typing import Optional
 
 import __main__
 from Qt import QtCompat
@@ -23,13 +24,14 @@ from Qt.QtGui import (
     QTextCursor,
     QTextDocument,
 )
-from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit
+from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QTextEdit, QWidget
 
 from .. import settings, stream
 from ..streamhandler_helper import StreamHandlerHelper
 from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .completer import PythonCompleter
+from .loggerwindow import LoggerWindow
 from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 
 
@@ -45,8 +47,9 @@ class ConsolePrEdit(QTextEdit):
     stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
     stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
 
-    def __init__(self, parent):
+    def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super(ConsolePrEdit, self).__init__(parent)
+        self.controller = controller
 
         # For Traceback workbox lines, use this regex pattern, so we can extract
         # workboxName and lineNum. Note that Syntax errors present slightly
@@ -165,8 +168,24 @@ class ConsolePrEdit(QTextEdit):
 
     def contextMenuEvent(self, event):
         menu = self.createStandardContextMenu()
-        menu.setFont(self.window().font())
+        menu.setFont(self.controller.font())
         menu.exec(self.mapToGlobal(event.pos()))
+
+    @property
+    def controller(self) -> Optional[LoggerWindow]:
+        """Used to access workbox widgets and PrEditor settings that are needed.
+
+        This must be set to a LoggerWindow instance. If not set then uses
+        `self.window()`. If this instance isn't a child of a LoggerWindow you must
+        set controller to an instance of a LoggerWindow.
+        """
+        if self._controller:
+            return self._controller
+        return self.window()
+
+    @controller.setter
+    def controller(self, value: LoggerWindow):
+        self._controller = value
 
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
@@ -207,11 +226,9 @@ class ConsolePrEdit(QTextEdit):
         # Set the setTabStopWidth for the console's font
         tab_width = 4
         # TODO: Make tab_width a general user setting
-        if hasattr(self, "window") and "LoggerWindow" in str(type(self.window())):
-            # If parented to a LoggerWindow, get the tab_width from it's workboxes
-            workbox = self.window().current_workbox()
-            if workbox:
-                tab_width = workbox.__tab_width__()
+        workbox = self.controller.current_workbox()
+        if workbox:
+            tab_width = workbox.__tab_width__()
         fontPixelWidth = QFontMetrics(font).horizontalAdvance(" ")
         self.setTabStopDistance(fontPixelWidth * tab_width)
 
@@ -277,12 +294,10 @@ class ConsolePrEdit(QTextEdit):
 
         The text editor defaults to SublimeText3, in the normal install directory
         """
-        window = self.window()
-
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
         doHyperlink = (
-            hasattr(window, 'uiErrorHyperlinksCHK')
-            and window.uiErrorHyperlinksCHK.isChecked()
+            hasattr(self.controller, 'uiErrorHyperlinksCHK')
+            and self.controller.uiErrorHyperlinksCHK.isChecked()
             and anchor
         )
         if not doHyperlink:
@@ -295,11 +310,8 @@ class ConsolePrEdit(QTextEdit):
         lineNum = info[2]
 
         # fetch info from LoggerWindow
-        exePath = ''
-        cmdTempl = ''
-        if hasattr(window, 'textEditorPath'):
-            exePath = window.textEditorPath
-            cmdTempl = window.textEditorCmdTempl
+        exePath = self.controller.textEditorPath
+        cmdTempl = self.controller.textEditorCmdTempl
 
         # Bail if not setup properly
         if not workboxName:
@@ -335,12 +347,12 @@ class ConsolePrEdit(QTextEdit):
                 # Instantiate dialog to maybe show (unless user previously chose "Don't
                 # ask again")
                 dialog = SuggestPathQuotesDialog(
-                    self.window(), cmdTempl, quotedCmdTempl
+                    self.controller, cmdTempl, quotedCmdTempl
                 )
-                self.window().maybeDisplayDialog(dialog)
+                self.controller.maybeDisplayDialog(dialog)
 
             # Refresh cmdTempl in case user just had it changed.
-            cmdTempl = window.textEditorCmdTempl
+            cmdTempl = self.controller.textEditorCmdTempl
 
             # Attempt to create command from template and run the command
             try:
@@ -353,7 +365,7 @@ class ConsolePrEdit(QTextEdit):
                 msg = msg.format(cmdTempl)
                 print(msg)
         elif workboxName is not None:
-            workbox = window.workbox_for_name(workboxName, visible=True)
+            workbox = self.controller.workbox_for_name(workboxName, visible=True)
             lineNum = int(lineNum)
             workbox.__goto_line__(lineNum)
             workbox.setFocus()
@@ -439,7 +451,7 @@ class ConsolePrEdit(QTextEdit):
         Returns:
             txt (str): The line of text found
         """
-        workbox = self.window().workbox_for_name(name)
+        workbox = self.controller.workbox_for_name(name)
         if not workbox:
             return None
 
@@ -495,7 +507,7 @@ class ConsolePrEdit(QTextEdit):
                 self.reportExecutionTime((delta, commandText))
 
         # Provide user feedback when running long code execution.
-        flash_time = self.window().uiFlashTimeSPIN.value()
+        flash_time = self.controller.uiFlashTimeSPIN.value()
         if self.flash_window and flash_time and delta >= flash_time:
             if settings.OS_TYPE == "Windows":
                 try:
@@ -700,15 +712,10 @@ class ConsolePrEdit(QTextEdit):
             if not (ctrlSpace or ctrlM or ctrlI):
                 QTextEdit.keyPressEvent(self, event)
 
-            window = self.window()
             if ctrlI:
-                hasToggleCase = hasattr(window, 'toggleCaseSensitive')
-                if hasToggleCase:
-                    window.toggleCaseSensitive()
+                self.controller.toggleCaseSensitive()
             if ctrlM:
-                hasCycleMode = hasattr(window, 'cycleCompleterMode')
-                if hasCycleMode:
-                    window.cycleCompleterMode()
+                self.controller.cycleCompleterMode()
 
             # check for particular events for the completion
             if completer:
@@ -741,7 +748,7 @@ class ConsolePrEdit(QTextEdit):
                     # If option chosen, if the exact prefix exists in the
                     # possible completions, highlight it, even if it's not the
                     # topmost completion.
-                    if self.window().uiHighlightExactCompletionCHK.isChecked():
+                    if self.controller.uiHighlightExactCompletionCHK.isChecked():
                         for i in range(completer.completionCount()):
                             completer.setCurrentRow(i)
                             curCompletion = completer.currentCompletion()
@@ -944,15 +951,8 @@ class ConsolePrEdit(QTextEdit):
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
         if QtCompat.isValid(self):
-            window = self.window()
-            doHyperlink = (
-                hasattr(window, 'uiErrorHyperlinksCHK')
-                and window.uiErrorHyperlinksCHK.isChecked()
-            )
-            sepPreditorTrace = (
-                hasattr(window, 'uiSeparateTracebackCHK')
-                and window.uiSeparateTracebackCHK.isChecked()
-            )
+            doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
+            sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
             self.moveCursor(QTextCursor.MoveOperation.End)
 
             charFormat = QTextCharFormat()
