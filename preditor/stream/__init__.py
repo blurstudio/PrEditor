@@ -31,14 +31,10 @@ Example::
     # buffer.
     manager.append_writes = False
 """
-from __future__ import absolute_import, print_function
-
 import sys
 
-STDERR = 1
-STDIN = 2
-STDOUT = 3
-
+from ..constants import StreamType
+from ..streamhandler_helper import StreamHandlerHelper  # noqa: E402
 from .director import Director  # noqa: E402
 from .manager import Manager  # noqa: E402
 
@@ -47,15 +43,7 @@ so it can be accessed to install callbacks.
 """
 active = None
 
-__all__ = [
-    "active",
-    "Director",
-    "install_to_std",
-    "Manager",
-    "STDERR",
-    "STDIN",
-    "STDOUT",
-]
+__all__ = ["active", "Director", "install_to_std", "Manager"]
 
 
 def install_to_std(out=True, err=True):
@@ -73,8 +61,12 @@ def install_to_std(out=True, err=True):
     if active is None:
         active = Manager()
         if out:
-            sys.stdout = Director(active, STDOUT)
+            sys.stdout = Director(active, StreamType.STDOUT)
+            # Update any StreamHandler's that were setup using the old stdout
+            StreamHandlerHelper.replace_stream(sys.stdout.old_stream, sys.stdout)
         if err:
-            sys.stderr = Director(active, STDERR)
+            sys.stderr = Director(active, StreamType.STDERR)
+            # Update any StreamHandler's that were setup using the old stderr
+            StreamHandlerHelper.replace_stream(sys.stderr.old_stream, sys.stderr)
 
     return active

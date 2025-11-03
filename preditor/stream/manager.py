@@ -67,7 +67,7 @@ class Manager(collections.deque):
             msg (str): The text to be written.
             state: A identifier for how the text is to be written. For example if this
                 write is coming from sys.stderr this will likely be set to
-                ``preditor.stream.STDERR``.
+                ``preditor.constants.StreamType.STDERR``.
         """
         if self.store_writes:
             self.append((msg, state))
