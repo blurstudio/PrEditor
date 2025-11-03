@@ -18,6 +18,7 @@ from Qt.QtGui import (
 from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
 
 from .. import instance, resourcePath, stream
+from ..constants import StreamType
 from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
@@ -61,8 +62,6 @@ class ConsoleBase(QTextEdit):
         highlight = CodeHighlighter(self, 'Python')
         self.setCodeHighlighter(highlight)
 
-        # If populated, also write to this interface
-        self.outputPipe = None
         self.addSepNewline = False
         self.consoleLine = None
         self.mousePressPos = None
@@ -406,8 +405,14 @@ class ConsoleBase(QTextEdit):
         else:
             self.stream_manager.remove_callback(self.write)
 
-    def write(self, msg, error=False):
-        """In order to make a stack-trace provide clickable hyperlinks, it must be sent
+    def write(self, msg, stream_type=StreamType.STDOUT):
+        """Write a message to the logger.
+
+        Args:
+            msg (str): The message to write.
+            stream_type (bool, optional): Treat this write as as stderr output.
+
+        In order to make a stack-trace provide clickable hyperlinks, it must be sent
         to self._write line-by-line, like a actual exception traceback is. So, we check
         if msg has the stack marker str, if so, send it line by line, otherwise, just
         pass msg on to self._write.
@@ -420,146 +425,147 @@ class ConsoleBase(QTextEdit):
             lines = msg.split("\n")
             for line in lines:
                 line = "{}\n".format(line)
-                self._write(line, error=error)
+                self._write(line, stream_type=stream_type)
         else:
-            self._write(msg, error=error)
+            self._write(msg, stream_type=stream_type)
 
-    def _write(self, msg, error=False):
+    def _write(self, msg, stream_type=StreamType.STDOUT):
         """write the message to the logger"""
         if not msg:
             return
 
         # Convert the stream_manager's stream to the boolean value this function expects
-        error = error == stream.STDERR
-
-        show_msg = QtCompat.isValid(self)
-        if show_msg and error and not self.stream_echo_stderr:
-            show_msg = False
-        if show_msg and not error and not self.stream_echo_stdout:
-            show_msg = False
+        to_error = stream_type & StreamType.STDERR == StreamType.STDERR
+        to_console = stream_type & StreamType.CONSOLE == StreamType.CONSOLE
 
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
-        if show_msg:
-            doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
-            sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
-            self.moveCursor(QTextCursor.MoveOperation.End)
+        if not QtCompat.isValid(self):
+            return
 
-            charFormat = QTextCharFormat()
-            if not error:
-                charFormat.setForeground(self.stdoutColor)
-            else:
-                charFormat.setForeground(self.errorMessageColor)
-            self.setCurrentCharFormat(charFormat)
+        # If stream_type is Console, then always show the output
+        if not to_console:
+            # Otherwise only show the message
+            if to_error and not self.stream_echo_stderr:
+                return
+            if not to_error and not self.stream_echo_stdout:
+                return
 
-            # If showing Error Hyperlinks... Sometimes (when a syntax error, at least),
-            # the last File-Info line of a traceback is issued in multiple messages
-            # starting with unicode paragraph separator (r"\u2029") and followed by a
-            # newline, so our normal string checks search won't work. Instead, we'll
-            # manually reconstruct the line. If msg is a newline, grab that current line
-            # and check it. If it matches,proceed using that line as msg
-            cursor = self.textCursor()
-            info = None
+        doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
+        sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
+        self.moveCursor(QTextCursor.MoveOperation.End)
 
-            if doHyperlink and msg == '\n':
-                cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
-                line = cursor.selectedText()
+        charFormat = QTextCharFormat()
+        if not to_error:
+            charFormat.setForeground(self.stdoutColor)
+        else:
+            charFormat.setForeground(self.errorMessageColor)
+        self.setCurrentCharFormat(charFormat)
 
-                # Remove possible leading unicode paragraph separator, which really
-                # messes up the works
-                if line and line[0] not in string.printable:
-                    line = line[1:]
+        # If showing Error Hyperlinks... Sometimes (when a syntax error, at least),
+        # the last File-Info line of a traceback is issued in multiple messages
+        # starting with unicode paragraph separator (r"\u2029") and followed by a
+        # newline, so our normal string checks search won't work. Instead, we'll
+        # manually reconstruct the line. If msg is a newline, grab that current line
+        # and check it. If it matches,proceed using that line as msg
+        cursor = self.textCursor()
+        info = None
 
-                info = self.parseErrorHyperLinkInfo(line)
-                if info:
-                    cursor.insertText("\n")
-                    msg = "{}\n".format(line)
+        if doHyperlink and msg == '\n':
+            cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
+            line = cursor.selectedText()
 
-            # If showing Error Hyperlinks, display underline output, otherwise
-            # display normal output. Exclude ConsolePrEdits
-            info = info if info else self.parseErrorHyperLinkInfo(msg)
-            filename = info.get("filename", "") if info else ""
+            # Remove possible leading unicode paragraph separator, which really
+            # messes up the works
+            if line and line[0] not in string.printable:
+                line = line[1:]
 
-            # Determine if this is a workbox line of code, or code run directly
-            # in the console
-            isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
-            isConsolePrEdit = '<ConsolePrEdit>' in filename
+            info = self.parseErrorHyperLinkInfo(line)
+            if info:
+                cursor.insertText("\n")
+                msg = "{}\n".format(line)
 
-            # Starting in Python 3, tracebacks don't include the code executed
-            # for stdin, so workbox code won't appear. This attempts to include
-            # it. There is an exception for SyntaxErrors, which DO include the
-            # offending line of code, so in those cases (indicated by lack of
-            # inStr from the regex search) we skip faking the code line.
-            if isWorkbox:
-                match = self.workbox_pattern.search(msg)
-                workboxName = match.groupdict().get("workboxName")
-                lineNum = int(match.groupdict().get("lineNum")) - 1
-                inStr = match.groupdict().get("inStr", "")
+        # If showing Error Hyperlinks, display underline output, otherwise
+        # display normal output. Exclude ConsolePrEdits
+        info = info if info else self.parseErrorHyperLinkInfo(msg)
+        filename = info.get("filename", "") if info else ""
 
-                workboxLine = self.getWorkboxLine(workboxName, lineNum)
-                if workboxLine and inStr:
-                    indent = self.getIndentForCodeTracebackLine(msg)
-                    msg = "{}{}{}".format(msg, indent, workboxLine)
+        # Determine if this is a workbox line of code, or code run directly
+        # in the console
+        isWorkbox = '<WorkboxSelection>' in filename or '<Workbox>' in filename
+        isConsolePrEdit = '<ConsolePrEdit>' in filename
 
-            elif isConsolePrEdit:
-                consoleLine = self.consoleLine
+        # Starting in Python 3, tracebacks don't include the code executed
+        # for stdin, so workbox code won't appear. This attempts to include
+        # it. There is an exception for SyntaxErrors, which DO include the
+        # offending line of code, so in those cases (indicated by lack of
+        # inStr from the regex search) we skip faking the code line.
+        if isWorkbox:
+            match = self.workbox_pattern.search(msg)
+            workboxName = match.groupdict().get("workboxName")
+            lineNum = int(match.groupdict().get("lineNum")) - 1
+            inStr = match.groupdict().get("inStr", "")
+
+            workboxLine = self.getWorkboxLine(workboxName, lineNum)
+            if workboxLine and inStr:
                 indent = self.getIndentForCodeTracebackLine(msg)
-                msg = "{}{}{}\n".format(msg, indent, consoleLine)
+                msg = "{}{}{}".format(msg, indent, workboxLine)
 
-            # To make it easier to see relevant lines of a traceback, optionally insert
-            # a newline separating internal PrEditor code from the code run by user.
-            if self.addSepNewline:
-                if sepPreditorTrace:
-                    msg = "\n" + msg
-                self.addSepNewline = False
+        elif isConsolePrEdit:
+            consoleLine = self.consoleLine
+            indent = self.getIndentForCodeTracebackLine(msg)
+            msg = "{}{}{}\n".format(msg, indent, consoleLine)
 
-            preditorCalls = ("cmdresult = e", "exec(compiled,")
-            if msg.strip().startswith(preditorCalls):
-                self.addSepNewline = True
+        # To make it easier to see relevant lines of a traceback, optionally insert
+        # a newline separating internal PrEditor code from the code run by user.
+        if self.addSepNewline:
+            if sepPreditorTrace:
+                msg = "\n" + msg
+            self.addSepNewline = False
 
-                # Error tracebacks and logging.stack_info supply msg's differently,
-                # so modify it here, so we get consistent results.
-                msg = msg.replace("\n\n", "\n")
+        preditorCalls = ("cmdresult = e", "exec(compiled,")
+        if msg.strip().startswith(preditorCalls):
+            self.addSepNewline = True
 
-            if info and doHyperlink and not isConsolePrEdit:
-                fileStart = info.get("fileStart")
-                fileEnd = info.get("fileEnd")
-                lineNum = info.get("lineNum")
+            # Error tracebacks and logging.stack_info supply msg's differently,
+            # so modify it here, so we get consistent results.
+            msg = msg.replace("\n\n", "\n")
 
-                toolTip = 'Open "{}" at line number {}'.format(filename, lineNum)
-                if isWorkbox:
-                    split = filename.split(':')
-                    workboxIdx = split[-1]
-                    filename = ''
-                else:
-                    filename = filename
-                    workboxIdx = ''
-                href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
+        if info and doHyperlink and not isConsolePrEdit:
+            fileStart = info.get("fileStart")
+            fileEnd = info.get("fileEnd")
+            lineNum = info.get("lineNum")
 
-                # Insert initial, non-underlined text
-                cursor.insertText(msg[:fileStart])
-
-                # Insert hyperlink
-                fmt = cursor.charFormat()
-                fmt.setAnchor(True)
-                fmt.setAnchorHref(href)
-                fmt.setFontUnderline(True)
-                fmt.setToolTip(toolTip)
-                cursor.insertText(msg[fileStart:fileEnd], fmt)
-
-                # Insert the rest of the msg
-                fmt.setAnchor(False)
-                fmt.setAnchorHref('')
-                fmt.setFontUnderline(False)
-                fmt.setToolTip('')
-                cursor.insertText(msg[fileEnd:], fmt)
+            toolTip = 'Open "{}" at line number {}'.format(filename, lineNum)
+            if isWorkbox:
+                split = filename.split(':')
+                workboxIdx = split[-1]
+                filename = ''
             else:
-                # Non-hyperlink output
-                self.insertPlainText(msg)
+                filename = filename
+                workboxIdx = ''
+            href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
 
-        # if a outputPipe was provided, write the message to that pipe
-        if self.outputPipe:
-            self.outputPipe(msg, error=error)
+            # Insert initial, non-underlined text
+            cursor.insertText(msg[:fileStart])
+
+            # Insert hyperlink
+            fmt = cursor.charFormat()
+            fmt.setAnchor(True)
+            fmt.setAnchorHref(href)
+            fmt.setFontUnderline(True)
+            fmt.setToolTip(toolTip)
+            cursor.insertText(msg[fileStart:fileEnd], fmt)
+
+            # Insert the rest of the msg
+            fmt.setAnchor(False)
+            fmt.setAnchorHref('')
+            fmt.setFontUnderline(False)
+            fmt.setToolTip('')
+            cursor.insertText(msg[fileEnd:], fmt)
+        else:
+            # Non-hyperlink output
+            self.insertPlainText(msg)
 
     # These Qt Properties can be customized using style sheets.
     commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))
