@@ -380,6 +380,22 @@ class LoggerWindow(Window):
 
         self.update_workbox_stack()
 
+    def autoSaveEnabled(self):
+        """Whether or not AutoSave option is set
+
+        Returns:
+            bool: hether AutoSave option is checked or not
+        """
+        return self.uiAutoSaveSettingssACT.isChecked()
+
+    def setAutoSaveEnabled(self, state):
+        """Set AutoSave option to state
+
+        Args:
+            state (bool): State to set AutoSave option
+        """
+        self.uiAutoSaveSettingssACT.setChecked(state)
+
     def loadPlugins(self):
         """Load any plugins that modify the LoggerWindow."""
         self.plugins = {}
@@ -1151,7 +1167,7 @@ class LoggerWindow(Window):
         self.uiMenuBar.adjustSize()
 
     def recordPrefs(self, manual=False):
-        if not manual and not self.uiAutoSaveSettingssACT.isChecked():
+        if not manual and not self.autoSaveEnabled():
             return
 
         origPref = self.load_prefs()
@@ -1175,7 +1191,7 @@ class LoggerWindow(Window):
                 'toolbarStates': str(self.saveState().toHex(), 'utf-8'),
                 'guiFont': self.font().toString(),
                 'consoleFont': self.console().font().toString(),
-                'uiAutoSaveSettingssACT': self.uiAutoSaveSettingssACT.isChecked(),
+                'uiAutoSaveSettingssACT': self.autoSaveEnabled(),
                 'uiAutoPromptACT': self.uiAutoPromptACT.isChecked(),
                 'uiLinesInNewWorkboxACT': self.uiLinesInNewWorkboxACT.isChecked(),
                 'uiErrorHyperlinksACT': self.uiErrorHyperlinksACT.isChecked(),
@@ -1428,7 +1444,7 @@ class LoggerWindow(Window):
         self.uiSpellCheckEnabledACT.setChecked(pref.get('spellCheckEnabled', False))
         self.uiSpellCheckEnabledACT.setDisabled(False)
 
-        self.uiAutoSaveSettingssACT.setChecked(pref.get('uiAutoSaveSettingssACT', True))
+        self.setAutoSaveEnabled(pref.get('uiAutoSaveSettingssACT', True))
 
         self.uiAutoPromptACT.setChecked(pref.get('uiAutoPromptACT', False))
         self.uiLinesInNewWorkboxACT.setChecked(
