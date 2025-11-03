@@ -19,7 +19,7 @@ from Qt.QtWidgets import (
 from preditor import osystem
 
 from ..gui import handleMenuHovered
-from . import QtPropertyInit
+from .utils.cute import QtPropertyInit
 
 
 class TabStates(IntEnum):

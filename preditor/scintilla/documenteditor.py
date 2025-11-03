@@ -33,7 +33,7 @@ from Qt.QtWidgets import (
 from .. import osystem, resourcePath
 from ..delayable_engine import DelayableEngine
 from ..enum import Enum, EnumGroup
-from ..gui import QtPropertyInit
+from ..utils.cute import QtPropertyInit
 from . import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)

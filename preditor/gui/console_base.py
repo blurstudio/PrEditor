@@ -19,7 +19,7 @@ from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
 
 from .. import instance, resourcePath, stream
 from ..constants import StreamType
-from . import QtPropertyInit
+from ..utils.cute import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
 from .suggest_path_quotes_dialog import SuggestPathQuotesDialog

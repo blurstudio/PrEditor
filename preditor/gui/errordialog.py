@@ -7,7 +7,8 @@ from Qt.QtCore import Qt
 from Qt.QtGui import QColor, QPixmap
 
 from .. import __file__ as pfile
-from . import Dialog, QtPropertyInit, loadUi
+from ..utils.cute import QtPropertyInit
+from . import Dialog, loadUi
 
 
 class ErrorDialog(Dialog):

@@ -15,7 +15,7 @@ from Qt.QtGui import QKeySequence, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QWidget
 
 from .. import settings
-from . import QtPropertyInit
+from ..utils.cute import QtPropertyInit
 from .completer import PythonCompleter
 from .console_base import ConsoleBase
 from .loggerwindow import LoggerWindow
