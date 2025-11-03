@@ -5,7 +5,8 @@ import sys
 
 import pytest
 
-from preditor.stream import STDERR, STDOUT, Director, Manager, install_to_std
+from preditor.constants import StreamType
+from preditor.stream import Director, Manager, install_to_std
 
 
 @pytest.fixture
@@ -62,8 +63,8 @@ def test_nul_stream(manager):
 
     # Make directors that wrap sys.stdout and sys.stderr
     # This way we can check that the default behavior works
-    stdout_director = Director(manager, STDOUT)
-    stderr_director = Director(manager, STDERR)
+    stdout_director = Director(manager, StreamType.STDOUT)
+    stderr_director = Director(manager, StreamType.STDERR)
 
     # Wrap the stdout/stderr directors so we can check that
     # director.std_stream_wrapped is not set for these cases
@@ -79,8 +80,8 @@ def test_nul_stream(manager):
     try:
         # Build a director here that will grab the nul streams
         # so we can check that they don't store them in .old_stream
-        nullout_director = Director(manager, STDOUT)
-        nullerr_director = Director(manager, STDERR)
+        nullout_director = Director(manager, StreamType.STDOUT)
+        nullerr_director = Director(manager, StreamType.STDERR)
     finally:
         # And make sure to restore the backed up stdout
         sys.stdout = orig_stdout

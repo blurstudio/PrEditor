@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 import io
 import sys
 
-from . import STDERR, STDOUT
+from ..constants import StreamType
 
 
 class _DirectorBuffer(io.RawIOBase):
@@ -13,13 +13,13 @@ class _DirectorBuffer(io.RawIOBase):
 
     Args:
         manager (Manager): The manager that writes are stored in.
-        state: The state passed to the manager. This is often ``preditor.stream.STDOUT``
-            or ``preditor.stream.STDERR``.
+        state: The state passed to the manager. This is often``StreamType.STDOUT``
+            or ``StreamType.STDERR``.
         old_stream: A second stream that will be written to every time this stream
             is written to. This allows this object to replace sys.stdout and still
             send that output to the original stdout, which is useful for not breaking
             DCC's script editors. Pass False to disable this feature. If you pass None
-            and state is set to ``preditor.stream.STDOUT`` or ``preditor.stream.STDERR``
+            and state is set to ``StreamType.STDOUT`` or ``StreamType.STDERR``
             this will automatically be set to the current sys.stdout or sys.stderr.
         name (str, optional): Stored on self.name.
     """
@@ -63,13 +63,13 @@ class Director(io.TextIOWrapper):
 
     Args:
         manager (Manager): The manager that writes are stored in.
-        state: The state passed to the manager. This is often ``preditor.stream.STDOUT``
-            or ``preditor.stream.STDERR``.
+        state: The state passed to the manager. This is often ``StreamType.STDOUT``
+            or ``StreamType.STDERR``.
         old_stream: A second stream that will be written to every time this stream
             is written to. This allows this object to replace sys.stdout and still
             send that output to the original stdout, which is useful for not breaking
             DCC's script editors. Pass False to disable this feature. If you pass None
-            and state is set to ``preditor.stream.STDOUT`` or ``preditor.stream.STDERR``
+            and state is set to ``StreamType.STDOUT`` or ``StreamType.STDERR``
             this will automatically be set to the current sys.stdout or sys.stderr.
     """
 
@@ -82,7 +82,7 @@ class Director(io.TextIOWrapper):
         if old_stream is False:
             old_stream = None
         elif old_stream is None:
-            if state == STDOUT:
+            if state == StreamType.STDOUT:
                 # On Windows if we're in pythonw.exe, then sys.stdout is named "nul"
                 # And it uses cp1252 encoding (which breaks with unicode)
                 # So if we find this nul TextIOWrapper, it's safe to just skip it
@@ -90,7 +90,7 @@ class Director(io.TextIOWrapper):
                 if name != 'nul':
                     self.std_stream_wrapped = True
                     old_stream = sys.stdout
-            elif state == STDERR:
+            elif state == StreamType.STDERR:
                 name = getattr(sys.stderr, 'name', '')
                 if name != 'nul':
                     self.std_stream_wrapped = True
