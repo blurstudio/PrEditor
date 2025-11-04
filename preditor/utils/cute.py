@@ -55,7 +55,9 @@ def QtPropertyInit(name, default, callback=None, typ=None):
     Args:
         name(str): The name of internal attribute to store to and lookup from.
         default: The property's default value.  This will also define the Property type
-            if typ is not set.
+            if typ is not set. To define a property containing a list, dict or set,
+            pass the list, dict, or set class not an instance of the class. Ie pass
+            `list` not `[]`. See flake8-bugbear rule B006 for more info.
         callback(callable): If provided this function is called when the property is
             set.
         typ (class, optional): If not None this value is used to specify the type of
@@ -66,10 +68,23 @@ def QtPropertyInit(name, default, callback=None, typ=None):
         Property
     """
 
-    def _getattrDefault(default, self, attrName):
+    # Prevent all instances of class sharing a mutable data structure. If the
+    # default is one of these classes and not a instance of them, replace them
+    # with an instance of the default class.
+    # See flake8-bugbear B006: Do not use mutable data structures for argument
+    # defaults. They are created during function definition time. All calls to
+    # the function reuse this one instance of that data structure, persisting
+    # changes between them.
+    is_mutable = default in (list, dict, set)
+
+    def _getattrDefault(default, is_mutable, self, attrName):
         try:
             value = getattr(self, attrName)
         except AttributeError:
+            # Create a unique instance of the default mutable class for self.
+            if is_mutable:
+                default = default()
+
             setattr(self, attrName, default)
             return default
         return value
@@ -79,9 +94,13 @@ def QtPropertyInit(name, default, callback=None, typ=None):
         if callback:
             callback(self, attrName, value)
 
-    ga = partial(_getattrDefault, default)
+    ga = partial(_getattrDefault, default, is_mutable)
     sa = partial(_setattrCallback, callback, name)
     # Use the default value's class if typ is not provided.
     if typ is None:
-        typ = default.__class__
+        if is_mutable:
+            # In this case the type is the same as the default
+            typ = default
+        else:
+            typ = default.__class__
     return Property(typ, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)))
