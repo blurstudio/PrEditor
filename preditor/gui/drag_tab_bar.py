@@ -1,8 +1,38 @@
 from __future__ import absolute_import
 
+from functools import partial
+from pathlib import Path
+
+import six
 from Qt.QtCore import QByteArray, QMimeData, QPoint, QRect, Qt
-from Qt.QtGui import QCursor, QDrag, QPixmap, QRegion
-from Qt.QtWidgets import QInputDialog, QMenu, QTabBar
+from Qt.QtGui import QColor, QCursor, QDrag, QPainter, QPalette, QPixmap, QRegion
+from Qt.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QInputDialog,
+    QMenu,
+    QStyle,
+    QStyleOptionTab,
+    QTabBar,
+)
+
+from preditor import osystem
+
+from . import QtPropertyInit
+
+
+class TabStates:
+    """Nice names for the Tab states for coloring"""
+
+    Normal = 0
+    Linked = 1
+    Changed = 2
+    ChangedLinked = 3
+    Orphaned = 4
+    OrphanedLinked = 5
+    Dirty = 6
+    DirtyLinked = 7
+    MissingLinked = 8
 
 
 class DragTabBar(QTabBar):
@@ -12,13 +42,20 @@ class DragTabBar(QTabBar):
     In most cases you should use `install_tab_widget` to create and add this TabBar
     to a QTabWidget. It takes care of enabling usability features of QTabWidget's.
 
-    Args:
-        mime_type (str, optional): Only accepts dropped tabs that implement this
-            Mime Type. Tabs dragged off of this TabBar will have this Mime Type
-            implemented.
-
     Based on code by ARussel: https://forum.qt.io/post/420469
+
     """
+
+    # These Qt Properties can be customized using style sheets.
+    normalColor = QtPropertyInit('_normalColor', QColor("lightgrey"))
+    linkedColor = QtPropertyInit('_linkedColor', QColor("turquoise"))
+    missingLinkedColor = QtPropertyInit('_missingLinkedColor', QColor("red"))
+    dirtyColor = QtPropertyInit('_dirtyColor', QColor("yellow"))
+    dirtyLinkedColor = QtPropertyInit('_dirtyLinkedColor', QColor("goldenrod"))
+    changedColor = QtPropertyInit('_changedColor', QColor("darkorchid"))
+    changedLinkedColor = QtPropertyInit('_changedLinkedColor', QColor("darkviolet"))
+    orphanedColor = QtPropertyInit('_orphanedColor', QColor("crimson"))
+    orphanedLinkedColor = QtPropertyInit('_orphanedLinkedColor', QColor("firebrick"))
 
     def __init__(self, parent=None, mime_type='DragTabBar'):
         super(DragTabBar, self).__init__(parent=parent)
@@ -28,8 +65,148 @@ class DragTabBar(QTabBar):
         self._context_menu_tab = -1
         self.mime_type = mime_type
 
-    def mouseMoveEvent(self, event):  # noqa: N802
+        self.fg_color_map = {}
+        self.bg_color_map = {}
 
+    def updateColors(self):
+        """This cannot be called during __init__, otherwise all bg colors will
+        be default, and not read from the style sheet. So instead, the first
+        time we need self.bg_color_map, we check if it has values, and call this
+        method if it doesn't.
+        """
+        self.bg_color_map = {
+            TabStates.Normal: self.normalColor,
+            TabStates.Changed: self.changedColor,
+            TabStates.ChangedLinked: self.changedLinkedColor,
+            TabStates.Orphaned: self.orphanedColor,
+            TabStates.OrphanedLinked: self.orphanedLinkedColor,
+            TabStates.Dirty: self.dirtyColor,
+            TabStates.DirtyLinked: self.dirtyLinkedColor,
+            TabStates.Linked: self.linkedColor,
+            TabStates.MissingLinked: self.missingLinkedColor,
+        }
+        self.fg_color_map = {
+            "0": "white",
+            "1": "black",
+        }
+
+    def get_color_and_tooltip(self, index):
+        """Determine the color and tooltip based on the state of the workbox.
+
+        Args:
+            index (int): The index of the tab holding the workbox
+
+        Returns:
+            color, toolTip (QColor, str): The QColor and toolTip string to apply
+                to the tab being painted
+        """
+        state = TabStates.Normal
+        toolTip = ""
+        if self.parent():
+            widget = self.parent().widget(index)
+
+            filename = None
+            if hasattr(widget, "text"):
+                filename = widget.__filename__() or widget._filename_pref
+
+            if widget.__changed_by_instance__():
+                if filename:
+                    state = TabStates.ChangedLinked
+                    toolTip = (
+                        "Linked workbox has been updated by saving in another "
+                        "PrEditor and has had unsaved changes auto-saved to a"
+                        " previous version.\nAccess with Ctrl-Alt-[ shortcut."
+                    )
+                else:
+                    state = TabStates.Changed
+                    toolTip = (
+                        "Workbox has been updated by saving in another PrEditor "
+                        "instance, and has had it's unsaved changes auto-saved to "
+                        "a previous version.\nAccess with Ctrl-Alt-[ shortcut."
+                    )
+            elif widget.__orphaned_by_instance__():
+                if filename:
+                    state = TabStates.OrphanedLinked
+                    toolTip = (
+                        "Linked workbox is either newly added, or orphaned by "
+                        "saving in another PrEditor instance"
+                    )
+                else:
+                    state = TabStates.Orphaned
+                    toolTip = (
+                        "Workbox is either newly added, or orphaned by "
+                        "saving in another PrEditor instance"
+                    )
+            elif widget.__is_dirty__():
+                if filename:
+                    state = TabStates.DirtyLinked
+                    toolTip = "Linked workbox has unsaved changes."
+                else:
+                    state = TabStates.Dirty
+                    toolTip = "Workbox has unsaved changes, or it's name has changed."
+            elif filename:
+                if Path(filename).is_file():
+                    state = TabStates.Linked
+                    toolTip = "Linked to file on disk"
+                else:
+                    state = TabStates.MissingLinked
+                    toolTip = "Linked file is missing"
+
+            if hasattr(widget, "__workbox_id__"):
+                workbox_id = widget.__workbox_id__()
+                toolTip += "\n\n{}".format(workbox_id)
+
+        color = self.bg_color_map.get(state)
+        return color, toolTip
+
+    def paintEvent(self, event):
+        """Override of .paintEvent to handle custom tab colors and toolTips.
+
+        If self.bg_color_map has not yet been populated, do so by calling
+        self.updateColors(). We do not call self.updateColor in this class's
+        __init__ because the QtPropertyInit won't be able to read the properties
+        from the stylesheet at that point.
+
+        Args:
+            event (QEvent): The event passed to this event handler.
+        """
+        if not self.bg_color_map:
+            self.updateColors()
+
+        style = self.style()
+        painter = QPainter(self)
+        option = QStyleOptionTab()
+
+        isLight = self.normalColor.value() >= 128
+
+        # Update the the parent GroupTabWidget
+        self.parent().parent().parent().update()
+
+        for index in range(self.count()):
+            # color_name, toolTip = self.get_color_and_tooltip(index)
+            color, toolTip = self.get_color_and_tooltip(index)
+            self.setTabToolTip(index, toolTip)
+
+            # Get colors
+            # color = QColor(color_name)
+            if isLight:
+                fillColor = color.lighter(175)
+                color = color.darker(250)
+            else:
+                fillColor = color.darker(250)
+                color = color.lighter(175)
+            # Pick white or black for text, based on lightness of fillColor
+            fg_idx = int(fillColor.value() >= 128)
+            fg_color_name = self.fg_color_map.get(str(fg_idx))
+            fg_color = QColor(fg_color_name)
+
+            self.initStyleOption(option, index)
+            option.palette.setColor(QPalette.ColorRole.WindowText, fg_color)
+            option.palette.setColor(QPalette.ColorRole.Window, color)
+            option.palette.setColor(QPalette.ColorRole.Button, fillColor)
+            style.drawControl(QStyle.ControlElement.CE_TabBarTab, option, painter)
+
+    def mouseMoveEvent(self, event):  # noqa: N802
         if not self._mime_data:
             return super(DragTabBar, self).mouseMoveEvent(event)
 
@@ -143,6 +320,8 @@ class DragTabBar(QTabBar):
 
             name, success = QInputDialog.getText(self, 'Rename Tab', msg, text=current)
             name = self.parent().get_next_available_tab_name(name)
+            if not name.strip():
+                return
 
             if success:
                 self.setTabText(self._context_menu_tab, name)
@@ -155,17 +334,158 @@ class DragTabBar(QTabBar):
         This method sets the tab index the user right clicked on in the variable
         `_context_menu_tab`. This can be used in the triggered QAction methods."""
 
-        self._context_menu_tab = self.tabAt(pos)
+        index = self.tabAt(pos)
+        self._context_menu_tab = index
         if self._context_menu_tab == -1:
             return
         menu = QMenu(self)
-        act = menu.addAction('Rename')
-        act.triggered.connect(self.rename_tab)
+
+        grouped_tab = self.parentWidget()
+        workbox = grouped_tab.widget(self._context_menu_tab)
+
+        # Show File-related actions depending if filename already set. Don't include
+        # Rename if the workbox is linked to a file.
+        if hasattr(workbox, 'filename'):
+            if not workbox.filename():
+                act = menu.addAction('Rename')
+                act.triggered.connect(self.rename_tab)
+
+                act = menu.addAction('Link File')
+                act.triggered.connect(partial(self.link_file, workbox))
+
+                act = menu.addAction('Save and Link File')
+                act.triggered.connect(partial(self.save_and_link_file, workbox))
+            else:
+                if Path(workbox.filename()).is_file():
+                    act = menu.addAction('Explore File')
+                    act.triggered.connect(partial(self.explore_file, workbox))
+
+                    act = menu.addAction('Unlink File')
+                    act.triggered.connect(partial(self.unlink_file, workbox))
+
+                    act = menu.addAction('Save As')
+                    act.triggered.connect(partial(self.save_and_link_file, workbox))
+                else:
+                    act = menu.addAction('Explore File')
+                    act.triggered.connect(partial(self.explore_file, workbox))
+
+                    act = menu.addAction('Re-link File')
+                    act.triggered.connect(partial(self.link_file, workbox))
+
+                    act = menu.addAction('Unlink File')
+                    act.triggered.connect(partial(self.unlink_file, workbox))
+        else:
+            act = menu.addAction('Rename')
+            act.triggered.connect(self.rename_tab)
+
+        act = menu.addAction('Copy Workbox Name')
+        act.triggered.connect(partial(self.copy_workbox_name, workbox, index))
+
+        act = menu.addAction('Copy Workbox Id')
+        act.triggered.connect(partial(self.copy_workbox_id, workbox, index))
 
         if popup:
             menu.popup(self.mapToGlobal(pos))
 
         return menu
+
+    def link_file(self, workbox):
+        """Link the given workbox to a file on disk.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+        """
+        filename = workbox.filename()
+        filename, _other = QFileDialog.getOpenFileName(directory=filename)
+        if filename and Path(filename).is_file():
+            workbox.__load__(filename)
+            workbox._filename_pref = filename
+            workbox._filename = filename
+            name = Path(filename).name
+
+            self.setTabText(self._context_menu_tab, name)
+            self.update()
+            self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
+
+            workbox.__save_prefs__(saveLinkedFile=False, force=True)
+
+    def save_and_link_file(self, workbox):
+        """Save the given workbox as a file on disk, and link the workbox to it.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+        """
+        filename = workbox.filename()
+        directory = six.text_type(Path(filename).parent) if filename else ""
+        success = workbox.saveAs(directory=directory)
+        if not success:
+            return
+
+        filename = workbox.filename()
+        workbox._filename_pref = filename
+        workbox._filename = filename
+        workbox.__set_last_workbox_name__(workbox.__workbox_name__())
+        name = Path(filename).name
+
+        self.setTabText(self._context_menu_tab, name)
+        self.update()
+        self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
+
+    def explore_file(self, workbox):
+        """Open a system file explorer at the path of the linked file.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+        """
+        path = Path(workbox._filename_pref)
+        if path.exists():
+            osystem.explore(str(path))
+        elif path.parent.exists():
+            osystem.explore(str(path.parent))
+
+    def unlink_file(self, workbox):
+        """Disconnect a file link.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+        """
+        workbox.updateFilename("")
+        workbox._filename_pref = ""
+
+        name = self.parent().default_title
+        self.setTabText(self._context_menu_tab, name)
+
+    def copy_workbox_name(self, workbox, index):
+        """Copy the workbox name to clipboard.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+            index (index): The index of the clicked tab
+        """
+        try:
+            name = workbox.__workbox_name__()
+        except AttributeError:
+            group = self.parent().widget(index)
+            curIndex = group.currentIndex()
+            workbox = group.widget(curIndex)
+            name = workbox.__workbox_name__()
+        QApplication.clipboard().setText(name)
+
+    def copy_workbox_id(self, workbox, index):
+        """Copy the workbox id to clipboard.
+
+        Args:
+            workbox (WorkboxMixin): The workbox contained in the clicked tab
+            index (index): The index of the clicked tab
+        """
+        try:
+            workbox_id = workbox.__workbox_id__()
+        except AttributeError:
+            group = self.parent().widget(index)
+            curIndex = group.currentIndex()
+            workbox = group.widget(curIndex)
+            workbox_id = workbox.__workbox_id__()
+        QApplication.clipboard().setText(workbox_id)
 
     @classmethod
     def install_tab_widget(cls, tab_widget, mime_type='DragTabBar', menu=True):

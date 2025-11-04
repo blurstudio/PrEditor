@@ -4,12 +4,20 @@ import io
 import os
 import tempfile
 import textwrap
+from pathlib import Path
 
 import chardet
 from Qt.QtCore import Qt
 from Qt.QtWidgets import QStackedWidget
 
-from ..prefs import prefs_path
+from ..prefs import (
+    VersionTypes,
+    create_stamped_path,
+    get_backup_version_info,
+    get_full_path,
+    get_prefs_dir,
+    get_relative_path,
+)
 
 
 class WorkboxName(str):
@@ -55,16 +63,71 @@ class WorkboxMixin(object):
     """When a user is picking this Workbox class, show a warning with this text."""
 
     def __init__(
-        self, parent=None, tempfile=None, filename=None, core_name=None, **kwargs
+        self,
+        parent=None,
+        console=None,
+        workbox_id=None,
+        filename=None,
+        backup_file=None,
+        tempfile=None,
+        delayable_engine='default',
+        core_name=None,
+        **kwargs,
     ):
         super(WorkboxMixin, self).__init__(parent=parent, **kwargs)
-        self._filename_pref = filename
         self._is_loaded = False
+        self._show_blank = False
         self._tempdir = None
-        self._tempfile = tempfile
+
         self.core_name = core_name
 
         self._tab_widget = parent
+
+        self.__set_last_saved_text__("")
+        # You would think we should also __set_last_workbox_name_ here, but we
+        # wait until __show__ so that we know the tab exists, and has tabText
+        self._last_workbox_name = None
+
+        self.__set_orphaned_by_instance__(False)
+        self.__set_changed_by_instance__(False)
+        self._changed_saved = False
+
+    def __set_last_saved_text__(self, text):
+        """Store text as last_saved_text on this workbox so checking if if_dirty
+        is quick.
+
+        Args:
+            text (str): The text to define as last_saved_text
+        """
+        self._last_saved_text = text
+        self.__tab_widget__().tabBar().update()
+
+    def __last_saved_text__(self):
+        """Returns the last_saved_text on this workbox
+
+        Returns:
+            last_saved_text (str): The _last_saved_text on this workbox
+        """
+        return self._last_saved_text
+
+    def __set_last_workbox_name__(self, name=None):
+        """Store text as last_workbox_name on this workbox so checking if
+        if_dirty is quick.
+
+        Args:
+            name (str): The name to define as last_workbox_name
+        """
+        if name is None:
+            name = self.__workbox_name__(workbox=self)
+        self._last_workbox_name = name
+
+    def __last_workbox_name__(self):
+        """Returns the last_workbox_name on this workbox
+
+        Returns:
+            last_workbox_name (str): The last_workbox_name on this workbox
+        """
+        return self._last_workbox_name
 
     def __tab_widget__(self):
         """Return the tab widget which contains this workbox
@@ -73,6 +136,10 @@ class WorkboxMixin(object):
             GroupedTabWidget: The tab widget which contains this workbox
         """
         return self._tab_widget
+
+    def __set_tab_widget__(self, tab_widget):
+        """Set this workbox's _tab_widget to the provided tab_widget"""
+        self._tab_widget = tab_widget
 
     def __auto_complete_enabled__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -139,7 +206,7 @@ class WorkboxMixin(object):
             ret = repr(ret)
             self.__console__().startOutputLine()
             if truncate:
-                print(self.truncate_middle(ret, 100))
+                print(self.__truncate_middle__(ret, 100))
             else:
                 print(ret)
 
@@ -147,13 +214,31 @@ class WorkboxMixin(object):
         """Returns True if this workbox supports file monitoring.
         This allows the editor to update its text if the linked
         file is changed on disk."""
-        return False
+        raise NotImplementedError("Mixin method not overridden.")
 
     def __set_file_monitoring_enabled__(self, state):
-        pass
+        """Enables/Disables open file change monitoring. If enabled, A dialog will pop
+        up when ever the open file is changed externally. If file monitoring is
+        disabled in the IDE settings it will be ignored.
+
+        Returns:
+            bool:
+        """
+        # if file monitoring is enabled and we have a file name then set up the file
+        # monitoring
+        raise NotImplementedError("Mixin method not overridden.")
 
     def __filename__(self):
         raise NotImplementedError("Mixin method not overridden.")
+
+    def __set_filename__(self, filename):
+        """Set this workboxes linked filename to the provided filename
+
+        Args:
+            filename (str): The filename to link to
+        """
+        self._filename = filename
+        self._filename_pref = filename
 
     def __font__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -336,7 +421,20 @@ class WorkboxMixin(object):
         """
         self._is_loaded = True
 
-    def truncate_middle(self, s, n, sep=' ... '):
+    def __is_dirty__(self):
+        """Returns if this workbox has unsaved changes, either to it's contents
+        or it's name.
+
+        Returns:
+            is_dirty (bool): Whether or not this workbox has unsaved changes
+        """
+        is_dirty = (
+            self.__text__() != self.__last_saved_text__()
+            or self.__workbox_name__(workbox=self) != self.__last_workbox_name__()
+        )
+        return is_dirty
+
+    def __truncate_middle__(self, s, n, sep=' ... '):
         """Truncates the provided text to a fixed length, putting the sep in the middle.
         https://www.xormedia.com/string-truncate-middle-with-ellipsis/
         """
@@ -356,65 +454,211 @@ class WorkboxMixin(object):
 
     def __restore_prefs__(self, prefs):
         self._filename_pref = prefs.get('filename')
-        self._tempfile = prefs.get('tempfile')
+        self._workbox_id = prefs.get('workbox_id')
 
-    def __save_prefs__(self, name, current=None):
+    def __save_prefs__(self, current=None, saveLinkedFile=True, force=False):
         ret = {}
+
         # Hopefully the alphabetical sorting of this dict is preserved in py3
         # to make it easy to diff the json pref file if ever required.
         if current is not None:
             ret['current'] = current
         ret['filename'] = self._filename_pref
-        ret['name'] = name
-        ret['tempfile'] = self._tempfile
+        ret['name'] = self.__workbox_name__().workbox
+        ret['workbox_id'] = self._workbox_id
+        if self._tempfile:
+            ret['tempfile'] = self._tempfile
+
+        if self._backup_file:
+            ret['backup_file'] = get_relative_path(self.core_name, self._backup_file)
 
         if not self._is_loaded:
             return ret
 
-        if self._filename_pref:
-            self.__save__()
-        else:
-            if not self._tempfile:
-                self._tempfile = self.__create_tempfile__()
-                ret['tempfile'] = self._tempfile
-            self.__write_file__(
-                self.__tempfile__(create=True),
-                self.__text__(),
+        fullpath = get_full_path(
+            self.core_name, self._workbox_id, backup_file=self._backup_file
+        )
+
+        time_str = None
+        if self._changed_by_instance:
+            time_str = self.window().latestTimeStrsForBoxesChangedViaInstance.get(
+                self._workbox_id, None
             )
+
+        if self._changed_saved:
+            self.window().latestTimeStrsForBoxesChangedViaInstance.pop(
+                self._workbox_id, None
+            )
+            self._changed_saved = False
+
+        backup_exists = self._backup_file and Path(fullpath).is_file()
+        if self.__is_dirty__() or not backup_exists or force:
+            full_path = create_stamped_path(
+                self.core_name, self._workbox_id, time_str=time_str
+            )
+
+            full_path = str(full_path)
+            self.__write_file__(full_path, self.__text__())
+
+            self._backup_file = get_relative_path(self.core_name, full_path)
+            ret['backup_file'] = self._backup_file
+
+            if time_str:
+                self._changed_saved = True
+
+        if time_str:
+            self.__set_changed_by_instance__(False)
+        if self.window().boxesOrphanedViaInstance.pop(self._workbox_id, None):
+            self.__set_orphaned_by_instance__(False)
+
+        # If workbox is linked to file on disk, save it
+        if self._filename_pref and saveLinkedFile:
+            self._filename = self._filename_pref
+            self.__save__()
+            ret['workbox_id'] = self._workbox_id
+
+        self.__set_last_workbox_name__(self.__workbox_name__())
+        self.__set_last_saved_text__(self.__text__())
 
         return ret
 
-    def __tempdir__(self, create=False):
-        if self._tempdir is None:
-            self._tempdir = prefs_path('workboxes', core_name=self.core_name)
-
-        if create and not os.path.exists(self._tempdir):
-            os.makedirs(self._tempdir)
-
-        return self._tempdir
-
-    def __tempfile__(self, create=False):
-        if self._tempfile:
-            return os.path.join(self.__tempdir__(create=create), self._tempfile)
-
-    def __create_tempfile__(self):
-        """Creates a temporary file to be used by `__tempfile__` to store this
-        editors text contents stored in `__tempdir__`."""
+    @classmethod
+    def __create_workbox_id__(cls, core_name):
+        """Creates a __workbox_id__ to store this editors text contents stored
+        in workbox_dir."""
         with tempfile.NamedTemporaryFile(
-            prefix='workbox_',
-            suffix='.py',
-            dir=self.__tempdir__(create=True),
-            delete=False,
+            prefix="workbox_",
+            dir=get_prefs_dir(core_name=core_name),
+            delete=True,
         ) as fle:
             name = fle.name
 
         return os.path.basename(name)
 
-    def __remove_tempfile__(self):
-        """Removes `__tempfile__` if it is being used."""
-        tempfile = self.__tempfile__()
-        if tempfile and os.path.exists(tempfile):
-            os.remove(tempfile)
+    def __workbox_id__(self):
+        """Returns this workbox's workbox_id
+
+        Returns:
+            workbox_id (str)
+        """
+        return self._workbox_id
+
+    def __backup_file__(self):
+        """Returns this workbox's backup file
+
+        Returns:
+            _backup_file (str)
+        """
+        return self._backup_file
+
+    def __set_changed_by_instance__(self, state):
+        """Set whether this workbox has been determined to have been changed by
+        a secondary PrEditor instance (in the same core).
+
+        Args:
+            state (bool): Whether this workbox has been determined to have been
+                changed by a secondary PrEditor instance being saved.
+        """
+        self._changed_by_instance = state
+
+    def __changed_by_instance__(self):
+        """Returns whether this workbox has been determined to have been changed by
+        a secondary PrEditor instance (in the same core).
+
+        Returns:
+            changed_by_instance (bool): Whether this workbox has been determined
+            to have been changed by a secondary PrEditor instance being saved.
+        """
+        return self._changed_by_instance
+
+    def __set_orphaned_by_instance__(self, state):
+        """Set whether this workbox has been determined to have been orphaned by
+        a secondary PrEditor instance (in the same core).
+
+        Args:
+            state (bool): Whether this workbox has been determined to have been
+                orphaned by a secondary PrEditor instance being saved.
+        """
+        self._orphaned_by_instance = state
+
+    def __orphaned_by_instance__(self):
+        """Returns whether this workbox has been determined to have been orphaned by
+        a secondary PrEditor instance (in the same core).
+
+        Returns:
+            changed_by_instance (bool): Whether this workbox has been determined
+            to have been orphaned by a secondary PrEditor instance being saved.
+        """
+        return self._orphaned_by_instance
+
+    def __determine_been_changed_by_instance__(self):
+        """Determine whether this workbox has been changed by a secondary PrEditor
+        instance saving it's prefs. It sets the internal property
+        self._changed_by_instance to indicate the result.
+        """
+        if not self._workbox_id:
+            self._workbox_id = self.__create_workbox_id__(self.core_name)
+
+        if self._workbox_id in self.window().latestTimeStrsForBoxesChangedViaInstance:
+            self.window().latestTimeStrsForBoxesChangedViaInstance.get(self._workbox_id)
+            self._changed_by_instance = True
+        else:
+            self._changed_by_instance = False
+
+    def __get_workbox_version_text__(self, filename, versionType):
+        """Get the text of this workboxes previously saved versions. It's based
+        on versionType, which can be First, Previous, Next, SecondToLast, or Last
+
+        Args:
+            filename (str): Description
+            versionType (prefs.VersionTypes): Enum describing which version to
+                fetch
+
+        Returns:
+            txt, filepath, idx, count (str, str, int, int): The found files' text,
+                it's filepath, the index of this file in the stack of files, and
+                the total count of files for this workbox.
+        """
+        backup_file = get_full_path(
+            self.core_name, self._workbox_id, backup_file=self._backup_file
+        )
+
+        filepath, idx, count = get_backup_version_info(
+            self.core_name, filename, versionType, backup_file
+        )
+        txt = ""
+        if filepath and Path(filepath).is_file():
+            _encoding, txt = self.__open_file__(str(filepath))
+
+        return txt, filepath, idx, count
+
+    def __load_workbox_version_text__(self, versionType):
+        """Get the text of this workboxes previously saved versions, and set it
+        in the workbox. It's based on versionType, which can be First, Previous,
+        Next, SecondToLast, or Last
+
+        Args:
+            versionType (prefs.VersionTypes): Enum describing which version to
+                fetch
+
+        Returns:
+            filename, idx, count (str, int, int): The found files' filepath, the
+                index of this file in the stack of files, and the total count of
+                files for this workbox.
+        """
+        data = self.__get_workbox_version_text__(self._workbox_id, versionType)
+        txt, filepath, idx, count = data
+
+        if filepath:
+            filepath = get_relative_path(self.core_name, filepath)
+
+        self._backup_file = str(filepath)
+
+        self.__set_text__(txt, update_last_saved_text=False)
+        self.__tab_widget__().tabBar().update()
+
+        filename = Path(filepath).name
+        return filename, idx, count
 
     @classmethod
     def __open_file__(cls, filename, strict=True):
@@ -455,11 +699,22 @@ class WorkboxMixin(object):
             return
 
         self._is_loaded = True
-        if self._filename_pref:
+        count = None
+        if self._filename_pref and Path(self._filename_pref).is_file():
             self.__load__(self._filename_pref)
-        elif self._tempfile:
-            _, txt = self.__open_file__(self.__tempfile__(), strict=False)
-            self.__set_text__(txt)
+            return
+        else:
+            core_name = self.window().name
+            versionType = VersionTypes.Last
+            filepath, idx, count = get_backup_version_info(
+                core_name, self._workbox_id, versionType, ""
+            )
+
+            if count:
+                self.__load_workbox_version_text__(VersionTypes.Last)
+                self.__set_last_saved_text__(self.__text__())
+
+        self.__set_last_workbox_name__()
 
     def process_shortcut(self, event, run=True):
         """Check for workbox shortcuts and optionally call them.
@@ -482,7 +737,6 @@ class WorkboxMixin(object):
         # Number pad enter, or Shift + Return pressed, execute selected
         # Ctrl+ Shift+Return pressed, execute selected without truncating output
         if run:
-            # self.__exec_selected__()
             # Collect what was pressed
             key = event.key()
             modifiers = event.modifiers()

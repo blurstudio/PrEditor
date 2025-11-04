@@ -30,8 +30,6 @@ class OneTabWidget(QTabWidget):
         Returns:
             name (str): The name, or updated name if needed
         """
-        name = name.replace(" ", "_")
-
         existing_names = [self.tabText(i) for i in range(self.count())]
 
         # Use regex to find the last set of digits. If found, the base name is
