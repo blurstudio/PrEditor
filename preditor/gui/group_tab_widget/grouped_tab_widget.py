@@ -190,7 +190,6 @@ class GroupedTabWidget(OneTabWidget):
 
     def tab_shown(self, index):
         editor = self.widget(index)
-        editor.__set_tab_widget__(self)
         if editor and editor.isVisible():
             editor.__show__()
 

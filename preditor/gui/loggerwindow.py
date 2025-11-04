@@ -385,7 +385,7 @@ class LoggerWindow(Window):
         """Whether or not AutoSave option is set
 
         Returns:
-            bool: hether AutoSave option is checked or not
+            bool: Whether AutoSave option is checked or not
         """
         return self.uiAutoSaveSettingssACT.isChecked()
 
@@ -1104,10 +1104,13 @@ class LoggerWindow(Window):
                     continue
                 if Path(editor.__filename__()) == Path(filename):
                     editor.__set_file_monitoring_enabled__(False)
-                    editor.__save_prefs__(saveLinkedFile=False)
-                    editor.__reload_file__()
-                    editor.__save_prefs__(saveLinkedFile=False, force=True)
-                    editor.__set_file_monitoring_enabled__(True)
+                    choice = editor.__maybe_reload_file__()
+                    if choice:
+                        editor.__save_prefs__(saveLinkedFile=False, force=True)
+
+                    filename = editor.__filename__()
+                    if filename and Path(filename).is_file():
+                        editor.__set_file_monitoring_enabled__(True)
 
     def closeEvent(self, event):
         self.recordPrefs()

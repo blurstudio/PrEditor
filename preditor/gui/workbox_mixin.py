@@ -23,6 +23,7 @@ from ..prefs import (
     get_prefs_dir,
     get_relative_path,
 )
+from .group_tab_widget.one_tab_widget import OneTabWidget
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +93,9 @@ class WorkboxMixin(object):
         self._show_blank = False
         self._tempdir = None
 
-        self._dialogShown = False
+        # As event-driven dialogs are shown, add the tuple of (title, message)
+        # to this list, to prevent multiple dialogs showing for same reason.
+        self.shownDialogs = []
 
         self.core_name = core_name
 
@@ -141,7 +144,10 @@ class WorkboxMixin(object):
             text (str): The text to define as last_saved_text
         """
         self._last_saved_text = text
-        self.__tab_widget__().tabBar().update()
+
+        tab_widget = self.__tab_widget__()
+        if tab_widget is not None:
+            tab_widget.tabBar().update()
 
     def __last_saved_text__(self):
         """Returns the last_saved_text on this workbox
@@ -176,7 +182,14 @@ class WorkboxMixin(object):
         Returns:
             GroupedTabWidget: The tab widget which contains this workbox
         """
-        return self._tab_widget
+        tab_widget = None
+        parent = self.parent()
+        while parent is not None:
+            if issubclass(parent.__class__, OneTabWidget):
+                tab_widget = parent
+                break
+            parent = parent.parent()
+        return tab_widget
 
     def __set_tab_widget__(self, tab_widget):
         """Set this workbox's _tab_widget to the provided tab_widget"""
@@ -363,8 +376,11 @@ class WorkboxMixin(object):
         group_name = None
         workbox_name = None
 
+        grouped_tab_widget = workbox.__tab_widget__()
+        if grouped_tab_widget is None:
+            return WorkboxName("", "")
+
         if workbox:
-            grouped_tab_widget = workbox.__tab_widget__()
             for group_idx in range(workboxTAB.count()):
                 # If a previous iteration determine workbox_name, bust out
                 if workbox_name:
@@ -381,20 +397,19 @@ class WorkboxMixin(object):
                             workbox_name = cur_group_widget.tabText(workbox_idx)
                             break
         else:
-            grouped = workbox.__tab_widget__()
-            groupedTabBar = grouped.tabBar()
+            groupedTabBar = grouped_tab_widget.tabBar()
 
             idx = -1
-            for idx in range(grouped.count()):
-                if grouped.widget(idx) == workbox:
+            for idx in range(grouped_tab_widget.count()):
+                if grouped_tab_widget.widget(idx) == workbox:
                     break
             workbox_name = groupedTabBar.tabText(idx)
 
-            group = grouped.tab_widget()
-            groupTabBar = group.tabBar()
+            group_tab_widget = grouped_tab_widget.tab_widget()
+            groupTabBar = group_tab_widget.tabBar()
             idx = -1
-            for idx in range(group.count()):
-                if group.widget(idx) == grouped:
+            for idx in range(group_tab_widget.count()):
+                if group_tab_widget.widget(idx) == grouped_tab_widget:
                     break
             group_name = groupTabBar.tabText(idx)
 
@@ -503,19 +518,36 @@ class WorkboxMixin(object):
     def __marker_clear_all__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
-    def __reload_file__(self):
+    def __set_workbox_title__(self, title):
+        """Set the tab-text on the grouped widget tab for this workbox.
+
+        Args:
+            title (str): The text to put on the grouped tab's tabText.
+        """
+        _group_idx, editor_idx = self.__group_tab_index__()
+
+        tab_widget = self.__tab_widget__()
+        if tab_widget is not None:
+            tab_widget.tabBar().setTabText(editor_idx, title)
+
+    def __maybe_reload_file__(self):
         """Reload this workbox's linked file."""
         # Loading the file too quickly misses any changes
         time.sleep(0.1)
         font = self.__font__()
 
-        choice = self.__show_reload_dialog__()
+        choice = self.__linked_file_changed__()
         if choice is True:
+            # First save unsaved changes, so user can get it from a previous
+            # version is desired.
+            self.__save_prefs__(saveLinkedFile=False, resetLastInfos=False)
+
+            # Load the file
             self.__load__(self.__filename__())
 
-            self.__set_last_saved_text__(self.__text__())
-            self.__set_last_workbox_name__(self.__workbox_name__())
+            # Reset the font
             self.__set_font__(font)
+        return choice
 
     def __single_messagebox__(self, title, message):
         """Display a messagebox, but only once, in case this is triggered by a
@@ -529,42 +561,17 @@ class WorkboxMixin(object):
         Returns:
             choice (bool): Whether the user accepted the dialog or not.
         """
-        choice = False
+
+        tup = (title, message)
+        if tup in self.shownDialogs:
+            return None
+        self.shownDialogs.append(tup)
+
         buttons = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        result = QMessageBox.question(self.window(), title, message, buttons)
+        self.shownDialogs.remove(tup)
 
-        if not self._dialogShown:
-            self._dialogShown = True
-            result = QMessageBox.question(self.window(), title, message, buttons)
-            choice = result == QMessageBox.StandardButton.Yes
-        self._dialogShown = False
-        return choice
-
-    def __show_reload_dialog__(self):
-        """Show a messagebox asking if user wants to reload the linked-file,
-        which has changed externally.
-
-        Returns:
-            choice (bool): Whether user chose to reload the link file (or
-                auto-reload setting is True)
-        """
-        choice = None
-        if self.__auto_reload_on_change__():
-            choice = True
-        else:
-            name = Path(self.__filename__()).name
-            title = 'Reload File...'
-            msg = f'Are you sure you want to reload {name}?'
-            choice = self.__single_messagebox__(title, msg)
-        return choice
-
-    def __set_workbox_title__(self, title):
-        """Set the tab-text on the grouped widget tab for this workbox.
-
-        Args:
-            title (str): The text to put on the grouped tab's tabText.
-        """
-        _group_idx, editor_idx = self.__group_tab_index__()
-        self.__tab_widget__().tabBar().setTabText(editor_idx, title)
+        return result == QMessageBox.StandardButton.Yes
 
     def __linked_file_changed__(self):
         """If a file was modified or deleted this method
@@ -588,25 +595,28 @@ class WorkboxMixin(object):
                     'The file was deleted, removing document from editor',
                 )
                 group_idx, editor_idx = self.__group_tab_index__()
-                self.__tab_widget__().close_tab(editor_idx)
+
+                tab_widget = self.__tab_widget__()
+                if tab_widget is not None:
+                    tab_widget.close_tab(editor_idx)
+
                 return False
             elif choice:
                 self.__set_filename__("")
-                title = self.__tab_widget__().get_next_available_tab_name()
-                self.__set_workbox_title__(title)
 
-            # TODO: The file no longer exists, and the document should be marked as
-            # changed.
+                tab_widget = self.__tab_widget__()
+                if tab_widget is not None:
+                    title = tab_widget.get_next_available_tab_name()
+                    self.__set_workbox_title__(title)
 
-        if self.autoReloadOnChange() or not self.isModified():
+        if self.__auto_reload_on_change__() or not self.__is_dirty__():
             choice = True
         else:
             title = 'Reload File...'
             msg = f'File: {filename} has been changed.\nReload from disk?'
             choice = self.__single_messagebox__(title, msg)
 
-        if choice is True:
-            self.__load__(self.__filename__())
+        return choice
 
     def __remove_selected_text__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -772,7 +782,13 @@ class WorkboxMixin(object):
         """Replaces all windows and then mac line endings with unix line endings."""
         return txt.replace('\r\n', '\n').replace('\r', '\n')
 
-    def __save_prefs__(self, current=None, saveLinkedFile=True, force=False):
+    def __save_prefs__(
+        self,
+        current=None,
+        force=False,
+        saveLinkedFile=True,
+        resetLastInfos=True,
+    ):
         ret = {}
 
         # Hopefully the alphabetical sorting of this dict is preserved in py3
@@ -832,8 +848,9 @@ class WorkboxMixin(object):
             self.__save__()
             ret['workbox_id'] = workbox_id
 
-        self.__set_last_workbox_name__(self.__workbox_name__())
-        self.__set_last_saved_text__(self.__text__())
+        if resetLastInfos:
+            self.__set_last_workbox_name__(self.__workbox_name__())
+            self.__set_last_saved_text__(self.__text__())
 
         return ret
 
@@ -988,7 +1005,10 @@ class WorkboxMixin(object):
         self._backup_file = str(filepath)
 
         self.__set_text__(txt)
-        self.__tab_widget__().tabBar().update()
+
+        tab_widget = self.__tab_widget__()
+        if tab_widget is not None:
+            tab_widget.tabBar().update()
 
         filename = Path(filepath).name
         return filename, idx, count
