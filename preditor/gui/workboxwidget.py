@@ -2,7 +2,6 @@ from __future__ import absolute_import, print_function
 
 import os
 import re
-import time
 from pathlib import Path
 
 from Qt.QtCore import QEvent, Qt
@@ -156,15 +155,6 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             self.__set_font__(font)
             self.setEolMode(self.detectEndLine(self.__text__()))
 
-    def __reload_file__(self):
-        # loading the file too quickly misses any changes
-        time.sleep(0.1)
-        font = self.__font__()
-        self.__linked_file_changed__()
-        self.__set_last_saved_text__(self.__text__())
-        self.__set_last_workbox_name__(self.__workbox_name__())
-        self.__set_font__(font)
-
     def __save__(self):
         super().__save__()
         filename = self.__filename__()
@@ -245,7 +235,9 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         truncation, but no modifiers are registered when Enter is pressed (unlike
         when Return is pressed), so this combination is not detectable.
         """
-        self.__tab_widget__().tabBar().update()
+        tab_widget = self.__tab_widget__()
+        if tab_widget is not None:
+            tab_widget.tabBar().update()
 
         if self.process_shortcut(event):
             return
