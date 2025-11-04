@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 
+from enum import IntEnum
 from functools import partial
 from pathlib import Path
 
@@ -22,7 +23,7 @@ from preditor import osystem
 from . import QtPropertyInit
 
 
-class TabStates:
+class TabStates(IntEnum):
     """Nice names for the Tab states for coloring"""
 
     Normal = 0
@@ -366,6 +367,9 @@ class DragTabBar(QTabBar):
 
                     act = menu.addAction('Save As')
                     act.triggered.connect(partial(self.save_and_link_file, workbox))
+
+                    act = menu.addAction('Copy Filename')
+                    act.triggered.connect(partial(self.copyFilename, workbox))
                 else:
                     act = menu.addAction('Explore File')
                     act.triggered.connect(partial(self.explore_file, workbox))
@@ -464,6 +468,15 @@ class DragTabBar(QTabBar):
         workbox.__set_filename__("")
         name = self.parent().default_title
         self.setTabText(self._context_menu_tab, name)
+
+    def copyFilename(self, workbox):
+        """Copy the given workbox's filename to the clipboard
+
+        Args:
+            workbox (WorkboxMixin): The workbox for which to provide the filename
+        """
+        filename = workbox.__filename__()
+        QApplication.clipboard().setText(filename)
 
     def copy_workbox_name(self, workbox, index):
         """Copy the workbox name to clipboard.

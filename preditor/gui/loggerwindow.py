@@ -11,6 +11,7 @@ import sys
 import warnings
 from builtins import bytes
 from datetime import datetime, timedelta
+from enum import IntEnum
 from functools import partial
 from pathlib import Path
 
@@ -61,7 +62,7 @@ PRUNE_PATTERN = r"(?P<name>\w*)-{}\.".format(prefs.DATETIME_PATTERN.pattern)
 PRUNE_PATTERN = re.compile(PRUNE_PATTERN)
 
 
-class WorkboxPages:
+class WorkboxPages(IntEnum):
     """Nice names for the uiWorkboxSTACK indexes."""
 
     Options = 0
@@ -522,7 +523,6 @@ class LoggerWindow(Window):
                 to ensure that it is initialized and its text is loaded.
             visible (bool, optional): Make the this workbox visible if found.
         """
-        # pred = self.instance()
         workbox = None
         for box_info in self.uiWorkboxTAB.all_widgets():
             temp_box = box_info[0]
@@ -850,24 +850,24 @@ class LoggerWindow(Window):
         tabbar_class = current.tabBar().__class__
         menubar_class = self.menuBar().__class__
         label_class = self.uiStatusLBL.__class__
-        children = self.findChildren(tabbar_class, QtCore.QRegExp(".*"))
-        children.extend(self.findChildren(menubar_class, QtCore.QRegExp(".*")))
-        children.extend(self.findChildren(label_class, QtCore.QRegExp(".*")))
-        children.extend(self.findChildren(QToolButton, QtCore.QRegExp(".*")))
-        children.extend(self.findChildren(QMenu, QtCore.QRegExp(".*")))
-        children.extend(self.findChildren(QToolTip, QtCore.QRegExp(".*")))
+        children = self.findChildren(tabbar_class, None)
+        children.extend(self.findChildren(menubar_class, None))
+        children.extend(self.findChildren(label_class, None))
+        children.extend(self.findChildren(QToolButton, None))
+        children.extend(self.findChildren(QMenu, None))
+        children.extend(self.findChildren(QToolTip, None))
 
         for child in children:
+            if not hasattr(child, "setFont"):
+                continue
             if newFont is None:
                 newFont = child.font()
             if newSize is None:
                 newSize = newFont.pointSize()
             newFont.setPointSize(newSize)
             child.setFont(newFont)
-            # child.resize()
         self.setFont(newFont)
         QToolTip.setFont(newFont)
-        # self.resize()
 
     def setFontSize(self, newSize):
         """Update the font size in the console and current workbox.
@@ -1046,8 +1046,6 @@ class LoggerWindow(Window):
         if not filename:
             return
 
-        filename = Path(filename).as_posix()
-
         if state:
             self.openFileMonitor.addPath(filename)
         else:
@@ -1066,9 +1064,8 @@ class LoggerWindow(Window):
         if not filename:
             return False
 
-        filename = Path(filename).as_posix()
-        watched_files = self.openFileMonitor.files()
-        return filename in watched_files
+        watched_files = [Path(file) for file in self.openFileMonitor.files()]
+        return Path(filename) in watched_files
 
     def prefsPath(self, name='preditor_pref.json'):
         """Get the path to this core's prefs, for the given name
@@ -1090,10 +1087,9 @@ class LoggerWindow(Window):
         Args:
             filename (str): The file which triggered the file changed signal
         """
-        prefs_path = Path(self.prefsPath()).as_posix()
 
         # Either handle prefs or workbox
-        if filename == prefs_path:
+        if Path(filename) == Path(self.prefsPath()):
             # First, save workbox prefs. Don't save preditor.prefs because that
             # would just overwrite whatever changes we are responding to.
             self.getBoxesChangedByInstance()
@@ -1172,6 +1168,10 @@ class LoggerWindow(Window):
         if not manual and not self.autoSaveEnabled():
             return
 
+        # When applying a change to editor class, we may essentially auto-save
+        # prefs, in order to reload on the next class. In doing so, we may be
+        # changing workbox filename(s), if any, so let's remove them from file
+        # monitoring. They will be re-added during restorePrefs.
         if disableFileMonitoring:
             for editor_info in self.uiWorkboxTAB.all_widgets():
                 editor = editor_info[0]

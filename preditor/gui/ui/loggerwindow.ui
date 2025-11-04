@@ -1063,7 +1063,7 @@ at the indicated line in the specified text editor.
     <string>Increase Gui Font Size</string>
    </property>
    <property name="toolTip">
-    <string>..or Alt+Scroll Up</string>
+    <string>..or Ctrl+Alt+Scroll Up</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt++</string>
@@ -1085,7 +1085,7 @@ at the indicated line in the specified text editor.
     <string>Decrease Gui Font Size</string>
    </property>
    <property name="toolTip">
-    <string>..or Alt+Scroll Down</string>
+    <string>..or Ctrl+Alt+Scroll Down</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+-</string>
