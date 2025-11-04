@@ -88,7 +88,6 @@ class GroupTabFuzzyFilterProxyModel(QSortFilterProxyModel):
 
     def filterAcceptsRow(self, sourceRow, sourceParent):
         if self.filterKeyColumn() == 0 and self._fuzzy_regex:
-
             index = self.sourceModel().index(sourceRow, 0, sourceParent)
             data = self.sourceModel().data(index)
             ret = bool(self._fuzzy_regex.search(data))
