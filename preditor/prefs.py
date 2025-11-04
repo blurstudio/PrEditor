@@ -203,7 +203,7 @@ def get_file_group(core_name, workbox_id):
         workbox_id (str): The current workbox_id
 
     Returns:
-        TYPE: Description
+        files (list): The list of files found for the given workbox_id
     """
     directory = Path(get_prefs_dir(core_name=core_name, sub_dir='workboxes'))
     workbox_dir = directory / workbox_id
@@ -252,7 +252,7 @@ def get_backup_version_info(core_name, workbox_id, versionType, backup_file=None
     Args:
         core_name (str): The current core_name
         workbox_id (str): The current workbox_id
-        versionType (TYPE): The VersionType (ie First, Previous, Next, Last)
+        versionType (VersionType): The VersionType (ie First, Previous, Next, Last)
         backup_file (None, optional): The currently loaded backup file.
 
     Returns:
@@ -312,9 +312,9 @@ def update_pref_args(core_name, pref_dict, old_name, update_data):
 
     Args:
         core_name (str): The current core_name
-        pref_dict (TYPE): The pref to update
-        old_name (TYPE): Original pref name, which may be updated
-        update_data (TYPE): Dict to define ways to update the values, which
+        pref_dict (dict): The pref to update
+        old_name (str): Original pref name, which may be updated
+        update_data (str): Dict to define ways to update the values, which
         currently only supports str.replace.
     """
     workbox_dir = Path(get_prefs_dir(core_name=core_name, create=True))
@@ -355,8 +355,8 @@ def update_prefs_args(core_name, prefs_dict, prefs_updates):
 
     Args:
         core_name (str): The current core_name
-        prefs_dict (TYPE): The PrEditor prefs to update
-        prefs_updates (TYPE): The update definition dict
+        prefs_dict (dict): The PrEditor prefs to update
+        prefs_updates (dict): The update definition dict
 
     Returns:
         prefs_dict (dict): The updated dict
