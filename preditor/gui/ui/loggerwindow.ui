@@ -224,11 +224,11 @@
                          <number>3</number>
                         </property>
                         <item>
-                         <widget class="QGroupBox" name="uiGeneralGRP">
+                         <widget class="QGroupBox" name="uiPrefsGeneralGRP">
                           <property name="title">
                            <string>General</string>
                           </property>
-                          <layout class="QVBoxLayout" name="verticalLayout_10">
+                          <layout class="QVBoxLayout" name="uiPrefsGeneralLYT">
                            <property name="spacing">
                             <number>0</number>
                            </property>
@@ -297,11 +297,11 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QGroupBox" name="uiTracebacksGRP">
+                         <widget class="QGroupBox" name="uiPrefsTracebacksGRP">
                           <property name="title">
                            <string>Tracebacks</string>
                           </property>
-                          <layout class="QVBoxLayout" name="verticalLayout_15">
+                          <layout class="QVBoxLayout" name="uiPrefsTracebacksLYT">
                            <property name="spacing">
                             <number>0</number>
                            </property>
@@ -372,11 +372,11 @@
                          <number>3</number>
                         </property>
                         <item>
-                         <widget class="QGroupBox" name="uiAutoCompletionGRP">
+                         <widget class="QGroupBox" name="uiPrefsAutoCompleteGRP">
                           <property name="title">
                            <string>Auto-Completion</string>
                           </property>
-                          <layout class="QVBoxLayout" name="verticalLayout_7">
+                          <layout class="QVBoxLayout" name="uiPrefsAutoCompleteLYT">
                            <property name="spacing">
                             <number>0</number>
                            </property>
@@ -417,11 +417,11 @@
                          </widget>
                         </item>
                         <item>
-                         <widget class="QGroupBox" name="uiClearGRP">
+                         <widget class="QGroupBox" name="uiPrefsClearGRP">
                           <property name="title">
                            <string>Clear</string>
                           </property>
-                          <layout class="QVBoxLayout" name="verticalLayout_9">
+                          <layout class="QVBoxLayout" name="uiPrefsClearLYT">
                            <property name="spacing">
                             <number>0</number>
                            </property>
@@ -441,6 +441,37 @@
                             <widget class="QCheckBox" name="uiClearBeforeRunningCHK">
                              <property name="text">
                               <string>Clear console before running workbox code</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QGroupBox" name="uiPrefsInternalDebugGRP">
+                          <property name="title">
+                           <string>Internal Debug</string>
+                          </property>
+                          <layout class="QVBoxLayout" name="uiPrefsInternalDebugLYT">
+                           <property name="spacing">
+                            <number>0</number>
+                           </property>
+                           <property name="leftMargin">
+                            <number>3</number>
+                           </property>
+                           <property name="topMargin">
+                            <number>3</number>
+                           </property>
+                           <property name="rightMargin">
+                            <number>3</number>
+                           </property>
+                           <property name="bottomMargin">
+                            <number>3</number>
+                           </property>
+                           <item>
+                            <widget class="QCheckBox" name="uiExtraTooltipInfoCHK">
+                             <property name="text">
+                              <string>Display extra workbox info in tooltips</string>
                              </property>
                             </widget>
                            </item>
@@ -485,11 +516,11 @@
                          <number>3</number>
                         </property>
                         <item>
-                         <widget class="QGroupBox" name="uiNumericSettingsGRP">
+                         <widget class="QGroupBox" name="uiPrefsNumericSettingsGRP">
                           <property name="title">
                            <string>Numeric Settings</string>
                           </property>
-                          <layout class="QVBoxLayout" name="verticalLayout_13">
+                          <layout class="QVBoxLayout" name="uiPrefsNumericSettingsLYT">
                            <property name="spacing">
                             <number>3</number>
                            </property>

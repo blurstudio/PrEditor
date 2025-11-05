@@ -153,9 +153,48 @@ class DragTabBar(QTabBar):
                 state = TabStates.Linked
                 toolTip = "Linked to file on disk"
 
-            if hasattr(widget, "__workbox_id__"):
-                workbox_id = widget.__workbox_id__()
-                toolTip += "\n\n{}".format(workbox_id)
+            window = self.window()
+            if window.uiExtraTooltipInfoCHK.isChecked():
+
+                if hasattr(widget, "__workbox_id__"):
+                    workbox_id = widget.__workbox_id__()
+                    toolTip += "\n\n{}".format(workbox_id)
+
+                toolTip += "\nis dirty: {}".format(widget.__is_dirty__())
+                toolTip += "\nstate: {}".format(state)
+
+                if hasattr(widget, "__filename__"):
+                    filename = widget.__filename__()
+                    toolTip += "\n\nfilename: {}".format(filename)
+
+                if hasattr(widget, "__backup_file__"):
+                    backup_file = widget.__backup_file__()
+                    toolTip += "\nBackup file: {}".format(backup_file)
+
+                if hasattr(widget, "_changed_by_instance"):
+                    _changed_by_instance = widget._changed_by_instance
+                    toolTip += "\nHas been changed by instance: {}".format(
+                        _changed_by_instance
+                    )
+
+                if hasattr(widget, "_changed_saved"):
+                    _changed_saved = widget._changed_saved
+                    toolTip += "\n _changed_saved: {}".format(_changed_saved)
+
+                if hasattr(widget, "__orphaned_by_instance__"):
+                    __orphaned_by_instance__ = widget.__orphaned_by_instance__()
+                    toolTip += "\n __orphaned_by_instance__: {}".format(
+                        __orphaned_by_instance__
+                    )
+
+                if hasattr(widget, "__last_workbox_name__"):
+                    last_workbox_name = widget.__last_workbox_name__()
+                    toolTip += "\n\nlast_workbox_name: {}".format(last_workbox_name)
+
+                if hasattr(widget, "__last_saved_text__"):
+                    last_saved_text = widget.__last_saved_text__()
+                    last_saved_text = window.truncate_text_lines(last_saved_text)
+                    toolTip += "\n\nlast_saved_text: \n{}".format(last_saved_text)
 
         color = self.bg_color_map.get(state)
         return color, toolTip
