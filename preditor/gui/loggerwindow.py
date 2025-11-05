@@ -1519,6 +1519,8 @@ class LoggerWindow(Window):
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
 
+        self.uiExtraTooltipInfoCHK.setChecked(pref.get("uiExtraTooltipInfoCHK", False))
+
         # Allow any plugins to restore their own preferences
         for name, plugin in self.plugins.items():
             plugin.restore_prefs(name, pref.get("plugins", {}).get(name))
