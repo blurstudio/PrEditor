@@ -116,7 +116,7 @@ class WorkboxMixin(object):
         # wait until __show__ so that we know the tab exists, and has tabText
         self._last_workbox_name = None
 
-        self._autoReloadOnChange = False
+        self._promptOnLinkedChange = True
 
         self.__set_orphaned_by_instance__(False)
         self.__set_changed_by_instance__(False)
@@ -125,21 +125,18 @@ class WorkboxMixin(object):
         self.textChanged.connect(self._tab_widget.tabBar().updateColorsAndToolTips)
         self.workboxSaved.connect(self._tab_widget.tabBar().updateColorsAndToolTips)
 
-    def __auto_reload_on_change__(self):
-        """Whether the option to auto-reload linked files is set
+    def __prompt_on_linked_change__(self):
+        """Whether the option to prompt on linked file change is set
 
         Returns:
-            bool: Whether the option to auto-reload linked files is set
+            bool: Whether the option to prompt on linked file change is set
         """
-        return self._autoReloadOnChange
-
-    def __set_auto_reload_on_change__(self, state):
-        """Set the option to auto-reload linked files to state
-
-        Args:
-            state (bool): The state to set the auto-reload linked files option
-        """
-        self._autoReloadOnChange = state
+        window = self.window()
+        if window and hasattr(window, "promptOnLinkedChange"):
+            promptOnLinkedChange = window.promptOnLinkedChange()
+        else:
+            promptOnLinkedChange = self._promptOnLinkedChange
+        return promptOnLinkedChange
 
     def __set_last_saved_text__(self, text):
         """Store text as last_saved_text on this workbox so checking if if_dirty
@@ -592,8 +589,12 @@ class WorkboxMixin(object):
             # the editor.
 
             title = 'File Removed...'
-            msg = f'File: {filename} has been deleted.\nKeep file in editor?'
-            choice = self.__single_messagebox__(title, msg)
+            msg = f'File: {filename} has been deleted or renamed.\nKeep file in editor?'
+
+            if not self.__prompt_on_linked_change__():
+                choice = True
+            else:
+                choice = self.__single_messagebox__(title, msg)
 
             if choice is False:
                 logger.debug(
@@ -603,22 +604,18 @@ class WorkboxMixin(object):
 
                 tab_widget = self.__tab_widget__()
                 if tab_widget is not None:
-                    tab_widget.close_tab(editor_idx)
+                    tab_widget.close_tab(editor_idx, ask=False)
+            return False
 
-                return False
-            elif choice:
-                self.__set_filename__("")
-
-                tab_widget = self.__tab_widget__()
-                if tab_widget is not None:
-                    title = tab_widget.get_next_available_tab_name()
-                    self.__set_workbox_title__(title)
-
-        if self.__auto_reload_on_change__() or not self.__is_dirty__():
+        if (not self.__prompt_on_linked_change__()) or not self.__is_dirty__():
             choice = True
         else:
             title = 'Reload File...'
-            msg = f'File: {filename} has been changed.\nReload from disk?'
+            workbox_name = self.__workbox_name__()
+            msg = (
+                f"The linked file in workbox\n\n{workbox_name}\n\nhas been changed "
+                "externally.\n\nReload from disk?'"
+            )
             choice = self.__single_messagebox__(title, msg)
 
         return choice

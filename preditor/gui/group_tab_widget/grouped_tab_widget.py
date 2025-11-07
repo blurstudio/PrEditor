@@ -109,7 +109,7 @@ class GroupedTabWidget(OneTabWidget):
         self.update_closable_tabs()
         return ret
 
-    def close_tab(self, index):
+    def close_tab(self, index, ask=True):
         if self.count() == 1:
             msg = "You have to leave at least one tab open."
             QMessageBox.critical(
@@ -124,12 +124,16 @@ class GroupedTabWidget(OneTabWidget):
             "/dev/null fund for wayward code?"
         )
 
-        ret = QMessageBox.question(
-            self,
-            'Donate to the cause?',
-            msg,
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
-        )
+        if ask:
+            ret = QMessageBox.question(
+                self,
+                'Donate to the cause?',
+                msg,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            )
+        else:
+            ret = QMessageBox.StandardButton.Yes
+
         if ret == QMessageBox.StandardButton.Yes:
             editor = self.widget(index)
             editor.__set_file_monitoring_enabled__(False)

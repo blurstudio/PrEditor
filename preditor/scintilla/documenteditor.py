@@ -86,7 +86,6 @@ class DocumentEditor(QsciScintilla):
         self._marginsFont = self._defaultFont
         self._lastSearchDirection = SearchDirection.First
         self._saveTimer = 0.0
-        self._autoReloadOnChange = False
         # QSci doesnt provide accessors to these values, so store them internally
         self._foldMarginBackgroundColor = QColor(224, 224, 224)
         self._foldMarginForegroundColor = QColor(Qt.GlobalColor.white)
@@ -222,9 +221,6 @@ class DocumentEditor(QsciScintilla):
         # goto the line
         if lineno:
             self.setCursorPosition(lineno, 0)
-
-    def autoReloadOnChange(self):
-        return self._autoReloadOnChange
 
     def caretBackgroundColor(self):
         return self._caretBackgroundColor
@@ -1638,9 +1634,6 @@ class DocumentEditor(QsciScintilla):
             if self._encoding:
                 text = 'Encoding: {enc} {text}'.format(enc=self._encoding, text=text)
             window.uiCursorInfoLBL.setText(text)
-
-    def setAutoReloadOnChange(self, state):
-        self._autoReloadOnChange = state
 
     def indentSelection(self, all=False):
         if all:

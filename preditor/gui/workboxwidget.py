@@ -59,12 +59,6 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         )
         self.setAutoCompletionSource(state)
 
-    def __auto_reload_on_change__(self):
-        return self.autoReloadOnChange()
-
-    def __set_auto_reload_on_change__(self, state):
-        self.setAutoReloadOnChange(state)
-
     def __clear__(self):
         self.clear()
         self.__set_last_saved_text__(self.__text__())
