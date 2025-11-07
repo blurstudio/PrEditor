@@ -394,7 +394,10 @@ class DragTabBar(QTabBar):
                     act = menu.addAction('Explore File')
                     act.triggered.connect(partial(self.explore_file, workbox))
 
-                    act = menu.addAction('Re-link File')
+                    act = menu.addAction('Save As')
+                    act.triggered.connect(partial(self.save_and_link_file, workbox))
+
+                    act = menu.addAction('Relink File')
                     act.triggered.connect(partial(self.link_file, workbox))
 
                     act = menu.addAction('Unlink File')
@@ -421,10 +424,9 @@ class DragTabBar(QTabBar):
             workbox (WorkboxMixin): The workbox contained in the clicked tab
         """
         filename = workbox.__filename__()
-        workbox.__set_file_monitoring_enabled__(False)
-        workbox.__set_filename__("")
         filename, _other = QFileDialog.getOpenFileName(directory=filename)
         if filename and Path(filename).is_file():
+            workbox.__set_file_monitoring_enabled__(False)
 
             # First, save any unsaved text
             workbox.__save_prefs__()

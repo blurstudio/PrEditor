@@ -409,6 +409,22 @@ class LoggerWindow(Window):
         """
         self.uiAutoSaveSettingsCHK.setChecked(state)
 
+    def promptOnLinkedChange(self):
+        """Whether or not Prompt On Linked Change option is set
+
+        Returns:
+            bool: Whether or not Prompt On Linked Change option is set
+        """
+        return self.uiPromptOnLinkedChangeCHK.isChecked()
+
+    def setPromptOnLinkedChange(self, state):
+        """Set Prompt On Linked Change option option to state
+
+        Args:
+            state (bool): State to set Prompt On Linked Change option
+        """
+        self.uiPromptOnLinkedChangeCHK.setChecked(state)
+
     def loadPlugins(self):
         """Load any plugins that modify the LoggerWindow."""
         self.plugins = {}
@@ -1220,7 +1236,9 @@ class LoggerWindow(Window):
                     continue
                 if Path(editor.__filename__()) == Path(filename):
                     editor.__set_file_monitoring_enabled__(False)
+
                     choice = editor.__maybe_reload_file__()
+                    # Save a backup of any unsaved changes
                     if choice:
                         editor.__save_prefs__(saveLinkedFile=False, force=True)
 
@@ -1247,6 +1265,9 @@ class LoggerWindow(Window):
     def closeLoggerByAction(self):
         if self.uiConfirmBeforeCloseCHK.isChecked():
             msg = "Are you sure you want to close PrEditor?"
+
+            state_str = "enabled" if self.autoSaveEnabled() else "disabled"
+            msg += f"\n\nAuto Save is {state_str}"
             ret = QMessageBox.question(
                 self,
                 'Confirm close',
@@ -1329,6 +1350,7 @@ class LoggerWindow(Window):
                 'guiFont': self.font().toString(),
                 'consoleFont': self.console().font().toString(),
                 'autoSaveSettings': self.autoSaveEnabled(),
+                'promptOnLinkedChange': self.promptOnLinkedChange(),
                 'autoPrompt': self.uiAutoPromptCHK.isChecked(),
                 'errorHyperlinks': self.uiErrorHyperlinksCHK.isChecked(),
                 'uiStatusLbl_limit': self.uiStatusLBL.limit(),
@@ -1351,6 +1373,7 @@ class LoggerWindow(Window):
                 'max_recent_workboxes': self.uiMaxNumRecentWorkboxesSPIN.value(),
                 'closedWorkboxData': self.getClosedWorkboxData(),
                 'confirmBeforeClose': self.uiConfirmBeforeCloseCHK.isChecked(),
+                'displayExtraTooltipInfo': self.uiExtraTooltipInfoCHK.isChecked(),
             }
         )
 
@@ -1582,6 +1605,7 @@ class LoggerWindow(Window):
         self.uiSpellCheckEnabledCHK.setChecked(pref.get('spellCheckEnabled', False))
         self.uiSpellCheckEnabledCHK.setDisabled(False)
         self.setAutoSaveEnabled(pref.get('autoSaveSettings', True))
+        self.setPromptOnLinkedChange(pref.get('promptOnLinkedChange', True))
         self.uiAutoPromptCHK.setChecked(pref.get('autoPrompt', False))
         self.uiErrorHyperlinksCHK.setChecked(pref.get('errorHyperlinks', True))
         self.uiStatusLBL.setLimit(pref.get('uiStatusLbl_limit', 5))
@@ -1654,7 +1678,9 @@ class LoggerWindow(Window):
 
         self.dont_ask_again = pref.get('dont_ask_again', [])
 
-        self.uiExtraTooltipInfoCHK.setChecked(pref.get("uiExtraTooltipInfoCHK", False))
+        self.uiExtraTooltipInfoCHK.setChecked(
+            pref.get("displayExtraTooltipInfo", False)
+        )
 
         # Allow any plugins to restore their own preferences
         for name, plugin in self.plugins.items():
