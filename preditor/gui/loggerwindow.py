@@ -1619,7 +1619,7 @@ class LoggerWindow(Window):
         self.uiFindInWorkboxesWGT.uiFindTXT.setText(pref.get('find_files_text', ''))
 
         # External text editor filepath and command template
-        defaultExePath = r"C:\Program Files\Sublime Text 3\sublime_text.exe"
+        defaultExePath = r"C:\Program Files\Sublime Text\sublime_text.exe"
         defaultCmd = r'"{exePath}" "{modulePath}":{lineNum}'
         self.textEditorPath = pref.get('textEditorPath', defaultExePath)
         self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
