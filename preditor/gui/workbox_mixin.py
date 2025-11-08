@@ -455,9 +455,10 @@ class WorkboxMixin(object):
             new_workbox_name = WorkboxName(group_name, new_name)
             self.__set_last_workbox_name__(new_workbox_name)
 
-            self.__set_last_saved_text__(self.__text__())
         else:
             self.__set_filename__("")
+
+        self.__set_last_saved_text__(self.__text__())
 
     def __margins_font__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -602,6 +603,8 @@ class WorkboxMixin(object):
                 )
                 group_idx, editor_idx = self.__group_tab_index__()
 
+                self.__set_filename__("")
+
                 tab_widget = self.__tab_widget__()
                 if tab_widget is not None:
                     tab_widget.close_tab(editor_idx, ask=False)
@@ -614,7 +617,7 @@ class WorkboxMixin(object):
             workbox_name = self.__workbox_name__()
             msg = (
                 f"The linked file in workbox\n\n{workbox_name}\n\nhas been changed "
-                "externally.\n\nReload from disk?'"
+                "externally.\n\nReload from disk?"
             )
             choice = self.__single_messagebox__(title, msg)
 
@@ -1086,6 +1089,7 @@ class WorkboxMixin(object):
                 self.__set_last_saved_text__(self.__text__())
 
         self.__set_last_workbox_name__()
+        self.__tab_widget__().tabBar().updateColorsAndToolTips()
 
     def process_shortcut(self, event, run=True):
         """Check for workbox shortcuts and optionally call them.
