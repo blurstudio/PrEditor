@@ -155,19 +155,22 @@ class DragTabBar(QTabBar):
                 state = TabStates.Linked
                 toolTip = "Linked to file on disk"
 
+            if hasattr(widget, "__filename__"):
+                filename = widget.__filename__()
+                if filename:
+                    toolTip += "\nfilename: {}".format(filename)
+
             window = self.window()
             if window.uiExtraTooltipInfoCHK.isChecked():
 
                 if hasattr(widget, "__workbox_id__"):
                     workbox_id = widget.__workbox_id__()
-                    toolTip += "\n\n{}".format(workbox_id)
+                    if toolTip:
+                        toolTip += "\n\n"
+                    toolTip += workbox_id
 
                 toolTip += "\nis dirty: {}".format(widget.__is_dirty__())
-                toolTip += "\nstate: {}".format(state)
-
-                if hasattr(widget, "__filename__"):
-                    filename = widget.__filename__()
-                    toolTip += "\n\nfilename: {}".format(filename)
+                toolTip += "\nstate: {}".format(state.name)
 
                 if hasattr(widget, "__backup_file__"):
                     backup_file = widget.__backup_file__()
@@ -179,24 +182,24 @@ class DragTabBar(QTabBar):
                         _changed_by_instance
                     )
 
-                if hasattr(widget, "_changed_saved"):
-                    _changed_saved = widget._changed_saved
-                    toolTip += "\n _changed_saved: {}".format(_changed_saved)
-
                 if hasattr(widget, "__orphaned_by_instance__"):
                     __orphaned_by_instance__ = widget.__orphaned_by_instance__()
                     toolTip += "\n __orphaned_by_instance__: {}".format(
                         __orphaned_by_instance__
                     )
 
+                if hasattr(widget, "_changed_saved"):
+                    _changed_saved = widget._changed_saved
+                    toolTip += "\n _changed_saved: {}".format(_changed_saved)
+
                 if hasattr(widget, "__last_workbox_name__"):
                     last_workbox_name = widget.__last_workbox_name__()
-                    toolTip += "\n\nlast_workbox_name: {}".format(last_workbox_name)
+                    toolTip += "\nlast_workbox_name: {}".format(last_workbox_name)
 
                 if hasattr(widget, "__last_saved_text__"):
                     last_saved_text = widget.__last_saved_text__()
                     last_saved_text = window.truncate_text_lines(last_saved_text)
-                    toolTip += "\n\nlast_saved_text: \n{}".format(last_saved_text)
+                    toolTip += "\nlast_saved_text: \n{}".format(last_saved_text)
 
         color = self.bg_color_map.get(state)
         return color, toolTip
@@ -370,46 +373,100 @@ class DragTabBar(QTabBar):
         if hasattr(workbox, '__filename__'):
             if not workbox.__filename__():
                 act = menu.addAction('Rename')
+                tip = "Rename this tab."
+                act.setToolTip(tip)
                 act.triggered.connect(self.rename_tab)
 
                 act = menu.addAction('Link File')
+                tip = (
+                    "Choose an existing file on disk to link this workbox to.\n"
+                    "The current workbox contents will be replaced, but will be "
+                    "backed up, accessible with Ctrl+Alt+Left"
+                )
+                act.setToolTip(tip)
                 act.triggered.connect(partial(self.link_file, workbox))
 
                 act = menu.addAction('Save and Link File')
+                tip = (
+                    "Choose a filename to save the workbox contents to, and "
+                    "link to that file."
+                )
+                act.setToolTip(tip)
                 act.triggered.connect(partial(self.save_and_link_file, workbox))
             else:
                 if Path(workbox.__filename__()).is_file():
                     act = menu.addAction('Explore File')
+                    tip = "Open a file explorer at the linked file's location"
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.explore_file, workbox))
 
                     act = menu.addAction('Unlink File')
+                    tip = (
+                        "Disconnect the link to the file on disk. The workbox "
+                        "contents will remain unchanged."
+                    )
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.unlink_file, workbox))
 
                     act = menu.addAction('Save As')
+                    tip = (
+                        "Save contents as a new file and link to it. If you "
+                        "choose an existing file, that file's contents will be "
+                        "overwritten."
+                    )
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.save_and_link_file, workbox))
 
                     act = menu.addAction('Copy Filename')
+                    tip = "Copy this workbox's filename to the clipboard."
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.copyFilename, workbox))
                 else:
                     act = menu.addAction('Explore File')
+                    tip = "Open a file explorer at the linked file's location"
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.explore_file, workbox))
 
-                    act = menu.addAction('Save As')
+                    act = menu.addAction('Save As and Link File')
+                    tip = (
+                        "Save contents as a new file and link to it. If you "
+                        "choose an existing file, that file's contents will be "
+                        "overwritten."
+                    )
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.save_and_link_file, workbox))
 
                     act = menu.addAction('Relink File')
-                    act.triggered.connect(partial(self.link_file, workbox))
+                    tip = (
+                        "Current linked file is not found. Choose a new file "
+                        "to link to."
+                    )
+                    act.setToolTip(tip)
+                    act.triggered.connect(
+                        partial(self.link_file, workbox, saveLinkedFile=False)
+                    )
 
                     act = menu.addAction('Unlink File')
+                    tip = (
+                        "Disconnect the link to the file on disk. The workbox "
+                        "contents will remain unchanged."
+                    )
+                    act.setToolTip(tip)
                     act.triggered.connect(partial(self.unlink_file, workbox))
         else:
             act = menu.addAction('Rename')
+            tip = "Rename this tab."
+            act.setToolTip(tip)
             act.triggered.connect(self.rename_tab)
 
         act = menu.addAction('Copy Workbox Name')
+        tip = "Copy this workbox's name to the clipboard."
+        act.setToolTip(tip)
         act.triggered.connect(partial(self.copy_workbox_name, workbox, index))
 
         act = menu.addAction('Copy Workbox Id')
+        tip = "Copy this workbox's id to the clipboard."
+        act.setToolTip(tip)
         act.triggered.connect(partial(self.copy_workbox_id, workbox, index))
 
         if popup:
@@ -417,7 +474,7 @@ class DragTabBar(QTabBar):
 
         return menu
 
-    def link_file(self, workbox):
+    def link_file(self, workbox, saveLinkedFile=True):
         """Link the given workbox to a file on disk.
 
         Args:
@@ -429,7 +486,7 @@ class DragTabBar(QTabBar):
             workbox.__set_file_monitoring_enabled__(False)
 
             # First, save any unsaved text
-            workbox.__save_prefs__()
+            workbox.__save_prefs__(saveLinkedFile=saveLinkedFile)
 
             # Now, load file
             workbox.__load__(filename)
