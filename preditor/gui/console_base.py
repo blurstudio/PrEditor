@@ -2,6 +2,7 @@ import os
 import re
 import string
 import subprocess
+import traceback
 from fractions import Fraction
 from typing import Optional
 
@@ -262,6 +263,16 @@ class ConsoleBase(QTextEdit):
             hi.install(self.write_log)
             self.logging_info[hi.name] = hi
 
+    def init_excepthook(self, attrName=None, value=None):
+        from preditor.excepthooks import PreditorExceptHook
+
+        if value:
+            if self.write_error not in PreditorExceptHook.callbacks:
+                PreditorExceptHook.callbacks.append(self.write_error)
+        else:
+            if self.write_error in PreditorExceptHook.callbacks:
+                PreditorExceptHook.callbacks.remove(self.write_error)
+
     def mouseMoveEvent(self, event):
         """Overload of mousePressEvent to change mouse pointer to indicate it is
         over a clickable error hyperlink.
@@ -428,6 +439,11 @@ class ConsoleBase(QTextEdit):
 
         # Otherwise ignore it
         return None
+
+    def write_error(self, *exc_info):
+        text = traceback.format_exception(*exc_info)
+        for line in text:
+            self.write(line, stream_type=StreamType.CONSOLE | StreamType.STDERR)
 
     def write_log(self, log_data, stream_type=StreamType.CONSOLE):
         """Write a logging message to the console depending on filters."""
@@ -648,3 +664,9 @@ class ConsoleBase(QTextEdit):
     """Reserved for ConsolePrEdit to enable StreamType.RESULT output. There is
     no reason for the baseclass to use QtPropertyInit, but this property is
     checked used by write so it needs defined."""
+    stream_echo_tracebacks = QtPropertyInit(
+        "_stream_echo_tracebacks", False, callback=init_excepthook
+    )
+    """Should this console print captured exceptions? Only use this if
+    stream_echo_stderr is disabled or you likely will get duplicate output.
+    """

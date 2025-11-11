@@ -7,6 +7,7 @@ from Qt import QtCompat
 
 from . import config, plugins
 from .contexts import ErrorReport
+from .weakref import WeakList
 
 
 class PreditorExceptHook(object):
@@ -18,6 +19,12 @@ class PreditorExceptHook(object):
     If `config.excepthooks` is empty when installing this class, it will
     automatically add `default_excepthooks`. You can disable this by adding `None`
     to the list before this class is initialized.
+    """
+
+    callbacks = WeakList()
+    """A list of callback called by `call_callbacks()` if enabled. This can be
+    used to notify other widgets of tracebacks. The callback must accept
+    `*exc_info` arguments.
     """
 
     def __init__(self, base_excepthook=None):
@@ -55,6 +62,7 @@ class PreditorExceptHook(object):
         """
         return [
             self.call_base_excepthook,
+            self.call_callbacks,
             self.ask_to_show_logger,
         ]
 
@@ -75,6 +83,22 @@ class PreditorExceptHook(object):
             self.base_excepthook(*exc_info)
         except (TypeError, NameError):
             sys.__excepthook__(*exc_info)
+
+    @classmethod
+    def call_callbacks(cls, *exc_info):
+        for callback in cls.callbacks:
+            try:
+                callback(*exc_info)
+            except Exception:
+                print(
+                    " PrEditor excepthook callback failed ".center(79, "-"),
+                    file=sys.__stderr__,
+                )
+                traceback.print_exc(file=sys.__stderr__)
+                print(
+                    " PrEditor excepthook callback failed ".center(79, "-"),
+                    file=sys.__stderr__,
+                )
 
     def ask_to_show_logger(self, *exc_info):
         """Show a dialog asking the user how to handle the error."""
