@@ -1146,14 +1146,10 @@ class LoggerWindow(Window):
         bak_path = prefs.create_stamped_path(self.name, name, sub_dir='prefs_bak')
 
         # If we are calling from load_prefs, onlyFirst will be True, so we can
-        # autoBack the prefs the first time. In that case, we'll also do a full
-        # prefs backup (ie as if pressing the "Backup" button.
+        # autoBack the prefs the first time.
         existing = list(Path(bak_path).parent.glob("{}*.json".format(stem)))
-        if onlyFirst:
-            # If there are already prefs backup files, we do not need to proceed.
-            if len(existing):
-                return
-            self.backupPreferences()
+        if onlyFirst and len(existing):
+            return
 
         if path.is_file():
             shutil.copy(path, bak_path)
@@ -1172,11 +1168,31 @@ class LoggerWindow(Window):
             with open(filename) as fp:
                 prefs_dict = json.load(fp)
 
-        prefs_dict = self.transition_to_new_prefs(prefs_dict)
-
         return prefs_dict
 
-    def transition_to_new_prefs(self, prefs_dict):
+    def autoBackupForTransition(self, prefs_dict):
+        """Since changing how workboxes are based to workbox_id is a major change,
+        do a full prefs backup the first time. This is based on the prefs attr
+        'prefs_version'. If less than 2.0, it will perform a full backup.
+
+        Args:
+            prefs_dict (dict): The (newly loaded) prefs.
+        """
+        prefs_version = prefs_dict.get("prefs_version", 1.0)
+        if prefs_version < 2.0:
+            self.backupPreferences()
+
+    def transitionToNewPrefs(self, prefs_dict):
+        """To facilitate renaming / changing prefs attrs, load a json dict which
+        defines the changes, and then apply them. This can usually include a
+        'prefs_version' attr associated with the changes.
+
+        Args:
+            prefs_dict (dict): The (newly loaded) prefs.
+
+        Returns:
+            new_prefs_dict (dict): The updated prefs dict
+        """
         self.prefs_updates = prefs.get_prefs_updates()
 
         orig_prefs_dict = copy.deepcopy(prefs_dict)
@@ -1263,6 +1279,11 @@ class LoggerWindow(Window):
 
     def restorePrefs(self, skip_geom=False):
         pref = self.load_prefs()
+
+        # Make changes to prefs attrs. Depending on the changes, perform a full
+        # auto-backup first.
+        self.autoBackupForTransition(pref)
+        pref = self.transitionToNewPrefs(pref)
 
         workbox_path = self.prefsPath("workboxes")
         Path(workbox_path).mkdir(exist_ok=True)
@@ -1372,6 +1393,8 @@ class LoggerWindow(Window):
         # Allow any plugins to restore their own preferences
         for name, plugin in self.plugins.items():
             plugin.restore_prefs(name, pref.get("plugins", {}).get(name))
+
+        self.restoreToolbars(pref=pref)
 
     def restoreToolbars(self, pref=None):
         if pref is None:
@@ -1577,7 +1600,6 @@ class LoggerWindow(Window):
 
     def showEvent(self, event):
         super(LoggerWindow, self).showEvent(event)
-        self.restoreToolbars()
         self.updateIndentationsUseTabs()
         self.updateCopyIndentsAsSpaces()
 
