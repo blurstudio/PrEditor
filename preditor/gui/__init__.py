@@ -1,9 +1,11 @@
 from __future__ import absolute_import
 
+import re
 from functools import partial
 
 from Qt.QtCore import Property
-from Qt.QtWidgets import QStackedWidget
+from Qt.QtGui import QCursor
+from Qt.QtWidgets import QStackedWidget, QToolTip
 
 from .dialog import Dialog  # noqa: F401
 from .window import Window  # noqa: F401
@@ -59,6 +61,23 @@ def QtPropertyInit(name, default, callback=None, typ=None):
     if typ is None:
         typ = default.__class__
     return Property(typ, fget=(lambda s: ga(s, name)), fset=(lambda s, v: sa(s, v)))
+
+
+def handleMenuHovered(action):
+    """Actions in QMenus which are not descendants of a QToolBar will not show
+    their toolTips, because... Reasons?
+    """
+    # Don't show if it's just the text of the action
+    text = re.sub(r"(?<!&)&(?!&)", "", action.text())
+    text = text.replace('...', '')
+
+    if text == action.toolTip():
+        text = ''
+    else:
+        text = action.toolTip()
+
+    menu = action.parent()
+    QToolTip.showText(QCursor.pos(), text, menu)
 
 
 def loadUi(filename, widget, uiname=''):
