@@ -79,6 +79,22 @@ class GroupedTabWidget(OneTabWidget):
                 break
         return is_dirty
 
+    def __is_missing_linked_file__(self):
+        """Determine if any of the workboxes are linked to file which is missing
+        on disk.
+
+        Returns:
+            bool: Whether any of this group's workboxes define a linked file
+                which is missing on disk.
+        """
+        is_missing_linked_file = False
+        for workbox_idx in range(self.count()):
+            workbox = self.widget(workbox_idx)
+            if workbox.__is_missing_linked_file__():
+                is_missing_linked_file = True
+                break
+        return is_missing_linked_file
+
     def add_new_editor(self, title=None, prefs=None):
         title = title or self.default_title
 
@@ -120,6 +136,7 @@ class GroupedTabWidget(OneTabWidget):
             # Keep track of deleted tabs, make re-openable
             # Maybe also move workbox dir to a 'removed workboxes' dir
 
+            _editor.__set_file_monitoring_enabled__(False)
             super(GroupedTabWidget, self).close_tab(index)
 
     def default_tab(self, title=None, prefs=None):
@@ -138,8 +155,7 @@ class GroupedTabWidget(OneTabWidget):
         if editor:
             editor.__load_workbox_version_text__(VersionTypes.Last)
 
-            editor.__set_tab_widget__(self)
-            editor.__set_last_saved_text__(editor.text())
+            editor.__set_last_saved_text__(editor.__text__())
             editor.__set_last_workbox_name__(editor.__workbox_name__())
 
             filename = prefs.get("filename", None)
@@ -154,12 +170,27 @@ class GroupedTabWidget(OneTabWidget):
         editor.__set_orphaned_by_instance__(orphaned_by_instance)
         return editor, title
 
+    def get_next_available_tab_name(self, name=None):
+        """Get the next available tab name, providing a default if needed.
+
+        Args:
+            name (str, optional): The name for which to get the next available
+                name.
+
+        Returns:
+            str: The determined next available tab name
+        """
+        if name is None:
+            name = self.default_title
+        return super().get_next_available_tab_name(name)
+
     def showEvent(self, event):  # noqa: N802
         super(GroupedTabWidget, self).showEvent(event)
         self.tab_shown(self.currentIndex())
 
     def tab_shown(self, index):
         editor = self.widget(index)
+        editor.__set_tab_widget__(self)
         if editor and editor.isVisible():
             editor.__show__()
 

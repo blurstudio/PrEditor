@@ -14,13 +14,12 @@ import os.path
 import re
 import string
 import sys
-import time
 from collections import OrderedDict
 from contextlib import contextmanager
 from functools import partial
 
 import Qt as Qt_py
-from Qt.QtCore import Property, QEvent, QPoint, Qt, Signal
+from Qt.QtCore import Property, QPoint, Qt, Signal
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon, QKeyEvent, QKeySequence
 from Qt.QtWidgets import (
     QAction,
@@ -35,7 +34,6 @@ from .. import osystem, resourcePath
 from ..delayable_engine import DelayableEngine
 from ..enum import Enum, EnumGroup
 from ..gui import QtPropertyInit
-from ..gui.workbox_mixin import WorkboxMixin
 from . import QsciScintilla, lang
 
 logger = logging.getLogger(__name__)
@@ -121,7 +119,6 @@ class DocumentEditor(QsciScintilla):
         # dialog shown is used to prevent showing multiple versions of the of the
         # confirmation dialog. this is caused because multiple signals are emitted and
         # processed.
-        self._dialogShown = False
         # used to store perminately highlighted keywords
         self._permaHighlight = []
         self.setSmartHighlightingRegEx()
@@ -222,9 +219,7 @@ class DocumentEditor(QsciScintilla):
         self.uiShowAutoCompleteSCT.activated.connect(lambda: self.showAutoComplete())
 
         # load the file
-        if filename:
-            self.load(filename)
-        else:
+        if not filename:
             self.refreshTitle()
             self.setLanguage('Plain Text')
 
@@ -249,30 +244,14 @@ class DocumentEditor(QsciScintilla):
         self._caretForegroundColor = color
         super(DocumentEditor, self).setCaretForegroundColor(color)
 
-    def checkForSave(self):
-        if self.isModified():
-            result = QMessageBox.question(
-                self.window(),
-                'Save changes to...',
-                'Do you want to save your changes?',
-                QMessageBox.StandardButton.Yes
-                | QMessageBox.StandardButton.No
-                | QMessageBox.StandardButton.Cancel,
-            )
-            if result == QMessageBox.StandardButton.Yes:
-                return self.save()
-            elif result == QMessageBox.StandardButton.Cancel:
-                return False
-        return True
-
     def clear(self):
         super(DocumentEditor, self).clear()
-        self._filename = ''
+        self.set_filename('')
 
     def closeEvent(self, event):
         self.disableTitleUpdate()
         # unsubcribe the file from the open file monitor
-        self.__set_file_monitoring_enabled__(False)
+        self.setFileMonitoringEnabled(False)
         super(DocumentEditor, self).closeEvent(event)
 
     def closeEditor(self):
@@ -587,12 +566,6 @@ class DocumentEditor(QsciScintilla):
     def enableTitleUpdate(self):
         self.modificationChanged.connect(self.refreshTitle)
 
-    def eventFilter(self, object, event):
-        if event.type() == QEvent.Type.Close and not self.checkForSave():
-            event.ignore()
-            return True
-        return False
-
     def exploreDocument(self):
         path = self._filename
         if os.path.isfile(path):
@@ -677,19 +650,11 @@ class DocumentEditor(QsciScintilla):
     def lineMarginWidth(self):
         return self.marginWidth(self.SymbolMargin)
 
-    def load(self, filename):
-        filename = str(filename)
-        if filename and os.path.exists(filename):
-            self._encoding, text = WorkboxMixin.__open_file__(filename)
-            self.setText(text)
-            self.updateFilename(filename)
-            self.__set_file_monitoring_enabled__(True)
-            self.setEolMode(self.detectEndLine(self.text()))
-            return True
-        return False
-
     def filename(self):
         return self._filename
+
+    def set_filename(self, filename):
+        self._filename = filename
 
     def findNext(self, text, flags):
         re = (flags & SearchOptions.QRegExp) != 0
@@ -1028,76 +993,6 @@ class DocumentEditor(QsciScintilla):
         if not isinstance(value, list):
             raise TypeError('PermaHighlight must be a list')
 
-    def reloadFile(self):
-        return self.reloadDialog(
-            'Are you sure you want to reload %s? You will lose all changes'
-            % os.path.basename(self.filename())
-        )
-
-    def reloadChange(self):
-        """Callback for file monitoring. If a file was modified or deleted this method
-        is called when Open File Monitoring is enabled. Returns if the file was updated
-        or left open
-
-        Returns:
-            bool:
-        """
-        logger.debug(
-            'Reload Change called: %0.3f Dialog Shown: %r'
-            % (self._saveTimer, self._dialogShown),
-        )
-        if time.time() - self._saveTimer < 0.5:
-            # If we are saving no need to reload the file
-            logger.debug('timer has not expired')
-            return False
-        if not os.path.isfile(self.filename()) and not self._dialogShown:
-            logger.debug('The file was deleted')
-            # the file was deleted, ask the user if they still want to keep the file in
-            # the editor.
-            self._dialogShown = True
-            result = QMessageBox.question(
-                self.window(),
-                'File Removed...',
-                'File: %s has been deleted.\nKeep file in editor?' % self.filename(),
-                QMessageBox.StandardButton.Yes,
-                QMessageBox.StandardButton.No,
-            )
-            self._dialogShown = False
-            if result == QMessageBox.StandardButton.No:
-                logger.debug(
-                    'The file was deleted, removing document from editor',
-                )
-                self.parent().close()
-                return False
-            # TODO: The file no longer exists, and the document should be marked as
-            # changed.
-            logger.debug(
-                'The file was deleted, But the user left it in the editor',
-            )
-            self.__set_file_monitoring_enabled__(False)
-            return True
-        logger.debug('Defaulting to reload message')
-        return self.reloadDialog(
-            'File: %s has been changed.\nReload from disk?' % self.filename()
-        )
-
-    def reloadDialog(self, message, title='Reload File...'):
-        if not self._dialogShown:
-            self._dialogShown = True
-            if self.autoReloadOnChange() or not self.isModified():
-                result = QMessageBox.StandardButton.Yes
-            else:
-                result = QMessageBox.question(
-                    self.window(),
-                    title,
-                    message,
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                )
-            self._dialogShown = False
-            if result == QMessageBox.StandardButton.Yes:
-                return self.load(self.filename())
-        return False
-
     def replace(self, text, searchtext=None, all=False):
         # replace the current text with the inputed text
         if not searchtext:
@@ -1146,45 +1041,10 @@ class DocumentEditor(QsciScintilla):
         except RuntimeError:
             pass
 
-    def save(self):
-        logger.debug(' Saved Called'.center(60, '-'))
-        ret = self.saveAs(self.filename())
-        return ret
-
-    def saveAs(self, filename='', setFilename=True, directory=''):
-        logger.debug(' Save As Called '.center(60, '-'))
-
-        # Disable file watching so workbox doesn't reload and scroll to the top
-        self.__set_file_monitoring_enabled__(False)
-        if not filename:
-            filename = self.filename() or directory
-            filename, extFilter = Qt_py.QtCompat.QFileDialog.getSaveFileName(
-                self.window(), 'Save File as...', filename
-            )
-
-        if filename:
-            self._saveTimer = time.time()
-            # save the file to disk
-            try:
-                txt = self.text()
-                WorkboxMixin.__write_file__(filename, txt, encoding=self._encoding)
-            except PermissionError as error:
-                logger.debug('An error occurred while saving')
-                QMessageBox.question(
-                    self.window(),
-                    'Error saving file...',
-                    'There was a error saving the file. Error: {}'.format(error),
-                    QMessageBox.StandardButton.Ok,
-                )
-                return False
-
-            # update the file
-            if setFilename:
-                self.updateFilename(filename)
-                # Turn file watching back on.
-                self.__set_file_monitoring_enabled__(True)
-            return True
-        return False
+    def setFileMonitoringEnabled(self, state):
+        window = self.window()
+        if hasattr(window, "setFileMonitoringEnabled"):
+            window.setFileMonitoringEnabled(state)
 
     def selectProjectItem(self):
         window = self.window()
@@ -1716,7 +1576,8 @@ class DocumentEditor(QsciScintilla):
             self.setLanguage(self._defaultLanguage)
 
         # update the filename information
-        self._filename = os.path.abspath(filename) if filename else ""
+        filename = os.path.abspath(filename) if filename else ""
+        self.set_filename(filename)
         self.setModified(False)
 
         try:
@@ -2067,21 +1928,3 @@ class DocumentEditor(QsciScintilla):
         '_paperSmartHighlight', QColor(155, 255, 155, 75)
     )
     paperDecorator = QtPropertyInit('_paperDecorator', _defaultPaper)
-
-    def __file_monitoring_enabled__(self):
-        """Returns True if this workbox supports file monitoring.
-        This allows the editor to update its text if the linked
-        file is changed on disk."""
-        return False
-
-    def __set_file_monitoring_enabled__(self, state):
-        """Enables/Disables open file change monitoring. If enabled, A dialog will pop
-        up when ever the open file is changed externally. If file monitoring is
-        disabled in the IDE settings it will be ignored.
-
-        Returns:
-            bool:
-        """
-        # if file monitoring is enabled and we have a file name then set up the file
-        # monitoring
-        pass

@@ -97,7 +97,7 @@ class GroupTabWidget(OneTabWidget):
             WorkboxMixin: The new text editor.
         """
         if not group:
-            group = self.get_next_available_tab_name(self.default_title)
+            group = self.get_next_available_tab_name()
         elif group is True:
             group = self.currentIndex()
 
@@ -171,6 +171,20 @@ class GroupTabWidget(OneTabWidget):
             core_name=self.core_name,
         )
         return widget, title
+
+    def get_next_available_tab_name(self, name=None):
+        """Get the next available tab name, providing a default if needed.
+
+        Args:
+            name (str, optional): The name for which to get the next available
+                name.
+
+        Returns:
+            str: The determined next available tab name
+        """
+        if name is None:
+            name = self.default_title
+        return super().get_next_available_tab_name(name)
 
     def append_orphan_workboxes_to_prefs(self, prefs, existing_by_group):
         """If prefs are saved in a different PrEditor instance (in this same core)
@@ -321,8 +335,15 @@ class GroupTabWidget(OneTabWidget):
                 # restoring a tab with empty text.
 
                 loadable = False
-
                 name = tab['name']
+
+                # Support legacy arg for emergency backwards compatibility
+                tempfile = tab.get('tempfile', None)
+                # Get various possible saved filepaths.
+                filename = tab.get('filename', "")
+                if filename:
+                    if Path(filename).is_file():
+                        loadable = True
 
                 workbox_id = tab.get('workbox_id', None)
                 # If user went back to before PrEditor used workbox_id, and
@@ -333,20 +354,12 @@ class GroupTabWidget(OneTabWidget):
                     bak_file = tab.get('backup_file', None)
                     if bak_file:
                         workbox_id = str(Path(bak_file).parent)
-                    else:
+                    elif not tempfile:
                         missing_name = f"{group_name}/{name}"
                         workboxes_missing_id.append(missing_name)
                         continue
 
                 orphaned_by_instance = tab.get('orphaned_by_instance', False)
-
-                # Support legacy arg for emergency backwards compatibility
-                tempfile = tab.get('tempfile', None)
-                # Get various possible saved filepaths.
-                filename_pref = tab.get('filename', "")
-                if filename_pref:
-                    if Path(filename_pref).is_file():
-                        loadable = True
 
                 # See if there are any  workbox backups available
                 backup_file, _, count = get_backup_version_info(
@@ -361,7 +374,7 @@ class GroupTabWidget(OneTabWidget):
                 # tab if it hasn't already been created.
                 prefs = dict(
                     workbox_id=workbox_id,
-                    filename=filename_pref,
+                    filename=filename,
                     backup_file=backup_file,
                     existing_editor_info=existing_by_id.pop(workbox_id, None),
                     orphaned_by_instance=orphaned_by_instance,
