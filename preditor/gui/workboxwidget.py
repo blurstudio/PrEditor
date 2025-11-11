@@ -1,12 +1,13 @@
 from __future__ import absolute_import, print_function
 
+import os
 import re
 import time
 from pathlib import Path
 
-from Qt.QtCore import Qt
+from Qt.QtCore import QEvent, Qt
 from Qt.QtGui import QIcon
-from Qt.QtWidgets import QAction
+from Qt.QtWidgets import QAction, QMessageBox
 
 from .. import core, resourcePath
 from ..gui.workbox_mixin import WorkboxMixin
@@ -20,12 +21,9 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self,
         parent=None,
         console=None,
-        workbox_id=None,
-        filename=None,
-        backup_file=None,
-        tempfile=None,
         delayable_engine='default',
         core_name=None,
+        **kwargs
     ):
         self.__set_console__(console)
         self._searchFlags = 0
@@ -34,17 +32,8 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
 
         # initialize the super class
         super(WorkboxWidget, self).__init__(
-            parent, delayable_engine=delayable_engine, core_name=core_name
+            parent, delayable_engine=delayable_engine, core_name=core_name, **kwargs
         )
-
-        if workbox_id:
-            self._workbox_id = workbox_id
-        else:
-            self._workbox_id = WorkboxMixin.__create_workbox_id__(self.core_name)
-
-        self._filename_pref = filename
-        self._backup_file = backup_file
-        self._tempfile = tempfile
 
         # Store the software name so we can handle custom keyboard shortcuts based on
         # software
@@ -71,6 +60,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         )
         self.setAutoCompletionSource(state)
 
+    def __auto_reload_on_change__(self):
+        return self.autoReloadOnChange()
+
+    def __set_auto_reload_on_change__(self, state):
+        self.setAutoReloadOnChange(state)
+
     def __clear__(self):
         self.clear()
         self.__set_last_saved_text__(self.__text__())
@@ -92,19 +87,37 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         """Set the cursor to this line number and index"""
         self.setCursorPosition(line, index)
 
-    def __exec_all__(self):
-        txt = self.__unix_end_lines__(self.text()).rstrip()
-        title = self.__workbox_trace_title__()
-        self.__console__().executeString(txt, filename=title)
+    def __check_for_save__(self):
+        if self.isModified():
+            result = QMessageBox.question(
+                self.window(),
+                'Save changes to...',
+                'Do you want to save your changes?',
+                QMessageBox.StandardButton.Yes
+                | QMessageBox.StandardButton.No
+                | QMessageBox.StandardButton.Cancel,
+            )
+            if result == QMessageBox.StandardButton.Yes:
+                return self.save()
+            elif result == QMessageBox.StandardButton.Cancel:
+                return False
+        return True
 
-    def __file_monitoring_enabled__(self):
-        return self.window().fileMonitoringEnabled(self.__filename__())
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.Type.Close and not self.__check_for_save__():
+            event.ignore()
+            return True
+        return False
 
-    def __set_file_monitoring_enabled__(self, state):
-        self.window().setFileMonitoringEnabled(self.__filename__(), state)
+    def execStandalone(self):
+        if self.__save__():
+            os.startfile(str(self.filename()))
 
     def __filename__(self):
         return self.filename()
+
+    def __set_filename__(self, filename):
+        self.set_filename(filename)
 
     def __font__(self):
         if self.lexer():
@@ -131,27 +144,32 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __insert_text__(self, txt):
         self.insert(txt)
 
-    def __load__(self, filename, update_last_save=True):
-        self.load(filename)
-        self.__set_last_saved_text__(self.__text__())
+    def __load__(self, filename):
+        if filename and Path(filename).is_file():
+            # This is overriding WorkboxMixin.__load__, make sure to base class
+            # method.
+            super().__load__(filename)
 
-        # Determine workbox name so we can store it
-        workbox_name = self.__workbox_name__()
-        group_name = workbox_name.group
-
-        new_name = Path(filename).name
-
-        new_workbox_name = "{}/{}".format(group_name, new_name)
-        self.__set_last_workbox_name__(new_workbox_name)
+            # DocumentEditor specific calls
+            font = self.__font__()
+            self.updateFilename(str(filename))
+            self.__set_font__(font)
+            self.setEolMode(self.detectEndLine(self.__text__()))
 
     def __reload_file__(self):
         # loading the file too quickly misses any changes
         time.sleep(0.1)
         font = self.__font__()
-        self.reloadChange()
+        self.__linked_file_changed__()
         self.__set_last_saved_text__(self.__text__())
         self.__set_last_workbox_name__(self.__workbox_name__())
         self.__set_font__(font)
+
+    def __save__(self):
+        super().__save__()
+        filename = self.__filename__()
+        if filename:
+            self.updateFilename(filename)
 
     def __margins_font__(self):
         return self.marginsFont()
@@ -177,11 +195,6 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __remove_selected_text__(self):
         self.removeSelectedText()
 
-    def __save__(self):
-        self.save()
-        self.__set_last_saved_text__(self.__text__())
-        self.__set_last_workbox_name__(self.__workbox_name__())
-
     def __selected_text__(self, start_of_line=False, selectText=False):
         line, s, end, e = self.getSelection()
 
@@ -192,16 +205,16 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         if line == -1 or selectionIsEmpty:
             # Nothing is selected, return the current line of text
             line, index = self.getCursorPosition()
-            txt = self.text(line)
+            txt = self.__text_part__(lineNum=line)
 
             if selectText:
-                lineLength = len(self.text(line).rstrip())
+                lineLength = len(txt.rstrip())
                 self.setSelection(line, 0, line, lineLength)
 
         elif start_of_line:
             ss = self.positionFromLineIndex(line, 0)
             ee = self.positionFromLineIndex(end, e)
-            txt = self.text(ss, ee)
+            txt = self.__text_part__(start=ss, end=ee)
         else:
             txt = self.selectedText()
         return self.regex.split(txt)[0], line
@@ -212,42 +225,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def __set_tab_width__(self, width):
         self.setTabWidth(width)
 
-    def __text__(self, line=None, start=None, end=None):
-        """Returns the text in this widget, possibly limited in scope.
-
-        Note: Only pass line, or (start and end) to this method.
-
-        Args:
-            line (int, optional): Limit the returned scope to just this line number.
-            start (int, optional): Limit the scope to text between this and end.
-            end (int, optional): Limit the scope to text between start and this.
-
+    def __text__(self):
+        """Returns the text in this widget
         Returns:
-            str: The requested text.
+            str: Returns the text in this widget
         """
-        if line is not None:
-            return self.text(line)
-        elif (start is None) != (end is None):
-            raise ValueError('You must pass start and end if you pass either.')
-        elif start is not None:
-            self.text(start, end)
         return self.text()
-
-    def __set_text__(self, txt, update_last_saved_text=True):
-        """Replace all of the current text with txt."""
-        self.setText(txt)
-        self._is_loaded = True
-        if update_last_saved_text:
-            self.__set_last_saved_text__(self.__text__())
-
-    @classmethod
-    def __write_file__(cls, filename, txt, encoding=None):
-        # Save unix newlines for simplicity. This should only be called for
-        # files which are not linked, so we don't inadvertently change a file's
-        # line-endings. For linked files, call saveAs, which bypasses this
-        # method writes without converting to unix line endings.
-        txt = cls.__unix_end_lines__(txt)
-        super(WorkboxWidget, cls).__write_file__(filename, txt, encoding=encoding)
 
     def keyPressEvent(self, event):
         """Check for certain keyboard shortcuts, and handle them as needed,

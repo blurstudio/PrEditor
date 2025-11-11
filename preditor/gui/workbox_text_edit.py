@@ -24,20 +24,17 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
     def __init__(
         self,
-        parent=None,
         console=None,
-        workbox_id=None,
-        filename=None,
-        backup_file=None,
-        tempfile=None,
-        delayable_engine='default',
         core_name=None,
+        delayable_engine='default',
+        parent=None,
         **kwargs,
     ):
-        super(WorkboxTextEdit, self).__init__(parent=parent, core_name=core_name)
-        self._filename = None
-        self._encoding = None
+        super(WorkboxTextEdit, self).__init__(
+            parent=parent, core_name=core_name, **kwargs
+        )
         self.__set_console__(console)
+        self._encoding = None
         highlight = CodeHighlighter(self, 'Python')
         self.uiCodeHighlighter = highlight
 
@@ -46,6 +43,10 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
 
     def __set_auto_complete_enabled__(self, state):
         pass
+
+    def __clear__(self):
+        self.clear()
+        self.__set_last_saved_text__(self.__text__())
 
     def __copy_indents_as_spaces__(self):
         """When copying code, should it convert leading tabs to spaces?"""
@@ -62,11 +63,6 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         sc = QTextCursor(self.document())
         sc.setPosition(cursor.selectionStart())
         return sc.blockNumber(), sc.positionInBlock()
-
-    def __exec_all__(self):
-        txt = self.__text__().rstrip()
-        title = self.__workbox_trace_title__()
-        self.__console__().executeString(txt, filename=title)
 
     def __font__(self):
         return self.font()
@@ -86,12 +82,6 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
     def __set_indentations_use_tabs__(self, state):
         logger.info("WorkboxTextEdit does not support using spaces for tabs.")
 
-    def __load__(self, filename):
-        self._filename = filename
-        enc, txt = self.__open_file__(self._filename)
-        self._encoding = enc
-        self.__set_text__(txt)
-
     def __margins_font__(self):
         return QFont()
 
@@ -102,12 +92,12 @@ class WorkboxTextEdit(WorkboxMixin, QTextEdit):
         # TODO: Implement custom tab widths
         return 4
 
-    def __text__(self, line=None, start=None, end=None):
+    def __text__(self):
+        """Returns the text in this widget
+        Returns:
+            str: Returns the text in this widget
+        """
         return self.toPlainText()
-
-    def __set_text__(self, text, update_last_saved_text=True):
-        super(WorkboxTextEdit, self).__set_text__(text)
-        self.setPlainText(text)
 
     def __selected_text__(self, start_of_line=False, selectText=False):
         cursor = self.textCursor()

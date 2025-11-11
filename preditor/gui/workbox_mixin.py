@@ -1,14 +1,19 @@
 from __future__ import absolute_import, print_function
 
+import enum
 import io
+import logging
 import os
+import sys
 import tempfile
 import textwrap
+import time
 from pathlib import Path
 
 import chardet
+import Qt as Qt_py
 from Qt.QtCore import Qt
-from Qt.QtWidgets import QStackedWidget
+from Qt.QtWidgets import QMessageBox, QStackedWidget
 
 from ..prefs import (
     VersionTypes,
@@ -18,6 +23,14 @@ from ..prefs import (
     get_prefs_dir,
     get_relative_path,
 )
+
+logger = logging.getLogger(__name__)
+
+
+class EolTypes(enum.Enum):
+    EolWindows = '\r\n'
+    EolUnix = '\n'
+    EolMac = '\r'
 
 
 class WorkboxName(str):
@@ -79,7 +92,17 @@ class WorkboxMixin(object):
         self._show_blank = False
         self._tempdir = None
 
+        self._dialogShown = False
+
         self.core_name = core_name
+
+        if not workbox_id:
+            workbox_id = self.__create_workbox_id__(self.core_name)
+        self.__set_workbox_id__(workbox_id)
+
+        self.__set_filename__(filename)
+        self.__set_backup_file__(backup_file)
+        self.__set_tempfile__(tempfile)
 
         self._tab_widget = parent
 
@@ -88,9 +111,27 @@ class WorkboxMixin(object):
         # wait until __show__ so that we know the tab exists, and has tabText
         self._last_workbox_name = None
 
+        self._autoReloadOnChange = False
+
         self.__set_orphaned_by_instance__(False)
         self.__set_changed_by_instance__(False)
         self._changed_saved = False
+
+    def __auto_reload_on_change__(self):
+        """Whether the option to auto-reload linked files is set
+
+        Returns:
+            bool: Whether the option to auto-reload linked files is set
+        """
+        return self._autoReloadOnChange
+
+    def __set_auto_reload_on_change__(self, state):
+        """Set the option to auto-reload linked files to state
+
+        Args:
+            state (bool): The state to set the auto-reload linked files option
+        """
+        self._autoReloadOnChange = state
 
     def __set_last_saved_text__(self, text):
         """Store text as last_saved_text on this workbox so checking if if_dirty
@@ -182,7 +223,9 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __exec_all__(self):
-        raise NotImplementedError("Mixin method not overridden.")
+        txt = self.__unix_end_lines__(self.__text__()).rstrip()
+        title = self.__workbox_trace_title__()
+        self.__console__().executeString(txt, filename=title)
 
     def __exec_selected__(self, truncate=True):
         txt, lineNum = self.__selected_text__()
@@ -214,7 +257,7 @@ class WorkboxMixin(object):
         """Returns True if this workbox supports file monitoring.
         This allows the editor to update its text if the linked
         file is changed on disk."""
-        raise NotImplementedError("Mixin method not overridden.")
+        return self.window().fileMonitoringEnabled(self.__filename__())
 
     def __set_file_monitoring_enabled__(self, state):
         """Enables/Disables open file change monitoring. If enabled, A dialog will pop
@@ -226,10 +269,15 @@ class WorkboxMixin(object):
         """
         # if file monitoring is enabled and we have a file name then set up the file
         # monitoring
-        raise NotImplementedError("Mixin method not overridden.")
+        self.window().setFileMonitoringEnabled(self.__filename__(), state)
 
     def __filename__(self):
-        raise NotImplementedError("Mixin method not overridden.")
+        """The workboxes filename (ie linked file), if any
+
+        Returns:
+            str: The workboxes filename (ie linked file), if any
+        """
+        return self._filename
 
     def __set_filename__(self, filename):
         """Set this workboxes linked filename to the provided filename
@@ -238,7 +286,27 @@ class WorkboxMixin(object):
             filename (str): The filename to link to
         """
         self._filename = filename
-        self._filename_pref = filename
+
+    def __tempfile__(self):
+        """The workboxes defined tempfile, if any.
+        This property is now obsolete, but retained to more easily facilitate if
+         a user needs to revert to PrEditor version before the workbox overhaul.
+
+        Returns:
+            str: The workboxes filename (ie linked file), if any
+        """
+        return self._tempfile
+
+    def __set_tempfile__(self, filename):
+        """Set this workboxes tempfile to the provided filename
+
+        This property is now obsolete, but retained to more easily facilitate if
+         a user needs to revert to PrEditor version before the workbox overhaul.
+
+        Args:
+            filename (str): The filename to link to
+        """
+        self._tempfile = filename
 
     def __font__(self):
         raise NotImplementedError("Mixin method not overridden.")
@@ -290,6 +358,7 @@ class WorkboxMixin(object):
     def __workbox_name__(self, workbox=None):
         """Returns the name for this workbox or a given workbox.
         The name is the group tab text and the workbox tab text joined by a `/`"""
+        workbox = workbox if workbox else self
         workboxTAB = self.window().uiWorkboxTAB
         group_name = None
         workbox_name = None
@@ -312,12 +381,12 @@ class WorkboxMixin(object):
                             workbox_name = cur_group_widget.tabText(workbox_idx)
                             break
         else:
-            grouped = self.__tab_widget__()
+            grouped = workbox.__tab_widget__()
             groupedTabBar = grouped.tabBar()
 
             idx = -1
             for idx in range(grouped.count()):
-                if grouped.widget(idx) == self:
+                if grouped.widget(idx) == workbox:
                     break
             workbox_name = groupedTabBar.tabText(idx)
 
@@ -349,10 +418,81 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __load__(self, filename):
-        raise NotImplementedError("Mixin method not overridden.")
+        """Load the given filename. If this method is overridden in a subclass,
+        to do extra functionality, make sure to also call this method, ie
+        super().__load__().
+
+        Args:
+            filename (str): The file to load
+        """
+        if filename and Path(filename).is_file():
+            self._encoding, text = self.__open_file__(filename)
+            self.__set_text__(text)
+            self.__set_file_monitoring_enabled__(True)
+            self.__set_filename__(filename)
+
+            # Determine new workbox name so we can store it
+            cur_workbox_name = self.__workbox_name__()
+            group_name = cur_workbox_name.group
+            new_name = Path(filename).name
+            new_workbox_name = WorkboxName(group_name, new_name)
+            self.__set_last_workbox_name__(new_workbox_name)
+
+            self.__set_last_saved_text__(self.__text__())
+        else:
+            self.__set_filename__("")
 
     def __margins_font__(self):
         raise NotImplementedError("Mixin method not overridden.")
+
+    def __lines__(self):
+        """A list of all the lines of text contained in this workbox.
+
+        Returns:
+            list: A list of all the lines of text contained in this workbox.
+        """
+        txt = self.__text__()
+        eol = self.__detect_eol__(txt)
+        lines = txt.split(eol.value)
+        return lines
+
+    def __num_lines__(self):
+        """The number of lines contained in this workbox.
+
+        Returns:
+            int: The number of lines contained in this workbox.
+        """
+        num_lines = len(self.__lines__())
+        return num_lines
+
+    def __detect_eol__(self, text):
+        """Determine the eol (end-of-line) type for this file, such as Windows,
+        Linux or Mac.
+
+        Args:
+            text (str): The text for which to determine eol characters.
+
+        Returns:
+            EolTypes: The determined eol type.
+        """
+        newlineN = text.find('\n')
+        newlineR = text.find('\r')
+        if newlineN != -1 and newlineR != -1:
+            if newlineN == newlineR + 1:
+                # CR LF Windows
+                return EolTypes.EolWindows
+        if newlineN != -1 and newlineR != -1:
+            if newlineN < newlineR:
+                # First return is a LF
+                return EolTypes.EolUnix
+            else:
+                # first return is a CR
+                return EolTypes.EolMac
+        if newlineN != -1:
+            return EolTypes.EolUnix
+        if sys.platform == 'win32':
+            return EolTypes.EolWindows
+        return EolTypes.EolUnix
 
     def __set_margins_font__(self, font):
         raise NotImplementedError("Mixin method not overridden.")
@@ -364,13 +504,166 @@ class WorkboxMixin(object):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __reload_file__(self):
-        raise NotImplementedError("Mixin method not overridden.")
+        """Reload this workbox's linked file."""
+        # Loading the file too quickly misses any changes
+        time.sleep(0.1)
+        font = self.__font__()
+
+        choice = self.__show_reload_dialog__()
+        if choice is True:
+            self.__load__(self.__filename__())
+
+            self.__set_last_saved_text__(self.__text__())
+            self.__set_last_workbox_name__(self.__workbox_name__())
+            self.__set_font__(font)
+
+    def __single_messagebox__(self, title, message):
+        """Display a messagebox, but only once, in case this is triggered by a
+        signal which gets received multiple times.
+
+        Args:
+            title (str): The title for the messagebox
+            message (str): The descriptive text explaining the situation to the
+                user, which requires the messagebox.
+
+        Returns:
+            choice (bool): Whether the user accepted the dialog or not.
+        """
+        choice = False
+        buttons = QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+
+        if not self._dialogShown:
+            self._dialogShown = True
+            result = QMessageBox.question(self.window(), title, message, buttons)
+            choice = result == QMessageBox.StandardButton.Yes
+        self._dialogShown = False
+        return choice
+
+    def __show_reload_dialog__(self):
+        """Show a messagebox asking if user wants to reload the linked-file,
+        which has changed externally.
+
+        Returns:
+            choice (bool): Whether user chose to reload the link file (or
+                auto-reload setting is True)
+        """
+        choice = None
+        if self.__auto_reload_on_change__():
+            choice = True
+        else:
+            name = Path(self.__filename__()).name
+            title = 'Reload File...'
+            msg = f'Are you sure you want to reload {name}?'
+            choice = self.__single_messagebox__(title, msg)
+        return choice
+
+    def __set_workbox_title__(self, title):
+        """Set the tab-text on the grouped widget tab for this workbox.
+
+        Args:
+            title (str): The text to put on the grouped tab's tabText.
+        """
+        _group_idx, editor_idx = self.__group_tab_index__()
+        self.__tab_widget__().tabBar().setTabText(editor_idx, title)
+
+    def __linked_file_changed__(self):
+        """If a file was modified or deleted this method
+        is called when Open File Monitoring is enabled. Returns True if the file
+        was updated or left open
+
+        Returns:
+            bool:
+        """
+        filename = self.__filename__()
+        if not Path(filename).is_file():
+            # The file was deleted, ask the user if they still want to keep the file in
+            # the editor.
+
+            title = 'File Removed...'
+            msg = f'File: {filename} has been deleted.\nKeep file in editor?'
+            choice = self.__single_messagebox__(title, msg)
+
+            if choice is False:
+                logger.debug(
+                    'The file was deleted, removing document from editor',
+                )
+                group_idx, editor_idx = self.__group_tab_index__()
+                self.__tab_widget__().close_tab(editor_idx)
+                return False
+            elif choice:
+                self.__set_filename__("")
+                title = self.__tab_widget__().get_next_available_tab_name()
+                self.__set_workbox_title__(title)
+
+            # TODO: The file no longer exists, and the document should be marked as
+            # changed.
+
+        if self.autoReloadOnChange() or not self.isModified():
+            choice = True
+        else:
+            title = 'Reload File...'
+            msg = f'File: {filename} has been changed.\nReload from disk?'
+            choice = self.__single_messagebox__(title, msg)
+
+        if choice is True:
+            self.__load__(self.__filename__())
 
     def __remove_selected_text__(self):
         raise NotImplementedError("Mixin method not overridden.")
 
     def __save__(self):
-        raise NotImplementedError("Mixin method not overridden.")
+        """Save this workbox's linked file.
+
+        Returns:
+            saved (bool): Whether the file was saved
+        """
+        saved = self.__save_as__(self.__filename__())
+        if saved:
+            self.__set_last_saved_text__(self.__text__())
+            self.__set_last_workbox_name__(self.__workbox_name__())
+        return saved
+
+    def __save_as__(self, filename='', directory=''):
+        """Save as provided filename, or self.__filename__(). If this method is
+        overridden to add functionality, make sure to still call this method.
+
+        Args:
+            filename (str, optional): The filename to save as
+            directory (str, optional): A directory to open the dialog at.
+
+        Returns:
+            saved (bool): Whether the file has been saved
+        """
+        # Disable file watching so workbox doesn't reload and scroll to the top
+        self.__set_file_monitoring_enabled__(False)
+        if not filename:
+            filename = self.__filename__() or directory
+            filename, extFilter = Qt_py.QtCompat.QFileDialog.getSaveFileName(
+                self.window(), 'Save File as...', filename
+            )
+
+        if filename:
+            # Save the file to disk
+            try:
+                txt = self.__text__()
+                self.__write_file__(filename, txt, encoding=self._encoding)
+                self.__set_filename__(filename)
+                self.__set_last_workbox_name__(self.__workbox_name__())
+                self.__set_last_saved_text__(txt)
+            except PermissionError as error:
+                logger.debug('An error occurred while saving')
+                QMessageBox.question(
+                    self.window(),
+                    'Error saving file...',
+                    'There was a error saving the file. Error: {}'.format(error),
+                    QMessageBox.StandardButton.Ok,
+                )
+                return False
+
+            # Turn file watching back on.
+            self.__set_file_monitoring_enabled__(True)
+            return True
+        return False
 
     def __selected_text__(self, start_of_line=False, selectText=False):
         """Returns selected text or the current line of text, plus the line
@@ -398,28 +691,42 @@ class WorkboxMixin(object):
     def __set_tab_width__(self, width):
         raise NotImplementedError("Mixin method not overridden.")
 
-    def __text__(self, line=None, start=None, end=None):
+    def __text__(self):
+        """Returns the text in this widget
+
+        Returns:
+            str: Returns the text in this widget
+        """
+        raise NotImplementedError("Mixin method not overridden.")
+
+    def __set_text__(self, txt):
+        """Replace all of the current text with txt. This method can be overridden
+        by sub-classes to accommodate that widget's text-setting method. Most
+        likely should also set self._is_loaded=True.
+        """
+        self.setText(txt)
+        self._is_loaded = True
+
+    def __text_part__(self, lineNum=None, start=None, end=None):
         """Returns the text in this widget, possibly limited in scope.
 
         Note: Only pass line, or (start and end) to this method.
 
         Args:
-            line (int, optional): Limit the returned scope to just this line number.
+            lineNum (int, optional): Limit the returned scope to just this line number.
             start (int, optional): Limit the scope to text between this and end.
             end (int, optional): Limit the scope to text between start and this.
 
         Returns:
             str: The requested text.
         """
-        raise NotImplementedError("Mixin method not overridden.")
-
-    def __set_text__(self, txt):
-        """Replace all of the current text with txt. This method should be overridden
-        by sub-classes, and call super to mark the widget as having been loaded.
-        If text is being set on the widget, it most likely should be marked as
-        having been loaded.
-        """
-        self._is_loaded = True
+        if lineNum is not None:
+            return self.__lines__()[lineNum]
+        elif (start is None) != (end is None):
+            raise ValueError('You must pass start and end if you pass either.')
+        elif start is not None:
+            return self.__text__()[start:end]
+        return self.__text__()
 
     def __is_dirty__(self):
         """Returns if this workbox has unsaved changes, either to it's contents
@@ -433,6 +740,19 @@ class WorkboxMixin(object):
             or self.__workbox_name__(workbox=self) != self.__last_workbox_name__()
         )
         return is_dirty
+
+    def __is_missing_linked_file__(self):
+        """Determine if this workbox is linked to a file which is missing on disk.
+
+        Returns:
+            bool: Whether this workbox is linked to a file which is missing on
+                disk.
+        """
+        missing = False
+        filename = self.__filename__()
+        if filename:
+            missing = not Path(filename).is_file()
+        return missing
 
     def __truncate_middle__(self, s, n, sep=' ... '):
         """Truncates the provided text to a fixed length, putting the sep in the middle.
@@ -452,20 +772,18 @@ class WorkboxMixin(object):
         """Replaces all windows and then mac line endings with unix line endings."""
         return txt.replace('\r\n', '\n').replace('\r', '\n')
 
-    def __restore_prefs__(self, prefs):
-        self._filename_pref = prefs.get('filename')
-        self._workbox_id = prefs.get('workbox_id')
-
     def __save_prefs__(self, current=None, saveLinkedFile=True, force=False):
         ret = {}
 
         # Hopefully the alphabetical sorting of this dict is preserved in py3
         # to make it easy to diff the json pref file if ever required.
+
+        workbox_id = self.__workbox_id__()
         if current is not None:
             ret['current'] = current
-        ret['filename'] = self._filename_pref
+        ret['filename'] = self.__filename__()
         ret['name'] = self.__workbox_name__().workbox
-        ret['workbox_id'] = self._workbox_id
+        ret['workbox_id'] = workbox_id
         if self._tempfile:
             ret['tempfile'] = self._tempfile
 
@@ -476,25 +794,23 @@ class WorkboxMixin(object):
             return ret
 
         fullpath = get_full_path(
-            self.core_name, self._workbox_id, backup_file=self._backup_file
+            self.core_name, workbox_id, backup_file=self._backup_file
         )
 
         time_str = None
         if self._changed_by_instance:
             time_str = self.window().latestTimeStrsForBoxesChangedViaInstance.get(
-                self._workbox_id, None
+                workbox_id, None
             )
 
         if self._changed_saved:
-            self.window().latestTimeStrsForBoxesChangedViaInstance.pop(
-                self._workbox_id, None
-            )
+            self.window().latestTimeStrsForBoxesChangedViaInstance.pop(workbox_id, None)
             self._changed_saved = False
 
         backup_exists = self._backup_file and Path(fullpath).is_file()
         if self.__is_dirty__() or not backup_exists or force:
             full_path = create_stamped_path(
-                self.core_name, self._workbox_id, time_str=time_str
+                self.core_name, workbox_id, time_str=time_str
             )
 
             full_path = str(full_path)
@@ -508,14 +824,13 @@ class WorkboxMixin(object):
 
         if time_str:
             self.__set_changed_by_instance__(False)
-        if self.window().boxesOrphanedViaInstance.pop(self._workbox_id, None):
+        if self.window().boxesOrphanedViaInstance.pop(workbox_id, None):
             self.__set_orphaned_by_instance__(False)
 
         # If workbox is linked to file on disk, save it
-        if self._filename_pref and saveLinkedFile:
-            self._filename = self._filename_pref
+        if self.__filename__() and saveLinkedFile:
             self.__save__()
-            ret['workbox_id'] = self._workbox_id
+            ret['workbox_id'] = workbox_id
 
         self.__set_last_workbox_name__(self.__workbox_name__())
         self.__set_last_saved_text__(self.__text__())
@@ -543,6 +858,14 @@ class WorkboxMixin(object):
         """
         return self._workbox_id
 
+    def __set_workbox_id__(self, workbox_id):
+        """Set this workbox's workbox_id to the provided workbox_id
+
+        Args:
+            workbox_id (str): The workbox_id to set on this workbox
+        """
+        self._workbox_id = workbox_id
+
     def __backup_file__(self):
         """Returns this workbox's backup file
 
@@ -550,6 +873,14 @@ class WorkboxMixin(object):
             _backup_file (str)
         """
         return self._backup_file
+
+    def __set_backup_file__(self, filename):
+        """Set this workbox's backup file to the provided filename
+
+        Args:
+            filename (str): The filename to set this workbox's backup_file to.
+        """
+        self._backup_file = filename
 
     def __set_changed_by_instance__(self, state):
         """Set whether this workbox has been determined to have been changed by
@@ -596,11 +927,13 @@ class WorkboxMixin(object):
         instance saving it's prefs. It sets the internal property
         self._changed_by_instance to indicate the result.
         """
-        if not self._workbox_id:
-            self._workbox_id = self.__create_workbox_id__(self.core_name)
+        workbox_id = self.__workbox_id__()
+        if not workbox_id:
+            workbox_id = self.__create_workbox_id__(self.core_name)
+            self.__set_workbox_id__(workbox_id)
 
-        if self._workbox_id in self.window().latestTimeStrsForBoxesChangedViaInstance:
-            self.window().latestTimeStrsForBoxesChangedViaInstance.get(self._workbox_id)
+        if workbox_id in self.window().latestTimeStrsForBoxesChangedViaInstance:
+            self.window().latestTimeStrsForBoxesChangedViaInstance.get(workbox_id)
             self._changed_by_instance = True
         else:
             self._changed_by_instance = False
@@ -620,7 +953,7 @@ class WorkboxMixin(object):
                 the total count of files for this workbox.
         """
         backup_file = get_full_path(
-            self.core_name, self._workbox_id, backup_file=self._backup_file
+            self.core_name, self.__workbox_id__(), backup_file=self._backup_file
         )
 
         filepath, idx, count = get_backup_version_info(
@@ -646,7 +979,7 @@ class WorkboxMixin(object):
                 index of this file in the stack of files, and the total count of
                 files for this workbox.
         """
-        data = self.__get_workbox_version_text__(self._workbox_id, versionType)
+        data = self.__get_workbox_version_text__(self.__workbox_id__(), versionType)
         txt, filepath, idx, count = data
 
         if filepath:
@@ -654,7 +987,7 @@ class WorkboxMixin(object):
 
         self._backup_file = str(filepath)
 
-        self.__set_text__(txt, update_last_saved_text=False)
+        self.__set_text__(txt)
         self.__tab_widget__().tabBar().update()
 
         filename = Path(filepath).name
@@ -690,7 +1023,20 @@ class WorkboxMixin(object):
         return encoding, text
 
     @classmethod
-    def __write_file__(cls, filename, txt, encoding=None):
+    def __write_file__(cls, filename, txt=None, encoding=None, toUnixEOL=True):
+        """Write the provided text to the provided filename
+
+        Args:
+            filename (str): The filename to write to
+            txt (str, optional): The text to write to file, or self__text__()
+            encoding (str, optional): The name of the encoding to use
+            toUnixEOL (bool, optional): Whether to force line endings to
+                unix-style. Typically, we do this for regular workboxes, but
+                not for linked files, so we aren't changing a file on disk's
+                line-endings.
+        """
+        if toUnixEOL:
+            txt = cls.__unix_end_lines__(txt)
         with io.open(filename, 'w', newline='\n', encoding=encoding) as fle:
             fle.write(txt)
 
@@ -700,14 +1046,15 @@ class WorkboxMixin(object):
 
         self._is_loaded = True
         count = None
-        if self._filename_pref and Path(self._filename_pref).is_file():
-            self.__load__(self._filename_pref)
+        filename = self.__filename__()
+        if filename and Path(filename).is_file():
+            self.__load__(filename)
             return
         else:
             core_name = self.window().name
             versionType = VersionTypes.Last
             filepath, idx, count = get_backup_version_info(
-                core_name, self._workbox_id, versionType, ""
+                core_name, self.__workbox_id__(), versionType, ""
             )
 
             if count:

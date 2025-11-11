@@ -372,7 +372,7 @@ class LoggerWindow(Window):
             self.editor_cls_name = editor_cls_name
             self.uiWorkboxTAB.editor_cls = editor_cls
             # We need to change the editor, save all prefs
-            self.recordPrefs(manual=True)
+            self.recordPrefs(manual=True, disableFileMonitoring=True)
             # Clear the uiWorkboxTAB
             self.uiWorkboxTAB.clear()
             # Restore prefs to populate the tabs
@@ -1103,13 +1103,15 @@ class LoggerWindow(Window):
             self.restorePrefs(skip_geom=True)
         else:
             for info in self.uiWorkboxTAB.all_widgets():
-                editor, _, _, group_idx, editor_idx = info
-                if not editor.filename():
+                editor, _, _, _, _ = info
+                if not editor or not editor.__filename__():
                     continue
-                if Path(editor.filename()).as_posix() == Path(filename).as_posix():
+                if Path(editor.__filename__()) == Path(filename):
+                    editor.__set_file_monitoring_enabled__(False)
                     editor.__save_prefs__(saveLinkedFile=False)
                     editor.__reload_file__()
                     editor.__save_prefs__(saveLinkedFile=False, force=True)
+                    editor.__set_file_monitoring_enabled__(True)
 
     def closeEvent(self, event):
         self.recordPrefs()
@@ -1166,9 +1168,14 @@ class LoggerWindow(Window):
         self.uiStatusLBL.showSeconds(seconds)
         self.uiMenuBar.adjustSize()
 
-    def recordPrefs(self, manual=False):
+    def recordPrefs(self, manual=False, disableFileMonitoring=False):
         if not manual and not self.autoSaveEnabled():
             return
+
+        if disableFileMonitoring:
+            for editor_info in self.uiWorkboxTAB.all_widgets():
+                editor = editor_info[0]
+                editor.__set_file_monitoring_enabled__(False)
 
         origPref = self.load_prefs()
         pref = copy.deepcopy(origPref)

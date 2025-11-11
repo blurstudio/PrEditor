@@ -287,7 +287,7 @@ class ConsolePrEdit(QTextEdit):
             cmdTempl = window.textEditorCmdTempl
 
         # Bail if not setup properly
-        if workboxName is None:
+        if not workboxName:
             msg = (
                 "Cannot use traceback hyperlink (Correct the path with Options "
                 "> Set Preferred Text Editor Path).\n"
@@ -334,7 +334,7 @@ class ConsolePrEdit(QTextEdit):
                 )
                 subprocess.Popen(command)
             except (ValueError, OSError):
-                msg = "The provided text editor command template is not valid:\n    {}"
+                msg = "The provided text editor command is not valid:\n    {}"
                 msg = msg.format(cmdTempl)
                 print(msg)
         elif workboxName is not None:
@@ -427,9 +427,11 @@ class ConsolePrEdit(QTextEdit):
         workbox = self.window().workbox_for_name(name)
         if not workbox:
             return None
-        if lineNum > workbox.lines():
+
+        num_lines = workbox.__num_lines__()
+        if lineNum > num_lines:
             return None
-        txt = workbox.text(lineNum).strip() + "\n"
+        txt = workbox.__text_part__(lineNum=lineNum).strip() + "\n"
         return txt
 
     def executeString(

@@ -107,8 +107,8 @@ class DragTabBar(QTabBar):
             widget = self.parent().widget(index)
 
             filename = None
-            if hasattr(widget, "text"):
-                filename = widget.__filename__() or widget._filename_pref
+            if hasattr(widget, "__filename__"):
+                filename = widget.__filename__()
 
             if widget.__changed_by_instance__():
                 if filename:
@@ -145,13 +145,12 @@ class DragTabBar(QTabBar):
                 else:
                     state = TabStates.Dirty
                     toolTip = "Workbox has unsaved changes, or it's name has changed."
-            elif filename:
-                if Path(filename).is_file():
-                    state = TabStates.Linked
-                    toolTip = "Linked to file on disk"
-                else:
-                    state = TabStates.MissingLinked
-                    toolTip = "Linked file is missing"
+            elif widget.__is_missing_linked_file__():
+                state = TabStates.MissingLinked
+                toolTip = "Linked file is missing"
+            elif hasattr(widget, "__filename__") and widget.__filename__():
+                state = TabStates.Linked
+                toolTip = "Linked to file on disk"
 
             if hasattr(widget, "__workbox_id__"):
                 workbox_id = widget.__workbox_id__()
@@ -347,8 +346,8 @@ class DragTabBar(QTabBar):
 
         # Show File-related actions depending if filename already set. Don't include
         # Rename if the workbox is linked to a file.
-        if hasattr(workbox, 'filename'):
-            if not workbox.filename():
+        if hasattr(workbox, '__filename__'):
+            if not workbox.__filename__():
                 act = menu.addAction('Rename')
                 act.triggered.connect(self.rename_tab)
 
@@ -358,7 +357,7 @@ class DragTabBar(QTabBar):
                 act = menu.addAction('Save and Link File')
                 act.triggered.connect(partial(self.save_and_link_file, workbox))
             else:
-                if Path(workbox.filename()).is_file():
+                if Path(workbox.__filename__()).is_file():
                     act = menu.addAction('Explore File')
                     act.triggered.connect(partial(self.explore_file, workbox))
 
@@ -397,14 +396,21 @@ class DragTabBar(QTabBar):
         Args:
             workbox (WorkboxMixin): The workbox contained in the clicked tab
         """
-        filename = workbox.filename()
+        filename = workbox.__filename__()
+        workbox.__set_file_monitoring_enabled__(False)
+        workbox.__set_filename__("")
         filename, _other = QFileDialog.getOpenFileName(directory=filename)
         if filename and Path(filename).is_file():
-            workbox.__load__(filename)
-            workbox._filename_pref = filename
-            workbox._filename = filename
-            name = Path(filename).name
 
+            # First, save any unsaved text
+            workbox.__save_prefs__()
+
+            # Now, load file
+            workbox.__load__(filename)
+            workbox.__set_filename__(filename)
+            workbox.__set_file_monitoring_enabled__(True)
+
+            name = Path(filename).name
             self.setTabText(self._context_menu_tab, name)
             self.update()
             self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
@@ -417,21 +423,24 @@ class DragTabBar(QTabBar):
         Args:
             workbox (WorkboxMixin): The workbox contained in the clicked tab
         """
-        filename = workbox.filename()
+        filename = workbox.__filename__()
+        if filename and Path(filename).is_file():
+            workbox.__set_file_monitoring_enabled__(False)
         directory = six.text_type(Path(filename).parent) if filename else ""
-        success = workbox.saveAs(directory=directory)
+        success = workbox.__save_as__(directory=directory)
         if not success:
             return
 
-        filename = workbox.filename()
-        workbox._filename_pref = filename
-        workbox._filename = filename
-        workbox.__set_last_workbox_name__(workbox.__workbox_name__())
+        # Workbox
+        filename = workbox.__filename__()
+        workbox.__set_last_saved_text__(workbox.__text__())
+        workbox.__set_file_monitoring_enabled__(True)
         name = Path(filename).name
 
         self.setTabText(self._context_menu_tab, name)
         self.update()
         self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
+        workbox.__set_last_workbox_name__(workbox.__workbox_name__())
 
     def explore_file(self, workbox):
         """Open a system file explorer at the path of the linked file.
@@ -439,7 +448,7 @@ class DragTabBar(QTabBar):
         Args:
             workbox (WorkboxMixin): The workbox contained in the clicked tab
         """
-        path = Path(workbox._filename_pref)
+        path = Path(workbox.__filename__())
         if path.exists():
             osystem.explore(str(path))
         elif path.parent.exists():
@@ -451,9 +460,8 @@ class DragTabBar(QTabBar):
         Args:
             workbox (WorkboxMixin): The workbox contained in the clicked tab
         """
-        workbox.updateFilename("")
-        workbox._filename_pref = ""
-
+        workbox.__set_file_monitoring_enabled__(False)
+        workbox.__set_filename__("")
         name = self.parent().default_title
         self.setTabText(self._context_menu_tab, name)
 
