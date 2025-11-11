@@ -18,6 +18,7 @@ from Qt.QtWidgets import (
 
 from preditor import osystem
 
+from ..gui import handleMenuHovered
 from . import QtPropertyInit
 
 
@@ -364,6 +365,7 @@ class DragTabBar(QTabBar):
             return
         menu = QMenu(self)
         menu.setFont(self.window().font())
+        menu.hovered.connect(handleMenuHovered)
 
         grouped_tab = self.parentWidget()
         workbox = grouped_tab.widget(self._context_menu_tab)

@@ -16,10 +16,9 @@ from functools import partial
 from pathlib import Path
 
 import __main__
-import Qt as Qt_py
 from Qt import QtCompat, QtCore, QtWidgets
 from Qt.QtCore import QByteArray, QFileSystemWatcher, QObject, Qt, QTimer, Signal, Slot
-from Qt.QtGui import QCursor, QFont, QIcon, QKeySequence, QTextCursor
+from Qt.QtGui import QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
     QApplication,
     QFontDialog,
@@ -45,7 +44,7 @@ from .. import (
     resourcePath,
 )
 from ..delayable_engine import DelayableEngine
-from ..gui import Dialog, Window, loadUi, tab_widget_for_tab
+from ..gui import Dialog, Window, handleMenuHovered, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
@@ -210,7 +209,7 @@ class LoggerWindow(Window):
         action.setObjectName('uiCycleModeACT')
         action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
         action.triggered.connect(self.cycleCompleterMode)
-        self.uiCompleterModeMENU.hovered.connect(self.handleMenuHovered)
+        self.uiCompleterModeMENU.hovered.connect(handleMenuHovered)
 
         # Workbox add/remove
         self.uiNewWorkboxACT.triggered.connect(
@@ -293,7 +292,7 @@ class LoggerWindow(Window):
         regEx = ".*"
         menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx))
         for menu in menus:
-            menu.hovered.connect(self.handleMenuHovered)
+            menu.hovered.connect(handleMenuHovered)
 
         # Preferences window
         self.uiClosePreferencesBTN.clicked.connect(self.update_workbox_stack)
@@ -808,23 +807,6 @@ class LoggerWindow(Window):
             size = self.font().pointSize()
             size += delta
             self.setGuiFont(newSize=size)
-
-    def handleMenuHovered(self, action):
-        """Qt4 doesn't have a ToolTipsVisible method, so we fake it"""
-        # Don't show if it's just the text of the action
-        text = re.sub(r"(?<!&)&(?!&)", "", action.text())
-        text = text.replace('...', '')
-
-        if text == action.toolTip():
-            text = ''
-        else:
-            text = action.toolTip()
-
-        if Qt_py.IsPyQt4:
-            menu = action.parentWidget()
-        else:
-            menu = action.parent()
-        QToolTip.showText(QCursor.pos(), text, menu)
 
     def selectFont(
         self, origFont=None, monospace=False, proportional=False, doGui=False
