@@ -19,7 +19,7 @@ from contextlib import contextmanager
 from functools import partial
 
 import Qt as Qt_py
-from Qt.QtCore import Property, QPoint, Qt, Signal
+from Qt.QtCore import Property, QPoint, Qt
 from Qt.QtGui import QColor, QFont, QFontMetrics, QIcon, QKeyEvent, QKeySequence
 from Qt.QtWidgets import (
     QAction,
@@ -66,10 +66,6 @@ def undo_step(editor):
 class DocumentEditor(QsciScintilla):
     _defaultFont = QFont()
     _defaultFont.fromString('Courier New,9,-1,5,50,0,0,0,1,0')
-
-    fontsChanged = Signal(
-        QFont, QFont
-    )  # emits the font size change (font size, margin font size)
 
     def __init__(self, parent, filename='', lineno=0, delayable_engine='default'):
         super(DocumentEditor, self).__init__(parent)
@@ -1570,9 +1566,11 @@ class DocumentEditor(QsciScintilla):
         filename = str(filename)
         extension = os.path.splitext(filename)[1]
 
-        if filename and extension != os.path.splitext(self._filename)[1]:
+        if self._filename and (
+            filename and extension != os.path.splitext(self._filename)[1]
+        ):
             self.setLanguage(lang.byExtension(extension))
-        elif not self._filename:
+        else:
             self.setLanguage(self._defaultLanguage)
 
         # update the filename information

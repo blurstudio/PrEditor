@@ -622,7 +622,7 @@ class LoggerWindow(Window):
         # If we are on last workbox and it's dirty, do the user a solid, and
         # save any thing they've typed.
         if isLastWorkbox and isDirty:
-            workbox_widget.__save_prefs__()
+            workbox_widget.__save_prefs__(saveLinkedFile=False)
             isFirstWorkbox = False
 
         # If we are at either end of stack, and trying to go further, do nothing
@@ -1000,16 +1000,50 @@ class LoggerWindow(Window):
             except OSError:
                 pass
 
-    def getBoxesChangedByInstance(self, timeOffset=0.05):
-        """If a separate PrEditor instance has saved it's prefs, and we are now
-        updating this instances, determine which workboxes have been changed.
-        If we find some that are, save it, but fake the timestamp to be juuust
-        before the new one. This way, the user retains unsaved work, and can
-        still browse to the version the workbox contents.
-
-        Args:
-            timeOffset (float, optional): Description
+    def remove_old_workbox_folders(self):
+        """Remove from disk any old workbox backup folders. We find all current
+        open workbox's workbox_ids, and add any workbox_ids from the recently
+        closed workbox menu. Any workbox folders which are not in that list will
+        be deleted.
         """
+
+        # Collect the workbox_ids for all currently open workboxes, and all
+        # recently closed workboxes.
+        keeper_workbox_ids = []
+        for info in self.uiWorkboxTAB.all_widgets():
+            workbox = info[0]
+            keeper_workbox_ids.append(workbox.__workbox_id__())
+        for action in self.uiClosedWorkboxesMENU.actions():
+            data = action.data()
+            workbox_id = data.get("workbox_id")
+            keeper_workbox_ids.append(workbox_id)
+
+        # Look at all workbox folders on disk. If it's in the list collected
+        # above, it's a keeper, otherwise it's to be deleted.
+        keepers = []
+        to_delete = []
+        workbox_dir = self.prefsPath("workboxes")
+        for file in Path(workbox_dir).iterdir():
+            if file.is_file():
+                continue
+            if file.name not in keeper_workbox_ids:
+                to_delete.append(file)
+            else:
+                keepers.append(file)
+
+        # We should have at least one keeper. If not, it means this is being run
+        # early, before the workboxes are shown, so we do not remove anything
+        # (we would be removing every workbox directory in this case).
+        if not keepers:
+            return
+
+        # Go thru each to_delete folder, empty it out, and remove it.
+        for deleter in to_delete:
+            for file in deleter.iterdir():
+                file.unlink()
+            deleter.rmdir()
+
+    def getBoxesChangedByInstance(self, timeOffset=0.05):
         self.latestTimeStrsForBoxesChangedViaInstance = {}
 
         for editor_info in self.uiWorkboxTAB.all_widgets():
@@ -1199,6 +1233,7 @@ class LoggerWindow(Window):
         origPref = self.load_prefs()
         pref = copy.deepcopy(origPref)
         geo = self.geometry()
+
         pref.update(
             {
                 'loggergeom': [geo.x(), geo.y(), geo.width(), geo.height()],
@@ -1237,6 +1272,8 @@ class LoggerWindow(Window):
                 ),
                 'dont_ask_again': self.dont_ask_again,
                 'max_num_backups': self.uiMaxNumBackupsSPIN.value(),
+                'max_recent_workboxes': self.uiMaxNumRecentWorkboxesSPIN.value(),
+                'closedWorkboxData': self.getClosedWorkboxData(),
                 'confirmBeforeClose': self.uiConfirmBeforeCloseCHK.isChecked(),
             }
         )
@@ -1373,6 +1410,7 @@ class LoggerWindow(Window):
         if not at_prefs_update:
             self.prune_backup_files(sub_dir='workboxes')
             self.prune_backup_files(sub_dir='prefs_bak')
+            self.remove_old_workbox_folders()
 
     def maybeDisplayDialog(self, dialog):
         """If user hasn't previously opted to not show this particular dialog again,
@@ -1504,14 +1542,21 @@ class LoggerWindow(Window):
             self.setStyleSheet(self._stylesheet)
         self.uiFlashTimeSPIN.setValue(pref.get('flash_time', 1.0))
 
-        self.uiMaxNumBackupsSPIN.setValue(pref.get('max_num_backups', 99))
-
         hintingEnabled = pref.get('hintingEnabled', True)
         self.uiConsoleAutoCompleteEnabledCHK.setChecked(hintingEnabled)
         self.setAutoCompleteEnabled(hintingEnabled, console=True)
         workboxHintingEnabled = pref.get('workboxHintingEnabled', True)
         self.uiWorkboxAutoCompleteEnabledCHK.setChecked(workboxHintingEnabled)
         self.setAutoCompleteEnabled(workboxHintingEnabled, console=False)
+
+        # Max backups and recently closed workboxes
+        max_recent_workboxes = pref.get('max_recent_workboxes', 25)
+        self.uiMaxNumRecentWorkboxesSPIN.setValue(max_recent_workboxes)
+        self.uiMaxNumBackupsSPIN.setValue(pref.get('max_num_backups', 99))
+
+        # List recently closed workboxes
+        closedWorkboxData = pref.get('closedWorkboxData', [])
+        self.buildClosedWorkBoxMenu(closedWorkboxData=closedWorkboxData)
 
         confirmBeforeClose = pref.get('confirmBeforeClose', True)
         self.uiConfirmBeforeCloseCHK.setChecked(confirmBeforeClose)
@@ -1549,6 +1594,186 @@ class LoggerWindow(Window):
         if state:
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
+
+    def truncate_text_lines(self, text, max_text_lines=20):
+        """Limit input text to a given number of lines
+
+        Args:
+            text (str): The text to truncate
+            max_text_lines (int, optional): How many lines to limit text to,
+                defaults to 20
+
+        Returns:
+            truncated (str): The text truncated to the given number of lines
+        """
+        lines = text.split("\n")
+        orig_len = len(lines)
+        lines = lines[:max_text_lines]
+        trim_len = len(lines)
+        if orig_len != trim_len:
+            lines.append("...")
+        truncated = "\n".join(lines)
+        return truncated
+
+    def addRecentlyClosedWorkbox(self, workbox):
+        """Add the name of a recently closed workbox to the Recently Closed
+        Workboxes menu, and add a section of it's text as a tooltip. Also, add
+        data (a dict) with information about the workbox, so it can be restored.
+
+        Args:
+            workbox (WorkboxMixin): The workbox being closed
+            max_text_lines (int): How many lines of the workbox text to include
+                on the action's tooltip
+        """
+        # No need to save a blank workbox
+        if not workbox.__text__():
+            return
+
+        workbox_id = workbox.__workbox_id__()
+        workbox_name = workbox.__workbox_name__()
+        filename = workbox.__filename__()
+        backup_file = workbox.__backup_file__()
+
+        # Disable file monitoring
+        workbox.__set_file_monitoring_enabled__(False)
+        # Add a portion of the text so user can understand what is in each box
+        text_sample = self.truncate_text_lines(workbox.__text__())
+
+        # Collect all the info for this workbox
+        workboxDatum = dict(
+            workbox_id=workbox_id,
+            workbox_name=workbox_name,
+            filename=filename,
+            backup_file=backup_file,
+            text_sample=text_sample,
+        )
+        workboxesData = [workboxDatum]
+
+        # We want to add the new action at the top.
+        # Menu.insertAction behaves weirdly. It either replaces the 'before' action, or
+        # doesn't retain any of the newly added actions, so instead we clear the
+        # actions, and recreate the menu with Menu.addAction, limiting to the maxNum.
+        existingActions = self.uiClosedWorkboxesMENU.actions()
+        for existingAction in existingActions:
+            existingDatum = existingAction.data()
+            existingId = existingDatum.get("workbox_id")
+            if existingId != workbox_id:
+                workboxesData.append(existingDatum)
+            self.uiClosedWorkboxesMENU.removeAction(existingAction)
+
+        # Limit list to self.max_recent_workboxes
+        max_recent_workboxes = self.uiMaxNumRecentWorkboxesSPIN.value()
+        closedWorkboxData = workboxesData[:max_recent_workboxes]
+
+        self.createClosedWorkboxMenuActions(closedWorkboxData)
+
+    def buildClosedWorkBoxMenu(self, closedWorkboxData=None):
+        """When dialog launched, populate the Recently Closed Workbox list here.
+        Normally, we add new names to top of list, but to start we add them in order.
+
+        Args:
+            closedWorkboxData (list): The restored names of closed workboxes.
+        """
+        # Limit list to max_recent_workboxes
+        if closedWorkboxData is None:
+            closedWorkboxData = self.getClosedWorkboxData()
+
+        self.uiClosedWorkboxesMENU.clear()
+
+        max_recent_workboxes = self.uiMaxNumRecentWorkboxesSPIN.value()
+        closedWorkboxData = closedWorkboxData[:max_recent_workboxes]
+        self.createClosedWorkboxMenuActions(closedWorkboxData)
+
+    def createClosedWorkboxMenuActions(self, closedWorkboxData):
+        """Create Recently Closed Workboxes actions and add the the recently
+        closed workboxes menu.
+
+        Args:
+            closedWorkboxData (list): A list of dictionary containing data for
+                each recently closed workbox. Each dictionary is setup like this:
+                    workboxDatum = dict(
+                        workbox_id=workbox_id,
+                        workbox_name=workbox_name,
+                        filename=filename,
+                        text_sample=text_sample,
+                    )
+        """
+        for workboxDatum in closedWorkboxData:
+            workbox_name = workboxDatum.get("workbox_name")
+            filename = workboxDatum.get("filename")
+            text_sample = workboxDatum.get("text_sample")
+
+            # Create a toolTip
+            tip = ""
+            if filename:
+                tip += "filename: {}".format(filename)
+            if text_sample:
+                if tip:
+                    tip += "\n\n"
+                tip += text_sample
+
+            action = self.uiClosedWorkboxesMENU.addAction(workbox_name)
+            action.setData(workboxDatum)
+            action.triggered.connect(self.recentWorkboxActionTriggered)
+            action.setToolTip(tip)
+
+    def getClosedWorkboxData(self):
+        """When saving prefs, collected all the Recently Closed Workbox names in the
+        menu.
+
+        Return:
+            names (list): The list of workboxes in the Recently Closed Workboxes list
+        """
+        data = []
+        for act in self.uiClosedWorkboxesMENU.actions():
+            datum = act.data()
+            if datum:
+                data.append(datum)
+        return data
+
+    def recentWorkboxActionTriggered(self):
+        """Slot for when user selects a Recently Closed Workbox. First, try to just show
+        the workbox if it's currently open. If not, recreate it. In both cases, set
+        focus on that workbox.
+
+        """
+        action = self.sender()
+        workboxDatum = action.data()
+        workbox_id = workboxDatum.get("workbox_id")
+        workbox_filename = workboxDatum.get("filename")
+        workbox_name = workboxDatum.pop("workbox_name")
+        workboxDatum.pop("text_sample")
+
+        self.uiClosedWorkboxesMENU.removeAction(action)
+
+        workbox = self.workbox_for_id(workbox_id, visible=True)
+        if workbox is None:
+            groupName, workboxTitle = workbox_name.split("/")
+            try:
+                self.uiWorkboxTAB.hide()
+                _, workbox = self.uiWorkboxTAB.add_new_tab(
+                    groupName, workboxTitle, prefs=workboxDatum
+                )
+            finally:
+                self.uiWorkboxTAB.show()
+
+            if not workbox_filename:
+                versionType = prefs.VersionTypes.Last
+                filename, idx, count = workbox.__load_workbox_version_text__(
+                    versionType
+                )
+
+                # Get rid of the hash part of the filename
+                match = prefs.DATETIME_PATTERN.search(filename)
+                if match:
+                    filename = match.group()
+
+                txt = "{} [{}/{}]".format(filename, idx, count)
+                self.setStatusText(txt)
+                self.autoHideStatusText()
+            else:
+                workbox.__load__(workbox_filename)
+                workbox.__save_prefs__(saveLinkedFile=False)
 
     def setAutoCompleteEnabled(self, state, console=True):
         if console:
