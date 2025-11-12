@@ -28,6 +28,8 @@ class CodeHighlighter(QSyntaxHighlighter):
         # comment, do not highlight it).
         self.spans = []
 
+        self._enabled = True
+
         # Language specific lists
         self._comments = []
         self._keywords = []
@@ -51,6 +53,12 @@ class CodeHighlighter(QSyntaxHighlighter):
         self._keywordColor = QColor(255, 0, 255)
         self._resultColor = QColor(125, 128, 128)
         self._stringColor = QColor(255, 128, 0)
+
+    def enabled(self):
+        return self._enabled
+
+    def setEnabled(self, state):
+        self._enabled = state
 
     def setLanguage(self, lang):
         """Sets the language of the highlighter by loading the json definition"""
@@ -90,6 +98,9 @@ class CodeHighlighter(QSyntaxHighlighter):
     def highlightBlock(self, text):
         """Highlights the inputed text block based on the rules of this code
         highlighter"""
+
+        if not self.enabled():
+            return
 
         # Reset the highlight spans for this text block
         self.spans = []
@@ -131,7 +142,7 @@ class CodeHighlighter(QSyntaxHighlighter):
 
         Args:
             text (str): text to highlight
-            expr (QRegularExpression): search parameter
+            expr (re.compile): search parameter
             format (QTextCharFormat): formatting rule
         """
         if expr is None or not text:

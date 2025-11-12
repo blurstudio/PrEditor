@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>899</width>
-    <height>684</height>
+    <height>646</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -39,7 +39,7 @@
         <enum>QFrame::NoFrame</enum>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="Options">
         <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -66,7 +66,7 @@
               <x>0</x>
               <y>0</y>
               <width>879</width>
-              <height>379</height>
+              <height>369</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -155,7 +155,7 @@
               <x>0</x>
               <y>0</y>
               <width>879</width>
-              <height>379</height>
+              <height>345</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -346,6 +346,37 @@
                        </widget>
                       </item>
                       <item>
+                       <widget class="QGroupBox" name="uiPrefsClearGRP">
+                        <property name="title">
+                         <string>Clear</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsClearLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiClearBeforeRunningCHK">
+                           <property name="text">
+                            <string>Clear console before running workbox code</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
                        <spacer name="verticalSpacer_2">
                         <property name="orientation">
                          <enum>Qt::Vertical</enum>
@@ -428,11 +459,11 @@
                        </widget>
                       </item>
                       <item>
-                       <widget class="QGroupBox" name="uiPrefsClearGRP">
+                       <widget class="QGroupBox" name="uiPrefsCodeHighlightingGRP">
                         <property name="title">
-                         <string>Clear</string>
+                         <string>Code Highlighting</string>
                         </property>
-                        <layout class="QVBoxLayout" name="uiPrefsClearLYT">
+                        <layout class="QVBoxLayout" name="uiPrefsCodeHighlightingLYT">
                          <property name="spacing">
                           <number>0</number>
                          </property>
@@ -449,9 +480,12 @@
                           <number>3</number>
                          </property>
                          <item>
-                          <widget class="QCheckBox" name="uiClearBeforeRunningCHK">
+                          <widget class="QCheckBox" name="uiConsoleHighlightEnabledCHK">
                            <property name="text">
-                            <string>Clear console before running workbox code</string>
+                            <string>Code highlighting in console</string>
+                           </property>
+                           <property name="checked">
+                            <bool>true</bool>
                            </property>
                           </widget>
                          </item>
