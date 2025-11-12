@@ -149,6 +149,8 @@ class LoggerWindow(Window):
         self.loadPlugins()
         self.setWindowTitle(self.defineWindowTitle())
 
+        self.handleChangedUiElements()
+
         self.restorePrefs()
 
         self.setWorkboxFontBasedOnConsole()
@@ -297,9 +299,11 @@ class LoggerWindow(Window):
         self.uiClearBeforeRunningCHK.toggled.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalCHK.toggled.connect(self.adjustWorkboxOrientation)
         self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
-        self.uiBackupPreferencesACT.triggered.connect(self.backupPreferences)
-        self.uiBrowsePreferencesACT.triggered.connect(self.browsePreferences)
         self.uiAboutPreditorACT.triggered.connect(self.show_about)
+
+        # Prefs on disk
+        self.uiPrefsBrowseBTN.clicked.connect(self.browsePreferences)
+        self.uiPrefsBackupBTN.clicked.connect(self.backupPreferences)
 
         self.uiSetPreferredTextEditorPathACT.triggered.connect(
             self.openSetPreferredTextEditorDialog
@@ -449,6 +453,18 @@ class LoggerWindow(Window):
         for name, plugin in plugins.loggerwindow():
             if name not in self.plugins:
                 self.plugins[name] = plugin(self)
+
+    def handleChangedUiElements(self):
+        """To prevent errors if user has newer PrEditor, but older plugins,
+        we keep the ui elements until the ui and plugins have been loaded. Now
+        we can check if now deprecated can safely be deleted.
+        """
+
+        # Preferences are moved to a tab page, so this menu should be removed.
+        # But it may be used by some plugins, so only remove it if the plugins
+        # have also been updated.
+        if self.uiPreferencesMENU.isEmpty():
+            self.uiPreferencesMENU.deleteLater()
 
     def defineWindowTitle(self):
         """Define the window title, including and info plugins may add."""

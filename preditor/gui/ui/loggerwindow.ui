@@ -854,6 +854,114 @@ Must be at least 1</string>
                              </widget>
                             </item>
                             <item>
+                             <widget class="QGroupBox" name="uiPrefsOnDiskGRP">
+                              <property name="title">
+                               <string>Prefs files on disk</string>
+                              </property>
+                              <layout class="QVBoxLayout" name="verticalLayout_14">
+                               <property name="spacing">
+                                <number>3</number>
+                               </property>
+                               <property name="leftMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="topMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="rightMargin">
+                                <number>0</number>
+                               </property>
+                               <property name="bottomMargin">
+                                <number>0</number>
+                               </property>
+                               <item>
+                                <widget class="QWidget" name="widget_11" native="true">
+                                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                                  <property name="spacing">
+                                   <number>3</number>
+                                  </property>
+                                  <property name="leftMargin">
+                                   <number>3</number>
+                                  </property>
+                                  <property name="topMargin">
+                                   <number>3</number>
+                                  </property>
+                                  <property name="rightMargin">
+                                   <number>3</number>
+                                  </property>
+                                  <property name="bottomMargin">
+                                   <number>3</number>
+                                  </property>
+                                  <item>
+                                   <spacer name="horizontalSpacer_10">
+                                    <property name="orientation">
+                                     <enum>Qt::Horizontal</enum>
+                                    </property>
+                                    <property name="sizeHint" stdset="0">
+                                     <size>
+                                      <width>0</width>
+                                      <height>20</height>
+                                     </size>
+                                    </property>
+                                   </spacer>
+                                  </item>
+                                  <item>
+                                   <widget class="QWidget" name="uiPrefsOnDiskWDGT" native="true">
+                                    <layout class="QVBoxLayout" name="uiPrefsOnDiskLYT">
+                                     <property name="spacing">
+                                      <number>6</number>
+                                     </property>
+                                     <property name="leftMargin">
+                                      <number>6</number>
+                                     </property>
+                                     <property name="topMargin">
+                                      <number>0</number>
+                                     </property>
+                                     <property name="rightMargin">
+                                      <number>0</number>
+                                     </property>
+                                     <property name="bottomMargin">
+                                      <number>3</number>
+                                     </property>
+                                     <item>
+                                      <widget class="QPushButton" name="uiPrefsBrowseBTN">
+                                       <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                         <horstretch>1</horstretch>
+                                         <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                       </property>
+                                       <property name="text">
+                                        <string>Browse</string>
+                                       </property>
+                                      </widget>
+                                     </item>
+                                     <item>
+                                      <widget class="QPushButton" name="uiPrefsBackupBTN">
+                                       <property name="sizePolicy">
+                                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                                         <horstretch>1</horstretch>
+                                         <verstretch>0</verstretch>
+                                        </sizepolicy>
+                                       </property>
+                                       <property name="toolTip">
+                                        <string>This may take a long time.</string>
+                                       </property>
+                                       <property name="text">
+                                        <string> Backup</string>
+                                       </property>
+                                      </widget>
+                                     </item>
+                                    </layout>
+                                   </widget>
+                                  </item>
+                                 </layout>
+                                </widget>
+                               </item>
+                              </layout>
+                             </widget>
+                            </item>
+                            <item>
                              <spacer name="verticalSpacer_5">
                               <property name="orientation">
                                <enum>Qt::Vertical</enum>
@@ -975,8 +1083,6 @@ Must be at least 1</string>
      <property name="title">
       <string>Preferences</string>
      </property>
-     <addaction name="uiBrowsePreferencesACT"/>
-     <addaction name="uiBackupPreferencesACT"/>
     </widget>
     <addaction name="uiPreferencesMENU"/>
     <addaction name="uiEnvironmentVarsACT"/>
@@ -1439,14 +1545,6 @@ Must be at least 1</string>
     <string>Clear Output File</string>
    </property>
   </action>
-  <action name="uiBrowsePreferencesACT">
-   <property name="text">
-    <string>Browse...</string>
-   </property>
-   <property name="toolTip">
-    <string>Browse Preferences</string>
-   </property>
-  </action>
   <action name="uiAutoCompleteCaseSensitiveACT">
    <property name="checkable">
     <bool>true</bool>
@@ -1757,11 +1855,6 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+9</string>
-   </property>
-  </action>
-  <action name="uiBackupPreferencesACT">
-   <property name="text">
-    <string>Backup</string>
    </property>
   </action>
   <action name="uiFocusNameACT">
