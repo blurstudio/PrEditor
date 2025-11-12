@@ -154,7 +154,24 @@ class GroupTabWidget(OneTabWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
         if ret == QMessageBox.StandardButton.Yes:
+            self.store_closed_workboxes(index)
             super(GroupTabWidget, self).close_tab(index)
+
+    def store_closed_workboxes(self, index):
+        """Store all the workbox names in group tab being closed.
+
+        Args:
+            index (int): The index of the group being closed
+        """
+        group = self.widget(index)
+
+        for idx in range(group.count()):
+            workbox = group.widget(idx)
+
+            # Save the workbox first, so we can possibly restore it later.
+            workbox.__save_prefs__(saveLinkedFile=False)
+
+            self.parent().window().addRecentlyClosedWorkbox(workbox)
 
     def current_groups_widget(self):
         """Returns the current widget of the currently selected group or None."""

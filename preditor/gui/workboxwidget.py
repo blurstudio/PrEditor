@@ -22,7 +22,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         console=None,
         delayable_engine='default',
         core_name=None,
-        **kwargs
+        **kwargs,
     ):
         self.__set_console__(console)
         self._searchFlags = 0
@@ -122,7 +122,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         if self.lexer():
             return self.lexer().font(0)
         else:
-            self.font()
+            return self.font()
 
     def __set_font__(self, font):
         self.documentFont = font
@@ -156,10 +156,12 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
             self.setEolMode(self.detectEndLine(self.__text__()))
 
     def __save__(self):
+        font = self.__font__()
         super().__save__()
         filename = self.__filename__()
         if filename:
             self.updateFilename(filename)
+        self.__set_font__(font)
 
     def __margins_font__(self):
         return self.marginsFont()

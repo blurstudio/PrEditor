@@ -131,13 +131,23 @@ class GroupedTabWidget(OneTabWidget):
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
         )
         if ret == QMessageBox.StandardButton.Yes:
-            # If the tab was saved to a temp file, remove it from disk
-            _editor = self.widget(index)  # noqa: F841
-            # Keep track of deleted tabs, make re-openable
-            # Maybe also move workbox dir to a 'removed workboxes' dir
-
-            _editor.__set_file_monitoring_enabled__(False)
+            editor = self.widget(index)
+            editor.__set_file_monitoring_enabled__(False)
+            self.store_closed_workbox(index)
             super(GroupedTabWidget, self).close_tab(index)
+
+    def store_closed_workbox(self, index):
+        """Store the name of the workbox being closed.
+
+        Args:
+            index (int): The index of the workbox being closed
+        """
+        workbox = self.widget(index)
+
+        # Save the workbox first, so we can possibly restore it later.
+        workbox.__save_prefs__(saveLinkedFile=False)
+
+        self.parent().window().addRecentlyClosedWorkbox(workbox)
 
     def default_tab(self, title=None, prefs=None):
         title = title or self.default_title
