@@ -84,6 +84,7 @@ class OneTabWidget(QTabWidget):
         if hasattr(self, 'default_tab') and not self.count():
             self.addTab(*self.default_tab())
         self.update_closable_tabs()
+        self.window().updateTabColorsAndToolTips()
 
     def showEvent(self, event):  # noqa: N802
         super(OneTabWidget, self).showEvent(event)

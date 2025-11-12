@@ -6,15 +6,13 @@ from pathlib import Path
 
 import six
 from Qt.QtCore import QByteArray, QMimeData, QPoint, QRect, Qt
-from Qt.QtGui import QColor, QCursor, QDrag, QPainter, QPalette, QPixmap, QRegion
+from Qt.QtGui import QColor, QCursor, QDrag, QPixmap, QRegion
 from Qt.QtWidgets import (
     QApplication,
     QFileDialog,
     QInputDialog,
     QMenu,
     QSizePolicy,
-    QStyle,
-    QStyleOptionTab,
     QTabBar,
 )
 
@@ -48,16 +46,20 @@ class DragTabBar(QTabBar):
 
     """
 
+    # the normalColor is set to an invalid color name. When QTabBar.setTabTextColor
+    # is called with an invalid color name, it reverts to the QTabBar foreground
+    # role instead
+    normalColor = QColor("invalidcolor")
+
     # These Qt Properties can be customized using style sheets.
-    normalColor = QtPropertyInit('_normalColor', QColor("lightgrey"))
-    linkedColor = QtPropertyInit('_linkedColor', QColor("turquoise"))
-    missingLinkedColor = QtPropertyInit('_missingLinkedColor', QColor("red"))
-    dirtyColor = QtPropertyInit('_dirtyColor', QColor("yellow"))
-    dirtyLinkedColor = QtPropertyInit('_dirtyLinkedColor', QColor("goldenrod"))
-    changedColor = QtPropertyInit('_changedColor', QColor("darkorchid"))
-    changedLinkedColor = QtPropertyInit('_changedLinkedColor', QColor("darkviolet"))
-    orphanedColor = QtPropertyInit('_orphanedColor', QColor("crimson"))
-    orphanedLinkedColor = QtPropertyInit('_orphanedLinkedColor', QColor("firebrick"))
+    linkedColor = QtPropertyInit('_linkedColor', QColor("grey"))
+    missingLinkedColor = QtPropertyInit('_missingLinkedColor', QColor("grey"))
+    dirtyColor = QtPropertyInit('_dirtyColor', QColor("grey"))
+    dirtyLinkedColor = QtPropertyInit('_dirtyLinkedColor', QColor("grey"))
+    changedColor = QtPropertyInit('_changedColor', QColor("grey"))
+    changedLinkedColor = QtPropertyInit('_changedLinkedColor', QColor("grey"))
+    orphanedColor = QtPropertyInit('_orphanedColor', QColor("grey"))
+    orphanedLinkedColor = QtPropertyInit('_orphanedLinkedColor', QColor("grey"))
 
     def __init__(self, parent=None, mime_type='DragTabBar'):
         super(DragTabBar, self).__init__(parent=parent)
@@ -70,7 +72,7 @@ class DragTabBar(QTabBar):
         self.fg_color_map = {}
         self.bg_color_map = {}
 
-    def updateColors(self):
+    def updateColorMap(self):
         """This cannot be called during __init__, otherwise all bg colors will
         be default, and not read from the style sheet. So instead, the first
         time we need self.bg_color_map, we check if it has values, and call this
@@ -92,7 +94,7 @@ class DragTabBar(QTabBar):
             "1": "black",
         }
 
-    def get_color_and_tooltip(self, index):
+    def getColorAndToolTip(self, index):
         """Determine the color and tooltip based on the state of the workbox.
 
         Args:
@@ -131,13 +133,13 @@ class DragTabBar(QTabBar):
                     state = TabStates.OrphanedLinked
                     toolTip = (
                         "Linked workbox is either newly added, or orphaned by "
-                        "saving in another PrEditor instance"
+                        "being removed in another PrEditor instance and saved."
                     )
                 else:
                     state = TabStates.Orphaned
                     toolTip = (
                         "Workbox is either newly added, or orphaned by "
-                        "saving in another PrEditor instance"
+                        "being removed in another PrEditor instance and saved."
                     )
             elif widget.__is_dirty__():
                 if filename:
@@ -199,52 +201,30 @@ class DragTabBar(QTabBar):
         color = self.bg_color_map.get(state)
         return color, toolTip
 
-    def paintEvent(self, event):
-        """Override of .paintEvent to handle custom tab colors and toolTips.
-
-        If self.bg_color_map has not yet been populated, do so by calling
-        self.updateColors(). We do not call self.updateColor in this class's
-        __init__ because the QtPropertyInit won't be able to read the properties
-        from the stylesheet at that point.
+    def updateColorAndToolTip(self, index):
+        """Update the color and tooltip for the tab at index, based of various
+        factors about the workbox.
 
         Args:
-            event (QEvent): The event passed to this event handler.
+            index (int): The index of the tab to color, and possibly, set toolTip
         """
-        if not self.bg_color_map:
-            self.updateColors()
+        self.updateColorMap()
 
-        style = self.style()
-        painter = QPainter(self)
-        option = QStyleOptionTab()
+        color, toolTip = self.getColorAndToolTip(index)
+        self.setTabTextColor(index, color)
+        self.setTabToolTip(index, toolTip)
 
-        isLight = self.normalColor.value() >= 128
-
-        # Update the the parent GroupTabWidget
-        self.parent().parent().parent().update()
-
+    def updateColorsAndToolTips(self):
+        """Update the color and tooltip for all the tabs in this tabBar. Also,
+        update the tabBar above it.
+        """
         for index in range(self.count()):
-            # color_name, toolTip = self.get_color_and_tooltip(index)
-            color, toolTip = self.get_color_and_tooltip(index)
-            self.setTabToolTip(index, toolTip)
+            self.updateColorAndToolTip(index)
 
-            # Get colors
-            # color = QColor(color_name)
-            if isLight:
-                fillColor = color.lighter(175)
-                color = color.darker(250)
-            else:
-                fillColor = color.darker(250)
-                color = color.lighter(175)
-            # Pick white or black for text, based on lightness of fillColor
-            fg_idx = int(fillColor.value() >= 128)
-            fg_color_name = self.fg_color_map.get(str(fg_idx))
-            fg_color = QColor(fg_color_name)
-
-            self.initStyleOption(option, index)
-            option.palette.setColor(QPalette.ColorRole.WindowText, fg_color)
-            option.palette.setColor(QPalette.ColorRole.Window, color)
-            option.palette.setColor(QPalette.ColorRole.Button, fillColor)
-            style.drawControl(QStyle.ControlElement.CE_TabBarTab, option, painter)
+        parentIdx = self.window().indexOfWorkboxOrTabGroup(self.parent())
+        if parentIdx is not None:
+            tabBar = self.parent().__tab_widget__().tabBar()
+            tabBar.updateColorAndToolTip(parentIdx)
 
     def mouseMoveEvent(self, event):  # noqa: N802
         if not self._mime_data:
@@ -365,6 +345,7 @@ class DragTabBar(QTabBar):
 
             if success:
                 self.setTabText(self._context_menu_tab, name)
+                self.updateColorsAndToolTips()
 
     def tab_menu(self, pos, popup=True):
         """Creates the custom context menu for the tab bar. To customize the menu
@@ -455,6 +436,7 @@ class DragTabBar(QTabBar):
 
             name = Path(filename).name
             self.setTabText(self._context_menu_tab, name)
+            self.updateColorsAndToolTips()
             self.update()
             self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
 
@@ -481,6 +463,7 @@ class DragTabBar(QTabBar):
         name = Path(filename).name
 
         self.setTabText(self._context_menu_tab, name)
+        self.updateColorsAndToolTips()
         self.update()
         self.window().setWorkboxFontBasedOnConsole(workbox=workbox)
         workbox.__set_last_workbox_name__(workbox.__workbox_name__())
@@ -507,6 +490,7 @@ class DragTabBar(QTabBar):
         workbox.__set_filename__("")
         name = self.parent().default_title
         self.setTabText(self._context_menu_tab, name)
+        self.updateColorsAndToolTips()
 
     def copyFilename(self, workbox):
         """Copy the given workbox's filename to the clipboard
