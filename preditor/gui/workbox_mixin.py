@@ -12,7 +12,7 @@ from pathlib import Path
 
 import chardet
 import Qt as Qt_py
-from Qt.QtCore import Qt
+from Qt.QtCore import Qt, Signal
 from Qt.QtWidgets import QMessageBox, QStackedWidget
 
 from ..prefs import (
@@ -76,6 +76,8 @@ class WorkboxMixin(object):
     _warning_text = None
     """When a user is picking this Workbox class, show a warning with this text."""
 
+    workboxSaved = Signal()
+
     def __init__(
         self,
         parent=None,
@@ -119,6 +121,9 @@ class WorkboxMixin(object):
         self.__set_orphaned_by_instance__(False)
         self.__set_changed_by_instance__(False)
         self._changed_saved = False
+
+        self.textChanged.connect(self._tab_widget.tabBar().updateColorsAndToolTips)
+        self.workboxSaved.connect(self._tab_widget.tabBar().updateColorsAndToolTips)
 
     def __auto_reload_on_change__(self):
         """Whether the option to auto-reload linked files is set
@@ -851,6 +856,8 @@ class WorkboxMixin(object):
         if resetLastInfos:
             self.__set_last_workbox_name__(self.__workbox_name__())
             self.__set_last_saved_text__(self.__text__())
+
+        self.workboxSaved.emit()
 
         return ret
 
