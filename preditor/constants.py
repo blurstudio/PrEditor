@@ -9,3 +9,5 @@ class StreamType(enum.Flag):
     STDOUT = enum.auto()
     CONSOLE = enum.auto()
     """Write directly to the console ignoring STDERR/STDOUT filters."""
+    RESULT = enum.auto()
+    """Write directly to ConsolePrEdit's result output without using  stdout/err."""

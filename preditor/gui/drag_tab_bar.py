@@ -19,7 +19,8 @@ from Qt.QtWidgets import (
 from preditor import osystem
 
 from ..gui import handleMenuHovered
-from .utils.cute import QtPropertyInit
+from ..utils import Truncate
+from ..utils.cute import QtPropertyInit
 
 
 class TabStates(IntEnum):
@@ -199,7 +200,7 @@ class DragTabBar(QTabBar):
 
                 if hasattr(widget, "__last_saved_text__"):
                     last_saved_text = widget.__last_saved_text__()
-                    last_saved_text = window.truncate_text_lines(last_saved_text)
+                    last_saved_text = Truncate(last_saved_text).lines()
                     toolTip += "\nlast_saved_text: \n{}".format(last_saved_text)
 
         color = self.bg_color_map.get(state)

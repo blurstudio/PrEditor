@@ -437,10 +437,14 @@ class ConsoleBase(QTextEdit):
         # Convert the stream_manager's stream to the boolean value this function expects
         to_error = stream_type & StreamType.STDERR == StreamType.STDERR
         to_console = stream_type & StreamType.CONSOLE == StreamType.CONSOLE
+        to_result = stream_type & StreamType.RESULT == StreamType.RESULT
 
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
         if not QtCompat.isValid(self):
+            return
+
+        if to_result and not self.stream_echo_result:
             return
 
         # If stream_type is Console, then always show the output
@@ -591,3 +595,7 @@ class ConsoleBase(QTextEdit):
         '_stream_echo_stdout', False, callback=update_streams
     )
     """Should this console print stdout writes?"""
+    stream_echo_result = False
+    """Reserved for ConsolePrEdit to enable StreamType.RESULT output. There is
+    no reason for the baseclass to use QtPropertyInit, but this property is
+    checked used by write so it needs defined."""
