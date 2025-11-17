@@ -68,7 +68,9 @@ class PreditorExceptHook(object):
         is not printed in-line with the prompt. This also provides visual
         separation between tracebacks, when received consecutively.
         """
-        print("")
+        # Print the newline to stderr so it will show up in the same stream as
+        # the traceback will be printed to.
+        print("", file=sys.stderr)
         try:
             self.base_excepthook(*exc_info)
         except (TypeError, NameError):

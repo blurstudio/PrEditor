@@ -1,4 +1,4 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import re
 import string
@@ -15,6 +15,8 @@ from Qt.QtGui import QKeySequence, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QWidget
 
 from .. import settings
+from ..constants import StreamType
+from ..utils import Truncate
 from ..utils.cute import QtPropertyInit
 from .completer import PythonCompleter
 from .console_base import ConsoleBase
@@ -170,7 +172,13 @@ class ConsolePrEdit(ConsoleBase):
         return self._completer
 
     def executeString(
-        self, commandText, consoleLine=None, filename='<ConsolePrEdit>', extraPrint=True
+        self,
+        commandText,
+        consoleLine=None,
+        filename='<ConsolePrEdit>',
+        extraPrint=True,
+        echoResult=False,
+        truncate=False,
     ):
         # These vars helps with faking code lines in tracebacks for stdin input, which
         # workboxes are, and py3 doesn't include in the traceback
@@ -185,7 +193,7 @@ class ConsolePrEdit(ConsoleBase):
             line = line[1:]
 
         if line.startswith(self.prompt()) and extraPrint:
-            print("")
+            self.write("\n", stream_type=StreamType.RESULT)
 
         cmdresult = None
         # https://stackoverflow.com/a/29456463
@@ -226,6 +234,17 @@ class ConsolePrEdit(ConsoleBase):
                 else:
                     hwnd = int(self.flash_window.winId())
                     utils.flash_window(hwnd)
+
+        if echoResult and wasEval:
+            # If the selected code was a statement print the result of the statement.
+            ret = repr(cmdresult)
+            self.startOutputLine()
+            if truncate:
+                self.write(
+                    Truncate(ret).middle(100) + "\n", stream_type=StreamType.RESULT
+                )
+            else:
+                self.write(ret + "\n", stream_type=StreamType.RESULT)
 
         return cmdresult, wasEval
 
@@ -599,3 +618,5 @@ class ConsolePrEdit(ConsoleBase):
     stream_echo_stdout = QtPropertyInit(
         '_stream_echo_stdout', True, callback=ConsoleBase.update_streams
     )
+    stream_echo_result = QtPropertyInit("_stream_echo_result", True)
+    """Enable StreamType.RESULT output when running code using PrEditor."""

@@ -97,3 +97,37 @@ class Json:
             ValueError: The error raised due to invalid json.
         """
         return cls._load_json(source, json.loads, json_str)
+
+
+class Truncate:
+    def __init__(self, text, sep='...'):
+        self.text = text
+        self.sep = sep
+        self.sep_spaces = f' {sep} '
+
+    def middle(self, n=100):
+        """Truncates the provided text to a fixed length, putting the sep in the middle.
+        https://www.xormedia.com/string-truncate-middle-with-ellipsis/
+        """
+        if len(self.text) <= n:
+            # string is already short-enough
+            return self.text
+        # half of the size, minus the seperator
+        n_2 = int(n) // 2 - len(self.sep_spaces)
+        # whatever's left
+        n_1 = n - n_2 - len(self.sep_spaces)
+        return '{0}{1}{2}'.format(self.text[:n_1], self.sep_spaces, self.text[-n_2:])
+
+    def lines(self, max_lines=20):
+        """Truncates the provided text to a maximum number of lines with a separator
+        at the end if required.
+        """
+        lines = self.text.split("\n")
+        orig_len = len(lines)
+        lines = lines[:max_lines]
+        trim_len = len(lines)
+        if orig_len != trim_len:
+            lines.append("...")
+        truncated = "\n".join(lines)
+
+        return truncated

@@ -48,7 +48,7 @@ from ..gui import Dialog, Window, handleMenuHovered, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
-from ..utils import Json, stylesheets
+from ..utils import Json, Truncate, stylesheets
 from .completer import CompleterMode
 from .level_buttons import LoggingLevelButton
 from .set_text_editor_path_dialog import SetTextEditorPathDialog
@@ -1757,26 +1757,6 @@ class LoggerWindow(Window):
             state = QByteArray.fromHex(bytes(state, 'utf-8'))
             self.restoreState(state)
 
-    def truncate_text_lines(self, text, max_text_lines=20):
-        """Limit input text to a given number of lines
-
-        Args:
-            text (str): The text to truncate
-            max_text_lines (int, optional): How many lines to limit text to,
-                defaults to 20
-
-        Returns:
-            truncated (str): The text truncated to the given number of lines
-        """
-        lines = text.split("\n")
-        orig_len = len(lines)
-        lines = lines[:max_text_lines]
-        trim_len = len(lines)
-        if orig_len != trim_len:
-            lines.append("...")
-        truncated = "\n".join(lines)
-        return truncated
-
     def addRecentlyClosedWorkbox(self, workbox):
         """Add the name of a recently closed workbox to the Recently Closed
         Workboxes menu, and add a section of it's text as a tooltip. Also, add
@@ -1799,7 +1779,7 @@ class LoggerWindow(Window):
         # Disable file monitoring
         workbox.__set_file_monitoring_enabled__(False)
         # Add a portion of the text so user can understand what is in each box
-        text_sample = self.truncate_text_lines(workbox.__text__())
+        text_sample = Truncate(workbox.__text__()).lines()
 
         # Collect all the info for this workbox
         workboxDatum = dict(

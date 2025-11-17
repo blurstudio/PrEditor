@@ -256,17 +256,11 @@ class WorkboxMixin(object):
         # the workbox.
         txt = '\n' * lineNum + txt
 
-        # execute the code
+        # execute the code and print the results to the console
         title = self.__workbox_trace_title__(selection=True)
-        ret, was_eval = self.__console__().executeString(txt, filename=title)
-        if was_eval:
-            # If the selected code was a statement print the result of the statement.
-            ret = repr(ret)
-            self.__console__().startOutputLine()
-            if truncate:
-                print(self.__truncate_middle__(ret, 100))
-            else:
-                print(ret)
+        self.__console__().executeString(
+            txt, filename=title, echoResult=True, truncate=truncate
+        )
 
     def __file_monitoring_enabled__(self):
         """Returns True if this workbox supports file monitoring.
@@ -768,19 +762,6 @@ class WorkboxMixin(object):
         if filename:
             missing = not Path(filename).is_file()
         return missing
-
-    def __truncate_middle__(self, s, n, sep=' ... '):
-        """Truncates the provided text to a fixed length, putting the sep in the middle.
-        https://www.xormedia.com/string-truncate-middle-with-ellipsis/
-        """
-        if len(s) <= n:
-            # string is already short-enough
-            return s
-        # half of the size, minus the seperator
-        n_2 = int(n) // 2 - len(sep)
-        # whatever's left
-        n_1 = n - n_2 - len(sep)
-        return '{0}{1}{2}'.format(s[:n_1], sep, s[-n_2:])
 
     @classmethod
     def __unix_end_lines__(cls, txt):
