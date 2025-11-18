@@ -135,8 +135,7 @@ class ConsolePrEdit(QTextEdit):
         self.addAction(self.uiClearToLastPromptACT)
 
         self.x = 0
-        self.clickPos = None
-        self.anchor = None
+        self.mousePressPos = None
 
         # Make sure console cursor is visible. It can get it's width set to 0 with
         # unusual(ie not 100%) os display scaling.
@@ -220,30 +219,47 @@ class ConsolePrEdit(QTextEdit):
         if origPercent is not None:
             self.doubleSingleShotSetScrollValue(origPercent)
 
+    def mouseMoveEvent(self, event):
+        """Overload of mousePressEvent to change mouse pointer to indicate it is
+        over a clickable error hyperlink.
+        """
+        if self.anchorAt(event.pos()):
+            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+        else:
+            QApplication.restoreOverrideCursor()
+        return super().mouseMoveEvent(event)
+
     def mousePressEvent(self, event):
         """Overload of mousePressEvent to capture click position, so on release, we can
         check release position. If it's the same (ie user clicked vs click-drag to
         select text), we check if user clicked an error hyperlink.
         """
-        self.clickPos = event.pos()
-        self.anchor = self.anchorAt(event.pos())
-        if self.anchor:
-            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
-        return super(ConsolePrEdit, self).mousePressEvent(event)
+        left = event.button() == Qt.MouseButton.LeftButton
+        anchor = self.anchorAt(event.pos())
+        self.mousePressPos = event.pos()
+
+        if left and anchor:
+            event.ignore()
+            return
+
+        return super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """Overload of mouseReleaseEvent to capture if user has left clicked... Check if
         click position is the same as release position, if so, call errorHyperlink.
         """
-        samePos = event.pos() == self.clickPos
+        samePos = event.pos() == self.mousePressPos
         left = event.button() == Qt.MouseButton.LeftButton
-        if samePos and left and self.anchor:
-            self.errorHyperlink()
+        anchor = self.anchorAt(event.pos())
 
-        self.clickPos = None
-        self.anchor = None
+        if samePos and left and anchor:
+            self.errorHyperlink(anchor)
+        self.mousePressPos = None
+
         QApplication.restoreOverrideCursor()
-        return super(ConsolePrEdit, self).mouseReleaseEvent(event)
+        ret = super(ConsolePrEdit, self).mouseReleaseEvent(event)
+
+        return ret
 
     def keyReleaseEvent(self, event):
         """Override of keyReleaseEvent to determine when to end navigation of
@@ -254,7 +270,7 @@ class ConsolePrEdit(QTextEdit):
         else:
             event.ignore()
 
-    def errorHyperlink(self):
+    def errorHyperlink(self, anchor):
         """Determine if chosen line is an error traceback file-info line, if so, parse
         the filepath and line number, and attempt to open the module file in the user's
         chosen text editor at the relevant line, using specified Command Prompt pattern.
@@ -267,13 +283,13 @@ class ConsolePrEdit(QTextEdit):
         doHyperlink = (
             hasattr(window, 'uiErrorHyperlinksCHK')
             and window.uiErrorHyperlinksCHK.isChecked()
-            and self.anchor
+            and anchor
         )
         if not doHyperlink:
             return
 
         # info is a comma separated string, in the form: "filename, workboxIdx, lineNum"
-        info = self.anchor.split(', ')
+        info = anchor.split(', ')
         modulePath = info[0]
         workboxName = info[1]
         lineNum = info[2]
