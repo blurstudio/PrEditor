@@ -71,6 +71,11 @@ class FindFiles(QWidget):
         self.finder.callback_matching = self.insert_found_text
         self.finder.callback_non_matching = self.insert_text
 
+        # Start fresh output line.
+        window = self.parent().window() if self.parent() else None
+        if window:
+            window.console().startPrompt("")
+
         self.insert_text(self.finder.title())
 
         self.match_files_count = 0
@@ -90,6 +95,11 @@ class FindFiles(QWidget):
                 self.finder.match_count, self.match_files_count
             )
         )
+
+        # If user has Auto-prompt chosen, do so now.
+        if window:
+            if window.uiAutoPromptCHK.isChecked():
+                window.console().startInputLine()
 
     def find_in_editor(self, editor, path):
         # Ensure the editor text is loaded and get its raw text
