@@ -32,18 +32,21 @@ class Manager(collections.deque):
         Args:
             callback (callable): A callable object that takes two arguments. It must
                 take two arguments (msg, state). See write for more details.
-            replay (bool, optional): If True, then iterate over all the stored writes
-                and pass them to callback. This is useful for when you are initializing
-                a gui and want to include all previous prints.
+            replay (bool, optional): If True, calls replay on callback.
             disable_writes (bool, optional): Set store_writes to False if this is True.
             clear (bool, optional): Clear the stored history on this object.
+
+        Returns:
+            bool: True if the callback was added. If the callback has already been
+                already, this method does nothing and returns False.
         """
+        if callback in self.callbacks:
+            return False
+
         self.callbacks.append(callback)
 
         if replay:
-            # Replay the existing prints into the console.
-            for msg, state in self:
-                callback(msg, state)
+            self.replay(callback)
 
         if disable_writes:
             # Disable storing data in the buffer. buffer.write calls will now
@@ -54,8 +57,24 @@ class Manager(collections.deque):
         if clear:
             self.clear()
 
-    def remove_callback(self, callback):
+        return True
+
+    def remove_callback(self, callback) -> bool:
+        """Remove callback from manager and return if it was removed."""
+        if callback not in self.callbacks:
+            return False
         self.callbacks.remove(callback)
+        return True
+
+    def replay(self, callback):
+        """Replay the existing writes for the given callback.
+
+        This iterates over all the stored writes and pass them to callback. This
+        is useful for when you are initializing a gui and want to include all
+        previous prints.
+        """
+        for msg, state in self:
+            callback(msg, state)
 
     def get_value(self, fmt="[{state}:{msg}]"):
         return ''.join([fmt.format(msg=d[0], state=d[1]) for d in self])

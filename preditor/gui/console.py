@@ -15,6 +15,7 @@ from Qt.QtGui import QKeySequence, QTextCharFormat, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QWidget
 
 from .. import settings
+from . import QtPropertyInit
 from .completer import PythonCompleter
 from .console_base import ConsoleBase
 from .loggerwindow import LoggerWindow
@@ -592,3 +593,14 @@ class ConsolePrEdit(ConsoleBase):
         self.textCursor().removeSelectedText()
         self.textCursor().deletePreviousChar()
         self.insertPlainText("\n")
+
+    # This main console should have these settings enabled by default
+    stream_clear = QtPropertyInit('_stream_clear', True)
+    stream_disable_writes = QtPropertyInit('_stream_disable_writes', True)
+    stream_replay = QtPropertyInit('_stream_replay', True)
+    stream_echo_stderr = QtPropertyInit(
+        '_stream_echo_stderr', True, callback=ConsoleBase.update_streams
+    )
+    stream_echo_stdout = QtPropertyInit(
+        '_stream_echo_stdout', True, callback=ConsoleBase.update_streams
+    )
