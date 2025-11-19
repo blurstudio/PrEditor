@@ -275,6 +275,9 @@
                                </property>
                                <item>
                                 <widget class="QCheckBox" name="uiAutoPromptCHK">
+                                 <property name="toolTip">
+                                  <string>After running workbox code, start a new prompt (&gt;&gt;&gt; )</string>
+                                 </property>
                                  <property name="text">
                                   <string>Auto-prompt</string>
                                  </property>
