@@ -1348,23 +1348,6 @@ Must be at least 1</string>
     <string>Ctrl+Alt+Shift+D</string>
    </property>
   </action>
-  <action name="uiConsoleAutoCompleteEnabledACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Use Auto-Complete in console</string>
-   </property>
-   <property name="iconText">
-    <string>Use Auto-Complete in console</string>
-   </property>
-   <property name="toolTip">
-    <string>Use Auto-Complete in console</string>
-   </property>
-  </action>
   <action name="uiRunLineACT">
    <property name="text">
     <string>Run Line...</string>
@@ -1400,25 +1383,6 @@ Must be at least 1</string>
     <string>Shift+Return</string>
    </property>
   </action>
-  <action name="uiIndentationsTabsACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Indentations use tabs</string>
-   </property>
-  </action>
-  <action name="uiWordWrapACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Enable Console Word Wrap</string>
-   </property>
-   <property name="toolTip">
-    <string>Enable word wrap in the python output console</string>
-   </property>
-  </action>
   <action name="uiSaveConsoleSettingsACT">
    <property name="text">
     <string>Save Console Settings</string>
@@ -1428,17 +1392,6 @@ Must be at least 1</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="uiClearBeforeRunningACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Clear before running workbox code</string>
-   </property>
-   <property name="toolTip">
-    <string>Clear console log before running workbox code.</string>
    </property>
   </action>
   <action name="uiCloseLoggerACT">
@@ -1452,17 +1405,6 @@ Must be at least 1</string>
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="uiEditorVerticalACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Editor Vertical</string>
-   </property>
-   <property name="toolTip">
-    <string>Editor Vertical</string>
-   </property>
-  </action>
   <action name="uiClearToLastPromptACT">
    <property name="text">
     <string>Clear to Last Prompt</string>
@@ -1472,14 +1414,6 @@ Must be at least 1</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Backspace</string>
-   </property>
-  </action>
-  <action name="uiCopyTabsToSpacesACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Convert Tabs to Spaces on Copy</string>
    </property>
   </action>
   <action name="uiResetWarningFiltersACT">
@@ -1506,14 +1440,6 @@ Must be at least 1</string>
    </property>
    <property name="toolTip">
     <string>If executing code takes longer than this many seconds, flash the main window of the application.</string>
-   </property>
-  </action>
-  <action name="uiSpellCheckEnabledACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Use Spell-Check</string>
    </property>
   </action>
   <action name="uiLogToFileACT">
@@ -1593,22 +1519,6 @@ Must be at least 1</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+M</string>
-   </property>
-  </action>
-  <action name="uiAutoSaveSettingssACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-Save Console Settings</string>
-   </property>
-   <property name="toolTip">
-    <string>Auto-Save Console Settings and Workbox code.
-Useful if often using multiple DCC instances simultaneously.
-Must manually save instead.</string>
    </property>
   </action>
   <action name="uiNewWorkboxACT">
@@ -1721,14 +1631,6 @@ Must manually save instead.</string>
     <string>Ctrl+Shift+Tab</string>
    </property>
   </action>
-  <action name="uiAutoPromptACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto-prompt</string>
-   </property>
-  </action>
   <action name="uiLinesInNewWorkboxACT">
    <property name="checkable">
     <bool>true</bool>
@@ -1740,19 +1642,6 @@ Must manually save instead.</string>
   <action name="uiSetPreferredTextEditorPathACT">
    <property name="text">
     <string>Set Preferred Text Editor Path</string>
-   </property>
-  </action>
-  <action name="uiErrorHyperlinksACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Error Hyperlinks</string>
-   </property>
-   <property name="toolTip">
-    <string>Show Error Hyperlinks, which can be clicked to open the indicated module
-at the indicated line in the specified text editor.
-</string>
    </property>
   </action>
   <action name="uiSelectCurrentLineACT">
@@ -1888,14 +1777,6 @@ at the indicated line in the specified text editor.
     <string>Ctrl+Shift+F</string>
    </property>
   </action>
-  <action name="uiWorkboxAutoCompleteEnabledACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Use Auto-Complete in workbox</string>
-   </property>
-  </action>
   <action name="uiSelectMonospaceFontACT">
    <property name="text">
     <string>Choose from monospace fonts</string>
@@ -1926,14 +1807,6 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+Return</string>
-   </property>
-  </action>
-  <action name="uiHighlightExactCompletionACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Highlight Exact Completion</string>
    </property>
   </action>
   <action name="uiShowFirstWorkboxVersionACT">
@@ -2015,14 +1888,6 @@ at the indicated line in the specified text editor.
    </property>
    <property name="shortcut">
     <string>Ctrl+Alt+-</string>
-   </property>
-  </action>
-  <action name="uiSeparateTracebackACT">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Visually Separate PrEditor Traceback</string>
    </property>
   </action>
   <action name="uiRunFirstWorkboxACT">
