@@ -2,7 +2,6 @@ import os
 import re
 import string
 import subprocess
-import sys
 from fractions import Fraction
 from typing import Optional
 
@@ -12,7 +11,6 @@ from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor
 from Qt.QtWidgets import QApplication, QTextEdit, QWidget
 
 from .. import instance, stream
-from ..streamhandler_helper import StreamHandlerHelper
 from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
@@ -22,16 +20,12 @@ from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 class ConsoleBase(QTextEdit):
     """Base class for a text widget used to show stdout/stderr writes."""
 
-    # These Qt Properties can be customized using style sheets.
-    commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))
-    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.GlobalColor.red))
-    keywordColor = QtPropertyInit('_keywordColor', QColor(17, 154, 255))
-    resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
-    stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
-    stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
-
-    """
-    For Traceback workbox lines, use this regex pattern, so we can extract
+    workbox_pattern = re.compile(
+        r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
+        r'line (?P<lineNum>\d{1,6})'
+        r'(?P<inStr>, in)?'
+    )
+    """For Traceback workbox lines, use this regex pattern, so we can extract
     workboxName and lineNum. Note that Syntax errors present slightly
     differently than other Exceptions.
         SyntaxErrors:
@@ -44,17 +38,12 @@ class ConsoleBase(QTextEdit):
     So we will use the presence of the text ", in" to tell use whether to
     fake the offending code line or not.
     """
-    workbox_pattern = re.compile(
-        r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
-        r'line (?P<lineNum>\d{1,6})'
-        r'(?P<inStr>, in)?'
-    )
 
-    # Define a pattern to capture info from tracebacks. The newline/$ section
-    # handle SyntaxError output that does not include the `, in ...` portion.
     traceback_pattern = re.compile(
         r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10})(, in|\r\n|\n|$)'
     )
+    """A pattern to capture info from tracebacks. The newline/$ section
+    handle SyntaxError output that does not include the `, in ...` portion."""
 
     def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super().__init__(parent)
@@ -68,9 +57,6 @@ class ConsoleBase(QTextEdit):
         # If populated, also write to this interface
         self.outputPipe = None
         self.addSepNewline = False
-
-        self._init_stream()
-
         self.consoleLine = None
         self.mousePressPos = None
 
@@ -83,31 +69,6 @@ class ConsoleBase(QTextEdit):
         class_ = type(self).__name__
 
         return f"<{module}.{class_}{name} object at 0x{id(self):016X}>"
-
-    def _init_stream(self):
-        # sys.__stdout__ doesn't work if some third party has implemented their own
-        # override. Use these to backup the current logger so the logger displays
-        # output, but application specific consoles also get the info.
-        self.stdout = None
-        self.stderr = None
-        self._errorLog = None
-
-        # overload the sys logger
-        self.stream_manager = stream.install_to_std()
-        # Redirect future writes directly to the console, add any previous writes
-        # to the console and free up the memory consumed by previous writes as we
-        # assume this is likely to be the only callback added to the manager.
-        self.stream_manager.add_callback(
-            self.pre_write, replay=True, disable_writes=True, clear=True
-        )
-        # Store the current outputs
-        self.stdout = sys.stdout
-        self.stderr = sys.stderr
-        self._errorLog = sys.stderr
-
-        # Update any StreamHandler's that were setup using the old stdout/err
-        StreamHandlerHelper.replace_stream(self.stdout, sys.stdout)
-        StreamHandlerHelper.replace_stream(self.stderr, sys.stderr)
 
     @property
     def controller(self) -> Optional[LoggerWindow]:
@@ -350,6 +311,9 @@ class ConsoleBase(QTextEdit):
         if not self._first_show:
             return False
 
+        # Configure the stream callbacks if enabled
+        self.update_streams()
+
         # Redefine highlight variables now that stylesheet may have been updated
         self.codeHighlighter().defineHighlightVariables()
 
@@ -387,11 +351,29 @@ class ConsoleBase(QTextEdit):
         self.onFirstShow(event)
         super().showEvent(event)
 
-    def pre_write(self, msg, error=False):
+    def update_streams(self, attrName=None, value=None):
+        # overload the sys logger and ensure the stream_manager is installed
+        self.stream_manager = stream.install_to_std()
+
+        needs_callback = self.stream_echo_stdout or self.stream_echo_stderr
+        if needs_callback:
+            # Redirect future writes directly to the console, add any previous
+            # writes to the console and possibly free up the memory consumed by
+            # previous writes. It's safe to call this repeatedly.
+            self.stream_manager.add_callback(
+                self.write,
+                replay=self.stream_replay,
+                disable_writes=self.stream_disable_writes,
+                clear=self.stream_clear,
+            )
+        else:
+            self.stream_manager.remove_callback(self.write)
+
+    def write(self, msg, error=False):
         """In order to make a stack-trace provide clickable hyperlinks, it must be sent
-        to self.write line-by-line, like a actual exception traceback is. So, we check
+        to self._write line-by-line, like a actual exception traceback is. So, we check
         if msg has the stack marker str, if so, send it line by line, otherwise, just
-        pass msg on to self.write.
+        pass msg on to self._write.
         """
         stack_marker = "Stack (most recent call last)"
         index = msg.find(stack_marker)
@@ -401,20 +383,27 @@ class ConsoleBase(QTextEdit):
             lines = msg.split("\n")
             for line in lines:
                 line = "{}\n".format(line)
-                self.write(line, error=error)
+                self._write(line, error=error)
         else:
-            self.write(msg, error=error)
+            self._write(msg, error=error)
 
-    def write(self, msg, error=False):
+    def _write(self, msg, error=False):
         """write the message to the logger"""
         if not msg:
             return
 
         # Convert the stream_manager's stream to the boolean value this function expects
         error = error == stream.STDERR
+
+        show_msg = QtCompat.isValid(self)
+        if show_msg and error and not self.stream_echo_stderr:
+            show_msg = False
+        if show_msg and not error and not self.stream_echo_stdout:
+            show_msg = False
+
         # Check that we haven't been garbage collected before trying to write.
         # This can happen while shutting down a QApplication like Nuke.
-        if QtCompat.isValid(self):
+        if show_msg:
             doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
             sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
             self.moveCursor(QTextCursor.MoveOperation.End)
@@ -534,3 +523,28 @@ class ConsoleBase(QTextEdit):
         # if a outputPipe was provided, write the message to that pipe
         if self.outputPipe:
             self.outputPipe(msg, error=error)
+
+    # These Qt Properties can be customized using style sheets.
+    commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))
+    errorMessageColor = QtPropertyInit('_errorMessageColor', QColor(Qt.GlobalColor.red))
+    keywordColor = QtPropertyInit('_keywordColor', QColor(17, 154, 255))
+    resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
+    stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
+    stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
+
+    # Configure stdout/error redirection options
+    stream_clear = QtPropertyInit('_stream_clear', False)
+    """When first shown, should this instance clear the stream manager's stored
+    history?"""
+    stream_disable_writes = QtPropertyInit('_stream_disable_writes', False)
+    """When first shown, should this instance disable writes on the stream?"""
+    stream_replay = QtPropertyInit('_stream_replay', False)
+    """When first shown, should this instance replay the streams stored history?"""
+    stream_echo_stderr = QtPropertyInit(
+        '_stream_echo_stderr', False, callback=update_streams
+    )
+    """Should this console print stderr writes?"""
+    stream_echo_stdout = QtPropertyInit(
+        '_stream_echo_stdout', False, callback=update_streams
+    )
+    """Should this console print stdout writes?"""
