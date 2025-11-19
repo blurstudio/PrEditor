@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>899</width>
-    <height>766</height>
+    <width>958</width>
+    <height>808</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,8 +20,11 @@
    <string>PrEditor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="FindFiles" name="uiFindInWorkboxesWGT" native="true"/>
+    </item>
+    <item row="0" column="0">
      <widget class="QSplitter" name="uiSplitterSPLIT">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -65,8 +68,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>156</width>
-              <height>29</height>
+              <width>938</width>
+              <height>447</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -146,9 +149,6 @@
          </property>
          <item>
           <widget class="QScrollArea" name="uiPreferencesSCRL">
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
            <property name="widgetResizable">
             <bool>true</bool>
            </property>
@@ -157,38 +157,44 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>879</width>
-              <height>420</height>
+              <width>938</width>
+              <height>447</height>
              </rect>
             </property>
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <widget class="QWidget" name="widget_2" native="true">
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="0" column="0">
+              <widget class="QGroupBox" name="uiPreferencesGRP">
                <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="styleSheet">
-                <string notr="true"/>
+               <property name="title">
+                <string>Preferences</string>
                </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <property name="leftMargin">
+                 <number>3</number>
+                </property>
+                <property name="topMargin">
+                 <number>3</number>
+                </property>
+                <property name="rightMargin">
+                 <number>3</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>3</number>
+                </property>
                 <item>
-                 <widget class="QGroupBox" name="uiPreferencesGRP">
+                 <widget class="QWidget" name="uiPreferencesWDGT" native="true">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="styleSheet">
-                   <string notr="true"/>
-                  </property>
-                  <property name="title">
-                   <string>Preferences</string>
-                  </property>
-                  <layout class="QHBoxLayout" name="horizontalLayout">
+                  <layout class="QHBoxLayout" name="horizontalLayout_3">
                    <property name="spacing">
                     <number>3</number>
                    </property>
@@ -199,25 +205,37 @@
                     <number>3</number>
                    </property>
                    <property name="rightMargin">
-                    <number>30</number>
+                    <number>3</number>
                    </property>
                    <property name="bottomMargin">
-                    <number>30</number>
+                    <number>3</number>
                    </property>
                    <item>
-                    <widget class="QWidget" name="widget" native="true">
-                     <property name="styleSheet">
-                      <string notr="true"/>
-                     </property>
-                     <layout class="QVBoxLayout" name="verticalLayout_10">
+                    <widget class="QWidget" name="uiPreferencesColumn1WDGT" native="true">
+                     <layout class="QVBoxLayout" name="verticalLayout_6">
+                      <property name="spacing">
+                       <number>3</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>3</number>
+                      </property>
                       <item>
-                       <widget class="QWidget" name="uiPreferencesWDGT" native="true">
-                        <property name="styleSheet">
-                         <string notr="true"/>
+                       <widget class="QGroupBox" name="uiPrefsGeneralGRP">
+                        <property name="title">
+                         <string>General</string>
                         </property>
-                        <layout class="QHBoxLayout" name="horizontalLayout_3">
+                        <layout class="QVBoxLayout" name="uiPrefsGeneralLYT">
                          <property name="spacing">
-                          <number>3</number>
+                          <number>0</number>
                          </property>
                          <property name="leftMargin">
                           <number>3</number>
@@ -232,390 +250,491 @@
                           <number>3</number>
                          </property>
                          <item>
-                          <widget class="QWidget" name="uiPreferencesColumn1WDGT" native="true">
-                           <property name="styleSheet">
-                            <string notr="true"/>
+                          <widget class="QCheckBox" name="uiAutoPromptCHK">
+                           <property name="toolTip">
+                            <string>After running workbox code, start a new prompt (&gt;&gt;&gt; )</string>
                            </property>
-                           <layout class="QVBoxLayout" name="verticalLayout_6">
-                            <property name="spacing">
-                             <number>3</number>
-                            </property>
-                            <property name="leftMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="topMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="rightMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>3</number>
-                            </property>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsGeneralGRP">
-                              <property name="title">
-                               <string>General</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsGeneralLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiAutoPromptCHK">
-                                 <property name="toolTip">
-                                  <string>After running workbox code, start a new prompt (&gt;&gt;&gt; )</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Auto-prompt</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiConfirmBeforeCloseCHK">
-                                 <property name="text">
-                                  <string>Confirm before closing with Ctrl+Q action</string>
-                                 </property>
-                                 <property name="checked">
-                                  <bool>true</bool>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiWordWrapCHK">
-                                 <property name="text">
-                                  <string>Console Word Wrap</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiCopyTabsToSpacesCHK">
-                                 <property name="text">
-                                  <string>Convert tabs to spaces on copy</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiIndentationsTabsCHK">
-                                 <property name="text">
-                                  <string>Indent using tabs</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiSpellCheckEnabledCHK">
-                                 <property name="text">
-                                  <string>Spell check</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiEditorVerticalCHK">
-                                 <property name="text">
-                                  <string>Vertical editor</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QGroupBox" name="groupBox">
-                              <property name="title">
-                               <string>Files</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="verticalLayout_9">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiAutoSaveSettingsCHK">
-                                 <property name="text">
-                                  <string>Auto save on close</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiPromptOnLinkedChangeCHK">
-                                 <property name="toolTip">
-                                  <string>If a linked file has been deleted or modified, ask how to handle.</string>
-                                 </property>
-                                 <property name="text">
-                                  <string>Prompt for linked file modification / deletion</string>
-                                 </property>
-                                 <property name="checked">
-                                  <bool>true</bool>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsClearGRP">
-                              <property name="title">
-                               <string>Clear</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsClearLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiClearBeforeRunningCHK">
-                                 <property name="text">
-                                  <string>Clear console before running workbox code</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <spacer name="verticalSpacer_2">
-                              <property name="orientation">
-                               <enum>Qt::Vertical</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>20</width>
-                                <height>0</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                           </layout>
+                           <property name="text">
+                            <string>Auto-prompt</string>
+                           </property>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QWidget" name="uiPreferencesColumn2WDGT" native="true">
-                           <property name="styleSheet">
-                            <string notr="true"/>
+                          <widget class="QCheckBox" name="uiConfirmBeforeCloseCHK">
+                           <property name="text">
+                            <string>Confirm before closing with Ctrl+Q action</string>
                            </property>
-                           <layout class="QVBoxLayout" name="verticalLayout_3">
-                            <property name="spacing">
-                             <number>3</number>
-                            </property>
-                            <property name="leftMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="topMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="rightMargin">
-                             <number>3</number>
-                            </property>
-                            <property name="bottomMargin">
-                             <number>3</number>
-                            </property>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsAutoCompleteGRP">
-                              <property name="title">
-                               <string>Auto-Completion</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsAutoCompleteLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiConsoleAutoCompleteEnabledCHK">
-                                 <property name="text">
-                                  <string>Auto-Complete in console</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiWorkboxAutoCompleteEnabledCHK">
-                                 <property name="text">
-                                  <string>Auto-Complete in workbox</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiHighlightExactCompletionCHK">
-                                 <property name="text">
-                                  <string>Highligh exact completion</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsCodeHighlightingGRP">
-                              <property name="title">
-                               <string>Code Highlighting</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsCodeHighlightingLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiConsoleHighlightEnabledCHK">
-                                 <property name="text">
-                                  <string>Code highlighting in console</string>
-                                 </property>
-                                 <property name="checked">
-                                  <bool>true</bool>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsTracebacksGRP">
-                              <property name="title">
-                               <string>Tracebacks</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsTracebacksLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiErrorHyperlinksCHK">
-                                 <property name="text">
-                                  <string>Error hyperlinks</string>
-                                 </property>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QCheckBox" name="uiSeparateTracebackCHK">
-                                 <property name="text">
-                                  <string>Visually separate internal PrEditor traceback</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsInternalDebugGRP">
-                              <property name="title">
-                               <string>Internal Debug</string>
-                              </property>
-                              <layout class="QVBoxLayout" name="uiPrefsInternalDebugLYT">
-                               <property name="spacing">
-                                <number>0</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QCheckBox" name="uiExtraTooltipInfoCHK">
-                                 <property name="text">
-                                  <string>Display extra workbox info in tooltips</string>
-                                 </property>
-                                </widget>
-                               </item>
-                              </layout>
-                             </widget>
-                            </item>
-                            <item>
-                             <spacer name="verticalSpacer">
-                              <property name="orientation">
-                               <enum>Qt::Vertical</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>20</width>
-                                <height>0</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                           </layout>
+                           <property name="checked">
+                            <bool>true</bool>
+                           </property>
                           </widget>
                          </item>
                          <item>
-                          <widget class="QWidget" name="uiPreferencesColumn3WDGT" native="true">
-                           <property name="styleSheet">
-                            <string notr="true"/>
+                          <widget class="QCheckBox" name="uiWordWrapCHK">
+                           <property name="text">
+                            <string>Console Word Wrap</string>
                            </property>
-                           <layout class="QVBoxLayout" name="verticalLayout_11">
-                            <property name="spacing">
-                             <number>3</number>
-                            </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiCopyTabsToSpacesCHK">
+                           <property name="text">
+                            <string>Convert tabs to spaces on copy</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiIndentationsTabsCHK">
+                           <property name="text">
+                            <string>Indent using tabs</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiSpellCheckEnabledCHK">
+                           <property name="text">
+                            <string>Spell check</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiEditorVerticalCHK">
+                           <property name="text">
+                            <string>Vertical editor</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="groupBox">
+                        <property name="title">
+                         <string>Files</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_9">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiAutoSaveSettingsCHK">
+                           <property name="text">
+                            <string>Auto save on close</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiPromptOnLinkedChangeCHK">
+                           <property name="toolTip">
+                            <string>If a linked file has been deleted or modified, ask how to handle.</string>
+                           </property>
+                           <property name="text">
+                            <string>Prompt for linked file modification / deletion</string>
+                           </property>
+                           <property name="checked">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsClearGRP">
+                        <property name="title">
+                         <string>Clear</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsClearLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiClearBeforeRunningCHK">
+                           <property name="text">
+                            <string>Clear console before running workbox code</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="verticalSpacer_2">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>20</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="uiPreferencesColumn2WDGT" native="true">
+                     <layout class="QVBoxLayout" name="verticalLayout_3">
+                      <property name="spacing">
+                       <number>3</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>3</number>
+                      </property>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsAutoCompleteGRP">
+                        <property name="title">
+                         <string>Auto-Completion</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsAutoCompleteLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiConsoleAutoCompleteEnabledCHK">
+                           <property name="text">
+                            <string>Auto-Complete in console</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiWorkboxAutoCompleteEnabledCHK">
+                           <property name="text">
+                            <string>Auto-Complete in workbox</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiHighlightExactCompletionCHK">
+                           <property name="text">
+                            <string>Highligh exact completion</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsCodeHighlightingGRP">
+                        <property name="title">
+                         <string>Code Highlighting</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsCodeHighlightingLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiConsoleHighlightEnabledCHK">
+                           <property name="text">
+                            <string>Code highlighting in console</string>
+                           </property>
+                           <property name="checked">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsTracebacksGRP">
+                        <property name="title">
+                         <string>Tracebacks</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsTracebacksLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiErrorHyperlinksCHK">
+                           <property name="text">
+                            <string>Error hyperlinks</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiSeparateTracebackCHK">
+                           <property name="text">
+                            <string>Visually separate internal PrEditor traceback</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsInternalDebugGRP">
+                        <property name="title">
+                         <string>Internal Debug</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="uiPrefsInternalDebugLYT">
+                         <property name="spacing">
+                          <number>0</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <item>
+                          <widget class="QCheckBox" name="uiExtraTooltipInfoCHK">
+                           <property name="text">
+                            <string>Display extra workbox info in tooltips</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="verticalSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>20</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="uiPreferencesColumn3WDGT" native="true">
+                     <layout class="QVBoxLayout" name="verticalLayout_11">
+                      <property name="spacing">
+                       <number>3</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>3</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>3</number>
+                      </property>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsNumericSettingsGRP">
+                        <property name="title">
+                         <string>Numeric Settings</string>
+                        </property>
+                        <layout class="QGridLayout" name="gridLayout_3">
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="spacing">
+                          <number>3</number>
+                         </property>
+                         <item row="0" column="0">
+                          <widget class="QLabel" name="label_3">
+                           <property name="toolTip">
+                            <string>Set the maximun number of backup files on disk per workbox.
+Must be at least 1</string>
+                           </property>
+                           <property name="text">
+                            <string>Max recently closed workboxes</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="1">
+                          <widget class="QSpinBox" name="uiMaxNumRecentWorkboxesSPIN">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="toolTip">
+                            <string>Set the maximun number of backup files on disk per workbox.
+Must be at least 1</string>
+                           </property>
+                           <property name="minimum">
+                            <number>1</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                           <property name="value">
+                            <number>25</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="0">
+                          <widget class="QLabel" name="label_2">
+                           <property name="toolTip">
+                            <string>Set the maximun number of backup files on disk per workbox.
+Must be at least 1</string>
+                           </property>
+                           <property name="text">
+                            <string>Max number of Backups</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QSpinBox" name="uiMaxNumBackupsSPIN">
+                           <property name="toolTip">
+                            <string>Set the maximun number of backup files on disk per workbox.
+Must be at least 1</string>
+                           </property>
+                           <property name="minimum">
+                            <number>1</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="0">
+                          <widget class="QLabel" name="label">
+                           <property name="toolTip">
+                            <string>'If running code in the logger takes X seconds or longer,
+ the window will flash if it is not in focus.
+ Setting the value to zero will disable flashing.'</string>
+                           </property>
+                           <property name="text">
+                            <string>Flash Interval</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="1">
+                          <widget class="QDoubleSpinBox" name="uiFlashTimeSPIN">
+                           <property name="toolTip">
+                            <string>'If running code in the logger takes X seconds or longer,
+ the window will flash if it is not in focus.
+ Setting the value to zero will disable flashing.'</string>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiPrefsOnDiskGRP">
+                        <property name="title">
+                         <string>Prefs files on disk</string>
+                        </property>
+                        <layout class="QVBoxLayout" name="verticalLayout_14">
+                         <property name="spacing">
+                          <number>3</number>
+                         </property>
+                         <property name="leftMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>0</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>0</number>
+                         </property>
+                         <item>
+                          <widget class="QWidget" name="widget_11" native="true">
+                           <layout class="QGridLayout" name="uiPrefsOnDiskLYT">
                             <property name="leftMargin">
                              <number>3</number>
                             </property>
@@ -628,354 +747,25 @@
                             <property name="bottomMargin">
                              <number>3</number>
                             </property>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsNumericSettingsGRP">
-                              <property name="title">
-                               <string>Numeric Settings</string>
+                            <property name="spacing">
+                             <number>3</number>
+                            </property>
+                            <item row="1" column="0">
+                             <widget class="QPushButton" name="uiPrefsBackupBTN">
+                              <property name="toolTip">
+                               <string>This may take a long time.</string>
                               </property>
-                              <layout class="QVBoxLayout" name="uiPrefsNumericSettingsLYT">
-                               <property name="spacing">
-                                <number>3</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>3</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>3</number>
-                               </property>
-                               <item>
-                                <widget class="QWidget" name="widget_7" native="true">
-                                 <property name="toolTip">
-                                  <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                 </property>
-                                 <property name="styleSheet">
-                                  <string notr="true"/>
-                                 </property>
-                                 <layout class="QHBoxLayout" name="horizontalLayout_7">
-                                  <property name="spacing">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="leftMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="topMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <property name="rightMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="bottomMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <item>
-                                   <spacer name="horizontalSpacer_5">
-                                    <property name="orientation">
-                                     <enum>Qt::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                     <size>
-                                      <width>0</width>
-                                      <height>20</height>
-                                     </size>
-                                    </property>
-                                   </spacer>
-                                  </item>
-                                  <item>
-                                   <widget class="QLabel" name="label_3">
-                                    <property name="toolTip">
-                                     <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                    </property>
-                                    <property name="text">
-                                     <string>Max recently closed workboxes</string>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                  <item>
-                                   <widget class="QSpinBox" name="uiMaxNumRecentWorkboxesSPIN">
-                                    <property name="sizePolicy">
-                                     <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                                      <horstretch>0</horstretch>
-                                      <verstretch>0</verstretch>
-                                     </sizepolicy>
-                                    </property>
-                                    <property name="toolTip">
-                                     <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                    </property>
-                                    <property name="minimum">
-                                     <number>1</number>
-                                    </property>
-                                    <property name="maximum">
-                                     <number>999</number>
-                                    </property>
-                                    <property name="value">
-                                     <number>25</number>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                 </layout>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QWidget" name="widget_6" native="true">
-                                 <property name="toolTip">
-                                  <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                 </property>
-                                 <property name="styleSheet">
-                                  <string notr="true"/>
-                                 </property>
-                                 <layout class="QHBoxLayout" name="horizontalLayout_6">
-                                  <property name="spacing">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="leftMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="topMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <property name="rightMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="bottomMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <item>
-                                   <spacer name="horizontalSpacer_4">
-                                    <property name="orientation">
-                                     <enum>Qt::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                     <size>
-                                      <width>0</width>
-                                      <height>20</height>
-                                     </size>
-                                    </property>
-                                   </spacer>
-                                  </item>
-                                  <item>
-                                   <widget class="QLabel" name="label_2">
-                                    <property name="toolTip">
-                                     <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                    </property>
-                                    <property name="text">
-                                     <string>Max number of Backups</string>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                  <item>
-                                   <widget class="QSpinBox" name="uiMaxNumBackupsSPIN">
-                                    <property name="toolTip">
-                                     <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                                    </property>
-                                    <property name="minimum">
-                                     <number>1</number>
-                                    </property>
-                                    <property name="maximum">
-                                     <number>999</number>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                 </layout>
-                                </widget>
-                               </item>
-                               <item>
-                                <widget class="QWidget" name="widget_5" native="true">
-                                 <property name="toolTip">
-                                  <string>'If running code in the logger takes X seconds or longer,
- the window will flash if it is not in focus.
- Setting the value to zero will disable flashing.'</string>
-                                 </property>
-                                 <property name="styleSheet">
-                                  <string notr="true"/>
-                                 </property>
-                                 <layout class="QHBoxLayout" name="horizontalLayout_5">
-                                  <property name="spacing">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="leftMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="topMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <property name="rightMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="bottomMargin">
-                                   <number>0</number>
-                                  </property>
-                                  <item>
-                                   <spacer name="horizontalSpacer_3">
-                                    <property name="orientation">
-                                     <enum>Qt::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                     <size>
-                                      <width>0</width>
-                                      <height>20</height>
-                                     </size>
-                                    </property>
-                                   </spacer>
-                                  </item>
-                                  <item>
-                                   <widget class="QLabel" name="label">
-                                    <property name="toolTip">
-                                     <string>'If running code in the logger takes X seconds or longer,
- the window will flash if it is not in focus.
- Setting the value to zero will disable flashing.'</string>
-                                    </property>
-                                    <property name="text">
-                                     <string>Flash Interval</string>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                  <item>
-                                   <widget class="QDoubleSpinBox" name="uiFlashTimeSPIN">
-                                    <property name="toolTip">
-                                     <string>'If running code in the logger takes X seconds or longer,
- the window will flash if it is not in focus.
- Setting the value to zero will disable flashing.'</string>
-                                    </property>
-                                   </widget>
-                                  </item>
-                                 </layout>
-                                </widget>
-                               </item>
-                              </layout>
+                              <property name="text">
+                               <string> Backup</string>
+                              </property>
                              </widget>
                             </item>
-                            <item>
-                             <widget class="QGroupBox" name="uiPrefsOnDiskGRP">
-                              <property name="title">
-                               <string>Prefs files on disk</string>
+                            <item row="0" column="0">
+                             <widget class="QPushButton" name="uiPrefsBrowseBTN">
+                              <property name="text">
+                               <string>Browse</string>
                               </property>
-                              <layout class="QVBoxLayout" name="verticalLayout_14">
-                               <property name="spacing">
-                                <number>3</number>
-                               </property>
-                               <property name="leftMargin">
-                                <number>0</number>
-                               </property>
-                               <property name="topMargin">
-                                <number>0</number>
-                               </property>
-                               <property name="rightMargin">
-                                <number>0</number>
-                               </property>
-                               <property name="bottomMargin">
-                                <number>0</number>
-                               </property>
-                               <item>
-                                <widget class="QWidget" name="widget_11" native="true">
-                                 <layout class="QHBoxLayout" name="horizontalLayout_8">
-                                  <property name="spacing">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="leftMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="topMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="rightMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <property name="bottomMargin">
-                                   <number>3</number>
-                                  </property>
-                                  <item>
-                                   <spacer name="horizontalSpacer_10">
-                                    <property name="orientation">
-                                     <enum>Qt::Horizontal</enum>
-                                    </property>
-                                    <property name="sizeHint" stdset="0">
-                                     <size>
-                                      <width>0</width>
-                                      <height>20</height>
-                                     </size>
-                                    </property>
-                                   </spacer>
-                                  </item>
-                                  <item>
-                                   <widget class="QWidget" name="uiPrefsOnDiskWDGT" native="true">
-                                    <layout class="QVBoxLayout" name="uiPrefsOnDiskLYT">
-                                     <property name="spacing">
-                                      <number>6</number>
-                                     </property>
-                                     <property name="leftMargin">
-                                      <number>6</number>
-                                     </property>
-                                     <property name="topMargin">
-                                      <number>0</number>
-                                     </property>
-                                     <property name="rightMargin">
-                                      <number>0</number>
-                                     </property>
-                                     <property name="bottomMargin">
-                                      <number>3</number>
-                                     </property>
-                                     <item>
-                                      <widget class="QPushButton" name="uiPrefsBrowseBTN">
-                                       <property name="sizePolicy">
-                                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                                         <horstretch>1</horstretch>
-                                         <verstretch>0</verstretch>
-                                        </sizepolicy>
-                                       </property>
-                                       <property name="text">
-                                        <string>Browse</string>
-                                       </property>
-                                      </widget>
-                                     </item>
-                                     <item>
-                                      <widget class="QPushButton" name="uiPrefsBackupBTN">
-                                       <property name="sizePolicy">
-                                        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                                         <horstretch>1</horstretch>
-                                         <verstretch>0</verstretch>
-                                        </sizepolicy>
-                                       </property>
-                                       <property name="toolTip">
-                                        <string>This may take a long time.</string>
-                                       </property>
-                                       <property name="text">
-                                        <string> Backup</string>
-                                       </property>
-                                      </widget>
-                                     </item>
-                                    </layout>
-                                   </widget>
-                                  </item>
-                                 </layout>
-                                </widget>
-                               </item>
-                              </layout>
                              </widget>
-                            </item>
-                            <item>
-                             <spacer name="verticalSpacer_5">
-                              <property name="orientation">
-                               <enum>Qt::Vertical</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>20</width>
-                                <height>0</height>
-                               </size>
-                              </property>
-                             </spacer>
                             </item>
                            </layout>
                           </widget>
@@ -984,11 +774,17 @@ Must be at least 1</string>
                        </widget>
                       </item>
                       <item>
-                       <widget class="QDialogButtonBox" name="uiClosePreferencesBTN">
-                        <property name="standardButtons">
-                         <set>QDialogButtonBox::Close</set>
+                       <spacer name="verticalSpacer_5">
+                        <property name="orientation">
+                         <enum>Qt::Vertical</enum>
                         </property>
-                       </widget>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>20</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                       </spacer>
                       </item>
                      </layout>
                     </widget>
@@ -997,29 +793,36 @@ Must be at least 1</string>
                  </widget>
                 </item>
                 <item>
-                 <spacer name="horizontalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                 <widget class="QDialogButtonBox" name="uiClosePreferencesBTN">
+                  <property name="standardButtons">
+                   <set>QDialogButtonBox::Close</set>
                   </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>57</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
+                 </widget>
                 </item>
                </layout>
               </widget>
              </item>
-             <item>
+             <item row="0" column="1">
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>0</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="1" column="0">
               <spacer name="verticalSpacer_3">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>20</width>
+                 <width>10</width>
                  <height>0</height>
                 </size>
                </property>
@@ -1034,9 +837,6 @@ Must be at least 1</string>
       </widget>
      </widget>
     </item>
-    <item>
-     <widget class="FindFiles" name="uiFindInWorkboxesWGT" native="true"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="uiMenuBar">
@@ -1044,8 +844,8 @@ Must be at least 1</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>899</width>
-     <height>22</height>
+     <width>958</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
