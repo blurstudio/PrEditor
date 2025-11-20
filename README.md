@@ -211,3 +211,14 @@ or add menu items. When using this plugin, make sure to use the
 * `preditor.plug.logging_handlers`: Used to add custom python logging handlers
 to the LoggingLevelButton's handlers sub-menus. This allows you to install a
 handler instance on a specific logging object.
+
+# Qt Designer integration
+
+PrEditor includes some reusable widgets that are useful to integrate into your
+own custom interfaces. These can be directly imported and added but PrEditor also
+defines Qt Designer plugins so you can directly add them to your designer files.
+
+Note: This has currently only been tested using [PyQt5](https://pypi.org/project/pyqt5-tools/)/[PyQt6](https://pypi.org/project/pyqt6-tools/).
+
+To load the plugins append the path to [preditor/gui/qtdesigner](/preditor/gui/qtdesigner)
+to the `PYQTDESIGNERPATH` environment variable.
