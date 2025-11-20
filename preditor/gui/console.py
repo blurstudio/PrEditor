@@ -11,7 +11,7 @@ from typing import Optional
 
 import __main__
 from Qt.QtCore import QPoint, Qt, QTimer
-from Qt.QtGui import QKeySequence, QTextCharFormat, QTextCursor, QTextDocument
+from Qt.QtGui import QKeySequence, QTextCursor, QTextDocument
 from Qt.QtWidgets import QAbstractItemView, QAction, QApplication, QWidget
 
 from .. import settings
@@ -573,31 +573,6 @@ class ConsolePrEdit(ConsoleBase):
         """create a new command prompt line"""
         self.startPrompt(self.prompt())
         self._prevCommandIndex = 0
-
-    def startPrompt(self, prompt):
-        """create a new command prompt line with the given prompt
-
-        Args:
-            prompt(str): The prompt to start the line with. If this prompt
-                is already the only text on the last line this function does nothing.
-        """
-        self.moveCursor(QTextCursor.MoveOperation.End)
-
-        # if this is not already a new line
-        if self.textCursor().block().text() != prompt:
-            charFormat = QTextCharFormat()
-            self.setCurrentCharFormat(charFormat)
-
-            inputstr = prompt
-            if self.textCursor().block().text():
-                inputstr = '\n' + inputstr
-
-            self.insertPlainText(inputstr)
-
-        scroll = self.verticalScrollBar()
-        maximum = scroll.maximum()
-        if maximum is not None:
-            scroll.setValue(maximum)
 
     def startOutputLine(self):
         """Create a new line to show output text."""

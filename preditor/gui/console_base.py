@@ -80,6 +80,13 @@ class ConsoleBase(QTextEdit):
 
         return f"<{module}.{class_}{name} object at 0x{id(self):016X}>"
 
+    def add_separator(self):
+        """Add a marker line for visual separation of console output."""
+        # Ensure the input is written to the end of the document on a new line
+        self.startPrompt("")
+        # Add a horizontal rule
+        self.insertHtml("<hr><br>")
+
     def contextMenuEvent(self, event):
         """Builds a custom right click menu to show."""
         # Create the standard menu and allow subclasses to customize it
@@ -266,6 +273,9 @@ class ConsoleBase(QTextEdit):
         self.uiClearACT.triggered.connect(self.clear)
         self.addAction(self.uiClearACT)
 
+        self.uiAddBreakACT = QAction("Add Separator")
+        self.uiAddBreakACT.triggered.connect(self.add_separator)
+
     def init_logging_handlers(self, attrName=None, value=None):
         self.logging_info = {}
         for h in self.logging_handlers:
@@ -409,11 +419,37 @@ class ConsoleBase(QTextEdit):
         self.onFirstShow(event)
         super().showEvent(event)
 
+    def startPrompt(self, prompt):
+        """create a new command prompt line with the given prompt
+
+        Args:
+            prompt(str): The prompt to start the line with. If this prompt
+                is already the only text on the last line this function does nothing.
+        """
+        self.moveCursor(QTextCursor.MoveOperation.End)
+
+        # if this is not already a new line
+        if self.textCursor().block().text() != prompt:
+            charFormat = QTextCharFormat()
+            self.setCurrentCharFormat(charFormat)
+
+            inputstr = prompt
+            if self.textCursor().block().text():
+                inputstr = '\n' + inputstr
+
+            self.insertPlainText(inputstr)
+
+        scroll = self.verticalScrollBar()
+        maximum = scroll.maximum()
+        if maximum is not None:
+            scroll.setValue(maximum)
+
     def update_context_menu(self, menu):
         """Returns the menu to use for right click context."""
         # Note: this menu is built in reverse order for easy insertion
         sep = menu.insertSeparator(menu.actions()[0])
         menu.insertAction(sep, self.uiClearACT)
+        menu.insertAction(sep, self.uiAddBreakACT)
         return menu
 
     def update_streams(self, attrName=None, value=None):
