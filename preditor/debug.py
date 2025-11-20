@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 class FileLogger:
     def __init__(self, stdhandle, logfile, _print=True, clearLog=True):
-        self._stdhandle = stdhandle
+        self.old_stream = stdhandle
         self._logfile = logfile
         self._print = _print
         if clearLog:
@@ -19,24 +19,25 @@ class FileLogger:
 
     def clear(self, stamp=False):
         """Removes the contents of the log file."""
-        open(self._logfile, 'w').close()
+        open(self._logfile, 'w', newline="\n", encoding="utf-8").close()
         if stamp:
             print(self.stamp())
 
     def flush(self):
-        if self._stdhandle:
-            self._stdhandle.flush()
+        if self.old_stream:
+            self.old_stream.flush()
 
     def stamp(self):
         msg = '--------- Date: {today} Version: {version} ---------'
         return msg.format(today=datetime.datetime.today(), version=sys.version)
 
     def write(self, msg):
-        with open(self._logfile, 'a', encoding="utf-8") as f:
+        # Newline forces windows to write unix style newlines
+        with open(self._logfile, 'a', newline="\n", encoding="utf-8") as f:
             f.write(msg)
 
         if self._print:
-            self._stdhandle.write(msg)
+            self.old_stream.write(msg)
 
 
 def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
@@ -70,9 +71,9 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
 
     # Update any StreamHandler's that were setup using the old stdout/err
     if stdout:
-        StreamHandlerHelper.replace_stream(sys.stdout._stdhandle, sys.stdout)
+        StreamHandlerHelper.replace_stream(sys.stdout.old_stream, sys.stdout)
     if stderr:
-        StreamHandlerHelper.replace_stream(sys.stderr._stdhandle, sys.stderr)
+        StreamHandlerHelper.replace_stream(sys.stderr.old_stream, sys.stderr)
 
 
 def printCallingFunction(compact=False):
