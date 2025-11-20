@@ -85,7 +85,8 @@ class ConsoleBase(QTextEdit):
         # Create the standard menu and allow subclasses to customize it
         menu = self.createStandardContextMenu(event.pos())
         menu = self.update_context_menu(menu)
-        menu.setFont(self.controller.font())
+        if self.controller:
+            menu.setFont(self.controller.font())
         menu.exec(self.mapToGlobal(event.pos()))
 
     @property
@@ -130,9 +131,12 @@ class ConsoleBase(QTextEdit):
 
         The text editor defaults to SublimeText3, in the normal install directory
         """
+        if not self.controller:
+            # Bail if there isn't a controller
+            return
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
         doHyperlink = (
-            hasattr(self.controller, 'uiErrorHyperlinksCHK')
+            self.controller
             and self.controller.uiErrorHyperlinksCHK.isChecked()
             and anchor
         )
@@ -235,6 +239,8 @@ class ConsoleBase(QTextEdit):
         Returns:
             txt (str): The line of text found
         """
+        if not self.controller:
+            return None
         workbox = self.controller.workbox_for_name(name)
         if not workbox:
             return None
@@ -513,8 +519,12 @@ class ConsoleBase(QTextEdit):
             if not to_error and not self.stream_echo_stdout:
                 return
 
-        doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
-        sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
+        if self.controller:
+            doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
+            sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
+        else:
+            doHyperlink = False
+            sepPreditorTrace = False
         self.moveCursor(QTextCursor.MoveOperation.End)
 
         charFormat = QTextCharFormat()

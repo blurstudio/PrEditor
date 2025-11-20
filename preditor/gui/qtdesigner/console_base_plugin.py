@@ -19,7 +19,7 @@ class ConsoleBasePlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
     def createWidget(self, parent):
         from preditor.gui.console_base import ConsoleBase
 
-        return ConsoleBase(parent=parent)
+        return ConsoleBase(parent=parent, controller=None)
 
     def name(self):
         return "ConsoleBase"
