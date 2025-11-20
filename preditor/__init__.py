@@ -4,8 +4,6 @@ import logging
 import os
 import sys
 
-from Qt.QtCore import Qt
-
 from . import osystem
 from .config import PreditorConfig
 from .plugins import Plugins
@@ -178,17 +176,9 @@ def launch(run_workbox=False, app_id=None, name=None, standalone=False):
         run_workbox=run_workbox, name=name, standalone=standalone
     )
 
-    # Show the PrEditor instance and make sure it regains focus and visibility
-    widget.show()
-    # If the instance was already shown, raise it to the top and make
-    # it regain focus.
-    widget.activateWindow()
-    widget.raise_()
-    widget.setWindowState(
-        widget.windowState() & ~Qt.WindowState.WindowMinimized
-        | Qt.WindowState.WindowActive
-    )
-    widget.console().setFocus()
+    # Show the PrEditor instance, make sure it regains focus, visibility and is
+    # raised to the top.
+    widget.launch(focus=True)
     app.start()
 
     return widget

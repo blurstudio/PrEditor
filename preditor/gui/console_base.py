@@ -207,6 +207,10 @@ class ConsoleBase(QTextEdit):
         elif workboxName is not None:
             workbox = self.controller.workbox_for_name(workboxName, visible=True)
             lineNum = int(lineNum)
+            # Make the controller visible and focus on the workbox. This is not
+            # using preditor.launch on the assumption that some widget has already
+            # initialized it to store in self.controller.
+            self.controller.launch(focus=False)
             workbox.__goto_line__(lineNum)
             workbox.setFocus()
 
