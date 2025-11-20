@@ -452,6 +452,22 @@ class LoggerWindow(Window):
         """
         self.uiPromptOnLinkedChangeCHK.setChecked(state)
 
+    def launch(self, focus=True):
+        """Ensure this window is raised to the top and make it regain focus.
+
+        Args:
+            focus (bool, optional): If True then make sure the console has focus.
+        """
+        self.show()
+        self.activateWindow()
+        self.raise_()
+        self.setWindowState(
+            self.windowState() & ~Qt.WindowState.WindowMinimized
+            | Qt.WindowState.WindowActive
+        )
+        if focus:
+            self.focusToConsole()
+
     def loadPlugins(self):
         """Load any plugins that modify the LoggerWindow."""
         self.plugins = {}
