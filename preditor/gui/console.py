@@ -223,17 +223,18 @@ class ConsolePrEdit(ConsoleBase):
                 self.reportExecutionTime((delta, commandText))
 
         # Provide user feedback when running long code execution.
-        flash_time = self.controller.uiFlashTimeSPIN.value()
-        if self.flash_window and flash_time and delta >= flash_time:
-            if settings.OS_TYPE == "Windows":
-                try:
-                    from casement import utils
-                except ImportError:
-                    # If casement is not installed, flash window is disabled
-                    pass
-                else:
-                    hwnd = int(self.flash_window.winId())
-                    utils.flash_window(hwnd)
+        if self.controller:
+            flash_time = self.controller.uiFlashTimeSPIN.value()
+            if self.flash_window and flash_time and delta >= flash_time:
+                if settings.OS_TYPE == "Windows":
+                    try:
+                        from casement import utils
+                    except ImportError:
+                        # If casement is not installed, flash window is disabled
+                        pass
+                    else:
+                        hwnd = int(self.flash_window.winId())
+                        utils.flash_window(hwnd)
 
         if echoResult and wasEval:
             # If the selected code was a statement print the result of the statement.
@@ -439,10 +440,11 @@ class ConsolePrEdit(ConsoleBase):
             if not (ctrlSpace or ctrlM or ctrlI):
                 super().keyPressEvent(event)
 
-            if ctrlI:
-                self.controller.toggleCaseSensitive()
-            if ctrlM:
-                self.controller.cycleCompleterMode()
+            if self.controller:
+                if ctrlI:
+                    self.controller.toggleCaseSensitive()
+                if ctrlM:
+                    self.controller.cycleCompleterMode()
 
             # check for particular events for the completion
             if completer:
@@ -475,7 +477,10 @@ class ConsolePrEdit(ConsoleBase):
                     # If option chosen, if the exact prefix exists in the
                     # possible completions, highlight it, even if it's not the
                     # topmost completion.
-                    if self.controller.uiHighlightExactCompletionCHK.isChecked():
+                    if (
+                        self.controller
+                        and self.controller.uiHighlightExactCompletionCHK.isChecked()
+                    ):
                         for i in range(completer.completionCount()):
                             completer.setCurrentRow(i)
                             curCompletion = completer.currentCompletion()

@@ -19,7 +19,7 @@ class ConsolePrEditPlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
     def createWidget(self, parent):
         from preditor.gui.console import ConsolePrEdit
 
-        return ConsolePrEdit(parent=parent)
+        return ConsolePrEdit(parent=parent, controller=None)
 
     def name(self):
         return "ConsolePrEdit"
