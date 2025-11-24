@@ -7,10 +7,17 @@ from typing import Optional
 
 from Qt import QtCompat
 from Qt.QtCore import Qt
-from Qt.QtGui import QColor, QFontMetrics, QTextCharFormat, QTextCursor
-from Qt.QtWidgets import QApplication, QTextEdit, QWidget
+from Qt.QtGui import (
+    QColor,
+    QFontMetrics,
+    QIcon,
+    QKeySequence,
+    QTextCharFormat,
+    QTextCursor,
+)
+from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
 
-from .. import instance, stream
+from .. import instance, resourcePath, stream
 from . import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
@@ -60,6 +67,8 @@ class ConsoleBase(QTextEdit):
         self.consoleLine = None
         self.mousePressPos = None
 
+        self.init_actions()
+
     def __repr__(self):
         """The repr for this object including its objectName if set."""
         name = self.objectName()
@@ -69,6 +78,14 @@ class ConsoleBase(QTextEdit):
         class_ = type(self).__name__
 
         return f"<{module}.{class_}{name} object at 0x{id(self):016X}>"
+
+    def contextMenuEvent(self, event):
+        """Builds a custom right click menu to show."""
+        # Create the standard menu and allow subclasses to customize it
+        menu = self.createStandardContextMenu(event.pos())
+        menu = self.update_context_menu(menu)
+        menu.setFont(self.controller.font())
+        menu.exec(self.mapToGlobal(event.pos()))
 
     @property
     def controller(self) -> Optional[LoggerWindow]:
@@ -225,6 +242,19 @@ class ConsoleBase(QTextEdit):
         txt = workbox.text(lineNum).strip() + "\n"
         return txt
 
+    def init_actions(self):
+        self.uiClearACT = QAction("&Clear", self)
+        self.uiClearACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
+        self.uiClearACT.setToolTip(
+            "Clears the top section of PrEditor. This does not clear the workbox."
+        )
+        self.uiClearACT.setShortcut(QKeySequence("Ctrl+Shift+Alt+D"))
+        self.uiClearACT.setShortcutContext(
+            Qt.ShortcutContext.WidgetWithChildrenShortcut
+        )
+        self.uiClearACT.triggered.connect(self.clear)
+        self.addAction(self.uiClearACT)
+
     def mouseMoveEvent(self, event):
         """Overload of mousePressEvent to change mouse pointer to indicate it is
         over a clickable error hyperlink.
@@ -350,6 +380,13 @@ class ConsoleBase(QTextEdit):
         # Ensure the onFirstShow method is run.
         self.onFirstShow(event)
         super().showEvent(event)
+
+    def update_context_menu(self, menu):
+        """Returns the menu to use for right click context."""
+        # Note: this menu is built in reverse order for easy insertion
+        sep = menu.insertSeparator(menu.actions()[0])
+        menu.insertAction(sep, self.uiClearACT)
+        return menu
 
     def update_streams(self, attrName=None, value=None):
         # overload the sys logger and ensure the stream_manager is installed

@@ -69,11 +69,6 @@ class ConsolePrEdit(ConsoleBase):
         # it on.
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 
-    def contextMenuEvent(self, event):
-        menu = self.createStandardContextMenu()
-        menu.setFont(self.controller.font())
-        menu.exec(self.mapToGlobal(event.pos()))
-
     def doubleSingleShotSetScrollValue(self, origPercent):
         """This double QTimer.singleShot monkey business seems to be the only way
         to get scroll.maximum() to update properly so that we calc newValue
