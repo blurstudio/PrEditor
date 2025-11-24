@@ -360,6 +360,7 @@ class LoggerWindow(Window):
     def createActions(self):
         """Create the necessary actions"""
         self.addAction(self.uiClearLogACT)
+        self.uiConsoleTXT.removeAction(self.uiConsoleTXT.uiClearACT)
 
         # Setup ability to cycle completer mode, and create action for each mode
         self.completerModeCycle = itertools.cycle(CompleterMode)
