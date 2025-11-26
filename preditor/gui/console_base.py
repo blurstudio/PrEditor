@@ -298,9 +298,9 @@ class ConsoleBase(QTextEdit):
         over a clickable error hyperlink.
         """
         if self.anchorAt(event.pos()):
-            QApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+            self.viewport().setCursor(Qt.CursorShape.PointingHandCursor)
         else:
-            QApplication.restoreOverrideCursor()
+            self.viewport().unsetCursor()
         return super().mouseMoveEvent(event)
 
     def mousePressEvent(self, event):
