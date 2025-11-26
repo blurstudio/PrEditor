@@ -10,7 +10,7 @@ import textwrap
 import time
 from pathlib import Path
 
-import chardet
+import charset_normalizer
 import Qt as Qt_py
 from Qt.QtCore import Qt, Signal
 from Qt.QtWidgets import QMessageBox, QStackedWidget
@@ -816,7 +816,7 @@ class WorkboxMixin(object):
             )
 
             full_path = str(full_path)
-            self.__write_file__(full_path, self.__text__())
+            self.__write_file__(full_path, self.__text__(), encoding=self._encoding)
 
             self._backup_file = get_relative_path(self.core_name, full_path)
             ret['backup_file'] = self._backup_file
@@ -1013,8 +1013,15 @@ class WorkboxMixin(object):
         with open(filename, "rb") as f:
             text_bytes = f.read()
 
-        # Open file, detect source encoding and convert to utf-8
-        encoding = chardet.detect(text_bytes)['encoding'] or 'utf-8'
+        try:
+            # If possible to decode as utf-8 use it as the encoding
+            text = text_bytes.decode("utf-8")
+            return "utf-8", text
+        except UnicodeDecodeError:
+            pass
+
+        # Otherwise, attempt to detect source encoding and convert to utf-8
+        encoding = charset_normalizer.detect(text_bytes)['encoding'] or 'utf-8'
         try:
             text = text_bytes.decode(encoding)
         except UnicodeDecodeError as e:
