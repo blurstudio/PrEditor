@@ -1730,7 +1730,7 @@ This button removes those (very old) workboxes.</string>
   <customwidget>
    <class>GroupTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>preditor.gui.group_tab_widget.h</header>
+   <header>preditor.gui.group_tab_widget.group_tab_widget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
