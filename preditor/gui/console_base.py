@@ -30,31 +30,6 @@ from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 class ConsoleBase(QTextEdit):
     """Base class for a text widget used to show stdout/stderr writes."""
 
-    workbox_pattern = re.compile(
-        r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
-        r'line (?P<lineNum>\d{1,6})'
-        r'(?P<inStr>, in)?'
-    )
-    """For Traceback workbox lines, use this regex pattern, so we can extract
-    workboxName and lineNum. Note that Syntax errors present slightly
-    differently than other Exceptions.
-        SyntaxErrors:
-            - Do NOT include the text ", in" followed by a module
-            - DO include the offending line of code
-        Other Exceptions
-            - DO include the text ", in" followed by a module
-            - Do NOT include the offending line of code if from stdIn (ie
-                  a workbox)
-    So we will use the presence of the text ", in" to tell use whether to
-    fake the offending code line or not.
-    """
-
-    traceback_pattern = re.compile(
-        r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10})(, in|\r\n|\n|$)'
-    )
-    """A pattern to capture info from tracebacks. The newline/$ section
-    handle SyntaxError output that does not include the `, in ...` portion."""
-
     def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super().__init__(parent)
         self.controller = controller
@@ -79,6 +54,48 @@ class ConsoleBase(QTextEdit):
         class_ = type(self).__name__
 
         return f"<{module}.{class_}{name} object at 0x{id(self):016X}>"
+
+    @classmethod
+    def __defineRegexPatterns(cls):
+        """Define various regex patterns to use to determine if the msg to write
+        is part of a traceback, and also to determine if it is from a workbox, or
+        from the console.
+
+        We construct various parts of the patterns, and combine them into the
+        final patterns. The workbox pattern and console pattern share the line
+        and in_str parts.
+        """
+
+        # For Traceback workbox lines, use this regex pattern, so we can extract
+        # workboxName and lineNum. Note that Syntax errors present slightly
+        # differently than other Exceptions.
+        #     SyntaxErrors:
+        #         - Do NOT include the text ", in" followed by a module
+        #         - DO include the offending line of code
+        #     Other Exceptions
+        #         - DO include the text ", in" followed by a module
+        #         - Do NOT include the offending line of code if from stdIn (ie
+        #               a workbox)
+        # So we will use the presence of the text ", in" to tell use whether to
+        # fake the offending code line or not.
+
+        # Define pattern pieces
+        console_pattern = r'File "<ConsolePrEdit>", '
+        workbox_pattern = r'File "<Workbox(?:Selection)?>:(?P<workboxName>.*)", '
+        line_pattern = r'line (?P<lineNum>\d{1,6})'
+        in_str_pattern = r'(?P<inStr>, in)?'
+
+        # Put the pattern pieces to together to make patterns
+        workbox_pattern = workbox_pattern + line_pattern + in_str_pattern
+        cls.workbox_pattern = re.compile(workbox_pattern)
+
+        console_pattern = console_pattern + line_pattern + in_str_pattern
+        cls.console_pattern = re.compile(console_pattern)
+
+        # Define a pattern to capture info from tracebacks. The newline/$ section
+        # handle SyntaxError output that does not include the `, in ...` portion.
+        pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10})(, in|\r\n|\n|$)'
+        cls.traceback_pattern = re.compile(pattern)
 
     def add_separator(self):
         """Add a marker line for visual separation of console output."""
@@ -624,9 +641,17 @@ class ConsoleBase(QTextEdit):
                 msg = "{}{}{}".format(msg, indent, workboxLine)
 
         elif isConsolePrEdit:
-            consoleLine = self.consoleLine
-            indent = self.getIndentForCodeTracebackLine(msg)
-            msg = "{}{}{}\n".format(msg, indent, consoleLine)
+            # Syntax error tracebacks are different than other Exception.
+            # They don't include ", in ..." and are issued differently than
+            # other Exceptions, in that they will issue the final piece of
+            # offending code, whereas other Exceptions do not, for some
+            # reason. They do not need, and shouldn't, be handled here.
+            match = self.console_pattern.search(msg)
+            inStr = match.groupdict().get("inStr", "")
+            if inStr:
+                consoleLine = self.consoleLine
+                indent = self.getIndentForCodeTracebackLine(msg)
+                msg = "{}{}{}\n".format(msg, indent, consoleLine)
 
         # To make it easier to see relevant lines of a traceback, optionally insert
         # a newline separating internal PrEditor code from the code run by user.
@@ -720,3 +745,7 @@ class ConsoleBase(QTextEdit):
     """Should this console print captured exceptions? Only use this if
     stream_echo_stderr is disabled or you likely will get duplicate output.
     """
+
+
+# Build and add the class properties for regex patterns so subclasses can use them.
+ConsoleBase._ConsoleBase__defineRegexPatterns()
