@@ -1,9 +1,9 @@
 from preditor.gui import qtdesigner
 
 
-class ConsoleBasePlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
+class OutputConsolePlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
     def __init__(self, parent=None):
-        super(ConsoleBasePlugin, self).__init__()
+        super(OutputConsolePlugin, self).__init__()
 
         self.initialized = False
 
@@ -17,12 +17,12 @@ class ConsoleBasePlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
         return self.initialized
 
     def createWidget(self, parent):
-        from preditor.gui.console_base import ConsoleBase
+        from preditor.gui.output_console import OutputConsole
 
-        return ConsoleBase(parent=parent, controller=None)
+        return OutputConsole(parent=parent, controller=None)
 
     def name(self):
-        return "ConsoleBase"
+        return "OutputConsole"
 
     def group(self):
         return "PrEditor Widgets"
@@ -42,7 +42,7 @@ class ConsoleBasePlugin(qtdesigner.QPyDesignerCustomWidgetPlugin):
         return False
 
     def includeFile(self):
-        return "preditor.gui.console_base"
+        return "preditor.gui.output_console"
 
     def domXml(self):
-        return '<widget class="ConsoleBase" name="ConsoleBase"/>'
+        return '<widget class="OutputConsole" name="OutputConsole"/>'

@@ -34,6 +34,10 @@ blocks([...](https://docs.python.org/3/glossary.html#term-...)), use the workbox
     logging levels.
     * You can install logging handlers that have had PrEditor plugins written for them.
     * Known python logger levels are saved and restored.
+* **OutputConsole:** Selectively shows output from stdout, stderr, specific python
+loggers, and tracebacks(not using stderr). This can be used in various widgets to
+show selected output. See [examples/output_console.py](examples/output_console.py)
+for an example of the various modes.
 * All code is run in `__main__`. In code you can add objects to it for inspection in PrEditor.
 * `Ctrl + Shift + PgUp/PgDown` changes focus between the console and workbox.
 * `Ctrl + Alt + Shift + PgUp/PgDown` changes focus and copies the current prompt
