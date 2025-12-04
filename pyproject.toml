@@ -50,6 +50,7 @@ QScintilla = "preditor.gui.workboxwidget:WorkboxWidget"
 
 [project.entry-points."preditor.plug.logging_handlers"]
 PrEditor = "preditor.gui.logger_window_handler:LoggerWindowHandler"
+Console = "preditor.stream.console_handler:ConsoleHandler"
 
 [tool.setuptools]
 platforms = ["any"]
