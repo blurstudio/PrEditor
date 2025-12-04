@@ -4,6 +4,7 @@ import logging
 
 from .. import instance
 from ..constants import StreamType
+from ..stream import Director, Manager
 
 
 class LoggerWindowHandler(logging.Handler):
@@ -31,6 +32,8 @@ class LoggerWindowHandler(logging.Handler):
         super(LoggerWindowHandler, self).__init__()
         self.stream_type = stream_type
         self.stream = stream
+        self.manager = Manager()
+        self.director = Director(self.manager, StreamType.CONSOLE)
 
         if formatter is not None:
             if not isinstance(formatter, logging.Formatter):

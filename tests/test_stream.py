@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 import io
+import logging
 import sys
 
 import pytest
@@ -165,25 +166,34 @@ def test_add_callback(manager, stdout, stderr):
     stdout.write(u'some text')
     bound = Bound()
 
+    def remove_callback():
+        manager.remove_callback(bound.write)
+        assert bound.write not in manager.callbacks
+
     # Base check that default kwargs work as expected
     assert manager.store_writes is True  # disable_writes
     assert len(manager) == 1  # clear
     assert len(bound.data) == 0  # replay
+    assert bound.write not in manager.callbacks
     manager.add_callback(bound.write)
+    assert bound.write in manager.callbacks
     assert manager.store_writes is True  # disable_writes
     assert len(manager) == 1  # Clear
     assert len(bound.data) == 0  # replay
 
+    remove_callback()
     manager.add_callback(bound.write, disable_writes=True)
     assert manager.store_writes is False  # disable_writes
     assert len(manager) == 1  # Clear
     assert len(bound.data) == 0  # replay
 
+    remove_callback()
     manager.add_callback(bound.write, replay=True)
     assert manager.store_writes is False  # disable_writes
     assert len(manager) == 1  # Clear
     assert len(bound.data) == 1  # replay
 
+    remove_callback()
     manager.add_callback(bound.write, clear=True)
     assert manager.store_writes is False  # disable_writes
     assert len(manager) == 0  # Clear
@@ -219,3 +229,49 @@ def test_install_to_std():
     assert inst_out
     assert inst_err
     assert isinstance(manager, Manager)
+
+
+@pytest.mark.parametrize(
+    "input,check",
+    (
+        (["preditor.cli"], ["preditor.cli", None, "Console", None]),
+        (["preditor.cli,INFO"], ["preditor.cli", 20, "Console", None]),
+        (["preditor.prefs,30"], ["preditor.prefs", 30, "Console", None]),
+        (["preditor.cli,lvl=30"], ["preditor.cli", 30, "Console", None]),
+        (["preditor.cli,level=WARNING"], ["preditor.cli", 30, "Console", None]),
+        # Test escaping and complex formatter strings
+        (["preditor,formatter=%(msg)s"], ["preditor", None, "Console", "%(msg)s"]),
+        (["preditor,fmt=%(msg)s,POST"], ["preditor", None, "Console", "%(msg)s,POST"]),
+        ([r"preditor,fmt=M\=%(msg)s"], ["preditor", None, "Console", "M=%(msg)s"]),
+        ([r"preditor,fmt=M\\=%(msg)s"], ["preditor", None, "Console", r"M\=%(msg)s"]),
+        (
+            [r"preditor,fmt=M\=%(msg)s,POST"],
+            ["preditor", None, "Console", "M=%(msg)s,POST"],
+        ),
+        (
+            [r"plug=PrEditor,fmt=A\=%(msg)sG\=G,level=WARNING,name=six"],
+            ["six", 30, "PrEditor", "A=%(msg)sG=G"],
+        ),
+        # Order of kwargs doesn't matter and there are no trailing commas
+        (
+            [r"plug=PrEditor,fmt=A\=%(msg)s,G\=G,level=WARNING,name=six"],
+            ["six", 30, "PrEditor", "A=%(msg)s,G=G"],
+        ),
+        (
+            [r"plug=PrEditor,fmt=A\=%(msg)s,G\=G,B,level=WARNING,name=six"],
+            ["six", 30, "PrEditor", "A=%(msg)s,G=G,B"],
+        ),
+    ),
+)
+def test_handler_info(input, check):
+    from preditor.stream.console_handler import HandlerInfo
+
+    hi = HandlerInfo(*input)
+    assert hi.name == check[0]
+    assert hi.level == check[1]
+    assert hi.plugin == check[2]
+    assert isinstance(hi.formatter, logging.Formatter)
+    if check[3] is None:
+        # Treat None as the default formatter
+        check[3] = HandlerInfo._default_format
+    assert hi.formatter._fmt == check[3]

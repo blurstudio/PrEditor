@@ -19,6 +19,7 @@ from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
 
 from .. import instance, resourcePath, stream
 from ..constants import StreamType
+from ..stream.console_handler import HandlerInfo
 from ..utils.cute import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
@@ -254,6 +255,13 @@ class ConsoleBase(QTextEdit):
         self.uiClearACT.triggered.connect(self.clear)
         self.addAction(self.uiClearACT)
 
+    def init_logging_handlers(self, attrName=None, value=None):
+        self.logging_info = {}
+        for h in self.logging_handlers:
+            hi = HandlerInfo(h)
+            hi.install(self.write_log)
+            self.logging_info[hi.name] = hi
+
     def mouseMoveEvent(self, event):
         """Overload of mousePressEvent to change mouse pointer to indicate it is
         over a clickable error hyperlink.
@@ -404,6 +412,40 @@ class ConsoleBase(QTextEdit):
             )
         else:
             self.stream_manager.remove_callback(self.write)
+
+    def get_logging_info(self, name):
+        # Look for a specific rule to handle this logging message
+        parts = name.split(".")
+        for i in range(len(parts), 0, -1):
+            name = ".".join(parts[:i])
+            if name in self.logging_info:
+                return self.logging_info[name]
+
+        # If no logging handler matches the name but we are showing the root
+        # handler fall back to using the root handler to handle this logging call.
+        if "root" in self.logging_info:
+            return self.logging_info["root"]
+
+        # Otherwise ignore it
+        return None
+
+    def write_log(self, log_data, stream_type=StreamType.CONSOLE):
+        """Write a logging message to the console depending on filters."""
+        handler, record = log_data
+        # Find the console configuration that allows processing of this record
+        logging_info = self.get_logging_info(record.name)
+        if logging_info is None:
+            return
+
+        # Only log the record if it matches the logging level requirements
+        if logging_info.level > record.levelno:
+            return
+
+        formatter = handler
+        if logging_info.formatter:
+            formatter = logging_info.formatter
+        msg = formatter.format(record)
+        self.write(f'{msg}\n', stream_type=stream_type)
 
     def write(self, msg, stream_type=StreamType.STDOUT):
         """Write a message to the logger.
@@ -578,6 +620,13 @@ class ConsoleBase(QTextEdit):
     resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
     stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
     stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
+
+    logging_handlers = QtPropertyInit(
+        '_logging_handlers', list, callback=init_logging_handlers, typ="QStringList"
+    )
+    """Used to install LoggerWindowHandler's for this console. Each item should be a
+    `handler.name,level`. Level can be the int value (50) or level name (DEBUG).
+    """
 
     # Configure stdout/error redirection options
     stream_clear = QtPropertyInit('_stream_clear', False)
