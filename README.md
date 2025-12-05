@@ -226,3 +226,35 @@ Note: This has currently only been tested using [PyQt5](https://pypi.org/project
 
 To load the plugins append the path to [preditor/gui/qtdesigner](/preditor/gui/qtdesigner)
 to the `PYQTDESIGNERPATH` environment variable.
+
+# Change Log
+
+* **2.0.0:** OutputConsole, link files to workboxe tabs and Workbox editing history
+    * New reusable `OutputConsole` widget that optionally shows stdout, stderr, logging messages, and tracebacks. See the [example](/examples/output_console.py) implementation for details.
+    * Workbox tabs can be linked to files and edited externally
+    * Workbox content change history is versioned and you can quickly switch between the versions.
+    * Recently closed workbox tabs can be be re-opened
+    * Workbox preference saving has been re-worked. It will automatically migrate
+    to the new setup so you won't loose your current workbox tab contents. However
+    after upgrading if you want to switch back to the v1.X release see details below.
+
+        <details>
+
+        In the rare case that you must revert to older Preditor (v1.X), you will only
+        see the workboxes you had when you updated to PrEditor v2.0. When you switch
+        back to v2.0 again, you still may only see those same workboxes. This can be
+        fixed with these steps, which in summary is to replace `preditor_pref.json`
+        with one of the backups of that file.
+
+        * Options Menu > Preferences
+        * In the `Prefs files on disk` section, click Browse. An Explorer window opens.
+        * Close PrEditor
+        * Go into the `prefs_bak` folder
+        * Sort by name or by date, so most recent files are at the top
+        * Look for a backup that is at least slightly larger than recent ones. If they are all the same size, go with the latest one.
+        * Copy that into the parent directory (ie PrEditor)
+        * Remove `preditor_pref.json`
+        * Rename the `preditor_pref<timestamp>.json` file you copied, so it is `preditor_pref.json`
+        * Restart PrEditor. Check if it has all your workboxes.
+        * If it still isn't correct, do a little sleuthing or trial and error to find the correct backup to use.
+        </details>
