@@ -2,6 +2,7 @@ import os
 import re
 import string
 import subprocess
+import time
 import traceback
 from fractions import Fraction
 from typing import Optional
@@ -34,6 +35,9 @@ class ConsoleBase(QTextEdit):
         super().__init__(parent)
         self.controller = controller
         self._first_show = True
+        # The last time a repaint call was made when writing. Used to limit the
+        # number of refreshes to once per X.X seconds.
+        self._last_repaint_time = 0
 
         # Create the highlighter
         highlight = CodeHighlighter(self, 'Python')
@@ -103,6 +107,13 @@ class ConsoleBase(QTextEdit):
         self.startPrompt("")
         # Add a horizontal rule
         self.insertHtml("<hr><br>")
+
+    def clear(self):
+        """clears the text in the editor"""
+        super().clear()
+        # Ensure the console is refreshed in case the user is clearing the console
+        # as part of a blocking call.
+        self.maybeRepaint(force=True)
 
     def contextMenuEvent(self, event):
         """Builds a custom right click menu to show."""
@@ -309,6 +320,31 @@ class ConsoleBase(QTextEdit):
         else:
             if self.write_error in PreditorExceptHook.callbacks:
                 PreditorExceptHook.callbacks.remove(self.write_error)
+
+    def maybeRepaint(self, force=False):
+        """Forces the console to repaint if enough time has elapsed from the
+        last repaint.
+        """
+        if not self.controller:
+            return
+        if not self.controller.uiRepaintConsolesOnWriteCHK.isChecked():
+            return
+
+        if force:
+            self.repaint()
+            self._last_repaint_time = time.time_ns()
+            return
+
+        # NOTE: All numbers here should remain int values. This method is can be
+        # called multiple times per write/print call so it should be optimized
+        # as much as possible
+        if (
+            time.time_ns() - self._last_repaint_time
+            > self.controller.repaintConsolesDelay
+        ):
+            # Enough time has elapsed, repaint the widget and reset the delay
+            self.repaint()
+            self._last_repaint_time = time.time_ns()
 
     def mouseMoveEvent(self, event):
         """Overload of mousePressEvent to change mouse pointer to indicate it is
@@ -703,6 +739,9 @@ class ConsoleBase(QTextEdit):
         else:
             # Non-hyperlink output
             self.insertPlainText(msg)
+
+        # Update the display of the console if enough time has passed and enabled
+        self.maybeRepaint()
 
     # These Qt Properties can be customized using style sheets.
     commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))

@@ -136,8 +136,11 @@ class ConsolePrEdit(ConsoleBase):
 
     def clear(self):
         """clears the text in the editor"""
-        super().clear()
+        super(ConsoleBase, self).clear()
         self.startInputLine()
+        # Note: Don't use the regular `super()` call here as it would result
+        # in multiple calls to repaint, just call the base Qt class's clear.
+        self.maybeRepaint(force=True)
 
     def clearToLastPrompt(self):
         # store the current cursor position so we can restore when we are done
