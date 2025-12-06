@@ -68,8 +68,8 @@
              <rect>
               <x>0</x>
               <y>0</y>
-              <width>938</width>
-              <height>447</height>
+              <width>156</width>
+              <height>29</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -619,20 +619,6 @@
                          <property name="spacing">
                           <number>3</number>
                          </property>
-                         <item row="0" column="0">
-                          <widget class="QLabel" name="label_3">
-                           <property name="toolTip">
-                            <string>Set the maximun number of backup files on disk per workbox.
-Must be at least 1</string>
-                           </property>
-                           <property name="text">
-                            <string>Max recently closed workboxes</string>
-                           </property>
-                           <property name="alignment">
-                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-                           </property>
-                          </widget>
-                         </item>
                          <item row="0" column="1">
                           <widget class="QSpinBox" name="uiMaxNumRecentWorkboxesSPIN">
                            <property name="sizePolicy">
@@ -653,6 +639,44 @@ Must be at least 1</string>
                            </property>
                            <property name="value">
                             <number>25</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="0">
+                          <widget class="QLabel" name="label">
+                           <property name="toolTip">
+                            <string>'If running code in the logger takes X seconds or longer,
+ the window will flash if it is not in focus.
+ Setting the value to zero will disable flashing.'</string>
+                           </property>
+                           <property name="text">
+                            <string>Flash Interval</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="1">
+                          <widget class="QDoubleSpinBox" name="uiFlashTimeSPIN">
+                           <property name="toolTip">
+                            <string>'If running code in the logger takes X seconds or longer,
+ the window will flash if it is not in focus.
+ Setting the value to zero will disable flashing.'</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="0">
+                          <widget class="QLabel" name="label_3">
+                           <property name="toolTip">
+                            <string>Set the maximun number of backup files on disk per workbox.
+Must be at least 1</string>
+                           </property>
+                           <property name="text">
+                            <string>Max recently closed workboxes</string>
+                           </property>
+                           <property name="alignment">
+                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                            </property>
                           </widget>
                          </item>
@@ -684,27 +708,69 @@ Must be at least 1</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="2" column="0">
-                          <widget class="QLabel" name="label">
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QGroupBox" name="uiCodeExecutionGRP">
+                        <property name="title">
+                         <string>Code Execution</string>
+                        </property>
+                        <layout class="QGridLayout" name="gridLayout_4">
+                         <property name="leftMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="topMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="rightMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="bottomMargin">
+                          <number>3</number>
+                         </property>
+                         <property name="spacing">
+                          <number>3</number>
+                         </property>
+                         <item row="0" column="0">
+                          <widget class="QCheckBox" name="uiRepaintConsolesOnWriteCHK">
                            <property name="toolTip">
-                            <string>'If running code in the logger takes X seconds or longer,
- the window will flash if it is not in focus.
- Setting the value to zero will disable flashing.'</string>
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enables refreshing of consoles when prints are written. Enabling seeing output when running blocking code would normally prevent Qt from displaying that output until the blocking code finishes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                            </property>
                            <property name="text">
-                            <string>Flash Interval</string>
+                            <string>Repaint on writes per sec.</string>
                            </property>
-                           <property name="alignment">
-                            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                           <property name="checked">
+                            <bool>true</bool>
                            </property>
                           </widget>
                          </item>
-                         <item row="2" column="1">
-                          <widget class="QDoubleSpinBox" name="uiFlashTimeSPIN">
+                         <item row="0" column="1">
+                          <widget class="QDoubleSpinBox" name="uiRepaintConsolesPerSecondSPIN">
                            <property name="toolTip">
-                            <string>'If running code in the logger takes X seconds or longer,
- the window will flash if it is not in focus.
- Setting the value to zero will disable flashing.'</string>
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Only refresh consoles if more than X seconds has elapsed from the previous refresh. Useful for seeing the output from blocking code while its running, but could potentially slow down code execution time if set to short.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           </property>
+                           <property name="maximum">
+                            <double>600.000000000000000</double>
+                           </property>
+                           <property name="singleStep">
+                            <double>0.100000000000000</double>
+                           </property>
+                           <property name="value">
+                            <double>0.200000000000000</double>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="0" colspan="2">
+                          <widget class="QCheckBox" name="uiRepaintProcessEventsOccasionallyCHK">
+                           <property name="toolTip">
+                            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When &amp;quot;Repaint on writes per sec.&amp;quot; is enabled it calls `repaint` instead of `QApplication.processEvents()`. This only updates the consoles and not all of Qt when running blocking code. However if the Qt app looses focus this will stop updating after a few seconds. Enabling this will enable calling `QApplication.processEvents()` every few seconds.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                           </property>
+                           <property name="text">
+                            <string>Process Events occasionally</string>
+                           </property>
+                           <property name="checked">
+                            <bool>true</bool>
                            </property>
                           </widget>
                          </item>
@@ -1728,15 +1794,15 @@ This button removes those (very old) workboxes.</string>
  </widget>
  <customwidgets>
   <customwidget>
+   <class>ConsolePrEdit</class>
+   <extends>QTextEdit</extends>
+   <header>preditor.gui.console</header>
+  </customwidget>
+  <customwidget>
    <class>GroupTabWidget</class>
    <extends>QTabWidget</extends>
    <header>preditor.gui.group_tab_widget.group_tab_widget.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>ConsolePrEdit</class>
-   <extends>QTextEdit</extends>
-   <header>preditor.gui.console.h</header>
   </customwidget>
   <customwidget>
    <class>EditorChooser</class>
@@ -1759,8 +1825,8 @@ This button removes those (very old) workboxes.</string>
    <slot>apply_options()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>558</x>
-     <y>367</y>
+     <x>165</x>
+     <y>363</y>
     </hint>
     <hint type="destinationlabel">
      <x>586</x>
@@ -1807,8 +1873,8 @@ This button removes those (very old) workboxes.</string>
    <slot>update_workbox_stack()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>763</x>
-     <y>371</y>
+     <x>165</x>
+     <y>363</y>
     </hint>
     <hint type="destinationlabel">
      <x>747</x>

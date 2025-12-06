@@ -2,6 +2,7 @@ import os
 import re
 import string
 import subprocess
+import time
 import traceback
 from fractions import Fraction
 from typing import Optional
@@ -34,6 +35,13 @@ class ConsoleBase(QTextEdit):
         super().__init__(parent)
         self.controller = controller
         self._first_show = True
+        # The last time a repaint call was made when writing. Used to limit the
+        # number of refreshes to once per X.X seconds.
+        self._last_repaint_time = 0
+        # The last time `QApplication.processEvents()` was called while writing.
+        # Optionally used to prevent the app from being marked as not responding
+        # while processing blocking code and ensure _last_repaint_time processes.
+        self._last_process_events_time = 0
 
         # Create the highlighter
         highlight = CodeHighlighter(self, 'Python')
@@ -103,6 +111,13 @@ class ConsoleBase(QTextEdit):
         self.startPrompt("")
         # Add a horizontal rule
         self.insertHtml("<hr><br>")
+
+    def clear(self):
+        """clears the text in the editor"""
+        super().clear()
+        # Ensure the console is refreshed in case the user is clearing the console
+        # as part of a blocking call.
+        self.maybeRepaint(force=True)
 
     def contextMenuEvent(self, event):
         """Builds a custom right click menu to show."""
@@ -309,6 +324,65 @@ class ConsoleBase(QTextEdit):
         else:
             if self.write_error in PreditorExceptHook.callbacks:
                 PreditorExceptHook.callbacks.remove(self.write_error)
+
+    def maybeRepaint(self, force=False):
+        """Forces the console to repaint if enough time has elapsed from the
+        last repaint.
+
+        This method is called every time a print is written to the console. So if
+        more than `self.controller.repaintConsolesDelay` seconds has elapsed after
+        the last time maybeRepaint updated the display it will update the display
+        again, showing all new output.
+
+        This prefers calling `self.repaint()` so it doesn't add extra processing
+        of the Qt event loop. However if enabled it will call
+        `QApplication.processEvents` periodically. This ensures the repaint is
+        shown for writes if the Qt app looses focus. On windows this appears to
+        happen after ~5 seconds.
+
+        `self.controller.uiRepaintConsolesOnWriteCHK` can be used to disable
+        the entire `maybeRepaint` method. To disable only the processEvents calls
+        `self.controller.uiRepaintProcessEventsOccasionallyCHK` can be disabled.
+        The repaint delay is controlled by `self.controller.repaintConsolesDelay`.
+        """
+        if not self.controller:
+            return
+        if not self.controller.uiRepaintConsolesOnWriteCHK.isChecked():
+            return
+
+        if force:
+            if self.controller.uiRepaintProcessEventsOccasionallyCHK.isChecked():
+                QApplication.processEvents()
+                self._last_process_events_time = time.time_ns()
+                self._last_repaint_time = self._last_process_events_time
+            else:
+                self.repaint()
+                self._last_repaint_time = time.time_ns()
+            return
+
+        # NOTE: All numbers here should remain int values. This method is can be
+        # called multiple times per write/print call so it should be optimized
+        # as much as possible
+        current_time = time.time_ns()
+        if (
+            self.controller.uiRepaintProcessEventsOccasionallyCHK.isChecked()
+            and current_time - self._last_process_events_time > 5 * 1e9  # seconds
+        ):
+            # NOTE: On windows 10 this seems to only need called once after the
+            # app looses focus for the repaint to work on each call. However if
+            # the app regains focus while processEvents is called it will require
+            # another processEvents call. Calling this every X seconds also
+            # ensures the app doesn't stay (Not Responding for long).
+            QApplication.processEvents()
+            self._last_process_events_time = time.time_ns()
+            self._last_repaint_time = self._last_process_events_time
+        elif (
+            current_time - self._last_repaint_time
+            > self.controller.repaintConsolesDelay
+        ):
+            # Enough time has elapsed, repaint the widget and reset the delay
+            self.repaint()
+            self._last_repaint_time = time.time_ns()
 
     def mouseMoveEvent(self, event):
         """Overload of mousePressEvent to change mouse pointer to indicate it is
@@ -703,6 +777,9 @@ class ConsoleBase(QTextEdit):
         else:
             # Non-hyperlink output
             self.insertPlainText(msg)
+
+        # Update the display of the console if enough time has passed and enabled
+        self.maybeRepaint()
 
     # These Qt Properties can be customized using style sheets.
     commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))

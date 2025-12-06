@@ -345,6 +345,14 @@ class LoggerWindow(Window):
             self.setConsoleHighlightEnabled
         )
 
+        # Pre-cache the refresh on Write value for speed when writing
+        self.uiRepaintConsolesPerSecondSPIN.valueChanged.connect(
+            self.updateRepaintDelay
+        )
+        self.uiRepaintConsolesOnWriteCHK.toggled.connect(
+            self.uiRepaintProcessEventsOccasionallyCHK.setEnabled
+        )
+
     def setIcons(self):
         """Set various icons"""
         self.uiClearLogACT.setIcon(QIcon(resourcePath('img/close-thick.png')))
@@ -1420,6 +1428,11 @@ class LoggerWindow(Window):
                 'consoleHighlightEnabled': (
                     self.uiConsoleHighlightEnabledCHK.isChecked()
                 ),
+                'repaintConsolesOnWrite': self.uiRepaintConsolesOnWriteCHK.isChecked(),
+                'repaintProcessEventsOccasionally': (
+                    self.uiRepaintProcessEventsOccasionallyCHK.isChecked()
+                ),
+                'repaintConsolesperSecond': self.uiRepaintConsolesPerSecondSPIN.value(),
             }
         )
 
@@ -1736,6 +1749,21 @@ class LoggerWindow(Window):
 
         confirmBeforeClose = pref.get('confirmBeforeClose', True)
         self.uiConfirmBeforeCloseCHK.setChecked(confirmBeforeClose)
+
+        # Repaint on write configuration
+        self.uiRepaintConsolesOnWriteCHK.setChecked(
+            pref.get('repaintConsolesOnWrite', True)
+        )
+        self.uiRepaintConsolesPerSecondSPIN.setValue(
+            pref.get('repaintConsolesperSecond', 0.2)
+        )
+        self.uiRepaintProcessEventsOccasionallyCHK.setChecked(
+            pref.get('repaintProcessEventsOccasionally', True)
+        )
+        self.uiRepaintProcessEventsOccasionallyCHK.setEnabled(
+            self.uiRepaintConsolesOnWriteCHK.isChecked()
+        )
+        self.updateRepaintDelay()
 
         # Ensure the correct workbox stack page is shown
         self.update_workbox_stack()
@@ -2198,6 +2226,18 @@ class LoggerWindow(Window):
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsCHK.isChecked()
             )
+
+    @Slot()
+    def updateRepaintDelay(self):
+        """Update write repaint delay for change to uiRepaintConsolesPerSecondSPIN.
+
+        `repaintConsolesDelay` is stored as an int nanosecond value so we can use
+        `time.time_ns()` without converting to floats which adds a small but
+        cumulative time to each write call. Pre-converting this helps limit the
+        total delay time.
+        """
+        secs = self.uiRepaintConsolesPerSecondSPIN.value()
+        self.repaintConsolesDelay = round(round(secs * 1e9))
 
     @Slot()
     def update_workbox_stack(self):
