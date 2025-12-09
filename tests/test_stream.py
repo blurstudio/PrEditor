@@ -3,9 +3,11 @@ from __future__ import absolute_import
 import io
 import logging
 import sys
+import traceback
 
 import pytest
 
+from preditor import utils
 from preditor.constants import StreamType
 from preditor.stream import Director, Manager, install_to_std
 
@@ -275,3 +277,93 @@ def test_handler_info(input, check):
         # Treat None as the default formatter
         check[3] = HandlerInfo._default_format
     assert hi.formatter._fmt == check[3]
+
+
+class TestShellPrint:
+    def patch(self, monkeypatch, pyw):
+        # Replace all 4 streams with tracking streams
+        new_out = io.StringIO()
+        new_err = io.StringIO()
+        if pyw:
+            # or None if simulating pythonw
+            new_out_ = None
+            new_err_ = None
+        else:
+            # If the console exists a stream is actually used
+            new_out_ = io.StringIO()
+            new_err_ = io.StringIO()
+
+        monkeypatch.setattr(sys, "stdout", new_out)
+        monkeypatch.setattr(sys, "stderr", new_err)
+        monkeypatch.setattr(sys, "__stdout__", new_out_)
+        monkeypatch.setattr(sys, "__stderr__", new_err_)
+
+        return new_out, new_err, new_out_, new_err_
+
+    def test_print_none(self, monkeypatch, capsys):
+        """Verify that the print command works as expected. If `sys.__std*__`
+        is None (pythonw.exe on windows) it will write to `sys.stdout`.
+        """
+        # Simulate pythonw.exe on windows, which uses None for sys.__std*__
+        monkeypatch.setattr(sys, "__stdout__", None)
+        monkeypatch.setattr(sys, "__stderr__", None)
+
+        # Print to the various streams
+        print("stdout")
+        print("stdout: None", file=sys.__stdout__)
+        print("stderr", file=sys.stderr)
+        print("stderr: None", file=sys.__stderr__)
+
+        # Verify the prints were written to the expected stream
+        captured = capsys.readouterr()
+        # sys.stdout and None are sent to sys.stdout
+        assert captured.out == "stdout\nstdout: None\nstderr: None\n"
+        # Only sys.stderr gets written to sys.stderr
+        assert captured.err == "stderr\n"
+
+    @pytest.mark.parametrize("pyw", (True, False))
+    def test_print(self, monkeypatch, pyw):
+        # Replace all 4 streams with tracking streams
+        new_out, new_err, new_out_, new_err_ = self.patch(monkeypatch, pyw)
+
+        # Regular write/print calls go to stdout/stderr
+        print("stdout")
+        print("stderr", file=sys.stderr)
+        # Use ShellPrint to write to `__std*__` and make sure it only returns
+        # True if it should be writting to that stream.
+        assert utils.ShellPrint().print("__stdout__") is not pyw
+        assert utils.ShellPrint(error=True).print("__stderr__") is not pyw
+
+        # Verify the prints were written to the expected stream or discarded
+        assert new_out.getvalue() == "stdout\n"
+        assert new_err.getvalue() == "stderr\n"
+        if not pyw:
+            assert new_out_.getvalue() == "__stdout__\n"
+            assert new_err_.getvalue() == "__stderr__\n"
+
+    @pytest.mark.parametrize("pyw", (True, False))
+    def test_print_exc(self, monkeypatch, pyw):
+        # Replace all 4 streams with tracking streams
+        new_out, new_err, new_out_, new_err_ = self.patch(monkeypatch, pyw)
+
+        # Capture an exception and print it using ShellPrint
+        try:
+            raise RuntimeError("Test exception")
+        except RuntimeError:
+            check = traceback.format_exc()
+            assert utils.ShellPrint(error=True).print_exc("A Test") is not pyw
+
+        # Verify that the text was only written to `sys.__stderr__` unless
+        # that is None
+        assert new_out.getvalue() == ""
+        assert new_err.getvalue() == ""
+        if not pyw:
+            assert new_out_.getvalue() == ""
+            assert new_err_.getvalue() == "\n".join(
+                [
+                    " A Test ".center(79, "-"),
+                    check.rstrip(),
+                    " A Test ".center(79, "-"),
+                    "",
+                ]
+            )

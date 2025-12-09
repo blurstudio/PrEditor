@@ -2,6 +2,7 @@ import errno
 import json
 import os
 import sys
+import traceback
 from pathlib import Path
 
 
@@ -97,6 +98,63 @@ class Json:
             ValueError: The error raised due to invalid json.
         """
         return cls._load_json(source, json.loads, json_str)
+
+
+class ShellPrint:
+    """Utilities to print to sys.__stdout__/__stderr__ bypassing the PrEditor streams.
+
+    This allows you to write to the host console instead of PrEditor's interface.
+    This helps when developing for the stream or console classes if you cause an
+    exception you might get no traceback printed to debug otherwise.
+
+    On windows if using gui mode app(pythonw.exe) that doesn't have a console
+    the methods will not print anything and just return False. If possible switch
+    to using python.exe or install another file stream like `preditor.debug.FileLogger`,
+    but they will need to be installed on `sys.__stdout__/__stderr__`.
+    """
+
+    def __init__(self, error=False):
+        self.error = error
+
+    def print(self, *args, **kwargs):
+        """Prints to the shell."""
+        if "file" in kwargs:
+            raise KeyError(
+                "file can not be passed to `ShellPrint.print`. Instead use error."
+            )
+        # Check for pythonw.exe's lack of streams and exit
+        kwargs["file"] = self.stream
+        if kwargs["file"] is None:
+            """Note: This protects against errors like this when using pythonw
+              File "preditor/stream/director.py", line 124, in write
+                super().write(msg)
+            RuntimeError: reentrant call inside <_io.BufferedWriter name='nul'>
+            """
+            return False
+
+        # Print to the host stream
+        print(*args, **kwargs)
+        return True
+
+    def print_exc(self, msg, limit=None, chain=True, width=79):
+        """Prints a header line, the current exception and a footer line to shell.
+
+        This must be called from inside of a try/except statement.
+        """
+        stream = self.stream
+        if stream is None:
+            return False
+
+        print(f" {msg} ".center(width, "-"), file=sys.__stderr__)
+        traceback.print_exc(limit=limit, file=stream, chain=chain)
+        print(f" {msg} ".center(width, "-"), file=sys.__stderr__)
+        return True
+
+    @property
+    def stream(self):
+        if self.error:
+            return sys.__stderr__
+        return sys.__stdout__
 
 
 class Truncate:

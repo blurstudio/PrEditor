@@ -1,9 +1,8 @@
 from __future__ import absolute_import, print_function
 
 import collections
-import sys
-import traceback
 
+from .. import utils
 from ..weakref import WeakList
 
 
@@ -95,6 +94,4 @@ class Manager(collections.deque):
             try:
                 callback(msg, state)
             except Exception:
-                print(" PrEditor Console failed ".center(79, "-"), file=sys.__stderr__)
-                traceback.print_exc(file=sys.__stderr__)
-                print(" PrEditor Console failed ".center(79, "-"), file=sys.__stderr__)
+                utils.ShellPrint(True).print_exc("PrEditor Console failed")

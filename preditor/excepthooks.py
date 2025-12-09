@@ -5,7 +5,7 @@ import traceback
 
 from Qt import QtCompat
 
-from . import config, plugins
+from . import config, plugins, utils
 from .contexts import ErrorReport
 from .weakref import WeakList
 
@@ -49,9 +49,7 @@ class PreditorExceptHook(object):
             # prevent showing the traceback normally. This last ditch method prints
             # the traceback to the original stderr stream so it can be debugged.
             # Without this you might get little to no output to work with.
-            print(" PrEditor excepthooks failed ".center(79, "-"), file=sys.__stderr__)
-            traceback.print_exc(file=sys.__stderr__)
-            print(" PrEditor excepthooks failed ".center(79, "-"), file=sys.__stderr__)
+            utils.ShellPrint(True).print_exc("PrEditor excepthooks failed")
 
     def default_excepthooks(self):
         """Returns default excepthooks handlers.
@@ -90,15 +88,7 @@ class PreditorExceptHook(object):
             try:
                 callback(*exc_info)
             except Exception:
-                print(
-                    " PrEditor excepthook callback failed ".center(79, "-"),
-                    file=sys.__stderr__,
-                )
-                traceback.print_exc(file=sys.__stderr__)
-                print(
-                    " PrEditor excepthook callback failed ".center(79, "-"),
-                    file=sys.__stderr__,
-                )
+                utils.ShellPrint(True).print_exc("PrEditor excepthook callback failed")
 
     def ask_to_show_logger(self, *exc_info):
         """Show a dialog asking the user how to handle the error."""
