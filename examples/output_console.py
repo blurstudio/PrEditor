@@ -12,11 +12,17 @@ from Qt.QtCore import QDateTime
 from Qt.QtWidgets import QApplication, QMainWindow
 
 import preditor
+from preditor.contexts import OverrideConsoleStreams
 
 logger_a = logging.getLogger("logger_a")
 logger_a_child = logging.getLogger("logger_a.child")
 logger_b = logging.getLogger("logger_b")
 logger_c = logging.getLogger("logger_c")
+
+# Define a custom logging level name. This should be discouraged but logging
+# supports it so PrEditor should as well.
+SUPER_INFO_LEVEL = logging.INFO - 5
+logging.addLevelName(SUPER_INFO_LEVEL, "SUPER_INFO")
 
 
 class ExampleApp(QMainWindow):
@@ -29,6 +35,11 @@ class ExampleApp(QMainWindow):
         self.uiClearBTN.released.connect(self.clear_all)
         self.uiAllLoggingDebugBTN.released.connect(self.all_logging_level_debug)
         self.uiAllLoggingWarningBTN.released.connect(self.all_logging_level_warning)
+        self.uiAllLoggingPrintBTN.released.connect(self.all_logging_print)
+        self.uiAllLoggingRaiseBTN.released.connect(self.all_logging_raise)
+        self.uiAllLoggingChangeHandlersBTN.released.connect(
+            self.all_logging_change_handlers
+        )
         self.uiLoggingCriticalBTN.released.connect(self.level_critical)
         self.uiLoggingErrorBTN.released.connect(self.level_error)
         self.uiLoggingWarningBTN.released.connect(self.level_warning)
@@ -76,6 +87,24 @@ class ExampleApp(QMainWindow):
         # Configure uiStderr to only show stderr text
         self.uiStderr.stream_echo_stderr = True
 
+    def all_logging_change_handlers(self):
+        """Demonstrate temporarily changing logging_handlers for uiAllLog.
+
+        This changes uiAllLog to only show a subset of loggers not all of them.
+        It sends the same logging messages as the "Send Logging Message" Button,
+        but due to the updated filtering it shows very different results.
+        """
+        handlers = [
+            # Only show logger_a warnings
+            "logger_a_child,level=WARNING",
+            # And enable showing a custom logging level message. This is normally
+            # hidden unless the logging level is set to debug or SUPER_INFO.
+            # Note that we can pass SUPER_INFO because of the `addLevelName` call.
+            "logger_c,level=SUPER_INFO",
+        ]
+        with OverrideConsoleStreams(self.uiAllLog, logging_handlers=handlers):
+            self.send_logging()
+
     def all_logging_level_debug(self):
         """Update this widget to show up to debug messages for all loggers.
         Hide the PyQt loggers as they just clutter the output for this demo.
@@ -100,6 +129,18 @@ class ExampleApp(QMainWindow):
             # Replace the default logging_formatter_str formatter only for logger_b
             "logger_b,fmt=[%(levelname)s:%(name)s] %(message)s",
         ]
+
+    def all_logging_print(self):
+        """Show temporarily enabling showing prints inside multiple consoles."""
+        with OverrideConsoleStreams([self.uiAllLog, self.uiSelectLog], stdout=True):
+            print("This print is also shown in All logging and Select Logging.")
+        print("This print is NOT shown in All logging and Select Logging.")
+
+    def all_logging_raise(self):
+        """Show temporarily enabling showing tracebacks in uiAllLog."""
+        with OverrideConsoleStreams(self.uiAllLog, tracebacks=True):
+            print("This print is NOT shown in All logging.")
+            raise RuntimeError("This Exception is also shown in All logging.")
 
     def clear_all(self):
         """Clear the text from all consoles"""
@@ -147,6 +188,11 @@ class ExampleApp(QMainWindow):
         logger_b.debug("A debug msg for logger_b")
         logger_c.warning("A warning msg for logger_c")
         logger_c.debug("A debug msg for logger_c")
+        logger_c.log(
+            SUPER_INFO_LEVEL,
+            "A custom logging level msg for logger_c that is normally hidden "
+            "unless using debug or the custom level.",
+        )
         logging.root.warning("A warning msg for logging.root")
         logging.root.debug("A debug msg for logging.root")
 

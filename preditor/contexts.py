@@ -1,6 +1,8 @@
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import
 
 import logging
+from contextlib import contextmanager
+from typing import List, Tuple
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +62,7 @@ class ErrorReport(object):
             memory if there isn't a excepthook calling clearReports.
     """
 
-    __reports__ = []
+    __reports__: List[Tuple[str, str]] = []
     enabled = False
 
     def __init__(self, callback, title=''):
@@ -117,3 +119,92 @@ class ErrorReport(object):
             result = callback()
             ret.append((title, fmt.format(result=result)))
         return ret
+
+
+@contextmanager
+def OverrideConsoleStreams(
+    consoles,
+    tracebacks=None,
+    stdout=None,
+    stderr=None,
+    result=None,
+    logging_handlers=None,
+):
+    """Override a Console's stream and logging_handlers settings.
+
+    This is useful if you don't want to show tracebacks or output for un-related code.
+
+    Example:
+
+        console = OutputConsole()
+        with OverrideConsoleStreams(console, tracebacks=True)
+            # A traceback raised here would show in console
+            do_work_you_only_want_to_show_tracebacks_in_console()
+        raise RuntimeError("This traceback will not be shown in console")
+    """
+    # If a single console was passed, convert it into a list
+    try:
+        iter(consoles)
+    except TypeError:
+        consoles = [consoles]
+
+    # Store the current state and apply changes to the consoles
+    current = []
+    for console in consoles:
+        current.append(
+            (
+                console,
+                None if tracebacks is None else console.stream_echo_tracebacks,
+                None if stdout is None else console.stream_echo_stdout,
+                None if stderr is None else console.stream_echo_stderr,
+                None if result is None else console.stream_echo_result,
+                None if logging_handlers is None else console.logging_handlers,
+            )
+        )
+
+        if tracebacks is not None:
+            # Enable/disable traceback display override
+            console.stream_echo_tracebacks = tracebacks
+            if tracebacks:
+                # traceback display is enabled, make it automatically remove
+                # itself if an exception is raised by the sys.excepthook handler.
+                console._write_error_self_destruct = True
+        if stdout is not None:
+            console.stream_echo_stdout = stdout
+        if stderr is not None:
+            console.stream_echo_stderr = stderr
+        if result is not None:
+            console.stream_echo_result = result
+        if logging_handlers is not None:
+            console.logging_handlers = logging_handlers
+
+    # NOTE: This code is a horrible abomination of necessity.
+    try:
+        yield
+    except Exception:
+        # This is syntactically needed, we don't need to capture the exception,
+        # but the else requires it. We need raise any un-handled exceptions
+        # encountered to allow sys.excepthook to process normally.
+        # This prevents the else code from removing the traceback print overriding
+        # because the else/finally are processed before sys.excepthook is.
+        raise
+    else:
+        # Only called when exception was not raised. Restore the original traceback
+        # and disable the self destructing flag its not needed anymore.
+        for item in current:
+            if tracebacks is not None:
+                item[0].stream_echo_tracebacks = item[1]
+                if tracebacks:
+                    item[0]._write_error_self_destruct = False
+    finally:
+        # Always remove non-traceback options. This is handled before excepthook
+        # so we can just use the simplicity of a normal try/finally statement.
+        for item in current:
+            if stdout is not None:
+                item[0].stream_echo_stdout = item[2]
+            if stderr is not None:
+                item[0].stream_echo_stderr = item[3]
+            if result is not None:
+                item[0].stream_echo_result = item[4]
+            if logging_handlers is not None:
+                item[0].logging_handlers = item[5]

@@ -123,13 +123,21 @@ class HandlerInfo:
         return attr_name, value
 
     def install(self, callback=None, replay=False, disable_writes=False, clear=False):
-        logger = logging.getLogger(self.name)
-        handler, _ = plugins.add_logging_handler(logger, self.plugin)
+        """Add the required logging handler if needed and connect callback to it."""
+        _logger = logging.getLogger(self.name)
+        handler, _ = plugins.add_logging_handler(_logger, self.plugin)
         if handler and callback:
             handler.manager.add_callback(
                 callback, replay=replay, disable_writes=disable_writes, clear=clear
             )
         return handler
+
+    def uninstall(self, callback):
+        """Remove the callback added via install, doesn't remove the logging handler."""
+        _logger = logging.getLogger(self.name)
+        handler, _ = plugins.add_logging_handler(_logger, self.plugin)
+        if handler:
+            handler.manager.remove_callback(callback)
 
 
 class ConsoleHandler(logging.Handler):
