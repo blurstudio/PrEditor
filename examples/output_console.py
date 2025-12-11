@@ -54,6 +54,10 @@ class ExampleApp(QMainWindow):
         # See this method for how to configure uiAllLog to show all logging
         # messages of all levels
         self.all_logging_level_warning()
+        # Configure the default logging formatter for this widget.
+        self.uiAllLog.logging_formatter_str = (
+            "<<%(levelname)s| %(name)s: Line: %(lineno)d>> %(message)s"
+        )
 
         # Configure uiSelectLog to show logging messages from specific handlers
         self.uiSelectLog.logging_handlers = [
@@ -80,6 +84,7 @@ class ExampleApp(QMainWindow):
             "root,level=DEBUG",
             "PyQt5,level=CRITICAL",
             "PyQt6,level=CRITICAL",
+            "logger_b,fmt=[%(levelname)s:%(name)s] %(message)s",
         ]
 
     def all_logging_level_warning(self):
@@ -92,6 +97,8 @@ class ExampleApp(QMainWindow):
             # logging messages created when first showing the PrEditor instance.
             "PyQt5,level=CRITICAL",
             "PyQt6,level=CRITICAL",
+            # Replace the default logging_formatter_str formatter only for logger_b
+            "logger_b,fmt=[%(levelname)s:%(name)s] %(message)s",
         ]
 
     def clear_all(self):

@@ -77,7 +77,11 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="OutputConsole" name="uiSelectLog"/>
+         <widget class="OutputConsole" name="uiSelectLog">
+          <property name="logging_formatter_str" stdset="0">
+           <string>&lt;&lt;%(levelname)s| %(name)s: Line: %(lineno)d&gt;&gt; %(message)s</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
