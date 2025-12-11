@@ -48,6 +48,10 @@ class ConsoleBase(QTextEdit):
         # Optionally used to prevent the app from being marked as not responding
         # while processing blocking code and ensure _last_repaint_time processes.
         self._last_process_events_time = 0
+        self._write_error_self_destruct = False
+        """If enabling tracebacks using `OverrideConsoleStreams`, this is set to True
+        so only if write_error is called by sys.excepthook it will remove itself.
+        """
 
         # Create the highlighter
         highlight = CodeHighlighter(self, 'Python')
@@ -56,6 +60,7 @@ class ConsoleBase(QTextEdit):
         self.addSepNewline = False
         self.consoleLine = None
         self.mousePressPos = None
+        self.logging_info = {}
 
         self.init_actions()
 
@@ -315,6 +320,13 @@ class ConsoleBase(QTextEdit):
         self.uiAddBreakACT.triggered.connect(self.add_separator)
 
     def init_logging_handlers(self, attrName=None, value=None):
+        # Ensure the old callbacks are removed so they don't keep writing.
+        # The stream Manager will deal with if this widget is closed, but not
+        # in the case of temporarily disabling a handler.
+        for hi in self.logging_info.values():
+            hi.uninstall(self.write_log)
+
+        # Reset and add new handlers to handle log statements
         self.logging_info = {}
         for h in self.logging_handlers:
             hi = HandlerInfo(h)
@@ -587,6 +599,15 @@ class ConsoleBase(QTextEdit):
         text = traceback.format_exception(*exc_info)
         for line in text:
             self.write(line, stream_type=StreamType.CONSOLE | StreamType.STDERR)
+
+        if self._write_error_self_destruct:
+            # This should only be enabled by `OverrideConsoleStreams`. This callback
+            # was installed temporarily and once its called by sys.excepthook it
+            # should be removed so it doesn't get called again.
+            from preditor.excepthooks import PreditorExceptHook
+
+            self._write_error_self_destruct = False
+            PreditorExceptHook.callbacks.remove(self.write_error)
 
     def write_log(self, log_data, stream_type=StreamType.CONSOLE):
         """Write a logging message to the console depending on filters."""

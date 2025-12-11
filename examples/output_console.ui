@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>667</width>
+    <width>861</width>
     <height>941</height>
    </rect>
   </property>
@@ -29,22 +29,39 @@
          <widget class="OutputConsole" name="uiAllLog"/>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout">
-          <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
            <widget class="QPushButton" name="uiAllLoggingWarningBTN">
             <property name="text">
              <string>Warning</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="0" column="1">
            <widget class="QPushButton" name="uiAllLoggingDebugBTN">
             <property name="text">
              <string>Debug</string>
             </property>
            </widget>
           </item>
-          <item>
+          <item row="2" column="0" colspan="2">
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0" colspan="2">
+           <widget class="QPushButton" name="uiAllLoggingRaiseBTN">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uses preditor.contexts.OverrideConsoleStreams to temporarily enable showing tracebacks in all logging and raises an exception. This enables showing errors in that console but errors raised elsewhere won't be shown in that console.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Raise and show Exception</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0" colspan="2">
            <widget class="QLabel" name="label_2">
             <property name="text">
              <string>Set the logging level filter for this widget. This is affected by the global logging levels set at the bottom of this UI, so to see debug output you must set both to debug.</string>
@@ -54,7 +71,27 @@
             </property>
            </widget>
           </item>
-          <item>
+          <item row="4" column="0">
+           <widget class="QPushButton" name="uiAllLoggingPrintBTN">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Uses preditor.contexts.OverrideConsoleStreams to temporarily enable showing stdout(prints). It also shows the print in Select Logging.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Show print</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QPushButton" name="uiAllLoggingChangeHandlersBTN">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Sends the same logging messages as the &amp;quot;Send Logging Messages&amp;quot; button.&lt;/p&gt;&lt;p&gt;However it uses preditor.contexts.OverrideConsoleStreams to temporarily replace logging handlers for uiAllLog. This results in very different output being shown.&lt;/p&gt;&lt;p&gt;If you use the bottom Debug button to set the global logging level to debug you will also see the SUPER_INFO log message.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Logging Handlers</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -62,7 +99,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>20</width>
-              <height>40</height>
+              <height>0</height>
              </size>
             </property>
            </spacer>
