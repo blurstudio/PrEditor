@@ -8,7 +8,7 @@ from fractions import Fraction
 from typing import Optional
 
 from Qt import QtCompat
-from Qt.QtCore import Qt
+from Qt.QtCore import Property, Qt
 from Qt.QtGui import (
     QColor,
     QFontMetrics,
@@ -21,7 +21,7 @@ from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
 
 from .. import instance, resourcePath, stream
 from ..constants import StreamType
-from ..stream.console_handler import HandlerInfo
+from ..stream.console_handler import FormatterDescriptor, HandlerInfo
 from ..utils.cute import QtPropertyInit
 from .codehighlighter import CodeHighlighter
 from .loggerwindow import LoggerWindow
@@ -30,6 +30,12 @@ from .suggest_path_quotes_dialog import SuggestPathQuotesDialog
 
 class ConsoleBase(QTextEdit):
     """Base class for a text widget used to show stdout/stderr writes."""
+
+    _default_format = (
+        '%(levelname)s %(module)s.%(funcName)s line:%(lineno)d - %(message)s'
+    )
+    logging_formatter = FormatterDescriptor(default=_default_format)
+    """Used to format logging messages if logging_handlers doesn't define it."""
 
     def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super().__init__(parent)
@@ -597,6 +603,8 @@ class ConsoleBase(QTextEdit):
         formatter = handler
         if logging_info.formatter:
             formatter = logging_info.formatter
+        elif self.logging_formatter:
+            formatter = self.logging_formatter
         msg = formatter.format(record)
         self.write(f'{msg}\n', stream_type=stream_type)
 
@@ -788,6 +796,18 @@ class ConsoleBase(QTextEdit):
     resultColor = QtPropertyInit('_resultColor', QColor(128, 128, 128))
     stdoutColor = QtPropertyInit('_stdoutColor', QColor(17, 154, 255))
     stringColor = QtPropertyInit('_stringColor', QColor(255, 128, 0))
+
+    @Property(str)
+    def logging_formatter_str(self):
+        """QtProperty exposing logging_formatter as a string for QtDesigner."""
+        try:
+            return self.logging_formatter._fmt
+        except AttributeError:
+            return ""
+
+    @logging_formatter_str.setter  # type: ignore[no-redef]
+    def logging_formatter_str(self, value):
+        self.logging_formatter = value
 
     logging_handlers = QtPropertyInit(
         '_logging_handlers', list, callback=init_logging_handlers, typ="QStringList"

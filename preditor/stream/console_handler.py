@@ -37,7 +37,9 @@ class LoggingLevelDescriptor(DefaultDescriptor):
     _level_conversion = logging.Handler()
 
     def __set__(self, obj, value):
-        if value is not None:
+        if value is None:
+            value = logging.NOTSET
+        else:
             try:
                 value = int(value)
             except ValueError:
@@ -57,6 +59,11 @@ class FormatterDescriptor(DefaultDescriptor):
     If a string is passed it will be cast into a Formatter instance.
     """
 
+    def __init__(self, *, ident=None, default=None):
+        if isinstance(default, str):
+            default = logging.Formatter(default)
+        super().__init__(ident=ident, default=default)
+
     def __set__(self, obj, value):
         if isinstance(value, str):
             value = logging.Formatter(value)
@@ -65,28 +72,23 @@ class FormatterDescriptor(DefaultDescriptor):
 
 @dataclass
 class HandlerInfo:
-    _default_format = (
-        '%(levelname)s %(module)s.%(funcName)s line:%(lineno)d - %(message)s'
-    )
     name: str
     level: LoggingLevelDescriptor = LoggingLevelDescriptor()
     plugin: Optional[str] = "Console"
-    formatter: FormatterDescriptor = FormatterDescriptor(default=_default_format)
+    formatter: FormatterDescriptor = FormatterDescriptor()
 
     _attr_names = {"plug": "plugin", "fmt": "formatter", "lvl": "level"}
 
     def __post_init__(self):
-        # Process self.name as a string if level is not defined
-        if self.level is None:
-            # Clear self.name so you can define omit name to define a root logger
-            # For example passing "level=INFO" would set the root logger to info.
-            name = self.name
-            self.name = ""
+        # Clear self.name so you can define omit name to define a root logger
+        # For example passing "level=INFO" would set the root logger to info.
+        name = self.name
+        self.name = ""
 
-            parts = self.__to_parts__(name)
-            for i, value in enumerate(parts):
-                key, _value = self.__parse_setting__(value, i)
-                setattr(self, key, _value)
+        parts = self.__to_parts__(name)
+        for i, value in enumerate(parts):
+            key, _value = self.__parse_setting__(value, i)
+            setattr(self, key, _value)
 
     @classmethod
     def __to_parts__(cls, value):

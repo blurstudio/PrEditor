@@ -4,6 +4,7 @@ import io
 import logging
 import sys
 import traceback
+from logging import NOTSET
 
 import pytest
 
@@ -236,19 +237,22 @@ def test_install_to_std():
 @pytest.mark.parametrize(
     "input,check",
     (
-        (["preditor.cli"], ["preditor.cli", None, "Console", None]),
+        (["preditor.cli"], ["preditor.cli", NOTSET, "Console", None]),
         (["preditor.cli,INFO"], ["preditor.cli", 20, "Console", None]),
         (["preditor.prefs,30"], ["preditor.prefs", 30, "Console", None]),
         (["preditor.cli,lvl=30"], ["preditor.cli", 30, "Console", None]),
         (["preditor.cli,level=WARNING"], ["preditor.cli", 30, "Console", None]),
         # Test escaping and complex formatter strings
-        (["preditor,formatter=%(msg)s"], ["preditor", None, "Console", "%(msg)s"]),
-        (["preditor,fmt=%(msg)s,POST"], ["preditor", None, "Console", "%(msg)s,POST"]),
-        ([r"preditor,fmt=M\=%(msg)s"], ["preditor", None, "Console", "M=%(msg)s"]),
-        ([r"preditor,fmt=M\\=%(msg)s"], ["preditor", None, "Console", r"M\=%(msg)s"]),
+        (["preditor,formatter=%(msg)s"], ["preditor", NOTSET, "Console", "%(msg)s"]),
+        (
+            ["preditor,fmt=%(msg)s,POST"],
+            ["preditor", NOTSET, "Console", "%(msg)s,POST"],
+        ),
+        ([r"preditor,fmt=M\=%(msg)s"], ["preditor", NOTSET, "Console", "M=%(msg)s"]),
+        ([r"preditor,fmt=M\\=%(msg)s"], ["preditor", NOTSET, "Console", r"M\=%(msg)s"]),
         (
             [r"preditor,fmt=M\=%(msg)s,POST"],
-            ["preditor", None, "Console", "M=%(msg)s,POST"],
+            ["preditor", NOTSET, "Console", "M=%(msg)s,POST"],
         ),
         (
             [r"plug=PrEditor,fmt=A\=%(msg)sG\=G,level=WARNING,name=six"],
@@ -272,11 +276,11 @@ def test_handler_info(input, check):
     assert hi.name == check[0]
     assert hi.level == check[1]
     assert hi.plugin == check[2]
-    assert isinstance(hi.formatter, logging.Formatter)
     if check[3] is None:
-        # Treat None as the default formatter
-        check[3] = HandlerInfo._default_format
-    assert hi.formatter._fmt == check[3]
+        assert hi.formatter is None
+    else:
+        assert isinstance(hi.formatter, logging.Formatter)
+        assert hi.formatter._fmt == check[3]
 
 
 class TestShellPrint:
