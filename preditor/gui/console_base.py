@@ -39,7 +39,10 @@ class ConsoleBase(QTextEdit):
 
     def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super().__init__(parent)
+        self._controller = None
+        self._stylesheet_changed_meta = None
         self.controller = controller
+
         self._first_show = True
         # The last time a repaint call was made when writing. Used to limit the
         # number of refreshes to once per X.X seconds.
@@ -156,7 +159,14 @@ class ConsoleBase(QTextEdit):
 
     @controller.setter
     def controller(self, value: LoggerWindow):
+        if self._stylesheet_changed_meta and self.controller:
+            # Remove the existing signals if connected
+            self.controller.styleSheetChanged.disconnect(self._stylesheet_changed_meta)
+            self._stylesheet_changed_meta = None
+
         self._controller = value
+        # Ensure the stylesheet is up to date and stays up to date.
+        self.init_stylesheet()
 
     def codeHighlighter(self):
         """Get the code highlighter for the console
@@ -342,6 +352,22 @@ class ConsoleBase(QTextEdit):
         else:
             if self.write_error in PreditorExceptHook.callbacks:
                 PreditorExceptHook.callbacks.remove(self.write_error)
+
+    def init_stylesheet(self, attrName=None, value=None):
+        if not self.controller:
+            return
+
+        signal = self.controller.styleSheetChanged
+        if self.use_console_stylesheet:
+            # Apply the stylesheet and ensure that future updates are respected
+            self._stylesheet_changed_meta = signal.connect(self.update_stylesheet)
+            self.update_stylesheet()
+
+        elif self._stylesheet_changed_meta:
+            # if disabling use_console_stylesheet, then remove the existing
+            # connection if it was previously connected.
+            signal.disconnect(self._stylesheet_changed_meta)
+            self._stylesheet_changed_meta = None
 
     def maybeRepaint(self, force=False):
         """Forces the console to repaint if enough time has elapsed from the
@@ -578,6 +604,12 @@ class ConsoleBase(QTextEdit):
             )
         else:
             self.stream_manager.remove_callback(self.write)
+
+    def update_stylesheet(self):
+        sheet = None
+        if self.controller:
+            sheet = self.controller.styleSheet()
+        self.setStyleSheet(sheet)
 
     def get_logging_info(self, name):
         # Look for a specific rule to handle this logging message
@@ -862,6 +894,16 @@ class ConsoleBase(QTextEdit):
     )
     """Should this console print captured exceptions? Only use this if
     stream_echo_stderr is disabled or you likely will get duplicate output.
+    """
+
+    use_console_stylesheet = QtPropertyInit(
+        "_use_console_stylesheet", False, callback=init_stylesheet
+    )
+    """Set this widgets stylesheet to the PrEditor instance's style sheet.
+
+    This ensures that the style of random OutputConsoles match even when not
+    parented to PrEditor. Enabling this will update the widgets style sheet, but
+    disabling it will not update the style sheet.
     """
 
 

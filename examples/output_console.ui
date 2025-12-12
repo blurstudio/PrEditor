@@ -26,7 +26,11 @@
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
-         <widget class="OutputConsole" name="uiAllLog"/>
+         <widget class="OutputConsole" name="uiAllLog">
+          <property name="use_console_stylesheet" stdset="0">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QGridLayout" name="gridLayout">
@@ -126,9 +130,46 @@
        <property name="title">
         <string>Stdout</string>
        </property>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="OutputConsole" name="uiStdout"/>
+       <layout class="QGridLayout" name="gridLayout_2">
+        <item row="1" column="1">
+         <widget class="QPushButton" name="uiRemovePrEditorStyleBTN">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Reset stylesheet to empty and disable Use PrEditor Style Sheet.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Remove Style Sheet</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QCheckBox" name="uiUsePrEditorStyleCHK">
+          <property name="toolTip">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Enable using the stylesheet from the PrEditor instances Options -&amp;gt; Style menu. This OutputConsole doesn't have it enabled by default so it doesn't have the stylesheet applied. Checking this will load the style sheet. If you then uncheck it, the style sheet won't be cleared but it will no longer respect the PrEditor Options -&amp;gt; Style changes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="text">
+           <string>Use PrEditor Style Sheet</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item row="0" column="0" colspan="3">
+         <widget class="OutputConsole" name="uiStdout">
+          <property name="use_console_stylesheet" stdset="0">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>

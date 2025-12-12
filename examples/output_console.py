@@ -6,6 +6,7 @@
 
 import logging
 import sys
+from argparse import ArgumentParser
 
 import Qt
 from Qt.QtCore import QDateTime
@@ -26,7 +27,7 @@ logging.addLevelName(SUPER_INFO_LEVEL, "SUPER_INFO")
 
 
 class ExampleApp(QMainWindow):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, init_preditor=True):
         super().__init__(parent=parent)
         # Use a .ui file to simplify the example code setup.
         Qt.QtCompat.loadUi(__file__.replace(".py", ".ui"), self)
@@ -40,6 +41,8 @@ class ExampleApp(QMainWindow):
         self.uiAllLoggingChangeHandlersBTN.released.connect(
             self.all_logging_change_handlers
         )
+        self.uiUsePrEditorStyleCHK.toggled.connect(self.set_stdout_style)
+        self.uiRemovePrEditorStyleBTN.released.connect(self.clear_stdout_style)
         self.uiLoggingCriticalBTN.released.connect(self.level_critical)
         self.uiLoggingErrorBTN.released.connect(self.level_error)
         self.uiLoggingWarningBTN.released.connect(self.level_warning)
@@ -51,12 +54,15 @@ class ExampleApp(QMainWindow):
         self.uiSendLoggingBTN.released.connect(self.send_logging)
 
         # 1. Create the preditor instance and connect to the console's controllers
-        plog = preditor.instance(parent=self, create=True)
-        preditor.connect_preditor(self)
-        self.uiAllLog.controller = plog
-        self.uiSelectLog.controller = plog
-        self.uiStdout.controller = plog
-        self.uiStderr.controller = plog
+        if init_preditor:
+            plog = preditor.instance(parent=self, create=True)
+            preditor.connect_preditor(self)
+            self.uiAllLog.controller = plog
+            self.uiSelectLog.controller = plog
+            self.uiStdout.controller = plog
+            self.uiStderr.controller = plog
+        else:
+            self.setWindowTitle(f"{self.windowTitle()} - No PrEditor")
 
         # 2. Configure the various OutputConsole widgets.
         # Note: this can be done in the .ui file, but for this example we will
@@ -149,6 +155,11 @@ class ExampleApp(QMainWindow):
         self.uiStdout.clear()
         self.uiStderr.clear()
 
+    def clear_stdout_style(self):
+        """Reset uiStdout's style to not use PrEditor's style."""
+        self.uiUsePrEditorStyleCHK.setChecked(False)
+        self.uiStdout.setStyleSheet(None)
+
     def level_critical(self):
         logging.root.setLevel(logging.CRITICAL)
 
@@ -176,6 +187,14 @@ class ExampleApp(QMainWindow):
     def raise_exception(self):
         raise RuntimeError(self.message_time())
 
+    def set_stdout_style(self, state):
+        """Enable/disable uiStdout using PrEditor's style.
+
+        Note: Disabling it doesn't clear the style, just prevent it from being
+        automatically updated when changed in PrEditor.
+        """
+        self.uiStdout.use_console_stylesheet = state
+
     def send_logging(self):
         logger_a.critical("A critical msg for logger_a")
         logger_a.error("A error msg for logger_a")
@@ -198,18 +217,27 @@ class ExampleApp(QMainWindow):
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser("Example of using OutputConsole features.")
+    parser.add_argument(
+        "--no-preditor",
+        action="store_true",
+        help="Don't init and install the PrEditor console.",
+    )
+    args = parser.parse_args()
+
     # Configure PrEditor for this application, start capturing all text output
     # from stderr/stdout so once PrEditor is launched, it can show this text.
     # This does not initialize any QtGui/QtWidgets.
-    preditor.configure(
-        # This is the name used to store PrEditor preferences and workboxes
-        # specific to this application.
-        'output_console',
-    )
+    if not args.no_preditor:
+        preditor.configure(
+            # This is the name used to store PrEditor preferences and workboxes
+            # specific to this application.
+            'output_console',
+        )
 
     # Create a Gui Application allowing the user to show PrEditor
     app = QApplication(sys.argv)
-    main_gui = ExampleApp()
+    main_gui = ExampleApp(init_preditor=not args.no_preditor)
 
     main_gui.show()
     app.exec_()
