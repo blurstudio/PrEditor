@@ -117,12 +117,15 @@ class App(object):
             if root_window is None:
                 windows = []
                 dialogs = []
-                for w in inst.topLevelWidgets():
-                    if w.parent() is None:
-                        if isinstance(w, QMainWindow):
-                            windows.append(w)
-                        elif isinstance(w, QDialog):
-                            dialogs.append(w)
+
+                hasTopLevelWidgets = hasattr(QApplication.instance(), "topLevelWidgets")
+                if hasTopLevelWidgets:
+                    for w in inst.topLevelWidgets():
+                        if w.parent() is None:
+                            if isinstance(w, QMainWindow):
+                                windows.append(w)
+                            elif isinstance(w, QDialog):
+                                dialogs.append(w)
                 if windows:
                     root_window = windows[0]
                 elif dialogs:
