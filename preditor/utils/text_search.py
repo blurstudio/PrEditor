@@ -4,10 +4,8 @@ import abc
 import re
 from collections import deque
 
-from future.utils import with_metaclass
 
-
-class TextSearch(with_metaclass(abc.ABCMeta, object)):
+class TextSearch(object, metaclass=abc.ABCMeta):
     """Base class used to search and markup text for matches to a search term.
 
     Parameters:

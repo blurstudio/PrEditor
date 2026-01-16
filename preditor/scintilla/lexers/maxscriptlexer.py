@@ -3,8 +3,6 @@ from __future__ import absolute_import
 import re
 from builtins import str as text
 
-from future.utils import iteritems
-
 from .. import Qsci, QsciScintilla
 
 MS_KEYWORDS = """
@@ -35,7 +33,7 @@ class MaxscriptLexer(Qsci.QsciLexerCustom):
             7: 'SmartHighlight',
         }
 
-        for key, value in iteritems(self._styles):
+        for key, value in self._styles.items():
             setattr(self, value, key)
 
     def description(self, style):
