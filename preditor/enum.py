@@ -5,9 +5,6 @@ import re
 from builtins import str as text
 from numbers import Number
 
-from future.utils import iteritems, with_metaclass
-from past.builtins import long
-
 # =============================================================================
 # CLASSES
 # =============================================================================
@@ -79,7 +76,7 @@ class _MetaEnumGroup(type):
 # =============================================================================
 
 
-class Enum(with_metaclass(abc.ABCMeta, object)):
+class Enum(object, metaclass=abc.ABCMeta):
     """A basic enumerator class.
 
     Enumerators are named values that act as identifiers.  Typically, a
@@ -204,7 +201,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
             return False
         if isinstance(value, Enum):
             return self.number == value.number
-        if isinstance(value, (int, long)):
+        if isinstance(value, int):
             return self.number == value
         if isinstance(value, str) or isinstance(value, text):
             if self._compareStr(value):
@@ -296,7 +293,7 @@ class Enum(with_metaclass(abc.ABCMeta, object)):
 # =============================================================================
 
 
-class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
+class EnumGroup(object, metaclass=_MetaEnumGroup):
     """A container class for collecting, organizing, and accessing Enums.
 
     An EnumGroup class is a container for Enum objects.  It provides
@@ -428,7 +425,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
             raise ValueError('Enums given as ordered arguments must have a label.')
         for e in args:
             setattr(cls, cls._labelToVarName(e.label), e)
-        for n, e in iteritems(kwargs):
+        for n, e in kwargs.items():
             setattr(cls, n, e)
         # reset All and Nothing -- this is necessary so that All is regenerated
         # and so that Nothing is not included when finding the member Enums.
@@ -585,7 +582,7 @@ class EnumGroup(with_metaclass(_MetaEnumGroup, object)):
         orderedEnums = sorted(
             [
                 (k, v)
-                for k, v in iteritems(cls.__dict__)
+                for k, v in cls.__dict__.items()
                 if isinstance(v, Enum) and k not in ('All', 'Nothing')
             ],
             key=lambda i: i[1]._creationOrder,
