@@ -12,8 +12,6 @@ import shutil
 import sys
 from pathlib import Path
 
-import six
-
 from . import resourcePath, utils
 
 # cache of all the preferences
@@ -191,7 +189,7 @@ def create_stamped_path(core_name, filepath, sub_dir='workboxes', time_str=None)
 
     path.parent.mkdir(exist_ok=True)
 
-    path = six.text_type(path)
+    path = str(path)
     return path
 
 
@@ -284,7 +282,7 @@ def get_backup_version_info(core_name, workbox_id, versionType, backup_file=None
                 idx += 1
                 idx = min(idx, count - 1)
 
-    filepath = six.text_type(files[idx])
+    filepath = str(files[idx])
     display_idx = idx + 1
     return filepath, display_idx, count
 
@@ -322,7 +320,7 @@ def update_pref_args(core_name, pref_dict, old_name, update_data):
         orig_pref = pref_dict.pop(old_name)
     pref = orig_pref[:] if isinstance(orig_pref, list) else orig_pref
 
-    if isinstance(pref, six.text_type):
+    if isinstance(pref, str):
         replacements = update_data.get("replace", [])
         for replacement in replacements:
             pref = pref.replace(*replacement)
@@ -332,11 +330,11 @@ def update_pref_args(core_name, pref_dict, old_name, update_data):
         newfilepath = create_stamped_path(core_name, pref)
         orig_filepath = workbox_dir / orig_pref
         if orig_filepath.is_file():
-            orig_filepath = six.text_type(orig_filepath)
+            orig_filepath = str(orig_filepath)
 
             if not Path(newfilepath).is_file():
                 shutil.copy(orig_filepath, newfilepath)
-            newfilepath = six.text_type(Path(newfilepath).relative_to(workbox_dir))
+            newfilepath = str(Path(newfilepath).relative_to(workbox_dir))
 
             pref_dict.update({"backup_file": newfilepath})
 
