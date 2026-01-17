@@ -1,5 +1,4 @@
 charset-normalizer
-configparser>=4.0.2
 importlib-metadata>=4.8.3
 Qt.py>=1.4.4
 signalslot>=0.1.2
