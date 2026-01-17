@@ -215,6 +215,8 @@ def subprocessEnvironment(env=None):
 
     removePaths = set([normalize(x) for x in preditor.core._removeFromPATHEnv])
 
+    # TODO: Replace blurpath code with a plugin for reverting process specific
+    # env var changes when launching a subprocess.
     # blurpath records any paths it adds to the PATH variable and other env variable
     # modifications it makes, revert these changes.
     try:

@@ -35,6 +35,8 @@ jobs:
       - name: Format with black
         run: tox -e black
 
+      - name: Check imports with deptry
+        run: tox -e deptry
 
   test:
     # We want to run on external PRs, but not on our own internal PRs as they'll
