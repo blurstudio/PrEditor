@@ -1,7 +1,6 @@
 from __future__ import absolute_import
 
 import re
-from builtins import str as text
 
 from .. import Qsci, QsciScintilla
 
@@ -212,7 +211,7 @@ class MaxscriptLexer(Qsci.QsciLexerCustom):
 
         # cache objects used by processChunk that do not need updated every time it is
         # called
-        self.hlkwords = set(text(self.keywords(self.SmartHighlight)).lower().split())
+        self.hlkwords = set(str(self.keywords(self.SmartHighlight)).lower().split())
         self.chunkRegex = re.compile('([^A-Za-z0-9]*)([A-Za-z0-9]*)')
         kwrds = set(MS_KEYWORDS.split())
 
