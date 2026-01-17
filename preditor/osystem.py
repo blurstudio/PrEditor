@@ -38,10 +38,10 @@ def getPointerSize():
 def pythonPath(pyw=False, architecture=None):
     if settings.OS_TYPE != 'Windows':
         return 'python'
-    from distutils.sysconfig import get_python_inc
+    import sysconfig
 
     # Unable to pull the path from the registry just use the current python path
-    basepath = os.path.split(get_python_inc())[0]
+    basepath = os.path.split(sysconfig.get_path('include'))[0]
     # build the path to the python executable. If requested use pythonw instead of
     # python
     return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
