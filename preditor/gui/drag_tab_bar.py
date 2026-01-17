@@ -4,7 +4,6 @@ from enum import IntEnum
 from functools import partial
 from pathlib import Path
 
-import six
 from Qt.QtCore import QByteArray, QMimeData, QPoint, QRect, Qt
 from Qt.QtGui import QColor, QCursor, QDrag, QPixmap, QRegion
 from Qt.QtWidgets import (
@@ -513,7 +512,7 @@ class DragTabBar(QTabBar):
         filename = workbox.__filename__()
         if filename and Path(filename).is_file():
             workbox.__set_file_monitoring_enabled__(False)
-        directory = six.text_type(Path(filename).parent) if filename else ""
+        directory = str(Path(filename).parent) if filename else ""
         success = workbox.__save_as__(directory=directory)
         if not success:
             return

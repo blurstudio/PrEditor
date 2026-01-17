@@ -110,3 +110,36 @@ skip-string-normalization = true
 
 [tool.isort]
 profile = "black"
+
+[tool.deptry]
+# Don't analyze dev requirements used by tox
+pep621_dev_dependency_groups = ["dev"]
+
+[tool.deptry.package_module_name_map]
+PyQt6-QScintilla = "pyqt6_qscintilla"
+QScintilla = "qscintilla"
+
+[tool.deptry.per_rule_ignores]
+DEP001 = [
+    "aspell",
+    # Ignore the maya dcc example plugin import for this check
+    "maya",
+    # The user must choose from the various Qt bindings used by Qt.py
+    "PyQt4",
+    "PyQt5",
+    "PyQt6",
+    "PySide2",
+    "PySide6",
+    "QtSiteConfig",
+    # TODO: Replace blurpath code with a plugin for reverting process specific
+    # env var changes when launching a subprocess.
+    "blurpath",
+]
+DEP003 = [
+    "__main__",
+    "QtSiteConfig",
+]
+DEP002 = [
+    "PyQt6-QScintilla",
+    "QScintilla",
+]

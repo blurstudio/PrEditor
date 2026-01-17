@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 from __future__ import absolute_import, print_function
 
+import configparser
 import os
 import sys
-
-try:
-    import configparser
-except Exception:
-    import ConfigParser as configparser  # noqa: N813
 
 # define the default environment variables
 OS_TYPE = ''

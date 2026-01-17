@@ -5,12 +5,10 @@ import os
 import sys
 import textwrap
 
-from future.utils import with_metaclass
-
 import preditor
 
 
-class AboutModule(with_metaclass(abc.ABCMeta, object)):
+class AboutModule(object, metaclass=abc.ABCMeta):
     """Base class for the `preditor.plug.about_module` entry point. Create a
     subclass of this method and expose the class object to the entry point.
 

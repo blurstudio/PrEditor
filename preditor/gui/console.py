@@ -5,7 +5,6 @@ import string
 import sys
 import time
 import traceback
-from builtins import str as text
 from functools import partial
 from typing import Optional
 
@@ -344,7 +343,7 @@ class ConsolePrEdit(ConsoleBase):
                 r'\"\<\>\?\`\-\=\[\]\\\;\'\,\.\/ \t\n]'
             )
         )
-        newText = text(txt)
+        newText = str(txt)
         for each in exp.findall(newText):
             newText = newText.replace(each, '?')
 

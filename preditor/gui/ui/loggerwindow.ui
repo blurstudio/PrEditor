@@ -955,7 +955,6 @@ Must be at least 1</string>
      </property>
     </widget>
     <addaction name="uiPreferencesMENU"/>
-    <addaction name="uiEnvironmentVarsACT"/>
     <addaction name="separator"/>
     <addaction name="uiAboutPreditorACT"/>
    </widget>

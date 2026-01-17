@@ -11,7 +11,6 @@ from __future__ import absolute_import, print_function
 import os
 import subprocess
 import sys
-from builtins import str as text
 
 import preditor
 
@@ -39,10 +38,10 @@ def getPointerSize():
 def pythonPath(pyw=False, architecture=None):
     if settings.OS_TYPE != 'Windows':
         return 'python'
-    from distutils.sysconfig import get_python_inc
+    import sysconfig
 
     # Unable to pull the path from the registry just use the current python path
-    basepath = os.path.split(get_python_inc())[0]
+    basepath = os.path.split(sysconfig.get_path('include'))[0]
     # build the path to the python executable. If requested use pythonw instead of
     # python
     return os.path.join(basepath, 'python{w}.exe'.format(w=pyw and 'w' or ''))
@@ -215,6 +214,8 @@ def subprocessEnvironment(env=None):
 
     removePaths = set([normalize(x) for x in preditor.core._removeFromPATHEnv])
 
+    # TODO: Replace blurpath code with a plugin for reverting process specific
+    # env var changes when launching a subprocess.
     # blurpath records any paths it adds to the PATH variable and other env variable
     # modifications it makes, revert these changes.
     try:
@@ -239,7 +240,7 @@ def subprocessEnvironment(env=None):
         ]
         path = os.path.pathsep.join(paths)
         # subprocess does not accept unicode in python 2
-        if sys.version_info[0] == 2 and isinstance(path, text):
+        if sys.version_info[0] == 2 and isinstance(path, str):
             path = path.encode('utf8')
         env['PATH'] = path
 

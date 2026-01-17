@@ -9,7 +9,6 @@ import re
 import shutil
 import sys
 import warnings
-from builtins import bytes
 from datetime import datetime, timedelta
 from enum import IntEnum
 from functools import partial
@@ -25,11 +24,9 @@ from Qt.QtWidgets import (
     QInputDialog,
     QMenu,
     QMessageBox,
-    QTextBrowser,
     QTextEdit,
     QToolButton,
     QToolTip,
-    QVBoxLayout,
 )
 
 from .. import (
@@ -44,7 +41,7 @@ from .. import (
     resourcePath,
 )
 from ..delayable_engine import DelayableEngine
-from ..gui import Dialog, Window, handleMenuHovered, loadUi, tab_widget_for_tab
+from ..gui import Window, handleMenuHovered, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
@@ -302,7 +299,6 @@ class LoggerWindow(Window):
         )
         self.uiClearBeforeRunningCHK.toggled.connect(self.setClearBeforeRunning)
         self.uiEditorVerticalCHK.toggled.connect(self.adjustWorkboxOrientation)
-        self.uiEnvironmentVarsACT.triggered.connect(self.showEnvironmentVars)
         self.uiAboutPreditorACT.triggered.connect(self.show_about)
 
         # Prefs on disk
@@ -2164,17 +2160,6 @@ class LoggerWindow(Window):
         """Shows `preditor.about_preditor()`'s output in a message box."""
         msg = about_preditor(instance=self)
         QMessageBox.information(self, 'About PrEditor', '<pre>{}</pre>'.format(msg))
-
-    def showEnvironmentVars(self):
-        dlg = Dialog(self)
-        lyt = QVBoxLayout(dlg)
-        lbl = QTextBrowser(dlg)
-        lyt.addWidget(lbl)
-        dlg.setWindowTitle('Blurdev Environment Variable Help')
-        with open(resourcePath('environment_variables.html')) as f:
-            lbl.setText(f.read().replace('\n', ''))
-        dlg.setMinimumSize(600, 400)
-        dlg.show()
 
     def showEvent(self, event):
         super(LoggerWindow, self).showEvent(event)

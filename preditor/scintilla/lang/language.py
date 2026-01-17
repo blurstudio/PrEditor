@@ -2,11 +2,7 @@ from __future__ import absolute_import, print_function
 
 import re
 import sys
-
-try:
-    from configparser import ConfigParser
-except ImportError:
-    from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 from .. import Qsci
 
