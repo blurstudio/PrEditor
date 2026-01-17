@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
 import logging
+import shutil
 import sys
-from distutils.spawn import find_executable
 
 import click
 from click.core import ParameterSource
@@ -129,7 +129,7 @@ def shortcut(path, public, name, target, args, description):
 
     # Resolve the full path to the preditor exe.
     if target in ("preditor", "preditorw"):
-        target = find_executable(target)
+        target = shutil.which(target)
 
     parameter_source = click.get_current_context().get_parameter_source('name')
     if parameter_source == ParameterSource.DEFAULT:
