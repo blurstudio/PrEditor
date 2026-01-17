@@ -2,7 +2,6 @@ from __future__ import absolute_import
 
 import abc
 import re
-from builtins import str as text
 from numbers import Number
 
 # =============================================================================
@@ -203,7 +202,7 @@ class Enum(object, metaclass=abc.ABCMeta):
             return self.number == value.number
         if isinstance(value, int):
             return self.number == value
-        if isinstance(value, str) or isinstance(value, text):
+        if isinstance(value, str):
             if self._compareStr(value):
                 return True
         return False

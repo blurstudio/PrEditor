@@ -9,7 +9,6 @@ import re
 import shutil
 import sys
 import warnings
-from builtins import bytes
 from datetime import datetime, timedelta
 from enum import IntEnum
 from functools import partial

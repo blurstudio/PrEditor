@@ -11,7 +11,6 @@ from __future__ import absolute_import, print_function
 import os
 import subprocess
 import sys
-from builtins import str as text
 
 import preditor
 
@@ -241,7 +240,7 @@ def subprocessEnvironment(env=None):
         ]
         path = os.path.pathsep.join(paths)
         # subprocess does not accept unicode in python 2
-        if sys.version_info[0] == 2 and isinstance(path, text):
+        if sys.version_info[0] == 2 and isinstance(path, str):
             path = path.encode('utf8')
         env['PATH'] = path
 
