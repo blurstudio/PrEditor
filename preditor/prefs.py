@@ -294,7 +294,7 @@ def get_prefs_updates():
         updates (dict): The dict of defined updates
     """
     updates = {}
-    path = resourcePath(r"pref_updates\pref_updates.json")
+    path = resourcePath("pref_updates/pref_updates.json")
     try:
         updates = utils.Json(path).load()
     except (FileNotFoundError, json.decoder.JSONDecodeError):
