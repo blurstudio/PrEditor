@@ -375,6 +375,9 @@ class GroupTabWidget(OneTabWidget):
                         missing_name = f"{group_name}/{name}"
                         workboxes_missing_id.append(missing_name)
                         continue
+                    else:
+                        # If only the tempfile is set, use it as the workbox_id
+                        workbox_id = Path(tempfile).stem
 
                 orphaned_by_instance = tab.get('orphaned_by_instance', False)
 
