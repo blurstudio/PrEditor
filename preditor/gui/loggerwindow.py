@@ -897,7 +897,13 @@ class LoggerWindow(Window):
 
         # Present a QFontDialog for user to choose a font
         title = "Pick a {} font. Current font is: {}".format(kind, curFontFamily)
-        newFont, okClicked = QFontDialog.getFont(origFont, self, title, options=options)
+        fontReturn = QFontDialog.getFont(origFont, self, title, options=options)
+
+        # QFontDialog.getFont returns a different order for Qt5 vs Qt6
+        if isinstance(fontReturn[0], bool):
+            okClicked, newFont = fontReturn
+        else:
+            newFont, okClicked = fontReturn
 
         if okClicked:
             if doGui:
