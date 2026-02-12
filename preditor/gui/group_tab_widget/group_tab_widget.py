@@ -392,7 +392,7 @@ class GroupTabWidget(OneTabWidget):
 
                 # There is a file on disk, add the tab, creating the group
                 # tab if it hasn't already been created.
-                prefs = dict(
+                localprefs = dict(
                     workbox_id=workbox_id,
                     filename=filename,
                     backup_file=backup_file,
@@ -401,7 +401,7 @@ class GroupTabWidget(OneTabWidget):
                     tempfile=tempfile,
                 )
                 tab_widget, editor = self.add_new_tab(
-                    group_name, title=name, prefs=prefs
+                    group_name, title=name, prefs=localprefs
                 )
 
                 editor.__set_last_workbox_name__(editor.__workbox_name__())
