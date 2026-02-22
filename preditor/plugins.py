@@ -70,7 +70,10 @@ class Plugins(object):
 
     def editor(self, name):
         for plug_name, ep in self.editors(name):
-            return plug_name, ep.load()
+            try:
+                return plug_name, ep.load()
+            except Exception:
+                _logger.warning('Unable to load editor {}'.format(ep.name))
         return None, None
 
     def editors(self, name=None):
@@ -81,7 +84,10 @@ class Plugins(object):
 
     def initialize(self, name=None):
         for ep in self.iterator(group="preditor.plug.initialize"):
-            yield ep.load()
+            try:
+                yield ep.load()
+            except Exception:
+                _logger.warning('Unable to initialize plugin {}'.format(ep.name))
 
     def loggerwindow(self, name=None):
         """Returns instances of "preditor.plug.loggerwindow" plugins.
@@ -95,11 +101,17 @@ class Plugins(object):
         for ep in self.iterator(group="preditor.plug.loggerwindow"):
             if name and ep.name != name:
                 continue
-            yield ep.name, ep.load()
+            try:
+                yield ep.name, ep.load()
+            except Exception:
+                _logger.warning('Unable to load plugin {}'.format(ep.name))
 
     def logging_handlers(self, name=None):
         for ep in self.iterator(group="preditor.plug.logging_handlers"):
-            yield ep.name, ep.load()
+            try:
+                yield ep.name, ep.load()
+            except Exception:
+                _logger.warning('Unable to load handler {}'.format(ep.name))
 
     @classmethod
     def iterator(cls, group=None, name=None):
