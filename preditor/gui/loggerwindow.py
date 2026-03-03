@@ -1333,7 +1333,16 @@ class LoggerWindow(Window):
         """Clears the console before executing all workbox code"""
         if self.uiClearBeforeRunningCHK.isChecked():
             self.clearLog()
-        self.current_workbox().__exec_all__()
+        workbox = self.current_workbox()
+        if workbox is None:
+            # If the user has not picked the workbox editor class but tries to use
+            # the shortcut for them, raise a user friendly warning.
+            raise RuntimeError(
+                "You must choose an Editor Class in the workbox section before "
+                "you can run code from it. (To run console code don't use Shift "
+                "or Ctrl when pressing Return.)"
+            )
+        workbox.__exec_all__()
 
         if self.uiAutoPromptCHK.isChecked():
             console = self.console()
