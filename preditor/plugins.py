@@ -15,7 +15,8 @@ class Plugins(object):
             if name in plugs:
                 _logger.warning(
                     'Duplicate "preditor.plug.about_module" plugin found with '
-                    'name "{}"'.format(name)
+                    'name "{}"'.format(name),
+                    exc_info=True,
                 )
             else:
                 plugs[name] = ep
@@ -73,7 +74,10 @@ class Plugins(object):
             try:
                 return plug_name, ep.load()
             except Exception:
-                _logger.warning('Unable to load editor {}'.format(ep.name))
+                _logger.warning(
+                    'Unable to load editor {}'.format(ep.name),
+                    exc_info=True,
+                )
         return None, None
 
     def editors(self, name=None):
@@ -87,7 +91,10 @@ class Plugins(object):
             try:
                 yield ep.load()
             except Exception:
-                _logger.warning('Unable to initialize plugin {}'.format(ep.name))
+                _logger.warning(
+                    'Unable to initialize plugin {}'.format(ep.name),
+                    exc_info=True,
+                )
 
     def loggerwindow(self, name=None):
         """Returns instances of "preditor.plug.loggerwindow" plugins.
@@ -104,14 +111,20 @@ class Plugins(object):
             try:
                 yield ep.name, ep.load()
             except Exception:
-                _logger.warning('Unable to load plugin {}'.format(ep.name))
+                _logger.warning(
+                    'Unable to load plugin {}'.format(ep.name),
+                    exc_info=True,
+                )
 
     def logging_handlers(self, name=None):
         for ep in self.iterator(group="preditor.plug.logging_handlers"):
             try:
                 yield ep.name, ep.load()
             except Exception:
-                _logger.warning('Unable to load handler {}'.format(ep.name))
+                _logger.warning(
+                    'Unable to load handler {}'.format(ep.name),
+                    exc_info=True,
+                )
 
     @classmethod
     def iterator(cls, group=None, name=None):
