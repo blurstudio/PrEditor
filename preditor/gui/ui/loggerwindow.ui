@@ -1119,8 +1119,6 @@ Must be at least 1</string>
      <addaction name="separator"/>
      <addaction name="uiTabLastACT"/>
     </widget>
-    <addaction name="uiCommentToggleACT"/>
-    <addaction name="separator"/>
     <addaction name="uiGetPrevCmdACT"/>
     <addaction name="uiGetNextCmdACT"/>
     <addaction name="separator"/>

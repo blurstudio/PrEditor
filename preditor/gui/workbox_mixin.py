@@ -209,9 +209,6 @@ class WorkboxMixin(object):
     def __close__(self):
         """Called just before the LoggerWindow is closed to allow for workbox cleanup"""
 
-    def __comment_toggle__(self):
-        raise NotImplementedError("Mixin method not overridden.")
-
     def __console__(self):
         """Returns the PrEditor console to code is executed in if set."""
         try:

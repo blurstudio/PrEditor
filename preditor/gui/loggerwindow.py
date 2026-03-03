@@ -284,8 +284,6 @@ class LoggerWindow(Window):
 
         self.uiFocusNameACT.triggered.connect(self.show_focus_name)
 
-        self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
-
         self.uiSpellCheckEnabledCHK.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsCHK.toggled.connect(self.updateIndentationsUseTabs)
         self.uiCopyTabsToSpacesCHK.toggled.connect(self.updateCopyIndentsAsSpaces)
@@ -506,9 +504,6 @@ class LoggerWindow(Window):
         for _name, plugin in self.plugins.items():
             title = plugin.updateWindowTitle(title)
         return title
-
-    def comment_toggle(self):
-        self.current_workbox().__comment_toggle__()
 
     def current_workbox(self):
         """Returns the current workbox for the current tab group."""
