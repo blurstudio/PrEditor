@@ -308,9 +308,9 @@ class ConsoleBase(QTextEdit):
         workbox = self.controller.workbox_for_name(name)
         if not workbox:
             return None
-        if lineNum > workbox.lines():
+        if lineNum > workbox.__num_lines__():
             return None
-        txt = workbox.text(lineNum).strip() + "\n"
+        txt = workbox.__text_part__(lineNum=lineNum).strip() + "\n"
         return txt
 
     def init_actions(self):
