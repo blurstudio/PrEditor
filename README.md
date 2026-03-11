@@ -216,6 +216,37 @@ or add menu items. When using this plugin, make sure to use the
 to the LoggingLevelButton's handlers sub-menus. This allows you to install a
 handler instance on a specific logging object.
 
+# Testing
+
+We use [tox](https://tox.wiki/) to run tests across multiple python versions and to run
+linting/formatting checks. This ensures that the code works correctly across all
+supported versions of python.
+
+While you can run `pytest` directly, using `tox` is recommended as it ensures all
+dependencies are correctly installed and runs the full suite of checks.
+
+To run all tests and checks:
+```batch
+tox
+```
+
+You can speed up testing by `-p` to make the tests run in parallel.
+
+To run only a specific environment (e.g., python 3.11):
+```batch
+tox -e py311
+```
+
+To run a specific test file or pass arguments to pytest, use `--`:
+```batch
+tox -e py311 -- tests/test_stream.py
+```
+
+To run only the linting checks:
+```batch
+tox -e black,flake8,deptry
+```
+
 # Qt Designer integration
 
 PrEditor includes some reusable widgets that are useful to integrate into your
