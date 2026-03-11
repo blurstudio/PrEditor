@@ -104,6 +104,10 @@ class Director(io.TextIOWrapper):
         raw = _DirectorBuffer(manager, state, old_stream, name)
         buffer = io.BufferedWriter(raw)
 
+        # Disable newline translation in this TextIOWrapper so that it doesn't
+        # double up on Windows (where the old_stream will likely also do translation)
+        kwargs.setdefault("newline", "")
+
         super().__init__(buffer, encoding="utf-8", write_through=True, *args, **kwargs)
 
     def __repr__(self):

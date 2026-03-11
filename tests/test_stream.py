@@ -8,7 +8,7 @@ from logging import NOTSET
 
 import pytest
 
-from preditor import utils
+from preditor import settings, utils
 from preditor.constants import StreamType
 from preditor.stream import Director, Manager, install_to_std
 
@@ -371,3 +371,32 @@ class TestShellPrint:
                     "",
                 ]
             )
+
+
+def test_newline_translation(manager):
+    """Verify that Director doesn't perform redundant newline translation.
+    On Windows, TextIOWrapper(newline=None) translates \n to \r\n.
+    Director should NOT translate \n, leaving it to the underlying stream.
+    """
+    # Simulate a stream that performs translation (like sys.stdout on Windows)
+    buf = io.BytesIO()
+    underlying_stream = io.TextIOWrapper(buf, encoding="utf-8", newline=None)
+
+    director = Director(manager, "test_out", old_stream=underlying_stream)
+
+    # Write a string with a newline
+    director.write("Line 1\nLine 2\n")
+    director.flush()
+    underlying_stream.flush()
+
+    result = buf.getvalue()
+
+    # The result should contain exactly one `\r` per `\n`. If translation was
+    # redundant, we'd see `\r\r\n` but only on windows.
+    assert b"\r\r\n" not in result
+    if settings.OS_TYPE == 'Windows':
+        assert b"\r\n" in result
+        assert result == b"Line 1\r\nLine 2\r\n"
+    else:
+        assert b"\r\n" not in result
+        assert result == b"Line 1\nLine 2\n"
