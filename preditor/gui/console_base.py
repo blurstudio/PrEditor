@@ -8,7 +8,7 @@ from fractions import Fraction
 from typing import Optional
 
 from Qt import QtCompat
-from Qt.QtCore import Property, Qt
+from Qt.QtCore import Property, Qt, QTimer
 from Qt.QtGui import (
     QColor,
     QFontMetrics,
@@ -514,8 +514,10 @@ class ConsoleBase(QTextEdit):
         if not self._first_show:
             return False
 
-        # Configure the stream callbacks if enabled
-        self.update_streams()
+        # Configure the stream callbacks if enabled. Delay calling these until
+        # the UI has been fully shown. This is prevents some DCC's like
+        # Houdini 21.0(possibly Qt6) from segfaulting.
+        QTimer.singleShot(0, self.update_streams)
 
         # Redefine highlight variables now that stylesheet may have been updated
         self.codeHighlighter().defineHighlightVariables()
