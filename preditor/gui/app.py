@@ -160,4 +160,4 @@ class App(object):
         """Exec's the QApplication if it hasn't already been started."""
         if self.app_created and self.app and not self.app_has_exec:
             self.app_has_exec = True
-            Qt.QtCompat.QApplication.exec()
+            QApplication.exec()
