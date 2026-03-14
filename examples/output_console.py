@@ -240,4 +240,4 @@ if __name__ == '__main__':
     main_gui = ExampleApp(init_preditor=not args.no_preditor)
 
     main_gui.show()
-    app.exec_()
+    app.exec()

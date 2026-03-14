@@ -137,7 +137,7 @@ class PreditorExceptHook(object):
             ConsolePrEdit._errorPrompted = True
             errorDialog = config.error_dialog_class(config.root_window())
             errorDialog.setText(exc_info)
-            errorDialog.exec_()
+            errorDialog.exec()
 
         # interrupted until dialog closed
         finally:
