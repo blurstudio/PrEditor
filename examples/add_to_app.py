@@ -69,4 +69,4 @@ if __name__ == '__main__':
     act.triggered.connect(raise_error)
 
     main_gui.show()
-    app.exec_()
+    app.exec()
