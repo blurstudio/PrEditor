@@ -655,7 +655,9 @@ class WorkboxMixin(object):
             # Save the file to disk
             try:
                 txt = self.__text__()
-                self.__write_file__(filename, txt, encoding=self._encoding)
+                self.__write_file__(
+                    filename, txt, encoding=self._encoding, toUnixEOL=False
+                )
                 self.__set_filename__(filename)
                 self.__set_last_workbox_name__(self.__workbox_name__())
                 self.__set_last_saved_text__(txt)
