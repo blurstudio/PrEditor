@@ -60,11 +60,22 @@ class ConsoleBase(QTextEdit):
         highlight = CodeHighlighter(self, 'Python')
         self.setCodeHighlighter(highlight)
 
+        # Traceback handling variables
+        self.inInternalTraceLines = False
         self.addSepNewline = False
         self.consoleLine = None
         self.mousePressPos = None
         self.mouseReleasePos = None
         self.mouseReleaseBtn = None
+
+        self.internalTraceStart = r' +File .*preditor.*, line \d{1,6}, in keyPressEvent'
+        self.internalTraceStart = re.compile(self.internalTraceStart)
+        self.internalTraceEnd = ("cmdresult = eval", "exec(compiled,")
+        self.traceIgnores = ["sys.argv[0] = sys.argv[0].removesuffix('.exe')"]
+
+        # Variables to handle how different excepthooks may deliver traceback msgs
+        self.lineParts = []
+        self.constructedLine = None
 
         self.logging_info = {}
 
@@ -210,11 +221,7 @@ class ConsoleBase(QTextEdit):
             # Bail if there isn't a controller
             return
         # Bail if Error Hyperlinks setting is not turned on or we don't have an anchor.
-        doHyperlink = (
-            self.controller
-            and self.controller.uiErrorHyperlinksCHK.isChecked()
-            and anchor
-        )
+        doHyperlink = self.errorHyperLinksChoice and anchor
         if not doHyperlink:
             return
 
@@ -300,6 +307,10 @@ class ConsoleBase(QTextEdit):
             indent (str): A string of zero or more spaces used for indentation
         """
         indent = ""
+
+        if msg.startswith("\n"):
+            msg = msg[1:]
+
         match = re.match(r"^ *", msg)
         if match:
             indent = match.group() * 2
@@ -674,6 +685,30 @@ class ConsoleBase(QTextEdit):
         # Otherwise ignore it
         return None
 
+    def _controllerSetting(self, name):
+        value = False
+        if self.controller:
+            widget = getattr(self.controller, name, None)
+            if widget and hasattr(widget, "isChecked"):
+                value = widget.isChecked()
+        return value
+
+    @property
+    def separateInternalTraceChoice(self):
+        return self._controllerSetting("uiSeparateTracebackCHK")
+
+    @property
+    def errorHyperLinksChoice(self):
+        return self._controllerSetting("uiErrorHyperlinksCHK")
+
+    @property
+    def hideIntTraceChoice(self):
+        return self._controllerSetting("uiHideInternalTracebackCHK")
+
+    @property
+    def uiInhibitInternalHyperlinksChoice(self):
+        return self._controllerSetting("uiInhibitInternalLinksCHK")
+
     def write_error(self, *exc_info):
         text = traceback.format_exception(*exc_info)
         for line in text:
@@ -709,31 +744,114 @@ class ConsoleBase(QTextEdit):
         self.write(f'{msg}\n', stream_type=stream_type)
 
     def write(self, msg, stream_type=StreamType.STDOUT):
-        """Write a message to the logger.
+        """
+        Override QTextEdit.write method.
+
+        First, we handle the case where the excepthook delivers the some lines of
+        a traceback in a piecemeal manner. When this happens, capture all the
+        pieces, and construct a single line. So, if we receive:
+            msg1: "    "
+            msg2: "some line of code"
+            msg3: "\n"
+        it is transformed into:
+            "    some line of code\n"
+        By doing so, we can process the lines downstream in a consistent manner.
+
+        Once it's constructed, or if msg is already fully composed (ie ends with a
+        newline character), it is issued downstream to _write_prep
+
+        Args:
+            msg (str): The received msg to output to this console
+            stream_type (bool, optional): Treat this write as as stderr output.
+        """
+        # Collect msgs which don't until with newline, until we reach one that does.
+        if not msg.endswith("\n"):
+            self.lineParts.append(msg)
+            return
+
+        # If the current msg ends with newline (or is newline), and we have some
+        # self.lineParts, construct the line, and issue it to _write_prep.
+        if self.lineParts and msg.endswith("\n"):
+            self.constructedLine = "".join(self.lineParts) + msg
+            self._write_prep(self.constructedLine, stream_type=stream_type)
+
+            # Reset variables
+            self.lineParts = []
+            self.constructedLine = None
+            return
+
+        # If it's a normal line, issue it to _write_prep
+        self._write_prep(msg, stream_type=stream_type)
+
+    def _write_prep(self, msg, stream_type=StreamType.STDOUT):
+        """Prepare to output to this console. We handle various things as:
+        - Receiving a traceback in a single message, or multiple messages.
+        - Determining if we are processing internal code-lines of a traceback
+        - Adding a separator between internal and user code in a traceback.
+        - Skipping certain irrelevent lines a given excepthook may issue
 
         Args:
             msg (str): The message to write.
             stream_type (bool, optional): Treat this write as as stderr output.
 
-        In order to make a stack-trace provide clickable hyperlinks, it must be sent
-        to self._write line-by-line, like a actual exception traceback is. So, we check
-        if msg has the stack marker str, if so, send it line by line, otherwise, just
-        pass msg on to self._write.
-        """
-        stack_marker = "Stack (most recent call last)"
-        index = msg.find(stack_marker)
-        has_stack_marker = index > -1
+        Depending on the installed excepthook, stack-traces and/or exception
+        tracebacks may be issued in a single msg, or in multipe messages. In
+        order to make a stack-trace provide clickable hyperlinks, it must be
+        sent to self._write line-by-line. So, in either case, we construct a
+        uniform list of lines, and iterate them to be processed and send to the
+        _write method.
 
-        if has_stack_marker:
-            lines = msg.split("\n")
-            for line in lines:
-                line = "{}\n".format(line)
-                self._write(line, stream_type=stream_type)
-        else:
-            self._write(msg, stream_type=stream_type)
+        Also, some excepthooks may include extra internal lines we don't care,
+        about, so we use the list 'self.traceIgnores' to remove them.
+        """
+        # Make sure we have a consistent list of lines to issue to _write
+        lines = msg.rstrip().split("\n")
+        lines = [f"{line}\n" for line in lines]
+
+        for line in lines:
+            # Skip irrelevant lines which may have been issued by the excepthook
+            if line.strip() in self.traceIgnores:
+                continue
+
+            # Determine if we are starting to issue internal traceback lines
+            match = self.internalTraceStart.match(line)
+            if match:
+                self.inInternalTraceLines = True
+
+            # To make it easier to see relevant lines of a traceback, optionally
+            # insert a newline separating internal PrEditor code from the code
+            # run by user.
+            if self.addSepNewline:
+                if self.separateInternalTraceChoice:
+                    line = f"\n{line}"
+                self.addSepNewline = False
+
+            # Now write the line
+            self._write(line, stream_type=stream_type)
+
+            # Handle when we reach the end of the internal part of a traceback.
+            # Only add the optional internal/user line separator only if not
+            # already hiding the internal lines.
+            if line.strip().startswith(self.internalTraceEnd):
+                self.inInternalTraceLines = False
+                if not self.hideIntTraceChoice:
+                    self.addSepNewline = True
 
     def _write(self, msg, stream_type=StreamType.STDOUT):
-        """write the message to the logger"""
+        """write the message to the logger, handling the presentation ie text
+        color formatting, hyperlinks, etc.
+
+        Args:
+            msg (str): The message to write.
+            stream_type (bool, optional): Treat this write as as stderr output.
+        """
+
+        # Handle internal traceback lines
+        hideInternalTrace = self.hideIntTraceChoice
+        inhibitInternalHyperlinks = self.uiInhibitInternalHyperlinksChoice
+        if hideInternalTrace and self.inInternalTraceLines and not msg:
+            return
+
         if not msg:
             return
 
@@ -758,12 +876,6 @@ class ConsoleBase(QTextEdit):
             if not to_error and not self.stream_echo_stdout:
                 return
 
-        if self.controller:
-            doHyperlink = self.controller.uiErrorHyperlinksCHK.isChecked()
-            sepPreditorTrace = self.controller.uiSeparateTracebackCHK.isChecked()
-        else:
-            doHyperlink = False
-            sepPreditorTrace = False
         self.moveCursor(QTextCursor.MoveOperation.End)
 
         charFormat = QTextCharFormat()
@@ -782,7 +894,7 @@ class ConsoleBase(QTextEdit):
         cursor = self.textCursor()
         info = None
 
-        if doHyperlink and msg == '\n':
+        if self.errorHyperLinksChoice and msg == '\n':
             cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
             line = cursor.selectedText()
 
@@ -827,7 +939,7 @@ class ConsoleBase(QTextEdit):
             # They don't include ", in ..." and are issued differently than
             # other Exceptions, in that they will issue the final piece of
             # offending code, whereas other Exceptions do not, for some
-            # reason. They do not need, and shouldn't, be handled here.
+            # reason. They do not need to be, and shouldn't be, handled here.
             match = self.console_pattern.search(msg)
             inStr = match.groupdict().get("inStr", "")
             if inStr:
@@ -835,56 +947,48 @@ class ConsoleBase(QTextEdit):
                 indent = self.getIndentForCodeTracebackLine(msg)
                 msg = "{}{}{}\n".format(msg, indent, consoleLine)
 
-        # To make it easier to see relevant lines of a traceback, optionally insert
-        # a newline separating internal PrEditor code from the code run by user.
-        if self.addSepNewline:
-            if sepPreditorTrace:
-                msg = "\n" + msg
-            self.addSepNewline = False
+        showInternalTrace = not hideInternalTrace
+        if showInternalTrace or not self.inInternalTraceLines:
+            if (
+                info
+                and self.errorHyperLinksChoice
+                and not isConsolePrEdit
+                and ((not self.inInternalTraceLines) or (not inhibitInternalHyperlinks))
+            ):
+                fileStart = info.get("fileStart")
+                fileEnd = info.get("fileEnd")
+                lineNum = info.get("lineNum")
 
-        preditorCalls = ("cmdresult = e", "exec(compiled,")
-        if msg.strip().startswith(preditorCalls):
-            self.addSepNewline = True
+                toolTip = 'Open "{}" at line number {}'.format(filename, lineNum)
+                if isWorkbox:
+                    split = filename.split(':')
+                    workboxIdx = split[-1]
+                    filename = ''
+                else:
+                    filename = filename
+                    workboxIdx = ''
+                href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
 
-            # Error tracebacks and logging.stack_info supply msg's differently,
-            # so modify it here, so we get consistent results.
-            msg = msg.replace("\n\n", "\n")
+                # Insert initial, non-underlined text
+                cursor.insertText(msg[:fileStart])
 
-        if info and doHyperlink and not isConsolePrEdit:
-            fileStart = info.get("fileStart")
-            fileEnd = info.get("fileEnd")
-            lineNum = info.get("lineNum")
+                # Insert hyperlink
+                fmt = cursor.charFormat()
+                fmt.setAnchor(True)
+                fmt.setAnchorHref(href)
+                fmt.setFontUnderline(True)
+                fmt.setToolTip(toolTip)
+                cursor.insertText(msg[fileStart:fileEnd], fmt)
 
-            toolTip = 'Open "{}" at line number {}'.format(filename, lineNum)
-            if isWorkbox:
-                split = filename.split(':')
-                workboxIdx = split[-1]
-                filename = ''
+                # Insert the rest of the msg
+                fmt.setAnchor(False)
+                fmt.setAnchorHref('')
+                fmt.setFontUnderline(False)
+                fmt.setToolTip('')
+                cursor.insertText(msg[fileEnd:], fmt)
             else:
-                filename = filename
-                workboxIdx = ''
-            href = '{}, {}, {}'.format(filename, workboxIdx, lineNum)
-
-            # Insert initial, non-underlined text
-            cursor.insertText(msg[:fileStart])
-
-            # Insert hyperlink
-            fmt = cursor.charFormat()
-            fmt.setAnchor(True)
-            fmt.setAnchorHref(href)
-            fmt.setFontUnderline(True)
-            fmt.setToolTip(toolTip)
-            cursor.insertText(msg[fileStart:fileEnd], fmt)
-
-            # Insert the rest of the msg
-            fmt.setAnchor(False)
-            fmt.setAnchorHref('')
-            fmt.setFontUnderline(False)
-            fmt.setToolTip('')
-            cursor.insertText(msg[fileEnd:], fmt)
-        else:
-            # Non-hyperlink output
-            self.insertPlainText(msg)
+                # Non-hyperlink output
+                self.insertPlainText(msg)
 
         # Update the display of the console if enough time has passed and enabled
         self.maybeRepaint()
