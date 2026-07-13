@@ -1768,7 +1768,10 @@ Must be at least 1</string>
   </action>
   <action name="uiPreferencesACT">
    <property name="text">
-    <string>Preferences</string>
+    <string>Toggle Preferences</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+P</string>
    </property>
   </action>
   <action name="uiEmptyWorkboxRecycleBinACT">
@@ -1853,7 +1856,7 @@ This button removes those (very old) workboxes.</string>
    <sender>uiPreferencesACT</sender>
    <signal>triggered()</signal>
    <receiver>PrEditorWindow</receiver>
-   <slot>show_preferences()</slot>
+   <slot>toggle_preferences()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>

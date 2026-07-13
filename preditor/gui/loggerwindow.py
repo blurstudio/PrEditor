@@ -2191,8 +2191,15 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
     @Slot()
-    def show_preferences(self):
-        self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Preferences)
+    def toggle_preferences(self):
+        cur_idx = self.uiWorkboxSTACK.currentIndex()
+
+        if cur_idx == WorkboxPages.Preferences:
+            target_idx = WorkboxPages.Workboxes
+        else:
+            target_idx = WorkboxPages.Preferences
+
+        self.uiWorkboxSTACK.setCurrentIndex(target_idx)
 
     @Slot()
     def show_find_in_workboxes(self):
