@@ -1414,11 +1414,14 @@ class LoggerWindow(Window):
                 'autoSaveSettings': self.autoSaveEnabled(),
                 'promptOnLinkedChange': self.promptOnLinkedChange(),
                 'autoPrompt': self.uiAutoPromptCHK.isChecked(),
-                'errorHyperlinks': self.uiErrorHyperlinksCHK.isChecked(),
                 'uiStatusLbl_limit': self.uiStatusLBL.limit(),
                 'textEditorPath': self.textEditorPath,
                 'textEditorCmdTempl': self.textEditorCmdTempl,
+                # Tracebacks
+                'errorHyperlinks': self.uiErrorHyperlinksCHK.isChecked(),
+                'inhibitInternalLinks': self.uiInhibitInternalLinksCHK.isChecked(),
                 'separateTraceback': self.uiSeparateTracebackCHK.isChecked(),
+                'hideInternalTraceback': self.uiHideInternalTracebackCHK.isChecked(),
                 'currentStyleSheet': self._stylesheet,
                 'flash_time': self.uiFlashTimeSPIN.value(),
                 'find_files_regex': self.uiFindInWorkboxesWGT.uiRegexBTN.isChecked(),
@@ -1703,7 +1706,6 @@ class LoggerWindow(Window):
         self.setAutoSaveEnabled(pref.get('autoSaveSettings', True))
         self.setPromptOnLinkedChange(pref.get('promptOnLinkedChange', True))
         self.uiAutoPromptCHK.setChecked(pref.get('autoPrompt', False))
-        self.uiErrorHyperlinksCHK.setChecked(pref.get('errorHyperlinks', True))
         self.uiStatusLBL.setLimit(pref.get('uiStatusLbl_limit', 5))
 
         # Find Files settings
@@ -1724,7 +1726,15 @@ class LoggerWindow(Window):
         self.textEditorPath = pref.get('textEditorPath', defaultExePath)
         self.textEditorCmdTempl = pref.get('textEditorCmdTempl', defaultCmd)
 
+        # Tracebacks
+        self.uiErrorHyperlinksCHK.setChecked(pref.get('errorHyperlinks', True))
+        self.uiInhibitInternalLinksCHK.setChecked(
+            pref.get('inhibitInternalLinks', True)
+        )
         self.uiSeparateTracebackCHK.setChecked(pref.get('separateTraceback', True))
+        self.uiHideInternalTracebackCHK.setChecked(
+            pref.get('hideInternalTraceback', True)
+        )
 
         self.uiWordWrapCHK.setChecked(pref.get('wordWrap', True))
         self.setWordWrap(self.uiWordWrapCHK.isChecked())
@@ -2191,8 +2201,15 @@ class LoggerWindow(Window):
         self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Options)
 
     @Slot()
-    def show_preferences(self):
-        self.uiWorkboxSTACK.setCurrentIndex(WorkboxPages.Preferences)
+    def toggle_preferences(self):
+        cur_idx = self.uiWorkboxSTACK.currentIndex()
+
+        if cur_idx == WorkboxPages.Preferences:
+            target_idx = WorkboxPages.Workboxes
+        else:
+            target_idx = WorkboxPages.Preferences
+
+        self.uiWorkboxSTACK.setCurrentIndex(target_idx)
 
     @Slot()
     def show_find_in_workboxes(self):

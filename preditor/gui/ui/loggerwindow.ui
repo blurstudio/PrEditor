@@ -158,7 +158,7 @@
               <x>0</x>
               <y>0</y>
               <width>938</width>
-              <height>447</height>
+              <height>446</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_2">
@@ -524,9 +524,23 @@
                           </widget>
                          </item>
                          <item>
+                          <widget class="QCheckBox" name="uiInhibitInternalLinksCHK">
+                           <property name="text">
+                            <string>Inhibit hyperlinks for internal code</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
                           <widget class="QCheckBox" name="uiSeparateTracebackCHK">
                            <property name="text">
                             <string>Visually separate internal PrEditor traceback</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item>
+                          <widget class="QCheckBox" name="uiHideInternalTracebackCHK">
+                           <property name="text">
+                            <string>Hide internal PrEditor traceback</string>
                            </property>
                           </widget>
                          </item>
@@ -911,7 +925,7 @@ Must be at least 1</string>
      <x>0</x>
      <y>0</y>
      <width>958</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="uiDebugMENU">
@@ -1768,7 +1782,10 @@ Must be at least 1</string>
   </action>
   <action name="uiPreferencesACT">
    <property name="text">
-    <string>Preferences</string>
+    <string>Toggle Preferences</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Alt+P</string>
    </property>
   </action>
   <action name="uiEmptyWorkboxRecycleBinACT">
@@ -1853,7 +1870,7 @@ This button removes those (very old) workboxes.</string>
    <sender>uiPreferencesACT</sender>
    <signal>triggered()</signal>
    <receiver>PrEditorWindow</receiver>
-   <slot>show_preferences()</slot>
+   <slot>toggle_preferences()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
