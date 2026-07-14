@@ -63,9 +63,14 @@ class ConsoleBase(QTextEdit):
         self.addSepNewline = False
         self.consoleLine = None
         self.mousePressPos = None
+        self.mouseReleasePos = None
+        self.mouseReleaseBtn = None
+
         self.logging_info = {}
 
         self.init_actions()
+
+        self.initDoubleClickTimer()
 
     def __repr__(self):
         """The repr for this object including its objectName if set."""
@@ -118,6 +123,16 @@ class ConsoleBase(QTextEdit):
         # handle SyntaxError output that does not include the `, in ...` portion.
         pattern = r'File "(?P<filename>.*)", line (?P<lineNum>\d{1,10})(, in|\r\n|\n|$)'
         cls.traceback_pattern = re.compile(pattern)
+
+    def initDoubleClickTimer(self):
+        """Initialize a timer to determine whether a single-click or
+        double-click has occured.
+        """
+        self.clickTimer = QTimer(self)
+        self.clickTimer.setSingleShot(True)
+        self.clickTimer.timeout.connect(self.handleSingleClick)
+        self.clickTimer.setInterval(QApplication.instance().doubleClickInterval())
+        self.doubleClickActive = False
 
     def add_separator(self):
         """Add a marker line for visual separation of console output."""
@@ -443,32 +458,62 @@ class ConsoleBase(QTextEdit):
         check release position. If it's the same (ie user clicked vs click-drag to
         select text), we check if user clicked an error hyperlink.
         """
-        left = event.button() == Qt.MouseButton.LeftButton
-        anchor = self.anchorAt(event.pos())
         self.mousePressPos = event.pos()
-
-        if left and anchor:
-            event.ignore()
-            return
 
         return super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Overload of mouseReleaseEvent to capture if user has left clicked... Check if
-        click position is the same as release position, if so, call errorHyperlink.
+        """Overload of mouseReleaseEvent to determine if this release is from a
+        double click. If so, deactivate doubleClickActive. If not, capture
+        event.pos and event.button for handleSingleClick to use.
         """
-        samePos = event.pos() == self.mousePressPos
-        left = event.button() == Qt.MouseButton.LeftButton
-        anchor = self.anchorAt(event.pos())
+        if self.doubleClickActive:
+            # This release belongs to the second click of a double-click.
+            # Ignore it so it doesn't restart the single-click timer.
+            self.doubleClickActive = False
+        else:
+            # Capture event info to be used later.
+            self.mouseReleasePos = event.pos()
+            self.mouseReleaseBtn = event.button()
 
+            QApplication.restoreOverrideCursor()
+            self.clickTimer.start()
+
+        ret = super().mouseReleaseEvent(event)
+        return ret
+
+    def mouseDoubleClickEvent(self, event):
+        """Overload mouseDoubleClickEvent so we can stop click_timer, and
+        indicate a double click is active, so we can later ignore it's release
+
+        Args:
+            event (QEvent): The current mouse event
+        """
+        # Cancel any pending single-click
+        self.clickTimer.stop()
+
+        # Flag that a release is coming, and should be ignored
+        self.doubleClickActive = True
+
+        super().mouseDoubleClickEvent(event)
+
+    def handleSingleClick(self):
+        """Slot for clickTimer.timeout, which means it wasn't a double-click.
+        We can now check if mouse pointer hasn't moved between click and release,
+        and if so, attempt to process an errorHyperlink.
+        """
+        samePos = self.mouseReleasePos == self.mousePressPos
+        left = self.mouseReleaseBtn == Qt.MouseButton.LeftButton
+        anchor = self.anchorAt(self.mouseReleasePos)
         if samePos and left and anchor:
             self.errorHyperlink(anchor)
+
+        # Reset mouse-event-releated variables
         self.mousePressPos = None
+        self.mouseReleasePos = None
+        self.mouseReleaseBtn = None
 
         QApplication.restoreOverrideCursor()
-        ret = super().mouseReleaseEvent(event)
-
-        return ret
 
     @classmethod
     def parseErrorHyperLinkInfo(cls, txt):
