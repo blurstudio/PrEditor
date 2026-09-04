@@ -285,7 +285,7 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         # refresh the search text unless we are using regular expressions
         if (
             not self._searchDialog.isVisible()
-            and not self._searchFlags & SearchOptions.QRegExp
+            and not self._searchFlags & SearchOptions.Regex
         ):
             txt = self.selectedText()
             if txt:

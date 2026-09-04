@@ -49,7 +49,7 @@ class SearchOptions(EnumGroup):
     Backward = Enum()
     CaseSensitive = Enum()
     WholeWords = Enum()
-    QRegExp = Enum()
+    Regex = Enum()
 
 
 @contextmanager
@@ -649,7 +649,7 @@ class DocumentEditor(QsciScintilla):
         self._filename = filename
 
     def findNext(self, text, flags):
-        re = (flags & SearchOptions.QRegExp) != 0
+        re = (flags & SearchOptions.Regex) != 0
         cs = (flags & SearchOptions.CaseSensitive) != 0
         wo = (flags & SearchOptions.WholeWords) != 0
         wrap = True
@@ -663,7 +663,7 @@ class DocumentEditor(QsciScintilla):
         return result
 
     def findPrev(self, text, flags):
-        re = (flags & SearchOptions.QRegExp) != 0
+        re = (flags & SearchOptions.Regex) != 0
         cs = (flags & SearchOptions.CaseSensitive) != 0
         wo = (flags & SearchOptions.WholeWords) != 0
         wrap = True
