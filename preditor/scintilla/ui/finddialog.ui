@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>436</width>
+    <width>421</width>
     <height>170</height>
    </rect>
   </property>
@@ -115,12 +115,12 @@
     </widget>
    </item>
    <item row="3" column="2">
-    <widget class="QCheckBox" name="uiQRegExpCHK">
+    <widget class="QCheckBox" name="uiRegexCHK">
      <property name="toolTip">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use Qt's QRegExp engine to find using regular expressions instead of a plain text find.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Find using regular expressions instead of plain text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="text">
-      <string>QRegExp</string>
+      <string>Regex</string>
      </property>
     </widget>
    </item>
@@ -135,7 +135,7 @@
   <tabstop>uiFindPrevBTN</tabstop>
   <tabstop>uiFindWholeWordsCHK</tabstop>
   <tabstop>uiCaseSensitiveCHK</tabstop>
-  <tabstop>uiQRegExpCHK</tabstop>
+  <tabstop>uiRegexCHK</tabstop>
   <tabstop>uiCloseBTN</tabstop>
  </tabstops>
  <resources/>

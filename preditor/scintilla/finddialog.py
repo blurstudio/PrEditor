@@ -16,13 +16,13 @@ class FindDialog(Dialog):
         self.uiFindWholeWordsCHK.setChecked(
             parent.searchFlags() & SearchOptions.WholeWords
         )
-        self.uiQRegExpCHK.setChecked(parent.searchFlags() & SearchOptions.QRegExp)
+        self.uiRegexCHK.setChecked(parent.searchFlags() & SearchOptions.Regex)
         self.uiSearchTXT.setPlainText(parent.searchText())
 
         # update the signals
         self.uiCaseSensitiveCHK.clicked.connect(self.updateSearchTerms)
         self.uiFindWholeWordsCHK.clicked.connect(self.updateSearchTerms)
-        self.uiQRegExpCHK.clicked.connect(self.updateSearchTerms)
+        self.uiRegexCHK.clicked.connect(self.updateSearchTerms)
         self.uiSearchTXT.textChanged.connect(self.updateSearchTerms)
 
         self.uiFindNextBTN.clicked.connect(parent.uiFindNextACT.triggered.emit)
@@ -61,8 +61,8 @@ class FindDialog(Dialog):
             options |= SearchOptions.CaseSensitive
         if self.uiFindWholeWordsCHK.isChecked():
             options |= SearchOptions.WholeWords
-        if self.uiQRegExpCHK.isChecked():
-            options |= SearchOptions.QRegExp
+        if self.uiRegexCHK.isChecked():
+            options |= SearchOptions.Regex
 
         parent.setSearchFlags(options)
         parent.setSearchText(self.uiSearchTXT.toPlainText())
