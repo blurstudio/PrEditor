@@ -311,7 +311,7 @@ class LoggerWindow(Window):
 
         # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
         regEx = ".*"
-        menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegExp(regEx))
+        menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegularExpression(regEx))
         for menu in menus:
             menu.hovered.connect(handleMenuHovered)
 
