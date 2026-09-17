@@ -400,3 +400,28 @@ def test_newline_translation(manager):
     else:
         assert b"\r\n" not in result
         assert result == b"Line 1\nLine 2\n"
+
+
+def test_closed_old_stream(manager):
+    """A closed old_stream is treated like there is no old_stream.
+
+    Something else may close old_stream before the Director is closed. For
+    example pytest closes its capture files at the end of a test run, but
+    colorama still checks `isatty` on the Director while shutting down.
+    """
+    old_stream = io.StringIO()
+    director = Director(manager, "test_out", old_stream=old_stream)
+
+    old_stream.close()
+
+    assert director.isatty() is False
+    assert director.encoding == "utf-8"
+    assert director.errors == "strict"
+
+    # Writes are still recorded by the manager, they just aren't forwarded
+    director.write("Written to a closed stream")
+    director.flush()
+    assert manager.get_value() == "[test_out:Written to a closed stream]"
+
+    # Closing the Director doesn't raise on the already closed stream
+    director.close()
