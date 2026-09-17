@@ -6,6 +6,28 @@ import sys
 from ..constants import StreamType
 
 
+def _open_stream(stream):
+    """Returns stream if it is still usable, otherwise None.
+
+    The old_stream a Director wraps may be closed before the Director is. For
+    example pytest closes its capture files at the end of a test run. Using a
+    closed stream raises ``ValueError: I/O operation on closed file``, so treat
+    a closed stream the same as not having an old_stream at all.
+
+    Note: It's possible the stream is closed after this call so its recommended to
+    use a try/except ValueError when accessing the returned stream.
+    """
+    if stream is None:
+        return None
+    try:
+        if stream.closed:
+            return None
+    except (AttributeError, ValueError):
+        # Not all file like objects implement closed, assume it's usable.
+        pass
+    return stream
+
+
 class _DirectorBuffer(io.RawIOBase):
     """Binary buffer that forwards text writes to the manager.
 
@@ -32,8 +54,9 @@ class _DirectorBuffer(io.RawIOBase):
         self.name = name
 
     def flush(self):
-        if self.old_stream:
-            self.old_stream.flush()
+        old_stream = _open_stream(self.old_stream)
+        if old_stream:
+            old_stream.flush()
         super().flush()
 
     def writable(self):
@@ -47,8 +70,9 @@ class _DirectorBuffer(io.RawIOBase):
         msg = b.decode("utf-8", errors="replace")
         self.manager.write(msg, self.state)
 
-        if self.old_stream:
-            self.old_stream.write(msg)
+        old_stream = _open_stream(self.old_stream)
+        if old_stream:
+            old_stream.write(msg)
 
         return len(b)
 
@@ -115,7 +139,7 @@ class Director(io.TextIOWrapper):
 
     def close(self):
         if (
-            self.old_stream
+            _open_stream(self.old_stream)
             and not self.std_stream_wrapped
             and self.old_stream is not sys.__stdout__
             and self.old_stream is not sys.__stderr__
@@ -131,18 +155,31 @@ class Director(io.TextIOWrapper):
 
     # These methods enable terminal features like color coding etc.
     def isatty(self):
-        if self.old_stream is not None:
-            return self.old_stream.isatty()
+        old_stream = _open_stream(self.old_stream)
+        if old_stream is not None:
+            try:
+                return old_stream.isatty()
+            except ValueError:
+                # The stream was closed after we checked it
+                return False
         return False
 
     @property
     def encoding(self):
-        if self.old_stream is not None:
-            return self.old_stream.encoding
+        old_stream = _open_stream(self.old_stream)
+        if old_stream is not None:
+            try:
+                return old_stream.encoding
+            except ValueError:
+                pass
         return super().encoding
 
     @property
     def errors(self):
-        if self.old_stream is not None:
-            return self.old_stream.errors
+        old_stream = _open_stream(self.old_stream)
+        if old_stream is not None:
+            try:
+                return old_stream.errors
+            except ValueError:
+                pass
         return super().errors
