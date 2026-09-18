@@ -1,9 +1,13 @@
 from __future__ import absolute_import
 
 import datetime
+import faulthandler
 import io
 import logging
+import os
+import subprocess
 import sys
+import textwrap
 
 import pytest
 
@@ -232,3 +236,149 @@ class TestLogToFile:
         # Both FileLogger's store the path as a string
         assert sys.stdout._logfile == str(path)
         assert sys.stderr._logfile == str(path)
+
+
+class TestFaulthandlerToFile:
+    # Installs faulthandler in a subprocess and crashes it. Run as a subprocess
+    # so the crash and faulthandler's process wide state don't affect the tests.
+    CRASH_SCRIPT = textwrap.dedent(
+        """
+        import ctypes
+        import sys
+
+        from preditor import debug
+
+        log, std = sys.argv[1], sys.argv[2]
+        if std:
+            # faulthandler can't write to the FileLogger logToFile installs, it
+            # needs a file descriptor, so it has to open its own file.
+            debug.logToFile(std)
+
+        assert debug.faulthandlerToFile(log) is True
+
+        # Dereference a null pointer. Python can't catch this, the traceback is
+        # only recorded because faulthandler was installed.
+        ctypes.string_at(0)
+        """
+    )
+
+    @pytest.fixture
+    def enable_calls(self, monkeypatch):
+        """Records faulthandler.enable calls instead of installing it for real.
+
+        Actually installing faulthandler would replace the file pytest installed
+        it with for the rest of the test session.
+        """
+        calls = []
+
+        def enable(file=None, all_threads=True):
+            calls.append({'file': file, 'all_threads': all_threads})
+
+        monkeypatch.setattr(faulthandler, 'is_enabled', lambda: bool(calls))
+        monkeypatch.setattr(faulthandler, 'enable', enable)
+        # monkeypatch restores the module variable, but not the open file object
+        monkeypatch.setattr(debug, '_faulthandlerFile', None)
+
+        yield calls
+
+        for call in calls:
+            call['file'].close()
+
+    def test_install(self, enable_calls, tmp_path):
+        path = tmp_path / 'faulthandler.log'
+
+        assert debug.faulthandlerToFile(str(path)) is True
+        assert path.exists()
+
+        assert len(enable_calls) == 1
+        assert enable_calls[0]['file'].name == str(path)
+        assert enable_calls[0]['all_threads'] is True
+
+        # The file is kept open, faulthandler writes to its file descriptor
+        assert debug._faulthandlerFile is enable_calls[0]['file']
+        assert debug._faulthandlerFile.closed is False
+
+    def test_all_threads(self, enable_calls, tmp_path):
+        debug.faulthandlerToFile(str(tmp_path / 'faulthandler.log'), allThreads=False)
+
+        assert enable_calls[0]['all_threads'] is False
+
+    def test_already_enabled(self, enable_calls, tmp_path, monkeypatch):
+        monkeypatch.setattr(faulthandler, 'is_enabled', lambda: True)
+        path = tmp_path / 'faulthandler.log'
+
+        assert debug.faulthandlerToFile(str(path)) is False
+        # Nothing was installed and the log file was not created
+        assert enable_calls == []
+        assert not path.exists()
+        assert debug._faulthandlerFile is None
+
+    def test_force(self, enable_calls, tmp_path):
+        first = tmp_path / 'first.log'
+        second = tmp_path / 'second.log'
+
+        assert debug.faulthandlerToFile(str(first)) is True
+        # Now that faulthandler is enabled the second call is ignored
+        assert debug.faulthandlerToFile(str(second)) is False
+        assert not second.exists()
+
+        assert debug.faulthandlerToFile(str(second), force=True) is True
+        assert len(enable_calls) == 2
+        assert debug._faulthandlerFile is enable_calls[1]['file']
+        # The file used by the previous call is no longer needed
+        assert enable_calls[0]['file'].closed is True
+
+    def test_clear_log(self, enable_calls, tmp_path):
+        path = tmp_path / 'faulthandler.log'
+        path.write_text('Previous crash')
+        assert path.read_text() == 'Previous crash'
+
+        debug.faulthandlerToFile(str(path))
+
+        assert path.read_text() == ''
+
+    def test_clear_log_disabled(self, enable_calls, tmp_path):
+        path = tmp_path / 'faulthandler.log'
+        path.write_text('Previous crash')
+
+        debug.faulthandlerToFile(str(path), clearLog=False)
+
+        assert path.read_text() == 'Previous crash'
+
+    def test_path_object(self, enable_calls, tmp_path):
+        """The log file can be given as a pathlib object or a string."""
+        path = tmp_path / 'faulthandler.log'
+
+        assert debug.faulthandlerToFile(path) is True
+
+        assert path.exists()
+        # open records the path it was given as a string
+        assert enable_calls[0]['file'].name == str(path)
+
+    @pytest.mark.parametrize('log_to_file', (False, True))
+    def test_crash_logged(self, tmp_path, log_to_file):
+        """A crash python can't report is written to the faulthandler log file."""
+        path = tmp_path / 'faulthandler.log'
+        script = tmp_path / 'crash.py'
+        script.write_text(self.CRASH_SCRIPT)
+
+        env = dict(os.environ)
+        # Ensure the subprocess can import preditor even if its not installed
+        root = os.path.dirname(os.path.dirname(os.path.abspath(debug.__file__)))
+        env['PYTHONPATH'] = os.pathsep.join(
+            [root] + [p for p in [env.get('PYTHONPATH')] if p]
+        )
+        # faulthandler being enabled by the env var would disable the install
+        env.pop('PYTHONFAULTHANDLER', None)
+        std = str(tmp_path / 'std.log') if log_to_file else ''
+
+        subprocess.call(
+            [sys.executable, str(script), str(path), std],
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        output = path.read_text()
+        assert 'Current thread' in output
+        assert 'crash.py' in output

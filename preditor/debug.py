@@ -8,6 +8,9 @@ import sys
 
 logger = logging.getLogger(__name__)
 
+# Keeps the file `faulthandlerToFile` installed open for the life of the process
+_faulthandlerFile = None
+
 
 class FileLogger:
     def __init__(self, stdhandle, logfile, _print=True, clearLog=True):
@@ -76,6 +79,59 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
         StreamHandlerHelper.replace_stream(sys.stdout.old_stream, sys.stdout)
     if stderr:
         StreamHandlerHelper.replace_stream(sys.stderr.old_stream, sys.stderr)
+
+
+def faulthandlerToFile(path, allThreads=True, clearLog=True, force=False):
+    """Install faulthandler so hard crashes are written to a log file.
+
+    Python normally can't report fatal errors like segfaults, they simply kill
+    the process without any output. Enabling faulthandler makes python dump the
+    traceback of each thread to a file when one of those errors happens, which
+    is often the only record of what a host application was doing when it died.
+
+    Unlike `logToFile` this doesn't touch sys.stdout/sys.stderr. faulthandler
+    writes to the file descriptor directly, so it needs a real file on disk, not
+    a `FileLogger`. The file is left open for the life of the process, closing
+    it would leave faulthandler writing to an invalid file descriptor.
+
+    If faulthandler is already enabled it's left alone unless force is used.
+    This includes it being enabled outside of this function, for example by the
+    `PYTHONFAULTHANDLER` env var or `python -X faulthandler`.
+
+    Args:
+        path (str or os.PathLike): File path to write faulthandler output to.
+
+        allThreads (bool): If True(default) dump the traceback of all threads,
+            otherwise only the thread that crashed.
+
+        clearLog (bool): If True(default) clear the log file when this command
+            is called, otherwise append to the existing contents.
+
+        force (bool): If True, install faulthandler even if it was already
+            enabled. Any file opened by a previous call is closed.
+
+    Returns:
+        bool: If faulthandler was installed by this call. False is returned if
+            it was already enabled and force was not used.
+    """
+    global _faulthandlerFile
+    import faulthandler
+
+    if faulthandler.is_enabled() and not force:
+        logger.debug('faulthandler is already enabled, not logging to: %s', path)
+        return False
+
+    # Newline forces windows to write unix style newlines
+    output = open(path, 'w' if clearLog else 'a', newline="\n", encoding="utf-8")
+    faulthandler.enable(file=output, all_threads=allThreads)
+
+    # Only close the file used by a previous call once the new one is installed
+    previous = _faulthandlerFile
+    _faulthandlerFile = output
+    if previous is not None:
+        previous.close()
+
+    return True
 
 
 def printCallingFunction(compact=False):
