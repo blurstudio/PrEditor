@@ -92,6 +92,17 @@ class TestFileLogger:
         assert str(datetime.date.today()) in stamp
         assert sys.version in stamp
 
+    def test_path_object(self, tmp_path):
+        """The log file can be given as a pathlib object or a string."""
+        path = tmp_path / 'log.txt'
+        file_logger = debug.FileLogger(io.StringIO(), path)
+
+        file_logger.write('First')
+
+        assert path.read_text() == 'First'
+        # The path is stored as a string
+        assert file_logger._logfile == str(path)
+
 
 class TestLogToFile:
     @pytest.fixture
@@ -208,3 +219,16 @@ class TestLogToFile:
         finally:
             for handler in handlers.values():
                 root.removeHandler(handler)
+
+    def test_path_object(self, replace_std, tmp_path):
+        """The log file can be given as a pathlib object or a string."""
+        replace_std()
+        path = tmp_path / 'log.txt'
+
+        debug.logToFile(path)
+        print('To stdout')
+
+        assert 'To stdout' in path.read_text()
+        # Both FileLogger's store the path as a string
+        assert sys.stdout._logfile == str(path)
+        assert sys.stderr._logfile == str(path)

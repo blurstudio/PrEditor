@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import datetime
 import inspect
 import logging
+import os
 import sys
 
 logger = logging.getLogger(__name__)
@@ -11,7 +12,8 @@ logger = logging.getLogger(__name__)
 class FileLogger:
     def __init__(self, stdhandle, logfile, _print=True, clearLog=True):
         self.old_stream = stdhandle
-        self._logfile = logfile
+        # Accept pathlib objects but store the path as a string
+        self._logfile = os.fspath(logfile)
         self._print = _print
         if clearLog:
             # clear the log file
@@ -48,7 +50,7 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
     sys.version info when stdout is True.
 
     Args:
-        path (str): File path to log output to.
+        path (str or os.PathLike): File path to log output to.
 
         stdout (bool): If True(default) override sys.stdout.
 
