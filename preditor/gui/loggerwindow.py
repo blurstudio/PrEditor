@@ -15,7 +15,7 @@ from functools import partial
 from pathlib import Path
 
 import __main__
-from Qt import QtCompat, QtCore, QtWidgets
+from Qt import QtCompat, QtCore
 from Qt.QtCore import QByteArray, QFileSystemWatcher, QObject, Qt, QTimer, Signal, Slot
 from Qt.QtGui import QFont, QIcon, QKeySequence, QTextCursor
 from Qt.QtWidgets import (
@@ -41,7 +41,7 @@ from .. import (
     resourcePath,
 )
 from ..delayable_engine import DelayableEngine
-from ..gui import Window, handleMenuHovered, loadUi, tab_widget_for_tab
+from ..gui import Window, loadUi, tab_widget_for_tab
 from ..gui.fuzzy_search.fuzzy_search import FuzzySearch
 from ..gui.group_tab_widget.grouped_tab_models import GroupTabListItemModel
 from ..logging_config import LoggingConfig
@@ -150,6 +150,10 @@ class LoggerWindow(Window):
         self.setWindowTitle(self.defineWindowTitle())
 
         self.handleChangedUiElements()
+
+        # QMenu's don't show the toolTip of their actions unless asked to
+        for menu in self.findChildren(QMenu):
+            menu.setToolTipsVisible(True)
 
         self.restorePrefs()
 
@@ -318,12 +322,6 @@ class LoggerWindow(Window):
             self.openSetPreferredTextEditorDialog
         )
 
-        # Tooltips - Qt4 doesn't have a ToolTipsVisible method, so we fake it
-        regEx = ".*"
-        menus = self.findChildren(QtWidgets.QMenu, QtCore.QRegularExpression(regEx))
-        for menu in menus:
-            menu.hovered.connect(handleMenuHovered)
-
         # Scroll thru workbox versions
         self.uiShowFirstWorkboxVersionACT.triggered.connect(
             partial(self.change_to_workbox_version_text, prefs.VersionTypes.First)
@@ -396,7 +394,6 @@ class LoggerWindow(Window):
         action.setObjectName('uiCycleModeACT')
         action.setShortcut(QKeySequence(Qt.Modifier.CTRL | Qt.Key.Key_M))
         action.triggered.connect(self.cycleCompleterMode)
-        self.uiCompleterModeMENU.hovered.connect(handleMenuHovered)
 
         # add stylesheet menu options.
         for style_name in stylesheets.stylesheets():
