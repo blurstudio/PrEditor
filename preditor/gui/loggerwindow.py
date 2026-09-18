@@ -132,6 +132,9 @@ class LoggerWindow(Window):
         self._stds = None
         self.uiLogToFileClearACT.setVisible(False)
 
+        # Initial configuration of the faulthandler feature
+        self._faulthandlerPath = None
+
         # Call other setup methods
         self.connectSignals()
         self.createActions()
@@ -293,6 +296,12 @@ class LoggerWindow(Window):
         self.uiResetWarningFiltersACT.triggered.connect(warnings.resetwarnings)
         self.uiLogToFileACT.triggered.connect(self.installLogToFile)
         self.uiLogToFileClearACT.triggered.connect(self.clearLogToFile)
+        self.uiFaulthandlerAllThreadsACT.triggered.connect(
+            partial(self.installFaulthandler, True)
+        )
+        self.uiFaulthandlerCurrentThreadACT.triggered.connect(
+            partial(self.installFaulthandler, False)
+        )
         self.uiClearLogACT.triggered.connect(self.clearLog)
         self.uiSaveConsoleSettingsACT.triggered.connect(
             lambda: self.recordPrefs(manual=True)
@@ -2358,6 +2367,32 @@ class LoggerWindow(Window):
                 config.on_create_callback(inst)
 
         return LoggerWindow._instance
+
+    def installFaulthandler(self, allThreads=True):
+        """Log the traceback of crashes python can not report to a file.
+
+        This uses preditor.debug.faulthandlerToFile(path, allThreads=allThreads).
+        The file is chosen the first time this is called, choosing a different
+        thread option after that re-installs faulthandler using the same file.
+        """
+        if self._faulthandlerPath is None:
+            path = osystem.defaultLogFile('preditorFaulthandler.log')
+            path, _ = QtCompat.QFileDialog.getSaveFileName(
+                self, "Log Crashes to File", path
+            )
+            if not path:
+                return
+            self._faulthandlerPath = os.path.normpath(path)
+
+        # Force the install, faulthandler may already be enabled by the host
+        # application or the PYTHONFAULTHANDLER env var.
+        debug.faulthandlerToFile(
+            self._faulthandlerPath, allThreads=allThreads, force=True
+        )
+
+        threads = 'All Threads' if allThreads else 'Current Thread'
+        self.uiFaulthandlerMENU.setTitle('Crashes Logged to File ({})'.format(threads))
+        print('Crashes logged to: "{}"'.format(self._faulthandlerPath))
 
     def installLogToFile(self):
         """All stdout/stderr output is also appended to this file.

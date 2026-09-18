@@ -918,11 +918,19 @@ Must be at least 1</string>
     <property name="title">
      <string>Debug</string>
     </property>
+    <widget class="QMenu" name="uiFaulthandlerMENU">
+     <property name="title">
+      <string>Log Crashes to File</string>
+     </property>
+     <addaction name="uiFaulthandlerAllThreadsACT"/>
+     <addaction name="uiFaulthandlerCurrentThreadACT"/>
+    </widget>
     <addaction name="separator"/>
     <addaction name="uiResetWarningFiltersACT"/>
     <addaction name="separator"/>
     <addaction name="uiLogToFileACT"/>
     <addaction name="uiLogToFileClearACT"/>
+    <addaction name="uiFaulthandlerMENU"/>
    </widget>
    <widget class="QMenu" name="uiFileMENU">
     <property name="title">
@@ -1338,6 +1346,22 @@ Must be at least 1</string>
   <action name="uiLogToFileClearACT">
    <property name="text">
     <string>Clear Output File</string>
+   </property>
+  </action>
+  <action name="uiFaulthandlerAllThreadsACT">
+   <property name="text">
+    <string>All Threads</string>
+   </property>
+   <property name="toolTip">
+    <string>Use faulthandler to log the traceback of every thread to a file when python crashes in a way it can not report, like a segfault.</string>
+   </property>
+  </action>
+  <action name="uiFaulthandlerCurrentThreadACT">
+   <property name="text">
+    <string>Current Thread</string>
+   </property>
+   <property name="toolTip">
+    <string>Use faulthandler to log the traceback of only the thread that crashed to a file. Otherwise the same as All Threads.</string>
    </property>
   </action>
   <action name="uiAutoCompleteCaseSensitiveACT">
