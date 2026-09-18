@@ -4,6 +4,7 @@ from enum import IntEnum
 from functools import partial
 from pathlib import Path
 
+from Qt.QtCompat import QDragMoveEvent, QMouseEvent
 from Qt.QtCore import QByteArray, QMimeData, QPoint, QRect, Qt
 from Qt.QtGui import QColor, QCursor, QDrag, QPixmap, QRegion
 from Qt.QtWidgets import (
@@ -14,11 +15,9 @@ from Qt.QtWidgets import (
     QSizePolicy,
     QTabBar,
 )
-from Qt.QtCompat import QMouseEvent, QDragMoveEvent
 
 from preditor import osystem
 
-from ..gui import handleMenuHovered
 from ..utils import Truncate
 from ..utils.cute import QtPropertyInit
 
@@ -369,7 +368,7 @@ class DragTabBar(QTabBar):
             return
         menu = QMenu(self)
         menu.setFont(self.window().font())
-        menu.hovered.connect(handleMenuHovered)
+        menu.setToolTipsVisible(True)
 
         grouped_tab = self.parentWidget()
         workbox = grouped_tab.widget(self._context_menu_tab)

@@ -1,27 +1,7 @@
-import re
-
-from Qt.QtGui import QCursor
-from Qt.QtWidgets import QStackedWidget, QToolTip
+from Qt.QtWidgets import QStackedWidget
 
 from .dialog import Dialog  # noqa: F401
 from .window import Window  # noqa: F401
-
-
-def handleMenuHovered(action):
-    """Actions in QMenus which are not descendants of a QToolBar will not show
-    their toolTips, because... Reasons?
-    """
-    # Don't show if it's just the text of the action
-    text = re.sub(r"(?<!&)&(?!&)", "", action.text())
-    text = text.replace('...', '')
-
-    if text == action.toolTip():
-        text = ''
-    else:
-        text = action.toolTip()
-
-    menu = action.parent()
-    QToolTip.showText(QCursor.pos(), text, menu)
 
 
 def loadUi(filename, widget, uiname=''):

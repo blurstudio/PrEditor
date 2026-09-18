@@ -200,6 +200,8 @@ class LazyMenu(QMenu):
     def __init__(self, *args, **kwargs):
         super(LazyMenu, self).__init__(*args, **kwargs)
         self.aboutToShow.connect(self.refresh)
+        # This menu is created after LoggerWindow enables tooltips on its menus
+        self.setToolTipsVisible(True)
 
 
 class HandlerMenu(LazyMenu):
@@ -214,6 +216,7 @@ class HandlerMenu(LazyMenu):
         self.clear()
         # Add the Install sub menu showing all logging_handler plugins
         handler_install = self.addMenu('Install')
+        handler_install.setToolTipsVisible(True)
         for name, cls in plugins.logging_handlers():
             act = handler_install.addAction(name)
             act.triggered.connect(partial(self.install_handler, name))
@@ -350,9 +353,6 @@ class LoggingLevelMenu(LazyMenu):
         level_enum = self.level()
         act = self.menuAction()
         act.setIcon(level_enum.icon)
-        act.setToolTip(
-            "Logger '{}' current level: {}".format(self.logger.name, level_enum.name)
-        )
 
         if self.name == "root":
             self.parent().refresh()

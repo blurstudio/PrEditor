@@ -987,9 +987,6 @@ Must be at least 1</string>
      </property>
     </widget>
     <widget class="QMenu" name="uiCompleterModeMENU">
-     <property name="toolTip">
-      <string/>
-     </property>
      <property name="title">
       <string>Auto-Complete Mode</string>
      </property>
@@ -1271,9 +1268,6 @@ Must be at least 1</string>
    <property name="text">
     <string>Close</string>
    </property>
-   <property name="toolTip">
-    <string>Close</string>
-   </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
    </property>
@@ -1545,9 +1539,6 @@ Must be at least 1</string>
    <property name="iconText">
     <string>Focus to Tab 0</string>
    </property>
-   <property name="toolTip">
-    <string>Focus to Tab 0</string>
-   </property>
   </action>
   <action name="uiCommentToggleACT">
    <property name="text">
@@ -1670,23 +1661,14 @@ Must be at least 1</string>
    <property name="text">
     <string>Choose from monospace fonts</string>
    </property>
-   <property name="toolTip">
-    <string>Choose from monospace fonts</string>
-   </property>
   </action>
   <action name="uiSelectProportionalFontACT">
    <property name="text">
     <string>Choose from proportional fonts</string>
    </property>
-   <property name="toolTip">
-    <string>Choose from proportional fonts</string>
-   </property>
   </action>
   <action name="uiSelectAllFontACT">
    <property name="text">
-    <string>Choose from all fonts</string>
-   </property>
-   <property name="toolTip">
     <string>Choose from all fonts</string>
    </property>
   </action>
