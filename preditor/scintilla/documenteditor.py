@@ -157,6 +157,12 @@ class DocumentEditor(QsciScintilla):
         self.uiCopySpaceIndentationACT.triggered.connect(self.copySpaceIndentation)
         self.addAction(self.uiCopySpaceIndentationACT)
 
+        icontoggle = QIcon(resourcePath('img/comment-edit.png'))
+        self.uiCommentToggleACT = QAction(icontoggle, 'Comment Toggle', self)
+        self.uiCommentToggleACT.setShortcut("Ctrl+/")
+        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
+        self.addAction(self.uiCommentToggleACT)
+
         # Update keyboard shortcuts that come with QsciScintilla
         commands = self.standardCommands()
         # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to
@@ -1409,10 +1415,7 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
-        act = menu.addAction('Comment Toggle')
-        act.triggered.connect(self.commentToggle)
-        act.setShortcut("Ctrl+/")
-        act.setIcon(QIcon(resourcePath('img/comment-edit.png')))
+        menu.addAction(self.uiCommentToggleACT)
 
         menu.addSeparator()
 
