@@ -483,15 +483,18 @@ class ConsolePrEdit(ConsoleBase):
                         self.controller
                         and self.controller.uiHighlightExactCompletionCHK.isChecked()
                     ):
-                        for i in range(completer.completionCount()):
-                            completer.setCurrentRow(i)
-                            curCompletion = completer.currentCompletion()
-                            if prefix == curCompletion:
-                                index = model.index(i, 0)
-                                break
-                            elif prefix == curCompletion.lower():
-                                index = model.index(i, 0)
-                                break
+                        # Find the first completion that equals prefix. Let Qt
+                        # search the model, as checking each row from python is
+                        # slow for large lists.
+                        flags = Qt.MatchFlag.MatchFixedString
+                        if prefix != prefix.lower():
+                            # Handle lowercase options
+                            flags |= Qt.MatchFlag.MatchCaseSensitive
+                        matches = model.match(
+                            index, Qt.ItemDataRole.DisplayRole, prefix, 1, flags
+                        )
+                        if matches:
+                            index = matches[0]
 
                     # Set completer current Row, so finishing the completer will use
                     # correct text
@@ -504,10 +507,7 @@ class ConsolePrEdit(ConsoleBase):
 
                     # show the completer for the rect
                     rect = self.cursorRect()
-                    rect.setWidth(
-                        completer.popup().sizeHintForColumn(0)
-                        + completer.popup().verticalScrollBar().sizeHint().width()
-                    )
+                    rect.setWidth(completer.popupWidth())
                     completer.complete(rect)
 
                 if completer.popup().isVisible():
