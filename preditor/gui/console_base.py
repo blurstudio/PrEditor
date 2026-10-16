@@ -8,6 +8,7 @@ from fractions import Fraction
 from typing import Optional
 
 from Qt import QtCompat
+from Qt.QtCompat import QMouseEvent
 from Qt.QtCore import Property, Qt, QTimer
 from Qt.QtGui import (
     QColor,
@@ -18,7 +19,6 @@ from Qt.QtGui import (
     QTextCursor,
 )
 from Qt.QtWidgets import QAction, QApplication, QTextEdit, QWidget
-from Qt.QtCompat import QMouseEvent
 
 from .. import instance, resourcePath, stream
 from ..constants import StreamType
@@ -38,8 +38,25 @@ class ConsoleBase(QTextEdit):
     logging_formatter = FormatterDescriptor(default=_default_format)
     """Used to format logging messages if logging_handlers doesn't define it."""
 
+    _pending_writes = ()
+    """Plain text writes waiting to be inserted into the document. See `_write`.
+    This class default is replaced by a list in `__init__`, it exists so events
+    received during `super().__init__` don't raise an AttributeError."""
+    _pending_writes_max = 1000
+    """Flush the pending writes once this many writes have been buffered."""
+
     def __init__(self, parent: QWidget, controller: Optional[LoggerWindow] = None):
         super().__init__(parent)
+        # Inserting text into a QTextEdit has a significant fixed cost per insert
+        # so consecutive plain text writes are buffered and inserted in a single
+        # call. See `flush_pending_writes` for details.
+        self._pending_writes = []
+        self._pending_writes_error = False
+        self._flush_timer = QTimer(self)
+        self._flush_timer.setSingleShot(True)
+        self._flush_timer.setInterval(0)
+        self._flush_timer.timeout.connect(self.flush_pending_writes)
+
         self._controller = None
         self._stylesheet_changed_meta = None
         self.controller = controller
@@ -129,6 +146,7 @@ class ConsoleBase(QTextEdit):
 
     def clear(self):
         """clears the text in the editor"""
+        self._pending_writes = []
         super().clear()
         # Ensure the console is refreshed in case the user is clearing the console
         # as part of a blocking call.
@@ -276,6 +294,128 @@ class ConsoleBase(QTextEdit):
             workbox.__goto_line__(lineNum)
             workbox.setFocus()
 
+    def flush_pending_writes(self):
+        """Insert any buffered plain text writes into the document.
+
+        `_write` buffers consecutive plain text writes that share the same
+        formatting instead of inserting them one at a time, because each insert
+        into a QTextEdit has a large fixed cost(layout, syntax highlighting,
+        scroll bar updates, etc). The buffer is flushed when the event loop next
+        runs, when `maybeRepaint` updates the display, before this widget handles
+        any event, and before any of the methods that read or modify the
+        document are called. This ensures that the buffering is not visible
+        outside of this class.
+        """
+        if not self._pending_writes:
+            return
+        msg = "".join(self._pending_writes)
+        self._pending_writes = []
+
+        # Check that we haven't been garbage collected before trying to write.
+        if not QtCompat.isValid(self):
+            return
+
+        super().moveCursor(QTextCursor.MoveOperation.End)
+        charFormat = QTextCharFormat()
+        if self._pending_writes_error:
+            charFormat.setForeground(self.errorMessageColor)
+        else:
+            charFormat.setForeground(self.stdoutColor)
+        self.setCurrentCharFormat(charFormat)
+        super().insertPlainText(msg)
+
+    def _buffer_write(self, msg, to_error):
+        """Add a plain text write to the pending writes buffer."""
+        pending = self._pending_writes
+        if pending and (
+            # The formatting is changing
+            to_error != self._pending_writes_error
+            # Ensure `\r` and `\n` from separate writes are not combined into a
+            # single newline by inserting them in the same call.
+            or (msg[0] == "\n" and pending[-1][-1] == "\r")
+            or len(pending) >= self._pending_writes_max
+        ):
+            self.flush_pending_writes()
+            pending = self._pending_writes
+
+        if not pending:
+            self._pending_writes_error = to_error
+            # Ensure the writes are shown once the event loop is processed
+            self._flush_timer.start()
+        pending.append(msg)
+
+    def _last_line_text(self):
+        """Returns the text of the last line of the document including any
+        pending writes, without flushing the pending writes."""
+        parts = []
+        for text in reversed(self._pending_writes):
+            index = max(text.rfind("\n"), text.rfind("\r"), text.rfind("\u2029"))
+            if index != -1:
+                parts.append(text[index + 1 :])
+                break
+            parts.append(text)
+        else:
+            parts.append(super().document().lastBlock().text())
+        return "".join(reversed(parts))
+
+    # Ensure pending writes are flushed before anything interacts with the
+    # widget or its document so the buffering isn't externally visible.
+    def event(self, event):
+        self.flush_pending_writes()
+        return super().event(event)
+
+    def viewportEvent(self, event):
+        self.flush_pending_writes()
+        return super().viewportEvent(event)
+
+    def append(self, text):
+        self.flush_pending_writes()
+        super().append(text)
+
+    def document(self):
+        self.flush_pending_writes()
+        return super().document()
+
+    def find(self, *args, **kwargs):
+        self.flush_pending_writes()
+        return super().find(*args, **kwargs)
+
+    def insertHtml(self, text):
+        self.flush_pending_writes()
+        super().insertHtml(text)
+
+    def insertPlainText(self, text):
+        self.flush_pending_writes()
+        super().insertPlainText(text)
+
+    def moveCursor(self, *args, **kwargs):
+        self.flush_pending_writes()
+        super().moveCursor(*args, **kwargs)
+
+    def setHtml(self, text):
+        self._pending_writes = []
+        super().setHtml(text)
+
+    def setPlainText(self, text):
+        self._pending_writes = []
+        super().setPlainText(text)
+
+    def setTextCursor(self, cursor):
+        self.flush_pending_writes()
+        super().setTextCursor(cursor)
+
+    def textCursor(self):
+        self.flush_pending_writes()
+        return super().textCursor()
+
+    def toHtml(self):
+        self.flush_pending_writes()
+        return super().toHtml()
+
+    def toPlainText(self):
+        self.flush_pending_writes()
+        return super().toPlainText()
+
     @classmethod
     def getIndentForCodeTracebackLine(cls, msg):
         """Determine the indentation to recreate traceback lines
@@ -391,13 +531,15 @@ class ConsoleBase(QTextEdit):
         `self.controller.uiRepaintProcessEventsOccasionallyCHK` can be disabled.
         The repaint delay is controlled by `self.controller.repaintConsolesDelay`.
         """
-        if not self.controller:
+        controller = self.controller
+        if not controller:
             return
-        if not self.controller.uiRepaintConsolesOnWriteCHK.isChecked():
+        if not controller.uiRepaintConsolesOnWriteCHK.isChecked():
             return
 
         if force:
-            if self.controller.uiRepaintProcessEventsOccasionallyCHK.isChecked():
+            self.flush_pending_writes()
+            if controller.uiRepaintProcessEventsOccasionallyCHK.isChecked():
                 QApplication.processEvents()
                 self._last_process_events_time = time.time_ns()
                 self._last_repaint_time = self._last_process_events_time
@@ -411,9 +553,10 @@ class ConsoleBase(QTextEdit):
         # as much as possible
         current_time = time.time_ns()
         if (
-            self.controller.uiRepaintProcessEventsOccasionallyCHK.isChecked()
+            controller.uiRepaintProcessEventsOccasionallyCHK.isChecked()
             and current_time - self._last_process_events_time > 5 * 1e9  # seconds
         ):
+            self.flush_pending_writes()
             # NOTE: On windows 10 this seems to only need called once after the
             # app looses focus for the repaint to work on each call. However if
             # the app regains focus while processEvents is called it will require
@@ -422,11 +565,9 @@ class ConsoleBase(QTextEdit):
             QApplication.processEvents()
             self._last_process_events_time = time.time_ns()
             self._last_repaint_time = self._last_process_events_time
-        elif (
-            current_time - self._last_repaint_time
-            > self.controller.repaintConsolesDelay
-        ):
+        elif current_time - self._last_repaint_time > controller.repaintConsolesDelay:
             # Enough time has elapsed, repaint the widget and reset the delay
+            self.flush_pending_writes()
             self.repaint()
             self._last_repaint_time = time.time_ns()
 
@@ -724,14 +865,6 @@ class ConsoleBase(QTextEdit):
         else:
             doHyperlink = False
             sepPreditorTrace = False
-        self.moveCursor(QTextCursor.MoveOperation.End)
-
-        charFormat = QTextCharFormat()
-        if not to_error:
-            charFormat.setForeground(self.stdoutColor)
-        else:
-            charFormat.setForeground(self.errorMessageColor)
-        self.setCurrentCharFormat(charFormat)
 
         # If showing Error Hyperlinks... Sometimes (when a syntax error, at least),
         # the last File-Info line of a traceback is issued in multiple messages
@@ -739,10 +872,17 @@ class ConsoleBase(QTextEdit):
         # newline, so our normal string checks search won't work. Instead, we'll
         # manually reconstruct the line. If msg is a newline, grab that current line
         # and check it. If it matches,proceed using that line as msg
-        cursor = self.textCursor()
+        cursor = None
         info = None
 
-        if doHyperlink and msg == '\n':
+        # Only flush the pending writes if the current line could be a File-Info
+        # line. Every `print` call ends with a separate newline write.
+        if (
+            doHyperlink
+            and msg == '\n'
+            and self.parseErrorHyperLinkInfo(self._last_line_text())
+        ):
+            cursor = self._end_cursor(to_error)
             cursor.select(QTextCursor.SelectionType.BlockUnderCursor)
             line = cursor.selectedText()
 
@@ -811,6 +951,8 @@ class ConsoleBase(QTextEdit):
             msg = msg.replace("\n\n", "\n")
 
         if info and doHyperlink and not isConsolePrEdit:
+            if cursor is None:
+                cursor = self._end_cursor(to_error)
             fileStart = info.get("fileStart")
             fileEnd = info.get("fileEnd")
             lineNum = info.get("lineNum")
@@ -843,11 +985,25 @@ class ConsoleBase(QTextEdit):
             fmt.setToolTip('')
             cursor.insertText(msg[fileEnd:], fmt)
         else:
-            # Non-hyperlink output
-            self.insertPlainText(msg)
+            # Non-hyperlink output is buffered and inserted by flush_pending_writes
+            self._buffer_write(msg, to_error)
 
         # Update the display of the console if enough time has passed and enabled
         self.maybeRepaint()
+
+    def _end_cursor(self, to_error):
+        """Flush pending writes, move the cursor to the end of the document,
+        set the current char format for stdout or stderr and return the cursor.
+        """
+        self.moveCursor(QTextCursor.MoveOperation.End)
+
+        charFormat = QTextCharFormat()
+        if not to_error:
+            charFormat.setForeground(self.stdoutColor)
+        else:
+            charFormat.setForeground(self.errorMessageColor)
+        self.setCurrentCharFormat(charFormat)
+        return self.textCursor()
 
     # These Qt Properties can be customized using style sheets.
     commentColor = QtPropertyInit('_commentColor', QColor(0, 206, 52))

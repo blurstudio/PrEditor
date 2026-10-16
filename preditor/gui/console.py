@@ -135,6 +135,7 @@ class ConsolePrEdit(ConsoleBase):
 
     def clear(self):
         """clears the text in the editor"""
+        self._pending_writes = []
         super(ConsoleBase, self).clear()
         self.startInputLine()
         # Note: Don't use the regular `super()` call here as it would result
