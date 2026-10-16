@@ -1,13 +1,14 @@
 from __future__ import absolute_import
 
+import heapq
 import inspect
 import re
 import sys
 from enum import Enum
 
 from Qt.QtCore import QRegularExpression, QSortFilterProxyModel, QStringListModel, Qt
-from Qt.QtGui import QCursor, QTextCursor
-from Qt.QtWidgets import QCompleter, QToolTip
+from Qt.QtGui import QCursor, QFontMetrics, QTextCursor
+from Qt.QtWidgets import QCompleter, QStyle, QToolTip
 
 
 class CompleterMode(Enum):
@@ -52,6 +53,9 @@ class PythonCompleter(QCompleter):
 
         # update this completer
         self.setWidget(widget)
+        # All items use the same font, so let the popup skip measuring every row
+        # when laying out large lists.
+        self.popup().setUniformItemSizes(True)
 
         self.setCaseSensitive()
         self.setCompleterMode()
@@ -135,6 +139,27 @@ class PythonCompleter(QCompleter):
     def hideDocumentation(self):
         QToolTip.hideText()
 
+    def popupWidth(self, sampleCount=20):
+        """Returns the width needed to show the longest completions in the popup.
+
+        This is much faster than `popup().sizeHintForColumn(0)` for large lists
+        as that measures every row using the item delegate. Instead only the
+        `sampleCount` longest completions are measured.
+        """
+        popup = self.popup()
+        model = self.completionModel()
+        completions = (model.index(row, 0).data() for row in range(model.rowCount()))
+        longest = heapq.nlargest(sampleCount, completions, key=len)
+
+        metrics = QFontMetrics(popup.font())
+        textWidth = max((metrics.horizontalAdvance(t) for t in longest), default=0)
+        # Match the text margins QStyledItemDelegate adds on each side of the text.
+        margin = popup.style().pixelMetric(
+            QStyle.PixelMetric.PM_FocusFrameHMargin, None, popup
+        )
+        scrollBarWidth = popup.verticalScrollBar().sizeHint().width()
+        return textWidth + (margin + 1) * 2 + scrollBarWidth
+
     def refreshList(self, scope=None):
         """refreshes the string list based on the cursor word"""
         object, prefix = self.currentObject(scope)
@@ -149,22 +174,28 @@ class PythonCompleter(QCompleter):
         except AttributeError:
             keys = []
         keys.sort()
-        self.model().sourceModel().setStringList(keys)
+        # Resetting the model can get expensive for large lists, this is called
+        # on every key press while the popup is visible, but the keys only change
+        # when the object being completed changes.
+        sourceModel = self.model().sourceModel()
+        if keys != sourceModel.stringList():
+            sourceModel.setStringList(keys)
 
         regExStr = ""
         if self._completerMode == CompleterMode.STARTS_WITH:
-            regExStr = "^{}.*".format(prefix)
+            regExStr = f"^{QRegularExpression.escape(prefix)}"
         if self._completerMode == CompleterMode.OUTER_FUZZY:
-            regExStr = ".*{}.*".format(prefix)
+            regExStr = QRegularExpression.escape(prefix)
         if self._completerMode == CompleterMode.FULL_FUZZY:
-            regExStr = ".*".join(prefix)
+            regExStr = ".*".join(QRegularExpression.escape(c) for c in prefix)
 
         regexp = QRegularExpression(regExStr)
         if self._sensitivity == Qt.CaseSensitivity.CaseInsensitive:
             regexp.setPatternOptions(
                 QRegularExpression.PatternOption.CaseInsensitiveOption
             )
-        self.filterModel.setFilterRegularExpression(regexp)
+        if regexp != self.filterModel.filterRegularExpression():
+            self.filterModel.setFilterRegularExpression(regexp)
 
     def clear(self):
         self.popup().hide()
