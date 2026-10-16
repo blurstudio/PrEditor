@@ -1,5 +1,6 @@
 from __future__ import absolute_import, print_function
 
+import os
 import sys
 import traceback
 
@@ -73,14 +74,24 @@ class PreditorExceptHook(object):
         A newline is printed pre-traceback to ensure the first line of output
         is not printed in-line with the prompt. This also provides visual
         separation between tracebacks, when received consecutively.
+
+        Checks the env var `PREDITOR_WRAP_TB`, if set it will split on commas and
+        print the first item to stderr before the traceback and the second item after
+        the traceback is handled on newlines.
         """
         # Print the newline to stderr so it will show up in the same stream as
         # the traceback will be printed to.
         print("", file=sys.stderr)
+        fixes = os.getenv("PREDITOR_WRAP_TB", "").split(",", 2)
+        if len(fixes):
+            print(fixes[0], file=sys.stderr)
         try:
             self.base_excepthook(*exc_info)
         except (TypeError, NameError):
             sys.__excepthook__(*exc_info)
+        finally:
+            if len(fixes) > 1:
+                print(fixes[1], file=sys.stderr)
 
     @classmethod
     def call_callbacks(cls, *exc_info):

@@ -38,6 +38,13 @@ blocks([...](https://docs.python.org/3/glossary.html#term-...)), use the workbox
 loggers, and tracebacks(not using stderr). This can be used in various widgets to
 show selected output. See [examples/output_console.py](examples/output_console.py)
 for an example of the various modes.
+* **Traceback markers:** Set the `PREDITOR_WRAP_TB` environment variable to
+`prefix,suffix` to print those lines to stderr before and after every traceback
+handled by PrEditor's excepthook. The traceback is still raised normally. This
+makes tracebacks easy to find or parse in log files, for example:
+    ```
+    PREDITOR_WRAP_TB=--- TRACEBACK START ---,--- TRACEBACK END ---
+    ```
 * All code is run in `__main__`. In code you can add objects to it for inspection in PrEditor.
 * `Ctrl + Shift + PgUp/PgDown` changes focus between the console and workbox.
 * `Ctrl + Alt + Shift + PgUp/PgDown` changes focus and copies the current prompt
