@@ -101,72 +101,28 @@ class CodeHighlighter(QSyntaxHighlighter):
         if not self.enabled():
             return
 
-        # Reset the highlight spans for this text block
-        self.spans = []
-
-        if not self.isConsoleMode() or str(text).startswith('>>>'):
-
-            # We only have a result pattern if the parent has an attr "outputPrompt", so
-            # only proceed if we have been able to define self._resultPattern.
-            if self._resultPattern:
-                self.highlightText(
-                    text,
-                    self._resultPattern,
-                    self._resultFormat,
-                )
-
-            # Format the strings
-            self.highlightText(
-                text,
-                self._stringPattern,
-                self._stringFormat,
-            )
-
-            # format the comments
-            self.highlightText(
-                text,
-                self._commentPattern,
-                self._commentFormat,
-            )
-
-            # Format the keywords
-            self.highlightText(
-                text,
-                self._keywordPattern,
-                self._keywordFormat,
-            )
-
-    def highlightText(self, text, expr, format):
-        """Highlights a text group with an expression and format
-
-        Args:
-            text (str): text to highlight
-            expr (re.compile): search parameter
-            format (QTextCharFormat): formatting rule
-        """
-        if expr is None or not text:
+        if self.isConsoleMode() and not text.startswith('>>>'):
             return
 
-        # highlight all the given matches to the expression in the text
-        for match in expr.finditer(text):
-            match_span = match.span()
-            start, end = match_span
-            length = end - start
+        pattern = self._highlightPattern
+        if pattern is None:
+            pattern = self.defineHighlightPattern()
 
-            # Determine if the current highlight is within an already determined
-            # highlight, if so, let's block it.
-            blocked = False
-            for span in self.spans:
-                if start > span[0] and start < span[-1]:
-                    blocked = True
-                    break
+        # Map the named groups of the combined pattern to their formats
+        formats = {
+            "result": self._resultFormat,
+            "string": self._stringFormat,
+            "comment": self._commentFormat,
+            "keyword": self._keywordFormat,
+        }
 
-            if not blocked:
-                self.setFormat(start, length, format)
-
-                # Append the current span to self.spans, so we can later block
-                # new highlights which should be blocked
-                self.spans.append(match_span)
+        # The combined pattern finds the leftmost highlight first and continues
+        # searching after it. This prevents highlighting text inside of an
+        # existing highlight, for example a keyword inside a string or comment.
+        setFormat = self.setFormat
+        for match in pattern.finditer(text):
+            start, end = match.span()
+            setFormat(start, end - start, formats[match.lastgroup])
 
     def isConsoleMode(self):
         """checks to see if this highlighter is in console mode"""
@@ -267,12 +223,40 @@ class CodeHighlighter(QSyntaxHighlighter):
         """Define the regex pattern to use for comment"""
         pattern = "|".join(self._comments)
         self._commentPattern = re.compile(pattern)
+        self._highlightPattern = None
+
+    def defineHighlightPattern(self):
+        """Combine the result, string, comment and keyword patterns into a
+        single regex pattern with a named group for each. Searching once with
+        this pattern is much faster than searching for each pattern separately.
+
+        Returns:
+            re.Pattern: The combined pattern, also stored on this instance.
+        """
+        parts = []
+        for name, expr in (
+            ("result", self._resultPattern),
+            ("string", self._stringPattern),
+            ("comment", self._commentPattern),
+            ("keyword", self._keywordPattern),
+        ):
+            # Patterns that match empty text would prevent the other patterns
+            # from matching so skip them, they wouldn't highlight anything.
+            if expr is not None and expr.pattern:
+                parts.append(f"(?P<{name}>{expr.pattern})")
+
+        # If there is nothing to highlight, use a pattern that never matches.
+        self._highlightPattern = re.compile("|".join(parts) or "(?!)")
+        return self._highlightPattern
 
     def defineKeywordPattern(self):
         """Define the regex pattern to use for keyword"""
-        keywords = [r"\b{}\b".format(word) for word in self._keywords]
-        pattern = "|".join(keywords)
+        pattern = ""
+        if self._keywords:
+            keywords = "|".join(self._keywords)
+            pattern = rf"\b(?:{keywords})\b"
         self._keywordPattern = re.compile(pattern)
+        self._highlightPattern = None
 
     def defineResultPattern(self):
         """Define the regex pattern to use for results"""
@@ -281,9 +265,11 @@ class CodeHighlighter(QSyntaxHighlighter):
             prompt = parent.outputPrompt()
             pattern = '{}[^\n]*'.format(prompt)
             self._resultPattern = re.compile(pattern)
+            self._highlightPattern = None
 
     def defineStringPattern(self):
         """Define the regex pattern to use for strings."""
         lst = ["""{0}[^{0}\n]*{0}""".format(st) for st in self._strings]
         pattern = "|".join(lst)
         self._stringPattern = re.compile(pattern)
+        self._highlightPattern = None
