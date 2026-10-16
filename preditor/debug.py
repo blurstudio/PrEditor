@@ -53,18 +53,21 @@ def logToFile(path, stdout=True, stderr=True, useOldStd=True, clearLog=True):
     sys.version info when stdout is True.
 
     Args:
-        path (str or os.PathLike): File path to log output to.
-
+        path (str or os.PathLike): File path to log output to. If None is explicitly
+            passed the path returned by `preditor.osystem.defaultLogFile()` is used.
         stdout (bool): If True(default) override sys.stdout.
-
         stderr (bool): If True(default) override sys.stderr.
-
         useOldStd (bool): If True, messages will be written to the FileLogger
             and the previous sys.stdout/sys.stderr.
 
         clearLog (bool): If True(default) clear the log file when this command is
         called.
     """
+    if path is None:
+        from . import osystem
+
+        path = osystem.defaultLogFile()
+
     if stderr:
         sys.stderr = FileLogger(sys.stderr, path, useOldStd, clearLog=clearLog)
     if stdout:
@@ -99,14 +102,13 @@ def faulthandlerToFile(path, allThreads=True, clearLog=True, force=False):
     `PYTHONFAULTHANDLER` env var or `python -X faulthandler`.
 
     Args:
-        path (str or os.PathLike): File path to write faulthandler output to.
-
+        path (str or os.PathLike): File path to write faulthandler output to. If
+            None is explicitly passed the path returned by
+            `preditor.osystem.defaultLogFile('preditorFaulthandler.log')` is used.
         allThreads (bool): If True(default) dump the traceback of all threads,
             otherwise only the thread that crashed.
-
         clearLog (bool): If True(default) clear the log file when this command
             is called, otherwise append to the existing contents.
-
         force (bool): If True, install faulthandler even if it was already
             enabled. Any file opened by a previous call is closed.
 
@@ -120,6 +122,11 @@ def faulthandlerToFile(path, allThreads=True, clearLog=True, force=False):
     if faulthandler.is_enabled() and not force:
         logger.debug('faulthandler is already enabled, not logging to: %s', path)
         return False
+
+    if path is None:
+        from . import osystem
+
+        path = osystem.defaultLogFile('preditorFaulthandler.log')
 
     # Newline forces windows to write unix style newlines
     output = open(path, 'w' if clearLog else 'a', newline="\n", encoding="utf-8")
