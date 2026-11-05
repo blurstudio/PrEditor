@@ -55,6 +55,7 @@ class FindFiles(QWidget):
         """Called to make this widget ready for the user to interact with."""
         self.show()
         self.uiFindTXT.setFocus()
+        self.uiFindTXT.selectAll()
 
     @Slot()
     def find(self):
