@@ -182,6 +182,11 @@ class LoggerWindow(Window):
             self.uiConsoleTXT.clearToLastPrompt
         )
 
+        # The Workbox menu is built from the current workbox each time it's shown.
+        # Make sure the menu isn't empty before then so it can be opened.
+        self.uiWorkboxMENU.addAction('No edit options for this workbox')
+        self.uiWorkboxMENU.aboutToShow.connect(self.update_workbox_menu)
+
         self.uiRestartACT.triggered.connect(self.restartLogger)
         self.uiCloseLoggerACT.triggered.connect(self.closeLoggerByAction)
 
@@ -514,6 +519,29 @@ class LoggerWindow(Window):
     def current_workbox(self):
         """Returns the current workbox for the current tab group."""
         return self.uiWorkboxTAB.current_groups_widget()
+
+    def update_workbox_menu(self):
+        """Rebuild the Workbox menu with the current workbox's edit actions.
+
+        The actions are provided by the workbox editor plugin's
+        `__populate_edit_menu__` method so each editor can expose the same
+        options as its right click menu.
+        """
+        menu = self.uiWorkboxMENU
+        # QMenu.clear doesn't delete sub-menus created by menu.addMenu
+        for act in menu.actions():
+            submenu = act.menu()
+            if submenu is not None and submenu.parent() is menu:
+                submenu.deleteLater()
+        menu.clear()
+
+        workbox = self.current_workbox()
+        if workbox is not None:
+            workbox.__populate_edit_menu__(menu)
+
+        if menu.isEmpty():
+            act = menu.addAction('No edit options for this workbox')
+            act.setEnabled(False)
 
     @classmethod
     def name_for_workbox(cls, workbox):

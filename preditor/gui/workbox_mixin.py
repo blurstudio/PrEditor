@@ -209,6 +209,24 @@ class WorkboxMixin(object):
     def __close__(self):
         """Called just before the LoggerWindow is closed to allow for workbox cleanup"""
 
+    def __populate_edit_menu__(self, menu):
+        """Add actions for editing this workbox's text to menu.
+
+        The LoggerWindow calls this every time its Workbox menu is about to be
+        shown, after clearing the menu. Editor plugins can override this to
+        expose the same kind of options shown in their right click menu. The
+        default adds nothing, which leaves the menu disabled.
+
+        The menu is not part of this workbox. Actions created for it, should be
+        parented to the menu so they are cleaned up when the menu is cleared.
+        Actions with a shortcut should either be existing actions added to this
+        workbox, or use `Qt.ShortcutContext.WidgetShortcut` so the menu does
+        not trigger the shortcut when this workbox doesn't have focus.
+
+        Args:
+            menu (QMenu): The menu to add actions to.
+        """
+
     def __console__(self):
         """Returns the PrEditor console to code is executed in if set."""
         try:
