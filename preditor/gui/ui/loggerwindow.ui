@@ -1146,8 +1146,14 @@ Must be at least 1</string>
     <addaction name="uiShowNextWorkboxVersionACT"/>
     <addaction name="uiShowLastWorkboxVersionACT"/>
    </widget>
+   <widget class="QMenu" name="uiWorkboxMENU">
+    <property name="title">
+     <string>Workbox</string>
+    </property>
+   </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="uiEditMENU"/>
+   <addaction name="uiWorkboxMENU"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="uiRunMENU"/>
    <addaction name="uiOptionsMENU"/>
