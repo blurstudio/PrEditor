@@ -63,9 +63,6 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.clear()
         self.__set_last_saved_text__(self.__text__())
 
-    def __comment_toggle__(self):
-        self.commentToggle()
-
     def __copy_indents_as_spaces__(self):
         return self.copyIndentsAsSpaces
 
