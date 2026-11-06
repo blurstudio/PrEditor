@@ -1124,8 +1124,6 @@ Must be at least 1</string>
      <addaction name="separator"/>
      <addaction name="uiTabLastACT"/>
     </widget>
-    <addaction name="uiCommentToggleACT"/>
-    <addaction name="separator"/>
     <addaction name="uiGetPrevCmdACT"/>
     <addaction name="uiGetNextCmdACT"/>
     <addaction name="separator"/>
@@ -1148,8 +1146,14 @@ Must be at least 1</string>
     <addaction name="uiShowNextWorkboxVersionACT"/>
     <addaction name="uiShowLastWorkboxVersionACT"/>
    </widget>
+   <widget class="QMenu" name="uiWorkboxMENU">
+    <property name="title">
+     <string>Workbox</string>
+    </property>
+   </widget>
    <addaction name="uiFileMENU"/>
    <addaction name="uiEditMENU"/>
+   <addaction name="uiWorkboxMENU"/>
    <addaction name="uiDebugMENU"/>
    <addaction name="uiRunMENU"/>
    <addaction name="uiOptionsMENU"/>
@@ -1538,14 +1542,6 @@ Must be at least 1</string>
    </property>
    <property name="iconText">
     <string>Focus to Tab 0</string>
-   </property>
-  </action>
-  <action name="uiCommentToggleACT">
-   <property name="text">
-    <string>Comment Toggle</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+/</string>
    </property>
   </action>
   <action name="uiSetWorkboxEditorACT">

@@ -13,7 +13,7 @@ from pathlib import Path
 import charset_normalizer
 import Qt as Qt_py
 from Qt.QtCore import Qt, Signal
-from Qt.QtWidgets import QMessageBox, QStackedWidget
+from Qt.QtWidgets import QMessageBox, QStackedWidget, QTabWidget, QWidget
 
 from ..prefs import (
     VersionTypes,
@@ -209,8 +209,23 @@ class WorkboxMixin(object):
     def __close__(self):
         """Called just before the LoggerWindow is closed to allow for workbox cleanup"""
 
-    def __comment_toggle__(self):
-        raise NotImplementedError("Mixin method not overridden.")
+    def __populate_edit_menu__(self, menu):
+        """Add actions for editing this workbox's text to menu.
+
+        The LoggerWindow calls this every time its Workbox menu is about to be
+        shown, after clearing the menu. Editor plugins can override this to
+        expose the same kind of options shown in their right click menu. The
+        default adds nothing, which leaves the menu disabled.
+
+        The menu is not part of this workbox. Actions created for it, should be
+        parented to the menu so they are cleaned up when the menu is cleared.
+        Actions with a shortcut should either be existing actions added to this
+        workbox, or use `Qt.ShortcutContext.WidgetShortcut` so the menu does
+        not trigger the shortcut when this workbox doesn't have focus.
+
+        Args:
+            menu (QMenu): The menu to add actions to.
+        """
 
     def __console__(self):
         """Returns the PrEditor console to code is executed in if set."""
@@ -1139,3 +1154,150 @@ class WorkboxMixin(object):
             return '__exec_selected__'
         else:
             return False
+
+
+def _lazy_method(name, func):
+    """Call `func` on a LazyWorkbox, or `name` on its editor once it's created."""
+
+    def method(self, *args, **kwargs):
+        if self._lazy_editor is not None:
+            return getattr(self._lazy_editor, name)(*args, **kwargs)
+        return func(self, *args, **kwargs)
+
+    method.__name__ = name
+    return method
+
+
+class LazyWorkbox(QWidget):
+    """A cheap stand-in for a workbox tab that has not been shown yet.
+
+    Creating editors is slow, so restoring prefs adds these instead. It answers
+    the WorkboxMixin methods that only need the workbox's state, the same way an
+    editor that hasn't been shown yet would. Showing it, or using anything else,
+    has its GroupedTabWidget create the real editor and swap it into the tab.
+    The editor gets the LoggerWindow's current options when it's created, so
+    option setters are ignored here. Old references to this object keep working
+    by forwarding to the editor.
+    """
+
+    def __init__(
+        self,
+        parent=None,
+        core_name=None,
+        workbox_id=None,
+        filename=None,
+        backup_file=None,
+        tempfile=None,
+    ):
+        super(LazyWorkbox, self).__init__(parent=parent)
+        self._lazy_editor = None
+        self._is_loaded = False
+        self.core_name = core_name
+        self._workbox_id = workbox_id or self.__create_workbox_id__(core_name)
+        self._filename = filename
+        self._backup_file = backup_file
+        self._tempfile = tempfile
+        self._last_saved_text = ""
+        self._last_workbox_name = None
+        self._changed_by_instance = False
+        self._orphaned_by_instance = False
+        self._changed_saved = False
+
+    __create_workbox_id__ = vars(WorkboxMixin)['__create_workbox_id__']
+
+    def __show__(self):
+        self.__lazy_editor__().__show__()
+
+    def __getattr__(self, name):
+        # Only called for attributes this class doesn't have.
+        if name.startswith('_') and not name.endswith('__'):
+            raise AttributeError(name)
+        return getattr(self.__lazy_editor__(), name)
+
+    def __lazy_editor__(self):
+        """Replace this placeholder in its tab with a real editor and return it."""
+        if self._lazy_editor is not None:
+            return self._lazy_editor
+
+        tab_widget = self.__tab_widget__()
+        index = tab_widget.indexOf(self)
+        editor, title = tab_widget.default_tab(
+            tab_widget.tabText(index),
+            prefs=dict(
+                workbox_id=self._workbox_id,
+                filename=self._filename,
+                backup_file=self._backup_file,
+                tempfile=self._tempfile,
+                orphaned_by_instance=self._orphaned_by_instance,
+            ),
+        )
+        editor.__set_changed_by_instance__(self._changed_by_instance)
+
+        had_focus = self.hasFocus()
+        current = tab_widget.currentIndex()
+        tab_widget.setUpdatesEnabled(False)
+        blocked = tab_widget.blockSignals(True)
+        try:
+            tab_widget.insertTab(index, editor, title)
+            # Needs the tab to exist to look up the current name.
+            editor.__set_last_workbox_name__(self._last_workbox_name)
+            # Otherwise removing the current tab briefly shows its neighbor
+            # while the tabs are mid-update, which may update the tab colors.
+            if index == current:
+                tab_widget.setCurrentIndex(index)
+            # Skip OneTabWidget.removeTab, it refreshes every group's tabs and
+            # this can run while a group is half removed, ie closing a group.
+            QTabWidget.removeTab(tab_widget, index + 1)
+        finally:
+            tab_widget.blockSignals(blocked)
+            tab_widget.setUpdatesEnabled(True)
+        tab_widget.tabBar().updateColorsAndToolTips()
+
+        self.setParent(None)
+        self._lazy_editor = editor
+        if had_focus:
+            editor.setFocus()
+        return editor
+
+
+# State-only methods are shared with WorkboxMixin.
+for _name in (
+    '__workbox_id__',
+    '__set_workbox_id__',
+    '__filename__',
+    '__set_filename__',
+    '__backup_file__',
+    '__set_backup_file__',
+    '__tempfile__',
+    '__set_tempfile__',
+    '__changed_by_instance__',
+    '__set_changed_by_instance__',
+    '__orphaned_by_instance__',
+    '__set_orphaned_by_instance__',
+    '__determine_been_changed_by_instance__',
+    '__last_saved_text__',
+    '__last_workbox_name__',
+    '__set_last_workbox_name__',
+    '__workbox_name__',
+    '__tab_widget__',
+    '__group_tab_index__',
+    '__is_dirty__',
+    '__is_missing_linked_file__',
+    '__file_monitoring_enabled__',
+    '__set_file_monitoring_enabled__',
+    '__save_prefs__',
+):
+    setattr(LazyWorkbox, _name, _lazy_method(_name, vars(WorkboxMixin)[_name]))
+# Options are applied when the editor is created, so ignore them until then.
+for _name in (
+    '__close__',
+    '__set_auto_complete_enabled__',
+    '__set_copy_indents_as_spaces__',
+    '__set_font__',
+    '__set_indentations_use_tabs__',
+    '__set_margins_font__',
+):
+    setattr(LazyWorkbox, _name, _lazy_method(_name, lambda self, *args: None))
+# An editor's text is empty until it's shown.
+LazyWorkbox.__text__ = _lazy_method('__text__', lambda self: "")
+LazyWorkbox.__font__ = _lazy_method('__font__', QWidget.font)

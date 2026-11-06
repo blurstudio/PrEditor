@@ -182,6 +182,11 @@ class LoggerWindow(Window):
             self.uiConsoleTXT.clearToLastPrompt
         )
 
+        # The Workbox menu is built from the current workbox each time it's shown.
+        # Make sure the menu isn't empty before then so it can be opened.
+        self.uiWorkboxMENU.addAction('No edit options for this workbox')
+        self.uiWorkboxMENU.aboutToShow.connect(self.update_workbox_menu)
+
         self.uiRestartACT.triggered.connect(self.restartLogger)
         self.uiCloseLoggerACT.triggered.connect(self.closeLoggerByAction)
 
@@ -290,8 +295,6 @@ class LoggerWindow(Window):
         self.boxesOrphanedViaInstance = {}
 
         self.uiFocusNameACT.triggered.connect(self.show_focus_name)
-
-        self.uiCommentToggleACT.triggered.connect(self.comment_toggle)
 
         self.uiSpellCheckEnabledCHK.toggled.connect(self.setSpellCheckEnabled)
         self.uiIndentationsTabsCHK.toggled.connect(self.updateIndentationsUseTabs)
@@ -513,12 +516,32 @@ class LoggerWindow(Window):
             title = plugin.updateWindowTitle(title)
         return title
 
-    def comment_toggle(self):
-        self.current_workbox().__comment_toggle__()
-
     def current_workbox(self):
         """Returns the current workbox for the current tab group."""
         return self.uiWorkboxTAB.current_groups_widget()
+
+    def update_workbox_menu(self):
+        """Rebuild the Workbox menu with the current workbox's edit actions.
+
+        The actions are provided by the workbox editor plugin's
+        `__populate_edit_menu__` method so each editor can expose the same
+        options as its right click menu.
+        """
+        menu = self.uiWorkboxMENU
+        # QMenu.clear doesn't delete sub-menus created by menu.addMenu
+        for act in menu.actions():
+            submenu = act.menu()
+            if submenu is not None and submenu.parent() is menu:
+                submenu.deleteLater()
+        menu.clear()
+
+        workbox = self.current_workbox()
+        if workbox is not None:
+            workbox.__populate_edit_menu__(menu)
+
+        if menu.isEmpty():
+            act = menu.addAction('No edit options for this workbox')
+            act.setEnabled(False)
 
     @classmethod
     def name_for_workbox(cls, workbox):
@@ -604,7 +627,8 @@ class LoggerWindow(Window):
         if show and workbox:
             workbox.__show__()
 
-        return workbox
+        # Return the real editor if a LazyWorkbox was replaced by one.
+        return getattr(workbox, '_lazy_editor', None) or workbox
 
     def workbox_for_id(self, workbox_id, show=False, visible=False):
         """Used to find a workbox for a given id.
@@ -632,7 +656,8 @@ class LoggerWindow(Window):
                 group = self.uiWorkboxTAB.widget(grp_idx)
                 group.setCurrentIndex(tab_idx)
 
-        return workbox
+        # Return the real editor if a LazyWorkbox was replaced by one.
+        return getattr(workbox, '_lazy_editor', None) or workbox
 
     def run_first_workbox(self):
         workbox = self.uiWorkboxTAB.widget(0).widget(0)
@@ -2232,6 +2257,15 @@ class LoggerWindow(Window):
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsCHK.isChecked()
             )
+
+    def applyWorkboxOptions(self, workbox):
+        """Apply the current workbox options to a newly created workbox."""
+        workbox.__set_auto_complete_enabled__(
+            self.uiWorkboxAutoCompleteEnabledCHK.isChecked()
+        )
+        workbox.__set_copy_indents_as_spaces__(self.uiCopyTabsToSpacesCHK.isChecked())
+        workbox.__set_indentations_use_tabs__(self.uiIndentationsTabsCHK.isChecked())
+        self.setWorkboxFontBasedOnConsole(workbox)
 
     @Slot()
     def updateRepaintDelay(self):

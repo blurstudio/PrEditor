@@ -63,9 +63,6 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         self.clear()
         self.__set_last_saved_text__(self.__text__())
 
-    def __comment_toggle__(self):
-        self.commentToggle()
-
     def __copy_indents_as_spaces__(self):
         return self.copyIndentsAsSpaces
 
@@ -298,8 +295,11 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
     def setSearchText(self, txt):
         self._searchText = txt
 
-    def showMenu(self, pos):
-        menu = super(WorkboxWidget, self).showMenu(pos, popup=False)
+    def __populate_edit_menu__(self, menu):
+        self.populateEditMenu(menu)
+
+    def populateEditMenu(self, menu):
+        super(WorkboxWidget, self).populateEditMenu(menu)
         menu.addSeparator()
         submenu = menu.addMenu('Options')
         act = submenu.addAction('Toggle end line visibility')
@@ -311,5 +311,3 @@ class WorkboxWidget(WorkboxMixin, DocumentEditor):
         act.setCheckable(True)
         act.setChecked(self.showWhitespaces())
         act.triggered.connect(self.setShowWhitespaces)
-
-        menu.popup(self._clickPos)

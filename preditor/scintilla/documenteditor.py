@@ -157,6 +157,23 @@ class DocumentEditor(QsciScintilla):
         self.uiCopySpaceIndentationACT.triggered.connect(self.copySpaceIndentation)
         self.addAction(self.uiCopySpaceIndentationACT)
 
+        iconcomment = QIcon(resourcePath('img/comment-edit.png'))
+        self.uiCommentToggleACT = QAction(iconcomment, 'Comment Toggle', self)
+        self.uiCommentToggleACT.setShortcut("Ctrl+/")
+        self.uiCommentToggleACT.triggered.connect(self.commentToggle)
+        self.addAction(self.uiCommentToggleACT)
+
+        # These actions are also shown in menus outside of this widget, like the
+        # LoggerWindow's Workbox menu. Only trigger their shortcuts when this
+        # editor has focus, otherwise they would steal the keys from other widgets.
+        for act in (
+            self.uiCopyACT,
+            self.uiCopyLstripACT,
+            self.uiCopySpaceIndentationACT,
+            self.uiCommentToggleACT,
+        ):
+            act.setShortcutContext(Qt.ShortcutContext.WidgetShortcut)
+
         # Update keyboard shortcuts that come with QsciScintilla
         commands = self.standardCommands()
         # Remove the Ctrl+/ "Move left one word part" shortcut so it can be used to
@@ -1338,7 +1355,7 @@ class DocumentEditor(QsciScintilla):
                         submenu.setObjectName('uiSpellCheckMENU')
                         wordSuggestionList = self.__speller__.suggest(word)
                         for wordSuggestion in wordSuggestionList:
-                            act = submenu.addAction(wordSuggestion)
+                            submenu.addAction(wordSuggestion)
                         submenu.triggered.connect(self.correctSpelling)
                         addmenu = menu.addAction('Add %s to dictionary' % word)
                         addmenu.triggered.connect(partial(self.addWordToDict, word))
@@ -1349,6 +1366,29 @@ class DocumentEditor(QsciScintilla):
                         wordStartPosition += lengthWord
                 wordStartPosition += lengthSpace
 
+        self.populateEditMenu(menu)
+
+        if popup:
+            # A new menu is built every time, delete it once it's closed. The
+            # deletion is deferred so the chosen action is still triggered.
+            menu.aboutToHide.connect(menu.deleteLater)
+            menu.popup(self._clickPos)
+        return menu
+
+    def populateEditMenu(self, menu):
+        """Add the actions for editing this document's text to menu.
+
+        This is used to build the right click menu, and to populate menus that
+        live outside of this widget like the LoggerWindow's Workbox menu, so it
+        must not depend on the right click position.
+
+        Any actions that have shortcuts must either be actions added to this
+        widget(so the shortcut is handled once), or use a shortcut context that
+        prevents the shortcut from being triggered from the menu.
+
+        Args:
+            menu (QMenu): The menu to add the actions to.
+        """
         act = menu.addAction('Goto')
         # act.setShortcut('Ctrl+G')
         act.triggered.connect(self.goToLine)
@@ -1370,35 +1410,25 @@ class DocumentEditor(QsciScintilla):
 
         menu.addSeparator()
 
+        # Cut and paste are handled by QsciScintilla's key bindings. The shortcut
+        # is only set so it is shown in the menu, WidgetShortcut prevents the
+        # menu from triggering it.
         act = menu.addAction('Cut')
         act.triggered.connect(self.cut)
         act.setShortcut('Ctrl+X')
+        act.setShortcutContext(Qt.ShortcutContext.WidgetShortcut)
         act.setIcon(QIcon(resourcePath('img/content-cut.png')))
 
-        act = menu.addAction('Copy')
-        act.triggered.connect(self.copy)
-        act.setShortcut('Ctrl+C')
-        act.setIcon(QIcon(resourcePath('img/content-copy.png')))
+        menu.addAction(self.uiCopyACT)
 
         copyMenu = menu.addMenu('Advanced Copy')
-
-        # Note: I cant use the actions defined above because they end up getting garbage
-        # collected
-        iconlstrip = QIcon(resourcePath('img/content-duplicate.png'))
-        act = QAction(iconlstrip, 'Copy lstrip', copyMenu)
-        act.setShortcut('Ctrl+Shift+C')
-        act.triggered.connect(self.copyLstrip)
-        copyMenu.addAction(act)
-
-        icon = QIcon(resourcePath('img/content-copy.png'))
-        act = QAction(icon, 'Copy Tabs to Spaces', copyMenu)
-        act.setShortcut('Ctrl+Shift+Space')
-        act.triggered.connect(self.copySpaceIndentation)
-        copyMenu.addAction(act)
+        copyMenu.addAction(self.uiCopyLstripACT)
+        copyMenu.addAction(self.uiCopySpaceIndentationACT)
 
         act = menu.addAction('Paste')
         act.triggered.connect(self.paste)
         act.setShortcut('Ctrl+V')
+        act.setShortcutContext(Qt.ShortcutContext.WidgetShortcut)
         act.setIcon(QIcon(resourcePath('img/content-paste.png')))
 
         menu.addSeparator()
@@ -1408,12 +1438,7 @@ class DocumentEditor(QsciScintilla):
         act.setIcon(QIcon(resourcePath('img/content-copy.png')))
 
         menu.addSeparator()
-
-        act = menu.addAction('Comment Toggle')
-        act.triggered.connect(self.commentToggle)
-        act.setShortcut("Ctrl+/")
-        act.setIcon(QIcon(resourcePath('img/comment-edit.png')))
-
+        menu.addAction(self.uiCommentToggleACT)
         menu.addSeparator()
 
         act = menu.addAction('To Lowercase')
@@ -1448,10 +1473,6 @@ class DocumentEditor(QsciScintilla):
         act.triggered.connect(self.setIndentationsUseTabs)
         act.setCheckable(True)
         act.setChecked(self.indentationsUseTabs())
-
-        if popup:
-            menu.popup(self._clickPos)
-        return menu
 
     def showEvent(self, event):
         super(DocumentEditor, self).showEvent(event)

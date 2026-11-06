@@ -399,6 +399,8 @@ class GroupTabWidget(OneTabWidget):
                     existing_editor_info=existing_by_id.pop(workbox_id, None),
                     orphaned_by_instance=orphaned_by_instance,
                     tempfile=tempfile,
+                    # Create the editor when it's first shown, for faster startup.
+                    lazy=True,
                 )
                 tab_widget, editor = self.add_new_tab(
                     group_name, title=name, prefs=localprefs
