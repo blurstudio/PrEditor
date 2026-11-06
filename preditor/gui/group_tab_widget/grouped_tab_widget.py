@@ -5,6 +5,7 @@ from Qt.QtWidgets import QMessageBox, QToolButton
 
 from ...prefs import VersionTypes
 from ..drag_tab_bar import DragTabBar
+from ..workbox_mixin import LazyWorkbox
 from ..workbox_text_edit import WorkboxTextEdit
 from .one_tab_widget import OneTabWidget
 
@@ -158,15 +159,21 @@ class GroupedTabWidget(OneTabWidget):
         kwargs = self.editor_kwargs if self.editor_kwargs else {}
         editor = None
         orphaned_by_instance = False
+        lazy = False
         if prefs:
             editor_info = prefs.pop("existing_editor_info", None)
             if editor_info:
                 editor = editor_info[0]
             orphaned_by_instance = prefs.pop("orphaned_by_instance", False)
+            lazy = prefs.pop("lazy", False)
         else:
             prefs = {}
 
-        if editor:
+        if isinstance(editor, LazyWorkbox):
+            # Still not shown, it loads the latest version when it is.
+            editor.__set_filename__(prefs.get("filename", None))
+            editor.__set_backup_file__(prefs.get("backup_file", None))
+        elif editor:
             editor.__load_workbox_version_text__(VersionTypes.Last)
 
             editor.__set_last_saved_text__(editor.__text__())
@@ -177,10 +184,14 @@ class GroupedTabWidget(OneTabWidget):
 
             editor.__determine_been_changed_by_instance__()
             self.window().setWorkboxFontBasedOnConsole(editor)
+        elif lazy:
+            editor = LazyWorkbox(parent=self, core_name=self.core_name, **prefs)
         else:
             editor = self.editor_cls(
                 parent=self, core_name=self.core_name, **prefs, **kwargs
             )
+            if hasattr(self.window(), "applyWorkboxOptions"):
+                self.window().applyWorkboxOptions(editor)
         editor.__set_orphaned_by_instance__(orphaned_by_instance)
         return editor, title
 

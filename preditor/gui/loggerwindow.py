@@ -627,7 +627,8 @@ class LoggerWindow(Window):
         if show and workbox:
             workbox.__show__()
 
-        return workbox
+        # Return the real editor if a LazyWorkbox was replaced by one.
+        return getattr(workbox, '_lazy_editor', None) or workbox
 
     def workbox_for_id(self, workbox_id, show=False, visible=False):
         """Used to find a workbox for a given id.
@@ -655,7 +656,8 @@ class LoggerWindow(Window):
                 group = self.uiWorkboxTAB.widget(grp_idx)
                 group.setCurrentIndex(tab_idx)
 
-        return workbox
+        # Return the real editor if a LazyWorkbox was replaced by one.
+        return getattr(workbox, '_lazy_editor', None) or workbox
 
     def run_first_workbox(self):
         workbox = self.uiWorkboxTAB.widget(0).widget(0)
@@ -2255,6 +2257,15 @@ class LoggerWindow(Window):
             workbox.__set_indentations_use_tabs__(
                 self.uiIndentationsTabsCHK.isChecked()
             )
+
+    def applyWorkboxOptions(self, workbox):
+        """Apply the current workbox options to a newly created workbox."""
+        workbox.__set_auto_complete_enabled__(
+            self.uiWorkboxAutoCompleteEnabledCHK.isChecked()
+        )
+        workbox.__set_copy_indents_as_spaces__(self.uiCopyTabsToSpacesCHK.isChecked())
+        workbox.__set_indentations_use_tabs__(self.uiIndentationsTabsCHK.isChecked())
+        self.setWorkboxFontBasedOnConsole(workbox)
 
     @Slot()
     def updateRepaintDelay(self):
